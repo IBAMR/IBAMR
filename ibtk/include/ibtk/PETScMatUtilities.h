@@ -20,7 +20,7 @@
 
 #include <ibtk/config.h>
 
-#include <ibtk/KernelConcepts.h>
+#include <ibtk/IBKernelConcepts.h>
 #include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
@@ -133,6 +133,56 @@ public:
                                                  VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * side-centered IB interpolation operator for the provided kernel function.
+     *
+     * \warning This routine does not properly handle delta functions for which
+     * interp_stencil is odd, nor does it properly handle physical boundary
+     * conditions.
+     */
+    static void constructPatchLevelSCInterpOp(Mat& mat,
+                                              void (*interp_fcn)(double r_lower, double* w),
+                                              int interp_stencil,
+                                              Vec& X_vec,
+                                              const std::vector<int>& num_dofs_per_proc,
+                                              int dof_index_idx,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+    /*!
+     * \brief Standard one-dimensional Peskin 4-pt delta function.
+     *
+     * \param r Normalized distance (by grid space h) between the IB point and
+     * the lowermost stencil location.
+     *
+     * \param w Weights as a function of (normalized) distance between the IB
+     * point and stencil locations. The first entry corresponds to the distance
+     * \f$ r_0 = r \f$ between the IB point and lowermost stencil location. The
+     * next normalized distance is taken as \f$ r_1 = r_0 + 1 \f$ and so on.
+     */
+    static void ib_4_interp_fcn(const double r, double* const w)
+    {
+        const double q = std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
+        w[0] = 0.125 * (5.0 - 2.0 * r - q);
+        w[1] = 0.125 * (5.0 - 2.0 * r + q);
+        w[2] = 0.125 * (-1.0 + 2.0 * r + q);
+        w[3] = 0.125 * (-1.0 + 2.0 * r - q);
+        return;
+    } // ib_4_interp_fcn
+
+    static const int ib_4_interp_stencil = 4;
+
+    /*!
+     * \brief Standard one-dimensional Piecewise linear interpolation function.
+     */
+    static void pwl_interp_fcn(const double r, double* const w)
+    {
+        w[0] = 1.0 - r;
+        w[1] = r;
+        return;
+    } // pwl_interp_fcn
+
+    static const int pwl_interp_stencil = 2;
+
+    /*!
      * \brief Construct a matrix mapping side-centered velocity on patch_level to IB points.
      *
      * X_vec contains consecutive NDIM coordinates for each IB point and
@@ -142,15 +192,18 @@ public:
      * box, and local index data must cover the stencils of local IB points.
      * Insufficient DOF ghost storage is a fatal error.
      *
-     * Evaluator must satisfy TensorKernel. Each r[d] uses the scalar-coordinate
-     * convention documented in Kernels. The evaluator and X_vec are borrowed
-     * for this call.
+     * Axis selects the side-normal coordinate. With data centering included in
+     * the grid coordinate q, the first stencil index is floor(q+1/2)-(N-1)/2
+     * for odd width N. For even N it is floor(q)-N/2+1 in the normal direction
+     * and ceil(q)-N/2 in other directions. The evaluator receives r = q minus
+     * the first stencil index.
+     * The evaluator and X_vec are borrowed for this call.
      *
      * An existing mat is destroyed and replaced; the caller owns the new matrix.
      *
      * \warning Physical boundary conditions are not handled.
      */
-    template <TensorKernel Evaluator>
+    template <IBKernelEvaluatorCartesian Evaluator>
     static void constructPatchLevelSCInterpOp(Mat& mat,
                                               const Evaluator& evaluator,
                                               Vec X_vec,
@@ -238,7 +291,7 @@ private:
     };
 
     /*! \brief Assemble matrix rows for one velocity component. */
-    template <int Axis, TensorKernel Evaluator>
+    template <int Axis, IBKernelEvaluatorCartesian Evaluator>
     static void construct_sc_interp_op_axis(SCInterpOpData& data, const Evaluator& evaluator);
 
     /*!

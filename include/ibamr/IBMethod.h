@@ -28,7 +28,6 @@
 
 #include <ibtk/LInitStrategy.h>
 #include <ibtk/LSiloDataWriter.h>
-#include <ibtk/SCInterpolationOperator.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
@@ -226,9 +225,6 @@ public:
     /*!
      * Update the positions used for the "fixed" interpolation and spreading
      * operators.
-     *
-     * Enable fixed operators with setUseFixedLEOperators(true) before calling
-     * preprocessIntegrateData(), then call this function after preprocessing.
      */
     void updateFixedLEOperators() override;
 
@@ -314,12 +310,11 @@ public:
         double data_time) override;
 
     /*!
-     * \copydoc IBImplicitStrategy::constructInterpOp()
-     *
-     * Uses the coupling positions at data_time on the finest hierarchy level.
+     * Construct the IB interpolation operator.
      */
     void constructInterpOp(Mat& J,
-                           const IBTK::SCInterpolationOperator& operation,
+                           void (*spread_fnc)(const double, double*),
+                           int stencil_width,
                            const std::vector<int>& num_dofs_per_proc,
                            int dof_index_idx,
                            double data_time) override;

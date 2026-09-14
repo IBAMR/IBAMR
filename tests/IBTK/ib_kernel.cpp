@@ -12,10 +12,10 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/IBKernel.h>
+#include <ibtk/IBKernelEvaluatorTensorProduct.h>
 #include <ibtk/IBKernelTensorProduct.h>
-#include <ibtk/IBKernelTensorProductEvaluator.h>
 #include <ibtk/IBTKInit.h>
-#include <ibtk/kernels.h>
+#include <ibtk/ib_kernels.h>
 
 #include <tbox/Utilities.h>
 
@@ -52,21 +52,21 @@ struct FractionalExtentWeights
 };
 
 template <>
-struct IBTK::KernelWeightTraits<RuntimeExtentWeights>
+struct IBTK::IBKernelWeightsTraits<RuntimeExtentWeights>
 {
     using value_type = double;
     static std::size_t extent;
 };
 
 template <>
-struct IBTK::KernelWeightTraits<FractionalExtentWeights>
+struct IBTK::IBKernelWeightsTraits<FractionalExtentWeights>
 {
     using value_type = double;
     static constexpr double extent = 2.5;
 };
 
-static_assert(!IBTK::KernelWeights<RuntimeExtentWeights>);
-static_assert(!IBTK::KernelWeights<FractionalExtentWeights>);
+static_assert(!IBTK::IBKernelWeights<RuntimeExtentWeights>);
+static_assert(!IBTK::IBKernelWeights<FractionalExtentWeights>);
 
 namespace
 {
@@ -74,20 +74,55 @@ constexpr std::size_t ENCODED_BLOCK_COUNT = 2;
 
 struct NonConstScalar
 {
-    using Weights = std::array<double, 2>;
-    Weights operator()(double);
+    std::array<double, 2> operator()(double);
 };
 
 struct BorrowedScalar
 {
-    using Weights = std::array<double, 2>;
-    const Weights& operator()(double) const;
+    const std::array<double, 2>& operator()(double) const;
 };
 
 struct EmptyScalar
 {
-    using Weights = std::array<double, 0>;
-    Weights operator()(double) const;
+    std::array<double, 0> operator()(double) const;
+};
+
+struct ImmovableScalar
+{
+    ImmovableScalar() = default;
+    ImmovableScalar(const ImmovableScalar&) = delete;
+    ImmovableScalar(ImmovableScalar&&) = delete;
+    std::array<double, 2> operator()(double) const;
+};
+
+struct ExplicitConstructionScalar
+{
+    explicit ExplicitConstructionScalar(double value) : value(value)
+    {
+    }
+    explicit ExplicitConstructionScalar(const ExplicitConstructionScalar&) = default;
+    explicit ExplicitConstructionScalar(ExplicitConstructionScalar&&) = default;
+    std::array<double, 1> operator()(double) const
+    {
+        return { value };
+    }
+    double value;
+};
+
+struct FloatScalar
+{
+    std::array<float, 1> operator()(double) const;
+};
+
+struct RvalueOnlyScalar
+{
+    std::array<double, 1> operator()(double&&) const;
+};
+
+template <class Normal, class Tangential>
+concept HasTensorProduct = requires
+{
+    typename IBTK::IBKernelEvaluatorTensorProduct<Normal, Tangential>;
 };
 
 struct DynamicWidths
@@ -117,21 +152,36 @@ struct TensorShape
     std::array<double, Count> evaluate(const std::array<double, NDIM>&) const;
 };
 
-static_assert(IBTK::ScalarKernel<IBTK::Kernels::IB3>);
-static_assert(IBTK::ScalarKernel<IBTK::Kernels::IB4>);
-static_assert(IBTK::ScalarKernel<IBTK::Kernels::IB5>);
-static_assert(IBTK::ScalarKernel<IBTK::Kernels::IB6>);
-static_assert(IBTK::ScalarKernel<IBTK::Kernels::BSpline<9>>);
-static_assert(!IBTK::ScalarKernel<NonConstScalar>);
-static_assert(!IBTK::ScalarKernel<BorrowedScalar>);
-static_assert(!IBTK::ScalarKernel<EmptyScalar>);
-static_assert(!IBTK::ScalarKernel<int>);
-static_assert(IBTK::TensorKernel<IBTK::IBKernelTensorProductEvaluator<IBTK::Kernels::IB4>>);
-static_assert(IBTK::TensorKernel<TensorShape<1, 1>>);
-static_assert(!IBTK::TensorKernel<DynamicWidths>);
-static_assert(!IBTK::TensorKernel<TensorShape<0, 1>>);
-static_assert(!IBTK::TensorKernel<TensorShape<2, 1>>);
-static_assert(!IBTK::TensorKernel<int>);
+static_assert(IBTK::IBKernelEvaluatorScalar<IBTK::IBKernels::IB3>);
+static_assert(IBTK::IBKernelEvaluatorScalar<IBTK::IBKernels::IB4>);
+static_assert(IBTK::IBKernelEvaluatorScalar<IBTK::IBKernels::IB5>);
+static_assert(IBTK::IBKernelEvaluatorScalar<IBTK::IBKernels::IB6>);
+static_assert(IBTK::IBKernelEvaluatorScalar<IBTK::IBKernels::BSpline<9>>);
+static_assert(!IBTK::IBKernelEvaluatorScalar<NonConstScalar>);
+static_assert(!IBTK::IBKernelEvaluatorScalar<BorrowedScalar>);
+static_assert(!IBTK::IBKernelEvaluatorScalar<EmptyScalar>);
+static_assert(!IBTK::IBKernelEvaluatorScalar<int>);
+static_assert(!IBTK::IBKernelEvaluatorScalar<RvalueOnlyScalar>);
+static_assert(IBTK::IBKernelEvaluatorScalar<ImmovableScalar>);
+static_assert(IBTK::IBKernelEvaluatorScalar<const IBTK::IBKernels::IB4&>);
+static_assert(
+    !std::is_constructible_v<IBTK::IBKernelEvaluatorTensorProduct<ImmovableScalar>, ImmovableScalar, ImmovableScalar>);
+static_assert(requires {
+    IBTK::IBKernelEvaluatorTensorProduct{ ExplicitConstructionScalar{ 0.5 } };
+    IBTK::IBKernelEvaluatorTensorProduct{ ExplicitConstructionScalar{ 0.5 }, ExplicitConstructionScalar{ 0.25 } };
+});
+static_assert(HasTensorProduct<FloatScalar, FloatScalar>);
+static_assert(!HasTensorProduct<FloatScalar, IBTK::IBKernels::IB4>);
+static_assert(!HasTensorProduct<IBTK::IBKernels::IB4, FloatScalar>);
+static_assert(!HasTensorProduct<int, FloatScalar>);
+static_assert(!HasTensorProduct<IBTK::IBKernels::IB4&, IBTK::IBKernels::IB4&>);
+static_assert(!HasTensorProduct<const IBTK::IBKernels::IB4&, const IBTK::IBKernels::IB4&>);
+static_assert(IBTK::IBKernelEvaluatorCartesian<IBTK::IBKernelEvaluatorTensorProduct<IBTK::IBKernels::IB4>>);
+static_assert(IBTK::IBKernelEvaluatorCartesian<TensorShape<1, 1>>);
+static_assert(!IBTK::IBKernelEvaluatorCartesian<DynamicWidths>);
+static_assert(!IBTK::IBKernelEvaluatorCartesian<TensorShape<0, 1>>);
+static_assert(!IBTK::IBKernelEvaluatorCartesian<TensorShape<2, 1>>);
+static_assert(!IBTK::IBKernelEvaluatorCartesian<int>);
 
 std::vector<std::string>
 spellings(const std::string& name)
@@ -161,12 +211,156 @@ copy_product(IBKernelTensorProduct kernel)
     return kernel;
 }
 
+template <class Evaluator, std::size_t N>
+double
+sample_error(const Evaluator& evaluator, double r, const std::array<double, N>& expected)
+{
+    const std::array<double, N> weights = evaluator(r);
+    static_assert(std::tuple_size<decltype(weights)>::value == N, "Natural stencil size changed");
+    double error = 0.0;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        const double entry_error = std::abs(weights[i] - expected[i]);
+        if (!(entry_error <= 1.0e-12))
+        {
+            TBOX_ERROR("Kernel sample error = " << entry_error << '\n');
+        }
+        error = std::max(error, entry_error);
+    }
+    return error;
+}
+
+template <class Evaluator>
+double
+moment_error(const Evaluator& evaluator)
+{
+    constexpr int width = std::tuple_size<decltype(evaluator(0.0))>::value;
+    double error = 0.0;
+    for (int k = 0; k < 64; ++k)
+    {
+        const double r = 0.5 * width - 1.0 + k / 64.0;
+        const std::array<double, width> w = evaluator(r);
+        double sum = 0.0, moment = 0.0;
+        for (int i = 0; i < width; ++i)
+        {
+            sum += w[i];
+            moment += i * w[i];
+        }
+        const double sum_error = std::abs(sum - 1.0), first_moment_error = std::abs(moment - r);
+        if (!(sum_error <= 1.0e-12 && first_moment_error <= 1.0e-12))
+        {
+            TBOX_ERROR("Kernel moment errors = " << sum_error << ", " << first_moment_error << '\n');
+        }
+        error = std::max({ error, sum_error, first_moment_error });
+    }
+    return error;
+}
+
+int
+check_kernels()
+{
+    using namespace IBTK;
+    const double a = (2.0 - std::sqrt(2.0)) / 8.0, b = (2.0 + std::sqrt(2.0)) / 8.0;
+    const double K6 = (59.0 - std::sqrt(261.0)) / 60.0;
+    double error = std::max(
+        { sample_error(IBKernels::BSpline<1>{}, -0.25, std::array<double, 1>{ 1.0 }),
+          sample_error(IBKernels::BSpline<2>{}, 0.25, std::array<double, 2>{ 0.75, 0.25 }),
+          sample_error(IBKernels::BSpline<3>{}, 1.0, std::array<double, 3>{ 0.125, 0.75, 0.125 }),
+          sample_error(IBKernels::BSpline<4>{}, 1.5, std::array<double, 4>{ 1.0 / 48, 23.0 / 48, 23.0 / 48, 1.0 / 48 }),
+          sample_error(
+              IBKernels::BSpline<5>{}, 1.5, std::array<double, 5>{ 1.0 / 24, 11.0 / 24, 11.0 / 24, 1.0 / 24, 0 }),
+          sample_error(IBKernels::BSpline<6>{},
+                       2.5,
+                       std::array<double, 6>{
+                           1.0 / 3840, 237.0 / 3840, 1682.0 / 3840, 1682.0 / 3840, 237.0 / 3840, 1.0 / 3840 }),
+          sample_error(IBKernels::IB3{}, 1.0, std::array<double, 3>{ 1.0 / 6, 2.0 / 3, 1.0 / 6 }),
+          sample_error(IBKernels::IB4{}, 1.5, std::array<double, 4>{ a, b, b, a }),
+          sample_error(
+              IBKernels::IB5{},
+              1.5,
+              std::array<double, 5>{
+                  0.0612224005711746881, 0.438777599428825312, 0.438777599428825312, 0.0612224005711746881, 0 }),
+          sample_error(
+              IBKernels::IB6{},
+              3.0,
+              std::array<double, 6>{ 0, -1.0 / 16 + K6 / 8, 0.25, 5.0 / 8 - K6 / 4, 0.25, -1.0 / 16 + K6 / 8 }) });
+    // Exact rational values from the truncated-power definition at r = 11/4.
+    error = std::max(error,
+                     sample_error(IBKernels::BSpline<7>{},
+                                  2.75,
+                                  std::array<double, 7>{ 729.0 / 2949120,
+                                                         112546.0 / 2949120,
+                                                         963327.0 / 2949120,
+                                                         1434812.0 / 2949120,
+                                                         422087.0 / 2949120,
+                                                         15618.0 / 2949120,
+                                                         1.0 / 2949120 }));
+    // Exact rational values from the truncated-power definition at r = 7/2.
+    error = std::max(error,
+                     sample_error(IBKernels::BSpline<8>{},
+                                  3.5,
+                                  std::array<double, 8>{ 1.0 / 645120,
+                                                         2179.0 / 645120,
+                                                         60657.0 / 645120,
+                                                         259723.0 / 645120,
+                                                         259723.0 / 645120,
+                                                         60657.0 / 645120,
+                                                         2179.0 / 645120,
+                                                         1.0 / 645120 }));
+    // Independently evaluated Fortran definitions, with natural odd-width
+    // coordinates on either side of the nearest-center change.
+    error = std::max({ error,
+                       sample_error(IBKernels::IB5{},
+                                    2.25,
+                                    std::array<double, 5>{ 0.000539644595320609716,
+                                                           0.128737522475479593,
+                                                           0.514244366143986938,
+                                                           0.333140121904304905,
+                                                           0.0233383448809079538 }),
+                       sample_error(IBKernels::IB5{},
+                                    1.75,
+                                    std::array<double, 5>{ 0.0233383448809079538,
+                                                           0.333140121904304905,
+                                                           0.514244366143986938,
+                                                           0.128737522475479593,
+                                                           0.000539644595320609716 }),
+                       sample_error(IBKernels::IB6{},
+                                    2.25,
+                                    std::array<double, 6>{ 0.00965617417165844278,
+                                                           0.174648694040214713,
+                                                           0.431221688477088836,
+                                                           0.325168575099164853,
+                                                           0.0591221373512527211,
+                                                           0.000182730860620434541 }),
+                       sample_error(IBKernels::IB6{},
+                                    2.75,
+                                    std::array<double, 6>{ 0.000182730860620434541,
+                                                           0.0591221373512527211,
+                                                           0.325168575099164853,
+                                                           0.431221688477088836,
+                                                           0.174648694040214713,
+                                                           0.00965617417165844278 }) });
+    const double moments = std::max({ moment_error(IBKernels::BSpline<2>{}),
+                                      moment_error(IBKernels::BSpline<3>{}),
+                                      moment_error(IBKernels::BSpline<4>{}),
+                                      moment_error(IBKernels::BSpline<5>{}),
+                                      moment_error(IBKernels::BSpline<6>{}),
+                                      moment_error(IBKernels::BSpline<7>{}),
+                                      moment_error(IBKernels::BSpline<8>{}),
+                                      moment_error(IBKernels::IB3{}),
+                                      moment_error(IBKernels::IB4{}),
+                                      moment_error(IBKernels::IB5{}),
+                                      moment_error(IBKernels::IB6{}) });
+
+    return error > 1.0e-12 || moments > 1.0e-12;
+}
+
 template <int Axis>
 double
 tensor_product_error()
 {
     using namespace IBTK;
-    const IBKernelTensorProductEvaluator product{ Kernels::IB4{}, Kernels::IB3{} };
+    const IBKernelEvaluatorTensorProduct product{ IBKernels::IB4{}, IBKernels::IB3{} };
     std::array<double, NDIM> r;
     r.fill(1.0);
     r[Axis] = 1.5;
@@ -201,12 +395,20 @@ double
 check_tensor_products()
 {
     using namespace IBTK;
+    TBOX_ASSERT(check_kernels() == 0);
+    const IBKernelEvaluatorTensorProduct explicit_copy{ ExplicitConstructionScalar{ 0.5 } };
+    const IBKernelEvaluatorTensorProduct explicit_moves{ ExplicitConstructionScalar{ 0.25 },
+                                                         ExplicitConstructionScalar{ 0.5 } };
+    const std::array<double, 1> copied = explicit_copy.template evaluate<0>({});
+    const std::array<double, 1> moved = explicit_moves.template evaluate<NDIM - 1>({});
+    TBOX_ASSERT(copied[0] == std::ldexp(1.0, -NDIM));
+    TBOX_ASSERT(moved[0] == std::ldexp(1.0, -NDIM - 1));
     double error = std::max(tensor_product_error<0>(), tensor_product_error<1>());
 #if NDIM == 3
     error = std::max(error, tensor_product_error<2>());
 #endif
-    const IBKernelTensorProductEvaluator bspline3{ Kernels::BSpline<3>{} };
-    const IBKernelTensorProductEvaluator bspline5{ Kernels::BSpline<5>{} };
+    const IBKernelEvaluatorTensorProduct bspline3{ IBKernels::BSpline<3>{} };
+    const IBKernelEvaluatorTensorProduct bspline5{ IBKernels::BSpline<5>{} };
     std::array<double, NDIM> r;
     r.fill(1.0);
     const std::array<double, NDIM == 2 ? 9 : 27> weights3 = bspline3.template evaluate<0>(r);

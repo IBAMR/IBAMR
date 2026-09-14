@@ -15,14 +15,14 @@
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
-#include <ibtk/IBKernelTensorProductEvaluator.h>
+#include <ibtk/IBKernelEvaluatorTensorProduct.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/ib_kernels.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/interpolation_utilities.h>
-#include <ibtk/kernels.h>
 
 #include <tbox/Utilities.h>
 
@@ -42,46 +42,70 @@
 
 #include <ibtk/app_namespaces.h>
 
-struct FloatWeights
+struct LinearIBKernel
 {
-    std::array<float, NDIM == 2 ? 6 : 12> values;
-    float operator[](std::size_t i) const
+    IBKernels::Weights<double, 2> operator()(const double& r) const
     {
-        return values[i];
+        return { 1.0 - r, r };
+    }
+    IBKernels::Weights<double, 2> operator()(double&) const = delete;
+    IBKernels::Weights<double, 2> operator()(double&&) const = delete;
+};
+
+static_assert(IBKernelEvaluatorScalar<LinearIBKernel>);
+
+template <class T>
+struct ReorderedWeights
+{
+    std::array<T, NDIM == 2 ? 6 : 12> values;
+    T operator[](std::size_t i) const
+    {
+        return values[values.size() - 1 - i];
+    }
+    // Raw storage intentionally differs from the logical coefficient order.
+    const T* data() const
+    {
+        return values.data();
     }
 };
 
-template <>
-struct IBTK::KernelWeightTraits<FloatWeights>
+template <class T>
+struct IBTK::IBKernelWeightsTraits<ReorderedWeights<T>>
 {
-    using value_type = float;
+    using value_type = T;
     static constexpr std::size_t extent = NDIM == 2 ? 6 : 12;
 };
 
-struct FloatTensorKernel
+template <class T>
+struct ReorderedTensorKernel
 {
     template <int Axis>
     static constexpr std::array<std::size_t, NDIM> get_stencil_widths()
     {
-        return IBKernelTensorProductEvaluator<Kernels::BSpline<3>,
-                                              Kernels::BSpline<2>>::template get_stencil_widths<Axis>();
+        return IBKernelEvaluatorTensorProduct<IBKernels::BSpline<3>,
+                                              LinearIBKernel>::template get_stencil_widths<Axis>();
     }
 
     template <int Axis>
-    FloatWeights evaluate(const std::array<double, NDIM>& r) const
+    ReorderedWeights<T> evaluate(const std::array<double, NDIM>& r) const
     {
-        const IBKernelTensorProductEvaluator product{ Kernels::BSpline<3>{}, Kernels::BSpline<2>{} };
-        const std::array<double, FloatWeights{}.values.size()> values = product.template evaluate<Axis>(r);
-        FloatWeights result;
+        const IBKernelEvaluatorTensorProduct product{ IBKernels::BSpline<3>{}, LinearIBKernel{} };
+        const std::array<double, IBKernelWeightsTraits<ReorderedWeights<T>>::extent> values =
+            product.template evaluate<Axis>(r);
+        ReorderedWeights<T> result;
         for (std::size_t i = 0; i < values.size(); ++i)
         {
-            result.values[i] = static_cast<float>(values[i]);
+            result.values[values.size() - 1 - i] = static_cast<T>(values[i]);
         }
         return result;
     }
+
+    template <int Axis>
+    ReorderedWeights<T> evaluate(std::array<double, NDIM>&) const = delete;
 };
 
-static_assert(TensorKernel<FloatTensorKernel>);
+static_assert(IBKernelEvaluatorCartesian<ReorderedTensorKernel<float>>);
+static_assert(IBKernelEvaluatorCartesian<ReorderedTensorKernel<double>>);
 
 double
 exact_fcn(const VectorNd& x)
@@ -94,11 +118,11 @@ exact_fcn(const VectorNd& x)
 namespace
 {
 int
-check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeometry<NDIM>> geometry)
+check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeometry<NDIM>> geometry, bool periodic)
 {
     VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
     Pointer<SideVariable<NDIM, int>> indices = new SideVariable<NDIM, int>("matrix_indices");
-    const int dof = variables->registerVariableAndContext(indices, variables->getContext("matrix"), 2);
+    const int dof = variables->registerVariableAndContext(indices, variables->getContext("matrix"), periodic ? 4 : 2);
     level->allocatePatchData(dof);
     std::vector<int> counts;
     PETScVecUtilities::constructPatchLevelDOFIndices(counts, dof, level);
@@ -131,10 +155,58 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
     ierr = VecRestoreArray(X, &coordinates);
     IBTK_CHKERRQ(ierr);
     Mat matrix = nullptr;
+    if (periodic)
+    {
+        // A width-eight stencil wraps around the four-cell periodic domain.
+        // Contributions mapping to the same column must accumulate.
+        const IBKernelEvaluatorTensorProduct kernel{ IBKernels::BSpline<8>{} };
+        double error = 0.0;
+        for (int cycle = 0; cycle < 2; ++cycle)
+        {
+            PETScMatUtilities::constructPatchLevelSCInterpOp(matrix, kernel, X, counts, dof, level);
+            Vec field = nullptr, result = nullptr;
+            ierr = MatCreateVecs(matrix, &field, &result);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecSet(field, 1.0);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatMult(matrix, field, result);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecShift(result, -1.0);
+            IBTK_CHKERRQ(ierr);
+            PetscReal norm;
+            ierr = VecNorm(result, NORM_INFINITY, &norm);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(std::isfinite(norm));
+            error = std::max(error, static_cast<double>(norm));
+            ierr = VecDestroy(&result);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&field);
+            IBTK_CHKERRQ(ierr);
+        }
+        TBOX_ASSERT(std::isfinite(error) && error <= 1.0e-12);
+        plog << "periodic constant error = " << error << '\n';
+        ierr = MatDestroy(&matrix);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&X);
+        IBTK_CHKERRQ(ierr);
+        level->deallocatePatchData(dof);
+        variables->removePatchDataIndex(dof);
+        return 0;
+    }
     PETScMatUtilities::constructPatchLevelSCInterpOp(
-        matrix, IBKernelTensorProductEvaluator{ Kernels::BSpline<3>{}, Kernels::BSpline<2>{} }, X, counts, dof, level);
+        matrix, IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<3>{}, LinearIBKernel{} }, X, counts, dof, level);
     Mat float_matrix = nullptr;
-    PETScMatUtilities::constructPatchLevelSCInterpOp(float_matrix, FloatTensorKernel{}, X, counts, dof, level);
+    PETScMatUtilities::constructPatchLevelSCInterpOp(
+        float_matrix, ReorderedTensorKernel<float>{}, X, counts, dof, level);
+    Mat reordered_matrix = nullptr;
+    PETScMatUtilities::constructPatchLevelSCInterpOp(
+        reordered_matrix, ReorderedTensorKernel<double>{}, X, counts, dof, level);
+    PetscBool equal;
+    ierr = MatEqual(matrix, reordered_matrix, &equal);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(equal);
+    ierr = MatDestroy(&reordered_matrix);
+    IBTK_CHKERRQ(ierr);
     PetscInt first_row, last_row;
     ierr = MatGetOwnershipRange(matrix, &first_row, &last_row);
     IBTK_CHKERRQ(ierr);
@@ -327,7 +399,9 @@ main(int argc, char* argv[])
 
         if (input_db->getBoolWithDefault("matrix_assembly", false))
         {
-            return check_matrix_assembly(patch_hierarchy->getPatchLevel(0), grid_geometry);
+            return check_matrix_assembly(patch_hierarchy->getPatchLevel(0),
+                                         grid_geometry,
+                                         input_db->getBoolWithDefault("periodic_matrix", false));
         }
 
         // Allocate and fill in patch data

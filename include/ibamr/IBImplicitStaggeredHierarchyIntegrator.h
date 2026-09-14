@@ -84,13 +84,6 @@ public:
      * some default values, reads in configuration information from input and
      * restart databases, and registers the integrator object with the restart
      * manager when requested.
-     *
-     * The input key \c jacobian_delta_fcn selects the interpolation kernel used
-     * by the Stokes-IB preconditioner; its default is IB_4. The minimum ghost
-     * width supplied by ib_method_ops must cover this kernel.
-     * With IBMethod, set \c min_ghost_cell_width in its input database
-     * when necessary; for example, BSPLINE_8 requires a width of at least four.
-     * See IBMethod::getMinimumGhostCellWidth().
      */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,

@@ -33,7 +33,7 @@
 
 namespace IBTK
 {
-template <TensorKernel Evaluator>
+template <IBKernelEvaluatorCartesian Evaluator>
 inline void
 PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                                                  const Evaluator& evaluator,
@@ -78,14 +78,14 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     data.assemble();
 }
 
-template <int Axis, TensorKernel Evaluator>
+template <int Axis, IBKernelEvaluatorCartesian Evaluator>
 inline void
 PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evaluator& evaluator)
 {
     using namespace SAMRAI;
     using Values = decltype(std::declval<const Evaluator&>().template evaluate<Axis>(
         std::declval<const std::array<double, NDIM>&>()));
-    constexpr std::size_t nvalues = KernelWeightTraits<Values>::extent;
+    constexpr std::size_t nvalues = IBKernelWeightsTraits<Values>::extent;
     static_assert(nvalues <= static_cast<std::size_t>(std::numeric_limits<PetscInt>::max()));
     for (int point = 0; point < data.d_n_local_points; ++point)
     {
@@ -100,7 +100,7 @@ PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evalu
                 data.d_x_lower[d];
             r[d] = (X[d] - x_lower) / data.d_dx[d];
         }
-        const Values values = evaluator.template evaluate<Axis>(r);
+        const Values values = evaluator.template evaluate<Axis>(std::as_const(r));
 
         std::array<PetscInt, nvalues> columns;
 
@@ -114,11 +114,7 @@ PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evalu
         const PetscInt row = data.d_row_lower + NDIM * point + Axis;
         // Periodic stencil points can share a column; sum their contributions.
         int ierr;
-        if constexpr (requires {
-                          {
-                              values.data()
-                          } -> std::same_as<const PetscScalar*>;
-                      })
+        if constexpr (std::same_as<Values, std::array<PetscScalar, nvalues>>)
         {
             ierr = MatSetValues(
                 data.d_mat, 1, &row, static_cast<PetscInt>(nvalues), columns.data(), values.data(), ADD_VALUES);

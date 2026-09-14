@@ -4,12 +4,12 @@
 // This file is part of IBAMR and is distributed under the 3-clause BSD
 // license. The full text of the license can be found in COPYRIGHT.
 // ---------------------------------------------------------------------
-#ifndef included_IBTK_KernelConcepts_inl
-#define included_IBTK_KernelConcepts_inl
+#ifndef included_IBTK_IBKernelConcepts_inl
+#define included_IBTK_IBKernelConcepts_inl
 
 #include <ibtk/config.h>
 
-#include <ibtk/KernelConcepts.h>
+#include <ibtk/IBKernelConcepts.h>
 
 #include <limits>
 #include <utility>
@@ -18,7 +18,7 @@ namespace IBTK::detail
 {
 template <class T, int Axis>
 constexpr bool
-tensor_kernel_shape()
+ib_kernel_cartesian_shape()
 {
     using Weights =
         decltype(std::declval<const T&>().template evaluate<Axis>(std::declval<const std::array<double, NDIM>&>()));
@@ -32,7 +32,7 @@ tensor_kernel_shape()
         }
         count *= width;
     }
-    return count == KernelWeightTraits<Weights>::extent;
+    return count == IBKernelWeightsTraits<Weights>::extent;
 }
 } // namespace IBTK::detail
 #endif

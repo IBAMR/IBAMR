@@ -11,19 +11,19 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBTK_kernels_inl
-#define included_IBTK_kernels_inl
+#ifndef included_IBTK_ib_kernels_inl
+#define included_IBTK_ib_kernels_inl
 
 #include <ibtk/config.h>
 
-#include <ibtk/kernels.h>
+#include <ibtk/ib_kernels.h>
 
 #include <cmath>
 
 namespace IBTK
 {
 template <std::size_t N>
-requires(N > 0) inline typename Kernels::BSpline<N>::Weights Kernels::BSpline<N>::operator()(const double r) const
+requires(N > 0) inline IBKernels::Weights<double, N> IBKernels::BSpline<N>::operator()(const double r) const
 {
     // Unit-spacing form of the B-spline basis recurrence; see C. de Boor,
     // "On calculating with B-splines", J. Approx. Theory 6 (1972), 50-62,
@@ -36,7 +36,7 @@ requires(N > 0) inline typename Kernels::BSpline<N>::Weights Kernels::BSpline<N>
     // coefficients sum to one. This avoids cancellation between weights
     // and preserves their sum in exact arithmetic.
     const double t = r - 0.5 * (static_cast<double>(N) - 2.0);
-    Weights w = {};
+    IBKernels::Weights<double, N> w = {};
     w[0] = 1.0;
     for (std::size_t degree = 1; degree < N; ++degree)
     {
@@ -53,21 +53,20 @@ requires(N > 0) inline typename Kernels::BSpline<N>::Weights Kernels::BSpline<N>
     return w;
 }
 
-inline Kernels::IB3::Weights
-Kernels::IB3::operator()(const double r) const
+inline IBKernels::Weights<double, 3>
+IBKernels::IB3::operator()(const double r) const
 {
     const double s = r - 1.0;
     const double q = std::sqrt(1.0 - 3.0 * s * s);
     return { (2.0 - 3.0 * s - q) / 6.0, (1.0 + q) / 3.0, (2.0 + 3.0 * s - q) / 6.0 };
 }
 
-inline Kernels::IB4::Weights
-Kernels::IB4::operator()(const double r) const
+inline IBKernels::Weights<double, 4>
+IBKernels::IB4::operator()(const double r) const
 {
-    Weights w;
-    // Match the specialized Fortran recurrence: IB4 symmetry and moment
-    // conditions provide all four weights from one square root, avoiding four
-    // generic pointwise kernel evaluations.
+    IBKernels::Weights<double, 4> w;
+    // Use kernel symmetry and moment conditions to compute all four weights
+    // from one square root.
     const double r0 = r - 1.0;
     const double q = std::sqrt(1.0 + 4.0 * r0 * (1.0 - r0));
     w[0] = 0.125 * (3.0 - 2.0 * r0 - q);
@@ -77,8 +76,8 @@ Kernels::IB4::operator()(const double r) const
     return w;
 }
 
-inline Kernels::IB5::Weights
-Kernels::IB5::operator()(const double r) const
+inline IBKernels::Weights<double, 5>
+IBKernels::IB5::operator()(const double r) const
 {
     static const double K = (38.0 - std::sqrt(69.0)) / 60.0;
     const double r0 = r - 2.0;
@@ -100,10 +99,10 @@ Kernels::IB5::operator()(const double r) const
     };
 }
 
-inline Kernels::IB6::Weights
-Kernels::IB6::operator()(const double r) const
+inline IBKernels::Weights<double, 6>
+IBKernels::IB6::operator()(const double r) const
 {
-    Weights w;
+    IBKernels::Weights<double, 6> w;
     const double rl = 3.0 - r;
     const double r2 = rl * rl;
     const double r3 = r2 * rl;
