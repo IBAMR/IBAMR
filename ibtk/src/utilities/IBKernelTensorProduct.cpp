@@ -151,14 +151,14 @@ IBKernelTensorProduct::canonicalize(std::initializer_list<IBKernel> factors)
 }
 
 IBKernelTensorProduct::CanonicalFactors
-IBKernelTensorProduct::parse_name(const std::string& name)
+IBKernelTensorProduct::parse_name(std::string_view name)
 {
     const std::optional<std::array<unsigned int, 2>> orders = composite_bspline_orders(name);
     if (orders)
     {
         return IBKernelTensorProduct::canonicalize({ bspline_kernel((*orders)[0]), bspline_kernel((*orders)[1]) });
     }
-    return IBKernelTensorProduct::canonicalize({ IBKernel(name) });
+    return IBKernelTensorProduct::canonicalize({ IBKernel(std::string(name)) });
 }
 
 IBKernelTensorProduct::CanonicalFactors
@@ -168,12 +168,7 @@ IBKernelTensorProduct::parse_name(const char* name)
     {
         TBOX_ERROR("Invalid null IB kernel tensor-product name\n");
     }
-    const std::optional<std::array<unsigned int, 2>> orders = composite_bspline_orders(name);
-    if (orders)
-    {
-        return IBKernelTensorProduct::canonicalize({ bspline_kernel((*orders)[0]), bspline_kernel((*orders)[1]) });
-    }
-    return IBKernelTensorProduct::canonicalize({ IBKernel(name) });
+    return parse_name(std::string_view(name));
 }
 
 std::size_t
@@ -200,16 +195,10 @@ IBKernelTensorProduct::operator==(const IBKernelTensorProduct& other) const
     return d_size == other.d_size && std::equal(d_factors.begin(), d_factors.begin() + d_size, other.d_factors.begin());
 }
 
-bool
-IBKernelTensorProduct::operator!=(const IBKernelTensorProduct& other) const
+std::strong_ordering
+IBKernelTensorProduct::operator<=>(const IBKernelTensorProduct& other) const
 {
-    return !(*this == other);
-}
-
-bool
-IBKernelTensorProduct::operator<(const IBKernelTensorProduct& other) const
-{
-    return std::lexicographical_compare(
+    return std::lexicographical_compare_three_way(
         d_factors.begin(), d_factors.begin() + d_size, other.d_factors.begin(), other.d_factors.begin() + other.d_size);
 }
 
@@ -217,24 +206,6 @@ bool
 operator==(const IBKernelTensorProduct& product, const IBKernel& kernel)
 {
     return product.isIsotropic() && product[0] == kernel;
-}
-
-bool
-operator==(const IBKernel& kernel, const IBKernelTensorProduct& product)
-{
-    return product == kernel;
-}
-
-bool
-operator!=(const IBKernelTensorProduct& product, const IBKernel& kernel)
-{
-    return !(product == kernel);
-}
-
-bool
-operator!=(const IBKernel& kernel, const IBKernelTensorProduct& product)
-{
-    return !(kernel == product);
 }
 
 std::ostream&

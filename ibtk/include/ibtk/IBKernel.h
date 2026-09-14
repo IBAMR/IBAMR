@@ -17,6 +17,7 @@
 #include <ibtk/config.h>
 
 #include <array>
+#include <compare>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -81,13 +82,10 @@ public:
     std::string getName() const;
 
     /*! \brief Return whether two kernels have the same name after resolving aliases. */
-    bool operator==(const IBKernel& other) const;
-
-    /*! \brief Return whether two kernels differ. */
-    bool operator!=(const IBKernel& other) const;
+    bool operator==(const IBKernel& other) const = default;
 
     /*! \brief Compare encoded names to order kernels in associative containers. */
-    bool operator<(const IBKernel& other) const;
+    std::strong_ordering operator<=>(const IBKernel& other) const = default;
 
 private:
     //! Maximum number of characters in a canonical kernel name.

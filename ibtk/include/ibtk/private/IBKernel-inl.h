@@ -79,22 +79,5 @@ inline constexpr IBKernel IBKernel::IB_5(IBKernel::from_canonical_name("IB_5"));
 inline constexpr IBKernel IBKernel::IB_6(IBKernel::from_canonical_name("IB_6"));
 inline constexpr IBKernel IBKernel::PIECEWISE_CUBIC(IBKernel::from_canonical_name("PIECEWISE_CUBIC"));
 
-inline bool
-IBKernel::operator==(const IBKernel& other) const
-{
-    return d_name == other.d_name;
-}
-
-inline bool
-IBKernel::operator!=(const IBKernel& other) const
-{
-    return !(*this == other);
-}
-
-inline bool
-IBKernel::operator<(const IBKernel& other) const
-{
-    return d_name < other.d_name;
-}
 } // namespace IBTK
 #endif
