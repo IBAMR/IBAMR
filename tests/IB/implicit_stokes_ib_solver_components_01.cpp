@@ -2664,7 +2664,9 @@ main(int argc, char* argv[])
         Logger::getInstance()->setAbortAppender(abort_appender);
         Pointer<FACPreconditionerStrategy> strategy =
             new StaggeredStokesLevelRelaxationFACOperator("stokes_fac", nullptr, "");
-        StaggeredStokesIBJacobianFACPreconditioner solver("wrong_strategy", strategy, nullptr, "");
+        Pointer<StaggeredStokesIBLevelRelaxationFACOperator> ib_strategy = strategy;
+        TBOX_ASSERT(!ib_strategy);
+        StaggeredStokesIBJacobianFACPreconditioner solver("wrong_strategy", ib_strategy, nullptr, "");
         return 0;
     }
     if (test_case == "operators")
