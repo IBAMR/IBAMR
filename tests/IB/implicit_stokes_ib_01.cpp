@@ -83,7 +83,24 @@ ExplicitMoveEvaluator::evaluate(const std::array<double, NDIM>&) const
     return { 1.0 };
 }
 
+struct ImmovableEvaluator : ExplicitMoveEvaluator
+{
+    ImmovableEvaluator() = default;
+    ImmovableEvaluator(const ImmovableEvaluator&) = delete;
+    ImmovableEvaluator(ImmovableEvaluator&&) = delete;
+};
+
+template <typename Evaluator>
+constexpr bool ACCEPTED_BY_SETTER = requires(IBImplicitStaggeredHierarchyIntegrator & integrator)
+{
+    integrator.setJacobianInterpolationKernel(Evaluator{});
+};
+
 static_assert(IBKernelEvaluatorCartesian<ExplicitMoveEvaluator>);
+static_assert(ACCEPTED_BY_SETTER<ExplicitMoveEvaluator>);
+// Immovable evaluators remain eligible for borrowing, but not for owned storage.
+static_assert(IBKernelEvaluatorCartesian<ImmovableEvaluator>);
+static_assert(!ACCEPTED_BY_SETTER<ImmovableEvaluator>);
 
 [[maybe_unused]] void
 check_explicit_move_construction(IBImplicitStaggeredHierarchyIntegrator& integrator)

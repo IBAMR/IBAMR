@@ -24,6 +24,7 @@ namespace IBAMR
 template <IBTK::IBKernelEvaluatorCartesian Evaluator>
 inline void
 IBImplicitStaggeredHierarchyIntegrator::setJacobianInterpolationKernel(Evaluator evaluator)
+    requires(std::constructible_from<Evaluator, Evaluator&&>)
 {
     if (d_integrator_is_initialized)
     {
@@ -35,6 +36,7 @@ IBImplicitStaggeredHierarchyIntegrator::setJacobianInterpolationKernel(Evaluator
 template <IBTK::IBKernelEvaluatorCartesian Evaluator>
 inline IBImplicitStaggeredHierarchyIntegrator::InterpolationMatrixBuilder
 IBImplicitStaggeredHierarchyIntegrator::make_matrix_builder(Evaluator&& evaluator)
+    requires(std::constructible_from<Evaluator, Evaluator&&>)
 {
     // std::function requires a copyable capture even when the evaluator is move-only.
     auto kernel = std::make_shared<const Evaluator>(std::move(evaluator));

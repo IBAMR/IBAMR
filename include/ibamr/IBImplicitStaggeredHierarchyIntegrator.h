@@ -37,6 +37,7 @@
 #include <IntVector.h>
 #include <SAMRAIVectorReal.h>
 
+#include <concepts>
 #include <functional>
 #include <string>
 
@@ -110,7 +111,7 @@ public:
      * See [the configuration example](../../doc/cmake.md#implicit-ib-interpolation-kernels).
      */
     template <IBTK::IBKernelEvaluatorCartesian Evaluator>
-    void setJacobianInterpolationKernel(Evaluator evaluator);
+    void setJacobianInterpolationKernel(Evaluator evaluator) requires(std::constructible_from<Evaluator, Evaluator&&>);
 
     /*! \brief Construct an implicit velocity-pressure integrator and enable fixed coupling. */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
@@ -175,7 +176,8 @@ private:
 
     /*! \brief Return a whole-matrix builder owning a concrete const evaluator. */
     template <IBTK::IBKernelEvaluatorCartesian Evaluator>
-    static InterpolationMatrixBuilder make_matrix_builder(Evaluator&& evaluator);
+    static InterpolationMatrixBuilder make_matrix_builder(Evaluator&& evaluator)
+        requires(std::constructible_from<Evaluator, Evaluator&&>);
 
     /*! \brief Select a compiled evaluator for the configured normal/tangential factors. */
     static InterpolationMatrixBuilder select_matrix_builder(const IBTK::IBKernelTensorProduct& kernel);
