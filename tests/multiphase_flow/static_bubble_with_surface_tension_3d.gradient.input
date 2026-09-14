@@ -1,0 +1,4 @@
+check_gradient = TRUE
+Main {
+  log_file_name = "gradient.log"
+}
