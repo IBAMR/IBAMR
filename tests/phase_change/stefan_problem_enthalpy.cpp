@@ -343,7 +343,7 @@ main(int argc, char* argv[])
             { return -(initial_liquid_gas_interface_position - X[0]) + 100.0; });
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateInterface locate_interface("LSLocateInterface", adv_diff_integrator, ls_var, ls_init);
+        LSLocateInterface locate_interface(adv_diff_integrator, ls_var, ls_init);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&call_ls_locate_interface_callback, &locate_interface);
         IBAMR::LevelSetUtilities::SetLSProperties set_ls_properties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(

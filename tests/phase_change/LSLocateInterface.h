@@ -11,12 +11,9 @@
 //
 // ---------------------------------------------------------------------
 
-/////////////////////// INCLUDE GUARD ////////////////////////////////////
-
 #ifndef included_LSLocateInterface
 #define included_LSLocateInterface
 
-///////////////////////////// INCLUDES ///////////////////////////////////
 #include <ibamr/config.h>
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
@@ -28,79 +25,33 @@ namespace IBTK
 class HierarchyMathOps;
 }
 
-/*
- * Pre processing call back function to be hooked into IBAMR:LSInitStrategy
- */
-
 void call_ls_locate_interface_callback(int D_idx,
                                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                        double time,
                                        bool initial_time,
                                        void* ctx);
 
+// Supply the initial level set to LSInitStrategy, then preserve the integrator's
+// advected level set on later interface resets.
 class LSLocateInterface
 {
-    /*!
-     * \brief class LSLocateInterface is a utility class which is used to identify
-     * the interface for level set computations
-     */
 public:
-    /*!
-     * The only constructor of this class.
-     */
-    LSLocateInterface(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+    LSLocateInterface(SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
                       SAMRAI::tbox::Pointer<IBTK::CartGridFunction> initial_condition);
 
-    /*!
-     * Destructor for this class.
-     */
-    ~LSLocateInterface() = default;
-
-    /*!
-     * Reinitialize the level set information
-     */
     void setLevelSetPatchData(int D_idx,
                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                               double time,
                               bool initial_time);
 
 private:
-    /*!
-     * Deleted default constructor.
-     */
-    LSLocateInterface() = delete;
-
-    /*!
-     * Deleted copy constructor.
-     */
     LSLocateInterface(const LSLocateInterface& from) = delete;
-
-    /*!
-     * Deleted assignment operator.
-     */
     LSLocateInterface& operator=(const LSLocateInterface& that) = delete;
 
-    /*!
-     * Name of this object.
-     */
-    std::string d_object_name;
-
-    /*!
-     * Pointer to the advection-diffusion solver
-     */
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-
-    /*!
-     * Level set variable
-     */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
-
-    /*!
-     * Analytic initial condition for the level set
-     */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_initial_condition;
 };
 
-#endif // #ifndef included_LSLocateInterface
+#endif
