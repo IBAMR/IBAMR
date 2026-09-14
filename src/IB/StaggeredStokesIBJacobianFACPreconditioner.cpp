@@ -17,8 +17,6 @@
 #include <ibamr/StaggeredStokesIBJacobianFACPreconditioner.h>
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 
-#include <ibtk/FACPreconditionerStrategy.h>
-
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
@@ -31,20 +29,33 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+namespace
+{
+/*! \brief Validate the strategy before the base constructor dereferences it. */
+Pointer<StaggeredStokesIBLevelRelaxationFACOperator>
+checked_strategy(const std::string& object_name, Pointer<StaggeredStokesIBLevelRelaxationFACOperator> strategy)
+{
+    if (!strategy)
+    {
+        TBOX_ERROR(object_name << "::StaggeredStokesIBJacobianFACPreconditioner():\n"
+                               << "  fac_strategy must be nonnull.");
+    }
+    return strategy;
+}
+} // namespace
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesIBJacobianFACPreconditioner::StaggeredStokesIBJacobianFACPreconditioner(
     const std::string& object_name,
-    Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,
+    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_strategy,
     Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
+    : StaggeredStokesFACPreconditioner(object_name,
+                                       checked_strategy(object_name, fac_strategy),
+                                       input_db,
+                                       default_options_prefix)
 {
-    if (!getIBFACPreconditionerStrategy())
-    {
-        TBOX_ERROR(d_object_name << "::StaggeredStokesIBJacobianFACPreconditioner():\n"
-                                 << "  fac_strategy must be a StaggeredStokesIBLevelRelaxationFACOperator.");
-    }
     return;
 } // StaggeredStokesIBJacobianFACPreconditioner
 
