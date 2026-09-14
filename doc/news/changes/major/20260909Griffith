@@ -1,0 +1,6 @@
+Changed (incompatible): Reimplement IBImplicitStaggeredHierarchyIntegrator for
+the velocity-pressure formulation, removing the position formulation and its
+selection inputs. IBImplicitStrategy implementations now provide borrowed
+coupling-position vectors.
+<br>
+(Boyce Griffith, 2026/09/09)

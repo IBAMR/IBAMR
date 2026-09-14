@@ -142,6 +142,14 @@ public:
                                    int dof_index_idx,
                                    double data_time) = 0;
 
+    /*! \brief Borrow the selected coupling-position vector for immediate read-only use.
+     *
+     * Requires initialized data at the requested level and current, half, or new time.
+     * Fixed coupling can differ from ordinary positions. No ghost fill or reference
+     * transfer is performed; do not retain the vector across strategy state changes.
+     */
+    virtual Vec getLECouplingPositionVector(int level_number, double data_time) = 0;
+
 protected:
 private:
     /*!
