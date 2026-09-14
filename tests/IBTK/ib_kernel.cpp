@@ -321,6 +321,11 @@ main(int argc, char* argv[])
     TBOX_ASSERT(scalar == single && single == repeated && scalar == repeated);
     TBOX_ASSERT(scalar == IBKernel::IB_4 && IBKernel::IB_4 == scalar);
     TBOX_ASSERT(pair != IBKernel::IB_4 && IBKernel::IB_4 != pair);
+    const std::string scalar_name = "IB_4";
+    TBOX_ASSERT(scalar == scalar_name && scalar_name == scalar);
+    TBOX_ASSERT(scalar == "IB_4" && "IB_4" == scalar);
+    TBOX_ASSERT(pair != scalar_name && scalar_name != pair);
+    TBOX_ASSERT(pair != "IB_4" && "IB_4" != pair);
     TBOX_ASSERT(single.isIsotropic() && repeated.isIsotropic() && !pair.isIsotropic());
     const IBKernelTensorProduct ordered_products[] = { IBKernelTensorProduct(IBKernel::BSPLINE_1),
                                                        IBKernelTensorProduct(
@@ -330,6 +335,10 @@ main(int argc, char* argv[])
     TBOX_ASSERT(std::set<IBKernelTensorProduct>(std::begin(ordered_products), std::end(ordered_products)).size() ==
                 std::size(ordered_products));
     TBOX_ASSERT(!(single < repeated) && !(repeated < single));
+    const IBKernelTensorProduct prefix(IBKernel::IB_4);
+    const IBKernelTensorProduct longer({ IBKernel::IB_4, IBKernel::IB_3 });
+    TBOX_ASSERT(prefix < longer && longer > prefix);
+    TBOX_ASSERT(prefix <= repeated && prefix >= repeated);
     TBOX_ASSERT(copy_product(IBKernel::IB_4) == scalar);
     TBOX_ASSERT(copy_product(std::string("IB_4")) == scalar);
     TBOX_ASSERT(copy_product("IB_4") == scalar);
