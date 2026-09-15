@@ -110,7 +110,7 @@ public:
      * fail. This selects assembled FAC coupling, not live interpolation/spreading.
      * See [the configuration example](../../doc/cmake.md#implicit-ib-interpolation-kernels).
      */
-    template <IBTK::IBKernelEvaluatorCartesian Evaluator>
+    template <IBTK::IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
     void setJacobianInterpolationKernel(Evaluator evaluator) requires(std::constructible_from<Evaluator, Evaluator&&>);
 
     /*! \brief Construct an implicit velocity-pressure integrator and enable fixed coupling. */
@@ -175,7 +175,7 @@ private:
         void(Mat&, Vec, const std::vector<int>&, int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)>;
 
     /*! \brief Return a whole-matrix builder owning a concrete const evaluator. */
-    template <IBTK::IBKernelEvaluatorCartesian Evaluator>
+    template <IBTK::IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
     static InterpolationMatrixBuilder make_matrix_builder(Evaluator&& evaluator)
         requires(std::constructible_from<Evaluator, Evaluator&&>);
 

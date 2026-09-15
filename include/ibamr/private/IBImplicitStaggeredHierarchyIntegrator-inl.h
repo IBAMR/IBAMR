@@ -21,7 +21,7 @@
 
 namespace IBAMR
 {
-template <IBTK::IBKernelEvaluatorCartesian Evaluator>
+template <IBTK::IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
 inline void
 IBImplicitStaggeredHierarchyIntegrator::setJacobianInterpolationKernel(Evaluator evaluator)
     requires(std::constructible_from<Evaluator, Evaluator&&>)
@@ -33,7 +33,7 @@ IBImplicitStaggeredHierarchyIntegrator::setJacobianInterpolationKernel(Evaluator
     d_interp_matrix_builder = make_matrix_builder(std::move(evaluator));
 }
 
-template <IBTK::IBKernelEvaluatorCartesian Evaluator>
+template <IBTK::IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
 inline IBImplicitStaggeredHierarchyIntegrator::InterpolationMatrixBuilder
 IBImplicitStaggeredHierarchyIntegrator::make_matrix_builder(Evaluator&& evaluator)
     requires(std::constructible_from<Evaluator, Evaluator&&>)

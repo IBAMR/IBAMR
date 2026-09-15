@@ -63,8 +63,9 @@ struct ExplicitMoveEvaluator
     template <int Axis>
     static constexpr std::array<std::size_t, NDIM> get_stencil_widths();
 
-    template <int Axis>
-    std::array<double, 1> evaluate(const std::array<double, NDIM>&) const;
+    template <int Axis, IBKernelWeights Output, std::floating_point Input>
+    Output evaluate(const std::array<Input, NDIM>&) const
+        requires(Axis >= 0 && Axis < NDIM && IBKernelWeightsTraits<Output>::extent == 1 && requires { Output{ 1 }; });
 };
 
 template <int Axis>
@@ -76,11 +77,12 @@ ExplicitMoveEvaluator::get_stencil_widths()
     return widths;
 }
 
-template <int Axis>
-std::array<double, 1>
-ExplicitMoveEvaluator::evaluate(const std::array<double, NDIM>&) const
+template <int Axis, IBKernelWeights Output, std::floating_point Input>
+Output
+ExplicitMoveEvaluator::evaluate(const std::array<Input, NDIM>&) const
+    requires(Axis >= 0 && Axis < NDIM && IBKernelWeightsTraits<Output>::extent == 1 && requires { Output{ 1 }; })
 {
-    return { 1.0 };
+    return Output{ 1 };
 }
 
 struct ImmovableEvaluator : ExplicitMoveEvaluator
@@ -112,7 +114,13 @@ check_explicit_move_construction(IBImplicitStaggeredHierarchyIntegrator& integra
 struct CustomKernel
 {
     CustomKernel(double scale, std::shared_ptr<const int> lifetime);
-    std::array<double, 4> operator()(double r) const;
+    static constexpr std::size_t get_stencil_width();
+
+    template <typename Output, std::floating_point Input>
+    Output evaluate(const Input& r) const requires requires(const Input& x)
+    {
+        IBKernels::IB4{}.template evaluate<Output>(x);
+    };
     std::unique_ptr<const double> scale;
     std::shared_ptr<const int> lifetime;
 };
@@ -128,13 +136,25 @@ struct CycleData
     IBMethod* method = nullptr;
 };
 
-std::array<double, 4>
-CustomKernel::operator()(const double r) const
+constexpr std::size_t
+CustomKernel::get_stencil_width()
 {
-    std::array<double, 4> values = IBKernels::IB4{}(r);
-    for (double& value : values)
+    return 4;
+}
+
+template <typename Output, std::floating_point Input>
+Output
+CustomKernel::evaluate(const Input& r) const requires requires(const Input& x)
+{
+    IBKernels::IB4{}.template evaluate<Output>(x);
+}
+{
+    Output values = IBKernels::IB4{}.template evaluate<Output>(r);
+    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    const Coefficient factor = *scale;
+    for (std::size_t i = 0; i < get_stencil_width(); ++i)
     {
-        value *= *scale;
+        values[i] *= factor;
     }
     return values;
 }
