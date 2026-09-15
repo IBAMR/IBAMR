@@ -101,6 +101,7 @@ SideCoupling::applyAxis(const Evaluator& evaluator,
 #endif
         std::array<double, NDIM> r;
         std::array<int, NDIM> lower, first, last;
+        bool full_stencil = true;
         for (int d = 0; d < NDIM; ++d)
         {
             const double x = positions[NDIM * marker + d] + (shifts.empty() ? 0.0 : shifts[NDIM * point + d]);
@@ -113,6 +114,7 @@ SideCoupling::applyAxis(const Evaluator& evaluator,
             r[d] = grid_position - local_lower;
             first[d] = std::max(0, d_lower[Axis][d] - lower[d]);
             last[d] = std::min(width, d_upper[Axis][d] - lower[d] + 1);
+            full_stencil = full_stencil && first[d] == 0 && last[d] == width;
         }
         const Weights weights = evaluator.template evaluate<Axis, Weights>(r);
         double value = 0.0;
@@ -120,34 +122,47 @@ SideCoupling::applyAxis(const Evaluator& evaluator,
         {
             value = values[marker_stride * marker] * d_inverse_volume;
         }
-#if (NDIM == 3)
-        for (int k = first[2]; k < last[2]; ++k)
+        // Fixed bounds let the compiler specialize complete stencils; ghosts use the same path.
+        const auto apply_stencil = [&]<bool Clipped>()
         {
-#endif
-            for (int j = first[1]; j < last[1]; ++j)
-            {
-                std::ptrdiff_t offset =
-                    lower[0] + first[0] - d_lower[Axis][0] + (lower[1] + j - d_lower[Axis][1]) * d_stride[Axis][1];
-                std::size_t weight_offset = widths[0] * j;
 #if (NDIM == 3)
-                offset += (lower[2] + k - d_lower[Axis][2]) * d_stride[Axis][2];
-                weight_offset += widths[0] * widths[1] * k;
+            for (int k = Clipped ? first[2] : 0; k < (Clipped ? last[2] : static_cast<int>(widths[2])); ++k)
+            {
 #endif
-                for (int i = first[0]; i < last[0]; ++i, ++offset)
+                for (int j = Clipped ? first[1] : 0; j < (Clipped ? last[1] : static_cast<int>(widths[1])); ++j)
                 {
-                    if constexpr (Spread)
+                    std::ptrdiff_t offset = lower[0] + (Clipped ? first[0] : 0) - d_lower[Axis][0] +
+                                            (lower[1] + j - d_lower[Axis][1]) * d_stride[Axis][1];
+                    std::size_t weight_offset = widths[0] * j;
+#if (NDIM == 3)
+                    offset += (lower[2] + k - d_lower[Axis][2]) * d_stride[Axis][2];
+                    weight_offset += widths[0] * widths[1] * k;
+#endif
+                    for (int i = Clipped ? first[0] : 0; i < (Clipped ? last[0] : static_cast<int>(widths[0]));
+                         ++i, ++offset)
                     {
-                        field[offset] += weights[weight_offset + i] * value;
-                    }
-                    else
-                    {
-                        value += weights[weight_offset + i] * field[offset];
+                        if constexpr (Spread)
+                        {
+                            field[offset] += weights[weight_offset + i] * value;
+                        }
+                        else
+                        {
+                            value += weights[weight_offset + i] * field[offset];
+                        }
                     }
                 }
-            }
 #if (NDIM == 3)
-        }
+            }
 #endif
+        };
+        if (full_stencil)
+        {
+            apply_stencil.template operator()<false>();
+        }
+        else
+        {
+            apply_stencil.template operator()<true>();
+        }
         if constexpr (!Spread)
         {
             values[marker_stride * marker] = value;
