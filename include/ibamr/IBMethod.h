@@ -225,6 +225,8 @@ public:
     /*!
      * Update the positions used for the "fixed" interpolation and spreading
      * operators.
+     * Enable fixed operators before preprocessIntegrateData(), then update
+     * their positions after preprocessing.
      */
     void updateFixedLEOperators() override;
 
