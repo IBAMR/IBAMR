@@ -50,10 +50,10 @@ enum class TensorStorage
 };
 
 template <>
-inline TensorStorage string_to_enum<TensorStorage>(const std::string& value);
+TensorStorage string_to_enum<TensorStorage>(const std::string& value);
 
 template <>
-inline std::string enum_to_string<TensorStorage>(TensorStorage value);
+std::string enum_to_string<TensorStorage>(TensorStorage value);
 
 /*! \brief Supported collocated pointwise values. */
 template <typename Value>
@@ -69,8 +69,8 @@ concept PointwiseCallback =
 /*!
  * \brief Initialize or transform Cartesian patch-interior values with a functor.
  *
- * Layout models Centering (for example, CartesianCentering<DataCentering::SIDE>).
- * Each object operates on Layout::Data<double>;
+ * C selects the data centering (for example, DataCentering::SIDE).
+ * Each object operates on CartesianCentering<C>::Data<double>;
  * data indices supplied at evaluation must refer to allocated data of the
  * corresponding type. This precondition is checked in Debug builds; Release
  * builds use an unchecked static_cast.
@@ -93,8 +93,8 @@ concept PointwiseCallback =
  * argument does not change which signature is invoked.
  *
  * depth is the scalar depth index, or zero for whole-vector/tensor callbacks.
- * axis is the orientation for side-, face-, and edge-centered data, or
- * invalid_index for cell- and node-centered data. All supported centerings
+ * axis is the normal direction for side and face data, the tangent direction
+ * for edge data, or invalid_index for cell and node data. All supported centerings
  * permit collocated values stored across their depths. Components at different
  * staggered locations are never reconstructed into a vector or tensor.
  *
@@ -104,7 +104,7 @@ concept PointwiseCallback =
  *
  * \see make_cart_grid_pointwise_function()
  */
-template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
+template <PointwiseValue Value, DataCentering C, PointwiseCallback<Value> Function>
 class CartGridPointwiseFunction : public CartGridFunction
 {
 public:
@@ -134,6 +134,7 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level = nullptr) override;
 
 private:
+    using Layout = CartesianCentering<C>;
     using Data = typename Layout::template Data<double>;
 
     /*! \brief Evaluate the callback on patch-interior data of the selected centering. */

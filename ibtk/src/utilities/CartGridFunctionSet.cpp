@@ -134,8 +134,9 @@ CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(level);
 #endif
-    const auto add_functions = [&]<Centering Layout>()
+    const auto add_functions = [&]<DataCentering C>()
     {
+        using Layout = CartesianCentering<C>;
         using Data = typename Layout::template Data<double>;
         typename Layout::template PatchOps<double> patch_ops;
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -175,13 +176,14 @@ CartGridFunctionSet::setDataOnPatch(const int data_idx,
 #endif
     dispatch_data_centering(
         get_data_centering<double>(*var->getPatchDataFactory()),
-        [&]<Centering Layout>()
+        [&]<DataCentering C>()
         {
+            using Layout = CartesianCentering<C>;
             using Data = typename Layout::template Data<double>;
             typename Layout::template PatchOps<double> patch_ops;
             Pointer<Data> data = patch->getPatchData(data_idx);
             Pointer<Data> cloned_data;
-            if constexpr (requires { data->getDirectionVector(); })
+            if constexpr (C == DataCentering::SIDE)
             {
                 cloned_data =
                     new Data(data->getBox(), data->getDepth(), data->getGhostCellWidth(), data->getDirectionVector());

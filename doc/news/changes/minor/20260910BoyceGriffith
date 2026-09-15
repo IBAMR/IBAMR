@@ -1,4 +1,4 @@
 New: CartGridPointwiseFunction initializes and transforms scalar, vector, and
-tensor grid data; CartesianCentering and Centering describe Cartesian layouts.
+tensor grid data; CartesianCentering supplies shared centering traits.
 <br>
 (Aaron Barrett and Boyce Griffith, 2026/09/10)

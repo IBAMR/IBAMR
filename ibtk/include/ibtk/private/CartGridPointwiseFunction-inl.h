@@ -58,16 +58,15 @@ enum_to_string<TensorStorage>(const TensorStorage value)
     return "";
 }
 
-template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
-CartGridPointwiseFunction<Value, Layout, Function>::CartGridPointwiseFunction(std::string object_name,
-                                                                              Function function)
+template <PointwiseValue Value, DataCentering C, PointwiseCallback<Value> Function>
+CartGridPointwiseFunction<Value, C, Function>::CartGridPointwiseFunction(std::string object_name, Function function)
     requires(!std::same_as<Value, MatrixNd>)
     : CartGridFunction(std::move(object_name)), d_function(std::move(function)), d_tensor_storage(TensorStorage::FULL)
 {
 }
 
-template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
-CartGridPointwiseFunction<Value, Layout, Function>::CartGridPointwiseFunction(
+template <PointwiseValue Value, DataCentering C, PointwiseCallback<Value> Function>
+CartGridPointwiseFunction<Value, C, Function>::CartGridPointwiseFunction(
     std::string object_name,
     Function function,
     const TensorStorage storage) requires std::same_as<Value, MatrixNd>
@@ -83,16 +82,16 @@ CartGridPointwiseFunction<Value, Layout, Function>::CartGridPointwiseFunction(
     }
 }
 
-template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
+template <PointwiseValue Value, DataCentering C, PointwiseCallback<Value> Function>
 bool
-CartGridPointwiseFunction<Value, Layout, Function>::isTimeDependent() const
+CartGridPointwiseFunction<Value, C, Function>::isTimeDependent() const
 {
     return true;
 }
 
-template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
+template <PointwiseValue Value, DataCentering C, PointwiseCallback<Value> Function>
 void
-CartGridPointwiseFunction<Value, Layout, Function>::setDataOnPatch(
+CartGridPointwiseFunction<Value, C, Function>::setDataOnPatch(
     const int data_idx,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> /*var*/,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
@@ -121,9 +120,9 @@ CartGridPointwiseFunction<Value, Layout, Function>::setDataOnPatch(
     applyPointwise(*data, patch->getBox(), *geometry, data_time);
 }
 
-template <PointwiseValue Value, Centering Layout, PointwiseCallback<Value> Function>
+template <PointwiseValue Value, DataCentering C, PointwiseCallback<Value> Function>
 void
-CartGridPointwiseFunction<Value, Layout, Function>::applyPointwise(
+CartGridPointwiseFunction<Value, C, Function>::applyPointwise(
     Data& data,
     const SAMRAI::hier::Box<NDIM>& box,
     const SAMRAI::geom::CartesianPatchGeometry<NDIM>& geometry,
@@ -177,15 +176,15 @@ CartGridPointwiseFunction<Value, Layout, Function>::applyPointwise(
     const SAMRAI::hier::Index<NDIM>& index_lower = box.lower();
     const int n_groups = std::same_as<Value, double> ? depth : 1;
     const int n_components = std::same_as<Value, double> ? 1 : depth;
-    for (int orientation = 0; orientation < (Layout::is_oriented() ? NDIM : 1); ++orientation)
+    for (int direction = 0; direction < (Layout::is_staggered() ? NDIM : 1); ++direction)
     {
-        if (!Layout::template has_axis<double>(data, orientation))
+        if (!Layout::template has_axis<double>(data, direction))
         {
             continue;
         }
-        const int axis = Layout::is_oriented() ? orientation : invalid_index;
-        const VectorNd offset = Layout::offset(orientation);
-        for (auto it = Layout::begin(box, orientation); it; it++)
+        const int axis = Layout::is_staggered() ? direction : invalid_index;
+        const VectorNd offset = Layout::offset(direction);
+        for (auto it = Layout::begin(box, direction); it; it++)
         {
             const typename Layout::Index& index = it();
             const SAMRAI::hier::Index<NDIM> cartesian_index = Layout::cartesian_index(index);
@@ -266,15 +265,11 @@ allocate_cart_grid_pointwise_function(std::string object_name,
         TBOX_ERROR("CartGridPointwiseFunction: a variable is required\n");
     }
     const DataCentering centering = get_data_centering<double>(*var->getPatchDataFactory());
-    if (centering == DataCentering::UNKNOWN)
-    {
-        TBOX_ERROR("CartGridPointwiseFunction: unsupported variable patch data factory\n");
-    }
     return dispatch_data_centering(
         centering,
-        [&]<Centering Layout>() -> SAMRAI::tbox::Pointer<CartGridFunction>
+        [&]<DataCentering C>() -> SAMRAI::tbox::Pointer<CartGridFunction>
         {
-            return new CartGridPointwiseFunction<Value, Layout, std::decay_t<Function>>(
+            return new CartGridPointwiseFunction<Value, C, std::decay_t<Function>>(
                 std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
         });
 }
