@@ -23,8 +23,11 @@
 namespace IBTK
 {
 template <std::size_t N>
-requires(N > 0) inline IBKernels::Weights<double, N> IBKernels::BSpline<N>::operator()(const double r) const
+requires(N > 0) template <detail::IBKernelWritableWeights<N> Output, std::floating_point Input>
+inline Output IBKernels::BSpline<N>::evaluate(const Input r) const
 {
+    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    const Coefficient x = r;
     // Unit-spacing form of the B-spline basis recurrence; see C. de Boor,
     // "On calculating with B-splines", J. Approx. Theory 6 (1972), 50-62,
     // Section 2, Eq. (27), doi:10.1016/0021-9045(72)90080-9.
@@ -35,94 +38,145 @@ requires(N > 0) inline IBKernels::Weights<double, N> IBKernels::BSpline<N>::oper
     // Each old weight is split into nonnegative contributions whose
     // coefficients sum to one. This avoids cancellation between weights
     // and preserves their sum in exact arithmetic.
-    const double t = r - 0.5 * (static_cast<double>(N) - 2.0);
-    IBKernels::Weights<double, N> w = {};
-    w[0] = 1.0;
+    const Coefficient width = N;
+    const Coefficient t = x - Coefficient{ 0.5 } * (width - 2);
+    Output w{};
+    w[0] = 1;
     for (std::size_t degree = 1; degree < N; ++degree)
     {
-        const double inverse_degree = 1.0 / static_cast<double>(degree);
-        double saved = 0.0;
+        const Coefficient inverse_degree = Coefficient{ 1 } / degree;
+        Coefficient saved = 0;
         for (std::size_t i = 0; i < degree; ++i)
         {
-            const double term = w[i] * inverse_degree;
-            w[i] = saved + (static_cast<double>(i + 1) - t) * term;
-            saved = (t + static_cast<double>(degree - i - 1)) * term;
+            const Coefficient term = w[i] * inverse_degree;
+            w[i] = saved + ((i + 1) - t) * term;
+            saved = (t + (degree - i - 1)) * term;
         }
         w[degree] = saved;
     }
     return w;
 }
 
-inline IBKernels::Weights<double, 3>
-IBKernels::IB3::operator()(const double r) const
+template <detail::IBKernelWritableWeights<3> Output, std::floating_point Input>
+inline Output
+IBKernels::IB3::evaluate(const Input r) const
 {
-    const double s = r - 1.0;
-    const double q = std::sqrt(1.0 - 3.0 * s * s);
-    return { (2.0 - 3.0 * s - q) / 6.0, (1.0 + q) / 3.0, (2.0 + 3.0 * s - q) / 6.0 };
+    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    const Coefficient x = r;
+    const Coefficient s = x - 1;
+    const Coefficient q = std::sqrt(1 - 3 * s * s);
+    Output w{};
+    w[0] = (2 - 3 * s - q) / 6;
+    w[1] = (1 + q) / 3;
+    w[2] = (2 + 3 * s - q) / 6;
+    return w;
 }
 
-inline IBKernels::Weights<double, 4>
-IBKernels::IB4::operator()(const double r) const
+template <detail::IBKernelWritableWeights<4> Output, std::floating_point Input>
+inline Output
+IBKernels::IB4::evaluate(const Input r) const
 {
-    IBKernels::Weights<double, 4> w;
+    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    const Coefficient x = r;
+    Output w;
     // Use kernel symmetry and moment conditions to compute all four weights
     // from one square root.
-    const double r0 = r - 1.0;
-    const double q = std::sqrt(1.0 + 4.0 * r0 * (1.0 - r0));
-    w[0] = 0.125 * (3.0 - 2.0 * r0 - q);
-    w[1] = 0.125 * (3.0 - 2.0 * r0 + q);
-    w[2] = 0.125 * (1.0 + 2.0 * r0 + q);
-    w[3] = 0.125 * (1.0 + 2.0 * r0 - q);
+    const Coefficient r0 = x - 1;
+    const Coefficient q = std::sqrt(1 + 4 * r0 * (1 - r0));
+    w[0] = Coefficient{ 0.125 } * (3 - 2 * r0 - q);
+    w[1] = Coefficient{ 0.125 } * (3 - 2 * r0 + q);
+    w[2] = Coefficient{ 0.125 } * (1 + 2 * r0 + q);
+    w[3] = Coefficient{ 0.125 } * (1 + 2 * r0 - q);
     return w;
 }
 
-inline IBKernels::Weights<double, 5>
-IBKernels::IB5::operator()(const double r) const
+template <detail::IBKernelWritableWeights<5> Output, std::floating_point Input>
+inline Output
+IBKernels::IB5::evaluate(const Input r) const
 {
-    static const double K = (38.0 - std::sqrt(69.0)) / 60.0;
-    const double r0 = r - 2.0;
-    const double r2 = r0 * r0;
-    const double r3 = r2 * r0;
-    const double r4 = r2 * r2;
-    const double r6 = r4 * r2;
-    const double phi =
-        (136.0 - 40.0 * K - 40.0 * r2 +
-         std::sqrt(2.0) * std::sqrt(3123.0 - 6840.0 * K + 3600.0 * K * K - 12440.0 * r2 + 25680.0 * K * r2 -
-                                    12600.0 * K * K * r2 + 8080.0 * r4 - 8400.0 * K * r4 - 1400.0 * r6)) /
-        280.0;
-    return {
-        (1.0 / 12.0) * (-2.0 + 2.0 * phi + 2.0 * K + r0 - 3.0 * K * r0 + 2.0 * r2 - r3),
-        (1.0 / 6.0) * (4.0 - 4.0 * phi - K - 4.0 * r0 + 3.0 * K * r0 - r2 + r3),
-        phi,
-        (1.0 / 6.0) * (4.0 - 4.0 * phi - K + 4.0 * r0 - 3.0 * K * r0 - r2 - r3),
-        (1.0 / 12.0) * (-2.0 + 2.0 * phi + 2.0 * K - r0 + 3.0 * K * r0 + 2.0 * r2 + r3),
-    };
+    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    const Coefficient x = r;
+    static const Coefficient K = (38 - std::sqrt(Coefficient{ 69 })) / 60;
+    const Coefficient r0 = x - 2;
+    const Coefficient r2 = r0 * r0;
+    const Coefficient r3 = r2 * r0;
+    const Coefficient r4 = r2 * r2;
+    const Coefficient r6 = r4 * r2;
+    const Coefficient phi =
+        (136 - 40 * K - 40 * r2 +
+         std::sqrt(Coefficient{ 2 }) * std::sqrt(3123 - 6840 * K + 3600 * K * K - 12440 * r2 + 25680 * K * r2 -
+                                                 12600 * K * K * r2 + 8080 * r4 - 8400 * K * r4 - 1400 * r6)) /
+        280;
+    Output w{};
+    w[0] = (Coefficient{ 1 } / 12) * (-2 + 2 * phi + 2 * K + r0 - 3 * K * r0 + 2 * r2 - r3);
+    w[1] = (Coefficient{ 1 } / 6) * (4 - 4 * phi - K - 4 * r0 + 3 * K * r0 - r2 + r3);
+    w[2] = phi;
+    w[3] = (Coefficient{ 1 } / 6) * (4 - 4 * phi - K + 4 * r0 - 3 * K * r0 - r2 - r3);
+    w[4] = (Coefficient{ 1 } / 12) * (-2 + 2 * phi + 2 * K - r0 + 3 * K * r0 + 2 * r2 + r3);
+    return w;
 }
 
-inline IBKernels::Weights<double, 6>
-IBKernels::IB6::operator()(const double r) const
+template <detail::IBKernelWritableWeights<6> Output, std::floating_point Input>
+inline Output
+IBKernels::IB6::evaluate(const Input r) const
 {
-    IBKernels::Weights<double, 6> w;
-    const double rl = 3.0 - r;
-    const double r2 = rl * rl;
-    const double r3 = r2 * rl;
-    const double r4 = r3 * rl;
-    const double r5 = r4 * rl;
-    static const double K = (59.0 / 60.0) * (1.0 - std::sqrt(1.0 - (3220.0 / 3481.0)));
-    static const double K2 = K * K;
-    static const double alpha = 28.0;
-    const double beta = (9.0 / 4.0) - (3.0 / 2.0) * (K + r2) + ((22.0 / 3.0) - 7.0 * K) * rl - (7.0 / 3.0) * r3;
-    const double gamma = (1.0 / 4.0) * (((161.0 / 36.0) - (59.0 / 6.0) * K + 5.0 * K2) * (1.0 / 2.0) * r2 +
-                                        (-(109.0 / 24.0) + 5.0 * K) * (1.0 / 3.0) * r4 + (5.0 / 18.0) * r5 * rl);
-    const double discr = beta * beta - 4.0 * alpha * gamma;
-    w[0] = (-beta + std::copysign(1.0, (3.0 / 2.0) - K) * std::sqrt(discr)) / (2.0 * alpha);
-    w[1] =
-        -3.0 * w[0] - (1.0 / 16.0) + (1.0 / 8.0) * (K + r2) + (1.0 / 12.0) * (3.0 * K - 1.0) * rl + (1.0 / 12.0) * r3;
-    w[2] = 2.0 * w[0] + (1.0 / 4.0) + (1.0 / 6.0) * (4.0 - 3.0 * K) * rl - (1.0 / 6.0) * r3;
-    w[3] = 2.0 * w[0] + (5.0 / 8.0) - (1.0 / 4.0) * (K + r2);
-    w[4] = -3.0 * w[0] + (1.0 / 4.0) - (1.0 / 6.0) * (4.0 - 3.0 * K) * rl + (1.0 / 6.0) * r3;
-    w[5] = w[0] - (1.0 / 16.0) + (1.0 / 8.0) * (K + r2) - (1.0 / 12.0) * (3.0 * K - 1.0) * rl - (1.0 / 12.0) * r3;
+    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    const Coefficient x = r;
+    Output w;
+    const Coefficient rl = 3 - x;
+    const Coefficient r2 = rl * rl;
+    const Coefficient r3 = r2 * rl;
+    const Coefficient r4 = r3 * rl;
+    const Coefficient r5 = r4 * rl;
+    static const Coefficient K = (Coefficient{ 59 } / 60) * (1 - std::sqrt(1 - (Coefficient{ 3220 } / 3481)));
+    static const Coefficient K2 = K * K;
+    static const Coefficient alpha = 28;
+    const Coefficient beta = (Coefficient{ 9 } / 4) - (Coefficient{ 3 } / 2) * (K + r2) +
+                             ((Coefficient{ 22 } / 3) - 7 * K) * rl - (Coefficient{ 7 } / 3) * r3;
+    const Coefficient gamma =
+        (Coefficient{ 1 } / 4) *
+        (((Coefficient{ 161 } / 36) - (Coefficient{ 59 } / 6) * K + 5 * K2) * (Coefficient{ 1 } / 2) * r2 +
+         (-(Coefficient{ 109 } / 24) + 5 * K) * (Coefficient{ 1 } / 3) * r4 + (Coefficient{ 5 } / 18) * r5 * rl);
+    const Coefficient discr = beta * beta - 4 * alpha * gamma;
+    w[0] = (-beta + std::copysign(Coefficient{ 1 }, (Coefficient{ 3 } / 2) - K) * std::sqrt(discr)) / (2 * alpha);
+    w[1] = -3 * w[0] - (Coefficient{ 1 } / 16) + (Coefficient{ 1 } / 8) * (K + r2) +
+           (Coefficient{ 1 } / 12) * (3 * K - 1) * rl + (Coefficient{ 1 } / 12) * r3;
+    w[2] = 2 * w[0] + (Coefficient{ 1 } / 4) + (Coefficient{ 1 } / 6) * (4 - 3 * K) * rl - (Coefficient{ 1 } / 6) * r3;
+    w[3] = 2 * w[0] + (Coefficient{ 5 } / 8) - (Coefficient{ 1 } / 4) * (K + r2);
+    w[4] = -3 * w[0] + (Coefficient{ 1 } / 4) - (Coefficient{ 1 } / 6) * (4 - 3 * K) * rl + (Coefficient{ 1 } / 6) * r3;
+    w[5] = w[0] - (Coefficient{ 1 } / 16) + (Coefficient{ 1 } / 8) * (K + r2) -
+           (Coefficient{ 1 } / 12) * (3 * K - 1) * rl - (Coefficient{ 1 } / 12) * r3;
     return w;
+}
+
+template <std::size_t N>
+requires(N > 0) constexpr std::size_t IBKernels::BSpline<N>::get_stencil_width()
+{
+    return N;
+}
+
+inline constexpr std::size_t
+IBKernels::IB3::get_stencil_width()
+{
+    return 3;
+}
+
+inline constexpr std::size_t
+IBKernels::IB4::get_stencil_width()
+{
+    return 4;
+}
+
+inline constexpr std::size_t
+IBKernels::IB5::get_stencil_width()
+{
+    return 5;
+}
+
+inline constexpr std::size_t
+IBKernels::IB6::get_stencil_width()
+{
+    return 6;
 }
 
 } // namespace IBTK

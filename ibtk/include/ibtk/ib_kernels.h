@@ -25,6 +25,10 @@ namespace IBTK
 /*!
  * \brief Supplied one-dimensional IB kernel evaluators.
  *
+ * Arithmetic uses Output's real coefficient type, including conversion of r.
+ * Supplied evaluators require default-initializable, movable Output storage
+ * with writable indexed coefficients and the exact stencil extent.
+ *
  * \see IBKernelEvaluatorScalar for the coordinate and coefficient conventions.
  */
 namespace IBKernels
@@ -39,7 +43,11 @@ requires(N > 0) class BSpline
 {
 public:
     /*! \brief Return the N stencil weights. */
-    IBKernels::Weights<double, N> operator()(double r) const;
+    template <detail::IBKernelWritableWeights<N> Output, std::floating_point Input>
+    Output evaluate(Input r) const;
+
+    /*! \brief Return the number of stencil points. */
+    static constexpr std::size_t get_stencil_width();
 };
 
 /*!
@@ -49,7 +57,11 @@ class IB3
 {
 public:
     /*! \brief Return the three stencil weights. */
-    IBKernels::Weights<double, 3> operator()(double r) const;
+    template <detail::IBKernelWritableWeights<3> Output, std::floating_point Input>
+    Output evaluate(Input r) const;
+
+    /*! \brief Return the number of stencil points. */
+    static constexpr std::size_t get_stencil_width();
 };
 
 /*!
@@ -59,7 +71,11 @@ class IB4
 {
 public:
     /*! \brief Return the four stencil weights. */
-    IBKernels::Weights<double, 4> operator()(double r) const;
+    template <detail::IBKernelWritableWeights<4> Output, std::floating_point Input>
+    Output evaluate(Input r) const;
+
+    /*! \brief Return the number of stencil points. */
+    static constexpr std::size_t get_stencil_width();
 };
 
 /*!
@@ -69,7 +85,11 @@ class IB5
 {
 public:
     /*! \brief Return the five stencil weights. */
-    IBKernels::Weights<double, 5> operator()(double r) const;
+    template <detail::IBKernelWritableWeights<5> Output, std::floating_point Input>
+    Output evaluate(Input r) const;
+
+    /*! \brief Return the number of stencil points. */
+    static constexpr std::size_t get_stencil_width();
 };
 
 /*!
@@ -79,7 +99,11 @@ class IB6
 {
 public:
     /*! \brief Return the six stencil weights. */
-    IBKernels::Weights<double, 6> operator()(double r) const;
+    template <detail::IBKernelWritableWeights<6> Output, std::floating_point Input>
+    Output evaluate(Input r) const;
+
+    /*! \brief Return the number of stencil points. */
+    static constexpr std::size_t get_stencil_width();
 };
 
 } // namespace IBKernels

@@ -205,7 +205,7 @@ public:
      *
      * \warning Physical boundary conditions are not handled.
      */
-    template <IBKernelEvaluatorCartesian Evaluator>
+    template <IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
     static void constructPatchLevelSCInterpOp(Mat& mat,
                                               const Evaluator& evaluator,
                                               Vec X_vec,
@@ -293,7 +293,7 @@ private:
     };
 
     /*! \brief Assemble matrix rows for one velocity component. */
-    template <int Axis, IBKernelEvaluatorCartesian Evaluator>
+    template <int Axis, IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
     static void construct_sc_interp_op_axis(SCInterpOpData& data, const Evaluator& evaluator);
 
     /*!

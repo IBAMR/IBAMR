@@ -16,25 +16,16 @@
 
 namespace IBTK
 {
-namespace detail
-{
-/*! \brief Two scalar evaluator object types with the same coefficient type. */
-template <class T, class U>
-concept IBKernelEvaluatorScalarPair =
-    std::is_object_v<T> && std::is_object_v<U> && IBKernelEvaluatorScalar<T> && IBKernelEvaluatorScalar<U> &&
-    std::same_as<typename IBKernelWeightsTraits<std::invoke_result_t<const T&, const double&>>::value_type,
-                 typename IBKernelWeightsTraits<std::invoke_result_t<const U&, const double&>>::value_type>;
-} // namespace detail
-
 /*!
  * \brief Evaluate a tensor product of one-dimensional IB kernels.
  *
  * Axis selects the coordinate using Normal; other coordinates use Tangential.
- * The scalar evaluators are stored by value and must have the same coefficient type.
+ * The scalar evaluators are stored by value. Both factors and their product
+ * use the coefficient type selected by Output.
  *
  * \see IBKernelEvaluatorCartesian
  */
-template <IBKernelEvaluatorScalar Normal, detail::IBKernelEvaluatorScalarPair<Normal> Tangential = Normal>
+template <detail::IBKernelScalarShape Normal, detail::IBKernelScalarShape Tangential = Normal>
 class IBKernelEvaluatorTensorProduct
 {
 public:
@@ -52,13 +43,19 @@ public:
     static constexpr std::array<std::size_t, NDIM> get_stencil_widths() requires(Axis >= 0 && Axis < NDIM);
 
     /*! \brief Return the product of the scalar weights at r. */
-    template <int Axis>
-    auto evaluate(const std::array<double, NDIM>& r) const requires(Axis >= 0 && Axis < NDIM);
+    template <int Axis, IBKernelWeights Output, std::floating_point Input>
+    requires(
+        detail::IBKernelCartesianShape<IBKernelEvaluatorTensorProduct, Axis>&&
+            detail::IBKernelWritableWeights<Output,
+                                            detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct, Axis>()>&&
+                IBKernelEvaluatorScalar<Normal, Input, typename IBKernelWeightsTraits<Output>::value_type>&&
+                    IBKernelEvaluatorScalar<Tangential, Input, typename IBKernelWeightsTraits<Output>::value_type>)
+        Output evaluate(const std::array<Input, NDIM>& r) const;
 
 private:
     /*! \brief Evaluate the scalar factor for coordinate Direction. */
-    template <int Axis, int Direction>
-    auto evaluateDirection(const double& r) const;
+    template <int Axis, int Direction, class Coefficient, std::floating_point Input>
+    auto evaluateDirection(const Input& r) const;
 
     //! Owned scalar factors.
     [[no_unique_address]] Normal d_normal;

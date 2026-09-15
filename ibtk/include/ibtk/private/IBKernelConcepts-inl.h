@@ -12,27 +12,24 @@
 #include <ibtk/IBKernelConcepts.h>
 
 #include <limits>
-#include <utility>
 
 namespace IBTK::detail
 {
 template <class T, int Axis>
-constexpr bool
-ib_kernel_cartesian_shape()
+constexpr std::size_t
+ib_kernel_stencil_size()
 {
-    using Weights =
-        decltype(std::declval<const T&>().template evaluate<Axis>(std::declval<const std::array<double, NDIM>&>()));
     constexpr std::array<std::size_t, NDIM> widths = T::template get_stencil_widths<Axis>();
     std::size_t count = 1;
     for (std::size_t width : widths)
     {
         if (width == 0 || width > std::numeric_limits<std::size_t>::max() / count)
         {
-            return false;
+            return 0;
         }
         count *= width;
     }
-    return count == IBKernelWeightsTraits<Weights>::extent;
+    return count;
 }
 } // namespace IBTK::detail
 #endif

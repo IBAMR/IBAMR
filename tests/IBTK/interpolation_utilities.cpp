@@ -44,12 +44,24 @@
 
 struct LinearIBKernel
 {
-    IBKernels::Weights<double, 2> operator()(const double& r) const
+    static constexpr std::size_t get_stencil_width()
     {
-        return { 1.0 - r, r };
+        return 2;
     }
-    IBKernels::Weights<double, 2> operator()(double&) const = delete;
-    IBKernels::Weights<double, 2> operator()(double&&) const = delete;
+    template <class Output, std::floating_point Input>
+    requires IBTK::detail::IBKernelWritableWeights<Output, 2> Output evaluate(const Input& r) const
+    {
+        using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+        const Coefficient x = r;
+        Output weights{};
+        weights[0] = 1 - x;
+        weights[1] = x;
+        return weights;
+    }
+    template <class Output, class Input>
+    Output evaluate(Input&) const = delete;
+    template <class Output, class Input>
+    Output evaluate(const Input&&) const = delete;
 };
 
 static_assert(IBKernelEvaluatorScalar<LinearIBKernel>);
@@ -62,10 +74,9 @@ struct ReorderedWeights
     {
         return values[values.size() - 1 - i];
     }
-    // Raw storage intentionally differs from the logical coefficient order.
-    const T* data() const
+    T& operator[](std::size_t i)
     {
-        return values.data();
+        return values[values.size() - 1 - i];
     }
 };
 
@@ -75,37 +86,6 @@ struct IBTK::IBKernelWeightsTraits<ReorderedWeights<T>>
     using value_type = T;
     static constexpr std::size_t extent = NDIM == 2 ? 6 : 12;
 };
-
-template <class T>
-struct ReorderedTensorKernel
-{
-    template <int Axis>
-    static constexpr std::array<std::size_t, NDIM> get_stencil_widths()
-    {
-        return IBKernelEvaluatorTensorProduct<IBKernels::BSpline<3>,
-                                              LinearIBKernel>::template get_stencil_widths<Axis>();
-    }
-
-    template <int Axis>
-    ReorderedWeights<T> evaluate(const std::array<double, NDIM>& r) const
-    {
-        const IBKernelEvaluatorTensorProduct product{ IBKernels::BSpline<3>{}, LinearIBKernel{} };
-        const std::array<double, IBKernelWeightsTraits<ReorderedWeights<T>>::extent> values =
-            product.template evaluate<Axis>(r);
-        ReorderedWeights<T> result;
-        for (std::size_t i = 0; i < values.size(); ++i)
-        {
-            result.values[values.size() - 1 - i] = static_cast<T>(values[i]);
-        }
-        return result;
-    }
-
-    template <int Axis>
-    ReorderedWeights<T> evaluate(std::array<double, NDIM>&) const = delete;
-};
-
-static_assert(IBKernelEvaluatorCartesian<ReorderedTensorKernel<float>>);
-static_assert(IBKernelEvaluatorCartesian<ReorderedTensorKernel<double>>);
 
 double
 exact_fcn(const VectorNd& x)
@@ -199,43 +179,31 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
         matrix, IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<3>{}, LinearIBKernel{} }, X, counts, dof, level);
     ierr = VecLockReadPop(X);
     IBTK_CHKERRQ(ierr);
-    Mat float_matrix = nullptr;
-    PETScMatUtilities::constructPatchLevelSCInterpOp(
-        float_matrix, ReorderedTensorKernel<float>{}, X, counts, dof, level);
-    Mat reordered_matrix = nullptr;
-    PETScMatUtilities::constructPatchLevelSCInterpOp(
-        reordered_matrix, ReorderedTensorKernel<double>{}, X, counts, dof, level);
-    PetscBool equal;
-    ierr = MatEqual(matrix, reordered_matrix, &equal);
-    IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(equal);
-    ierr = MatDestroy(&reordered_matrix);
-    IBTK_CHKERRQ(ierr);
-    PetscInt first_row, last_row;
-    ierr = MatGetOwnershipRange(matrix, &first_row, &last_row);
-    IBTK_CHKERRQ(ierr);
-    for (PetscInt row = first_row; row < last_row; ++row)
+    // The same evaluator accepts independently owned, differently ordered storage.
+    const IBKernelEvaluatorTensorProduct product{ IBKernels::BSpline<3>{}, LinearIBKernel{} };
+    const std::array<long double, NDIM> r = []
     {
-        PetscInt n, float_n;
-        const PetscInt *columns, *float_columns;
-        const PetscScalar *values, *float_values;
-        ierr = MatGetRow(matrix, row, &n, &columns, &values);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatGetRow(float_matrix, row, &float_n, &float_columns, &float_values);
-        IBTK_CHKERRQ(ierr);
-        TBOX_ASSERT(n == float_n);
-        for (PetscInt i = 0; i < n; ++i)
+        std::array<long double, NDIM> coordinates;
+        coordinates.fill(0.25L);
+        coordinates[0] = 1.0L;
+        return coordinates;
+    }();
+    ReorderedWeights<float> weights = product.template evaluate<0, ReorderedWeights<float>>(r);
+    const ReorderedWeights<float> saved = weights;
+    constexpr std::size_t count = IBKernelWeightsTraits<ReorderedWeights<float>>::extent;
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        std::size_t index = i / 3;
+        float expected = i % 3 == 1 ? 0.75f : 0.125f;
+        for (int d = 1; d < NDIM; ++d)
         {
-            TBOX_ASSERT(columns[i] == float_columns[i]);
-            TBOX_ASSERT(float_values[i] == static_cast<PetscScalar>(static_cast<float>(PetscRealPart(values[i]))));
+            expected *= index % 2 == 0 ? 0.75f : 0.25f;
+            index /= 2;
         }
-        ierr = MatRestoreRow(float_matrix, row, &float_n, &float_columns, &float_values);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatRestoreRow(matrix, row, &n, &columns, &values);
-        IBTK_CHKERRQ(ierr);
+        TBOX_ASSERT(weights[i] == expected);
+        weights[i] = -1;
+        TBOX_ASSERT(saved[i] == expected);
     }
-    ierr = MatDestroy(&float_matrix);
-    IBTK_CHKERRQ(ierr);
     Vec field = nullptr, result = nullptr;
     ierr = MatCreateVecs(matrix, &field, &result);
     IBTK_CHKERRQ(ierr);

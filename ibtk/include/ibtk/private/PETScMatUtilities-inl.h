@@ -33,7 +33,7 @@
 
 namespace IBTK
 {
-template <IBKernelEvaluatorCartesian Evaluator>
+template <IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
 inline void
 PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                                                  const Evaluator& evaluator,
@@ -78,14 +78,13 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     data.assemble();
 }
 
-template <int Axis, IBKernelEvaluatorCartesian Evaluator>
+template <int Axis, IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
 inline void
 PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evaluator& evaluator)
 {
     using namespace SAMRAI;
-    using Values = decltype(std::declval<const Evaluator&>().template evaluate<Axis>(
-        std::declval<const std::array<double, NDIM>&>()));
-    constexpr std::size_t nvalues = IBKernelWeightsTraits<Values>::extent;
+    constexpr std::size_t nvalues = detail::ib_kernel_stencil_size<Evaluator, Axis>();
+    using Weights = IBKernels::Weights<PetscScalar, nvalues>;
     static_assert(nvalues <= static_cast<std::size_t>(std::numeric_limits<PetscInt>::max()));
     for (int point = 0; point < data.d_n_local_points; ++point)
     {
@@ -100,7 +99,7 @@ PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evalu
                 data.d_x_lower[d];
             r[d] = (X[d] - x_lower) / data.d_dx[d];
         }
-        const Values values = evaluator.template evaluate<Axis>(std::as_const(r));
+        const Weights values = evaluator.template evaluate<Axis, Weights>(std::as_const(r));
 
         std::array<PetscInt, nvalues> columns;
 
@@ -113,22 +112,8 @@ PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evalu
         }
         const PetscInt row = data.d_row_lower + NDIM * point + Axis;
         // Periodic stencil points can share a column; sum their contributions.
-        int ierr;
-        if constexpr (std::same_as<Values, std::array<PetscScalar, nvalues>>)
-        {
-            ierr = MatSetValues(
-                data.d_mat, 1, &row, static_cast<PetscInt>(nvalues), columns.data(), values.data(), ADD_VALUES);
-        }
-        else
-        {
-            std::array<PetscScalar, nvalues> converted;
-            for (std::size_t i = 0; i < nvalues; ++i)
-            {
-                converted[i] = static_cast<PetscScalar>(values[i]);
-            }
-            ierr = MatSetValues(
-                data.d_mat, 1, &row, static_cast<PetscInt>(nvalues), columns.data(), converted.data(), ADD_VALUES);
-        }
+        const int ierr = MatSetValues(
+            data.d_mat, 1, &row, static_cast<PetscInt>(nvalues), columns.data(), values.data(), ADD_VALUES);
         IBTK_CHKERRQ(ierr);
     }
 }
