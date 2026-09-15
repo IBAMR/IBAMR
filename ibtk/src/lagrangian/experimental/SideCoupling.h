@@ -17,6 +17,14 @@
 
 namespace IBTK::Experimental
 {
+/*! \brief Compile-time choices for comparing tensor-product applications. */
+enum class TensorProductMode
+{
+    EXPANDED,
+    FACTORIZED,
+    CONTRACTED
+};
+
 /*!
  * \brief Patch-local, matrix-free coupling of depth-one side vectors.
  *
@@ -34,6 +42,11 @@ namespace IBTK::Experimental
  * Field, marker values, positions, shifts, and indices must not overlap whenever
  * either range is written. Concurrent spreads require disjoint destinations or
  * caller-provided synchronization. Concepts do not establish these conditions.
+ *
+ * FACTORIZED forms coefficient products on demand in the same order as EXPANDED.
+ * CONTRACTED reuses plane/row products and sums with double field arithmetic,
+ * using the selected precision for the one-dimensional factors. Evaluators without an
+ * owning evaluateFactors() result use EXPANDED in every mode.
  */
 class SideCoupling
 {
@@ -42,7 +55,10 @@ public:
     SideCoupling(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideData<NDIM, double>& field);
 
     /*! \brief Interpolate one component with the selected coefficient arithmetic. */
-    template <int Axis, class Coefficient = double, class Evaluator>
+    template <int Axis,
+              class Coefficient = double,
+              TensorProductMode Mode = TensorProductMode::CONTRACTED,
+              class Evaluator>
     requires IBKernelEvaluatorCartesian<Evaluator, double, Coefficient> void
     interpolateAxis(const Evaluator& evaluator,
                     const double* field,
@@ -53,7 +69,10 @@ public:
                     std::ptrdiff_t marker_stride = 1) const;
 
     /*! \brief Add one component to the field, spreading values rather than densities. */
-    template <int Axis, class Coefficient = double, class Evaluator>
+    template <int Axis,
+              class Coefficient = double,
+              TensorProductMode Mode = TensorProductMode::CONTRACTED,
+              class Evaluator>
     requires IBKernelEvaluatorCartesian<Evaluator, double, Coefficient> void
     spreadAxis(const Evaluator& evaluator,
                double* field,
@@ -65,7 +84,7 @@ public:
 
 private:
     /*! \brief Apply a component stencil with coordinate zero varying fastest. */
-    template <int Axis, bool Spread, class Coefficient, class Evaluator>
+    template <int Axis, bool Spread, class Coefficient, TensorProductMode Mode, class Evaluator>
     void applyAxis(const Evaluator& evaluator,
                    std::conditional_t<Spread, double*, const double*> field,
                    std::span<const double> positions,

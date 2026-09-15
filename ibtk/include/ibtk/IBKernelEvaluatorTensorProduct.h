@@ -18,6 +18,7 @@
 #include <ibtk/IBKernelConcepts.h>
 
 #include <array>
+#include <tuple>
 #include <type_traits>
 
 namespace IBTK
@@ -63,6 +64,18 @@ public:
      */
     template <int Axis>
     static constexpr std::array<std::size_t, NDIM> get_stencil_widths() requires(Axis >= 0 && Axis < NDIM);
+
+    /*!
+     * \brief Return independently owned one-dimensional weights in coordinate order.
+     *
+     * The result is a tuple of IBKernelEvaluators::Weights<Coefficient, width> arrays,
+     * with Axis selecting the normal width. No tensor products are formed.
+     */
+    template <int Axis, std::floating_point Coefficient = double, std::floating_point Input>
+    requires(
+        Axis >= 0 && Axis < NDIM && IBKernelEvaluatorScalar<NormalEvaluator, Input, Coefficient> &&
+        IBKernelEvaluatorScalar<TransverseEvaluator, Input, Coefficient>) auto evaluateFactors(const std::array<Input, NDIM>& r)
+        const;
 
     /*!
      * \brief Return the product of the one-dimensional weights at r: the

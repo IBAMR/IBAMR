@@ -30,8 +30,22 @@ public:
     Output evaluate(Input r) const;
 };
 
+/*! \brief Custom Cartesian evaluator without the optional factorized interface. */
+class CartesianCosineKernel
+{
+public:
+    template <int Axis>
+    static constexpr std::array<std::size_t, NDIM> get_stencil_widths();
+
+    template <int Axis, class Output, class Input>
+    Output evaluate(const std::array<Input, NDIM>& r) const;
+};
+
 /*! \brief Apply all vector components to interleaved marker data. */
-template <bool Spread, class Coefficient = double, class Evaluator>
+template <bool Spread,
+          class Coefficient = double,
+          IBTK::Experimental::TensorProductMode Mode = IBTK::Experimental::TensorProductMode::CONTRACTED,
+          class Evaluator>
 void couple(const Evaluator& evaluator,
             const SAMRAI::hier::Patch<NDIM>& patch,
             SAMRAI::pdat::SideData<NDIM, double>& field,

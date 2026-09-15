@@ -54,7 +54,23 @@ CosineKernel::evaluate(const Input r) const
     return weights;
 }
 
-template <bool Spread, class Coefficient, class Evaluator>
+template <int Axis>
+constexpr std::array<std::size_t, NDIM>
+CartesianCosineKernel::get_stencil_widths()
+{
+    std::array<std::size_t, NDIM> widths;
+    widths.fill(4);
+    return widths;
+}
+
+template <int Axis, class Output, class Input>
+Output
+CartesianCosineKernel::evaluate(const std::array<Input, NDIM>& r) const
+{
+    return IBTK::IBKernelEvaluatorTensorProduct{ CosineKernel{} }.template evaluate<Axis, Output>(r);
+}
+
+template <bool Spread, class Coefficient, IBTK::Experimental::TensorProductMode Mode, class Evaluator>
 void
 couple(const Evaluator& evaluator,
        const SAMRAI::hier::Patch<NDIM>& patch,
@@ -69,13 +85,13 @@ couple(const Evaluator& evaluator,
     {
         if constexpr (Spread)
         {
-            (coupling.template spreadAxis<Axis, Coefficient>(
+            (coupling.template spreadAxis<Axis, Coefficient, Mode>(
                  evaluator, field.getPointer(Axis), positions, indices, shifts, values + Axis, NDIM),
              ...);
         }
         else
         {
-            (coupling.template interpolateAxis<Axis, Coefficient>(
+            (coupling.template interpolateAxis<Axis, Coefficient, Mode>(
                  evaluator, field.getPointer(Axis), positions, indices, shifts, values + Axis, NDIM),
              ...);
         }

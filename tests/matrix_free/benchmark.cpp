@@ -17,6 +17,7 @@
 #include <iomanip>
 #include <iostream>
 #include <numeric>
+#include <string_view>
 
 #include "coupling.h"
 #include "fixture.h"
@@ -84,19 +85,54 @@ benchmark(const std::string& name,
         }
     }
     const IntVector<NDIM>& ghosts = field->getGhostCellWidth();
-    const std::array<const char*, 8> labels = { "cpp_loop_gather",     "fortran_loop_gather", "cpp_patch_gather",
-                                                "LEInteractor_gather", "cpp_loop_spread",     "fortran_loop_spread",
-                                                "cpp_patch_spread",    "LEInteractor_spread" };
-    const std::array<std::function<void()>, 8> operations = {
-        [&]
+    using Mode = Experimental::TensorProductMode;
+    const auto component_operation = [&]<bool Spread, Mode Application>()
+    {
+        return [&]
         {
             [&]<std::size_t... Axis>(std::index_sequence<Axis...>)
             {
-                (coupling.template interpolateAxis<Axis>(
-                     evaluator, field->getPointer(Axis), positions, indices, shifts, component_values[Axis].data()),
-                 ...);
+                if constexpr (Spread)
+                {
+                    (coupling.template spreadAxis<Axis, double, Application>(
+                         evaluator, spread->getPointer(Axis), positions, indices, shifts, component_force[Axis].data()),
+                     ...);
+                }
+                else
+                {
+                    (coupling.template interpolateAxis<Axis, double, Application>(
+                         evaluator, field->getPointer(Axis), positions, indices, shifts, component_values[Axis].data()),
+                     ...);
+                }
             }(std::make_index_sequence<NDIM>{});
-        },
+        };
+    };
+    const auto patch_operation = [&]<bool Spread, Mode Application>()
+    {
+        return [&]
+        {
+            if constexpr (Spread)
+            {
+                couple<true, double, Application>(evaluator, *patch, *spread, positions, indices, {}, force.data());
+            }
+            else
+            {
+                couple<false, double, Application>(evaluator, *patch, *field, positions, indices, {}, values.data());
+            }
+        };
+    };
+    const std::array<const char*, 16> labels = { "cpp_expanded_loop_gather",    "cpp_factorized_loop_gather",
+                                                 "cpp_contracted_loop_gather",  "fortran_loop_gather",
+                                                 "cpp_expanded_patch_gather",   "cpp_factorized_patch_gather",
+                                                 "cpp_contracted_patch_gather", "LEInteractor_gather",
+                                                 "cpp_expanded_loop_spread",    "cpp_factorized_loop_spread",
+                                                 "cpp_contracted_loop_spread",  "fortran_loop_spread",
+                                                 "cpp_expanded_patch_spread",   "cpp_factorized_patch_spread",
+                                                 "cpp_contracted_patch_spread", "LEInteractor_spread" };
+    const std::array<std::function<void()>, 16> operations = {
+        component_operation.template operator()<false, Mode::EXPANDED>(),
+        component_operation.template operator()<false, Mode::FACTORIZED>(),
+        component_operation.template operator()<false, Mode::CONTRACTED>(),
         [&]
         {
             for (int axis = 0; axis < NDIM; ++axis)
@@ -139,17 +175,13 @@ benchmark(const std::string& name,
                 }
             }
         },
-        [&] { couple<false>(evaluator, *patch, *field, positions, indices, {}, values.data()); },
+        patch_operation.template operator()<false, Mode::EXPANDED>(),
+        patch_operation.template operator()<false, Mode::FACTORIZED>(),
+        patch_operation.template operator()<false, Mode::CONTRACTED>(),
         [&] { LEInteractor::interpolate(values, NDIM, positions, NDIM, field, patch, box, legacy_kernel); },
-        [&]
-        {
-            [&]<std::size_t... Axis>(std::index_sequence<Axis...>)
-            {
-                (coupling.template spreadAxis<Axis>(
-                     evaluator, spread->getPointer(Axis), positions, indices, shifts, component_force[Axis].data()),
-                 ...);
-            }(std::make_index_sequence<NDIM>{});
-        },
+        component_operation.template operator()<true, Mode::EXPANDED>(),
+        component_operation.template operator()<true, Mode::FACTORIZED>(),
+        component_operation.template operator()<true, Mode::CONTRACTED>(),
         [&]
         {
             for (int axis = 0; axis < NDIM; ++axis)
@@ -192,20 +224,22 @@ benchmark(const std::string& name,
                 }
             }
         },
-        [&] { couple<true>(evaluator, *patch, *spread, positions, indices, {}, force.data()); },
+        patch_operation.template operator()<true, Mode::EXPANDED>(),
+        patch_operation.template operator()<true, Mode::FACTORIZED>(),
+        patch_operation.template operator()<true, Mode::CONTRACTED>(),
         [&] { LEInteractor::spread(spread, force, NDIM, positions, NDIM, patch, box, legacy_kernel); }
     };
     const auto consume = [&](const int operation)
     {
         double checksum = 0.0;
-        if (operation < 4)
+        if (operation < 8)
         {
             for (int point = 0; point < markers; ++point)
             {
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     checksum += (1.0 + 0.03125 * (point % 7)) *
-                                (operation < 2 ? component_values[axis][point] : values[NDIM * point + axis]);
+                                (operation < 4 ? component_values[axis][point] : values[NDIM * point + axis]);
                 }
             }
         }
@@ -226,7 +260,7 @@ benchmark(const std::string& name,
     const auto capture = [&](const int operation)
     {
         std::vector<double> result;
-        if (operation < 4)
+        if (operation < 8)
         {
             result.resize(positions.size());
             for (int point = 0; point < markers; ++point)
@@ -234,7 +268,7 @@ benchmark(const std::string& name,
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     result[NDIM * point + axis] =
-                        operation < 2 ? component_values[axis][point] : values[NDIM * point + axis];
+                        operation < 4 ? component_values[axis][point] : values[NDIM * point + axis];
                 }
             }
         }
@@ -249,9 +283,9 @@ benchmark(const std::string& name,
         return result;
     };
     // Validate full outputs before timing, including the direct Fortran ABI calls.
-    for (int operation = 0; operation < 8; ++operation)
+    for (int operation = 0; operation < 16; ++operation)
     {
-        if (!have_fortran && operation % 2 == 1)
+        if (!have_fortran && operation % 4 == 3)
         {
             continue;
         }
@@ -259,8 +293,8 @@ benchmark(const std::string& name,
         operations[operation]();
         const std::vector<double> actual = capture(operation);
         spread->fillAll(0.0);
-        operations[operation < 4 ? 0 : 4]();
-        const std::vector<double> reference = capture(operation < 4 ? 0 : 4);
+        operations[operation < 8 ? 0 : 8]();
+        const std::vector<double> reference = capture(operation < 8 ? 0 : 8);
         for (std::size_t i = 0; i < actual.size(); ++i)
         {
             if (!std::isfinite(actual[i]) ||
@@ -272,9 +306,9 @@ benchmark(const std::string& name,
     }
     for (int warmup = 0; warmup < 3; ++warmup)
     {
-        for (int operation = 0; operation < 8; ++operation)
+        for (int operation = 0; operation < 16; ++operation)
         {
-            if (have_fortran || operation % 2 == 0)
+            if (have_fortran || operation % 4 != 3)
             {
                 spread->fillAll(0.0);
                 operations[operation]();
@@ -284,10 +318,10 @@ benchmark(const std::string& name,
     // Rotate implementation order across repeats; reset and checksums are outside timing.
     for (int repeat = 0; repeat < repeats; ++repeat)
     {
-        for (int slot = 0; slot < 8; ++slot)
+        for (int slot = 0; slot < 16; ++slot)
         {
-            const int operation = (slot + repeat) % 8;
-            if (!have_fortran && operation % 2 == 1)
+            const int operation = (slot + repeat) % 16;
+            if (!have_fortran && operation % 4 == 3)
             {
                 continue;
             }
@@ -312,7 +346,7 @@ main(int argc, char** argv)
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
     if (argc != 6 && argc != 7)
     {
-        std::cerr << "Usage: benchmark cells markers iterations repeats shuffled(0|1) [kernel]\n";
+        std::cerr << "Usage: benchmark cells markers iterations repeats shuffled(0|1) [kernel|CBS]\n";
         return 1;
     }
     const int cells = std::atoi(argv[1]), markers = std::atoi(argv[2]), iterations = std::atoi(argv[3]),
@@ -327,7 +361,8 @@ main(int argc, char** argv)
     int selected = 0;
     const auto run = [&](const std::string& name, const auto& evaluator)
     {
-        if (argc == 6 || name == argv[6])
+        if (argc == 6 || name == argv[6] ||
+            (std::string_view(argv[6]) == "CBS" && name.starts_with("COMPOSITE_BSPLINE_")))
         {
             ++selected;
             benchmark(name, evaluator, cells, markers, iterations, repeats, shuffled);

@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <tuple>
 
 namespace IBTK::Experimental
 {
@@ -46,7 +47,7 @@ inline SideCoupling::SideCoupling(const SAMRAI::hier::Patch<NDIM>& patch,
     }
 }
 
-template <int Axis, class Coefficient, class Evaluator>
+template <int Axis, class Coefficient, TensorProductMode Mode, class Evaluator>
 requires IBKernelEvaluatorCartesian<Evaluator, double, Coefficient> inline void
 SideCoupling::interpolateAxis(const Evaluator& evaluator,
                               const double* const field,
@@ -56,10 +57,10 @@ SideCoupling::interpolateAxis(const Evaluator& evaluator,
                               double* const values,
                               const std::ptrdiff_t marker_stride) const
 {
-    applyAxis<Axis, false, Coefficient>(evaluator, field, positions, indices, shifts, values, marker_stride);
+    applyAxis<Axis, false, Coefficient, Mode>(evaluator, field, positions, indices, shifts, values, marker_stride);
 }
 
-template <int Axis, class Coefficient, class Evaluator>
+template <int Axis, class Coefficient, TensorProductMode Mode, class Evaluator>
 requires IBKernelEvaluatorCartesian<Evaluator, double, Coefficient> inline void
 SideCoupling::spreadAxis(const Evaluator& evaluator,
                          double* const field,
@@ -69,10 +70,10 @@ SideCoupling::spreadAxis(const Evaluator& evaluator,
                          const double* const values,
                          const std::ptrdiff_t marker_stride) const
 {
-    applyAxis<Axis, true, Coefficient>(evaluator, field, positions, indices, shifts, values, marker_stride);
+    applyAxis<Axis, true, Coefficient, Mode>(evaluator, field, positions, indices, shifts, values, marker_stride);
 }
 
-template <int Axis, bool Spread, class Coefficient, class Evaluator>
+template <int Axis, bool Spread, class Coefficient, TensorProductMode Mode, class Evaluator>
 inline void
 SideCoupling::applyAxis(const Evaluator& evaluator,
                         const std::conditional_t<Spread, double*, const double*> field,
@@ -89,6 +90,21 @@ SideCoupling::applyAxis(const Evaluator& evaluator,
                               [](std::size_t n)
                               { return n <= static_cast<std::size_t>(std::numeric_limits<int>::max()); }));
     using Weights = IBKernels::Weights<Coefficient, detail::ib_kernel_stencil_size<Evaluator, Axis>()>;
+    using Factors = std::tuple<IBKernels::Weights<Coefficient, widths[0]>,
+                               IBKernels::Weights<Coefficient, widths[1]>
+#if (NDIM == 3)
+                               ,
+                               IBKernels::Weights<Coefficient, widths[2]>
+#endif
+                               >;
+    constexpr bool factorized =
+        Mode != TensorProductMode::EXPANDED && requires(const Evaluator& kernel, const std::array<double, NDIM>& r)
+    {
+        {
+            kernel.template evaluateFactors<Axis, Coefficient>(r)
+        } -> std::same_as<Factors>;
+    };
+    constexpr bool contracted = factorized && Mode == TensorProductMode::CONTRACTED;
 #if !defined(NDEBUG)
     TBOX_ASSERT(marker_stride > 0);
     TBOX_ASSERT(shifts.empty() || shifts.size() == NDIM * indices.size());
@@ -116,7 +132,17 @@ SideCoupling::applyAxis(const Evaluator& evaluator,
             last[d] = std::min(width, d_upper[Axis][d] - lower[d] + 1);
             full_stencil = full_stencil && first[d] == 0 && last[d] == width;
         }
-        const Weights weights = evaluator.template evaluate<Axis, Weights>(r);
+        const auto weights = [&]
+        {
+            if constexpr (factorized)
+            {
+                return evaluator.template evaluateFactors<Axis, Coefficient>(r);
+            }
+            else
+            {
+                return evaluator.template evaluate<Axis, Weights>(r);
+            }
+        }();
         double value = 0.0;
         if constexpr (Spread)
         {
@@ -128,6 +154,11 @@ SideCoupling::applyAxis(const Evaluator& evaluator,
 #if (NDIM == 3)
             for (int k = Clipped ? first[2] : 0; k < (Clipped ? last[2] : static_cast<int>(widths[2])); ++k)
             {
+                double plane_value = 0.0;
+                if constexpr (contracted && Spread)
+                {
+                    plane_value = value * std::get<2>(weights)[k];
+                }
 #endif
                 for (int j = Clipped ? first[1] : 0; j < (Clipped ? last[1] : static_cast<int>(widths[1])); ++j)
                 {
@@ -138,19 +169,69 @@ SideCoupling::applyAxis(const Evaluator& evaluator,
                     offset += (lower[2] + k - d_lower[Axis][2]) * d_stride[Axis][2];
                     weight_offset += widths[0] * widths[1] * k;
 #endif
+                    double row_value = 0.0;
+                    if constexpr (contracted && Spread)
+                    {
+#if (NDIM == 3)
+                        row_value = plane_value * std::get<1>(weights)[j];
+#else
+                    row_value = value * std::get<1>(weights)[j];
+#endif
+                    }
                     for (int i = Clipped ? first[0] : 0; i < (Clipped ? last[0] : static_cast<int>(widths[0])); ++i)
                     {
-                        if constexpr (Spread)
+                        if constexpr (contracted)
                         {
-                            field[offset + i] += weights[weight_offset + i] * value;
+                            if constexpr (Spread)
+                            {
+                                field[offset + i] += std::get<0>(weights)[i] * row_value;
+                            }
+                            else
+                            {
+                                row_value += std::get<0>(weights)[i] * field[offset + i];
+                            }
                         }
                         else
                         {
-                            value += weights[weight_offset + i] * field[offset + i];
+                            const Coefficient weight = [&]() -> Coefficient
+                            {
+                                if constexpr (factorized)
+                                {
+#if (NDIM == 3)
+                                    return std::get<0>(weights)[i] * std::get<1>(weights)[j] * std::get<2>(weights)[k];
+#else
+                                return std::get<0>(weights)[i] * std::get<1>(weights)[j];
+#endif
+                                }
+                                else
+                                {
+                                    return weights[weight_offset + i];
+                                }
+                            }();
+                            if constexpr (Spread)
+                            {
+                                field[offset + i] += weight * value;
+                            }
+                            else
+                            {
+                                value += weight * field[offset + i];
+                            }
                         }
+                    }
+                    if constexpr (contracted && !Spread)
+                    {
+#if (NDIM == 3)
+                        plane_value += std::get<1>(weights)[j] * row_value;
+#else
+                    value += std::get<1>(weights)[j] * row_value;
+#endif
                     }
                 }
 #if (NDIM == 3)
+                if constexpr (contracted && !Spread)
+                {
+                    value += std::get<2>(weights)[k] * plane_value;
+                }
             }
 #endif
         };

@@ -17,18 +17,20 @@ for filename in sys.argv[1:]:
 writer = csv.writer(sys.stdout)
 writer.writerow(("dimension", "kernel", "cells", "markers", "shuffled", "operation",
                  "samples", "median_seconds", "minimum_seconds", "maximum_seconds", "cv_percent",
-                 "fortran_over_cpp_median"))
+                 "fortran_over_cpp_median", "expanded_over_cpp_median"))
 for key, samples in sorted(groups.items()):
     median = statistics.median(samples)
     ratio = ""
     dimension, kernel, cells, markers, shuffled, operation = key
-    if operation.startswith("cpp_loop"):
-        peer = key[:-1] + (operation.replace("cpp_loop", "fortran_loop"),)
+    expanded_ratio = ""
+    if operation.startswith("cpp_"):
+        scope, action = operation.split("_")[-2:]
+        peer_operation = ("fortran_loop_" if scope == "loop" else "LEInteractor_") + action
+        peer = key[:-1] + (peer_operation,)
         if peer in groups:
             ratio = statistics.median(groups[peer]) / median
-    elif operation.startswith("cpp_patch"):
-        peer = key[:-1] + (operation.replace("cpp_patch", "LEInteractor"),)
-        if peer in groups:
-            ratio = statistics.median(groups[peer]) / median
+        expanded = key[:-1] + ("cpp_expanded_" + scope + "_" + action,)
+        if expanded in groups:
+            expanded_ratio = statistics.median(groups[expanded]) / median
     writer.writerow((*key, len(samples), median, min(samples), max(samples),
-                     100 * statistics.stdev(samples) / statistics.mean(samples), ratio))
+                     100 * statistics.stdev(samples) / statistics.mean(samples), ratio, expanded_ratio))

@@ -13,6 +13,7 @@
 #include <cmath>
 #include <iomanip>
 #include <numeric>
+#include <tuple>
 
 #include "coupling.h"
 #include "fixture.h"
@@ -21,6 +22,8 @@
 
 namespace
 {
+using Mode = IBTK::Experimental::TensorProductMode;
+
 template <class Evaluator>
 void
 check_case(const std::string& name, const Evaluator& evaluator, const bool fortran_available, const int ghosts)
@@ -90,6 +93,37 @@ check_case(const std::string& name, const Evaluator& evaluator, const bool fortr
         gather_error = std::max(gather_error, std::abs(values[i] - reference_values[i]));
         adjoint_markers += values[i] * force[i];
     }
+    const auto compare_mode = [&]<Mode Application>()
+    {
+        SideData<NDIM, double> other_spread(box, 1, IntVector<NDIM>(ghosts));
+        other_spread.fillAll(0.25);
+        std::vector<double> other_values(values.size());
+        couple<false, double, Application>(evaluator, *patch, *field, positions, indices, {}, other_values.data());
+        couple<true, double, Application>(evaluator, *patch, other_spread, positions, indices, {}, force.data());
+        std::array<double, 3> errors{};
+        double grid_pairing = 0.0, marker_pairing = 0.0;
+        for (std::size_t i = 0; i < values.size(); ++i)
+        {
+            errors[0] = std::max(errors[0], std::abs(other_values[i] - values[i]));
+            marker_pairing += other_values[i] * force[i];
+        }
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (SideIterator<NDIM> i(field->getGhostBox(), axis); i; i++)
+            {
+                errors[1] = std::max(errors[1], volume * std::abs(other_spread(i()) - (*spread)(i())));
+                grid_pairing += volume * (other_spread(i()) - 0.25) * (*field)(i());
+            }
+        }
+        errors[2] = std::abs(grid_pairing - marker_pairing);
+        if (*std::max_element(errors.begin(), errors.end()) > 1.0e-11)
+        {
+            TBOX_ERROR("Tensor-product application mismatch for " << name << '\n');
+        }
+        return errors;
+    };
+    const std::array<double, 3> expanded_errors = compare_mode.template operator()<Mode::EXPANDED>();
+    const std::array<double, 3> factorized_errors = compare_mode.template operator()<Mode::FACTORIZED>();
     double legacy_gather_error = 0.0, legacy_spread_error = 0.0;
     if (compare_fortran)
     {
@@ -129,9 +163,12 @@ check_case(const std::string& name, const Evaluator& evaluator, const bool fortr
     {
         plog << (fortran_available ? " Fortran_comparison not_run_clipped" : " Fortran_comparison unavailable");
     }
-    plog << '\n';
+    plog << " expanded_difference " << expanded_errors[0] << ' ' << expanded_errors[1] << " factorized_difference "
+         << factorized_errors[0] << ' ' << factorized_errors[1] << " other_adjoint_error "
+         << std::max(expanded_errors[2], factorized_errors[2]) << '\n';
 }
 
+template <Mode Application>
 void
 check_indexed_clipping()
 {
@@ -152,15 +189,15 @@ check_indexed_clipping()
     const IBKernelEvaluatorTensorProduct kernel{ IBKernels::BSpline<3>{}, IBKernels::BSpline<2>{} };
     std::vector<double> force(positions.size(), 0.75), values(positions.size(), -17.0);
     // Duplicate indices with different shifts are meaningful for spread. Gather uses unique indices.
-    couple<false, float>(kernel,
-                         *patch,
-                         field,
-                         positions,
-                         std::span(indices).first(2),
-                         std::span(shifts).first(2 * NDIM),
-                         values.data());
+    couple<false, float, Application>(kernel,
+                                      *patch,
+                                      field,
+                                      positions,
+                                      std::span(indices).first(2),
+                                      std::span(shifts).first(2 * NDIM),
+                                      values.data());
     spread.fillAll(0.0);
-    couple<true>(kernel, *patch, spread, positions, indices, shifts, force.data());
+    couple<true, float, Application>(kernel, *patch, spread, positions, indices, shifts, force.data());
     double volume = 1.0, gather_error = 0.0, spread_error = 0.0;
     for (int d = 0; d < NDIM; ++d)
     {
@@ -205,8 +242,40 @@ check_indexed_clipping()
             TBOX_ERROR("Gather changed an unselected marker.\n");
         }
     }
-    plog << "indexed_clipping float_gather_error " << gather_error << " spread_error " << spread_error
-         << " selected_value " << values[NDIM] << '\n';
+    plog << "indexed_clipping "
+         << (Application == Mode::EXPANDED   ? "expanded" :
+             Application == Mode::FACTORIZED ? "factorized" :
+                                               "contracted")
+         << " float_gather_error " << gather_error << " spread_error " << spread_error << " selected_value "
+         << values[NDIM] << '\n';
+}
+void
+check_factor_ownership()
+{
+    const auto factors = []
+    {
+        std::array<double, NDIM> r;
+        r.fill(2.125);
+        return IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<6>{}, IBKernels::BSpline<5>{} }.evaluateFactors<0>(r);
+    }();
+    auto copied_factors = factors;
+    std::get<0>(copied_factors)[0] += 1.0;
+    std::array<double, NDIM> r;
+    r.fill(2.125);
+    const IBKernelEvaluatorTensorProduct kernel{ IBKernels::BSpline<6>{}, IBKernels::BSpline<5>{} };
+    const auto expanded =
+        kernel.evaluate<0, IBKernels::Weights<double, detail::ib_kernel_stencil_size<decltype(kernel), 0>()>>(r);
+    double error = 0.0;
+    for (std::size_t n = 0; n < expanded.size(); ++n)
+    {
+        double weight = std::get<0>(factors)[n % 6] * std::get<1>(factors)[(n / 6) % 5];
+#if (NDIM == 3)
+        weight *= std::get<2>(factors)[n / 30];
+#endif
+        error = std::max(error, std::abs(weight - expanded[n]));
+    }
+    plog << "owned_factors product_error " << error << " independent_copy_delta "
+         << std::get<0>(copied_factors)[0] - std::get<0>(factors)[0] << '\n';
 }
 } // namespace
 
@@ -222,8 +291,11 @@ main(int argc, char** argv)
         check_case("IB_5", IBKernelEvaluatorTensorProduct{ IBKernels::IB5{} }, true, ghosts);
         MatrixFreeTest::for_each_bspline([&](const std::string& name, const auto& evaluator)
                                          { check_case(name, evaluator, name != "COMPOSITE_BSPLINE_12", ghosts); });
-        check_case("COSINE_4", IBKernelEvaluatorTensorProduct{ MatrixFreeTest::CosineKernel{} }, false, ghosts);
+        check_case("COSINE_4", MatrixFreeTest::CartesianCosineKernel{}, false, ghosts);
     }
-    check_indexed_clipping();
+    check_indexed_clipping<Mode::EXPANDED>();
+    check_indexed_clipping<Mode::FACTORIZED>();
+    check_indexed_clipping<Mode::CONTRACTED>();
+    check_factor_ownership();
     return 0;
 }
