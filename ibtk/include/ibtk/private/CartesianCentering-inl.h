@@ -47,7 +47,8 @@ string_to_enum<DataCentering>(const std::string& value)
     {
         return DataCentering::EDGE;
     }
-    return DataCentering::UNKNOWN;
+    TBOX_ERROR("Unknown DataCentering: " << value << '\n');
+    std::abort();
 }
 
 template <>
@@ -67,13 +68,14 @@ enum_to_string<DataCentering>(const DataCentering value)
     case DataCentering::EDGE:
         return "EDGE";
     default:
-        return "UNKNOWN";
+        TBOX_ERROR("Unknown DataCentering\n");
+        std::abort();
     }
 }
 
 template <DataCentering C>
 constexpr bool
-CartesianCentering<C>::is_oriented()
+CartesianCentering<C>::is_staggered()
 {
     return C == DataCentering::SIDE || C == DataCentering::FACE || C == DataCentering::EDGE;
 }
@@ -97,7 +99,7 @@ template <DataCentering C>
 typename CartesianCentering<C>::template Data<double>::Iterator
 CartesianCentering<C>::begin(const SAMRAI::hier::Box<NDIM>& box, const int axis)
 {
-    if constexpr (is_oriented())
+    if constexpr (is_staggered())
     {
         return typename Data<double>::Iterator(box, axis);
     }
@@ -124,7 +126,7 @@ CartesianCentering<C>::offset(const int axis)
     else
     {
         result.setConstant(0.5);
-        if constexpr (is_oriented())
+        if constexpr (is_staggered())
         {
             result[axis] = 0.0;
         }
@@ -138,6 +140,7 @@ CartesianCentering<C>::cartesian_index(const Index& index)
 {
     if constexpr (C == DataCentering::FACE)
     {
+        // Undo FaceIndex's coordinate permutation without shifting the normal index.
         return index.toCell(1);
     }
     else
@@ -170,7 +173,8 @@ get_data_centering(const SAMRAI::hier::PatchDataFactory<NDIM>& factory)
     {
         return DataCentering::EDGE;
     }
-    return DataCentering::UNKNOWN;
+    TBOX_ERROR("get_data_centering: unsupported patch data factory for the requested scalar type\n");
+    std::abort();
 }
 
 template <typename Function>
@@ -180,15 +184,15 @@ dispatch_data_centering(const DataCentering centering, Function&& function)
     switch (centering)
     {
     case DataCentering::CELL:
-        return std::forward<Function>(function).template operator()<CartesianCentering<DataCentering::CELL>>();
+        return std::forward<Function>(function).template operator()<DataCentering::CELL>();
     case DataCentering::NODE:
-        return std::forward<Function>(function).template operator()<CartesianCentering<DataCentering::NODE>>();
+        return std::forward<Function>(function).template operator()<DataCentering::NODE>();
     case DataCentering::SIDE:
-        return std::forward<Function>(function).template operator()<CartesianCentering<DataCentering::SIDE>>();
+        return std::forward<Function>(function).template operator()<DataCentering::SIDE>();
     case DataCentering::FACE:
-        return std::forward<Function>(function).template operator()<CartesianCentering<DataCentering::FACE>>();
+        return std::forward<Function>(function).template operator()<DataCentering::FACE>();
     case DataCentering::EDGE:
-        return std::forward<Function>(function).template operator()<CartesianCentering<DataCentering::EDGE>>();
+        return std::forward<Function>(function).template operator()<DataCentering::EDGE>();
     default:
         TBOX_ERROR("dispatch_data_centering: unsupported data centering\n");
         std::abort();

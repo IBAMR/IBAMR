@@ -435,6 +435,12 @@ void
 run_error_case(Pointer<PatchHierarchy<NDIM>> hierarchy, const std::string& error)
 {
     Logger::getInstance()->setAbortAppender(new ErrorAppender());
+    if (error == "factory")
+    {
+        Pointer<Variable<NDIM>> var = new CellVariable<NDIM, int>("unsupported factory");
+        get_data_centering<double>(*var->getPatchDataFactory());
+        return;
+    }
     Pointer<Variable<NDIM>> selector_var = new CellVariable<NDIM, double>("selector");
     Pointer<CartGridFunction> function;
     const int depth = NDIM;
