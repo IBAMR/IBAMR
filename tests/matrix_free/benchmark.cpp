@@ -64,6 +64,13 @@ benchmark(const std::string& name,
     const Experimental::SideCoupling coupling(*patch, *field);
     FortranInterpolate* const fortran_gather = get_fortran_interpolate(name);
     FortranSpread* const fortran_scatter = get_fortran_spread(name);
+    FortranCompositeInterpolate* const composite_gather = get_fortran_composite_interpolate(name);
+    FortranCompositeSpread* const composite_scatter = get_fortran_composite_spread(name);
+    const bool have_fortran = fortran_gather || composite_gather;
+    if (!have_fortran)
+    {
+        std::cerr << name << ": matching Fortran implementation unavailable; only C++ paths are timed.\n";
+    }
     const IBKernelTensorProduct legacy_kernel(name);
     std::array<std::array<double, NDIM>, NDIM> x_lower, x_upper;
     std::array<Box<NDIM>, NDIM> side_boxes;
@@ -95,29 +102,41 @@ benchmark(const std::string& name,
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 const Box<NDIM>& side = side_boxes[axis];
-                fortran_gather(geometry->getDx(),
-                               x_lower[axis].data(),
-                               x_upper[axis].data(),
-                               1,
-                               side.lower()(0),
-                               side.upper()(0),
-                               side.lower()(1),
-                               side.upper()(1),
+                const auto invoke = [&](auto* function, const auto&... axis_argument)
+                {
+                    function(geometry->getDx(),
+                             x_lower[axis].data(),
+                             x_upper[axis].data(),
+                             1,
+                             axis_argument...,
+                             side.lower()(0),
+                             side.upper()(0),
+                             side.lower()(1),
+                             side.upper()(1),
 #if (NDIM == 3)
-                               side.lower()(2),
-                               side.upper()(2),
+                             side.lower()(2),
+                             side.upper()(2),
 #endif
-                               ghosts(0),
-                               ghosts(1),
+                             ghosts(0),
+                             ghosts(1),
 #if (NDIM == 3)
-                               ghosts(2),
+                             ghosts(2),
 #endif
-                               field->getPointer(axis),
-                               indices.data(),
-                               shifts.data(),
-                               markers,
-                               positions.data(),
-                               component_values[axis].data());
+                             field->getPointer(axis),
+                             indices.data(),
+                             shifts.data(),
+                             markers,
+                             positions.data(),
+                             component_values[axis].data());
+                };
+                if (composite_gather)
+                {
+                    invoke(composite_gather, axis);
+                }
+                else
+                {
+                    invoke(fortran_gather);
+                }
             }
         },
         [&] { couple<false>(evaluator, *patch, *field, positions, indices, {}, values.data()); },
@@ -136,29 +155,41 @@ benchmark(const std::string& name,
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 const Box<NDIM>& side = side_boxes[axis];
-                fortran_scatter(geometry->getDx(),
-                                x_lower[axis].data(),
-                                x_upper[axis].data(),
-                                1,
-                                indices.data(),
-                                shifts.data(),
-                                markers,
-                                positions.data(),
-                                component_force[axis].data(),
-                                side.lower()(0),
-                                side.upper()(0),
-                                side.lower()(1),
-                                side.upper()(1),
+                const auto invoke = [&](auto* function, const auto&... axis_argument)
+                {
+                    function(geometry->getDx(),
+                             x_lower[axis].data(),
+                             x_upper[axis].data(),
+                             1,
+                             axis_argument...,
+                             indices.data(),
+                             shifts.data(),
+                             markers,
+                             positions.data(),
+                             component_force[axis].data(),
+                             side.lower()(0),
+                             side.upper()(0),
+                             side.lower()(1),
+                             side.upper()(1),
 #if (NDIM == 3)
-                                side.lower()(2),
-                                side.upper()(2),
+                             side.lower()(2),
+                             side.upper()(2),
 #endif
-                                ghosts(0),
-                                ghosts(1),
+                             ghosts(0),
+                             ghosts(1),
 #if (NDIM == 3)
-                                ghosts(2),
+                             ghosts(2),
 #endif
-                                spread->getPointer(axis));
+                             spread->getPointer(axis));
+                };
+                if (composite_scatter)
+                {
+                    invoke(composite_scatter, axis);
+                }
+                else
+                {
+                    invoke(fortran_scatter);
+                }
             }
         },
         [&] { couple<true>(evaluator, *patch, *spread, positions, indices, {}, force.data()); },
@@ -220,6 +251,10 @@ benchmark(const std::string& name,
     // Validate full outputs before timing, including the direct Fortran ABI calls.
     for (int operation = 0; operation < 8; ++operation)
     {
+        if (!have_fortran && operation % 2 == 1)
+        {
+            continue;
+        }
         spread->fillAll(0.0);
         operations[operation]();
         const std::vector<double> actual = capture(operation);
@@ -237,10 +272,13 @@ benchmark(const std::string& name,
     }
     for (int warmup = 0; warmup < 3; ++warmup)
     {
-        for (const std::function<void()>& operation : operations)
+        for (int operation = 0; operation < 8; ++operation)
         {
-            spread->fillAll(0.0);
-            operation();
+            if (have_fortran || operation % 2 == 0)
+            {
+                spread->fillAll(0.0);
+                operations[operation]();
+            }
         }
     }
     // Rotate implementation order across repeats; reset and checksums are outside timing.
@@ -249,6 +287,10 @@ benchmark(const std::string& name,
         for (int slot = 0; slot < 8; ++slot)
         {
             const int operation = (slot + repeat) % 8;
+            if (!have_fortran && operation % 2 == 1)
+            {
+                continue;
+            }
             spread->fillAll(0.0);
             const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
             for (int iteration = 0; iteration < iterations; ++iteration)
@@ -268,9 +310,9 @@ int
 main(int argc, char** argv)
 {
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
-    if (argc != 6)
+    if (argc != 6 && argc != 7)
     {
-        std::cerr << "Usage: benchmark cells markers iterations repeats shuffled(0|1)\n";
+        std::cerr << "Usage: benchmark cells markers iterations repeats shuffled(0|1) [kernel]\n";
         return 1;
     }
     const int cells = std::atoi(argv[1]), markers = std::atoi(argv[2]), iterations = std::atoi(argv[3]),
@@ -282,21 +324,17 @@ main(int argc, char** argv)
     }
     std::cout << std::setprecision(17)
               << "dimension,kernel,cells,markers,shuffled,iterations,repeat,operation,seconds,checksum\n";
-    benchmark(
-        "IB_4", IBKernelEvaluatorTensorProduct{ IBKernels::IB4{} }, cells, markers, iterations, repeats, shuffled);
-    benchmark("BSPLINE_3",
-              IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<3>{} },
-              cells,
-              markers,
-              iterations,
-              repeats,
-              shuffled);
-    benchmark("BSPLINE_6",
-              IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<6>{} },
-              cells,
-              markers,
-              iterations,
-              repeats,
-              shuffled);
-    return 0;
+    int selected = 0;
+    const auto run = [&](const std::string& name, const auto& evaluator)
+    {
+        if (argc == 6 || name == argv[6])
+        {
+            ++selected;
+            benchmark(name, evaluator, cells, markers, iterations, repeats, shuffled);
+        }
+    };
+    run("IB_4", IBKernelEvaluatorTensorProduct{ IBKernels::IB4{} });
+    run("IB_5", IBKernelEvaluatorTensorProduct{ IBKernels::IB5{} });
+    MatrixFreeTest::for_each_bspline(run);
+    return selected ? 0 : 1;
 }

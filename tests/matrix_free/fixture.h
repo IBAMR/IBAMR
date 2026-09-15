@@ -25,61 +25,76 @@ std::vector<double> make_positions(const SAMRAI::hier::Patch<NDIM>& patch, int c
 /*! \brief Evaluate a scalar reference at an arbitrary grid-to-marker distance. */
 double reference_weight(const std::string& kernel, int axis, int direction, double distance);
 
-using FortranInterpolate = void(const double*,
-                                const double*,
-                                const double*,
-                                const int&,
-                                const int&,
-                                const int&,
-                                const int&,
-                                const int&,
+template <class... Axis>
+using FortranInterpolateFunction = void(const double*,
+                                        const double*,
+                                        const double*,
+                                        const int&,
+                                        Axis...,
+                                        const int&,
+                                        const int&,
+                                        const int&,
+                                        const int&,
 #if (NDIM == 3)
-                                const int&,
-                                const int&,
+                                        const int&,
+                                        const int&,
 #endif
-                                const int&,
-                                const int&
+                                        const int&,
+                                        const int&
 #if (NDIM == 3)
-                                ,
-                                const int&
+                                        ,
+                                        const int&
 #endif
-                                ,
-                                const double*,
-                                const int*,
-                                const double*,
-                                const int&,
-                                const double*,
-                                double*);
-using FortranSpread = void(const double*,
-                           const double*,
-                           const double*,
-                           const int&,
-                           const int*,
-                           const double*,
-                           const int&,
-                           const double*,
-                           const double*,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
+                                        ,
+                                        const double*,
+                                        const int*,
+                                        const double*,
+                                        const int&,
+                                        const double*,
+                                        double*);
+template <class... Axis>
+using FortranSpreadFunction = void(const double*,
+                                   const double*,
+                                   const double*,
+                                   const int&,
+                                   Axis...,
+                                   const int*,
+                                   const double*,
+                                   const int&,
+                                   const double*,
+                                   const double*,
+                                   const int&,
+                                   const int&,
+                                   const int&,
+                                   const int&,
 #if (NDIM == 3)
-                           const int&,
-                           const int&,
+                                   const int&,
+                                   const int&,
 #endif
-                           const int&,
-                           const int&
+                                   const int&,
+                                   const int&
 #if (NDIM == 3)
-                           ,
-                           const int&
+                                   ,
+                                   const int&
 #endif
-                           ,
-                           double*);
+                                   ,
+                                   double*);
 
-/*! \brief Select a numerical loop before starting the timer. */
+// Composite Fortran routines insert the component axis after depth.
+using FortranInterpolate = FortranInterpolateFunction<>;
+using FortranSpread = FortranSpreadFunction<>;
+using FortranCompositeInterpolate = FortranInterpolateFunction<const int&>;
+using FortranCompositeSpread = FortranSpreadFunction<const int&>;
+
+/*! \brief Select a scalar loop before timing, or return nullptr for a composite. */
 FortranInterpolate* get_fortran_interpolate(const std::string& kernel);
 
-/*! \brief Select a numerical loop before starting the timer. */
+/*! \brief Select a scalar loop before timing, or return nullptr for a composite. */
 FortranSpread* get_fortran_spread(const std::string& kernel);
+/*! \brief Select a composite loop before timing, or return nullptr when unavailable. */
+FortranCompositeInterpolate* get_fortran_composite_interpolate(const std::string& kernel);
+
+/*! \brief Select a composite loop before timing, or return nullptr when unavailable. */
+FortranCompositeSpread* get_fortran_composite_spread(const std::string& kernel);
 } // namespace MatrixFreeTest
 #endif

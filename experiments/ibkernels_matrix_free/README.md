@@ -2,9 +2,10 @@
 
 This opt-in experiment uses the owning-output evaluator API from qualified
 R01d `c37b111fdabf267e83229c069698eca1a152bf1e`. It is independent of the CAV
-implementation stack. Fortran kernels and production defaults are unchanged.
+implementation stack. The known 3D Fortran IB5 spread index error is corrected;
+production coupling defaults are unchanged.
 
-See [RESULTS.md](RESULTS.md) for the native Apple-toolchain comparison.
+See [RESULTS.md](RESULTS.md) for the preserved initial native Apple-toolchain comparison.
 
 ## Source
 
@@ -36,20 +37,24 @@ the entry point; there are no `restrict` promises inferred from concepts.
 
 ## Correctness
 
-The compact native cases cover IB4, IB5, B-spline 3 and 6, both 3/2 and 2/3
-normal/tangential composition, and an application-defined cosine functional
-form. They exercise nonzero patch indices, anisotropic spacing, side centering,
+The shared native cases cover IB4, IB5, BS2-6, CBS(k+1)k and CBSk(k+1) for
+k=1,...,5, and an application-defined cosine functional form. CBSnm means
+normal width n and tangential width m. Every form runs with full stencils in
+allocated ghosts and with stencils clipped to a field without ghosts.
+They exercise nonzero patch indices, anisotropic spacing, side centering,
 face/center ties, ghosts, overlapping markers, additive output, selected and
 repeated indices, shifts, clipping, and unchanged marker inputs. Dense reference
 calculations use physical grid coordinates; B-splines use a truncated-power
 formula independently of the evaluator recurrence. They also check the
 cell-volume-scaled gather/scatter adjoint identity.
 
-IB5's scalar Fortran delta supplies its reference values. The unmodified 3D
-IB5 *spreading* routine omits the x-index update in its innermost loop and
-accumulates contributions on the center x plane. Its nonzero discrepancy is
-reported explicitly by the regression. Its interpolation and scalar delta are
-valid comparisons. IB5 spreading is excluded from performance comparisons.
+IB5's scalar Fortran delta supplies its reference values. The 3D spreading
+routine now updates the x-index in its innermost loop; its numerical regression
+checks agreement over the whole field. Corrected IB5 is included in timing.
+CBS12 has no matching existing Fortran backend: its independent correctness
+checks and C++ timings run, and the Fortran comparison is explicitly unavailable.
+CBS21 uses the existing discontinuous-linear Fortran implementation. The BS1
+factor selects the upper grid index at a nearest-grid tie.
 
 ## Reproduce on this machine
 
@@ -88,7 +93,8 @@ cmake --build build/ibkernels-matrix-free/Release-native \
 
 Run the benchmark from a durable working directory after builds finish and
 machine load is suitable. Its arguments are cells per side, marker count,
-iterations per sample, repeated samples, and shuffled marker order (0 or 1):
+iterations per sample, repeated samples, and shuffled marker order (0 or 1).
+An optional final kernel name selects one case for focused optimization work:
 
 ```sh
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \

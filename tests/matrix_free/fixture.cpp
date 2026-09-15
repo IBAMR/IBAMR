@@ -21,6 +21,8 @@
 
 namespace
 {
+using MatrixFreeTest::FortranCompositeInterpolate;
+using MatrixFreeTest::FortranCompositeSpread;
 using MatrixFreeTest::FortranInterpolate;
 using MatrixFreeTest::FortranSpread;
 extern "C"
@@ -29,18 +31,106 @@ extern "C"
 #if (NDIM == 2)
     FortranInterpolate IBTK_FC_FUNC_(lagrangian_ib_4_interp2d, LAGRANGIAN_IB_4_INTERP2D);
     FortranSpread IBTK_FC_FUNC_(lagrangian_ib_4_spread2d, LAGRANGIAN_IB_4_SPREAD2D);
+    FortranInterpolate IBTK_FC_FUNC_(lagrangian_ib_5_interp2d, LAGRANGIAN_IB_5_INTERP2D);
+    FortranSpread IBTK_FC_FUNC_(lagrangian_ib_5_spread2d, LAGRANGIAN_IB_5_SPREAD2D);
+    FortranInterpolate IBTK_FC_FUNC_(lagrangian_piecewise_linear_interp2d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP2D);
+    FortranSpread IBTK_FC_FUNC_(lagrangian_piecewise_linear_spread2d, LAGRANGIAN_PIECEWISE_LINEAR_SPREAD2D);
     FortranInterpolate IBTK_FC_FUNC_(lagrangian_bspline_3_interp2d, LAGRANGIAN_BSPLINE_3_INTERP2D);
     FortranSpread IBTK_FC_FUNC_(lagrangian_bspline_3_spread2d, LAGRANGIAN_BSPLINE_3_SPREAD2D);
+    FortranInterpolate IBTK_FC_FUNC_(lagrangian_bspline_4_interp2d, LAGRANGIAN_BSPLINE_4_INTERP2D);
+    FortranSpread IBTK_FC_FUNC_(lagrangian_bspline_4_spread2d, LAGRANGIAN_BSPLINE_4_SPREAD2D);
+    FortranInterpolate IBTK_FC_FUNC_(lagrangian_bspline_5_interp2d, LAGRANGIAN_BSPLINE_5_INTERP2D);
+    FortranSpread IBTK_FC_FUNC_(lagrangian_bspline_5_spread2d, LAGRANGIAN_BSPLINE_5_SPREAD2D);
     FortranInterpolate IBTK_FC_FUNC_(lagrangian_bspline_6_interp2d, LAGRANGIAN_BSPLINE_6_INTERP2D);
     FortranSpread IBTK_FC_FUNC_(lagrangian_bspline_6_spread2d, LAGRANGIAN_BSPLINE_6_SPREAD2D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_discontinuous_linear_interp2d,
+                                              LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP2D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_discontinuous_linear_spread2d,
+                                         LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD2D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_23_interp2d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_23_INTERP2D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_23_spread2d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_23_SPREAD2D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_32_interp2d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_32_INTERP2D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_32_spread2d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_32_SPREAD2D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_34_interp2d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_34_INTERP2D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_34_spread2d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_34_SPREAD2D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_43_interp2d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_43_INTERP2D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_43_spread2d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD2D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_45_interp2d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_45_INTERP2D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_45_spread2d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_45_SPREAD2D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_54_interp2d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP2D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_54_spread2d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD2D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_56_interp2d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_56_INTERP2D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_56_spread2d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_56_SPREAD2D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_65_interp2d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP2D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_65_spread2d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD2D);
 #endif
 #if (NDIM == 3)
     FortranInterpolate IBTK_FC_FUNC_(lagrangian_ib_4_interp3d, LAGRANGIAN_IB_4_INTERP3D);
     FortranSpread IBTK_FC_FUNC_(lagrangian_ib_4_spread3d, LAGRANGIAN_IB_4_SPREAD3D);
+    FortranInterpolate IBTK_FC_FUNC_(lagrangian_ib_5_interp3d, LAGRANGIAN_IB_5_INTERP3D);
+    FortranSpread IBTK_FC_FUNC_(lagrangian_ib_5_spread3d, LAGRANGIAN_IB_5_SPREAD3D);
+    FortranInterpolate IBTK_FC_FUNC_(lagrangian_piecewise_linear_interp3d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP3D);
+    FortranSpread IBTK_FC_FUNC_(lagrangian_piecewise_linear_spread3d, LAGRANGIAN_PIECEWISE_LINEAR_SPREAD3D);
     FortranInterpolate IBTK_FC_FUNC_(lagrangian_bspline_3_interp3d, LAGRANGIAN_BSPLINE_3_INTERP3D);
     FortranSpread IBTK_FC_FUNC_(lagrangian_bspline_3_spread3d, LAGRANGIAN_BSPLINE_3_SPREAD3D);
+    FortranInterpolate IBTK_FC_FUNC_(lagrangian_bspline_4_interp3d, LAGRANGIAN_BSPLINE_4_INTERP3D);
+    FortranSpread IBTK_FC_FUNC_(lagrangian_bspline_4_spread3d, LAGRANGIAN_BSPLINE_4_SPREAD3D);
+    FortranInterpolate IBTK_FC_FUNC_(lagrangian_bspline_5_interp3d, LAGRANGIAN_BSPLINE_5_INTERP3D);
+    FortranSpread IBTK_FC_FUNC_(lagrangian_bspline_5_spread3d, LAGRANGIAN_BSPLINE_5_SPREAD3D);
     FortranInterpolate IBTK_FC_FUNC_(lagrangian_bspline_6_interp3d, LAGRANGIAN_BSPLINE_6_INTERP3D);
     FortranSpread IBTK_FC_FUNC_(lagrangian_bspline_6_spread3d, LAGRANGIAN_BSPLINE_6_SPREAD3D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_discontinuous_linear_interp3d,
+                                              LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP3D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_discontinuous_linear_spread3d,
+                                         LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD3D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_23_interp3d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_23_INTERP3D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_23_spread3d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_23_SPREAD3D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_32_interp3d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_32_INTERP3D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_32_spread3d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_32_SPREAD3D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_34_interp3d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_34_INTERP3D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_34_spread3d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_34_SPREAD3D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_43_interp3d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_43_INTERP3D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_43_spread3d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD3D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_45_interp3d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_45_INTERP3D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_45_spread3d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_45_SPREAD3D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_54_interp3d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP3D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_54_spread3d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD3D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_56_interp3d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_56_INTERP3D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_56_spread3d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_56_SPREAD3D);
+    FortranCompositeInterpolate IBTK_FC_FUNC_(lagrangian_composite_bspline_65_interp3d,
+                                              LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP3D);
+    FortranCompositeSpread IBTK_FC_FUNC_(lagrangian_composite_bspline_65_spread3d,
+                                         LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD3D);
 #endif
 }
 } // namespace
@@ -53,7 +143,7 @@ reference_weight(const std::string& kernel, const int axis, const int direction,
     const double x = std::abs(distance);
     if (kernel == "IB_5")
     {
-        // The scalar delta has no spreading-index defect. Geometry is evaluated independently here.
+        // Geometry is evaluated independently of the scalar Fortran delta.
         return IBTK_FC_FUNC_(lagrangian_ib_5_delta, LAGRANGIAN_IB_5_DELTA)(x);
     }
     if (kernel == "IB_4")
@@ -72,10 +162,14 @@ reference_weight(const std::string& kernel, const int axis, const int direction,
     {
         return x < 2.0 ? 0.25 * (1.0 + std::cos(0.5 * std::acos(-1.0) * x)) : 0.0;
     }
-    const int width = kernel == "BSPLINE_6"            ? 6 :
-                      kernel == "COMPOSITE_BSPLINE_32" ? (axis == direction ? 3 : 2) :
-                      kernel == "COMPOSITE_BSPLINE_23" ? (axis == direction ? 2 : 3) :
-                                                         3;
+    const int width = kernel.starts_with("COMPOSITE_BSPLINE_") ?
+                          kernel[kernel.size() - (axis == direction ? 2 : 1)] - '0' :
+                          kernel.back() - '0';
+    if (width == 1)
+    {
+        // Nearest-grid ties select the upper index: distance is in [-1/2, 1/2).
+        return distance >= -0.5 && distance < 0.5 ? 1.0 : 0.0;
+    }
     if (x >= 0.5 * width)
     {
         return 0.0;
@@ -178,9 +272,25 @@ get_fortran_interpolate(const std::string& kernel)
     {
         return &IBTK_FC_FUNC_(lagrangian_ib_4_interp2d, LAGRANGIAN_IB_4_INTERP2D);
     }
+    if (kernel == "IB_5")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_ib_5_interp2d, LAGRANGIAN_IB_5_INTERP2D);
+    }
+    if (kernel == "BSPLINE_2")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_piecewise_linear_interp2d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP2D);
+    }
     if (kernel == "BSPLINE_3")
     {
         return &IBTK_FC_FUNC_(lagrangian_bspline_3_interp2d, LAGRANGIAN_BSPLINE_3_INTERP2D);
+    }
+    if (kernel == "BSPLINE_4")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_bspline_4_interp2d, LAGRANGIAN_BSPLINE_4_INTERP2D);
+    }
+    if (kernel == "BSPLINE_5")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_bspline_5_interp2d, LAGRANGIAN_BSPLINE_5_INTERP2D);
     }
     if (kernel == "BSPLINE_6")
     {
@@ -192,16 +302,31 @@ get_fortran_interpolate(const std::string& kernel)
     {
         return &IBTK_FC_FUNC_(lagrangian_ib_4_interp3d, LAGRANGIAN_IB_4_INTERP3D);
     }
+    if (kernel == "IB_5")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_ib_5_interp3d, LAGRANGIAN_IB_5_INTERP3D);
+    }
+    if (kernel == "BSPLINE_2")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_piecewise_linear_interp3d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP3D);
+    }
     if (kernel == "BSPLINE_3")
     {
         return &IBTK_FC_FUNC_(lagrangian_bspline_3_interp3d, LAGRANGIAN_BSPLINE_3_INTERP3D);
+    }
+    if (kernel == "BSPLINE_4")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_bspline_4_interp3d, LAGRANGIAN_BSPLINE_4_INTERP3D);
+    }
+    if (kernel == "BSPLINE_5")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_bspline_5_interp3d, LAGRANGIAN_BSPLINE_5_INTERP3D);
     }
     if (kernel == "BSPLINE_6")
     {
         return &IBTK_FC_FUNC_(lagrangian_bspline_6_interp3d, LAGRANGIAN_BSPLINE_6_INTERP3D);
     }
 #endif
-    TBOX_ERROR("Unsupported direct Fortran benchmark kernel: " << kernel);
     return nullptr;
 }
 
@@ -213,9 +338,25 @@ get_fortran_spread(const std::string& kernel)
     {
         return &IBTK_FC_FUNC_(lagrangian_ib_4_spread2d, LAGRANGIAN_IB_4_SPREAD2D);
     }
+    if (kernel == "IB_5")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_ib_5_spread2d, LAGRANGIAN_IB_5_SPREAD2D);
+    }
+    if (kernel == "BSPLINE_2")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_piecewise_linear_spread2d, LAGRANGIAN_PIECEWISE_LINEAR_SPREAD2D);
+    }
     if (kernel == "BSPLINE_3")
     {
         return &IBTK_FC_FUNC_(lagrangian_bspline_3_spread2d, LAGRANGIAN_BSPLINE_3_SPREAD2D);
+    }
+    if (kernel == "BSPLINE_4")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_bspline_4_spread2d, LAGRANGIAN_BSPLINE_4_SPREAD2D);
+    }
+    if (kernel == "BSPLINE_5")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_bspline_5_spread2d, LAGRANGIAN_BSPLINE_5_SPREAD2D);
     }
     if (kernel == "BSPLINE_6")
     {
@@ -227,16 +368,196 @@ get_fortran_spread(const std::string& kernel)
     {
         return &IBTK_FC_FUNC_(lagrangian_ib_4_spread3d, LAGRANGIAN_IB_4_SPREAD3D);
     }
+    if (kernel == "IB_5")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_ib_5_spread3d, LAGRANGIAN_IB_5_SPREAD3D);
+    }
+    if (kernel == "BSPLINE_2")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_piecewise_linear_spread3d, LAGRANGIAN_PIECEWISE_LINEAR_SPREAD3D);
+    }
     if (kernel == "BSPLINE_3")
     {
         return &IBTK_FC_FUNC_(lagrangian_bspline_3_spread3d, LAGRANGIAN_BSPLINE_3_SPREAD3D);
+    }
+    if (kernel == "BSPLINE_4")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_bspline_4_spread3d, LAGRANGIAN_BSPLINE_4_SPREAD3D);
+    }
+    if (kernel == "BSPLINE_5")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_bspline_5_spread3d, LAGRANGIAN_BSPLINE_5_SPREAD3D);
     }
     if (kernel == "BSPLINE_6")
     {
         return &IBTK_FC_FUNC_(lagrangian_bspline_6_spread3d, LAGRANGIAN_BSPLINE_6_SPREAD3D);
     }
 #endif
-    TBOX_ERROR("Unsupported direct Fortran benchmark kernel: " << kernel);
     return nullptr;
 }
+
+FortranCompositeInterpolate*
+get_fortran_composite_interpolate(const std::string& kernel)
+{
+#if (NDIM == 2)
+    if (kernel == "COMPOSITE_BSPLINE_21")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_discontinuous_linear_interp2d, LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_23")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_23_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_23_INTERP2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_32")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_32_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_32_INTERP2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_34")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_34_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_34_INTERP2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_43")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_43_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_43_INTERP2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_45")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_45_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_45_INTERP2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_54")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_54_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_56")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_56_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_56_INTERP2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_65")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_65_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP2D);
+    }
+#endif
+#if (NDIM == 3)
+    if (kernel == "COMPOSITE_BSPLINE_21")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_discontinuous_linear_interp3d, LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_23")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_23_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_23_INTERP3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_32")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_32_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_32_INTERP3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_34")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_34_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_34_INTERP3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_43")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_43_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_43_INTERP3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_45")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_45_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_45_INTERP3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_54")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_54_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_56")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_56_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_56_INTERP3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_65")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_65_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP3D);
+    }
+#endif
+    return nullptr;
+}
+
+FortranCompositeSpread*
+get_fortran_composite_spread(const std::string& kernel)
+{
+#if (NDIM == 2)
+    if (kernel == "COMPOSITE_BSPLINE_21")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_discontinuous_linear_spread2d, LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_23")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_23_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_23_SPREAD2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_32")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_32_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_32_SPREAD2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_34")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_34_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_34_SPREAD2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_43")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_43_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_45")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_45_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_45_SPREAD2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_54")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_54_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_56")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_56_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_56_SPREAD2D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_65")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_65_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD2D);
+    }
+#endif
+#if (NDIM == 3)
+    if (kernel == "COMPOSITE_BSPLINE_21")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_discontinuous_linear_spread3d, LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_23")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_23_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_23_SPREAD3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_32")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_32_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_32_SPREAD3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_34")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_34_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_34_SPREAD3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_43")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_43_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_45")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_45_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_45_SPREAD3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_54")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_54_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_56")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_56_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_56_SPREAD3D);
+    }
+    if (kernel == "COMPOSITE_BSPLINE_65")
+    {
+        return &IBTK_FC_FUNC_(lagrangian_composite_bspline_65_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD3D);
+    }
+#endif
+    return nullptr;
+}
+
 } // namespace MatrixFreeTest

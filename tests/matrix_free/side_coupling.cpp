@@ -23,15 +23,16 @@ namespace
 {
 template <class Evaluator>
 void
-check_case(const std::string& name, const Evaluator& evaluator, const bool compare_fortran)
+check_case(const std::string& name, const Evaluator& evaluator, const bool fortran_available, const int ghosts)
 {
     using namespace MatrixFreeTest;
     const Pointer<Patch<NDIM>> patch = make_patch(8);
     const Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
     const Box<NDIM>& box = patch->getBox();
-    Pointer<SideData<NDIM, double>> field = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(4));
-    Pointer<SideData<NDIM, double>> spread = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(4));
-    Pointer<SideData<NDIM, double>> legacy = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(4));
+    Pointer<SideData<NDIM, double>> field = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(ghosts));
+    Pointer<SideData<NDIM, double>> spread = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(ghosts));
+    Pointer<SideData<NDIM, double>> legacy = new SideData<NDIM, double>(box, 1, IntVector<NDIM>(ghosts));
+    const bool compare_fortran = fortran_available && ghosts > 0;
     fill_field(*field);
     std::vector<double> positions = make_positions(*patch, 6, false);
     // Overlap two markers; include face/center ties and both patch edges.
@@ -112,17 +113,21 @@ check_case(const std::string& name, const Evaluator& evaluator, const bool compa
     {
         TBOX_ERROR("Coupling modified its input markers.\n");
     }
-    plog << name << " value " << values[2 * NDIM] << " spread_norm " << std::sqrt(spread_norm) << " reference_errors "
-         << gather_error << ' ' << spread_error << " adjoint_error " << std::abs(adjoint_grid - adjoint_markers);
+    plog << name;
+    if (name.starts_with("COMPOSITE_BSPLINE_"))
+    {
+        plog << " normal " << name[name.size() - 2] << " tangential " << name.back();
+    }
+    plog << " ghosts " << ghosts << " value " << values[2 * NDIM] << " spread_norm " << std::sqrt(spread_norm)
+         << " reference_errors " << gather_error << ' ' << spread_error << " adjoint_error "
+         << std::abs(adjoint_grid - adjoint_markers);
     if (compare_fortran)
     {
-        plog << " Fortran_gather_error " << legacy_gather_error
-             << (NDIM == 3 && name == "IB_5" ? " known_Fortran_spread_defect " : " Fortran_spread_error ")
-             << legacy_spread_error;
+        plog << " Fortran_gather_error " << legacy_gather_error << " Fortran_spread_error " << legacy_spread_error;
     }
     else
     {
-        plog << " Fortran_comparison unavailable";
+        plog << (fortran_available ? " Fortran_comparison not_run_clipped" : " Fortran_comparison unavailable");
     }
     plog << '\n';
 }
@@ -211,17 +216,14 @@ main(int argc, char** argv)
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
     PIO::logOnlyNodeZero("output");
     plog << std::setprecision(12) << std::scientific;
-    check_case("IB_4", IBKernelEvaluatorTensorProduct{ IBKernels::IB4{} }, true);
-    check_case("IB_5", IBKernelEvaluatorTensorProduct{ IBKernels::IB5{} }, true);
-    check_case("BSPLINE_3", IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<3>{} }, true);
-    check_case("BSPLINE_6", IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<6>{} }, true);
-    check_case("COMPOSITE_BSPLINE_32",
-               IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<3>{}, IBKernels::BSpline<2>{} },
-               true);
-    check_case("COMPOSITE_BSPLINE_23",
-               IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<2>{}, IBKernels::BSpline<3>{} },
-               true);
-    check_case("COSINE_4", IBKernelEvaluatorTensorProduct{ MatrixFreeTest::CosineKernel{} }, false);
+    for (int ghosts : { 4, 0 })
+    {
+        check_case("IB_4", IBKernelEvaluatorTensorProduct{ IBKernels::IB4{} }, true, ghosts);
+        check_case("IB_5", IBKernelEvaluatorTensorProduct{ IBKernels::IB5{} }, true, ghosts);
+        MatrixFreeTest::for_each_bspline([&](const std::string& name, const auto& evaluator)
+                                         { check_case(name, evaluator, name != "COMPOSITE_BSPLINE_12", ghosts); });
+        check_case("COSINE_4", IBKernelEvaluatorTensorProduct{ MatrixFreeTest::CosineKernel{} }, false, ghosts);
+    }
     check_indexed_clipping();
     return 0;
 }

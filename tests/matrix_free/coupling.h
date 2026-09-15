@@ -5,10 +5,19 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBKernelEvaluatorTensorProduct.h>
+#include <ibtk/ib_kernels.h>
+
 #include <SideCoupling.h>
+
+#include <string>
 
 namespace MatrixFreeTest
 {
+/*! \brief Visit BS2-6 and both adjacent-order composite orientations for orders 1-6. */
+template <class Visitor>
+void for_each_bspline(const Visitor& visit);
+
 /*! \brief Evaluate an application-defined four-point cosine kernel. */
 class CosineKernel
 {
