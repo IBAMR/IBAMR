@@ -4,6 +4,8 @@ This opt-in experiment uses the owning-output evaluator API from qualified
 R01d `c37b111fdabf267e83229c069698eca1a152bf1e`. It is independent of the CAV
 implementation stack. Fortran kernels and production defaults are unchanged.
 
+See [RESULTS.md](RESULTS.md) for the native Apple-toolchain comparison.
+
 ## Source
 
 - `ibtk/src/lagrangian/experimental/SideCoupling.h` and its inline header provide
@@ -112,6 +114,9 @@ indices. `LEInteractor` additionally includes its own index selection and
 component copies. Those wrapper timings therefore describe their respective
 entry-point costs, not identical wrapper internals. Each operation is one CPU
 thread; there is no concurrent scatter.
+The C++ patch path also uses an empty shift span instead of the direct paths'
+explicit zero-shift buffer. Its layout and shift handling differ from
+`cpp_loop`, so subtracting those timings does not isolate geometry setup cost.
 
 Machine, compiler versions, effective compile commands, exact revisions,
 native outputs, raw CSVs and result assessment are retained under
