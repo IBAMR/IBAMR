@@ -486,6 +486,9 @@ public:
                       bool** F_needs_ghost_fill,
                       IBTK::TimePoint time_pt);
 
+    /*! \copydoc IBImplicitStrategy::getLECouplingPositionVector */
+    Vec getLECouplingPositionVector(int level_number, double data_time) override;
+
 protected:
     /*!
      * Get the current structure position data.

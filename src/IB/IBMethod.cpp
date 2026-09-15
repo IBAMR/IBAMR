@@ -1028,6 +1028,25 @@ IBMethod::spreadLinearizedForce(const int f_data_idx,
     return;
 } // spreadLinearizedForce
 
+Vec
+IBMethod::getLECouplingPositionVector(const int level_number, const double data_time)
+{
+    if (!d_hierarchy || level_number < 0 || level_number > d_hierarchy->getFinestLevelNumber() ||
+        !(IBTK::rel_equal_eps(data_time, d_current_time) || IBTK::rel_equal_eps(data_time, d_half_time) ||
+          IBTK::rel_equal_eps(data_time, d_new_time)))
+    {
+        TBOX_ERROR("Coupling positions require an initialized level and a current, half, or new time.\n");
+    }
+    std::vector<Pointer<LData>>* positions = nullptr;
+    bool* needs_ghost_fill = nullptr;
+    getLECouplingPositionData(&positions, &needs_ghost_fill, data_time);
+    if (!positions || level_number >= static_cast<int>(positions->size()) || !(*positions)[level_number])
+    {
+        TBOX_ERROR("Coupling position data are unavailable on the requested level.\n");
+    }
+    return (*positions)[level_number]->getVec();
+}
+
 void
 IBMethod::constructInterpOp(Mat& J,
                             void (*spread_fnc)(const double, double*),

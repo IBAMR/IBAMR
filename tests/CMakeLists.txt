@@ -205,6 +205,7 @@ SETUP(IB explicit_ex0.cpp IBAMR2d)
 SETUP(IB explicit_ex1.cpp IBAMR2d)
 SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_solver_components_01.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_01.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)
 
 # IBFE:
@@ -351,6 +352,20 @@ FOREACH(_case centering data_type)
     "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>:${CMAKE_BINARY_DIR}/tests/IBTK/pointwise_function_2d.${_case}.expect_error=true.input>"
     VERBATIM)
 ENDFOREACH()
+
+# Success cases requiring factors outside the compiled input catalog are not runnable.
+IF(IBAMR_MAX_BSPLINE_ORDER LESS 8)
+  ADD_CUSTOM_COMMAND(TARGET tests-IB POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f
+    "${CMAKE_BINARY_DIR}/tests/IB/implicit_stokes_ib_01.bspline8.input"
+    VERBATIM)
+ENDIF()
+IF(IBAMR_MAX_BSPLINE_ORDER LESS 4)
+  ADD_CUSTOM_COMMAND(TARGET tests-IB POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f
+    "${CMAKE_BINARY_DIR}/tests/IB/implicit_stokes_ib_01.mixed_kernel.input"
+    VERBATIM)
+ENDIF()
 
 # Find numdiff, if possible (we only need it for tests so its not essential that
 # we find it now)

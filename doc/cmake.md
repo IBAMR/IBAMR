@@ -228,3 +228,32 @@ cmake supports many useful features. We recommend
    `-GNinja` to cmake.
 2. Cache object files (and thus make recompilation much faster) with `ccache` with
    the flag `-DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)"`.
+
+## Implicit IB interpolation kernels
+
+`IBAMR_MAX_BSPLINE_ORDER` is the highest B-spline order compiled for
+`IBImplicitStaggeredHierarchyIntegrator`'s `jacobian_delta_fcn` input selection.
+It defaults to 8 and must be a positive decimal integer. IB_3 through IB_6 are
+always available. Ordered normal/tangential pairs use the existing
+`IBKernelTensorProduct` names. The generated configuration header records the
+bound; raising it increases the number of compiled evaluator pairs.
+
+This bound does not restrict concrete evaluators supplied through
+`setJacobianInterpolationKernel()`. For example, given an integrator named
+`integrator`, configure a concrete kernel before initializing its hierarchy:
+
+```cpp
+#include <ibamr/IBImplicitStaggeredHierarchyIntegrator.h>
+#include <ibtk/IBKernelEvaluatorTensorProduct.h>
+#include <ibtk/ib_kernels.h>
+
+void configure_kernel(IBAMR::IBImplicitStaggeredHierarchyIntegrator& integrator)
+{
+    integrator.setJacobianInterpolationKernel(
+        IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernels::BSpline<8>{} });
+}
+```
+
+The integrator owns the evaluator, including move-only state. Configure the
+strategy's ghost width for its stencil. This selects the assembled coupling used
+by FAC; live interpolation and spreading remain independently configured.

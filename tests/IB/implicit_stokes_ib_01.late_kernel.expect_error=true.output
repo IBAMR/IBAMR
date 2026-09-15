@@ -1,0 +1,7 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+Program abort called with error message
+
+    The interpolation kernel must be configured before initialization.
+

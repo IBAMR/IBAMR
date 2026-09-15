@@ -45,6 +45,10 @@
 #define IBTK_MAX_STACK_ARRAY_SIZE 32
 
 //
+// Maximum B-spline order compiled for implicit IB input selection.
+#define IBAMR_MAX_BSPLINE_ORDER @IBAMR_MAX_BSPLINE_ORDER@
+
+//
 // Dependency information
 //
 
