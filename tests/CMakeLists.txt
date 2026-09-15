@@ -20,7 +20,7 @@ ADD_CUSTOM_TARGET(tests)
 #    their corresponding build directories.
 SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IIM IMP IBTK adv_diff advect coarsen
   complex_fluids external fe_mechanics interpolate level_set multiphase_flow
-  navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank)
+  navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank matrix_free)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_TARGET("tests-${_dir}")
@@ -88,6 +88,23 @@ MACRO(SETUP_3D _dir _src)
   TARGET_LINK_LIBRARIES(${_target} PRIVATE IBAMR3d)
   ADD_DEPENDENCIES(tests-${_dir} ${_target})
 ENDMACRO()
+
+# The experimental patch couplers only require IBTK. Benchmarks have no attest fixtures.
+FOREACH(_dimension 2 3)
+  SET(_target tests-matrix_free_side_coupling_${_dimension}d)
+  ADD_EXECUTABLE(${_target} EXCLUDE_FROM_ALL matrix_free/side_coupling.cpp matrix_free/fixture.cpp)
+  TARGET_LINK_LIBRARIES(${_target} PRIVATE IBTK${_dimension}d)
+  TARGET_INCLUDE_DIRECTORIES(${_target} PRIVATE ${CMAKE_SOURCE_DIR}/ibtk/src/lagrangian/experimental)
+  SET_TARGET_PROPERTIES(${_target} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests/matrix_free
+    OUTPUT_NAME side_coupling_${_dimension}d)
+  ADD_DEPENDENCIES(tests-matrix_free ${_target})
+
+  SET(_benchmark benchmark-matrix-free-${_dimension}d)
+  ADD_EXECUTABLE(${_benchmark} EXCLUDE_FROM_ALL matrix_free/benchmark.cpp matrix_free/fixture.cpp)
+  TARGET_LINK_LIBRARIES(${_benchmark} PRIVATE IBTK${_dimension}d)
+  TARGET_INCLUDE_DIRECTORIES(${_benchmark} PRIVATE ${CMAKE_SOURCE_DIR}/ibtk/src/lagrangian/experimental)
+ENDFOREACH()
 
 # adv_diff:
 SETUP_2D(adv_diff adv_diff_02.cpp)

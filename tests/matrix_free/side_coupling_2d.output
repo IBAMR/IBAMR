@@ -1,0 +1,8 @@
+IB_4 value 1.422381108210e+00 spread_norm 1.250834418807e+00 reference_errors 0.000000000000e+00 5.551115123126e-17 adjoint_error 3.552713678801e-15 Fortran_gather_error 0.000000000000e+00 Fortran_spread_error 3.469446951954e-17
+IB_5 value 1.423503820093e+00 spread_norm 1.306846490078e+00 reference_errors 2.220446049250e-16 5.551115123126e-17 adjoint_error 5.329070518201e-15 Fortran_gather_error 0.000000000000e+00 Fortran_spread_error 6.938893903907e-17
+BSPLINE_3 value 1.429231314943e+00 spread_norm 1.818688220600e+00 reference_errors 0.000000000000e+00 1.110223024625e-16 adjoint_error 1.776356839400e-15 Fortran_gather_error 0.000000000000e+00 Fortran_spread_error 1.387778780781e-16
+BSPLINE_6 value 1.423385484641e+00 spread_norm 1.312405857029e+00 reference_errors 2.220446049250e-16 1.110223024625e-16 adjoint_error 3.552713678801e-15 Fortran_gather_error 2.220446049250e-16 Fortran_spread_error 1.387778780781e-16
+COMPOSITE_BSPLINE_32 value 1.429231314943e+00 spread_norm 1.956194053557e+00 reference_errors 0.000000000000e+00 1.110223024625e-16 adjoint_error 1.776356839400e-15 Fortran_gather_error 0.000000000000e+00 Fortran_spread_error 1.387778780781e-16
+COMPOSITE_BSPLINE_23 value 1.429231314943e+00 spread_norm 2.045226125737e+00 reference_errors 0.000000000000e+00 1.110223024625e-16 adjoint_error 1.776356839400e-15 Fortran_gather_error 0.000000000000e+00 Fortran_spread_error 1.387778780781e-16
+COSINE_4 value 1.422381108210e+00 spread_norm 1.250380550868e+00 reference_errors 0.000000000000e+00 2.775557561563e-17 adjoint_error 3.552713678801e-15 Fortran_comparison unavailable
+indexed_clipping float_gather_error 2.890492328822e-08 spread_error 1.387778780781e-16 selected_value 1.138661089727e+00
