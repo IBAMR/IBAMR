@@ -68,10 +68,11 @@ source_values(const VectorNd& x)
     return { h, liquid };
 }
 
-template <Centering Layout>
+template <DataCentering C>
 double
 result_error(PatchHierarchy<NDIM>& hierarchy, const int data_idx, const double time, const bool initial_time)
 {
+    using Layout = CartesianCentering<C>;
     double error = 0.0;
     for (int ln = 0; ln <= hierarchy.getFinestLevelNumber(); ++ln)
     {
@@ -82,11 +83,11 @@ result_error(PatchHierarchy<NDIM>& hierarchy, const int data_idx, const double t
             const Pointer<typename Layout::template Data<double>> data = patch->getPatchData(data_idx);
             const Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
             const double* const dx = geometry->getDx();
-            for (int axis = 0; axis < (Layout::is_oriented() ? NDIM : 1); ++axis)
+            for (int axis = 0; axis < (Layout::is_staggered() ? NDIM : 1); ++axis)
             {
                 const ArrayData<NDIM, double>& array = [&]() -> const ArrayData<NDIM, double>&
                 {
-                    if constexpr (Layout::is_oriented())
+                    if constexpr (Layout::is_staggered())
                     {
                         return data->getArrayData(axis);
                     }
@@ -97,7 +98,7 @@ result_error(PatchHierarchy<NDIM>& hierarchy, const int data_idx, const double t
                 }();
                 Box<NDIM> interior = patch->getBox();
                 double scale = 1.0;
-                if constexpr (Layout::is_oriented())
+                if constexpr (Layout::is_staggered())
                 {
                     ++interior.upper()(axis);
                     scale = dx[axis];
@@ -119,7 +120,7 @@ result_error(PatchHierarchy<NDIM>& hierarchy, const int data_idx, const double t
                     }
                     const VectorNd x = position(*patch, it(), Layout::offset(axis));
                     std::pair<double, double> values = source_values(x);
-                    if constexpr (Layout::is_oriented())
+                    if constexpr (Layout::is_staggered())
                     {
                         // The average of a quadratic at x +/- dx/2 includes this curvature term.
                         values.first += (axis + 1) * dx[axis] * dx[axis] / 4096.0;
@@ -288,11 +289,11 @@ main(int argc, char* argv[])
     }
     TBOX_ASSERT(cell_function->isTimeDependent() && side_function->isTimeDependent());
     cell_function->setDataOnPatchHierarchy(cell_idx, cell_var, hierarchy, expected_time, expected_initial);
-    const double cell_error = result_error<Cell>(*hierarchy, cell_idx, expected_time, expected_initial);
+    const double cell_error = result_error<DataCentering::CELL>(*hierarchy, cell_idx, expected_time, expected_initial);
     expected_time = 0.5;
     expected_initial = false;
     side_function->setDataOnPatchHierarchy(side_idx, side_var, hierarchy, expected_time, expected_initial);
-    const double side_error = result_error<Side>(*hierarchy, side_idx, expected_time, expected_initial);
+    const double side_error = result_error<DataCentering::SIDE>(*hierarchy, side_idx, expected_time, expected_initial);
     TBOX_ASSERT(observed_side_calls == local_patches);
 
     expected_time = 1.25;
@@ -320,7 +321,8 @@ main(int argc, char* argv[])
     TBOX_ASSERT(observed_side_calls == 2 * local_patches);
     TBOX_ASSERT(cell_calls.size() == static_cast<std::size_t>(local_patches));
     TBOX_ASSERT(side_calls.size() == static_cast<std::size_t>(local_patches));
-    const double direct_error = result_error<Side>(*hierarchy, side_idx, expected_time, expected_initial);
+    const double direct_error =
+        result_error<DataCentering::SIDE>(*hierarchy, side_idx, expected_time, expected_initial);
     plog << std::scientific << std::setprecision(12);
     plog << "cell blend error: " << cell_error << '\n';
     plog << "side blend errors (hierarchy, patch): " << side_error << ' ' << direct_error << '\n';
