@@ -131,23 +131,22 @@ SideCoupling::applyAxis(const Evaluator& evaluator,
 #endif
                 for (int j = Clipped ? first[1] : 0; j < (Clipped ? last[1] : static_cast<int>(widths[1])); ++j)
                 {
-                    std::ptrdiff_t offset = lower[0] + (Clipped ? first[0] : 0) - d_lower[Axis][0] +
-                                            (lower[1] + j - d_lower[Axis][1]) * d_stride[Axis][1];
+                    std::ptrdiff_t offset =
+                        lower[0] - d_lower[Axis][0] + (lower[1] + j - d_lower[Axis][1]) * d_stride[Axis][1];
                     std::size_t weight_offset = widths[0] * j;
 #if (NDIM == 3)
                     offset += (lower[2] + k - d_lower[Axis][2]) * d_stride[Axis][2];
                     weight_offset += widths[0] * widths[1] * k;
 #endif
-                    for (int i = Clipped ? first[0] : 0; i < (Clipped ? last[0] : static_cast<int>(widths[0]));
-                         ++i, ++offset)
+                    for (int i = Clipped ? first[0] : 0; i < (Clipped ? last[0] : static_cast<int>(widths[0])); ++i)
                     {
                         if constexpr (Spread)
                         {
-                            field[offset] += weights[weight_offset + i] * value;
+                            field[offset + i] += weights[weight_offset + i] * value;
                         }
                         else
                         {
-                            value += weights[weight_offset + i] * field[offset];
+                            value += weights[weight_offset + i] * field[offset + i];
                         }
                     }
                 }
