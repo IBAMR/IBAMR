@@ -5,7 +5,9 @@ R01d `c37b111fdabf267e83229c069698eca1a152bf1e`. It is independent of the CAV
 implementation stack. The known 3D Fortran IB5 spread index error is corrected;
 production coupling defaults are unchanged.
 
-See [RESULTS.md](RESULTS.md) for the preserved initial native Apple-toolchain comparison.
+See [IMPROVEMENTS.md](IMPROVEMENTS.md) for the expanded native comparison,
+C++ optimization results and IB5 correction. [RESULTS.md](RESULTS.md) preserves
+the initial three-kernel comparison.
 
 ## Source
 
@@ -31,9 +33,10 @@ The numerical operation uses exact stencil widths and requests
 `IBKernels::Weights<Coefficient, stencil_size>` by value. Default coefficients
 and field/marker arithmetic are double. The regression also requests float
 coefficients while retaining double coordinates and field accumulation.
-There are no marker-coordinate copies, matrices, per-weight callbacks or heap
-allocations in the component loops. The nonoverlap contract is documented at
-the entry point; there are no `restrict` promises inferred from concepts.
+Complete stencils use fixed loop bounds and invariant row offsets; clipped
+stencils retain their bounded loops. There are no marker-coordinate copies,
+matrices, per-weight callbacks or heap allocations in the component loops.
+The nonoverlap contract is documented at the entry point; there are no `restrict` promises inferred from concepts.
 
 ## Correctness
 
