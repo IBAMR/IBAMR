@@ -24,6 +24,11 @@ IF("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
           You must delete them, or cmake will refuse to work.")
 ENDIF()
 
+IF(POLICY CMP0156)
+  # New in CMake 3.29: De-duplicate libraries on link lines.
+  cmake_policy(SET CMP0156 NEW)
+ENDIF()
+
 # Version info:
 FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)
 STRING(REGEX REPLACE "^([0-9]+)\\..*" "\\1" IBTK_VERSION_MAJOR "${_version}")
