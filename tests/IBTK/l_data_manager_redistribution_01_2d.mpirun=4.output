@@ -1,0 +1,27 @@
+before redistribution rank = 0 local_nodes = 1
+patch = [(0,0),(15,15)]
+  index = 0 X = 0.49, 0.49 U = 0.005, 0.005 X_target = 0.49, 0.49 X_target_exact = 0.49, 0.49
+  count = 1
+step 1: begin redistribution
+step 1: end redistribution
+after step 1 rank = 0 local_nodes = 1
+patch = [(0,0),(15,15)]
+  index = 0 X = 0.495, 0.495 U = 0.005, 0.005 X_target = 0.495, 0.495 X_target_exact = 0.495, 0.495
+  count = 1
+step 2: begin redistribution
+step 2: end redistribution
+after step 2 rank = 0 local_nodes = 0
+patch = [(0,0),(15,15)]
+  count = 0
+step 3: begin redistribution
+step 3: end redistribution
+after step 3 rank = 0 local_nodes = 1
+patch = [(0,0),(15,15)]
+  index = 3 X = 0.495, 0.495 U = -0.005, -0.005 X_target = 0.495, 0.495 X_target_exact = 0.495, 0.495
+  count = 1
+step 4: begin redistribution
+step 4: end redistribution
+after step 4 rank = 0 local_nodes = 1
+patch = [(0,0),(15,15)]
+  index = 3 X = 0.49, 0.49 U = -0.005, -0.005 X_target = 0.49, 0.49 X_target_exact = 0.49, 0.49
+  count = 1

@@ -296,6 +296,7 @@ SETUP_2D(IBTK index_utilities.cpp)
 SETUP_2D(IBTK pointwise_function.cpp)
 SETUP_2D(IBTK marker_points_01.cpp)
 SETUP_2D(IBTK marker_points_02.cpp)
+SETUP_2D(IBTK l_data_manager_redistribution_01.cpp)
 SETUP_2D(IBTK cf_interface.cpp)
 
 IF(${IBAMR_HAVE_LIBMESH})

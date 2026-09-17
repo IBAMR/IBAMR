@@ -850,6 +850,15 @@ public:
     void scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const;
 
     /*!
+     * \brief Synchronize node-attached payloads for the ghost nodes that are
+     * already present in the current Lagrangian mesh.
+     *
+     * This routine updates the node data stored on existing ghost LNodes
+     * without changing ghost topology or PETSc indexing.
+     */
+    void synchronizeGhostLNodes(int coarsest_ln = invalid_level_number, int finest_ln = invalid_level_number);
+
+    /*!
      * \brief Start the process of redistributing the Lagrangian data.
      *
      * This method uses the present location of each Lagrangian mesh node to
