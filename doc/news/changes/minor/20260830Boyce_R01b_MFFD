@@ -1,0 +1,2 @@
+Fixed: Correct standalone PETScMFFDJacobianOperator base-function storage. <br>
+(Boyce Griffith, 2026/08/30)

@@ -90,7 +90,12 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
     {
         d_op_u->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&u, false), false);
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_u, d_op_u);
-        ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, nullptr);
+        // Supply SAMRAI-backed base-function storage. Although PETSc permits a
+        // null base function, its default MatCreateVecs storage is not suitable
+        // for FormFunction_SAMRAI's output-vector conversion.
+        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_f_base, d_op_f_base);
+        d_F->apply(*d_op_u, *d_op_f_base);
+        ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, d_petsc_f_base);
         IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyBegin(d_petsc_jac, MAT_FINAL_ASSEMBLY);
         IBTK_CHKERRQ(ierr);
@@ -154,6 +159,9 @@ PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
     d_op_u = in.cloneVector(in.getName());
     d_petsc_u = PETScSAMRAIVectorReal::createPETScVector(d_op_u, comm);
 
+    d_op_f_base = out.cloneVector(out.getName());
+    d_petsc_f_base = PETScSAMRAIVectorReal::createPETScVector(d_op_f_base, comm);
+
     d_op_x = in.cloneVector(in.getName());
     d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_op_x, comm);
 
@@ -162,6 +170,7 @@ PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
 
     // Allocate scratch data.
     d_op_u->allocateVectorData();
+    d_op_f_base->allocateVectorData();
 
     // Indicate that the operator is initialized.
     d_is_initialized = true;
@@ -174,12 +183,18 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
 
     // Deallocate scratch data.
     deallocate_vector_data(*d_op_u);
+    deallocate_vector_data(*d_op_f_base);
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_u);
     d_petsc_u = nullptr;
     free_vector_components(*d_op_u);
     d_op_u.setNull();
+
+    PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_f_base);
+    d_petsc_f_base = nullptr;
+    free_vector_components(*d_op_f_base);
+    d_op_f_base.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = nullptr;

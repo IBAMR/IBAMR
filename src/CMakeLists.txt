@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2024 by the IBAMR developers
+## Copyright (c) 2020 - 2026 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -195,6 +195,8 @@ SET(CXX_SRC
   IB/WallForceEvaluator.cpp
   IB/IBTargetPointForceSpecFactory.cpp
   IB/IBMethod.cpp
+  IB/StaggeredStokesIBOperator.cpp
+  IB/StaggeredStokesIBJacobianOperator.cpp
   IB/IBBeamForceSpec.cpp
   IB/IBSpringForceSpec.cpp
   IB/CIBMethod.cpp
