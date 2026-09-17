@@ -26,6 +26,7 @@
 #include <ibamr/IBLagrangianSourceStrategy.h>
 #include <ibamr/IBMethodPostProcessStrategy.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/LInitStrategy.h>
 #include <ibtk/LSiloDataWriter.h>
 #include <ibtk/ibtk_enums.h>
@@ -225,6 +226,9 @@ public:
     /*!
      * Update the positions used for the "fixed" interpolation and spreading
      * operators.
+     *
+     * Enable fixed operators with setUseFixedLEOperators(true) before calling
+     * preprocessIntegrateData(), then call this function after preprocessing.
      */
     void updateFixedLEOperators() override;
 
@@ -310,11 +314,12 @@ public:
         double data_time) override;
 
     /*!
-     * Construct the IB interpolation operator.
+     * \copydoc IBImplicitStrategy::constructInterpOp()
+     *
+     * Uses the coupling positions at data_time on the finest hierarchy level.
      */
     void constructInterpOp(Mat& J,
-                           void (*spread_fnc)(const double, double*),
-                           int stencil_width,
+                           const IBTK::IBKernelTensorProduct& kernel,
                            const std::vector<int>& num_dofs_per_proc,
                            int dof_index_idx,
                            double data_time) override;

@@ -28,8 +28,12 @@
 #include <petscmat.h>
 #include <petscvec.h>
 
+#include <Box.h>
+#include <Index.h>
 #include <PoissonSpecifications.h>
 
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include <vector>
 
@@ -128,54 +132,44 @@ public:
                                                  VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
-     * \brief Construct a parallel PETSc Mat object corresponding to the
-     * side-centered IB interpolation operator for the provided kernel function.
+     * \brief Construct a matrix mapping side-centered velocity on patch_level to IB points.
      *
-     * \warning This routine does not properly handle delta functions for which
-     * interp_stencil is odd, nor does it properly handle physical boundary
-     * conditions.
+     * X_vec contains consecutive NDIM coordinates for each IB point and
+     * determines the matrix row ordering. The side-centered data at
+     * dof_index_idx contain global column indices; num_dofs_per_proc gives
+     * the column counts on each rank. The physical domain must be a single
+     * box, and local index data must cover the stencils of local IB points.
+     * Insufficient DOF ghost storage is a fatal error.
+     *
+     * For every velocity component 0 <= Axis < NDIM, Evaluator must provide:
+     *
+     * - static constexpr get_stencil_widths<Axis>(), returning
+     *   std::array<int, NDIM> with strictly positive entries;
+     * - evaluate<Axis>(const std::array<double, NDIM>&), callable on a const
+     *   evaluator and returning exactly std::array<double, N>, where N is
+     *   the product of those widths.
+     *
+     * Each r[d] is the displacement from the first stencil point to the IB
+     * point, divided by the grid spacing. Result entries correspond to the
+     * stencil points with coordinate zero varying fastest; grid-spacing
+     * factors are not applied. The evaluator must supply weights consistent
+     * with this ordering and the stencil placement below.
+     * IBKernelTensorProductEvaluator implements this interface.
+     *
+     * Odd widths use the nearest grid point, choosing the higher index at a
+     * tie. Even widths bracket the point using the component's grid centering.
+     * No kernel registration is required. The evaluator and X_vec are borrowed for this call.
+     * An existing mat is destroyed and replaced; the caller owns the new matrix.
+     *
+     * \warning Physical boundary conditions are not handled.
      */
+    template <class Evaluator>
     static void constructPatchLevelSCInterpOp(Mat& mat,
-                                              void (*interp_fcn)(double r_lower, double* w),
-                                              int interp_stencil,
-                                              Vec& X_vec,
+                                              const Evaluator& evaluator,
+                                              Vec X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
-    /*!
-     * \brief Standard one-dimensional Peskin 4-pt delta function.
-     *
-     * \param r Normalized distance (by grid space h) between the IB point and
-     * the lowermost stencil location.
-     *
-     * \param w Weights as a function of (normalized) distance between the IB
-     * point and stencil locations. The first entry corresponds to the distance
-     * \f$ r_0 = r \f$ between the IB point and lowermost stencil location. The
-     * next normalized distance is taken as \f$ r_1 = r_0 + 1 \f$ and so on.
-     */
-    static void ib_4_interp_fcn(const double r, double* const w)
-    {
-        const double q = std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
-        w[0] = 0.125 * (5.0 - 2.0 * r - q);
-        w[1] = 0.125 * (5.0 - 2.0 * r + q);
-        w[2] = 0.125 * (-1.0 + 2.0 * r + q);
-        w[3] = 0.125 * (-1.0 + 2.0 * r - q);
-        return;
-    } // ib_4_interp_fcn
-
-    static const int ib_4_interp_stencil = 4;
-
-    /*!
-     * \brief Standard one-dimensional Piecewise linear interpolation function.
-     */
-    static void pwl_interp_fcn(const double r, double* const w)
-    {
-        w[0] = 1.0 - r;
-        w[1] = r;
-        return;
-    } // pwl_interp_fcn
-
-    static const int pwl_interp_stencil = 2;
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to data
@@ -217,6 +211,49 @@ public:
 
 protected:
 private:
+    /*! \brief Interpolation stencil geometry and borrowed IB positions. */
+    struct SCInterpOpData
+    {
+        /*! \brief Allocate the matrix and determine stencil boxes and local patches. */
+        SCInterpOpData(Mat& mat,
+                       Vec X,
+                       const std::array<std::array<int, NDIM>, NDIM>& stencil_widths,
+                       const std::vector<int>& num_dofs_per_proc,
+                       int dof_index_idx,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+        /*! \brief Restore the borrowed position array. */
+        ~SCInterpOpData();
+        /*! \brief Disallow copying borrowed array access. */
+        SCInterpOpData(const SCInterpOpData&) = delete;
+        /*! \brief Disallow assigning borrowed array access. */
+        SCInterpOpData& operator=(const SCInterpOpData&) = delete;
+        /*! \brief Finish matrix assembly. */
+        void assemble();
+
+        //! Caller-owned matrix handle.
+        Mat& d_mat;
+        //! Borrowed vector; must remain alive through restoration of d_positions.
+        Vec d_X;
+        //! Array borrowed from VecGetArray until the matching VecRestoreArray.
+        double* d_positions = nullptr;
+        //! Grid spacings and physical domain origin.
+        std::array<double, NDIM> d_dx, d_x_lower;
+        //! Lower index of the physical domain.
+        SAMRAI::hier::Index<NDIM> d_domain_lower;
+        //! Number of local IB points and first local matrix row.
+        int d_n_local_points = 0, d_row_lower = 0;
+        //! Local patches and component stencil boxes for each IB point.
+        std::vector<int> d_patch_numbers;
+        std::vector<std::array<SAMRAI::hier::Box<NDIM>, NDIM>> d_stencil_boxes;
+        //! Borrowed hierarchy data used to read global column indices.
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
+        int d_dof_index_idx;
+    };
+
+    /*! \brief Assemble matrix rows for one velocity component. */
+    template <int Axis, class Evaluator>
+    static void construct_sc_interp_op_axis(SCInterpOpData& data, const Evaluator& evaluator);
+
     /*!
      * \brief Default constructor.
      *
@@ -313,6 +350,8 @@ private:
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
 };
 } // namespace IBTK
+
+#include <ibtk/private/PETScMatUtilities-inl.h>
 
 /////////////////////////////////////////////////////////////////////////////
 

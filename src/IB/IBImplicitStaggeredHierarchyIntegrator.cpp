@@ -98,28 +98,6 @@ namespace
 // Version of IBImplicitStaggeredHierarchyIntegrator restart file data.
 static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 
-// IB-4 interpolation function.
-static void
-ib_4_interp_fcn(const double r, double* const w)
-{
-    const double q = std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
-    w[0] = 0.125 * (5.0 - 2.0 * r - q);
-    w[1] = 0.125 * (5.0 - 2.0 * r + q);
-    w[2] = 0.125 * (-1.0 + 2.0 * r + q);
-    w[3] = 0.125 * (-1.0 + 2.0 * r - q);
-    return;
-} // ib_4_interp_fcn
-static const int ib_4_interp_stencil = 4;
-
-// Piecewise linear interpolation function
-static void
-pwl_interp_fcn(const double r, double* const w)
-{
-    w[0] = 1.0 - r;
-    w[1] = r;
-    return;
-} // pwl_interp_fcn
-static const int pwl_interp_stencil = 2;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -308,6 +286,7 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
 {
     if (d_integrator_is_initialized) return;
 
+    // The configured minimum must also cover the independently selected Jacobian kernel.
     // Register u and p DOF variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_u_dof_index_var = new SideVariable<NDIM, int>(d_object_name + "::u_dof_index");
@@ -630,29 +609,11 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ, data_time);
     stokes_fac_op->setIBForceJacobian(elastic_op);
     Mat interp_op = nullptr;
-    if (d_jac_delta_fcn == "IB_4")
-    {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             ib_4_interp_fcn,
-                                             ib_4_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
-    }
-    else if (d_jac_delta_fcn == "PIECEWISE_LINEAR")
-    {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             pwl_interp_fcn,
-                                             pwl_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
-    }
-    else
-    {
-        TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity()."
-                   << " Delta function " << d_jac_delta_fcn << " is not supported in creating Jacobian." << std::endl);
-    }
+    d_ib_implicit_ops->constructInterpOp(interp_op,
+                                         IBKernelTensorProduct(d_jac_delta_fcn),
+                                         d_num_dofs_per_proc[finest_ln],
+                                         d_u_dof_index_idx,
+                                         data_time);
     stokes_fac_op->setIBInterpOp(interp_op);
     stokes_fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
 

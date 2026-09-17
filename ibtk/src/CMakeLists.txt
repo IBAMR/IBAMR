@@ -118,6 +118,7 @@ SET(CXX_SRC
   math/PoissonUtilities.cpp
   math/SAMRAIGhostDataAccumulator.cpp
   math/PETScMatUtilities.cpp
+  math/IBOperatorRegistry.cpp
   math/PatchMathOps.cpp
 
   # refine ops
@@ -239,6 +240,9 @@ IF(IBAMR_HAVE_LIBMESH)
     utilities/libmesh_utilities.cpp
     )
 ENDIF()
+
+SET_PROPERTY(SOURCE math/IBOperatorRegistry.cpp APPEND PROPERTY COMPILE_DEFINITIONS
+  IBTK_MAX_BSPLINE_ORDER=${IBTK_MAX_BSPLINE_ORDER})
 
 # TARGET_SOURCES needs to use private - if we used public then dependencies on
 # this target will also compile the source files

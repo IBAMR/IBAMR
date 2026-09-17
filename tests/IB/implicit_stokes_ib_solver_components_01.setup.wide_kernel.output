@@ -1,0 +1,4 @@
+IBRedundantInitializer:  Deallocating initialization data.
+dof_ghost_width = 4
+constant_interpolation_error = 6.66134e-16
+test_failures = 0

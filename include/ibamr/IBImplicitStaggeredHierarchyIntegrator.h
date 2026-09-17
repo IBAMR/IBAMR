@@ -84,6 +84,12 @@ public:
      * some default values, reads in configuration information from input and
      * restart databases, and registers the integrator object with the restart
      * manager when requested.
+     *
+     * The minimum ghost width supplied by ib_method_ops must cover the kernel
+     * selected by \c jacobian_delta_fcn, which may differ from the coupling
+     * kernels. With IBMethod, set \c min_ghost_cell_width in its input database
+     * when necessary; for example, BSPLINE_8 requires a width of at least four.
+     * See IBMethod::getMinimumGhostCellWidth().
      */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
