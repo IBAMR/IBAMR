@@ -4,7 +4,7 @@
 
 IBAMR 0.8.0 introduced a complete rewrite of its build system (that is, the set
 of scripts that detect IBAMR's dependencies and then compile and install the
-library). The new build system requires CMake version 3.15 or newer.
+library). IBAMR requires CMake 3.15 or newer and a C++20 compiler.
 
 CMake is a build system generator - i.e., unlike traditional autotools usage,
 users will use the `cmake` executable to generate a build system instead of

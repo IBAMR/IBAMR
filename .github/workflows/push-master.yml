@@ -258,7 +258,7 @@ jobs:
               -DCMAKE_C_FLAGS="-std=c17"                                                          \
               -DCMAKE_CXX_COMPILER="$(which mpic++)"                                              \
               -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)"                                     \
-              -DCMAKE_CXX_FLAGS="-O1 $WARNING_FLAGS -std=c++17"                                   \
+              -DCMAKE_CXX_FLAGS="-O1 $WARNING_FLAGS"                                              \
               -DCMAKE_Fortran_COMPILER="$(find -L $(brew --prefix gcc) -name gfortran)"           \
               -DCMAKE_Fortran_FLAGS="-O2 $WARNING_FLAGS -Wno-unused-parameter -Wno-compare-reals" \
               -DBOOST_ROOT="$(brew --prefix boost)"                                               \
