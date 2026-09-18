@@ -1,0 +1,3 @@
+New: Add concept-constrained IB kernel evaluators (ibtk/IBKernelConcepts.h and ibtk/ib_kernel_evaluators.h).
+<br>
+(Boyce Griffith, 2026/09/18)
