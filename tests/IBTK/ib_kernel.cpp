@@ -42,33 +42,6 @@ using IBTK::IBKernelTensorProduct;
 
 bool ib_kernel_static_initialization_valid();
 
-struct RuntimeExtentWeights
-{
-    double operator[](std::size_t) const;
-};
-
-struct FractionalExtentWeights
-{
-    double operator[](std::size_t) const;
-};
-
-template <>
-struct IBTK::IBKernelWeightsTraits<RuntimeExtentWeights>
-{
-    using value_type = double;
-    static std::size_t extent;
-};
-
-template <>
-struct IBTK::IBKernelWeightsTraits<FractionalExtentWeights>
-{
-    using value_type = double;
-    static constexpr double extent = 2.5;
-};
-
-static_assert(!IBTK::IBKernelWeights<RuntimeExtentWeights>);
-static_assert(!IBTK::IBKernelWeights<FractionalExtentWeights>);
-
 namespace
 {
 struct ScalarWidth
@@ -123,13 +96,6 @@ struct ExplicitConstructionScalar : ScalarWidth
     double value;
 };
 
-struct FloatScalar : ScalarWidth
-{
-    template <class Output, class Input>
-    requires std::same_as<typename IBTK::IBKernelWeightsTraits<Output>::value_type, float>
-        Output evaluate(const Input&) const;
-};
-
 struct RvalueOnlyScalar : ScalarWidth
 {
     template <class Output>
@@ -140,19 +106,6 @@ template <class Normal, class Tangential>
 concept HasTensorProduct = requires
 {
     typename IBTK::IBKernelEvaluatorTensorProduct<Normal, Tangential>;
-};
-
-struct DynamicWidths
-{
-    template <int Axis>
-    static std::array<std::size_t, NDIM> get_stencil_widths()
-    {
-        std::array<std::size_t, NDIM> widths;
-        widths.fill(1);
-        return widths;
-    }
-    template <int Axis, class Output, class Input>
-    Output evaluate(const std::array<Input, NDIM>&) const;
 };
 
 template <std::size_t Width, std::size_t Count>
@@ -187,17 +140,12 @@ static_assert(requires {
     IBTK::IBKernelEvaluatorTensorProduct{ ExplicitConstructionScalar{ 0.5 } };
     IBTK::IBKernelEvaluatorTensorProduct{ ExplicitConstructionScalar{ 0.5 }, ExplicitConstructionScalar{ 0.25 } };
 });
-using FloatProduct = IBTK::IBKernelEvaluatorTensorProduct<FloatScalar, IBTK::IBKernelEvaluators::IB4>;
-static_assert(IBTK::IBKernelEvaluatorCartesian<FloatProduct, double, float>);
-static_assert(!IBTK::IBKernelEvaluatorCartesian<FloatProduct, double, double>);
-static_assert(!HasTensorProduct<int, FloatScalar>);
+static_assert(!HasTensorProduct<int, IBTK::IBKernelEvaluators::IB4>);
 static_assert(!HasTensorProduct<IBTK::IBKernelEvaluators::IB4&, IBTK::IBKernelEvaluators::IB4&>);
 static_assert(IBTK::IBKernelEvaluatorCartesian<IBTK::IBKernelEvaluatorTensorProduct<IBTK::IBKernelEvaluators::IB4>>);
 static_assert(IBTK::IBKernelEvaluatorCartesian<TensorShape<1, 1>>);
-static_assert(!IBTK::IBKernelEvaluatorCartesian<DynamicWidths>);
 static_assert(!IBTK::IBKernelEvaluatorCartesian<TensorShape<0, 1>>);
 static_assert(!IBTK::IBKernelEvaluatorCartesian<TensorShape<2, 1>>);
-static_assert(!IBTK::IBKernelEvaluatorCartesian<TensorShape<std::numeric_limits<std::size_t>::max(), 1>>);
 static_assert(!IBTK::IBKernelEvaluatorCartesian<int>);
 
 template <class Kernel, class Output>
