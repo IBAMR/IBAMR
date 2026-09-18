@@ -51,7 +51,7 @@ struct LinearIBKernel
     template <class Output, std::floating_point Input>
     requires IBTK::detail::IBKernelWritableWeights<Output, 2> Output evaluate(const Input& r) const
     {
-        using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+        using Coefficient = ib_kernel_weights_value_t<Output>;
         const Coefficient x = r;
         Output weights{};
         weights[0] = 1 - x;
@@ -195,7 +195,7 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
     }();
     ReorderedWeights<float> weights = product.template evaluate<0, ReorderedWeights<float>>(r);
     const ReorderedWeights<float> saved = weights;
-    constexpr std::size_t count = IBKernelWeightsTraits<ReorderedWeights<float>>::extent;
+    constexpr std::size_t count = ib_kernel_weights_extent_v<ReorderedWeights<float>>;
     for (std::size_t i = 0; i < count; ++i)
     {
         std::size_t index = i / 3;
