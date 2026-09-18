@@ -1,0 +1,17 @@
+// The integrator constructor must reject an unsupported jacobian_delta_fcn
+// value at construction, not at the first solve.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+IBMethod {
+}
+INSStaggeredHierarchyIntegrator {
+   mu = 1.0
+   rho = 1.0
+   start_time = 0.0
+   end_time = 1.0
+}
+IBImplicitStaggeredHierarchyIntegrator {
+   jacobian_delta_fcn = "IB_5"
+}

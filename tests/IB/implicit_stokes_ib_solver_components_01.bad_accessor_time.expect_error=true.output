@@ -1,0 +1,5 @@
+IBRedundantInitializer_fixed:  Deallocating initialization data.
+Program abort called with error message
+
+    IBMethod::getFinestLevelLECouplingPositions():
+  data_time = 0.03 does not equal the current, half, or new time.
