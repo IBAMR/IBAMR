@@ -75,7 +75,7 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
                 const double h_phi = IBTK::smooth_heaviside(phi, alpha);
                 const double h_prime = IBTK::smooth_delta(phi, alpha);
 
-                vol_phase1 += (1.0 - h_phi) * dv;
+                vol_phase1 += IBTK::smooth_heaviside(-phi, alpha) * dv;
                 vol_phase2 += h_phi * dv;
                 integral_delta += h_prime * dv;
             }
@@ -132,9 +132,9 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
                 const double h_phi_prime = IBTK::smooth_delta(phi, alpha);
                 const double h_psi = IBTK::smooth_heaviside(psi, alpha);
 
-                vol_phase1 += (1.0 - h_phi) * h_psi * dv;
+                vol_phase1 += IBTK::smooth_heaviside(-phi, alpha) * h_psi * dv;
                 vol_phase2 += h_phi * h_psi * dv;
-                vol_phase3 += (1.0 - h_psi) * dv;
+                vol_phase3 += IBTK::smooth_heaviside(-psi, alpha) * dv;
                 integral_delta += h_phi_prime * h_psi * dv;
             }
         }
