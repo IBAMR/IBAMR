@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2011 - 2026 by the IBAMR developers
+// Copyright (c) 2026 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -26,10 +26,9 @@
 #include <SideData.h>
 #include <SideIndex.h>
 
+#include <algorithm>
 #include <array>
 #include <limits>
-#include <type_traits>
-#include <utility>
 
 namespace IBTK
 {
@@ -50,16 +49,19 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         Evaluator::template get_stencil_widths<2>()
 #endif
     };
-    static_assert(std::all_of(widths.begin(),
-                              widths.end(),
-                              [](const std::array<std::size_t, NDIM>& component_widths)
-                              {
-                                  return std::all_of(
-                                      component_widths.begin(),
-                                      component_widths.end(),
-                                      [](std::size_t width)
-                                      { return width <= static_cast<std::size_t>(std::numeric_limits<int>::max()); });
-                              }),
+    constexpr std::size_t max_width = [&widths]()
+    {
+        std::size_t result = 0;
+        for (const auto& component_widths : widths)
+        {
+            for (std::size_t width : component_widths)
+            {
+                result = std::max(result, width);
+            }
+        }
+        return result;
+    }();
+    static_assert(max_width <= static_cast<std::size_t>(std::numeric_limits<int>::max()),
                   "Interpolation stencil width exceeds the SAMRAI index range");
     std::array<std::array<int, NDIM>, NDIM> index_widths;
     for (int axis = 0; axis < NDIM; ++axis)
@@ -99,12 +101,11 @@ PETScMatUtilities::construct_sc_interp_op_axis(SCInterpOpData& data, const Evalu
                 data.d_x_lower[d];
             r[d] = (X[d] - x_lower) / data.d_dx[d];
         }
-        const Weights values = evaluator.template evaluate<Axis, Weights>(std::as_const(r));
+        const Weights values = evaluator.template evaluate<Axis, Weights>(r);
 
         std::array<PetscInt, nvalues> columns;
 
-        tbox::Pointer<hier::Patch<NDIM>> patch = data.d_level->getPatch(data.d_patch_numbers[point]);
-        tbox::Pointer<pdat::SideData<NDIM, int>> indices = patch->getPatchData(data.d_dof_index_idx);
+        const tbox::Pointer<pdat::SideData<NDIM, int>>& indices = data.d_dof_index_data[point];
         int entry = 0;
         for (typename hier::Box<NDIM>::Iterator b(box); b; b++, ++entry)
         {
