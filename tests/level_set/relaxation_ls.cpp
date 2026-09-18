@@ -97,6 +97,23 @@ circular_interface_neighborhood(int D_idx,
     return;
 } // circular_interface_neighborhood
 
+// The functions in this namespace implement the RedistributionTests mode
+// entered below when the input file has a RedistributionTests database
+// (input_db->isDatabase("RedistributionTests")). That mode checks
+// RelaxationLSMethod's volume-redistribution and local mass-constraint
+// corrections independently of this file's original circular-interface
+// relaxation test. RedistributionTests' "field" key selects a synthetic phi
+// (constant, cutoff, near_cutoff, steep, plane, or curve; see
+// RedistributionField below), and "scheme" selects the time-stepping scheme
+// passed to RelaxationLSMethod. check_redistribution() runs all four
+// combinations of apply_mass_constraint x apply_volume_redistribution, each
+// as an initial initializeLSData() followed by a reinitialization, and logs
+// the Heaviside-integrated volume, its drift from the initial volume, the
+// exact-distance L1 error where the field has one, and, for the
+// redistribution runs, the maximum change from the non-redistributed control
+// field. When RedistributionTests has a Reference database, the reinitialized
+// field and volume for case = 2*mass_constraint + redistribution are compared
+// against its frozen phi_N/volume_N entries.
 namespace
 {
 enum class RedistributionField
