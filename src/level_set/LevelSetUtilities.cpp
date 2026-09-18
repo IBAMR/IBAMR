@@ -387,7 +387,9 @@ LevelSetMassLossFixer::correctVolume(const double new_time, const bool three_pha
                 }
                 const double fluid_fraction = three_phase ? IBTK::smooth_heaviside((*psi)(i()), alpha) : 1.0;
                 local_capacity += fluid_fraction * dv;
-                if (fluid_fraction * dv > 0.0)
+                // Cells in the support of the fluid fraction bound the shifts that change the volume.
+                const bool in_fluid_support = !three_phase || (*psi)(i()) > -alpha;
+                if (in_fluid_support && dv > 0.0)
                 {
                     lower = std::min(lower, -alpha - value);
                     upper = std::max(upper, alpha - value);
