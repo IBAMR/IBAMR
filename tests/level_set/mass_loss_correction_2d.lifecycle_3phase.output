@@ -1,0 +1,4 @@
+AdvDiff::initializePatchHierarchy(): tag_buffer = 0
+completed step = 1; normalized target, CURRENT volume: 0.2 0.2
+completed step = 2; normalized target, CURRENT volume: 0.2 0.2
+completed step = 3; normalized target, CURRENT volume: 0.3 0.3

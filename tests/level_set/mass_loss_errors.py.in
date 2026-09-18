@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+# Copyright (c) 2026 by the IBAMR developers.
+# Distributed under the 3-clause BSD license; see COPYRIGHT.
+
+"""Check fatal volume-correction diagnostics without accepting unrelated crashes."""
+
+import json
+import os
+from pathlib import Path
+import re
+import signal
+import subprocess
+import sys
+import tempfile
+
+configuration = json.loads(Path(sys.argv[1]).read_text())
+dimension = configuration["dimension"]
+ranks = configuration["ranks"]
+fixture = Path(sys.argv[1]).parent / f"mass_loss_correction_{dimension}d.uniform.input"
+executable = Path(__file__).parent / f"mass_loss_correction_{dimension}d"
+cases = {
+    "interval_zero": "invalid correction controls",
+    "interval_negative": "invalid correction controls",
+    "width_input": "invalid correction controls",
+    "relative_tolerance": "invalid correction controls",
+    "absolute_tolerance": "invalid correction controls",
+    "budget_zero": "invalid correction controls",
+    "budget_exhausted": "correction trial budget exhausted",
+    "width_setter": "half_width must be finite and positive",
+    "width_restart": "invalid correction controls",
+    "target_nonfinite": "target volume must be finite",
+    "target_restart": "target volume must be finite",
+    "target_infeasible": "target volume is outside the fluid capacity",
+    "rank_nonfinite": "nonfinite level-set data or invalid composite weight",
+}
+with open("output", "w") as output:
+    for case, diagnostic in cases.items():
+        with tempfile.TemporaryDirectory(prefix="mass-loss-error-", dir=".") as directory:
+            work = Path(directory).resolve()
+            (work / "input").write_text(fixture.read_text() + f'\nfailure = "{case}"\n')
+            command = [str(executable), "input"]
+            if ranks > 1:
+                command = ["@MPIEXEC_EXECUTABLE@", "@MPIEXEC_NUMPROC_FLAG@", str(ranks), *command]
+            child = subprocess.Popen(command, cwd=work, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                     start_new_session=True, text=True)
+            try:
+                transcript, _ = child.communicate(timeout=60)
+            except subprocess.TimeoutExpired:
+                os.killpg(child.pid, signal.SIGKILL)
+                child.communicate()
+                raise RuntimeError(f"{case}: child timed out")
+            (Path(f"{case}.log")).write_text(transcript)
+            abnormal = child.returncode == -signal.SIGABRT if ranks == 1 else child.returncode != 0
+            matches = re.findall(r"Fixer::(?:LevelSetMassLossFixer|correctVolume)\(\): ([^\r\n]+)", transcript)
+            if not abnormal or diagnostic not in matches:
+                raise RuntimeError(f"{case}: wrong termination or missing diagnostic (status {child.returncode})")
+            # Copy the diagnostic emitted by the real operation, not a predicted message.
+            output.write(f"{case}: {next(message for message in matches if message == diagnostic)}\n")
