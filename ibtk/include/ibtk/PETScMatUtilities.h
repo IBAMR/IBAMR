@@ -33,7 +33,6 @@
 #include <Index.h>
 #include <PoissonSpecifications.h>
 
-#include <algorithm>
 #include <array>
 #include <cmath>
 #include <vector>
@@ -54,6 +53,11 @@ namespace solv
 template <int DIM>
 class RobinBcCoefStrategy;
 } // namespace solv
+namespace pdat
+{
+template <int DIM, class TYPE>
+class SideData;
+} // namespace pdat
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -287,9 +291,9 @@ private:
         //! Local patches and component stencil boxes for each IB point.
         std::vector<int> d_patch_numbers;
         std::vector<std::array<SAMRAI::hier::Box<NDIM>, NDIM>> d_stencil_boxes;
-        //! Borrowed hierarchy data used to read global column indices.
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
-        int d_dof_index_idx;
+        //! Borrowed DOF index data for each local IB point's patch, used to
+        //! read global column indices without repeating the patch lookup.
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, int>>> d_dof_index_data;
     };
 
     /*! \brief Assemble matrix rows for one velocity component. */
