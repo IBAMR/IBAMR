@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator():
+  unsupported jacobian_delta_fcn = IB_5.
+  supported values are IB_4 and PIECEWISE_LINEAR.
