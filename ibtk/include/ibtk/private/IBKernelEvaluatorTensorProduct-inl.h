@@ -15,22 +15,21 @@
 
 namespace IBTK
 {
-template <detail::IBKernelScalarShape Normal, detail::IBKernelScalarShape Tangential>
-IBKernelEvaluatorTensorProduct<Normal, Tangential>::IBKernelEvaluatorTensorProduct(Normal evaluator)
-    requires(std::same_as<Normal, Tangential>&& std::constructible_from<Normal, Normal&>&&
-                 std::constructible_from<Normal, Normal&&>)
-    : d_normal(evaluator), d_tangential(std::move(evaluator))
+template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
+IBKernelEvaluatorTensorProduct<Normal, Tangential>::IBKernelEvaluatorTensorProduct(
+    Normal evaluator) requires std::same_as<Normal, Tangential> : d_normal(evaluator),
+                                                                  d_tangential(std::move(evaluator))
 {
 }
 
-template <detail::IBKernelScalarShape Normal, detail::IBKernelScalarShape Tangential>
+template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
 IBKernelEvaluatorTensorProduct<Normal, Tangential>::IBKernelEvaluatorTensorProduct(Normal normal, Tangential tangential)
     requires(std::constructible_from<Normal, Normal&&>&& std::constructible_from<Tangential, Tangential&&>)
     : d_normal(std::move(normal)), d_tangential(std::move(tangential))
 {
 }
 
-template <detail::IBKernelScalarShape Normal, detail::IBKernelScalarShape Tangential>
+template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
 template <int Axis>
 constexpr std::array<std::size_t, NDIM>
 IBKernelEvaluatorTensorProduct<Normal, Tangential>::get_stencil_widths() requires(Axis >= 0 && Axis < NDIM)
@@ -41,7 +40,7 @@ IBKernelEvaluatorTensorProduct<Normal, Tangential>::get_stencil_widths() require
     return widths;
 }
 
-template <detail::IBKernelScalarShape Normal, detail::IBKernelScalarShape Tangential>
+template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
 template <int Axis, int Direction, class Coefficient, std::floating_point Input>
 std::conditional_t<Axis == Direction,
                    IBKernelEvaluators::Weights<Coefficient, Normal::get_stencil_width()>,
@@ -59,18 +58,17 @@ IBKernelEvaluatorTensorProduct<Normal, Tangential>::evaluateDirection(const Inpu
     }
 }
 
-template <detail::IBKernelScalarShape Normal, detail::IBKernelScalarShape Tangential>
+template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
 template <int Axis, IBKernelWeights Output, std::floating_point Input>
-requires(detail::IBKernelCartesianShape<IBKernelEvaluatorTensorProduct<Normal, Tangential>, Axis>&&
-             detail::IBKernelWritableWeights<
-                 Output,
-                 detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct<Normal, Tangential>, Axis>()>&&
-                 IBKernelEvaluatorScalar<Normal, Input, typename IBKernelWeightsTraits<Output>::value_type>&&
-                     IBKernelEvaluatorScalar<Tangential, Input, typename IBKernelWeightsTraits<Output>::value_type>)
-    Output IBKernelEvaluatorTensorProduct<Normal, Tangential>::evaluate(const std::array<Input, NDIM>& r) const
+requires(detail::IBKernelWritableWeights<
+         Output,
+         detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct<Normal, Tangential>, Axis>()>&&
+             IBKernelEvaluatorScalar<Normal, Input, ib_kernel_weights_value_t<Output>>&&
+                 IBKernelEvaluatorScalar<Tangential, Input, ib_kernel_weights_value_t<Output>>) Output
+    IBKernelEvaluatorTensorProduct<Normal, Tangential>::evaluate(const std::array<Input, NDIM>& r) const
 {
     constexpr std::array<std::size_t, NDIM> widths = get_stencil_widths<Axis>();
-    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    using Coefficient = ib_kernel_weights_value_t<Output>;
     using NormalWeights = IBKernelEvaluators::Weights<Coefficient, Normal::get_stencil_width()>;
     using TangentialWeights = IBKernelEvaluators::Weights<Coefficient, Tangential::get_stencil_width()>;
     const std::conditional_t<Axis == 0, NormalWeights, TangentialWeights> wx =
