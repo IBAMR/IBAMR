@@ -55,7 +55,10 @@ public:
 private:
     /*! \brief Evaluate the scalar factor for coordinate Direction. */
     template <int Axis, int Direction, class Coefficient, std::floating_point Input>
-    auto evaluateDirection(const Input& r) const;
+    std::conditional_t<Axis == Direction,
+                       IBKernelEvaluators::Weights<Coefficient, Normal::get_stencil_width()>,
+                       IBKernelEvaluators::Weights<Coefficient, Tangential::get_stencil_width()>>
+    evaluateDirection(const Input& r) const;
 
     //! Owned scalar factors.
     [[no_unique_address]] Normal d_normal;
