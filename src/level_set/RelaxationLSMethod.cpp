@@ -939,7 +939,10 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
             Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double cell_size = 1.0;
-            for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                cell_size *= patch_dx[d];
+            }
             cell_size = std::pow(cell_size, 1.0 / static_cast<double>(NDIM));
             const double num_cells = 1.0;
             const double alpha = num_cells * cell_size;
@@ -968,6 +971,62 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
     const double S = IBTK_MPI::sumReduction(source_integral);
     const double W = IBTK_MPI::sumReduction(weight_integral);
 
+    if (!std::isfinite(S) || !std::isfinite(W))
+    {
+        TBOX_ERROR(d_object_name << "::applyVolumeRedistribution(): nonfinite source or weight integral\n"
+                                 << "  S = " << S << ", W = " << W << '\n');
+    }
+    if (W < 0.0)
+    {
+        TBOX_ERROR(d_object_name << "::applyVolumeRedistribution(): negative redistribution weight integral\n"
+                                 << "  S = " << S << ", W = " << W << '\n');
+    }
+    if (W == 0.0)
+    {
+        if (S != 0.0)
+        {
+            TBOX_ERROR(
+                d_object_name << "::applyVolumeRedistribution(): nonzero source with zero redistribution weight; "
+                              << "the correction is not representable (possible underflow)\n"
+                              << "  S = " << S << ", W = " << W << '\n');
+        }
+        return;
+    }
+    const double correction = S / W;
+    if (!std::isfinite(correction))
+    {
+        TBOX_ERROR(d_object_name << "::applyVolumeRedistribution(): nonfinite redistribution quotient\n"
+                                 << "  S = " << S << ", W = " << W << '\n');
+    }
+
+    // Validate the complete proposed update before modifying distance data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> phi = patch->getPatchData(dist_idx);
+            Pointer<CellData<NDIM, double>> lambda = patch->getPatchData(lambda_idx);
+            Pointer<CellData<NDIM, double>> dt_data = patch->getPatchData(dt_idx);
+            for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
+            {
+                const double dt = (*dt_data)(i());
+                if (dt <= 0.0)
+                {
+                    continue;
+                }
+                const double value = (*phi)(i()) + dt * correction * (*lambda)(i());
+                if (!std::isfinite(value))
+                {
+                    TBOX_ERROR(d_object_name << "::applyVolumeRedistribution(): nonfinite proposed distance value\n");
+                }
+            }
+        }
+    }
+    // No rank may start writing until all ranks complete validation.
+    IBTK_MPI::barrier();
+
     // Correct the distance function using lambda
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -985,9 +1044,12 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
                 CellIndex<NDIM> ci(it());
                 const double dt = (*dt_data)(ci);
 
-                if (dt <= 0.0) continue;
+                if (dt <= 0.0)
+                {
+                    continue;
+                }
 
-                (*phi_data)(ci) = (*phi_data)(ci) + (*dt_data)(ci) * (S / W) * (*lambda_data)(ci);
+                (*phi_data)(ci) = (*phi_data)(ci) + (*dt_data)(ci)*correction * (*lambda_data)(ci);
             }
         }
     }

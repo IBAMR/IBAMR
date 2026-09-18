@@ -128,6 +128,10 @@ public:
 
     /*!
      * \brief Indicate that the class should apply the volume redistribution algorithm.
+     *
+     * Zero source with absent interface support skips redistribution. Nonfinite
+     * or unrepresentable corrections produce TBOX_ERROR before redistribution
+     * changes the reinitialized field.
      */
     void setApplyVolumeRedistribution(bool apply_volume_redistribution);
 
@@ -203,8 +207,8 @@ private:
                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> ham_init_data,
                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
 
-    /*
-     * \brief Apply the volume redistribution algorithm over the hierarchy
+    /*!
+     * \brief Validate and apply the volume redistribution update over the hierarchy.
      */
     void applyVolumeRedistribution(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                    int lambda_idx,
