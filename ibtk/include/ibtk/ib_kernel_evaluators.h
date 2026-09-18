@@ -39,8 +39,10 @@ namespace IBKernelEvaluators
  * N must be positive.
  */
 template <std::size_t N>
-requires(N > 0) class BSpline
+class BSpline
 {
+    static_assert(N > 0);
+
 public:
     /*! \brief Return the N stencil weights. */
     template <detail::IBKernelWritableWeights<N> Output, std::floating_point Input>

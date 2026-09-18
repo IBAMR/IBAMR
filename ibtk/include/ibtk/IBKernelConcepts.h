@@ -13,7 +13,6 @@
 #include <array>
 #include <concepts>
 #include <cstddef>
-#include <type_traits>
 
 namespace IBTK
 {
@@ -42,17 +41,23 @@ struct IBKernelWeightsTraits<std::array<T, N>>
     static constexpr std::size_t extent = N;
 };
 
+/*! \brief typename IBKernelWeightsTraits<T>::value_type. */
+template <class T>
+using ib_kernel_weights_value_t = typename IBKernelWeightsTraits<T>::value_type;
+
+/*! \brief IBKernelWeightsTraits<T>::extent. */
+template <class T>
+inline constexpr std::size_t ib_kernel_weights_extent_v = IBKernelWeightsTraits<T>::extent;
+
 /*! \brief An owning, nonempty indexed collection of floating-point coefficients. */
 template <class T>
 concept IBKernelWeights = requires(const T& weights, std::size_t i)
 {
-    typename IBKernelWeightsTraits<T>::value_type;
-    requires std::floating_point<typename IBKernelWeightsTraits<T>::value_type>;
-    typename std::integral_constant<std::size_t, IBKernelWeightsTraits<T>::extent>;
-    requires(IBKernelWeightsTraits<T>::extent > 0);
+    requires std::floating_point<ib_kernel_weights_value_t<T>>;
+    requires(ib_kernel_weights_extent_v<T> > 0);
     {
         weights[i]
-    } -> std::convertible_to<typename IBKernelWeightsTraits<T>::value_type>;
+    } -> std::convertible_to<ib_kernel_weights_value_t<T>>;
 };
 
 namespace detail
@@ -61,37 +66,14 @@ namespace detail
 template <class T, std::size_t N>
 concept IBKernelWritableWeights =
     IBKernelWeights<T> && std::default_initializable<T> && std::move_constructible<T> &&
-    (IBKernelWeightsTraits<T>::extent == N) &&
-    requires(T & weights, std::size_t i, typename IBKernelWeightsTraits<T>::value_type value)
+    (ib_kernel_weights_extent_v<T> == N) && requires(T & weights, std::size_t i, ib_kernel_weights_value_t<T> value)
 {
     weights[i] = value;
 };
 
-/*! \brief Positive compile-time width of a scalar evaluator object. */
-template <class T>
-concept IBKernelScalarShape = std::is_object_v<T> && requires
-{
-    {
-        T::get_stencil_width()
-    } -> std::same_as<std::size_t>;
-    typename std::integral_constant<std::size_t, T::get_stencil_width()>;
-    requires(T::get_stencil_width() > 0);
-};
-
-/*! \brief Return the stencil product, or zero for invalid or overflowing widths. */
+/*! \brief Return the product of the compile-time Cartesian stencil widths. */
 template <class T, int Axis>
 constexpr std::size_t ib_kernel_stencil_size();
-
-/*! \brief Positive compile-time Cartesian widths with a representable product. */
-template <class T, int Axis>
-concept IBKernelCartesianShape = (Axis >= 0 && Axis < NDIM) && requires
-{
-    {
-        T::template get_stencil_widths<Axis>()
-    } -> std::same_as<std::array<std::size_t, NDIM>>;
-    typename std::integral_constant<std::array<std::size_t, NDIM>, T::template get_stencil_widths<Axis>()>;
-    requires(ib_kernel_stencil_size<T, Axis>() > 0);
-};
 } // namespace detail
 
 /*!
@@ -108,8 +90,8 @@ concept IBKernelCartesianShape = (Axis >= 0 && Axis < NDIM) && requires
  * IBKernelEvaluators::Weights storage; other output containers are checked at their call.
  */
 template <class T, class Input = double, class Coefficient = double>
-concept IBKernelEvaluatorScalar = detail::IBKernelScalarShape<T> && std::floating_point<Input> &&
-                                  std::floating_point<Coefficient> && requires(const T& kernel, const Input& r)
+concept IBKernelEvaluatorScalar = std::floating_point<Input> && std::floating_point<Coefficient> &&
+                                  (T::get_stencil_width() > 0) && requires(const T& kernel, const Input& r)
 {
     {
         kernel.template evaluate<IBKernelEvaluators::Weights<Coefficient, T::get_stencil_width()>>(r)
@@ -120,8 +102,11 @@ namespace detail
 {
 /*! \brief Cartesian evaluation with the selected input and coefficient types. */
 template <class T, int Axis, class Input, class Coefficient>
-concept IBKernelEvaluatorCartesianAxis =
-    IBKernelCartesianShape<T, Axis> && requires(const T& kernel, const std::array<Input, NDIM>& r)
+concept IBKernelEvaluatorCartesianAxis = (Axis >= 0 && Axis < NDIM) && requires
+{
+    T::template get_stencil_widths<Axis>();
+}
+&&(ib_kernel_stencil_size<T, Axis>() > 0) && requires(const T& kernel, const std::array<Input, NDIM>& r)
 {
     {
         kernel.template evaluate<Axis, IBKernelEvaluators::Weights<Coefficient, ib_kernel_stencil_size<T, Axis>()>>(r)
