@@ -29,6 +29,7 @@
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/LevelSetSurfaceTensionForceFunction.h>
+#include <ibamr/VOFSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/vc_ins_vof_utilities.h>
@@ -320,11 +321,12 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> grav_force =
             new IBAMR::VCINSVOFUtilities::VOFBasedGravityForcing("GravityForcing", time_integrator, grav_const);
 
-        Pointer<SurfaceTensionForceFunction> surface_tension_force = new LevelSetSurfaceTensionForceFunction(
+        Pointer<SurfaceTensionForceFunction> surface_tension_force = new VOFSurfaceTensionForceFunction(
             "SurfaceTensionForceFunction",
             app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
             adv_diff_integrator,
-            phi_var);
+            phi_var,
+nullptr);
 
         Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(surface_tension_force);

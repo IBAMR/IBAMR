@@ -440,3 +440,371 @@ c
       enddo
       return
       end
+
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Height-function curvature for a 2-D Cartesian grid.
+c
+c     A fixed 3 x 7 or 7 x 3 stencil is used.
+c
+c     K_valid = 1 when height-function curvature is available.
+c     K_valid = 0 otherwise.
+c
+c     Curvature convention:
+c
+c              kappa = -div(grad(C)/|grad(C)|)
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine hf_curvature_2d(
+     &     K,K_valid,K_gcw,
+     &     C,C_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,hf_radius,vof_tol,gradient_tol)
+
+      implicit none
+
+c
+c     Patch information.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER K_gcw,C_gcw
+      INTEGER hf_radius
+
+c
+c     Data arrays.
+c
+      REAL K(CELL2d(ilower,iupper,K_gcw))
+      REAL K_valid(CELL2d(ilower,iupper,K_gcw))
+      REAL C(CELL2d(ilower,iupper,C_gcw))
+
+c
+c     Grid spacing and tolerances.
+c
+      REAL dx(0:NDIM-1)
+      REAL vof_tol
+      REAL gradient_tol
+
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      INTEGER m,kk
+      INTEGER all_ok
+      INTEGER ok
+
+      REAL alpha
+      REAL gx,gy,gmag
+      REAL h(-1:1)
+      REAL clow,chigh
+      REAL hd,hdd
+      REAL denom
+
+c
+c     This implementation is specifically the standard 3 x 7
+c     height function.
+c
+      
+      if (hf_radius .ne. 3) then
+         write(*,*) 'hf_curvature_2d requires hf_radius = 3'
+         stop
+      endif
+
+      do i1 = ilower1-1,iupper1+1
+         do i0 = ilower0-1,iupper0+1
+
+            K(i0,i1) = 0.d0
+            K_valid(i0,i1) = 0.d0
+            alpha = C(i0,i1)
+
+            if (alpha .gt. vof_tol .and.
+     &          alpha .lt. 1.d0-vof_tol) then
+
+c
+c              Estimate the interface normal.
+c
+               gx = (C(i0+1,i1)-C(i0-1,i1))
+     &              /(2.d0*dx(0))
+
+               gy = (C(i0,i1+1)-C(i0,i1-1))
+     &              /(2.d0*dx(1))
+
+               gmag = sqrt(gx*gx+gy*gy)
+
+               if (gmag .gt. gradient_tol) then
+
+                  if (abs(gy) .ge. abs(gx)) then
+
+                     all_ok = 1
+
+                     do m = -1,1
+
+                        clow = max(0.d0,
+     &                       min(1.d0,C(i0+m,i1-3)))
+
+                        chigh = max(0.d0,
+     &                        min(1.d0,C(i0+m,i1+3)))
+
+                        ok = 0
+
+c
+c                       grad(C) points from C=0 toward C=1.
+c
+                        if (gy .gt. 0.d0) then
+
+                           if (clow .le. vof_tol .and.
+     &                         chigh .ge.
+     &                         1.d0-vof_tol) then
+                              ok = 1
+                           endif
+
+                        else
+
+c
+c                          gy < 0: opposite phase ordering.
+c
+                           if (clow .ge.
+     &                         1.d0-vof_tol .and.
+     &                         chigh .le. vof_tol) then
+                              ok = 1
+                           endif
+
+                        endif
+
+                        if (ok .eq. 0) all_ok = 0
+
+c
+c                       Construct the physical height.
+c
+                        h(m) = 0.d0
+
+                        do kk = -3,3
+
+                           h(m) = h(m)
+     &                          + dx(1)*max(0.d0,
+     &                            min(1.d0,
+     &                            C(i0+m,i1+kk)))
+
+                        enddo
+
+                     enddo
+
+c
+c                    All three columns must have valid pure ends.
+c
+                     if (all_ok .eq. 1) then
+
+c
+c                       h varies in the x direction.
+c
+                        hd = (h(1)-h(-1))
+     &                       /(2.d0*dx(0))
+
+                        hdd = (h(1)-2.d0*h(0)+h(-1))
+     &                        /(dx(0)*dx(0))
+
+                        denom = (1.d0+hd*hd)**1.5d0
+
+                        K(i0,i1) = -hdd/denom
+                        K_valid(i0,i1) = 1.d0
+
+                     endif
+
+c
+c                 |gx| > |gy| now check for the x cells
+c
+                  else 
+
+                     all_ok = 1
+
+                     do m = -1,1
+
+c
+c                       Fixed left and right ends.
+c
+                        clow = max(0.d0,
+     &                       min(1.d0,C(i0-3,i1+m)))
+
+                        chigh = max(0.d0,
+     &                        min(1.d0,C(i0+3,i1+m)))
+
+                        ok = 0
+
+c
+c                       If gx > 0, C increases from left to right.
+c
+                        if (gx .gt. 0.d0) then
+
+                           if (clow .le. vof_tol .and.
+     &                         chigh .ge.
+     &                         1.d0-vof_tol) then
+                              ok = 1
+                           endif
+
+                        else
+
+c
+c                          gx < 0: opposite phase ordering.
+c
+                           if (clow .ge.
+     &                         1.d0-vof_tol .and.
+     &                         chigh .le. vof_tol) then
+                              ok = 1
+                           endif
+
+                        endif
+
+                        if (ok .eq. 0) all_ok = 0
+
+c
+c                       Construct physical height by integrating
+c                       over exactly seven cells in x.
+c
+                        h(m) = 0.d0
+
+                        do kk = -3,3
+
+                           h(m) = h(m)
+     &                          + dx(0)*max(0.d0,
+     &                            min(1.d0,
+     &                            C(i0+kk,i1+m)))
+
+                        enddo
+
+                     enddo
+
+                     if (all_ok .eq. 1) then
+
+c
+c                       h varies in the y direction.
+c
+                        hd = (h(1)-h(-1))
+     &                       /(2.d0*dx(1))
+
+                        hdd = (h(1)-2.d0*h(0)+h(-1))
+     &                        /(dx(1)*dx(1))
+
+                        denom = (1.d0+hd*hd)**1.5d0
+
+                        K(i0,i1) = -hdd/denom
+                        K_valid(i0,i1) = 1.d0
+
+                     endif
+
+                  endif
+
+               endif
+
+            endif
+
+         enddo
+      enddo
+
+      return
+      end
+
+      subroutine sc_surface_tension_force_vof_2d(
+     &     F0,F1,F_gcw,
+     &     K,K_valid,K_gcw,
+     &     N00,N11,N_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1)
+
+      implicit none
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER F_gcw,K_gcw,N_gcw
+
+      REAL F0(SIDE2d0(ilower,iupper,F_gcw))
+      REAL F1(SIDE2d1(ilower,iupper,F_gcw))
+
+      REAL K(CELL2d(ilower,iupper,K_gcw))
+      REAL K_valid(CELL2d(ilower,iupper,K_gcw))
+
+      REAL N00(SIDE2d0(ilower,iupper,N_gcw))
+      REAL N11(SIDE2d1(ilower,iupper,N_gcw))
+
+      INTEGER i0,i1
+      INTEGER vl,vr
+      REAL kappa
+
+c
+c     X faces.
+c
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0+1
+
+            vl = 0
+            vr = 0
+
+            if (K_valid(i0-1,i1) .gt. 0.5d0) vl = 1
+            if (K_valid(i0,i1)   .gt. 0.5d0) vr = 1
+
+            if (vl+vr .eq. 2) then
+
+               kappa =
+     &              0.5d0*(K(i0-1,i1)+K(i0,i1))
+
+            else if (vl .eq. 1) then
+
+               kappa = K(i0-1,i1)
+
+            else if (vr .eq. 1) then
+
+               kappa = K(i0,i1)
+
+            else
+
+               kappa = 0.d0
+c we can add normal gradient calculation here 
+
+            endif
+
+            F0(i0,i1) = kappa*N00(i0,i1)
+
+         enddo
+      enddo
+
+c
+c     Y faces.
+c
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0
+
+            vl = 0
+            vr = 0
+
+            if (K_valid(i0,i1-1) .gt. 0.5d0) vl = 1
+            if (K_valid(i0,i1)   .gt. 0.5d0) vr = 1
+
+            if (vl+vr .eq. 2) then
+
+               kappa =
+     &              0.5d0*(K(i0,i1-1)+K(i0,i1))
+
+            else if (vl .eq. 1) then
+
+               kappa = K(i0,i1-1)
+
+            else if (vr .eq. 1) then
+
+               kappa = K(i0,i1)
+
+            else
+
+               kappa = 0.d0 
+c we can add normal gradient calculation here 
+
+            endif
+
+            F1(i0,i1) = kappa*N11(i0,i1)
+
+         enddo
+      enddo
+
+      return
+      end
