@@ -18,7 +18,14 @@ namespace IBTK
 {
 namespace IBKernelEvaluators
 {
-/*! \brief Owning storage for the supplied IB kernel coefficients. */
+/*!
+ * \brief Owning storage for the supplied IB kernel coefficients.
+ *
+ * This is the default output container for the evaluators in this namespace,
+ * and the type the concepts below check first. A caller may pass any other
+ * container that models IBKernelWeights instead, by giving it an
+ * IBKernelWeightsTraits specialization.
+ */
 template <class T, std::size_t N>
 using Weights = std::array<T, N>;
 } // namespace IBKernelEvaluators
@@ -49,7 +56,14 @@ using ib_kernel_weights_value_t = typename IBKernelWeightsTraits<T>::value_type;
 template <class T>
 inline constexpr std::size_t ib_kernel_weights_extent_v = IBKernelWeightsTraits<T>::extent;
 
-/*! \brief An owning, nonempty indexed collection of floating-point coefficients. */
+/*!
+ * \brief An owning, nonempty indexed collection of floating-point coefficients.
+ *
+ * A type T models this concept when:
+ * - IBKernelWeightsTraits<T> supplies a floating-point value_type and a
+ *   positive constant extent;
+ * - weights[i] is readable and convertible to value_type.
+ */
 template <class T>
 concept IBKernelWeights = requires(const T& weights, std::size_t i)
 {
@@ -77,17 +91,44 @@ constexpr std::size_t ib_kernel_stencil_size();
 } // namespace detail
 
 /*!
- * \brief A scalar IB kernel evaluated with Input displacements and Coefficient weights.
+ * \brief A one-dimensional IB kernel phi, evaluated over its stencil at a
+ * single displacement.
  *
- * get_stencil_width() gives the positive compile-time width N.
- * evaluate<Output>(r) returns N independently owned weights, with entry i equal
- * to phi(r-i). Output supplies the coefficient type and storage.
- * The argument r is the displacement from the first stencil point to the
- * evaluation point, divided by grid spacing. For odd N, (N-2)/2 <= r < N/2;
- * for even N, N/2-1 <= r <= N/2. No grid-spacing factors are included.
- * Evaluation leaves the input and evaluator unchanged and initializes every
- * coefficient deterministically. This concept checks the selected types with
- * IBKernelEvaluators::Weights storage; other output containers are checked at their call.
+ * A type T models this concept when:
+ * - T::get_stencil_width() gives a positive compile-time width N;
+ * - T::evaluate<Output>(r) returns N independently owned weights, with entry
+ *   i equal to phi(r - i), for Output equal to
+ *   IBKernelEvaluators::Weights<Coefficient, N>; other Output containers are checked
+ *   at their own call;
+ * - evaluation leaves r and the evaluator unchanged and initializes every
+ *   coefficient deterministically.
+ *
+ * Coordinate convention (stated once; IBKernelEvaluatorCartesian and
+ * PETScMatUtilities refer back to it): r is the displacement, in grid
+ * spacings, from the first stencil point to the evaluation point. For odd N,
+ * (N-2)/2 <= r < N/2; for even N, N/2-1 <= r <= N/2. No grid-spacing factors
+ * are included.
+ *
+ * Example: a user scalar kernel used directly, and inside a tensor product
+ * with the library's IB4 (\see IBKernelEvaluatorTensorProduct):
+ * \code
+ * struct MyKernel
+ * {
+ *     static constexpr std::size_t get_stencil_width() { return 2; }
+ *
+ *     template <IBTK::IBKernelWeights Output, std::floating_point Input>
+ *     Output evaluate(Input r) const
+ *     {
+ *         using Coefficient = IBTK::ib_kernel_weights_value_t<Output>;
+ *         Output w{};
+ *         w[0] = Coefficient{ 1 } - r;
+ *         w[1] = r;
+ *         return w;
+ *     }
+ * };
+ * static_assert(IBTK::IBKernelEvaluatorScalar<MyKernel>);
+ * const IBTK::IBKernelEvaluatorTensorProduct product{ MyKernel{}, IBTK::IBKernelEvaluators::IB4{} };
+ * \endcode
  */
 template <class T, class Input = double, class Coefficient = double>
 concept IBKernelEvaluatorScalar = std::floating_point<Input> && std::floating_point<Coefficient> &&
@@ -115,17 +156,24 @@ concept IBKernelEvaluatorCartesianAxis = (Axis >= 0 && Axis < NDIM) && requires
 } // namespace detail
 
 /*!
- * \brief An IB kernel evaluator on a rectangular Cartesian stencil.
+ * \brief An IB kernel evaluator on a rectangular Cartesian stencil, not
+ * necessarily a separable product of scalar kernels.
  *
- * get_stencil_widths<Axis>() gives positive compile-time widths.
- * evaluate<Axis, Output>(r) returns independently owned coefficients, with
- * coordinate zero varying fastest and extent equal to the product of the widths.
- * Axis selects the distinguished coordinate: x (0), y (1), or z (2).
- * Each r[d] follows the IBKernelEvaluatorScalar convention for that width.
- * Evaluation leaves the input and evaluator unchanged and initializes every
- * coefficient deterministically. The coefficients need not form a separable
- * product. This concept checks Input and Coefficient with IBKernelEvaluators::Weights
- * storage; other output containers are checked at their call.
+ * A type T models this concept when, for Axis equal to each coordinate 0, ...,
+ * NDIM - 1:
+ * - T::get_stencil_widths<Axis>() gives positive compile-time widths, one per
+ *   coordinate;
+ * - T::evaluate<Axis, Output>(r) returns the coefficients over that stencil,
+ *   independently owned, with coordinate zero varying fastest and extent
+ *   equal to the product of the widths, for Output equal to
+ *   IBKernelEvaluators::Weights<Coefficient, N>; other Output containers are checked
+ *   at their own call;
+ * - each r[d] follows the IBKernelEvaluatorScalar coordinate convention for
+ *   that coordinate's width;
+ * - evaluation leaves r and the evaluator unchanged and initializes every
+ *   coefficient deterministically.
+ *
+ * \see IBKernelEvaluatorScalar for the coordinate convention.
  */
 template <class T, class Input = double, class Coefficient = double>
 concept IBKernelEvaluatorCartesian = std::floating_point<Input> && std::floating_point<Coefficient> &&
