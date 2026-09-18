@@ -15,8 +15,12 @@
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/IBKernelEvaluatorTensorProduct.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/PETScMatUtilities.h>
+#include <ibtk/PETScVecUtilities.h>
+#include <ibtk/ib_kernel_evaluators.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/interpolation_utilities.h>
 
@@ -32,7 +36,56 @@
 #include <SAMRAI_config.h>
 #include <StandardTagAndInitialize.h>
 
+#include <array>
+#include <iomanip>
+#include <map>
+
 #include <ibtk/app_namespaces.h>
+
+struct LinearIBKernel
+{
+    static constexpr std::size_t get_stencil_width()
+    {
+        return 2;
+    }
+    template <class Output, std::floating_point Input>
+    requires IBTK::detail::IBKernelWritableWeights<Output, 2> Output evaluate(const Input& r) const
+    {
+        using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+        const Coefficient x = r;
+        Output weights{};
+        weights[0] = 1 - x;
+        weights[1] = x;
+        return weights;
+    }
+    template <class Output, class Input>
+    Output evaluate(Input&) const = delete;
+    template <class Output, class Input>
+    Output evaluate(const Input&&) const = delete;
+};
+
+static_assert(IBKernelEvaluatorScalar<LinearIBKernel>);
+
+template <class T>
+struct ReorderedWeights
+{
+    std::array<T, NDIM == 2 ? 6 : 12> values;
+    T operator[](std::size_t i) const
+    {
+        return values[values.size() - 1 - i];
+    }
+    T& operator[](std::size_t i)
+    {
+        return values[values.size() - 1 - i];
+    }
+};
+
+template <class T>
+struct IBTK::IBKernelWeightsTraits<ReorderedWeights<T>>
+{
+    using value_type = T;
+    static constexpr std::size_t extent = NDIM == 2 ? 6 : 12;
+};
 
 double
 exact_fcn(const VectorNd& x)
@@ -41,6 +94,224 @@ exact_fcn(const VectorNd& x)
     for (int d = 0; d < NDIM; ++d) ret += x[d] * static_cast<double>(d + 1);
     return ret;
 }
+
+namespace
+{
+int
+check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeometry<NDIM>> geometry, bool periodic)
+{
+    VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, int>> indices = new SideVariable<NDIM, int>("matrix_indices");
+    const int dof = variables->registerVariableAndContext(indices, variables->getContext("matrix"), periodic ? 4 : 2);
+    level->allocatePatchData(dof);
+    std::vector<int> counts;
+    PETScVecUtilities::constructPatchLevelDOFIndices(counts, dof, level);
+    PatchLevel<NDIM>::Iterator local_patch(level);
+    TBOX_ASSERT(local_patch);
+    Pointer<Patch<NDIM>> patch = level->getPatch(local_patch());
+    Pointer<CartesianPatchGeometry<NDIM>> patch_geometry = patch->getPatchGeometry();
+    Pointer<SideData<NDIM, int>> dofs = patch->getPatchData(dof);
+    std::array<double, NDIM> position;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        position[d] =
+            0.5 * (patch_geometry->getXLower()[d] + patch_geometry->getXUpper()[d]) + 0.13 * patch_geometry->getDx()[d];
+    }
+    // The distributed fixture splits the domain across x = 0.5.
+    if (IBTK_MPI::getNodes() > 1)
+    {
+        position[0] = 0.5 + (patch_geometry->getXLower()[0] < 0.5 ? -0.2 : 0.2) * patch_geometry->getDx()[0];
+    }
+    Vec X = nullptr;
+    PetscErrorCode ierr = VecCreateMPI(PETSC_COMM_WORLD, NDIM, PETSC_DECIDE, &X);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* coordinates;
+    ierr = VecGetArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        coordinates[d] = position[d];
+    }
+    ierr = VecRestoreArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    Mat matrix = nullptr;
+    if (periodic)
+    {
+        // A width-eight stencil wraps around the four-cell periodic domain.
+        // Contributions mapping to the same column must accumulate.
+        const IBKernelEvaluatorTensorProduct kernel{ IBKernelEvaluators::BSpline<8>{} };
+        double error = 0.0;
+        for (int cycle = 0; cycle < 2; ++cycle)
+        {
+            PETScMatUtilities::constructPatchLevelSCInterpOp(matrix, kernel, X, counts, dof, level);
+            Vec field = nullptr, result = nullptr;
+            ierr = MatCreateVecs(matrix, &field, &result);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecSet(field, 1.0);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatMult(matrix, field, result);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecShift(result, -1.0);
+            IBTK_CHKERRQ(ierr);
+            PetscReal norm;
+            ierr = VecNorm(result, NORM_INFINITY, &norm);
+            IBTK_CHKERRQ(ierr);
+            TBOX_ASSERT(std::isfinite(norm));
+            error = std::max(error, static_cast<double>(norm));
+            ierr = VecDestroy(&result);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&field);
+            IBTK_CHKERRQ(ierr);
+        }
+        TBOX_ASSERT(std::isfinite(error) && error <= 1.0e-12);
+        plog << "periodic constant error = " << error << '\n';
+        ierr = MatDestroy(&matrix);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&X);
+        IBTK_CHKERRQ(ierr);
+        level->deallocatePatchData(dof);
+        variables->removePatchDataIndex(dof);
+        return 0;
+    }
+    ierr = VecLockReadPush(X);
+    IBTK_CHKERRQ(ierr);
+    PETScMatUtilities::constructPatchLevelSCInterpOp(
+        matrix,
+        IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<3>{}, LinearIBKernel{} },
+        X,
+        counts,
+        dof,
+        level);
+    ierr = VecLockReadPop(X);
+    IBTK_CHKERRQ(ierr);
+    // The same evaluator accepts independently owned, differently ordered storage.
+    const IBKernelEvaluatorTensorProduct product{ IBKernelEvaluators::BSpline<3>{}, LinearIBKernel{} };
+    const std::array<long double, NDIM> r = []
+    {
+        std::array<long double, NDIM> coordinates;
+        coordinates.fill(0.25L);
+        coordinates[0] = 1.0L;
+        return coordinates;
+    }();
+    ReorderedWeights<float> weights = product.template evaluate<0, ReorderedWeights<float>>(r);
+    const ReorderedWeights<float> saved = weights;
+    constexpr std::size_t count = IBKernelWeightsTraits<ReorderedWeights<float>>::extent;
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        std::size_t index = i / 3;
+        float expected = i % 3 == 1 ? 0.75f : 0.125f;
+        for (int d = 1; d < NDIM; ++d)
+        {
+            expected *= index % 2 == 0 ? 0.75f : 0.25f;
+            index /= 2;
+        }
+        TBOX_ASSERT(weights[i] == expected);
+        weights[i] = -1;
+        TBOX_ASSERT(saved[i] == expected);
+    }
+    Vec field = nullptr, result = nullptr;
+    ierr = MatCreateVecs(matrix, &field, &result);
+    IBTK_CHKERRQ(ierr);
+    PetscInt column_begin, column_end, row_begin, row_end;
+    ierr = VecGetOwnershipRange(field, &column_begin, &column_end);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* field_values;
+    ierr = VecGetArray(field, &field_values);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt column = column_begin; column < column_end; ++column)
+    {
+        field_values[column - column_begin] = 1.0 + 0.001 * column;
+    }
+    ierr = VecRestoreArray(field, &field_values);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatMult(matrix, field, result);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(matrix, &row_begin, &row_end);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(row_end - row_begin == NDIM);
+    const PetscScalar* actual;
+    ierr = VecGetArrayRead(result, &actual);
+    IBTK_CHKERRQ(ierr);
+    int mismatches = 0, off_process = 0;
+    double weight_error = 0.0, action_error = 0.0;
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        std::map<PetscInt, double> expected;
+        // Scan grid points and use the explicit quadratic/linear spline formulas,
+        // independently of the assembly stencil and evaluator implementation.
+        for (SideIterator<NDIM> side(dofs->getGhostBox(), axis); side; side++)
+        {
+            double weight = 1.0;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                const double grid_x =
+                    geometry->getXLower()[d] + (side()(d) + (d == axis ? 0.0 : 0.5)) * patch_geometry->getDx()[d];
+                const double r = std::abs((position[d] - grid_x) / patch_geometry->getDx()[d]);
+                weight *= d == axis ? (r < 0.5 ? 0.75 - r * r : (r < 1.5 ? 0.5 * (1.5 - r) * (1.5 - r) : 0.0)) :
+                                      std::max(0.0, 1.0 - r);
+            }
+            if (weight > 0.0)
+            {
+                TBOX_ASSERT((*dofs)(side()) >= 0);
+                expected[(*dofs)(side())] = weight;
+            }
+        }
+        PetscInt n;
+        const PetscInt* columns;
+        const PetscScalar* values;
+        ierr = MatGetRow(matrix, row_begin + axis, &n, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+        mismatches += n != static_cast<PetscInt>(expected.size());
+        for (PetscInt k = 0; k < n; ++k)
+        {
+            const auto found = expected.find(columns[k]);
+            if (found == expected.end())
+            {
+                ++mismatches;
+            }
+            else
+            {
+                weight_error = std::max(weight_error, std::abs(PetscRealPart(values[k]) - found->second));
+            }
+            off_process += columns[k] < column_begin || columns[k] >= column_end;
+        }
+        double reference = 0.0;
+        for (const std::pair<const PetscInt, double>& entry : expected)
+        {
+            reference += entry.second * (1.0 + 0.001 * entry.first);
+        }
+        action_error = std::max(action_error, std::abs(PetscRealPart(actual[axis]) - reference));
+        ierr = MatRestoreRow(matrix, row_begin + axis, &n, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = VecRestoreArrayRead(result, &actual);
+    IBTK_CHKERRQ(ierr);
+    mismatches = IBTK_MPI::sumReduction(mismatches);
+    off_process = IBTK_MPI::sumReduction(off_process);
+    weight_error = IBTK_MPI::maxReduction(weight_error);
+    action_error = IBTK_MPI::maxReduction(action_error);
+    plog << std::setprecision(12) << "column mismatches = " << mismatches << '\n'
+         << "weight error = " << weight_error << '\n'
+         << "action error = " << action_error << '\n';
+    const bool valid = mismatches == 0 && weight_error <= 1.0e-12 && action_error <= 1.0e-12 &&
+                       (IBTK_MPI::getNodes() == 1 || off_process > 0);
+    ierr = VecDestroy(&result);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&field);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&matrix);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&X);
+    IBTK_CHKERRQ(ierr);
+    level->deallocatePatchData(dof);
+    variables->removePatchDataIndex(dof);
+    if (!valid)
+    {
+        TBOX_ERROR("Matrix assembly column, weight, action, or off-process coverage failed.\n");
+    }
+    return 0;
+}
+} // namespace
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -101,6 +372,13 @@ main(int argc, char* argv[])
             gridding_algorithm->makeFinerLevel(patch_hierarchy, 0.0, 0.0, tag_buffer);
             done = !patch_hierarchy->finerLevelExists(level_number);
             ++level_number;
+        }
+
+        if (input_db->getBoolWithDefault("matrix_assembly", false))
+        {
+            return check_matrix_assembly(patch_hierarchy->getPatchLevel(0),
+                                         grid_geometry,
+                                         input_db->getBoolWithDefault("periodic_matrix", false));
         }
 
         // Allocate and fill in patch data
