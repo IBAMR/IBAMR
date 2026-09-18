@@ -1,0 +1,3 @@
+New: Add IBOperatorBuilder, which builds the IB interpolation matrix from any IB kernel evaluator.
+<br>
+(Boyce Griffith, 2026/09/18)
