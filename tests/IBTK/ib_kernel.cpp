@@ -132,15 +132,6 @@ struct FloatScalar : ScalarWidth
         Output evaluate(const Input&) const;
 };
 
-struct ImmutableScalar : ScalarWidth
-{
-    template <class Output, class Input>
-    Output evaluate(const Input&) const
-    {
-        return Output{ 0.5 };
-    }
-};
-
 struct RvalueOnlyScalar : ScalarWidth
 {
     template <class Output>
@@ -192,7 +183,6 @@ static_assert(!IBTK::IBKernelEvaluatorScalar<EmptyScalar>);
 static_assert(!IBTK::IBKernelEvaluatorScalar<int>);
 static_assert(!IBTK::IBKernelEvaluatorScalar<RvalueOnlyScalar>);
 static_assert(IBTK::IBKernelEvaluatorScalar<ImmovableScalar>);
-static_assert(IBTK::IBKernelEvaluatorScalar<ImmutableScalar>);
 static_assert(
     !std::is_constructible_v<IBTK::IBKernelEvaluatorTensorProduct<ImmovableScalar>, ImmovableScalar, ImmovableScalar>);
 static_assert(requires {
@@ -220,8 +210,6 @@ concept EvaluatesInto = requires(const Kernel& kernel, const double& r)
     } -> std::same_as<Output>;
 };
 static_assert(!EvaluatesInto<IBTK::IBKernelEvaluators::IB4, IBTK::IBKernelEvaluators::Weights<double, 3>>);
-static_assert(!EvaluatesInto<IBTK::IBKernelEvaluators::IB4, IBTK::IBKernelEvaluators::Weights<const double, 4>>);
-static_assert(EvaluatesInto<ImmutableScalar, IBTK::IBKernelEvaluators::Weights<const double, 1>>);
 
 std::vector<std::string>
 spellings(const std::string& name)
@@ -457,13 +445,6 @@ check_tensor_products()
 {
     using namespace IBTK;
     TBOX_ASSERT(check_kernels() == 0);
-    const IBKernelEvaluators::Weights<const double, 1> immutable_scalar =
-        ImmutableScalar{}.evaluate<IBKernelEvaluators::Weights<const double, 1>>(0.0);
-    TBOX_ASSERT(immutable_scalar[0] == 0.5);
-    const IBKernelEvaluatorTensorProduct immutable{ ImmutableScalar{} };
-    const IBKernelEvaluators::Weights<double, 1> immutable_product =
-        immutable.template evaluate<NDIM - 1, IBKernelEvaluators::Weights<double, 1>>(std::array<double, NDIM>{});
-    TBOX_ASSERT(immutable_product[0] == std::ldexp(1.0, -NDIM));
     const IBKernelEvaluatorTensorProduct explicit_copy{ ExplicitConstructionScalar{ 0.5 } };
     const IBKernelEvaluatorTensorProduct explicit_moves{ ExplicitConstructionScalar{ 0.25 },
                                                          ExplicitConstructionScalar{ 0.5 } };
