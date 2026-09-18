@@ -43,7 +43,9 @@ IBKernelEvaluatorTensorProduct<Normal, Tangential>::get_stencil_widths() require
 
 template <detail::IBKernelScalarShape Normal, detail::IBKernelScalarShape Tangential>
 template <int Axis, int Direction, class Coefficient, std::floating_point Input>
-auto
+std::conditional_t<Axis == Direction,
+                   IBKernelEvaluators::Weights<Coefficient, Normal::get_stencil_width()>,
+                   IBKernelEvaluators::Weights<Coefficient, Tangential::get_stencil_width()>>
 IBKernelEvaluatorTensorProduct<Normal, Tangential>::evaluateDirection(const Input& r) const
 {
     if constexpr (Axis == Direction)
@@ -69,11 +71,16 @@ requires(detail::IBKernelCartesianShape<IBKernelEvaluatorTensorProduct<Normal, T
 {
     constexpr std::array<std::size_t, NDIM> widths = get_stencil_widths<Axis>();
     using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
-    const auto wx = evaluateDirection<Axis, 0, Coefficient>(r[0]);
-    const auto wy = evaluateDirection<Axis, 1, Coefficient>(r[1]);
-    Output weights;
+    using NormalWeights = IBKernelEvaluators::Weights<Coefficient, Normal::get_stencil_width()>;
+    using TangentialWeights = IBKernelEvaluators::Weights<Coefficient, Tangential::get_stencil_width()>;
+    const std::conditional_t<Axis == 0, NormalWeights, TangentialWeights> wx =
+        evaluateDirection<Axis, 0, Coefficient>(r[0]);
+    const std::conditional_t<Axis == 1, NormalWeights, TangentialWeights> wy =
+        evaluateDirection<Axis, 1, Coefficient>(r[1]);
+    Output weights{};
 #if (NDIM == 3)
-    const auto wz = evaluateDirection<Axis, 2, Coefficient>(r[2]);
+    const std::conditional_t<Axis == 2, NormalWeights, TangentialWeights> wz =
+        evaluateDirection<Axis, 2, Coefficient>(r[2]);
     for (std::size_t k = 0; k < widths[2]; ++k)
     {
 #endif
