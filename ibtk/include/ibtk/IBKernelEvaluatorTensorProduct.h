@@ -19,9 +19,13 @@ namespace IBTK
 /*!
  * \brief Evaluate a tensor product of one-dimensional IB kernels.
  *
- * Axis selects the coordinate using Normal; other coordinates use Tangential.
- * The scalar evaluators are stored by value. Both factors and their product
- * use the coefficient type selected by Output.
+ * Axis is the velocity component: the coordinate along which the IB point
+ * moves with the interpolated velocity, and along which it spreads force.
+ * Normal evaluates that coordinate; Tangential evaluates each of the other
+ * NDIM - 1 coordinates. A scalar kernel that is the same in every direction
+ * (for example, all three velocity components of an isotropic kernel) uses
+ * Normal for both. The scalar evaluators are stored by value. Both factors
+ * and their product use the coefficient type selected by Output.
  *
  * \see IBKernelEvaluatorCartesian
  */
@@ -36,11 +40,18 @@ public:
     IBKernelEvaluatorTensorProduct(Normal normal, Tangential tangential)
         requires(std::constructible_from<Normal, Normal&&>&& std::constructible_from<Tangential, Tangential&&>);
 
-    /*! \brief Return coordinate widths with Axis selecting the normal factor. */
+    /*!
+     * \brief Return the NDIM stencil widths for velocity component Axis:
+     * Normal::get_stencil_width() at index Axis, Tangential::get_stencil_width()
+     * at every other index.
+     */
     template <int Axis>
     static constexpr std::array<std::size_t, NDIM> get_stencil_widths() requires(Axis >= 0 && Axis < NDIM);
 
-    /*! \brief Return the product of the scalar weights at r. */
+    /*!
+     * \brief Return the product of the scalar weights at r: Normal evaluated
+     * at r[Axis], and Tangential evaluated at every other r[d].
+     */
     template <int Axis, IBKernelWeights Output, std::floating_point Input>
     requires(detail::IBKernelWritableWeights<Output,
                                              detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct, Axis>()>&&
