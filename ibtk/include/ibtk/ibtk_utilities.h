@@ -226,10 +226,12 @@ tensor_idx_to_voigt(const std::pair<int, int>& idx)
 /*!
  * Regularized Heaviside function with smoothing half-width alpha.
  * For finite phi and finite positive alpha, values lie in [0, 1], with exact
- * saturation at both cutoffs. Use smooth_heaviside(-phi, alpha) for a small
- * complementary fraction that subtraction from one would lose.
+ * saturation at both cutoffs. Values are accurate to absolute rounding error;
+ * tiny fractions near the cutoffs do not have full relative accuracy. Use
+ * smooth_heaviside(-phi, alpha) for a small complementary fraction that
+ * subtraction from one would lose.
  */
-inline double smooth_heaviside(const double& phi, const double& alpha);
+double smooth_heaviside(const double& phi, const double& alpha);
 
 /*!
  * Analytic derivative of smooth_heaviside(), with the same half-width alpha.
@@ -237,7 +239,7 @@ inline double smooth_heaviside(const double& phi, const double& alpha);
  * Requires finite phi and finite positive alpha; the result may underflow or
  * overflow when the derivative is not representable.
  */
-inline double smooth_delta(const double& phi, const double& alpha);
+double smooth_delta(const double& phi, const double& alpha);
 
 /*!
  * Discontinuous heaviside function.

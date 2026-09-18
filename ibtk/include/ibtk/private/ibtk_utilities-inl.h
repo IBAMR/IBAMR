@@ -39,34 +39,11 @@ smooth_heaviside(const double& phi, const double& alpha)
         return 0.5;
     }
 
+    // Evaluate the smaller of H(phi) and 1 - H(phi) from the distance to the nearer
+    // cutoff. This avoids cancellation in 0.5 + 0.5*phi/alpha near phi = -alpha;
+    // the clamp keeps final rounding within [0, 1/2].
     const double z = (alpha - std::abs(phi)) / alpha;
-    double fraction;
-    if (z <= 0.5)
-    {
-        // For x = pi*z <= pi/2, use (x - sin(x))/(2*pi) through x^21.
-        // The alternating-series remainder relative to the result is bounded
-        // by 6*x^20/(23!*(1-x^2/20)) < 2.3e-18. Above this switch the direct
-        // subtraction has condition number at most (pi+2)/(pi-2) < 4.51.
-        const double x = M_PI * z;
-        const double t = x * x;
-        double series = -1.0 / 51090942171709440000.0;
-        series = 1.0 / 121645100408832000.0 + t * series;
-        series = -1.0 / 355687428096000.0 + t * series;
-        series = 1.0 / 1307674368000.0 + t * series;
-        series = -1.0 / 6227020800.0 + t * series;
-        series = 1.0 / 39916800.0 + t * series;
-        series = -1.0 / 362880.0 + t * series;
-        series = 1.0 / 5040.0 + t * series;
-        series = -1.0 / 120.0 + t * series;
-        series = 1.0 / 6.0 + t * series;
-        fraction = 0.5 * z * t * series;
-    }
-    else
-    {
-        fraction = 0.5 * (z - std::sin(M_PI * z) / M_PI);
-    }
-    // Guard the closed range against final rounding, preserving the small tail.
-    fraction = std::max(0.0, std::min(0.5, fraction));
+    const double fraction = std::max(0.0, std::min(0.5, 0.5 * (z - std::sin(M_PI * z) / M_PI)));
     return phi < 0.0 ? fraction : 1.0 - fraction;
 }
 
