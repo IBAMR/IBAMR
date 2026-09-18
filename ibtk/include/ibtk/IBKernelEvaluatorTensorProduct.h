@@ -25,14 +25,12 @@ namespace IBTK
  *
  * \see IBKernelEvaluatorCartesian
  */
-template <detail::IBKernelScalarShape Normal, detail::IBKernelScalarShape Tangential = Normal>
+template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential = Normal>
 class IBKernelEvaluatorTensorProduct
 {
 public:
     /*! \brief Use copies of the same scalar evaluator in every coordinate. */
-    explicit IBKernelEvaluatorTensorProduct(Normal evaluator)
-        requires(std::same_as<Normal, Tangential>&& std::constructible_from<Normal, Normal&>&&
-                     std::constructible_from<Normal, Normal&&>);
+    explicit IBKernelEvaluatorTensorProduct(Normal evaluator) requires std::same_as<Normal, Tangential>;
 
     /*! \brief Use separate normal and tangential evaluators. */
     IBKernelEvaluatorTensorProduct(Normal normal, Tangential tangential)
@@ -44,13 +42,11 @@ public:
 
     /*! \brief Return the product of the scalar weights at r. */
     template <int Axis, IBKernelWeights Output, std::floating_point Input>
-    requires(
-        detail::IBKernelCartesianShape<IBKernelEvaluatorTensorProduct, Axis>&&
-            detail::IBKernelWritableWeights<Output,
-                                            detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct, Axis>()>&&
-                IBKernelEvaluatorScalar<Normal, Input, typename IBKernelWeightsTraits<Output>::value_type>&&
-                    IBKernelEvaluatorScalar<Tangential, Input, typename IBKernelWeightsTraits<Output>::value_type>)
-        Output evaluate(const std::array<Input, NDIM>& r) const;
+    requires(detail::IBKernelWritableWeights<Output,
+                                             detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct, Axis>()>&&
+                 IBKernelEvaluatorScalar<Normal, Input, ib_kernel_weights_value_t<Output>>&&
+                     IBKernelEvaluatorScalar<Tangential, Input, ib_kernel_weights_value_t<Output>>) Output
+        evaluate(const std::array<Input, NDIM>& r) const;
 
 private:
     /*! \brief Evaluate the scalar factor for coordinate Direction. */

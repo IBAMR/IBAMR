@@ -23,10 +23,11 @@
 namespace IBTK
 {
 template <std::size_t N>
-requires(N > 0) template <detail::IBKernelWritableWeights<N> Output, std::floating_point Input>
-inline Output IBKernelEvaluators::BSpline<N>::evaluate(const Input r) const
+template <detail::IBKernelWritableWeights<N> Output, std::floating_point Input>
+inline Output
+IBKernelEvaluators::BSpline<N>::evaluate(const Input r) const
 {
-    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    using Coefficient = ib_kernel_weights_value_t<Output>;
     const Coefficient x = r;
     // Unit-spacing form of the B-spline basis recurrence; see C. de Boor,
     // "On calculating with B-splines", J. Approx. Theory 6 (1972), 50-62,
@@ -61,7 +62,7 @@ template <detail::IBKernelWritableWeights<3> Output, std::floating_point Input>
 inline Output
 IBKernelEvaluators::IB3::evaluate(const Input r) const
 {
-    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    using Coefficient = ib_kernel_weights_value_t<Output>;
     const Coefficient x = r;
     const Coefficient s = x - 1;
     const Coefficient q = std::sqrt(1 - 3 * s * s);
@@ -76,7 +77,7 @@ template <detail::IBKernelWritableWeights<4> Output, std::floating_point Input>
 inline Output
 IBKernelEvaluators::IB4::evaluate(const Input r) const
 {
-    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    using Coefficient = ib_kernel_weights_value_t<Output>;
     const Coefficient x = r;
     // Use kernel symmetry and moment conditions to compute all four weights
     // from one square root.
@@ -94,7 +95,7 @@ template <detail::IBKernelWritableWeights<5> Output, std::floating_point Input>
 inline Output
 IBKernelEvaluators::IB5::evaluate(const Input r) const
 {
-    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    using Coefficient = ib_kernel_weights_value_t<Output>;
     const Coefficient x = r;
     const Coefficient K = (38 - std::sqrt(Coefficient{ 69 })) / 60;
     const Coefficient r0 = x - 2;
@@ -120,7 +121,7 @@ template <detail::IBKernelWritableWeights<6> Output, std::floating_point Input>
 inline Output
 IBKernelEvaluators::IB6::evaluate(const Input r) const
 {
-    using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
+    using Coefficient = ib_kernel_weights_value_t<Output>;
     const Coefficient x = r;
     Output w{};
     const Coefficient rl = 3 - x;
@@ -150,7 +151,8 @@ IBKernelEvaluators::IB6::evaluate(const Input r) const
 }
 
 template <std::size_t N>
-requires(N > 0) constexpr std::size_t IBKernelEvaluators::BSpline<N>::get_stencil_width()
+constexpr std::size_t
+IBKernelEvaluators::BSpline<N>::get_stencil_width()
 {
     return N;
 }

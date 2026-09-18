@@ -11,8 +11,6 @@
 
 #include <ibtk/IBKernelConcepts.h>
 
-#include <limits>
-
 namespace IBTK::detail
 {
 template <class T, int Axis>
@@ -23,10 +21,6 @@ ib_kernel_stencil_size()
     std::size_t count = 1;
     for (std::size_t width : widths)
     {
-        if (width == 0 || width > std::numeric_limits<std::size_t>::max() / count)
-        {
-            return 0;
-        }
         count *= width;
     }
     return count;
