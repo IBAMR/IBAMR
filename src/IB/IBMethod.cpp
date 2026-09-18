@@ -1020,35 +1020,23 @@ IBMethod::spreadLinearizedForce(const int f_data_idx,
     return;
 } // spreadLinearizedForce
 
-void
-IBMethod::constructInterpOp(Mat& J,
-                            void (*spread_fnc)(const double, double*),
-                            const int stencil_width,
-                            const std::vector<int>& num_dofs_per_proc,
-                            const int dof_index_idx,
-                            const double data_time)
+Vec
+IBMethod::getFinestLevelLECouplingPositions(const double data_time)
 {
-    if (J)
+    // Get the "frozen" position for the Lagrangian structure.
+    std::vector<Pointer<LData>>* X_LE_data = nullptr;
+    bool* X_LE_needs_ghost_fill = nullptr;
+    getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
+    if (!X_LE_data)
     {
-        int ierr = MatDestroy(&J);
-        IBTK_CHKERRQ(ierr);
+        TBOX_ERROR("IBMethod::getFinestLevelLECouplingPositions():\n"
+                   << "  data_time = " << data_time << " does not equal the current, half, or new time.");
     }
 
-    // Get the "frozen" position for Lagrangian structure
-    std::vector<Pointer<LData>>* X_LE_data;
-    bool* X_LE_needs_ghost_fill;
-    getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-
-    // Build the Jacobian matrix.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM>> finest_level = d_hierarchy->getPatchLevel(finest_ln);
-    Vec X_vec = (*X_LE_data)[finest_ln]->getVec();
-    PETScMatUtilities::constructPatchLevelSCInterpOp(
-        J, spread_fnc, stencil_width, X_vec, num_dofs_per_proc, dof_index_idx, finest_level);
+    return (*X_LE_data)[finest_ln]->getVec();
 
-    return;
-
-} // getInterpOperator
+} // getFinestLevelLECouplingPositions
 
 void
 IBMethod::computeLagrangianFluidSource(const double data_time)

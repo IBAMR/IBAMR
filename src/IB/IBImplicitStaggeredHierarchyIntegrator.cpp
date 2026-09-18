@@ -28,11 +28,14 @@
 
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBKernelEvaluatorTensorProduct.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
+#include <ibtk/ib_kernel_evaluators.h>
 #include <ibtk/ibtk_enums.h>
 
 #include <tbox/Database.h>
@@ -97,29 +100,6 @@ namespace
 {
 // Version of IBImplicitStaggeredHierarchyIntegrator restart file data.
 static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
-
-// IB-4 interpolation function.
-static void
-ib_4_interp_fcn(const double r, double* const w)
-{
-    const double q = std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
-    w[0] = 0.125 * (5.0 - 2.0 * r - q);
-    w[1] = 0.125 * (5.0 - 2.0 * r + q);
-    w[2] = 0.125 * (-1.0 + 2.0 * r + q);
-    w[3] = 0.125 * (-1.0 + 2.0 * r - q);
-    return;
-} // ib_4_interp_fcn
-static const int ib_4_interp_stencil = 4;
-
-// Piecewise linear interpolation function
-static void
-pwl_interp_fcn(const double r, double* const w)
-{
-    w[0] = 1.0 - r;
-    w[1] = r;
-    return;
-} // pwl_interp_fcn
-static const int pwl_interp_stencil = 2;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -150,6 +130,12 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
         if (input_db->keyExists("use_structure_predictor"))
             d_use_structure_predictor = input_db->getBool("use_structure_predictor");
         if (input_db->keyExists("jacobian_delta_fcn")) d_jac_delta_fcn = input_db->getString("jacobian_delta_fcn");
+    }
+    if (d_jac_delta_fcn != "IB_4" && d_jac_delta_fcn != "PIECEWISE_LINEAR")
+    {
+        TBOX_ERROR(d_object_name << "::IBImplicitStaggeredHierarchyIntegrator():\n"
+                                 << "  unsupported jacobian_delta_fcn = " << d_jac_delta_fcn << ".\n"
+                                 << "  supported values are IB_4 and PIECEWISE_LINEAR.");
     }
 
     if (d_use_structure_predictor)
@@ -630,23 +616,27 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ, data_time);
     stokes_fac_op->setIBForceJacobian(elastic_op);
     Mat interp_op = nullptr;
+    Vec X_LE_vec = d_ib_implicit_ops->getFinestLevelLECouplingPositions(data_time);
+    Pointer<PatchLevel<NDIM>> ib_finest_level = d_hierarchy->getPatchLevel(finest_ln);
     if (d_jac_delta_fcn == "IB_4")
     {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             ib_4_interp_fcn,
-                                             ib_4_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
+        PETScMatUtilities::constructPatchLevelSCInterpOp(
+            interp_op,
+            IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernelEvaluators::IB4{} },
+            X_LE_vec,
+            d_num_dofs_per_proc[finest_ln],
+            d_u_dof_index_idx,
+            ib_finest_level);
     }
     else if (d_jac_delta_fcn == "PIECEWISE_LINEAR")
     {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             pwl_interp_fcn,
-                                             pwl_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
+        PETScMatUtilities::constructPatchLevelSCInterpOp(
+            interp_op,
+            IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernelEvaluators::BSpline<2>{} },
+            X_LE_vec,
+            d_num_dofs_per_proc[finest_ln],
+            d_u_dof_index_idx,
+            ib_finest_level);
     }
     else
     {
