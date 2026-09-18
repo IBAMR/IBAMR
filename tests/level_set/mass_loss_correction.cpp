@@ -11,6 +11,30 @@
 //
 // ---------------------------------------------------------------------
 
+// This test checks LevelSetUtilities::LevelSetMassLossFixer and the
+// fixMassLoss{2,3}PhaseFlows callbacks that apply it, which correct a phase
+// volume computed from the regularized Heaviside/delta functions back toward
+// a target by shifting phi near the interface.
+//
+// The input file's "mode" key selects one of three test modes:
+//   - "algebraic" (the default): check_algebraic_corrections() sweeps
+//     synthetic phi/psi fields (the cases[] array in that function) through
+//     the fixer directly, once for a two-phase LevelSetContainer and once for
+//     a three-phase one. "case = N" in the log indexes into cases[], with the
+//     full two-phase sweep printed first, followed by the three-phase sweep.
+//     Deliberately invalid controls are exercised through the "failure" input
+//     key, which is otherwise unset; failure is set only by
+//     mass_loss_errors.py, which drives this mode through each failure case
+//     and checks that the expected diagnostic is raised.
+//   - "lifecycle": check_correction_lifecycle() registers the fixer as a
+//     postprocessIntegrateHierarchy callback and advances the hierarchy
+//     integrator through several steps, exercising the correction-interval
+//     skip logic and, with the "test_restart" input key, a restart. The
+//     "phases" input key (2 or 3) selects the container.
+//   - "transport": check_corrected_transport() advances a transported,
+//     periodically reinitialized level set with and without the fixer
+//     attached and compares both against the exact translating circle.
+
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
