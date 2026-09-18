@@ -1,0 +1,7 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+NODE periodic-phase errors: |U_phase-exact|_max = 0, |R|_max = 0, |k|_max = 0
+Periodic steady state flag = TRUE
+Maximum verification error = 0
+Manufactured turbulence statistics verification passed.
