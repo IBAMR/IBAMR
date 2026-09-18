@@ -11,6 +11,21 @@
 //
 // ---------------------------------------------------------------------
 
+// This test checks the regularized Heaviside and delta functions
+// (smooth_heaviside, smooth_delta in ibtk_utilities-inl.h) and the
+// Heaviside integrals computed from them (LevelSetUtilities). When the
+// input file sets check_scalars = true (the default), check_scalar_functions()
+// runs first: it compares H and its complement against 100-digit reference
+// values to an absolute tolerance, then sweeps the interface half-width alpha
+// and the offset eta from the cutoffs to check boundedness, monotonicity,
+// complement symmetry, exact cutoff/saturation values, and the resolved
+// derivative. The remaining, always-run part of the test builds a two-component
+// level set on the patch hierarchy from the input file's Initial database,
+// sweeps the interface half-width (in cells) and eta, and checks that the
+// two- and three-phase Heaviside integrals sum to the domain volume (and, for
+// the three-phase case, to the live-phase capacity) to within a tolerance
+// scaled by cell count and machine epsilon.
+
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/LevelSetUtilities.h>
 
