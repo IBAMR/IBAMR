@@ -78,9 +78,9 @@ IBKernelEvaluators::IB4::evaluate(const Input r) const
 {
     using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
     const Coefficient x = r;
-    Output w;
     // Use kernel symmetry and moment conditions to compute all four weights
     // from one square root.
+    Output w{};
     const Coefficient r0 = x - 1;
     const Coefficient q = std::sqrt(1 + 4 * r0 * (1 - r0));
     w[0] = Coefficient{ 0.125 } * (3 - 2 * r0 - q);
@@ -96,7 +96,7 @@ IBKernelEvaluators::IB5::evaluate(const Input r) const
 {
     using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
     const Coefficient x = r;
-    static const Coefficient K = (38 - std::sqrt(Coefficient{ 69 })) / 60;
+    const Coefficient K = (38 - std::sqrt(Coefficient{ 69 })) / 60;
     const Coefficient r0 = x - 2;
     const Coefficient r2 = r0 * r0;
     const Coefficient r3 = r2 * r0;
@@ -122,15 +122,15 @@ IBKernelEvaluators::IB6::evaluate(const Input r) const
 {
     using Coefficient = typename IBKernelWeightsTraits<Output>::value_type;
     const Coefficient x = r;
-    Output w;
+    Output w{};
     const Coefficient rl = 3 - x;
     const Coefficient r2 = rl * rl;
     const Coefficient r3 = r2 * rl;
     const Coefficient r4 = r3 * rl;
     const Coefficient r5 = r4 * rl;
-    static const Coefficient K = (Coefficient{ 59 } / 60) * (1 - std::sqrt(1 - (Coefficient{ 3220 } / 3481)));
-    static const Coefficient K2 = K * K;
-    static const Coefficient alpha = 28;
+    const Coefficient K = (Coefficient{ 59 } / 60) * (1 - std::sqrt(1 - (Coefficient{ 3220 } / 3481)));
+    const Coefficient K2 = K * K;
+    constexpr Coefficient alpha = 28;
     const Coefficient beta = (Coefficient{ 9 } / 4) - (Coefficient{ 3 } / 2) * (K + r2) +
                              ((Coefficient{ 22 } / 3) - 7 * K) * rl - (Coefficient{ 7 } / 3) * r3;
     const Coefficient gamma =
