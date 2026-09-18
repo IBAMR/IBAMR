@@ -1033,7 +1033,7 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                                                   const std::vector<int>& num_dofs_per_proc,
                                                   const int dof_index_idx,
                                                   Pointer<PatchLevel<NDIM>> patch_level)
-    : d_mat(mat), d_X(X_vec), d_level(patch_level), d_dof_index_idx(dof_index_idx)
+    : d_mat(mat), d_X(X_vec)
 {
     int ierr;
     if (mat)
@@ -1052,9 +1052,11 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
         d_dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
     const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
-#if !defined(NDEBUG)
-    TBOX_ASSERT(domain_boxes.size() == 1);
-#endif
+    if (domain_boxes.size() != 1)
+    {
+        TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                   << "  the physical domain must be a single box.");
+    }
     d_domain_lower = domain_boxes[0].lower();
 
     const ProcessorMapping& proc_mapping = patch_level->getProcessorMapping();
@@ -1076,9 +1078,9 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
     d_n_local_points = m_local / NDIM;
     ierr = VecGetArrayRead(X_vec, &d_positions);
     IBTK_CHKERRQ(ierr);
-    d_patch_numbers.resize(d_n_local_points);
     d_stencil_boxes.resize(d_n_local_points);
-    std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
+    d_dof_index_data.resize(d_n_local_points);
+    std::vector<int> diag_nnz(m_local, 0), offdiag_nnz(m_local, 0);
     for (int k = 0; k < d_n_local_points; ++k)
     {
         const double* const X = &d_positions[NDIM * k];
@@ -1098,6 +1100,7 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
         // Find a local patch that contains the IB point in either its patch
         // interior or ghost cell region.
         bool found_local_patch = false;
+        int patch_num = -1;
         for (int growth_size = 0; growth_size <= 1; ++growth_size)
         {
             Box<NDIM> box(X_idx, X_idx);
@@ -1109,19 +1112,24 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                 const int n = patch_num_arr[j];
                 if (proc_mapping.isMappingLocal(n))
                 {
-                    d_patch_numbers[k] = n;
+                    patch_num = n;
                     found_local_patch = true;
                 }
             }
         }
-#if !defined(NDEBUG)
-        TBOX_ASSERT(found_local_patch);
-#endif
-        Pointer<Patch<NDIM>> patch = patch_level->getPatch(d_patch_numbers[k]);
+        if (!found_local_patch)
+        {
+            TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                       << "  IB point " << k << " is not in a locally owned patch or its one-cell neighborhood.");
+        }
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(patch_num);
         Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
-        TBOX_ASSERT(dof_index_data->getDepth() == 1);
-#endif
+        if (dof_index_data->getDepth() != 1)
+        {
+            TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                       << "  the DOF index data must have depth 1.");
+        }
+        d_dof_index_data[k] = dof_index_data;
 
         for (int axis = 0; axis < NDIM; ++axis)
         {
@@ -1168,15 +1176,15 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                 const int dof_index = (*dof_index_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower));
                 if (dof_index >= j_lower && dof_index < j_upper)
                 {
-                    d_nnz[local_idx] += 1;
+                    diag_nnz[local_idx] += 1;
                 }
                 else
                 {
-                    o_nnz[local_idx] += 1;
+                    offdiag_nnz[local_idx] += 1;
                 }
             }
-            d_nnz[local_idx] = std::min(n_local, d_nnz[local_idx]);
-            o_nnz[local_idx] = std::min(n_total - n_local, o_nnz[local_idx]);
+            diag_nnz[local_idx] = std::min(n_local, diag_nnz[local_idx]);
+            offdiag_nnz[local_idx] = std::min(n_total - n_local, offdiag_nnz[local_idx]);
         }
     }
 
@@ -1186,9 +1194,9 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        get_data_or_null(d_nnz),
+                        get_data_or_null(diag_nnz),
                         0,
-                        get_data_or_null(o_nnz),
+                        get_data_or_null(offdiag_nnz),
                         &mat);
     IBTK_CHKERRQ(ierr);
 }
