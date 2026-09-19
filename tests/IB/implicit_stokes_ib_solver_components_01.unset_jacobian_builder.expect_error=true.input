@@ -1,5 +1,5 @@
-// The integrator constructor rejects a jacobian_delta_fcn that is not a valid
-// kernel name.
+// A jacobian_delta_fcn without a built-in evaluator requires an application
+// builder.
 Main {
    log_file_name = "output"
    log_all_nodes = FALSE
@@ -14,5 +14,5 @@ INSStaggeredHierarchyIntegrator {
 }
 IBImplicitStaggeredHierarchyIntegrator {
    eliminate_eulerian_vars = TRUE
-   jacobian_delta_fcn = "BAD NAME"
+   jacobian_delta_fcn = "APPLICATION_KERNEL"
 }
