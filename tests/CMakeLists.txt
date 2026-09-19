@@ -207,6 +207,7 @@ SETUP(IB explicit_ex1.cpp IBAMR2d)
 SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)
 SETUP(IB implicit_ib_jacobian_interpolation_01.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_solver_components_01.cpp IBAMR2d)
 
 # IBFE:
