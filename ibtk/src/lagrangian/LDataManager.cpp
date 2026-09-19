@@ -2702,12 +2702,11 @@ LDataManager::LDataManager(std::string object_name,
 LDataManager::~LDataManager()
 {
     // Destroy any remaining AO objects.
-    int ierr;
-    for (int level_number = d_coarsest_ln; level_number <= d_finest_ln; ++level_number)
+    for (AO& ao : d_ao)
     {
-        if (d_ao[level_number])
+        if (ao)
         {
-            ierr = AODestroy(&d_ao[level_number]);
+            const int ierr = AODestroy(&ao);
             IBTK_CHKERRQ(ierr);
         }
     }

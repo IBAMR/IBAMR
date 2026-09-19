@@ -1,0 +1,3 @@
+Changed: IBImplicitStaggeredHierarchyIntegrator builds the interpolation matrix of the Jacobian with an IBOperatorBuilder. The jacobian_delta_fcn input accepts every built-in kernel, and applications can use any other kernel with setJacobianOperatorBuilder(). The function-pointer PETScMatUtilities::constructPatchLevelSCInterpOp() and IBImplicitStrategy::constructInterpOp() are removed.
+<br>
+(Boyce Griffith, 2026/09/18)

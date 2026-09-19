@@ -1,0 +1,38 @@
+// Same fixture as implicit_ib_jacobian_interpolation_01.input, but the
+// accessor is called at a time other than current/half/new and must reject
+// it rather than dereference an unset pointer.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+IBMethod {
+   delta_fcn = "IB_4"
+}
+INSStaggeredHierarchyIntegrator {
+   mu = 1.0
+   rho = 1.0
+   start_time = 0.0
+   end_time = 1.0
+}
+IBRedundantInitializer {
+   max_levels = 1
+   base_filenames_0 = "probes"
+}
+CartesianGeometry {
+   domain_boxes = [(0,0),(15,15)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 1, 1
+}
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size { level_0 = 16, 16 }
+   smallest_patch_size { level_0 = 16, 16 }
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes { level_0 = [(0,0),(15,15)] }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+}
