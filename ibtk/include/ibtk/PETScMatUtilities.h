@@ -289,8 +289,7 @@ private:
         SAMRAI::hier::Index<NDIM> d_domain_lower;
         //! Number of local IB points and first local matrix row.
         int d_n_local_points = 0, d_row_lower = 0;
-        //! Local patches and component stencil boxes for each IB point.
-        std::vector<int> d_patch_numbers;
+        //! Component stencil boxes for each IB point.
         std::vector<std::array<SAMRAI::hier::Box<NDIM>, NDIM>> d_stencil_boxes;
         //! Borrowed DOF index data for each local IB point's patch, used to
         //! read global column indices without repeating the patch lookup.
