@@ -2340,6 +2340,10 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         fac_pc->setIBInterpOp(J);
         fac_pc->setIBImplicitStrategy(ib_method_ops);
         fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
+        if (input_db->getStringWithDefault("test_case", "") == "foundation_time_stepping_initialized")
+        {
+            fac_pc->setIBTimeSteppingType(ctx.time_stepping_type);
+        }
 
         const bool verify_galerkin_operator_borrowing =
             input_db->getBoolWithDefault("VERIFY_GALERKIN_OPERATOR_BORROWING", false);
@@ -2852,7 +2856,7 @@ main(int argc, char* argv[])
     {
         return run_foundation(app);
     }
-    if (test_case == "foundation_coarse_solver")
+    if (test_case == "foundation_coarse_solver" || test_case == "foundation_time_stepping_initialized")
     {
         Pointer<Logger::Appender> abort_appender = new TestAppender();
         Logger::getInstance()->setAbortAppender(abort_appender);
