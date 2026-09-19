@@ -73,11 +73,13 @@ IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::evaluateDi
 
 template <IBKernelScalarStencil NormalEvaluator, IBKernelScalarStencil TransverseEvaluator>
 template <int Axis, IBKernelWeights Output, std::floating_point Input>
-requires(detail::IBKernelWritableWeights<
-         Output,
-         detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>, Axis>()>&&
-             IBKernelEvaluatorScalar<NormalEvaluator, Input, ib_kernel_weights_value_t<Output>>&&
-                 IBKernelEvaluatorScalar<TransverseEvaluator, Input, ib_kernel_weights_value_t<Output>>) Output
+requires(
+    Axis >= 0 && Axis < NDIM &&
+    detail::IBKernelWritableWeights<
+        Output,
+        detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>, Axis>()> &&
+    IBKernelEvaluatorScalar<NormalEvaluator, Input, ib_kernel_weights_value_t<Output>> &&
+    IBKernelEvaluatorScalar<TransverseEvaluator, Input, ib_kernel_weights_value_t<Output>>) Output
     IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::evaluate(
         const std::array<Input, NDIM>& r) const
 {

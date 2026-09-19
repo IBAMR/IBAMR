@@ -97,16 +97,7 @@ concept IBKernelWritableWeights =
 };
 
 /*! \brief Return the product of the entries of widths. */
-constexpr std::size_t
-ib_kernel_width_product(const std::array<std::size_t, NDIM>& widths)
-{
-    std::size_t count = 1;
-    for (const std::size_t width : widths)
-    {
-        count *= width;
-    }
-    return count;
-}
+constexpr std::size_t ib_kernel_width_product(const std::array<std::size_t, NDIM>& widths);
 
 /*! \brief Return the product of the compile-time Cartesian stencil widths. */
 template <class T, int Axis>
@@ -117,11 +108,12 @@ constexpr std::size_t ib_kernel_stencil_size();
  * \brief A scalar IB kernel with a positive compile-time stencil width.
  *
  * A type T models this concept when T::get_stencil_width() is a positive
- * constant expression.
+ * constant expression of type std::size_t.
  */
 template <class T>
 concept IBKernelScalarStencil = requires
 {
+    requires std::same_as<std::remove_cvref_t<decltype(T::get_stencil_width())>, std::size_t>;
     typename std::bool_constant<(T::get_stencil_width() > 0)>;
 }
 &&(T::get_stencil_width() > 0);

@@ -19,6 +19,17 @@
 
 namespace IBTK::detail
 {
+constexpr std::size_t
+ib_kernel_width_product(const std::array<std::size_t, NDIM>& widths)
+{
+    std::size_t count = 1;
+    for (const std::size_t width : widths)
+    {
+        count *= width;
+    }
+    return count;
+}
+
 template <class T, int Axis>
 constexpr std::size_t
 ib_kernel_stencil_size()
