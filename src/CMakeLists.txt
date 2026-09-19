@@ -258,6 +258,7 @@ ENDIF()
 SET_SOURCE_FILES_PROPERTIES(
   IB/StaggeredStokesIBOperator.cpp
   IB/StaggeredStokesIBJacobianOperator.cpp
+  IB/IBImplicitStaggeredHierarchyIntegrator.cpp
   PROPERTIES INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 TARGET_SOURCES(IBAMR2d PRIVATE ${FORTRAN_GENERATED_SRC2D} ${CXX_SRC})

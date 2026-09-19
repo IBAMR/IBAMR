@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    IBHierarchyIntegrator::getJacobianOperatorBuilder():
+  jacobian_delta_fcn = APP_CUSTOM has no built-in evaluator and no builder has been set.
+  Call setJacobianOperatorBuilder() before initializeHierarchyIntegrator().
