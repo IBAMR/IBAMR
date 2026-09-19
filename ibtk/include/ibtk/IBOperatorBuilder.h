@@ -72,6 +72,13 @@ public:
     static bool is_built_in(const IBKernelTensorProduct& kernel);
 
     /*!
+     * \brief Return the ghost width of the DOF index data that covers every
+     * stencil: (maximum stencil width + 1) / 2 + 1, where the last cell allows
+     * for a point that lies just outside its patch.
+     */
+    int getMinimumGhostWidth() const;
+
+    /*!
      * \brief Construct the matrix that maps side-centered velocity on patch_level
      * to the IB points in X_vec, replacing any existing mat.
      *
@@ -88,6 +95,7 @@ private:
     {
     public:
         virtual ~Concept() = default;
+        virtual int getMinimumGhostWidth() const = 0;
         virtual void
         constructInterpolationMatrixSide(Mat& mat,
                                          Vec X_vec,
