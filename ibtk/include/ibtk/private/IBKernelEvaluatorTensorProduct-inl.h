@@ -21,69 +21,75 @@
 
 namespace IBTK
 {
-template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
-IBKernelEvaluatorTensorProduct<Normal, Tangential>::IBKernelEvaluatorTensorProduct(
-    Normal evaluator) requires std::same_as<Normal, Tangential> : d_normal(evaluator),
-                                                                  d_tangential(std::move(evaluator))
+template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
+IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::IBKernelEvaluatorTensorProduct(
+    NormalEvaluator evaluator) requires std::same_as<NormalEvaluator, TransverseEvaluator>
+    : d_normal_evaluator(evaluator), d_transverse_evaluator(std::move(evaluator))
 {
 }
 
-template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
-IBKernelEvaluatorTensorProduct<Normal, Tangential>::IBKernelEvaluatorTensorProduct(Normal normal, Tangential tangential)
-    requires(std::constructible_from<Normal, Normal&&>&& std::constructible_from<Tangential, Tangential&&>)
-    : d_normal(std::move(normal)), d_tangential(std::move(tangential))
+template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
+IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::IBKernelEvaluatorTensorProduct(
+    NormalEvaluator normal_evaluator,
+    TransverseEvaluator transverse_evaluator)
+    requires(std::constructible_from<NormalEvaluator, NormalEvaluator&&>&&
+                 std::constructible_from<TransverseEvaluator, TransverseEvaluator&&>)
+    : d_normal_evaluator(std::move(normal_evaluator)), d_transverse_evaluator(std::move(transverse_evaluator))
 {
 }
 
-template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
+template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
 template <int Axis>
 constexpr std::array<std::size_t, NDIM>
-IBKernelEvaluatorTensorProduct<Normal, Tangential>::get_stencil_widths() requires(Axis >= 0 && Axis < NDIM)
+IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::get_stencil_widths()
+    requires(Axis >= 0 && Axis < NDIM)
 {
     std::array<std::size_t, NDIM> widths;
-    widths.fill(Tangential::get_stencil_width());
-    widths[Axis] = Normal::get_stencil_width();
+    widths.fill(TransverseEvaluator::get_stencil_width());
+    widths[Axis] = NormalEvaluator::get_stencil_width();
     return widths;
 }
 
-template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
+template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
 template <int Axis, int Direction, class Coefficient, std::floating_point Input>
 std::conditional_t<Axis == Direction,
-                   IBKernelEvaluators::Weights<Coefficient, Normal::get_stencil_width()>,
-                   IBKernelEvaluators::Weights<Coefficient, Tangential::get_stencil_width()>>
-IBKernelEvaluatorTensorProduct<Normal, Tangential>::evaluateDirection(const Input& r) const
+                   IBKernelEvaluators::Weights<Coefficient, NormalEvaluator::get_stencil_width()>,
+                   IBKernelEvaluators::Weights<Coefficient, TransverseEvaluator::get_stencil_width()>>
+IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::evaluateDirection(const Input& r) const
 {
     if constexpr (Axis == Direction)
     {
-        return d_normal.template evaluate<IBKernelEvaluators::Weights<Coefficient, Normal::get_stencil_width()>>(r);
+        return d_normal_evaluator
+            .template evaluate<IBKernelEvaluators::Weights<Coefficient, NormalEvaluator::get_stencil_width()>>(r);
     }
     else
     {
-        return d_tangential
-            .template evaluate<IBKernelEvaluators::Weights<Coefficient, Tangential::get_stencil_width()>>(r);
+        return d_transverse_evaluator
+            .template evaluate<IBKernelEvaluators::Weights<Coefficient, TransverseEvaluator::get_stencil_width()>>(r);
     }
 }
 
-template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential>
+template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
 template <int Axis, IBKernelWeights Output, std::floating_point Input>
 requires(detail::IBKernelWritableWeights<
          Output,
-         detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct<Normal, Tangential>, Axis>()>&&
-             IBKernelEvaluatorScalar<Normal, Input, ib_kernel_weights_value_t<Output>>&&
-                 IBKernelEvaluatorScalar<Tangential, Input, ib_kernel_weights_value_t<Output>>) Output
-    IBKernelEvaluatorTensorProduct<Normal, Tangential>::evaluate(const std::array<Input, NDIM>& r) const
+         detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>, Axis>()>&&
+             IBKernelEvaluatorScalar<NormalEvaluator, Input, ib_kernel_weights_value_t<Output>>&&
+                 IBKernelEvaluatorScalar<TransverseEvaluator, Input, ib_kernel_weights_value_t<Output>>) Output
+    IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::evaluate(
+        const std::array<Input, NDIM>& r) const
 {
     constexpr std::array<std::size_t, NDIM> widths = get_stencil_widths<Axis>();
     using Coefficient = ib_kernel_weights_value_t<Output>;
-    using NormalWeights = IBKernelEvaluators::Weights<Coefficient, Normal::get_stencil_width()>;
-    using TangentialWeights = IBKernelEvaluators::Weights<Coefficient, Tangential::get_stencil_width()>;
-    const std::conditional_t<Axis == 0, NormalWeights, TangentialWeights> wx =
+    using NormalWeights = IBKernelEvaluators::Weights<Coefficient, NormalEvaluator::get_stencil_width()>;
+    using TransverseWeights = IBKernelEvaluators::Weights<Coefficient, TransverseEvaluator::get_stencil_width()>;
+    const std::conditional_t<Axis == 0, NormalWeights, TransverseWeights> wx =
         evaluateDirection<Axis, 0, Coefficient>(r[0]);
-    const std::conditional_t<Axis == 1, NormalWeights, TangentialWeights> wy =
+    const std::conditional_t<Axis == 1, NormalWeights, TransverseWeights> wy =
         evaluateDirection<Axis, 1, Coefficient>(r[1]);
     Output weights{};
 #if (NDIM == 3)
-    const std::conditional_t<Axis == 2, NormalWeights, TangentialWeights> wz =
+    const std::conditional_t<Axis == 2, NormalWeights, TransverseWeights> wz =
         evaluateDirection<Axis, 2, Coefficient>(r[2]);
     for (std::size_t k = 0; k < widths[2]; ++k)
     {
