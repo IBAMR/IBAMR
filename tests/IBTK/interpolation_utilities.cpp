@@ -40,6 +40,7 @@
 #include <StandardTagAndInitialize.h>
 
 #include <array>
+#include <concepts>
 #include <iomanip>
 #include <limits>
 #include <map>
@@ -73,6 +74,64 @@ struct LinearIBKernel
 };
 
 static_assert(IBKernelEvaluatorScalar<LinearIBKernel>);
+
+struct ExplicitMoveEvaluator
+{
+    ExplicitMoveEvaluator() = default;
+    explicit ExplicitMoveEvaluator(ExplicitMoveEvaluator&&) = default;
+    ExplicitMoveEvaluator(const ExplicitMoveEvaluator&) = delete;
+
+    template <int Axis>
+    static constexpr std::array<std::size_t, NDIM> get_stencil_widths()
+    {
+        std::array<std::size_t, NDIM> widths;
+        widths.fill(1);
+        return widths;
+    }
+    template <int Axis, IBKernelWeights Output, std::floating_point Input>
+    requires(Axis >= 0 && Axis < NDIM && IBKernelWeightsTraits<Output>::extent == 1) Output
+        evaluate(const std::array<Input, NDIM>&) const
+    {
+        return Output{ 1 };
+    }
+};
+
+struct ImmovableEvaluator : ExplicitMoveEvaluator
+{
+    ImmovableEvaluator() = default;
+    ImmovableEvaluator(const ImmovableEvaluator&) = delete;
+    ImmovableEvaluator(ImmovableEvaluator&&) = delete;
+};
+
+struct CopyOnlyEvaluator : ExplicitMoveEvaluator
+{
+    CopyOnlyEvaluator() = default;
+    CopyOnlyEvaluator(const CopyOnlyEvaluator&) : ExplicitMoveEvaluator()
+    {
+    }
+    CopyOnlyEvaluator(CopyOnlyEvaluator&&) = delete;
+};
+
+[[maybe_unused]] static void
+construct_operator_builders()
+{
+    CopyOnlyEvaluator copy_only;
+    ExplicitMoveEvaluator explicit_move;
+    IBKernelEvaluatorTensorProduct<IBKernelEvaluators::IB4> lvalue{ IBKernelEvaluators::IB4{} };
+    const IBOperatorBuilder from_copy_only(copy_only);
+    const IBOperatorBuilder from_explicit_move(std::move(explicit_move));
+    const IBOperatorBuilder from_prvalue{ ExplicitMoveEvaluator{} };
+    const IBOperatorBuilder from_lvalue(lvalue);
+}
+
+static_assert(IBKernelEvaluatorCartesian<ExplicitMoveEvaluator>);
+static_assert(std::constructible_from<IBOperatorBuilder, ExplicitMoveEvaluator>);
+static_assert(!std::constructible_from<IBOperatorBuilder, ExplicitMoveEvaluator&>);
+static_assert(IBKernelEvaluatorCartesian<CopyOnlyEvaluator>);
+static_assert(std::constructible_from<IBOperatorBuilder, CopyOnlyEvaluator&>);
+static_assert(IBKernelEvaluatorCartesian<ImmovableEvaluator>);
+static_assert(!std::constructible_from<IBOperatorBuilder, ImmovableEvaluator>);
+static_assert(std::constructible_from<IBOperatorBuilder, IBKernelEvaluatorTensorProduct<IBKernelEvaluators::IB4>&>);
 
 template <class T>
 struct ReorderedWeights
