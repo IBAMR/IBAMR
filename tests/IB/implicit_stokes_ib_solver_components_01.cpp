@@ -13,7 +13,6 @@
 
 // IBMethod's finest-level LE coupling position accessor and the implicit
 // Jacobian's interpolation matrix, built with IB kernel evaluators.
-#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBImplicitStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
 #include <ibamr/IBRedundantInitializer.h>
@@ -56,6 +55,7 @@
 #include <cmath>
 #include <concepts>
 #include <fstream>
+#include <limits>
 #include <optional>
 #include <string>
 #include <vector>
@@ -67,6 +67,7 @@
 namespace
 {
 constexpr int N_MARKERS = 3;
+constexpr std::size_t WIDE_TENT_WIDTH = 8;
 constexpr std::array<double, N_MARKERS> MARKER_X = { 0.10, 0.47, 0.72 };
 constexpr std::array<double, N_MARKERS> MARKER_Y = { 0.20, 0.83, 0.35 };
 // Distinct per-entry velocities, so that a transposed or mis-indexed accessor
@@ -88,6 +89,14 @@ generate_markers(const unsigned int& structure,
         positions[i](0) = MARKER_X[i];
         positions[i](1) = MARKER_Y[i];
     }
+}
+
+// std::max keeps its first argument when the second is NaN, so a NaN
+// difference must make the accumulated error infinite instead.
+void
+accumulate_error(double& maximum, const double error)
+{
+    maximum = std::isfinite(error) ? std::max(maximum, error) : std::numeric_limits<double>::infinity();
 }
 
 // One-dimensional kernels as functions of the distance from the evaluation
@@ -128,18 +137,19 @@ tent_weight(const double distance)
     return std::max(0.0, 1.0 - std::abs(distance) / 1.5);
 }
 
+template <std::size_t Width>
 struct TentKernel
 {
     static constexpr std::size_t get_stencil_width()
     {
-        return 4;
+        return Width;
     }
 
     template <IBTK::IBKernelWeights Output, std::floating_point Input>
     Output evaluate(const Input r) const
     {
         Output w{};
-        for (std::size_t i = 0; i < 4; ++i) w[i] = tent_weight(static_cast<double>(r) - static_cast<double>(i));
+        for (std::size_t i = 0; i < Width; ++i) w[i] = tent_weight(static_cast<double>(r) - static_cast<double>(i));
         return w;
     }
 };
@@ -235,7 +245,7 @@ check_interp_matrix(Mat J,
             }
             else
             {
-                max_weight_error = std::max(max_weight_error, std::abs(PetscRealPart(values[k]) - found->second));
+                accumulate_error(max_weight_error, std::abs(PetscRealPart(values[k]) - found->second));
             }
         }
         ierr = MatRestoreRow(J, row, &count, &columns, &values);
@@ -274,6 +284,7 @@ run_fixture(Pointer<AppInitializer> app,
             double& max_position_error,
             int& column_mismatches,
             double& max_weight_error,
+            int& dof_ghost_mismatches,
             bool trigger_bad_accessor_time = false)
 {
     // Every named object below registers itself with a process-global
@@ -282,16 +293,22 @@ run_fixture(Pointer<AppInitializer> app,
     // distinct names.
     const std::string suffix = use_fixed_ops ? "_fixed" : "_unfixed";
     Pointer<IBMethod> method = new IBMethod("IBMethod" + suffix, app->getComponentDatabase("IBMethod"));
-    method->setUseFixedLEOperators(use_fixed_ops);
-    // preprocessIntegrateData() needs a registered IBHierarchyIntegrator (for
-    // getStartTime()); the explicit integrator is otherwise unused here.
     Pointer<INSStaggeredHierarchyIntegrator> ins_integrator = new INSStaggeredHierarchyIntegrator(
         "INSStaggeredHierarchyIntegrator" + suffix, app->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-    Pointer<IBExplicitHierarchyIntegrator> ib_integrator =
-        new IBExplicitHierarchyIntegrator("IBExplicitHierarchyIntegrator" + suffix,
-                                          app->getComponentDatabase("IBExplicitHierarchyIntegrator"),
-                                          method,
-                                          ins_integrator);
+    // The integrator registers itself with method, which preprocessIntegrateData()
+    // needs (for getStartTime()). One run uses the kernel of the input, and
+    // the other an application kernel that is wider than the strategy's.
+    Pointer<Database> integrator_db = new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator" + suffix);
+    integrator_db->putBool("eliminate_eulerian_vars", true);
+    if (use_fixed_ops) integrator_db->putString("jacobian_delta_fcn", "APPLICATION_KERNEL");
+    Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
+        "IBImplicitStaggeredHierarchyIntegrator" + suffix, integrator_db, method, ins_integrator, false);
+    if (use_fixed_ops)
+    {
+        integrator->setJacobianOperatorBuilder(
+            IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<WIDE_TENT_WIDTH>{} }));
+    }
+    method->setUseFixedLEOperators(use_fixed_ops);
     Pointer<CartesianGridGeometry<NDIM>> geometry =
         new CartesianGridGeometry<NDIM>("CartesianGeometry" + suffix, app->getComponentDatabase("CartesianGeometry"));
     Pointer<PatchHierarchy<NDIM>> hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy" + suffix, geometry);
@@ -307,6 +324,23 @@ run_fixture(Pointer<AppInitializer> app,
     initializer->setStructureNamesOnLevel(0, { "probes" });
     initializer->registerInitStructureFunction(generate_markers);
     method->registerLInitStrategy(initializer);
+    // The integrator registers its variables in the process-global variable
+    // database, so only one run can initialize one.
+    if (use_fixed_ops)
+    {
+        integrator->initializeHierarchyIntegrator(hierarchy, gridding);
+        // The integrator's DOF index data must cover the Jacobian's stencil as
+        // well as the strategy's.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<hier::Variable<NDIM>> u_dof_var = var_db->getVariable(integrator->getName() + "::u_dof_index");
+        const int u_dof_idx = var_db->mapVariableAndContextToIndex(u_dof_var, integrator->getScratchContext());
+        const IntVector<NDIM> ghosts =
+            var_db->getPatchDescriptor()->getPatchDataFactory(u_dof_idx)->getGhostCellWidth();
+        IntVector<NDIM> expected = method->getMinimumGhostCellWidth();
+        expected.max(IntVector<NDIM>(static_cast<int>((WIDE_TENT_WIDTH + 1) / 2 + 1)));
+        dof_ghost_mismatches += !(ghosts == expected);
+        dof_ghost_mismatches += !(ghosts.max() > method->getMinimumGhostCellWidth().max());
+    }
     gridding->makeCoarsestLevel(hierarchy, 0.0);
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     if (IBTK_MPI::getNodes() != 1 || level->getNumberOfPatches() != 1)
@@ -326,7 +360,7 @@ run_fixture(Pointer<AppInitializer> app,
         make_jacobian_builder(app,
                               suffix + "_application",
                               "APPLICATION_KERNEL",
-                              IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel{} })));
+                              IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<4>{} })));
     IntVector<NDIM> dof_ghosts = method->getMinimumGhostCellWidth();
     for (const auto& [kernel, builder] : jacobian_kernels)
     {
@@ -404,8 +438,8 @@ run_fixture(Pointer<AppInitializer> app,
         {
             const double expected_new = X0[k] + MARKER_VELOCITY[k] * new_time;
             const double expected_half = X0[k] + MARKER_VELOCITY[k] * half_time;
-            max_position_error = std::max(max_position_error, std::abs(PetscRealPart(new_arr[k]) - expected_new));
-            max_position_error = std::max(max_position_error, std::abs(PetscRealPart(half_arr[k]) - expected_half));
+            accumulate_error(max_position_error, std::abs(PetscRealPart(new_arr[k]) - expected_new));
+            accumulate_error(max_position_error, std::abs(PetscRealPart(half_arr[k]) - expected_half));
         }
         ierr = VecRestoreArrayRead(new_vec, &new_arr);
         IBTK_CHKERRQ(ierr);
@@ -420,7 +454,7 @@ run_fixture(Pointer<AppInitializer> app,
             double weight_error = 0.0;
             check_interp_matrix(J, new_vec, dofs, level, kernel, mismatches, weight_error);
             column_mismatches += mismatches;
-            max_weight_error = std::max(max_weight_error, weight_error);
+            accumulate_error(max_weight_error, weight_error);
             ierr = MatDestroy(&J);
             IBTK_CHKERRQ(ierr);
         }
@@ -482,11 +516,13 @@ main(int argc, char* argv[])
         double max_position_error;
         int column_mismatches;
         double max_weight_error;
+        int dof_ghost_mismatches = 0;
         run_fixture(app,
                     /*use_fixed_ops*/ true,
                     max_position_error,
                     column_mismatches,
                     max_weight_error,
+                    dof_ghost_mismatches,
                     /*trigger_bad_accessor_time*/ true);
         return 0;
     }
@@ -502,19 +538,22 @@ main(int argc, char* argv[])
     int failures = 0;
     double overall_max_position_error = 0.0;
     int overall_column_mismatches = 0;
+    int overall_dof_ghost_mismatches = 0;
     double overall_max_weight_error = 0.0;
     for (bool use_fixed_ops : { false, true })
     {
         double max_position_error;
         int column_mismatches;
         double max_weight_error;
-        run_fixture(app, use_fixed_ops, max_position_error, column_mismatches, max_weight_error);
+        run_fixture(
+            app, use_fixed_ops, max_position_error, column_mismatches, max_weight_error, overall_dof_ghost_mismatches);
         overall_max_position_error = std::max(overall_max_position_error, max_position_error);
         overall_column_mismatches += column_mismatches;
         overall_max_weight_error = std::max(overall_max_weight_error, max_weight_error);
     }
     if (!(overall_max_position_error <= 1.0e-10)) ++failures;
     if (overall_column_mismatches != 0) ++failures;
+    if (overall_dof_ghost_mismatches != 0) ++failures;
     if (!(overall_max_weight_error <= 1.0e-10)) ++failures;
 
     if (IBTK_MPI::getRank() == 0)
@@ -523,6 +562,7 @@ main(int argc, char* argv[])
         out << "max_position_error = " << overall_max_position_error << '\n';
         out << "column_mismatches = " << overall_column_mismatches << '\n';
         out << "max_weight_error = " << overall_max_weight_error << '\n';
+        out << "integrator dof ghost width mismatches = " << overall_dof_ghost_mismatches << '\n';
         out << "additional jacobian_delta_fcn names accepted = " << names_accepted << '\n';
     }
     return failures;

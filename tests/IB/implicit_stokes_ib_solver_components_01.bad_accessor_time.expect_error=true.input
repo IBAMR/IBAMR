@@ -14,10 +14,6 @@ INSStaggeredHierarchyIntegrator {
    start_time = 0.0
    end_time = 1.0
 }
-IBExplicitHierarchyIntegrator {
-   start_time = 0.0
-   end_time = 1.0
-}
 IBRedundantInitializer {
    max_levels = 1
    base_filenames_0 = "probes"
