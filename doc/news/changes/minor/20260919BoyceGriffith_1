@@ -1,0 +1,3 @@
+Fixed: IBImplicitStaggeredHierarchyIntegrator no longer requires a stokes_ib_precond_db entry in the input database; the velocity-formulation Stokes solver and its FAC preconditioner now use their own defaults when it is absent.
+<br>
+(Boyce Griffith, 2026/09/19)
