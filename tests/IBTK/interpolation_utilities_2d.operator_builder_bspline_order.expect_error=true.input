@@ -1,0 +1,23 @@
+// A B-spline above MAX_BUILT_IN_BSPLINE_ORDER has no built-in evaluator.
+operator_builder = TRUE
+unsupported_kernel = "BSPLINE_9"
+Main {
+ log_file_name = "output"
+ log_all_nodes = FALSE
+}
+CartesianGeometry {
+ domain_boxes = [(0,0), (15,15)]
+ x_lo = 0,0
+ x_up = 1,1
+ periodic_dimension = 0,0
+}
+GriddingAlgorithm {
+ max_levels = 1
+ largest_patch_size { level_0 = 16,16 }
+ smallest_patch_size { level_0 = 16,16 }
+}
+StandardTagAndInitialize {
+ tagging_method = "REFINE_BOXES"
+ RefineBoxes { }
+}
+LoadBalancer { }
