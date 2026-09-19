@@ -344,7 +344,7 @@ run_fixture(Pointer<AppInitializer> app,
     gridding->makeCoarsestLevel(hierarchy, 0.0);
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     if (IBTK_MPI::getNodes() != 1 || level->getNumberOfPatches() != 1)
-        TBOX_ERROR("implicit_stokes_ib_solver_components_01 requires one patch on one rank\n");
+        TBOX_ERROR("implicit_ib_jacobian_interpolation_01 requires one patch on one rank\n");
 
     // The Jacobian's kernels, each with the builder that an integrator uses for it.
     // The DOF index data must cover the stencil of every one of them.
@@ -368,7 +368,7 @@ run_fixture(Pointer<AppInitializer> app,
     }
 
     VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = variables->getContext("implicit_stokes_ib_solver_components_01" + suffix);
+    Pointer<VariableContext> context = variables->getContext("implicit_ib_jacobian_interpolation_01" + suffix);
     Pointer<SideVariable<NDIM, double>> velocity = new SideVariable<NDIM, double>("velocity" + suffix);
     Pointer<SideVariable<NDIM, int>> indices = new SideVariable<NDIM, int>("indices" + suffix);
     const int u = variables->registerVariableAndContext(velocity, context, method->getMinimumGhostCellWidth());
