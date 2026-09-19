@@ -21,14 +21,16 @@
 
 namespace IBTK
 {
-template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
+template <IBKernelScalarStencil NormalEvaluator, IBKernelScalarStencil TransverseEvaluator>
 IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::IBKernelEvaluatorTensorProduct(
-    NormalEvaluator evaluator) requires std::same_as<NormalEvaluator, TransverseEvaluator>
+    NormalEvaluator evaluator) requires(std::same_as<NormalEvaluator, TransverseEvaluator>&&
+                                            std::constructible_from<NormalEvaluator, NormalEvaluator&>&&
+                                                std::constructible_from<NormalEvaluator, NormalEvaluator&&>)
     : d_normal_evaluator(evaluator), d_transverse_evaluator(std::move(evaluator))
 {
 }
 
-template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
+template <IBKernelScalarStencil NormalEvaluator, IBKernelScalarStencil TransverseEvaluator>
 IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::IBKernelEvaluatorTensorProduct(
     NormalEvaluator normal_evaluator,
     TransverseEvaluator transverse_evaluator)
@@ -38,7 +40,7 @@ IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::IBKernelEv
 {
 }
 
-template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
+template <IBKernelScalarStencil NormalEvaluator, IBKernelScalarStencil TransverseEvaluator>
 template <int Axis>
 constexpr std::array<std::size_t, NDIM>
 IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::get_stencil_widths()
@@ -50,7 +52,7 @@ IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::get_stenci
     return widths;
 }
 
-template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
+template <IBKernelScalarStencil NormalEvaluator, IBKernelScalarStencil TransverseEvaluator>
 template <int Axis, int Direction, class Coefficient, std::floating_point Input>
 std::conditional_t<Axis == Direction,
                    IBKernelEvaluators::Weights<Coefficient, NormalEvaluator::get_stencil_width()>,
@@ -69,7 +71,7 @@ IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::evaluateDi
     }
 }
 
-template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator>
+template <IBKernelScalarStencil NormalEvaluator, IBKernelScalarStencil TransverseEvaluator>
 template <int Axis, IBKernelWeights Output, std::floating_point Input>
 requires(detail::IBKernelWritableWeights<
          Output,

@@ -42,6 +42,45 @@ using IBTK::IBKernelTensorProduct;
 
 bool ib_kernel_static_initialization_valid();
 
+struct MissingExtentWeights
+{
+    float operator[](std::size_t) const;
+};
+
+struct RuntimeExtentWeights
+{
+    float operator[](std::size_t) const;
+};
+
+struct FractionalExtentWeights
+{
+    float operator[](std::size_t) const;
+};
+
+template <>
+struct IBTK::IBKernelWeightsTraits<MissingExtentWeights>
+{
+    using value_type = float;
+};
+
+template <>
+struct IBTK::IBKernelWeightsTraits<RuntimeExtentWeights>
+{
+    using value_type = float;
+    static std::size_t extent;
+};
+
+template <>
+struct IBTK::IBKernelWeightsTraits<FractionalExtentWeights>
+{
+    using value_type = float;
+    static constexpr double extent = 2.5;
+};
+
+static_assert(!IBTK::IBKernelWeights<MissingExtentWeights>);
+static_assert(!IBTK::IBKernelWeights<RuntimeExtentWeights>);
+static_assert(!IBTK::IBKernelWeights<FractionalExtentWeights>);
+
 namespace
 {
 struct ScalarWidth
@@ -102,6 +141,48 @@ struct RvalueOnlyScalar : ScalarWidth
     Output evaluate(double&&) const;
 };
 
+struct FloatOnlyScalar : ScalarWidth
+{
+    template <class Output, class Input>
+    requires std::same_as<IBTK::ib_kernel_weights_value_t<Output>, float> Output evaluate(const Input&) const
+    {
+        return Output{ 0.5f };
+    }
+};
+
+struct MoveOnlyScalar : ScalarWidth
+{
+    MoveOnlyScalar() = default;
+    MoveOnlyScalar(const MoveOnlyScalar&) = delete;
+    MoveOnlyScalar(MoveOnlyScalar&&) = default;
+    template <class Output, class Input>
+    Output evaluate(const Input&) const;
+};
+
+struct NonConstantWidth
+{
+    static std::size_t get_stencil_width();
+};
+
+struct WrongTypeWidths
+{
+    template <int Axis>
+    static constexpr std::array<int, NDIM> get_stencil_widths()
+    {
+        return {};
+    }
+    template <int Axis, class Output, class Input>
+    Output evaluate(const std::array<Input, NDIM>&) const;
+};
+
+struct NonConstantWidths
+{
+    template <int Axis>
+    static std::array<std::size_t, NDIM> get_stencil_widths();
+    template <int Axis, class Output, class Input>
+    Output evaluate(const std::array<Input, NDIM>&) const;
+};
+
 template <class NormalEvaluator, class TransverseEvaluator>
 concept HasTensorProduct = requires
 {
@@ -140,6 +221,18 @@ static_assert(requires {
     IBTK::IBKernelEvaluatorTensorProduct{ ExplicitConstructionScalar{ 0.5 } };
     IBTK::IBKernelEvaluatorTensorProduct{ ExplicitConstructionScalar{ 0.5 }, ExplicitConstructionScalar{ 0.25 } };
 });
+static_assert(!IBTK::IBKernelScalarStencil<NonConstantWidth>);
+static_assert(!IBTK::IBKernelScalarStencil<int>);
+static_assert(!IBTK::IBKernelEvaluatorCartesian<WrongTypeWidths>);
+static_assert(!IBTK::IBKernelEvaluatorCartesian<NonConstantWidths>);
+static_assert(IBTK::IBKernelEvaluatorScalar<FloatOnlyScalar, float, float>);
+static_assert(!IBTK::IBKernelEvaluatorScalar<FloatOnlyScalar>);
+static_assert(HasTensorProduct<FloatOnlyScalar, FloatOnlyScalar>);
+static_assert(IBTK::IBKernelEvaluatorCartesian<IBTK::IBKernelEvaluatorTensorProduct<FloatOnlyScalar>, double, float>);
+static_assert(!IBTK::IBKernelEvaluatorCartesian<IBTK::IBKernelEvaluatorTensorProduct<FloatOnlyScalar>, double, double>);
+static_assert(!std::is_constructible_v<IBTK::IBKernelEvaluatorTensorProduct<MoveOnlyScalar>, MoveOnlyScalar>);
+static_assert(
+    std::is_constructible_v<IBTK::IBKernelEvaluatorTensorProduct<MoveOnlyScalar>, MoveOnlyScalar, MoveOnlyScalar>);
 static_assert(!HasTensorProduct<int, IBTK::IBKernelEvaluators::IB4>);
 static_assert(!HasTensorProduct<IBTK::IBKernelEvaluators::IB4&, IBTK::IBKernelEvaluators::IB4&>);
 static_assert(IBTK::IBKernelEvaluatorCartesian<IBTK::IBKernelEvaluatorTensorProduct<IBTK::IBKernelEvaluators::IB4>>);
@@ -390,6 +483,10 @@ check_tensor_products()
 {
     using namespace IBTK;
     TBOX_ASSERT(check_kernels() == 0);
+    const IBKernelEvaluatorTensorProduct float_only{ FloatOnlyScalar{} };
+    const IBKernelEvaluators::Weights<float, 1> float_product =
+        float_only.template evaluate<0, IBKernelEvaluators::Weights<float, 1>>(std::array<double, NDIM>{});
+    TBOX_ASSERT(float_product[0] == std::ldexp(1.0f, -NDIM));
     const IBKernelEvaluatorTensorProduct explicit_copy{ ExplicitConstructionScalar{ 0.5 } };
     const IBKernelEvaluatorTensorProduct explicit_moves{ ExplicitConstructionScalar{ 0.25 },
                                                          ExplicitConstructionScalar{ 0.5 } };
