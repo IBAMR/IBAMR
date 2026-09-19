@@ -16,14 +16,17 @@
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/IBKernelEvaluatorTensorProduct.h>
+#include <ibtk/IBOperatorBuilder.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/ib_kernel_dispatch.h>
 #include <ibtk/ib_kernel_evaluators.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/interpolation_utilities.h>
 
+#include <tbox/Logger.h>
 #include <tbox/Utilities.h>
 
 #include <petscsys.h>
@@ -39,6 +42,10 @@
 #include <array>
 #include <iomanip>
 #include <map>
+#include <string>
+#include <utility>
+
+#include "../tests.h"
 
 #include <ibtk/app_namespaces.h>
 
@@ -311,6 +318,204 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
     }
     return 0;
 }
+template <class Evaluator>
+void
+compare_operator_builder(const std::string& name,
+                         const Evaluator& evaluator,
+                         Vec X,
+                         const std::vector<int>& counts,
+                         const int dof,
+                         Pointer<PatchLevel<NDIM>> level,
+                         int& compared,
+                         int& matrix_mismatches,
+                         int& row_length_mismatches)
+{
+    Mat from_name = nullptr, direct = nullptr;
+    const IBOperatorBuilder builder{ IBKernelTensorProduct(name) };
+    const IBOperatorBuilder copy = builder;
+    copy.constructInterpolationMatrixSide(from_name, X, counts, dof, level);
+    PETScMatUtilities::constructPatchLevelSCInterpOp(direct, evaluator, X, counts, dof, level);
+    PetscBool equal;
+    PetscErrorCode ierr = MatEqual(from_name, direct, &equal);
+    IBTK_CHKERRQ(ierr);
+    PetscInt n;
+    const PetscInt* columns;
+    const PetscScalar* values;
+    ierr = MatGetRow(from_name, 0, &n, &columns, &values);
+    IBTK_CHKERRQ(ierr);
+    row_length_mismatches += n != static_cast<PetscInt>(detail::ib_kernel_stencil_size<Evaluator, 0>());
+    ierr = MatRestoreRow(from_name, 0, &n, &columns, &values);
+    IBTK_CHKERRQ(ierr);
+    ++compared;
+    matrix_mismatches += !equal;
+    TBOX_ASSERT(IBOperatorBuilder::is_built_in(IBKernelTensorProduct(name)));
+    ierr = MatDestroy(&from_name);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&direct);
+    IBTK_CHKERRQ(ierr);
+}
+
+template <class... Arguments, std::size_t... Index>
+void
+compare_bspline_kernels(std::index_sequence<Index...>, Arguments&... arguments)
+{
+    (compare_operator_builder("BSPLINE_" + std::to_string(Index + 1),
+                              IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<Index + 1>{} },
+                              arguments...),
+     ...);
+}
+
+template <class... Arguments, std::size_t... Index>
+void
+compare_composite_bspline_kernels(std::index_sequence<Index...>, Arguments&... arguments)
+{
+    (compare_operator_builder("COMPOSITE_BSPLINE_" + std::to_string(Index + 1) + "_" + std::to_string(Index + 2),
+                              IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<Index + 1>{},
+                                                              IBKernelEvaluators::BSpline<Index + 2>{} },
+                              arguments...),
+     ...);
+    (compare_operator_builder("COMPOSITE_BSPLINE_" + std::to_string(Index + 2) + "_" + std::to_string(Index + 1),
+                              IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<Index + 2>{},
+                                                              IBKernelEvaluators::BSpline<Index + 1>{} },
+                              arguments...),
+     ...);
+}
+
+int
+check_operator_builder(Pointer<PatchLevel<NDIM>> level)
+{
+    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
+    VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, int>> indices = new SideVariable<NDIM, int>("builder_indices");
+    const int dof = variables->registerVariableAndContext(
+        indices, variables->getContext("builder"), static_cast<int>(MAX_BUILT_IN_BSPLINE_ORDER) / 2 + 1);
+    level->allocatePatchData(dof);
+    std::vector<int> counts;
+    PETScVecUtilities::constructPatchLevelDOFIndices(counts, dof, level);
+    PatchLevel<NDIM>::Iterator local_patch(level);
+    TBOX_ASSERT(local_patch);
+    Pointer<CartesianPatchGeometry<NDIM>> patch_geometry = level->getPatch(local_patch())->getPatchGeometry();
+    Vec X = nullptr;
+    PetscErrorCode ierr = VecCreateMPI(PETSC_COMM_WORLD, NDIM, PETSC_DECIDE, &X);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* coordinates;
+    ierr = VecGetArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        coordinates[d] =
+            0.5 * (patch_geometry->getXLower()[d] + patch_geometry->getXUpper()[d]) + 0.13 * patch_geometry->getDx()[d];
+    }
+    ierr = VecRestoreArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+
+    int compared = 0, matrix_mismatches = 0, row_length_mismatches = 0;
+    compare_bspline_kernels(std::make_index_sequence<MAX_BUILT_IN_BSPLINE_ORDER>{},
+                            X,
+                            counts,
+                            dof,
+                            level,
+                            compared,
+                            matrix_mismatches,
+                            row_length_mismatches);
+    compare_composite_bspline_kernels(std::make_index_sequence<MAX_BUILT_IN_BSPLINE_ORDER - 1>{},
+                                      X,
+                                      counts,
+                                      dof,
+                                      level,
+                                      compared,
+                                      matrix_mismatches,
+                                      row_length_mismatches);
+    compare_operator_builder("IB_3",
+                             IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB3{} },
+                             X,
+                             counts,
+                             dof,
+                             level,
+                             compared,
+                             matrix_mismatches,
+                             row_length_mismatches);
+    compare_operator_builder("IB_4",
+                             IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB4{} },
+                             X,
+                             counts,
+                             dof,
+                             level,
+                             compared,
+                             matrix_mismatches,
+                             row_length_mismatches);
+    compare_operator_builder("IB_5",
+                             IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB5{} },
+                             X,
+                             counts,
+                             dof,
+                             level,
+                             compared,
+                             matrix_mismatches,
+                             row_length_mismatches);
+    compare_operator_builder("IB_6",
+                             IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB6{} },
+                             X,
+                             counts,
+                             dof,
+                             level,
+                             compared,
+                             matrix_mismatches,
+                             row_length_mismatches);
+    compare_operator_builder(
+        "DISCONTINUOUS_LINEAR",
+        IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<2>{}, IBKernelEvaluators::BSpline<1>{} },
+        X,
+        counts,
+        dof,
+        level,
+        compared,
+        matrix_mismatches,
+        row_length_mismatches);
+
+    // A kernel the library does not define, supplied as an evaluator.
+    int application_mismatches = 0;
+    {
+        const IBKernelEvaluatorTensorProduct evaluator{ IBKernelEvaluators::BSpline<3>{}, LinearIBKernel{} };
+        const IBOperatorBuilder builder(evaluator);
+        Mat from_builder = nullptr, direct = nullptr;
+        builder.constructInterpolationMatrixSide(from_builder, X, counts, dof, level);
+        PETScMatUtilities::constructPatchLevelSCInterpOp(direct, evaluator, X, counts, dof, level);
+        PetscBool equal;
+        ierr = MatEqual(from_builder, direct, &equal);
+        IBTK_CHKERRQ(ierr);
+        application_mismatches += !equal;
+        ierr = MatDestroy(&from_builder);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&direct);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    int query_errors = 0;
+    for (const char* name : { "BSPLINE_9",
+                              "IB_4_W8",
+                              "PIECEWISE_CUBIC",
+                              "COMPOSITE_BSPLINE_1_3",
+                              "COMPOSITE_BSPLINE_8_9",
+                              "APPLICATION_KERNEL" })
+    {
+        query_errors += IBOperatorBuilder::is_built_in(IBKernelTensorProduct(name));
+    }
+    ierr = VecDestroy(&X);
+    IBTK_CHKERRQ(ierr);
+    level->deallocatePatchData(dof);
+    variables->removePatchDataIndex(dof);
+    plog << "built-in kernels compared = " << compared << '\n';
+    plog << "matrix mismatches = " << matrix_mismatches << '\n';
+    plog << "row length mismatches = " << row_length_mismatches << '\n';
+    plog << "application kernel mismatches = " << application_mismatches << '\n';
+    plog << "unsupported kernels reported built in = " << query_errors << '\n';
+    if (matrix_mismatches + row_length_mismatches + application_mismatches + query_errors != 0)
+    {
+        TBOX_ERROR("Operator builder comparison failed; see the printed mismatch counts.\n");
+    }
+    return 0;
+}
 } // namespace
 
 /*******************************************************************************
@@ -372,6 +577,18 @@ main(int argc, char* argv[])
             gridding_algorithm->makeFinerLevel(patch_hierarchy, 0.0, 0.0, tag_buffer);
             done = !patch_hierarchy->finerLevelExists(level_number);
             ++level_number;
+        }
+
+        if (input_db->getBoolWithDefault("operator_builder", false))
+        {
+            if (input_db->keyExists("unsupported_kernel"))
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::tbox::Logger::Appender> abort_appender = new TestAppender();
+                SAMRAI::tbox::Logger::getInstance()->setAbortAppender(abort_appender);
+                const IBOperatorBuilder builder{ IBKernelTensorProduct(input_db->getString("unsupported_kernel")) };
+                return 0;
+            }
+            return check_operator_builder(patch_hierarchy->getPatchLevel(0));
         }
 
         if (input_db->getBoolWithDefault("matrix_assembly", false))
