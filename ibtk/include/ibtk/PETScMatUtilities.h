@@ -202,8 +202,9 @@ public:
      * the grid coordinate q, the first stencil index is floor(q+1/2)-(N-1)/2
      * for odd width N. For even N it is floor(q)-N/2+1 in the normal direction
      * and ceil(q)-N/2 in other directions. The evaluator receives r = q minus
-     * the first stencil index.
-     * The evaluator and X_vec are borrowed for this call.
+     * the first stencil index, following the coordinate convention of
+     * IBKernelEvaluatorScalar. The evaluator and X_vec are borrowed for this
+     * call.
      *
      * An existing mat is destroyed and replaced; the caller owns the new matrix.
      *
