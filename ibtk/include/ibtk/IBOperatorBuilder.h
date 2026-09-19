@@ -24,7 +24,9 @@
 #include <petscmat.h>
 #include <petscvec.h>
 
+#include <concepts>
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 namespace SAMRAI
@@ -57,9 +59,11 @@ namespace IBTK
 class IBOperatorBuilder
 {
 public:
-    /*! \brief Use evaluator, which the builder owns. */
-    template <IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
-    explicit IBOperatorBuilder(Evaluator evaluator);
+    /*! \brief Own the evaluator, copying an lvalue or moving an rvalue. */
+    template <class Evaluator>
+    requires(IBKernelEvaluatorCartesian<std::remove_cvref_t<Evaluator>, double, PetscScalar>&&
+                 std::constructible_from<std::remove_cvref_t<Evaluator>,
+                                         Evaluator&&>) explicit IBOperatorBuilder(Evaluator&& evaluator);
 
     /*!
      * \brief Use the built-in evaluator for kernel.

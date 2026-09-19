@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <array>
+#include <concepts>
 #include <memory>
 #include <utility>
 
@@ -30,7 +31,9 @@ template <class Evaluator>
 class IBOperatorBuilder::Model final : public IBOperatorBuilder::Concept
 {
 public:
-    explicit Model(Evaluator evaluator) : d_evaluator(std::move(evaluator))
+    template <class Argument>
+    requires std::constructible_from<Evaluator, Argument&&> explicit Model(Argument&& evaluator)
+        : d_evaluator(std::forward<Argument>(evaluator))
     {
     }
 
@@ -65,9 +68,11 @@ private:
     const Evaluator d_evaluator;
 };
 
-template <IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
-IBOperatorBuilder::IBOperatorBuilder(Evaluator evaluator)
-    : d_operations(std::make_shared<Model<Evaluator>>(std::move(evaluator)))
+template <class Evaluator>
+requires(IBKernelEvaluatorCartesian<std::remove_cvref_t<Evaluator>, double, PetscScalar>&&
+             std::constructible_from<std::remove_cvref_t<Evaluator>, Evaluator&&>)
+    IBOperatorBuilder::IBOperatorBuilder(Evaluator&& evaluator)
+    : d_operations(std::make_shared<Model<std::remove_cvref_t<Evaluator>>>(std::forward<Evaluator>(evaluator)))
 {
 }
 
