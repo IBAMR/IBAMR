@@ -166,6 +166,11 @@ StaggeredStokesIBLevelRelaxationFACOperator::~StaggeredStokesIBLevelRelaxationFA
 void
 StaggeredStokesIBLevelRelaxationFACOperator::setIBTimeSteppingType(TimeSteppingType time_stepping_type)
 {
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setIBTimeSteppingType()\n"
+                                 << "  cannot be called while operator state is initialized" << std::endl);
+    }
     d_time_stepping_type = time_stepping_type;
     return;
 } // setIBTimeSteppingType
