@@ -19,6 +19,8 @@
 #include <ibtk/IBOperatorBuilder.h>
 #include <ibtk/PETScMatUtilities.h>
 
+#include <algorithm>
+#include <array>
 #include <memory>
 #include <utility>
 
@@ -30,6 +32,22 @@ class IBOperatorBuilder::Model final : public IBOperatorBuilder::Concept
 public:
     explicit Model(Evaluator evaluator) : d_evaluator(std::move(evaluator))
     {
+    }
+
+    int getMinimumGhostWidth() const override
+    {
+        std::size_t width = 0;
+        for (const std::array<std::size_t, NDIM>& widths : {
+                 Evaluator::template get_stencil_widths<0>(), Evaluator::template get_stencil_widths<1>()
+#if (NDIM == 3)
+                                                                  ,
+                     Evaluator::template get_stencil_widths<2>()
+#endif
+             })
+        {
+            width = std::max(width, *std::max_element(widths.begin(), widths.end()));
+        }
+        return static_cast<int>((width + 1) / 2 + 1);
     }
 
     void
@@ -51,6 +69,12 @@ template <IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
 IBOperatorBuilder::IBOperatorBuilder(Evaluator evaluator)
     : d_operations(std::make_shared<Model<Evaluator>>(std::move(evaluator)))
 {
+}
+
+inline int
+IBOperatorBuilder::getMinimumGhostWidth() const
+{
+    return d_operations->getMinimumGhostWidth();
 }
 
 inline void

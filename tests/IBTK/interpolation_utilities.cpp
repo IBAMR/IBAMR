@@ -318,41 +318,69 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
     }
     return 0;
 }
+// Build the matrix with the DOF index ghost width that the builder requires,
+// so that a stencil the builder under-reports fails inside the construction.
 template <class Evaluator>
 void
-compare_operator_builder(const std::string& name,
+compare_operator_builder(const IBOperatorBuilder& builder,
                          const Evaluator& evaluator,
                          Vec X,
-                         const std::vector<int>& counts,
-                         const int dof,
                          Pointer<PatchLevel<NDIM>> level,
                          int& compared,
                          int& matrix_mismatches,
                          int& row_length_mismatches)
 {
-    Mat from_name = nullptr, direct = nullptr;
-    const IBOperatorBuilder builder{ IBKernelTensorProduct(name) };
+    VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, int>> indices =
+        new SideVariable<NDIM, int>("builder_indices_" + std::to_string(compared));
+    const int dof = variables->registerVariableAndContext(
+        indices, variables->getContext("builder"), builder.getMinimumGhostWidth());
+    level->allocatePatchData(dof);
+    std::vector<int> counts;
+    PETScVecUtilities::constructPatchLevelDOFIndices(counts, dof, level);
     const IBOperatorBuilder copy = builder;
-    copy.constructInterpolationMatrixSide(from_name, X, counts, dof, level);
+    Mat from_builder = nullptr, direct = nullptr;
+    copy.constructInterpolationMatrixSide(from_builder, X, counts, dof, level);
     PETScMatUtilities::constructPatchLevelSCInterpOp(direct, evaluator, X, counts, dof, level);
     PetscBool equal;
-    PetscErrorCode ierr = MatEqual(from_name, direct, &equal);
+    PetscErrorCode ierr = MatEqual(from_builder, direct, &equal);
     IBTK_CHKERRQ(ierr);
     PetscInt n;
     const PetscInt* columns;
     const PetscScalar* values;
-    ierr = MatGetRow(from_name, 0, &n, &columns, &values);
+    ierr = MatGetRow(from_builder, 0, &n, &columns, &values);
     IBTK_CHKERRQ(ierr);
     row_length_mismatches += n != static_cast<PetscInt>(detail::ib_kernel_stencil_size<Evaluator, 0>());
-    ierr = MatRestoreRow(from_name, 0, &n, &columns, &values);
+    ierr = MatRestoreRow(from_builder, 0, &n, &columns, &values);
     IBTK_CHKERRQ(ierr);
     ++compared;
     matrix_mismatches += !equal;
-    TBOX_ASSERT(IBOperatorBuilder::is_built_in(IBKernelTensorProduct(name)));
-    ierr = MatDestroy(&from_name);
+    ierr = MatDestroy(&from_builder);
     IBTK_CHKERRQ(ierr);
     ierr = MatDestroy(&direct);
     IBTK_CHKERRQ(ierr);
+    level->deallocatePatchData(dof);
+    variables->removePatchDataIndex(dof);
+}
+
+template <class Evaluator>
+void
+compare_operator_builder(const std::string& name,
+                         const Evaluator& evaluator,
+                         Vec X,
+                         Pointer<PatchLevel<NDIM>> level,
+                         int& compared,
+                         int& matrix_mismatches,
+                         int& row_length_mismatches)
+{
+    TBOX_ASSERT(IBOperatorBuilder::is_built_in(IBKernelTensorProduct(name)));
+    compare_operator_builder(IBOperatorBuilder{ IBKernelTensorProduct(name) },
+                             evaluator,
+                             X,
+                             level,
+                             compared,
+                             matrix_mismatches,
+                             row_length_mismatches);
 }
 
 template <class... Arguments, std::size_t... Index>
@@ -385,16 +413,8 @@ int
 check_operator_builder(Pointer<PatchLevel<NDIM>> level)
 {
     TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
-    VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM, int>> indices = new SideVariable<NDIM, int>("builder_indices");
-    const int dof = variables->registerVariableAndContext(
-        indices, variables->getContext("builder"), static_cast<int>(MAX_BUILT_IN_BSPLINE_ORDER) / 2 + 1);
-    level->allocatePatchData(dof);
-    std::vector<int> counts;
-    PETScVecUtilities::constructPatchLevelDOFIndices(counts, dof, level);
-    PatchLevel<NDIM>::Iterator local_patch(level);
-    TBOX_ASSERT(local_patch);
-    Pointer<CartesianPatchGeometry<NDIM>> patch_geometry = level->getPatch(local_patch())->getPatchGeometry();
+    TBOX_ASSERT(level->getNumberOfPatches() > 1);
+    Pointer<CartesianGridGeometry<NDIM>> geometry = level->getGridGeometry();
     Vec X = nullptr;
     PetscErrorCode ierr = VecCreateMPI(PETSC_COMM_WORLD, NDIM, PETSC_DECIDE, &X);
     IBTK_CHKERRQ(ierr);
@@ -403,8 +423,9 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     IBTK_CHKERRQ(ierr);
     for (int d = 0; d < NDIM; ++d)
     {
-        coordinates[d] =
-            0.5 * (patch_geometry->getXLower()[d] + patch_geometry->getXUpper()[d]) + 0.13 * patch_geometry->getDx()[d];
+        // Just below the corner shared by the lowest patches, so that every
+        // stencil extends into the neighboring patches.
+        coordinates[d] = 0.5 * (geometry->getXLower()[d] + geometry->getXUpper()[d]) - 0.13 * geometry->getDx()[d];
     }
     ierr = VecRestoreArray(X, &coordinates);
     IBTK_CHKERRQ(ierr);
@@ -412,16 +433,12 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     int compared = 0, matrix_mismatches = 0, row_length_mismatches = 0;
     compare_bspline_kernels(std::make_index_sequence<MAX_BUILT_IN_BSPLINE_ORDER>{},
                             X,
-                            counts,
-                            dof,
                             level,
                             compared,
                             matrix_mismatches,
                             row_length_mismatches);
     compare_composite_bspline_kernels(std::make_index_sequence<MAX_BUILT_IN_BSPLINE_ORDER - 1>{},
                                       X,
-                                      counts,
-                                      dof,
                                       level,
                                       compared,
                                       matrix_mismatches,
@@ -429,8 +446,6 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     compare_operator_builder("IB_3",
                              IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB3{} },
                              X,
-                             counts,
-                             dof,
                              level,
                              compared,
                              matrix_mismatches,
@@ -438,8 +453,6 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     compare_operator_builder("IB_4",
                              IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB4{} },
                              X,
-                             counts,
-                             dof,
                              level,
                              compared,
                              matrix_mismatches,
@@ -447,8 +460,6 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     compare_operator_builder("IB_5",
                              IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB5{} },
                              X,
-                             counts,
-                             dof,
                              level,
                              compared,
                              matrix_mismatches,
@@ -456,8 +467,6 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     compare_operator_builder("IB_6",
                              IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB6{} },
                              X,
-                             counts,
-                             dof,
                              level,
                              compared,
                              matrix_mismatches,
@@ -466,8 +475,6 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
         "DISCONTINUOUS_LINEAR",
         IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<2>{}, IBKernelEvaluators::BSpline<1>{} },
         X,
-        counts,
-        dof,
         level,
         compared,
         matrix_mismatches,
@@ -477,18 +484,9 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     int application_mismatches = 0;
     {
         const IBKernelEvaluatorTensorProduct evaluator{ IBKernelEvaluators::BSpline<3>{}, LinearIBKernel{} };
-        const IBOperatorBuilder builder(evaluator);
-        Mat from_builder = nullptr, direct = nullptr;
-        builder.constructInterpolationMatrixSide(from_builder, X, counts, dof, level);
-        PETScMatUtilities::constructPatchLevelSCInterpOp(direct, evaluator, X, counts, dof, level);
-        PetscBool equal;
-        ierr = MatEqual(from_builder, direct, &equal);
-        IBTK_CHKERRQ(ierr);
-        application_mismatches += !equal;
-        ierr = MatDestroy(&from_builder);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatDestroy(&direct);
-        IBTK_CHKERRQ(ierr);
+        int matrix = 0, row_length = 0;
+        compare_operator_builder(IBOperatorBuilder(evaluator), evaluator, X, level, compared, matrix, row_length);
+        application_mismatches = matrix + row_length;
     }
 
     int query_errors = 0;
@@ -503,8 +501,6 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     }
     ierr = VecDestroy(&X);
     IBTK_CHKERRQ(ierr);
-    level->deallocatePatchData(dof);
-    variables->removePatchDataIndex(dof);
     plog << "built-in kernels compared = " << compared << '\n';
     plog << "matrix mismatches = " << matrix_mismatches << '\n';
     plog << "row length mismatches = " << row_length_mismatches << '\n';

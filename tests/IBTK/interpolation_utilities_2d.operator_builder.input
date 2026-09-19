@@ -5,7 +5,7 @@ Main {
  log_all_nodes = FALSE
 }
 CartesianGeometry {
- domain_boxes = [(0,0), (15,15)]
+ domain_boxes = [(0,0), (31,31)]
  x_lo = 0,0
  x_up = 1,1
  periodic_dimension = 0,0
