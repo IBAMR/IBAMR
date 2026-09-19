@@ -163,7 +163,10 @@ struct MoveOnlyScalar : ScalarWidth
 
 struct NonConstantWidth
 {
-    static std::size_t get_stencil_width();
+    static std::size_t get_stencil_width()
+    {
+        return 1;
+    }
 };
 
 struct WrongTypeWidths
@@ -180,7 +183,12 @@ struct WrongTypeWidths
 struct NonConstantWidths
 {
     template <int Axis>
-    static std::array<std::size_t, NDIM> get_stencil_widths();
+    static std::array<std::size_t, NDIM> get_stencil_widths()
+    {
+        std::array<std::size_t, NDIM> widths;
+        widths.fill(1);
+        return widths;
+    }
     template <int Axis, class Output, class Input>
     Output evaluate(const std::array<Input, NDIM>&) const;
 };
