@@ -23,13 +23,7 @@ template <class T, int Axis>
 constexpr std::size_t
 ib_kernel_stencil_size()
 {
-    constexpr std::array<std::size_t, NDIM> widths = T::template get_stencil_widths<Axis>();
-    std::size_t count = 1;
-    for (std::size_t width : widths)
-    {
-        count *= width;
-    }
-    return count;
+    return ib_kernel_width_product(T::template get_stencil_widths<Axis>());
 }
 } // namespace IBTK::detail
 #endif
