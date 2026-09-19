@@ -40,7 +40,7 @@ IBKernelEvaluators::BSpline<N>::evaluate(const Input r) const
     // coefficients sum to one. This avoids cancellation between weights
     // and preserves their sum in exact arithmetic.
     const Coefficient width = N;
-    const Coefficient t = x - Coefficient{ 0.5 } * (width - 2);
+    const Coefficient t = x - (Coefficient{ 1 } / 2) * (width - 2);
     Output w{};
     w[0] = 1;
     for (std::size_t degree = 1; degree < N; ++degree)
@@ -84,10 +84,10 @@ IBKernelEvaluators::IB4::evaluate(const Input r) const
     Output w{};
     const Coefficient r0 = x - 1;
     const Coefficient q = std::sqrt(1 + 4 * r0 * (1 - r0));
-    w[0] = Coefficient{ 0.125 } * (3 - 2 * r0 - q);
-    w[1] = Coefficient{ 0.125 } * (3 - 2 * r0 + q);
-    w[2] = Coefficient{ 0.125 } * (1 + 2 * r0 + q);
-    w[3] = Coefficient{ 0.125 } * (1 + 2 * r0 - q);
+    w[0] = (Coefficient{ 1 } / 8) * (3 - 2 * r0 - q);
+    w[1] = (Coefficient{ 1 } / 8) * (3 - 2 * r0 + q);
+    w[2] = (Coefficient{ 1 } / 8) * (1 + 2 * r0 + q);
+    w[3] = (Coefficient{ 1 } / 8) * (1 + 2 * r0 - q);
     return w;
 }
 
