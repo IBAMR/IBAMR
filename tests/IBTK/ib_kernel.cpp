@@ -102,10 +102,10 @@ struct RvalueOnlyScalar : ScalarWidth
     Output evaluate(double&&) const;
 };
 
-template <class Normal, class Tangential>
+template <class NormalEvaluator, class TransverseEvaluator>
 concept HasTensorProduct = requires
 {
-    typename IBTK::IBKernelEvaluatorTensorProduct<Normal, Tangential>;
+    typename IBTK::IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>;
 };
 
 template <std::size_t Width, std::size_t Count>

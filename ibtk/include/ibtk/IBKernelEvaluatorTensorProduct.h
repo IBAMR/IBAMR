@@ -23,59 +23,57 @@
 namespace IBTK
 {
 /*!
- * \brief Evaluate a tensor product of one-dimensional IB kernels.
+ * \brief Tensor product of one-dimensional IB kernel evaluators.
  *
- * Axis is the velocity component: the coordinate along which the IB point
- * moves with the interpolated velocity, and along which it spreads force.
- * Normal evaluates that coordinate; Tangential evaluates each of the other
- * NDIM - 1 coordinates. A scalar kernel that is the same in every direction
- * (for example, all three velocity components of an isotropic kernel) uses
- * Normal for both. The scalar evaluators are stored by value. Both factors
- * and their product use the coefficient type selected by Output.
+ * With one evaluator, that evaluator is used in every coordinate. With two,
+ * the normal evaluator is used along Axis and the transverse evaluator in the
+ * other NDIM - 1 coordinates. Evaluators are stored by value. The weights of
+ * each factor and of the product have the coefficient type of Output.
  *
  * \see IBKernelEvaluatorCartesian
  */
-template <IBKernelEvaluatorScalar Normal, IBKernelEvaluatorScalar Tangential = Normal>
+template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator = NormalEvaluator>
 class IBKernelEvaluatorTensorProduct
 {
 public:
-    /*! \brief Use copies of the same scalar evaluator in every coordinate. */
-    explicit IBKernelEvaluatorTensorProduct(Normal evaluator) requires std::same_as<Normal, Tangential>;
+    /*! \brief Use evaluator in every coordinate. */
+    explicit IBKernelEvaluatorTensorProduct(
+        NormalEvaluator evaluator) requires std::same_as<NormalEvaluator, TransverseEvaluator>;
 
-    /*! \brief Use separate normal and tangential evaluators. */
-    IBKernelEvaluatorTensorProduct(Normal normal, Tangential tangential)
-        requires(std::constructible_from<Normal, Normal&&>&& std::constructible_from<Tangential, Tangential&&>);
+    /*! \brief Use normal_evaluator along Axis and transverse_evaluator in the other coordinates. */
+    IBKernelEvaluatorTensorProduct(NormalEvaluator normal_evaluator, TransverseEvaluator transverse_evaluator)
+        requires(std::constructible_from<NormalEvaluator, NormalEvaluator&&>&&
+                     std::constructible_from<TransverseEvaluator, TransverseEvaluator&&>);
 
     /*!
-     * \brief Return the NDIM stencil widths for velocity component Axis:
-     * Normal::get_stencil_width() at index Axis, Tangential::get_stencil_width()
-     * at every other index.
+     * \brief Return the stencil width in each coordinate: the normal
+     * evaluator's at index Axis, the transverse evaluator's elsewhere.
      */
     template <int Axis>
     static constexpr std::array<std::size_t, NDIM> get_stencil_widths() requires(Axis >= 0 && Axis < NDIM);
 
     /*!
-     * \brief Return the product of the scalar weights at r: Normal evaluated
-     * at r[Axis], and Tangential evaluated at every other r[d].
+     * \brief Return the product of the one-dimensional weights at r: the
+     * normal evaluator's at r[Axis], the transverse evaluator's at every other
+     * r[d].
      */
     template <int Axis, IBKernelWeights Output, std::floating_point Input>
     requires(detail::IBKernelWritableWeights<Output,
                                              detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct, Axis>()>&&
-                 IBKernelEvaluatorScalar<Normal, Input, ib_kernel_weights_value_t<Output>>&&
-                     IBKernelEvaluatorScalar<Tangential, Input, ib_kernel_weights_value_t<Output>>) Output
+                 IBKernelEvaluatorScalar<NormalEvaluator, Input, ib_kernel_weights_value_t<Output>>&&
+                     IBKernelEvaluatorScalar<TransverseEvaluator, Input, ib_kernel_weights_value_t<Output>>) Output
         evaluate(const std::array<Input, NDIM>& r) const;
 
 private:
-    /*! \brief Evaluate the scalar factor for coordinate Direction. */
+    /*! \brief Evaluate the one-dimensional factor for coordinate Direction. */
     template <int Axis, int Direction, class Coefficient, std::floating_point Input>
     std::conditional_t<Axis == Direction,
-                       IBKernelEvaluators::Weights<Coefficient, Normal::get_stencil_width()>,
-                       IBKernelEvaluators::Weights<Coefficient, Tangential::get_stencil_width()>>
+                       IBKernelEvaluators::Weights<Coefficient, NormalEvaluator::get_stencil_width()>,
+                       IBKernelEvaluators::Weights<Coefficient, TransverseEvaluator::get_stencil_width()>>
     evaluateDirection(const Input& r) const;
 
-    //! Owned scalar factors.
-    [[no_unique_address]] Normal d_normal;
-    [[no_unique_address]] Tangential d_tangential;
+    [[no_unique_address]] NormalEvaluator d_normal_evaluator;
+    [[no_unique_address]] TransverseEvaluator d_transverse_evaluator;
 };
 } // namespace IBTK
 #include <ibtk/private/IBKernelEvaluatorTensorProduct-inl.h>
