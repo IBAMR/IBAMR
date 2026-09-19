@@ -41,6 +41,7 @@
 
 #include <array>
 #include <iomanip>
+#include <limits>
 #include <map>
 #include <string>
 #include <utility>
@@ -104,6 +105,14 @@ exact_fcn(const VectorNd& x)
 
 namespace
 {
+// std::max keeps its first argument when the second is NaN, so a NaN
+// difference must make the accumulated error infinite instead.
+void
+accumulate_error(double& maximum, const double error)
+{
+    maximum = std::isfinite(error) ? std::max(maximum, error) : std::numeric_limits<double>::infinity();
+}
+
 int
 check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeometry<NDIM>> geometry, bool periodic)
 {
@@ -164,7 +173,7 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
             ierr = VecNorm(result, NORM_INFINITY, &norm);
             IBTK_CHKERRQ(ierr);
             TBOX_ASSERT(std::isfinite(norm));
-            error = std::max(error, static_cast<double>(norm));
+            accumulate_error(error, static_cast<double>(norm));
             ierr = VecDestroy(&result);
             IBTK_CHKERRQ(ierr);
             ierr = VecDestroy(&field);
@@ -278,7 +287,7 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
             }
             else
             {
-                weight_error = std::max(weight_error, std::abs(PetscRealPart(values[k]) - found->second));
+                accumulate_error(weight_error, std::abs(PetscRealPart(values[k]) - found->second));
             }
             off_process += columns[k] < column_begin || columns[k] >= column_end;
         }
@@ -287,7 +296,7 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
         {
             reference += entry.second * (1.0 + 0.001 * entry.first);
         }
-        action_error = std::max(action_error, std::abs(PetscRealPart(actual[axis]) - reference));
+        accumulate_error(action_error, std::abs(PetscRealPart(actual[axis]) - reference));
         ierr = MatRestoreRow(matrix, row_begin + axis, &n, &columns, &values);
         IBTK_CHKERRQ(ierr);
     }
