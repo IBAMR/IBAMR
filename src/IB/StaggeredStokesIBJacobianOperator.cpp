@@ -47,6 +47,11 @@ StaggeredStokesIBJacobianOperator::StaggeredStokesIBJacobianOperator(const std::
 StaggeredStokesIBJacobianOperator::~StaggeredStokesIBJacobianOperator()
 {
     deallocateOperatorState();
+    if (d_SAJ_mat)
+    {
+        PetscErrorCode ierr = MatDestroy(&d_SAJ_mat);
+        IBTK_CHKERRQ(ierr);
+    }
     return;
 } // ~StaggeredStokesIBJacobianOperator
 
@@ -77,6 +82,17 @@ StaggeredStokesIBJacobianOperator::setIBCouplingJacobian(Mat SAJ_mat)
         PetscErrorCode ierr = MatDestroy(&d_SAJ_mat);
         IBTK_CHKERRQ(ierr);
     }
+    // The work vectors were created from the previous matrix.
+    if (d_input_vec)
+    {
+        PetscErrorCode ierr = VecDestroy(&d_input_vec);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (d_output_vec)
+    {
+        PetscErrorCode ierr = VecDestroy(&d_output_vec);
+        IBTK_CHKERRQ(ierr);
+    }
     d_SAJ_mat = SAJ_mat;
     if (d_SAJ_mat)
     {
@@ -92,22 +108,17 @@ StaggeredStokesIBJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& 
 #if !defined(NDEBUG)
     TBOX_ASSERT(getIsInitialized());
 #endif
-    if (d_SAJ_mat)
-    {
-        // Supplied-matrix initialization need not validate strategy data.
-        if (!d_ctx.ib_implicit_ops || !d_ctx.hier_velocity_data_ops || d_ctx.u_idx < 0 || d_ctx.u_current_idx < 0)
-        {
-            TBOX_ERROR(d_object_name << "::formJacobian(): requires an IB strategy, velocity data operations, "
-                                        "and scratch/current-velocity data indices\n");
-        }
-    }
-
     if (!d_base_vector)
     {
         d_base_vector = x.cloneVector(d_object_name + "::base_vector");
         d_base_vector->allocateVectorData();
     }
     d_base_vector->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&x, false));
+    if (d_SAJ_mat)
+    {
+        // The supplied matrix already defines the coupling.
+        return;
+    }
 
     const double current_time = getTimeInterval().first;
     const double new_time = getTimeInterval().second;
@@ -330,11 +341,6 @@ StaggeredStokesIBJacobianOperator::deallocateOperatorState()
     if (d_solver_X0)
     {
         PetscErrorCode ierr = VecDestroy(&d_solver_X0);
-        IBTK_CHKERRQ(ierr);
-    }
-    if (d_SAJ_mat)
-    {
-        PetscErrorCode ierr = MatDestroy(&d_SAJ_mat);
         IBTK_CHKERRQ(ierr);
     }
     JacobianOperator::deallocateOperatorState();
