@@ -267,7 +267,6 @@ make_jacobian_builder(Pointer<AppInitializer> app,
         "INSStaggeredHierarchyIntegrator" + tag, app->getComponentDatabase("INSStaggeredHierarchyIntegrator"), false);
     Pointer<IBMethod> method = new IBMethod("IBMethod" + tag, app->getComponentDatabase("IBMethod"), false);
     Pointer<Database> input_db = new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator" + tag);
-    input_db->putBool("eliminate_eulerian_vars", true);
     input_db->putString("jacobian_delta_fcn", kernel_name);
     Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
         "IBImplicitStaggeredHierarchyIntegrator" + tag, input_db, method, ins_integrator, false);
@@ -299,7 +298,6 @@ run_fixture(Pointer<AppInitializer> app,
     // needs (for getStartTime()). One run uses the kernel of the input, and
     // the other an application kernel that is wider than the strategy's.
     Pointer<Database> integrator_db = new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator" + suffix);
-    integrator_db->putBool("eliminate_eulerian_vars", true);
     if (use_fixed_ops) integrator_db->putString("jacobian_delta_fcn", "APPLICATION_KERNEL");
     Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
         "IBImplicitStaggeredHierarchyIntegrator" + suffix, integrator_db, method, ins_integrator, false);
@@ -344,7 +342,7 @@ run_fixture(Pointer<AppInitializer> app,
     gridding->makeCoarsestLevel(hierarchy, 0.0);
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     if (IBTK_MPI::getNodes() != 1 || level->getNumberOfPatches() != 1)
-        TBOX_ERROR("implicit_stokes_ib_solver_components_01 requires one patch on one rank\n");
+        TBOX_ERROR("implicit_ib_jacobian_interpolation_01 requires one patch on one rank\n");
 
     // The Jacobian's kernels, each with the builder that an integrator uses for it.
     // The DOF index data must cover the stencil of every one of them.
@@ -368,7 +366,7 @@ run_fixture(Pointer<AppInitializer> app,
     }
 
     VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = variables->getContext("implicit_stokes_ib_solver_components_01" + suffix);
+    Pointer<VariableContext> context = variables->getContext("implicit_ib_jacobian_interpolation_01" + suffix);
     Pointer<SideVariable<NDIM, double>> velocity = new SideVariable<NDIM, double>("velocity" + suffix);
     Pointer<SideVariable<NDIM, int>> indices = new SideVariable<NDIM, int>("indices" + suffix);
     const int u = variables->registerVariableAndContext(velocity, context, method->getMinimumGhostCellWidth());

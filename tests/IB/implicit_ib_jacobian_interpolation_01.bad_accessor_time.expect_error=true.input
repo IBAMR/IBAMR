@@ -1,4 +1,4 @@
-// Same fixture as implicit_stokes_ib_solver_components_01.input, but the
+// Same fixture as implicit_ib_jacobian_interpolation_01.input, but the
 // accessor is called at a time other than current/half/new and must reject
 // it rather than dereference an unset pointer.
 Main {
