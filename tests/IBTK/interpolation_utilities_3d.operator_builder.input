@@ -5,15 +5,15 @@ Main {
  log_all_nodes = FALSE
 }
 CartesianGeometry {
- domain_boxes = [(0,0,0), (15,15,15)]
+ domain_boxes = [(0,0,0), (23,23,23)]
  x_lo = 0,0,0
  x_up = 1,1,1
  periodic_dimension = 0,0,0
 }
 GriddingAlgorithm {
  max_levels = 1
- largest_patch_size { level_0 = 16,16,16 }
- smallest_patch_size { level_0 = 16,16,16 }
+ largest_patch_size { level_0 = 12,12,12 }
+ smallest_patch_size { level_0 = 12,12,12 }
 }
 StandardTagAndInitialize {
  tagging_method = "REFINE_BOXES"
