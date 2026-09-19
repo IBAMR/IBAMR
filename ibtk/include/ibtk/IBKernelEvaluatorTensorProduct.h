@@ -32,13 +32,15 @@ namespace IBTK
  *
  * \see IBKernelEvaluatorCartesian
  */
-template <IBKernelEvaluatorScalar NormalEvaluator, IBKernelEvaluatorScalar TransverseEvaluator = NormalEvaluator>
+template <IBKernelScalarStencil NormalEvaluator, IBKernelScalarStencil TransverseEvaluator = NormalEvaluator>
 class IBKernelEvaluatorTensorProduct
 {
 public:
     /*! \brief Use evaluator in every coordinate. */
-    explicit IBKernelEvaluatorTensorProduct(
-        NormalEvaluator evaluator) requires std::same_as<NormalEvaluator, TransverseEvaluator>;
+    explicit IBKernelEvaluatorTensorProduct(NormalEvaluator evaluator)
+        requires(std::same_as<NormalEvaluator, TransverseEvaluator>&&
+                     std::constructible_from<NormalEvaluator, NormalEvaluator&>&&
+                         std::constructible_from<NormalEvaluator, NormalEvaluator&&>);
 
     /*! \brief Use normal_evaluator along Axis and transverse_evaluator in the other coordinates. */
     IBKernelEvaluatorTensorProduct(NormalEvaluator normal_evaluator, TransverseEvaluator transverse_evaluator)

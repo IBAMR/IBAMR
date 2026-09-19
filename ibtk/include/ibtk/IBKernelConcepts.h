@@ -19,6 +19,7 @@
 #include <array>
 #include <concepts>
 #include <cstddef>
+#include <type_traits>
 
 namespace IBTK
 {
@@ -28,8 +29,10 @@ namespace IBKernelEvaluators
  * \brief Owning storage for the supplied IB kernel coefficients.
  *
  * This is the default output container of the evaluators in this namespace.
- * Any other container that models IBKernelWeights can be used by specializing
- * IBKernelWeightsTraits for it.
+ * Another container can be used by specializing IBKernelWeightsTraits for it,
+ * if it meets the storage requirements of the evaluator that fills it. The
+ * supplied evaluators require default-initializable, movable storage with
+ * writable entries and exactly the stencil extent.
  */
 template <class T, std::size_t N>
 using Weights = std::array<T, N>;
@@ -66,12 +69,15 @@ inline constexpr std::size_t ib_kernel_weights_extent_v = IBKernelWeightsTraits<
  *
  * A type T models this concept when:
  * - IBKernelWeightsTraits<T> supplies a floating-point value_type and a
- *   positive constant extent;
+ *   positive extent of type std::size_t that is a constant expression;
  * - weights[i] is readable and convertible to value_type.
  */
 template <class T>
 concept IBKernelWeights = requires(const T& weights, std::size_t i)
 {
+    typename IBKernelWeightsTraits<T>::value_type;
+    requires std::same_as<std::remove_cvref_t<decltype(IBKernelWeightsTraits<T>::extent)>, std::size_t>;
+    typename std::bool_constant<(IBKernelWeightsTraits<T>::extent > 0)>;
     requires std::floating_point<ib_kernel_weights_value_t<T>>;
     requires(ib_kernel_weights_extent_v<T> > 0);
     {
@@ -90,10 +96,35 @@ concept IBKernelWritableWeights =
     weights[i] = value;
 };
 
+/*! \brief Return the product of the entries of widths. */
+constexpr std::size_t
+ib_kernel_width_product(const std::array<std::size_t, NDIM>& widths)
+{
+    std::size_t count = 1;
+    for (const std::size_t width : widths)
+    {
+        count *= width;
+    }
+    return count;
+}
+
 /*! \brief Return the product of the compile-time Cartesian stencil widths. */
 template <class T, int Axis>
 constexpr std::size_t ib_kernel_stencil_size();
 } // namespace detail
+
+/*!
+ * \brief A scalar IB kernel with a positive compile-time stencil width.
+ *
+ * A type T models this concept when T::get_stencil_width() is a positive
+ * constant expression.
+ */
+template <class T>
+concept IBKernelScalarStencil = requires
+{
+    typename std::bool_constant<(T::get_stencil_width() > 0)>;
+}
+&&(T::get_stencil_width() > 0);
 
 /*!
  * \brief A one-dimensional IB kernel phi, evaluated over its stencil at a
@@ -133,7 +164,7 @@ constexpr std::size_t ib_kernel_stencil_size();
  */
 template <class T, class Input = double, class Coefficient = double>
 concept IBKernelEvaluatorScalar = std::floating_point<Input> && std::floating_point<Coefficient> &&
-                                  (T::get_stencil_width() > 0) && requires(const T& kernel, const Input& r)
+                                  IBKernelScalarStencil<T> && requires(const T& kernel, const Input& r)
 {
     {
         kernel.template evaluate<IBKernelEvaluators::Weights<Coefficient, T::get_stencil_width()>>(r)
@@ -146,7 +177,10 @@ namespace detail
 template <class T, int Axis, class Input, class Coefficient>
 concept IBKernelEvaluatorCartesianAxis = (Axis >= 0 && Axis < NDIM) && requires
 {
-    T::template get_stencil_widths<Axis>();
+    {
+        T::template get_stencil_widths<Axis>()
+    } -> std::same_as<std::array<std::size_t, NDIM>>;
+    typename std::bool_constant<(ib_kernel_width_product(T::template get_stencil_widths<Axis>()) > 0)>;
 }
 &&(ib_kernel_stencil_size<T, Axis>() > 0) && requires(const T& kernel, const std::array<Input, NDIM>& r)
 {
