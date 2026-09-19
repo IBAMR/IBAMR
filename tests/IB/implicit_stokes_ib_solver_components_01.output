@@ -1,3 +1,4 @@
 max_position_error = 1.11022e-16
 column_mismatches = 0
-max_weight_error = 0
+max_weight_error = 1.11022e-16
+additional jacobian_delta_fcn names accepted = 6
