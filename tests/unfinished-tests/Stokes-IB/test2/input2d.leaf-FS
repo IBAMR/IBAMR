@@ -93,7 +93,6 @@ IBHierarchyIntegrator {
    enable_logging      = ENABLE_LOGGING
 
    // Setting for implicit integrator
-   eliminate_eulerian_vars    = FALSE
    jacobian_delta_fcn         = "IB_4"
    stokes_ib_precond_db
    {

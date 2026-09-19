@@ -1,0 +1,78 @@
+N = 8
+IB_RULE = "MIDPOINT_RULE"
+JAC_KERNEL = "IB_4"
+custom_kernel = FALSE
+IBHierarchyIntegrator {
+   start_time = 0.0
+   end_time = 0.0025
+   dt_max = 0.001
+   num_cycles = 1
+   regrid_interval = 0
+   error_on_dt_change = FALSE
+   warn_on_dt_change = FALSE
+   time_stepping_type = IB_RULE
+   jacobian_delta_fcn = JAC_KERNEL
+   rel_residual_tol = 1.0e-10
+   abs_residual_tol = 1.0e-12
+   max_iterations = 20
+   stokes_ib_precond_db {
+      has_pressure_nullspace = TRUE
+      num_pre_sweeps = 1
+      num_post_sweeps = 1
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         ksp_type = "preonly"
+         pc_type = "svd"
+         initial_guess_nonzero = FALSE
+      }
+   }
+}
+INSStaggeredHierarchyIntegrator {
+   start_time = 0.0
+   end_time = 0.0025
+   mu = 0.01
+   rho = 1.0
+   creeping_flow = TRUE
+   viscous_time_stepping_type = "TRAPEZOIDAL_RULE"
+   normalize_pressure = TRUE
+   num_cycles = 1
+   dt_max = 0.001
+   enable_logging_solver_iterations = FALSE
+}
+IBMethod { delta_fcn = "IB_4" }
+IBRedundantInitializer {
+   max_levels = 1
+   base_filenames_0 = "ellipse"
+}
+VelocityInitialConditions {
+   function_0 = "0.1*sin(2*pi*X_1)"
+   function_1 = "0.05*cos(2*pi*X_0)"
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   petsc_settings {
+      ib_ksp_type = "fgmres"
+      ib_ksp_rtol = "1e-11"
+      ib_ksp_atol = "1e-13"
+      ib_ksp_max_it = "100"
+      stokes_ib_pc_level_0_ksp_type = "preonly"
+      stokes_ib_pc_level_0_pc_type = "svd"
+   }
+}
+CartesianGeometry {
+   domain_boxes = [(0, 0), (N - 1, N - 1)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 1, 1
+}
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size { level_0 = N,N }
+   smallest_patch_size { level_0 = N,N }
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes { level_0 = [(0, 0), (N - 1, N - 1)] }
+}
+LoadBalancer { bin_pack_method = "SPATIAL" }

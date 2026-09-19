@@ -1,0 +1,7 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+IBRedundantInitializer:  Deallocating initialization data.
+step 1 time 1.00000000e-03 velocity_L2 7.90301526e-02 pressure_L2 4.87540972e-01 radius_L2 8.71320010e-01
+step 2 time 2.00000000e-03 velocity_L2 7.90098886e-02 pressure_L2 4.87540330e-01 radius_L2 8.71318409e-01
+step 3 time 2.50000000e-03 velocity_L2 7.90023052e-02 pressure_L2 4.87540055e-01 radius_L2 8.71317429e-01
