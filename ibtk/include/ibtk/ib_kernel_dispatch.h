@@ -23,11 +23,12 @@
 namespace IBTK
 {
 /*!
- * \brief Highest B-spline order with a built-in evaluator.
+ * \brief Highest B-spline order that dispatch_ib_kernel_evaluator() selects by name.
  *
- * Applications can use any order by passing their own evaluator, for example
- * IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<12>{} }, to the code that
- * would otherwise select a built-in kernel by name.
+ * This bounds only the selection of kernels by name. IBKernelEvaluators::BSpline<N> can
+ * be instantiated for any positive N, and an application can pass such an
+ * evaluator, for example IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<12>{} },
+ * to the code that would otherwise select a built-in kernel by name.
  */
 inline constexpr std::size_t MAX_BUILT_IN_BSPLINE_ORDER = 8;
 
