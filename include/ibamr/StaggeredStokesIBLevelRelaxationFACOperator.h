@@ -175,9 +175,9 @@ public:
     /*!
      * \brief Set the IB time stepping type.
      *
-     * Select BACKWARD_EULER, TRAPEZOIDAL_RULE, or MIDPOINT_RULE before
-     * initialization; no time rule is selected by default. Reinitialize the
-     * operator after changing the rule or time interval to rebuild its matrices.
+     * Select BACKWARD_EULER, TRAPEZOIDAL_RULE, or MIDPOINT_RULE while the
+     * operator state is deallocated; no time rule is selected by default. The
+     * rule determines the matrices built at initialization.
      */
     void setIBTimeSteppingType(TimeSteppingType time_stepping_type);
 
