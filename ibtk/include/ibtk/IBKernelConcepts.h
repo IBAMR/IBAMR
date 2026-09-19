@@ -27,10 +27,9 @@ namespace IBKernelEvaluators
 /*!
  * \brief Owning storage for the supplied IB kernel coefficients.
  *
- * This is the default output container for the evaluators in this namespace,
- * and the type the concepts below check first. A caller may pass any other
- * container that models IBKernelWeights instead, by giving it an
- * IBKernelWeightsTraits specialization.
+ * This is the default output container of the evaluators in this namespace.
+ * Any other container that models IBKernelWeights can be used by specializing
+ * IBKernelWeightsTraits for it.
  */
 template <class T, std::size_t N>
 using Weights = std::array<T, N>;
@@ -103,20 +102,16 @@ constexpr std::size_t ib_kernel_stencil_size();
  * A type T models this concept when:
  * - T::get_stencil_width() gives a positive compile-time width N;
  * - T::evaluate<Output>(r) returns N independently owned weights, with entry
- *   i equal to phi(r - i), for Output equal to
- *   IBKernelEvaluators::Weights<Coefficient, N>; other Output containers are checked
- *   at their own call;
+ *   i equal to phi(r - i), for Output equal to IBKernelEvaluators::Weights<Coefficient, N>;
  * - evaluation leaves r and the evaluator unchanged and initializes every
  *   coefficient deterministically.
  *
- * Coordinate convention (stated once; IBKernelEvaluatorCartesian and
- * PETScMatUtilities refer back to it): r is the displacement, in grid
- * spacings, from the first stencil point to the evaluation point. For odd N,
- * (N-2)/2 <= r < N/2; for even N, N/2-1 <= r <= N/2. No grid-spacing factors
- * are included.
+ * Coordinate convention: r is the displacement, in grid spacings, from the
+ * first stencil point to the evaluation point. For odd N, (N-2)/2 <= r < N/2;
+ * for even N, N/2-1 <= r <= N/2. No grid-spacing factors are included.
  *
- * Example: a user scalar kernel used directly, and inside a tensor product
- * with the library's IB4 (\see IBKernelEvaluatorTensorProduct):
+ * Example: a user-defined kernel in a tensor product with IB4
+ * (\see IBKernelEvaluatorTensorProduct):
  * \code
  * struct MyKernel
  * {
@@ -172,8 +167,7 @@ concept IBKernelEvaluatorCartesianAxis = (Axis >= 0 && Axis < NDIM) && requires
  * - T::evaluate<Axis, Output>(r) returns the coefficients over that stencil,
  *   independently owned, with coordinate zero varying fastest and extent
  *   equal to the product of the widths, for Output equal to
- *   IBKernelEvaluators::Weights<Coefficient, N>; other Output containers are checked
- *   at their own call;
+ *   IBKernelEvaluators::Weights<Coefficient, N>;
  * - each r[d] follows the IBKernelEvaluatorScalar coordinate convention for
  *   that coordinate's width;
  * - evaluation leaves r and the evaluator unchanged and initializes every
