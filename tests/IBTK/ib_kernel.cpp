@@ -167,6 +167,22 @@ struct NonConstantWidth
     }
 };
 
+struct FractionalWidth
+{
+    static constexpr double get_stencil_width()
+    {
+        return 2.5;
+    }
+};
+
+struct IntWidth
+{
+    static constexpr int get_stencil_width()
+    {
+        return 2;
+    }
+};
+
 struct WrongTypeWidths
 {
     template <int Axis>
@@ -230,9 +246,21 @@ static_assert(requires {
     IBTK::IBKernelEvaluatorTensorProduct{ ExplicitConstructionScalar{ 0.5 }, ExplicitConstructionScalar{ 0.25 } };
 });
 static_assert(!IBTK::IBKernelScalarStencil<NonConstantWidth>);
+static_assert(!IBTK::IBKernelScalarStencil<FractionalWidth>);
+static_assert(!IBTK::IBKernelScalarStencil<IntWidth>);
 static_assert(!IBTK::IBKernelScalarStencil<int>);
 static_assert(!IBTK::IBKernelEvaluatorCartesian<WrongTypeWidths>);
 static_assert(!IBTK::IBKernelEvaluatorCartesian<NonConstantWidths>);
+template <class Product, int Axis>
+concept CanEvaluateAlongAxis = requires(const Product& product, const std::array<double, NDIM>& r)
+{
+    product.template evaluate<
+        Axis,
+        IBTK::IBKernelEvaluators::Weights<double, IBTK::detail::ib_kernel_stencil_size<Product, 0>()>>(r);
+};
+static_assert(CanEvaluateAlongAxis<IBTK::IBKernelEvaluatorTensorProduct<IBTK::IBKernelEvaluators::IB4>, 0>);
+static_assert(!CanEvaluateAlongAxis<IBTK::IBKernelEvaluatorTensorProduct<IBTK::IBKernelEvaluators::IB4>, -1>);
+static_assert(!CanEvaluateAlongAxis<IBTK::IBKernelEvaluatorTensorProduct<IBTK::IBKernelEvaluators::IB4>, NDIM>);
 static_assert(IBTK::IBKernelEvaluatorScalar<FloatOnlyScalar, float, float>);
 static_assert(!IBTK::IBKernelEvaluatorScalar<FloatOnlyScalar>);
 static_assert(HasTensorProduct<FloatOnlyScalar, FloatOnlyScalar>);
