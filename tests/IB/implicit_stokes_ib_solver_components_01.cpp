@@ -363,6 +363,8 @@ run_operators(Pointer<AppInitializer> app)
         jacobian.setSolutionTime(force_time);
         jacobian.setIBCouplingJacobian(coupling);
         jacobian.initializeOperatorState(*direction, *action);
+        jacobian.formJacobian(*direction);
+        TBOX_ASSERT(jacobian.getBaseVector());
         jacobian.apply(*direction, *action);
         stokes->apply(*direction, *expected);
         side_ops->axpy(expected->getComponentDescriptorIndex(0),
@@ -856,26 +858,33 @@ run_operators(Pointer<AppInitializer> app)
     outer.setSolutionTime(force_time);
     outer.initializeSolverState(*base, *residual);
     lifecycle_valid = !jacobian.getBaseVector() && lifecycle_valid;
+    // The installed matrix survives the outer solver's reinitialization, and
+    // forming the Jacobian with it leaves the strategy untouched.
+    jacobian.apply(*direction, *expected);
+    const bool retained_valid = close(expected, first_action, INITIALIZATION_TOL, "retained supplied action");
+    jacobian.formJacobian(*base);
+    lifecycle_valid = jacobian.getBaseVector() && lifecycle_valid;
+    jacobian.apply(*direction, *expected);
+    const bool supplied_form_valid =
+        close(expected, first_action, INITIALIZATION_TOL, "supplied action after formJacobian");
+
+    // Clearing the matrix selects the strategy action.
+    jacobian.setIBCouplingJacobian(nullptr);
     jacobian.formJacobian(*base);
     jacobian.apply(*direction, *action);
-    jacobian.setIBCouplingJacobian(nullptr);
-    jacobian.apply(*direction, *expected);
     difference->subtract(action, first_action);
     const double selection_difference = difference->maxNorm();
-    const bool strategy_valid = close(action, expected, INITIALIZATION_TOL, "outer initialization strategy");
     nontrivial = !close(action, first_action, 1.0e-5) && nontrivial;
 
-    // Install the supplied matrix after the outer solver has initialized its
-    // operator. This must restore the zero-coupling (Stokes-only) action.
+    // Reinstalling the matrix restores the zero-coupling (Stokes-only) action.
     jacobian.setIBCouplingJacobian(zero_coupling);
     jacobian.apply(*direction, *expected);
-    const bool supplied_valid =
-        close(expected, first_action, INITIALIZATION_TOL, "post-initialization supplied action");
+    const bool supplied_valid = close(expected, first_action, INITIALIZATION_TOL, "reinstalled supplied action");
     outer.deallocateSolverState();
     lifecycle_valid = !jacobian.getIsInitialized() && !jacobian.getBaseVector() && lifecycle_valid;
     ierr = MatDestroy(&zero_coupling);
     IBTK_CHKERRQ(ierr);
-    pout << "outer_initialization_action_change = " << selection_difference << '\n';
+    pout << "strategy_supplied_action_difference = " << selection_difference << '\n';
     boundary_valid = boundary_valid && stokes->rhs_calls == 8 && stokes->sol_calls == 8;
     // Check operator accuracy, not equality of cancellation-sensitive errors.
     pout << "Accuracy checks use error_inf <= tolerance * max(1, reference_inf); attained roundoff may vary.\n";
@@ -885,8 +894,9 @@ run_operators(Pointer<AppInitializer> app)
                                std::make_tuple("nonlinear_apply_add", nonlinear_add_valid, RESIDUAL_TOL),
                                std::make_tuple("jacobian_apply_add", jacobian_add_valid, JACOBIAN_TOL),
                                std::make_tuple("initial_supplied_action", initial_supplied_valid, INITIALIZATION_TOL),
-                               std::make_tuple("outer_initialization_strategy", strategy_valid, INITIALIZATION_TOL),
-                               std::make_tuple("post_initialization_supplied", supplied_valid, INITIALIZATION_TOL) })
+                               std::make_tuple("retained_supplied_action", retained_valid, INITIALIZATION_TOL),
+                               std::make_tuple("supplied_form_jacobian", supplied_form_valid, INITIALIZATION_TOL),
+                               std::make_tuple("reinstalled_supplied_action", supplied_valid, INITIALIZATION_TOL) })
     {
         pout << std::get<0>(check) << " = " << (std::get<1>(check) ? "true" : "false")
              << ", tolerance = " << std::get<2>(check) << '\n';

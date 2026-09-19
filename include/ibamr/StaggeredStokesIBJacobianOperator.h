@@ -87,23 +87,26 @@ public:
      * Only velocity entries may be nonzero. Multilevel supplied-matrix application
      * is unsupported. Passing nullptr selects the strategy action instead.
      * formJacobian() does not update this matrix.
-     * The operator retains a PETSc reference until replacement or deallocation.
-     * Supplied-matrix-only use requires just the Stokes operator and DOF fields
-     * in Context. Automatic reinitialization is unsupported with this Context:
-     * deallocate the operator and any enclosing solver, install the current matrix
-     * while deallocated, then initialize. Reinitialization releases the matrix.
-     * With a Context supporting strategy action, the matrix may instead be
-     * installed after an enclosing solver initializes this operator.
+     *
+     * The operator retains a PETSc reference until the matrix is replaced,
+     * cleared with nullptr, or the operator is destroyed. Deallocating or
+     * reinitializing the operator state does not release it, so replace the
+     * matrix whenever the hierarchy or DOF numbering changes. Supplied-matrix-only
+     * use requires just the Stokes operator and DOF fields in Context. With a
+     * Context that also supports the strategy action, the matrix may be installed
+     * or cleared while the operator is initialized.
      */
     void setIBCouplingJacobian(Mat SAJ_mat);
 
     /*!
      * \brief Form and cache Jacobian state at the specified point.
      *
-     * Requires initialized state and prepared strategy data as described in
-     * StaggeredStokesIBOperator::Context. Copies x and updates the shared
-     * strategy's positions and linearization state. Call again when the base
-     * state, time interval, or force data change before using the strategy action.
+     * Requires initialized state and copies x into the base vector. With the
+     * strategy action, it also requires the prepared strategy data described in
+     * StaggeredStokesIBOperator::Context, updates the shared strategy's positions
+     * and linearization state, and must be called again when the base state, time
+     * interval, or force data change. With a supplied coupling matrix, only the
+     * base vector is recorded and the strategy is not used.
      */
     void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) override;
 
@@ -123,7 +126,8 @@ public:
      * Requires initialized state and, for the strategy action, a current
      * formJacobian(). Both the Stokes action and increment interpolation use
      * homogeneous boundary data, independently of the wrapper's boundary flag.
-     * Uses and updates shared IB strategy state; see StaggeredStokesIBOperator::Context.
+     * The strategy action uses and updates shared IB strategy state; see
+     * StaggeredStokesIBOperator::Context.
      */
     void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
@@ -134,7 +138,8 @@ public:
      * When an IB strategy is supplied, enables and updates its fixed coupling regardless
      * of StaggeredStokesIBOperator::Context::use_fixed_le_operators.
      * Reinitialization deallocates the previous state, including the Jacobian
-     * base and supplied coupling matrix; see formJacobian() and setIBCouplingJacobian().
+     * base, but retains the supplied coupling matrix; see formJacobian() and
+     * setIBCouplingJacobian().
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
@@ -142,7 +147,7 @@ public:
     /*!
      * \brief Deallocate hierarchy-dependent operator state.
      *
-     * Releases the cached base and retained coupling matrix.
+     * Releases the cached base and work vectors. The supplied coupling matrix is retained.
      */
     void deallocateOperatorState() override;
 

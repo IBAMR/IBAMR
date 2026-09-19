@@ -253,6 +253,12 @@ IF(${IBAMR_HAVE_LIBMESH})
     )
 ENDIF()
 
+# The private headers under src/include/ are not installed.
+SET_SOURCE_FILES_PROPERTIES(
+  IB/StaggeredStokesIBOperator.cpp
+  IB/StaggeredStokesIBJacobianOperator.cpp
+  PROPERTIES INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
 TARGET_SOURCES(IBAMR2d PRIVATE ${FORTRAN_GENERATED_SRC2D} ${CXX_SRC})
 TARGET_SOURCES(IBAMR3d PRIVATE ${FORTRAN_GENERATED_SRC3D} ${CXX_SRC})
 
