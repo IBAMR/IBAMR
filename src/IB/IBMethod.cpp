@@ -1023,7 +1023,6 @@ IBMethod::spreadLinearizedForce(const int f_data_idx,
 Vec
 IBMethod::getFinestLevelLECouplingPositions(const double data_time)
 {
-    // Get the "frozen" position for the Lagrangian structure.
     std::vector<Pointer<LData>>* X_LE_data = nullptr;
     bool* X_LE_needs_ghost_fill = nullptr;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
