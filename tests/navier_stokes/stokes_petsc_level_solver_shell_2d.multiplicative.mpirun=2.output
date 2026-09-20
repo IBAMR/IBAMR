@@ -1,0 +1,7 @@
+restriction communicates = 1
+stages = 2
+halo communicating stages = 1
+correction communicating stages = 2
+local subdomains: min = 2, max = 2
+action_norm = 0.525889952319
+error = 4.22226368741e-16

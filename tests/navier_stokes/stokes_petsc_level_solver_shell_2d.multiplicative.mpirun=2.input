@@ -26,10 +26,10 @@ CartesianGeometry {
 GriddingAlgorithm {
    max_levels = 1
    largest_patch_size {
-      level_0 = N, N
+      level_0 = 4, 8
    }
    smallest_patch_size {
-      level_0 = N, N
+      level_0 = 4, 8
    }
 }
 StandardTagAndInitialize {

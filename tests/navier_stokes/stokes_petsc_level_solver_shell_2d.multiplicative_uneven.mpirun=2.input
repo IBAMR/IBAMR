@@ -8,6 +8,7 @@ test {
  ghost_width = 1
  shell_pc_type = "multiplicative"
  report_communication = TRUE
+ uneven_subdomains = TRUE
 }
 Main {
    log_file_name = "output"
@@ -18,7 +19,7 @@ Main {
 }
 N = 8
 CartesianGeometry {
-   domain_boxes = [(0, 0), (N - 1, N - 1)]
+   domain_boxes = [(0, 0), (3*N/2 - 1, N - 1)]
    x_lo = 0.0, 0.0
    x_up = 1.0, 1.0
    periodic_dimension = 1, 1
@@ -26,16 +27,16 @@ CartesianGeometry {
 GriddingAlgorithm {
    max_levels = 1
    largest_patch_size {
-      level_0 = N, N
+      level_0 = 4, 8
    }
    smallest_patch_size {
-      level_0 = N, N
+      level_0 = 4, 8
    }
 }
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
-      level_0 = [(0, 0), (N - 1, N - 1)]
+      level_0 = [(0, 0), (3*N/2 - 1, N - 1)]
    }
 }
 LoadBalancer {

@@ -1,3 +1,4 @@
+// The level has one patch, so the second rank has no subdomain and still takes part in every communication.
 petsc_settings_shell_ {
    subpc_type = "svd"
 }
@@ -26,10 +27,10 @@ CartesianGeometry {
 GriddingAlgorithm {
    max_levels = 1
    largest_patch_size {
-      level_0 = N, N
+      level_0 = 8, 8
    }
    smallest_patch_size {
-      level_0 = N, N
+      level_0 = 8, 8
    }
 }
 StandardTagAndInitialize {

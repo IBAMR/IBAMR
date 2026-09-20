@@ -76,8 +76,14 @@ namespace IBTK
  \endverbatim
  *
  * For pc_type = "shell", shell_pc_type = "additive" selects an additive
- * preconditioner and shell_pc_type = "multiplicative" selects a multiplicative
- * preconditioner on the ASM subdomains. Both solve their local problems with a
+ * preconditioner on the ASM subdomains: each subdomain solves its local problem
+ * for the right-hand side and writes the solution at the DOFs of its
+ * nonoverlapping subset. shell_pc_type = "multiplicative" selects a multiplicative
+ * preconditioner: the subdomains are visited in order, subdomain i of every rank
+ * at stage i, and each one solves its local problem for the current residual of
+ * the original system, including the corrections of earlier stages, and adds its
+ * whole correction to the output, including the DOFs of other ranks. It does not
+ * use the nonoverlapping subsets. Both solve their local problems with a
  * PETScLevelSolverSubdomainSolver: the one supplied to setSubdomainSolver() or,
  * otherwise, the built-in subdomain solver named by subdomain_solver, which is "petsc"
  * (default) or "blas-lapack". The settings of the "blas-lapack" subdomain solver are
@@ -352,16 +358,17 @@ protected:
      * \name Support for additive and multiplicative Schwarz preconditioners.
      */
     //\{
-    Vec d_local_x, d_local_y;
     SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
     int d_n_local_subdomains = 0;
     std::vector<IS> d_overlap_is, d_nonoverlap_is;
-    Mat *d_sub_mat = nullptr, *d_sub_bc_mat = nullptr;
+    Mat* d_sub_mat = nullptr;
 
     /*!
      * The right-hand sides and solutions of the local problems of the subdomains of this rank, packed
      * in order into sequential vectors: subdomain i occupies the entries from d_subdomain_offsets[i] up
-     * to d_subdomain_offsets[i + 1]. One scatter gathers all of the right-hand sides.
+     * to d_subdomain_offsets[i + 1]. One scatter gathers all of the right-hand sides. The vectors are
+     * host memory (VECSEQ), and the vectors that view the entries of one subdomain share their arrays
+     * for as long as the packed vectors exist.
      */
     Vec d_subdomain_rhs = nullptr, d_subdomain_solution = nullptr;
     VecScatter d_restriction = nullptr;
@@ -377,8 +384,21 @@ protected:
      */
     std::vector<PetscInt> d_write_offsets, d_write_sources, d_write_targets;
 
-    //! Vectors that share the storage of each subdomain's packed right-hand side, for multiplicative shells.
-    std::vector<Vec> d_subdomain_rhs_views;
+    /*!
+     * Data of the multiplicative shell, which visits stages 0, ..., d_n_stages - 1, the largest number of
+     * subdomains on any rank, and uses subdomain i of this rank at stage i, if there is one. Vectors that
+     * share the storage of each subdomain's packed right-hand side and solution; the matrix -A(O_i, C_i) of
+     * the rows of subdomain i and the columns C_i that they couple to; the values of the solution on C_i;
+     * and the scatters that gather them and add corrections from O_i to the output.
+     */
+    int d_n_stages = 0;
+    std::vector<Vec> d_subdomain_rhs_views, d_subdomain_solution_views;
+    std::vector<Mat> d_residual_matrices;
+    std::vector<Vec> d_halo_vectors;
+    std::vector<VecScatter> d_halo_scatters, d_correction_scatters;
+    //! Whether each stage needs its scatter, or works on the local indices of the output, which are also kept.
+    std::vector<bool> d_halo_communicates, d_correction_communicates;
+    std::vector<std::vector<PetscInt>> d_halo_local_indices, d_correction_local_indices;
     //\}
 
     /*!
@@ -420,6 +440,12 @@ private:
      * \brief Gather the right-hand sides of all subdomains from x into the packed vector.
      */
     PetscErrorCode gatherSubdomainRhs(Vec x) const;
+
+    /*!
+     * \brief Set up the stages of the multiplicative shell from the rows of the operator on each
+     * overlapping subdomain, with every column.
+     */
+    void initializeMultiplicativeShell(Mat* rows);
 
     /*!
      * \brief Write the nonoverlapping parts of the packed solutions of subdomains first, ..., last - 1
