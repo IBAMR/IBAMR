@@ -26,60 +26,65 @@ namespace IBTK
 namespace IBKernelEvaluators
 {
 /*!
- * \brief Owning storage for the supplied IB kernel coefficients.
- *
- * This is the default output container of the evaluators in this namespace.
- * Another container can be used by specializing IBKernelWeightsTraits for it,
- * if it meets the storage requirements of the evaluator that fills it. The
- * supplied evaluators require default-initializable, movable storage with
- * writable entries and exactly the stencil extent.
+ * \brief The container of weights that the supplied evaluators and the factors
+ * of IBKernelEvaluatorTensorProduct return, and that the concepts below use to
+ * state their requirements.
  */
 template <class T, std::size_t N>
 using Weights = std::array<T, N>;
 } // namespace IBKernelEvaluators
 
+namespace detail
+{
 /*!
- * \brief Coefficient type and extent of an owning fixed-size weight container.
+ * \brief Coefficient type and extent of T, if T is a std::array.
  *
- * Specializations supply value_type and a constant extent. weights[i] supplies
- * coefficient i; its storage layout is unspecified. Copies must have independent
- * coefficient storage.
+ * The primary template supplies neither member, so naming either one for a T
+ * that is not a std::array is a substitution failure (unlike std::tuple_size,
+ * whose primary template is only declared, not defined: instantiating
+ * std::tuple_size<T>::value for such a T is ill-formed even in a requires
+ * expression, not a substitution failure).
  */
 template <class T>
-struct IBKernelWeightsTraits;
+struct IBKernelArrayInfo
+{
+};
 
-/*! \brief Coefficient type and extent of std::array. */
 template <class T, std::size_t N>
-struct IBKernelWeightsTraits<std::array<T, N>>
+struct IBKernelArrayInfo<std::array<T, N>>
 {
     using value_type = T;
     static constexpr std::size_t extent = N;
 };
+} // namespace detail
 
-/*! \brief typename IBKernelWeightsTraits<T>::value_type. */
+/*! \brief typename T::value_type, for a std::array T. */
 template <class T>
-using ib_kernel_weights_value_t = typename IBKernelWeightsTraits<T>::value_type;
+using ib_kernel_weights_value_t = typename detail::IBKernelArrayInfo<T>::value_type;
 
-/*! \brief IBKernelWeightsTraits<T>::extent. */
+/*! \brief The extent of T, for a std::array T. */
 template <class T>
-inline constexpr std::size_t ib_kernel_weights_extent_v = IBKernelWeightsTraits<T>::extent;
+inline constexpr std::size_t ib_kernel_weights_extent_v = detail::IBKernelArrayInfo<T>::extent;
 
 /*!
- * \brief An owning, nonempty indexed collection of floating-point coefficients.
+ * \brief A std::array of a positive, compile-time number of floating-point
+ * coefficients.
  *
  * A type T models this concept when:
- * - IBKernelWeightsTraits<T> supplies a floating-point value_type and a
- *   positive extent of type std::size_t that is a constant expression;
- * - weights[i] is readable and convertible to value_type.
+ * - T is a std::array whose extent is positive;
+ * - weights[i] is readable and convertible to T::value_type.
  */
 template <class T>
-concept IBKernelWeights = requires(const T& weights, std::size_t i)
+concept IBKernelWeights = requires
 {
-    typename IBKernelWeightsTraits<T>::value_type;
-    requires std::same_as<std::remove_cvref_t<decltype(IBKernelWeightsTraits<T>::extent)>, std::size_t>;
-    typename std::bool_constant<(IBKernelWeightsTraits<T>::extent > 0)>;
+    typename ib_kernel_weights_value_t<T>;
+    // Naming the extent makes a non-constant extent a substitution failure, so that the concept is not satisfied
+    // instead of the program being ill-formed. The conjunct below checks the value.
+    typename std::bool_constant<(ib_kernel_weights_extent_v<T> > 0)>;
+}
+&&(ib_kernel_weights_extent_v<T> > 0) && requires(const T& weights, std::size_t i)
+{
     requires std::floating_point<ib_kernel_weights_value_t<T>>;
-    requires(ib_kernel_weights_extent_v<T> > 0);
     {
         weights[i]
     } -> std::convertible_to<ib_kernel_weights_value_t<T>>;
@@ -124,8 +129,9 @@ concept IBKernelScalarStencil = requires
  *
  * A type T models this concept when:
  * - T::get_stencil_width() gives a positive compile-time width N;
- * - T::evaluate<Output>(r) returns N independently owned weights, with entry
- *   i equal to phi(r - i), for Output equal to IBKernelEvaluators::Weights<Coefficient, N>;
+ * - for a const T& kernel, kernel.evaluate<Output>(r) returns N independently
+ *   owned weights, with entry i equal to phi(r - i), for Output equal to
+ *   IBKernelEvaluators::Weights<Coefficient, N>;
  * - evaluation leaves r and the evaluator unchanged and initializes every
  *   coefficient deterministically.
  *
@@ -190,10 +196,10 @@ concept IBKernelEvaluatorCartesianAxis = (Axis >= 0 && Axis < NDIM) && requires
  * NDIM - 1:
  * - T::get_stencil_widths<Axis>() gives positive compile-time widths, one per
  *   coordinate;
- * - T::evaluate<Axis, Output>(r) returns the coefficients over that stencil,
- *   independently owned, with coordinate zero varying fastest and extent
- *   equal to the product of the widths, for Output equal to
- *   IBKernelEvaluators::Weights<Coefficient, N>;
+ * - for a const T& kernel, kernel.evaluate<Axis, Output>(r) returns the
+ *   coefficients over that stencil, independently owned, with coordinate zero
+ *   varying fastest and extent equal to the product of the widths, for Output
+ *   equal to IBKernelEvaluators::Weights<Coefficient, N>;
  * - each r[d] follows the IBKernelEvaluatorScalar coordinate convention for
  *   that coordinate's width;
  * - evaluation leaves r and the evaluator unchanged and initializes every
