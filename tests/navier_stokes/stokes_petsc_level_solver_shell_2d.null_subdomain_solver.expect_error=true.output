@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::setSubdomainSolver():
+  the subdomain solver must not be empty.
+

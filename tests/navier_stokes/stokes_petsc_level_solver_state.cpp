@@ -94,7 +94,8 @@ check_shell_state(LevelSolverProbe<Solver>& solver,
                   Pointer<HierarchyVector> x,
                   Pointer<HierarchyVector> b,
                   const std::string& name,
-                  const bool singular)
+                  const bool singular,
+                  const bool multiplicative)
 {
     PetscInt overlap_total = 0;
     for (int cycle = 0; cycle < 2; ++cycle)
@@ -124,9 +125,13 @@ check_shell_state(LevelSolverProbe<Solver>& solver,
             TBOX_ERROR(name << ": the level solve did not converge to the exact solution.\n");
         }
         std::vector<Vec> retained = solver.retainShellVectors();
-        if (retained.size() != 16)
+        // The packed right-hand sides and solutions, and for the multiplicative shell a view of the right-hand
+        // side of each subdomain.
+        const size_t expected_vectors = 2 + (multiplicative ? overlap->size() : 0);
+        if (retained.size() != expected_vectors)
         {
-            TBOX_ERROR(name << ": expected 16 shell work vectors, found " << retained.size() << ".\n");
+            TBOX_ERROR(name << ": expected " << expected_vectors << " shell work vectors, found " << retained.size()
+                            << ".\n");
         }
         solver.deallocateSolverState();
         if (!solver.shellStorageEmpty())
@@ -188,9 +193,9 @@ main(int argc, char* argv[])
         sc.setTimeInterval(0.0, 1.0);
         stokes.setTimeInterval(0.0, 1.0);
         stokes.setSolutionTime(1.0);
-        const PetscInt totals[3] = { check_shell_state(cc, cc_x, cc_b, "Poisson (cell)", false),
-                                     check_shell_state(sc, sc_x, sc_b, "Poisson (side)", false),
-                                     check_shell_state(stokes, fixture.x, fixture.b, "Stokes", true) };
+        const PetscInt totals[3] = { check_shell_state(cc, cc_x, cc_b, "Poisson (cell)", false, width == 0),
+                                     check_shell_state(sc, sc_x, sc_b, "Poisson (side)", false, width == 0),
+                                     check_shell_state(stokes, fixture.x, fixture.b, "Stokes", true, width == 0) };
         const char* names[3] = { "cell", "side", "Stokes" };
         for (int k = 0; k < 3; ++k)
         {

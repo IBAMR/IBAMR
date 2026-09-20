@@ -152,6 +152,7 @@ SETUP(multiphase_flow high_density_droplet.cpp IBAMR2d)
 SETUP(multiphase_flow water_entry_circular_cylinder.cpp IBAMR2d)
 
 # navier_stokes:
+SETUP_2D(navier_stokes stokes_petsc_level_solver_shell.cpp)
 SETUP_2D(navier_stokes stokes_petsc_level_solver_reinitialization.cpp)
 SETUP_2D(navier_stokes side_prolongation.cpp)
 SETUP_3D(navier_stokes side_prolongation.cpp)
@@ -262,6 +263,7 @@ ENDIF()
 
 # IBTK:
 SETUP(IBTK string_utilities.cpp IBTK2d)
+SETUP(IBTK dof_coverage.cpp IBAMR2d)
 SETUP_2D(IBTK ib_kernel.cpp)
 TARGET_SOURCES(tests-IBTK_ib_kernel_2d PRIVATE IBTK/ib_kernel_static_initialization.cpp)
 SETUP_3D(IBTK ib_kernel.cpp)

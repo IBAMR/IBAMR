@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::setSubdomainSolver():
+  cannot be called while solver state is initialized.
+

@@ -152,6 +152,8 @@ SET(CXX_SRC
   solvers/impls/NewtonKrylovSolverManager.cpp
   solvers/impls/VCSCViscousPETScLevelSolver.cpp
   solvers/impls/PETScLevelSolver.cpp
+  solvers/impls/PETScLevelSolverPetscSubdomainSolver.cpp
+  solvers/impls/PETScLevelSolverSubdomainSolver.cpp
   solvers/impls/CCPoissonSolverManager.cpp
   solvers/impls/PoissonFACPreconditionerStrategy.cpp
   solvers/impls/BGaussSeidelPreconditioner.cpp
@@ -183,6 +185,7 @@ SET(CXX_SRC
   utilities/NodeSynchCopyFillPattern.cpp
   utilities/ParallelEdgeMap.cpp
   utilities/DebuggingUtilities.cpp
+  utilities/DOFCoverage.cpp
   utilities/CellNoCornersFillPattern.cpp
   utilities/CoarsenPatchStrategySet.cpp
   utilities/SideDataSynchronization.cpp
