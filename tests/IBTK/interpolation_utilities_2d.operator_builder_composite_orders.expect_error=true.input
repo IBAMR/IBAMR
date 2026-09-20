@@ -1,4 +1,4 @@
-// Composite orders must differ by one.
+// Built-in kernel dispatch rejects composite B-spline orders that do not differ by one.
 operator_builder = TRUE
 unsupported_kernel = "COMPOSITE_BSPLINE_1_3"
 Main {
