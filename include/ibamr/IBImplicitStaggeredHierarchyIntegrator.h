@@ -87,6 +87,13 @@ public:
      * some default values, reads in configuration information from input and
      * restart databases, and registers the integrator object with the restart
      * manager when requested.
+     *
+     * The input database key jacobian_delta_fcn selects the kernel of the
+     * Jacobian's interpolation matrix; its default is IB_4. A name that is not a
+     * valid kernel name is an error. A valid name selects a built-in builder only if
+     * dispatch_ib_kernel_evaluator() supports it, which is fewer kernels than the
+     * IBTK::IBKernel and LEInteractor catalogs; otherwise call
+     * setJacobianOperatorBuilder() before initializeHierarchyIntegrator().
      */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
