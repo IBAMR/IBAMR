@@ -313,7 +313,9 @@ public:
      * Return the Vec of Lagrangian-Eulerian coupling positions on the finest
      * hierarchy level at the given time. data_time must equal the current,
      * half, or new time. The vector belongs to this object; see
-     * IBImplicitStrategy::getFinestLevelLECouplingPositions().
+     * IBImplicitStrategy::getFinestLevelLECouplingPositions(). With fixed
+     * coupling operators enabled these are the positions maintained for those
+     * operators; otherwise they are the ordinary positions.
      */
     Vec getFinestLevelLECouplingPositions(double data_time) override;
 
