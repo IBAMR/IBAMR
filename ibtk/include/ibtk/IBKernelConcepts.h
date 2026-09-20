@@ -28,9 +28,11 @@ namespace IBKernelEvaluators
 /*!
  * \brief Owning storage for the supplied IB kernel coefficients.
  *
- * This is the default output container of the evaluators in this namespace.
- * Another container can be used by specializing IBKernelWeightsTraits for it,
- * if it meets the storage requirements of the evaluator that fills it. The
+ * The concepts below use this container to state their requirements: an
+ * evaluator returns Weights<Coefficient, N> when its output type is that
+ * container. Evaluators take the output type as an explicit template argument,
+ * and another container can be used by specializing IBKernelWeightsTraits for
+ * it, if it meets the storage requirements of the evaluator that fills it. The
  * supplied evaluators require default-initializable, movable storage with
  * writable entries and exactly the stencil extent.
  */
@@ -124,8 +126,9 @@ concept IBKernelScalarStencil = requires
  *
  * A type T models this concept when:
  * - T::get_stencil_width() gives a positive compile-time width N;
- * - T::evaluate<Output>(r) returns N independently owned weights, with entry
- *   i equal to phi(r - i), for Output equal to IBKernelEvaluators::Weights<Coefficient, N>;
+ * - for a const T& kernel, kernel.evaluate<Output>(r) returns N independently
+ *   owned weights, with entry i equal to phi(r - i), for Output equal to
+ *   IBKernelEvaluators::Weights<Coefficient, N>;
  * - evaluation leaves r and the evaluator unchanged and initializes every
  *   coefficient deterministically.
  *
@@ -190,10 +193,10 @@ concept IBKernelEvaluatorCartesianAxis = (Axis >= 0 && Axis < NDIM) && requires
  * NDIM - 1:
  * - T::get_stencil_widths<Axis>() gives positive compile-time widths, one per
  *   coordinate;
- * - T::evaluate<Axis, Output>(r) returns the coefficients over that stencil,
- *   independently owned, with coordinate zero varying fastest and extent
- *   equal to the product of the widths, for Output equal to
- *   IBKernelEvaluators::Weights<Coefficient, N>;
+ * - for a const T& kernel, kernel.evaluate<Axis, Output>(r) returns the
+ *   coefficients over that stencil, independently owned, with coordinate zero
+ *   varying fastest and extent equal to the product of the widths, for Output
+ *   equal to IBKernelEvaluators::Weights<Coefficient, N>;
  * - each r[d] follows the IBKernelEvaluatorScalar coordinate convention for
  *   that coordinate's width;
  * - evaluation leaves r and the evaluator unchanged and initializes every
