@@ -132,6 +132,12 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
         if (input_db->keyExists("p_petsc_prolongation_method"))
             d_p_petsc_prolongation_method = input_db->getString("p_petsc_prolongation_method");
     }
+    if (d_coarse_solver_type == "LEVEL_SMOOTHER")
+    {
+        TBOX_ERROR(
+            d_object_name << "::StaggeredStokesIBLevelRelaxationFACOperator():\n"
+                          << "  LEVEL_SMOOTHER is unsupported; select PETSC_LEVEL_SOLVER for the coarse solver.\n");
+    }
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -160,6 +166,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::~StaggeredStokesIBLevelRelaxationFA
     {
         deallocateOperatorState();
     }
+    int ierr = MatDestroy(&d_A_mat);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&d_J_mat);
+    IBTK_CHKERRQ(ierr);
     return;
 } // ~StaggeredStokesIBLevelRelaxationFACOperator
 
@@ -168,8 +178,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::setIBTimeSteppingType(TimeSteppingT
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setIBTimeSteppingType()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+        TBOX_ERROR(d_object_name << "::setIBTimeSteppingType():\n"
+                                 << "  cannot be called while operator state is initialized.\n");
     }
     d_time_stepping_type = time_stepping_type;
     return;
@@ -180,12 +190,18 @@ StaggeredStokesIBLevelRelaxationFACOperator::setIBForceJacobian(Mat A)
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setIBForceJacobian()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+        TBOX_ERROR(d_object_name << "::setIBForceJacobian():\n"
+                                 << "  cannot be called while operator state is initialized.\n");
     }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(A);
-#endif
+    if (!A)
+    {
+        TBOX_ERROR(d_object_name << "::setIBForceJacobian():\n"
+                                 << "  the matrix must be nonnull.\n");
+    }
+    int ierr = PetscObjectReference(reinterpret_cast<PetscObject>(A));
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&d_A_mat);
+    IBTK_CHKERRQ(ierr);
     d_A_mat = A;
     return;
 } // setIBForceJacobian
@@ -195,12 +211,18 @@ StaggeredStokesIBLevelRelaxationFACOperator::setIBInterpOp(Mat J)
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setIBInterpOp()\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
+        TBOX_ERROR(d_object_name << "::setIBInterpOp():\n"
+                                 << "  cannot be called while operator state is initialized.\n");
     }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(J);
-#endif
+    if (!J)
+    {
+        TBOX_ERROR(d_object_name << "::setIBInterpOp():\n"
+                                 << "  the matrix must be nonnull.\n");
+    }
+    int ierr = PetscObjectReference(reinterpret_cast<PetscObject>(J));
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&d_J_mat);
+    IBTK_CHKERRQ(ierr);
     d_J_mat = J;
     return;
 } // setIBInterpOp
@@ -436,11 +458,12 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
+    // setCoarseSolverType() is public on the base class, so the type can change after construction.
     if (d_coarse_solver_type == "LEVEL_SMOOTHER")
     {
         TBOX_ERROR(
             d_object_name << "::initializeOperatorStateSpecialized():\n"
-                          << "  LEVEL_SMOOTHER is unsupported; select PETSC_LEVEL_SOLVER for the coarse solver.");
+                          << "  LEVEL_SMOOTHER is unsupported; select PETSC_LEVEL_SOLVER for the coarse solver.\n");
     }
     int ierr;
 
@@ -456,7 +479,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         kappa = 0.5;
         break;
     default:
-        TBOX_ERROR("unsupported time stepping type\n");
+        TBOX_ERROR(d_object_name << "::initializeOperatorStateSpecialized():\n"
+                                 << "  the IB time stepping type is not set or is unsupported.\n");
     }
 
     // Construct patch level DOFs.
@@ -537,6 +561,12 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         }
     }
 
+    if (!d_A_mat || !d_J_mat)
+    {
+        TBOX_ERROR(d_object_name << "::initializeOperatorStateSpecialized():\n"
+                                 << "  setIBForceJacobian() and setIBInterpOp() must supply the coupling matrices.\n");
+    }
+
     // Compute SAJ operator for various patch levels.
     d_SAJ_mat.resize(d_finest_ln + 1, nullptr);
     for (int ln = std::min(d_finest_ln, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1); --ln)
@@ -580,8 +610,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
                 d_level_solver_default_options_prefix + std::to_string(ln) + "_");
             if (!level_solver)
             {
-                TBOX_ERROR("StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized():\n"
-                           << "  level solver must be a StaggeredStokesPETScLevelSolver.\n");
+                TBOX_ERROR(d_object_name << "::initializeOperatorStateSpecialized():\n"
+                                         << "  level solver must be a StaggeredStokesPETScLevelSolver.\n");
             }
         }
         level_solver->setSolutionTime(d_solution_time);
@@ -626,7 +656,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     }
 
     // Initialize the coarse level solver when needed.
-    if (d_coarse_solver_init_subclass && coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "LEVEL_SMOOTHER")
+    if (d_coarse_solver_init_subclass && coarsest_reset_ln == d_coarsest_ln)
     {
         if (!d_coarse_solver)
         {
@@ -649,8 +679,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         Pointer<StaggeredStokesPETScLevelSolver> p_coarse_petsc_solver = d_coarse_solver;
         if (!p_coarse_petsc_solver)
         {
-            TBOX_ERROR("StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized():\n"
-                       << "  coarse solver must be a StaggeredStokesPETScLevelSolver.\n");
+            TBOX_ERROR(d_object_name << "::initializeOperatorStateSpecialized():\n"
+                                     << "  coarse solver must be a StaggeredStokesPETScLevelSolver.\n");
         }
         // A single-level hierarchy has no projected coarse matrix: its coarse
         // solver is also the finest-level Stokes-plus-IB solver.

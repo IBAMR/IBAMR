@@ -2,3 +2,4 @@ Program abort called with error message
 
     wrong_strategy::StaggeredStokesIBJacobianFACPreconditioner():
   fac_strategy must be nonnull.
+
