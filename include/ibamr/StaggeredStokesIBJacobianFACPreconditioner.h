@@ -20,7 +20,6 @@
 
 #include <ibamr/config.h>
 
-#include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/ibamr_enums.h>
 
@@ -52,7 +51,13 @@ namespace IBAMR
  * Uses the velocity-pressure formulation described by \ref StaggeredStokesIBOperator.
  * The supplied strategy must be nonnull. Subclasses replacing the protected strategy
  * must preserve its StaggeredStokesIBLevelRelaxationFACOperator type.
- * See that class for configuration and matrix requirements.
+ * See that class for configuration and matrix requirements. The coupling matrices
+ * describe one configuration of the structure, that is, interpolation and spreading
+ * held fixed; the owner supplies new matrices and reinitializes the preconditioner
+ * whenever the configuration changes. The coupling then is the Jacobian's when the
+ * residual's coupling operators are held fixed the same way and the force depends
+ * only on the positions, and otherwise an approximation. Either way the
+ * preconditioner can serve beside a matrix-free finite-difference Jacobian.
  */
 class StaggeredStokesIBJacobianFACPreconditioner : public StaggeredStokesFACPreconditioner
 {
@@ -94,24 +99,6 @@ public:
     void setIBInterpOp(Mat J_mat);
 
     /*!
-     * \brief Set an optional IB strategy whose fixed coupling is enabled and updated at initialization.
-     *
-     * Prepare the strategy's hierarchy and time-step data first; with IBMethod,
-     * enable fixed coupling before IBMethod::preprocessIntegrateData(). Passing
-     * nullptr omits this update; the matrices must still be supplied separately.
-     */
-    void setIBImplicitStrategy(SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_implicit_ops);
-
-    /*!
-     * \brief Initialize hierarchy-dependent solver state.
-     *
-     * Updates the optional IB strategy before initializing FAC state;
-     * see setIBImplicitStrategy().
-     */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
-
-    /*!
      * \brief Return the installed strategy as a StaggeredStokesIBLevelRelaxationFACOperator.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesIBLevelRelaxationFACOperator> getIBFACPreconditionerStrategy() const;
@@ -124,8 +111,6 @@ private:
     /*! \brief Copy assignment is disabled. */
     StaggeredStokesIBJacobianFACPreconditioner&
     operator=(const StaggeredStokesIBJacobianFACPreconditioner& that) = delete;
-
-    SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops = nullptr;
 };
 } // namespace IBAMR
 

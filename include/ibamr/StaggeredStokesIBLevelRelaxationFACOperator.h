@@ -120,11 +120,11 @@ namespace IBAMR
  * midpoint stepping. Do not include these factors in A.
  *
  * A and J must be nonnull, assembled PETSc matrices compatible with this product
- * on PETSC_COMM_WORLD. Both setters borrow handles without retaining PETSc
- * references and require deallocated state. Keep the matrices alive and unchanged
- * during use and subsequent initialization; deallocation does not clear them.
- * Deallocate before updating the matrices, linearization data, or hierarchy,
- * then reinitialize.
+ * on PETSC_COMM_WORLD. Both setters retain a PETSc reference, so the caller may
+ * destroy its own handle, and require deallocated state. Do not modify the
+ * matrices during use or before a subsequent initialization; deallocation does
+ * not release them. Deallocate before updating the matrices, linearization data,
+ * or hierarchy, then reinitialize.
  *
  * rediscretize_stokes selects rediscretized Stokes operators plus the IB
  * contribution; false selects Galerkin operators below the finest level.
@@ -135,7 +135,7 @@ namespace IBAMR
  * StaggeredStokesFACPreconditionerStrategy for shared FAC settings.
  *
  * This concrete strategy defaults to PETSC_LEVEL_SOLVER for the coarse level;
- * explicit LEVEL_SMOOTHER is unsupported and rejected at initialization.
+ * explicit LEVEL_SMOOTHER is unsupported and rejected at construction and at initialization.
  */
 class StaggeredStokesIBLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
@@ -183,11 +183,17 @@ public:
 
     /*!
      * \brief Set the Lagrangian force derivative A for the finest-level structure.
+     *
+     * The matrix must be nonnull. A PETSc reference is retained and any previous
+     * matrix is released.
      */
     void setIBForceJacobian(Mat A);
 
     /*!
      * \brief Set interpolation J from finest-level Eulerian data to Lagrangian velocity.
+     *
+     * The matrix must be nonnull. A PETSc reference is retained and any previous
+     * matrix is released.
      */
     void setIBInterpOp(Mat J);
 
@@ -387,12 +393,12 @@ private:
     /*
      * Jacobian of the elasticity force at the finest patch level.
      */
-    Mat d_A_mat;
+    Mat d_A_mat = nullptr;
 
     /*
      * IB interpolation operator J for the finest patch level.
      */
-    Mat d_J_mat;
+    Mat d_J_mat = nullptr;
 
     /*
      * Data structures for elasticity and prolongation operator representation

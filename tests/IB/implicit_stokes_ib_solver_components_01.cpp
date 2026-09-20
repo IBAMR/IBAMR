@@ -92,6 +92,28 @@ using namespace level_solver_test;
 namespace
 {
 
+// IBMethod requires an IB integrator. This one is registered but never initialized or advanced; it supplies
+// the start time and step number.
+struct RegisteredIntegrator
+{
+    RegisteredIntegrator(Pointer<IBStrategy> method, const double start_time)
+    {
+        Pointer<MemoryDatabase> db = new MemoryDatabase("integrator_db");
+        db->putDouble("start_time", start_time);
+        ins = new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator", db, false);
+        ib = new IBExplicitHierarchyIntegrator("IBExplicitHierarchyIntegrator", db, method, ins, false);
+    }
+    Pointer<INSStaggeredHierarchyIntegrator> ins;
+    Pointer<IBExplicitHierarchyIntegrator> ib;
+};
+
+// The larger of two errors, treating a nonfinite value as infinite (std::max would drop a NaN).
+double
+accumulate_error(const double error, const double value)
+{
+    return std::isfinite(value) ? std::max(error, value) : std::numeric_limits<double>::infinity();
+}
+
 class BoundaryCheckedStokesOperator : public StaggeredStokesOperator
 {
 public:
@@ -231,14 +253,7 @@ run_operators(Pointer<AppInitializer> app)
     // composed residual/Jacobian actions below, not the implementation's table.
     bool time_valid = true;
     Pointer<IBMethod> method = new IBMethod("IBMethod", app->getComponentDatabase("IBMethod"));
-    // IBMethod requires an IB integrator. This one is registered but never initialized or advanced; it supplies
-    // the start time and step number.
-    Pointer<MemoryDatabase> integrator_db = new MemoryDatabase("integrator_db");
-    integrator_db->putDouble("start_time", current);
-    Pointer<INSStaggeredHierarchyIntegrator> ins_integrator =
-        new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator", integrator_db, false);
-    Pointer<IBExplicitHierarchyIntegrator> ib_integrator = new IBExplicitHierarchyIntegrator(
-        "IBExplicitHierarchyIntegrator", integrator_db, method, ins_integrator, false);
+    RegisteredIntegrator integrator(method, current);
     const bool use_fixed_le_operators = app->getInputDatabase()->getBoolWithDefault("use_fixed_le_operators", true);
     method->setUseFixedLEOperators(use_fixed_le_operators);
     Pointer<IBStandardForceGen> force = new IBStandardForceGen();
@@ -1111,7 +1126,7 @@ matrices_equal(Mat a, Mat b)
     IBTK_CHKERRQ(ierr);
     ierr = MatDestroy(&diff);
     IBTK_CHKERRQ(ierr);
-    max_matrix_error = std::max(max_matrix_error, norm);
+    max_matrix_error = accumulate_error(max_matrix_error, norm);
     return std::isfinite(norm) && norm < 1.0e-12;
 }
 
@@ -1156,7 +1171,7 @@ check_stokes_vector_mapping(StaggeredStokesPETScLevelSolver& solver, LevelFixtur
         ierr = VecDestroy(v);
         IBTK_CHKERRQ(ierr);
     }
-    max_mapping_error = std::max(max_mapping_error, error);
+    max_mapping_error = accumulate_error(max_mapping_error, error);
     return converged && std::isfinite(error) && error < 1.0e-9;
 }
 
@@ -1462,7 +1477,7 @@ run_distributed_augmentation(Pointer<AppInitializer> app)
         ierr = VecNorm(result, NORM_INFINITY, &error);
         IBTK_CHKERRQ(ierr);
         valid = std::isfinite(error) && error <= 1.0e-12 && valid;
-        action_error = std::max(action_error, error);
+        action_error = accumulate_error(action_error, error);
         for (Vec* vec : { &x, &result, &reference })
         {
             ierr = VecDestroy(vec);
@@ -1795,7 +1810,6 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         const double rho = input_db->getDoubleWithDefault("RHO", 1.0);
         const double mu = input_db->getDoubleWithDefault("MU", 1.0);
         const double new_time = current_time + dt;
-        const bool use_fixed_le_operators = input_db->getBoolWithDefault("USE_FIXED_LE_OPERATORS", true);
         StructureSpec structure_spec;
         structure_spec.ds = input_db->getDoubleWithDefault("DS", 1.0 / 64.0);
         structure_spec.x_center = input_db->getDoubleWithDefault("X_CENTER", 0.5);
@@ -1823,6 +1837,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         }
 
         Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        RegisteredIntegrator integrator(ib_method_ops, current_time);
         ib_method_ops->setUseFixedLEOperators(true);
 
         Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -2035,7 +2050,6 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         ctx.u_current_idx = u_current_idx;
         ctx.u_dof_index_idx = u_dof_index_idx;
         ctx.p_dof_index_idx = p_dof_index_idx;
-        ctx.use_fixed_le_operators = use_fixed_le_operators;
         ctx.time_stepping_type = IBAMR::string_to_enum<TimeSteppingType>(
             input_db->getStringWithDefault("IB_TIME_STEPPING", "MIDPOINT_RULE"));
 
@@ -2043,6 +2057,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         nonlinear_op.setOperatorContext(ctx);
         nonlinear_op.setTimeInterval(current_time, new_time);
         nonlinear_op.setSolutionTime(new_time);
+        stokes_op->initializeOperatorState(*eul_sol_vec, *eul_rhs_vec);
         nonlinear_op.initializeOperatorState(*eul_sol_vec, *eul_rhs_vec);
 
         Pointer<SAMRAIVectorReal<NDIM, double>> nonlinear_probe = eul_sol_vec->cloneVector("nonlinear_probe");
@@ -2138,9 +2153,23 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         fac_pc->setHomogeneousBc(true);
         fac_pc->setComponentsHaveNullSpace(false, true);
         fac_pc->setIBTimeSteppingType(ctx.time_stepping_type);
+        PetscInt A_references_before = 0, J_references_before = 0, A_references = 0, J_references = 0;
+        PetscErrorCode reference_ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(A), &A_references_before);
+        IBTK_CHKERRQ(reference_ierr);
+        reference_ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(J), &J_references_before);
+        IBTK_CHKERRQ(reference_ierr);
         fac_pc->setIBForceJacobian(A);
         fac_pc->setIBInterpOp(J);
-        fac_pc->setIBImplicitStrategy(ib_method_ops);
+        reference_ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(A), &A_references);
+        IBTK_CHKERRQ(reference_ierr);
+        reference_ierr = PetscObjectGetReference(reinterpret_cast<PetscObject>(J), &J_references);
+        IBTK_CHKERRQ(reference_ierr);
+        if (A_references != A_references_before + 1 || J_references != J_references_before + 1)
+        {
+            TBOX_ERROR("The FAC setters must each retain one PETSc reference: A "
+                       << A_references_before << " -> " << A_references << ", J " << J_references_before << " -> "
+                       << J_references << ".\n");
+        }
         fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
         if (input_db->getStringWithDefault("test_case", "") == "foundation_time_stepping_initialized")
         {
@@ -2240,7 +2269,6 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             }
         }
         constexpr double FAC_ACTION_TOL = 1.0e-9;
-        pout << "FAC checks use stated accuracy bounds; attained roundoff may vary.\n";
         auto check_fac_residual_work_vector_cache = [&](double& reuse_error)
         {
             Pointer<SAMRAIVectorReal<NDIM, double>> first_residual =
@@ -2324,7 +2352,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                 PetscReal error = 0.0;
                 check_ierr = MatNorm(matrix_difference, NORM_INFINITY, &error);
                 IBTK_CHKERRQ(check_ierr);
-                operator_error = std::max(operator_error, error);
+                operator_error = accumulate_error(operator_error, error);
                 check_ierr = MatDestroy(&matrix_difference);
                 IBTK_CHKERRQ(check_ierr);
                 Vec solution = nullptr, expected = nullptr, actual = nullptr;
@@ -2380,7 +2408,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                 IBTK_CHKERRQ(check_ierr);
                 check_ierr = VecNorm(actual, NORM_INFINITY, &error);
                 IBTK_CHKERRQ(check_ierr);
-                composition_error = std::max(composition_error, error);
+                composition_error = accumulate_error(composition_error, error);
                 check_ierr = VecDestroy(&solution);
                 IBTK_CHKERRQ(check_ierr);
                 check_ierr = VecDestroy(&expected);
@@ -2598,13 +2626,12 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                 TBOX_ERROR("A Galerkin operator borrowing check failed; see the printed validity flags.\n");
             }
         }
-        pout << "FAC Vec allocation measurement: calibrated and enforced with PETSC_USE_LOG; unavailable without it."
-             << std::endl;
         pout << "fac_residual_repeat_error = " << fac_residual_work_vector_reuse_error
              << ", reinitialized_repeat_error = " << fac_residual_work_vector_reinitialize_error << std::endl;
 
         jac_op->deallocateOperatorState();
         nonlinear_op.deallocateOperatorState();
+        stokes_op->deallocateOperatorState();
 
         ib_method_ops->postprocessIntegrateData(current_time, new_time, /*num_cycles*/ 1);
 

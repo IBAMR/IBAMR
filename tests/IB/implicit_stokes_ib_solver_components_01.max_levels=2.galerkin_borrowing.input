@@ -1,7 +1,7 @@
 test_case = "foundation"
-// Two-level Galerkin solver-components case. The coarse Stokes+IB operator is
-// owned by the FAC hierarchy and borrowed by its level solver across setup,
-// teardown, and reinitialization.
+// Two-level Galerkin solver-components case. The FAC hierarchy creates the
+// coarse Stokes-IB matrix; its level solver retains a reference to the same
+// matrix.
 
 MU                                  = 0.01
 RHO                                 = 1.0
@@ -21,7 +21,6 @@ SPRING_STIFFNESS                    = 2.0e2
 DELTA_FUNCTION                      = "IB_4"
 IB_TIME_STEPPING                    = "BACKWARD_EULER"
 TAG_BUFFER                          = 2
-USE_FIXED_LE_OPERATORS              = TRUE
 VERIFY_GALERKIN_OPERATOR_BORROWING  = TRUE
 
 stokes_ib_precond_db {
@@ -34,7 +33,6 @@ stokes_ib_precond_db {
    level_solver_abs_residual_tol = 1.0e-50
    level_solver_max_iterations = 1
    level_solver_db {
-      use_ksp_as_smoother = TRUE
       initial_guess_nonzero = TRUE
       ksp_type = "richardson"
       pc_type = "asm"
@@ -46,7 +44,6 @@ stokes_ib_precond_db {
    coarse_solver_abs_residual_tol = 1.0e-50
    coarse_solver_max_iterations = 1
    coarse_solver_db {
-      use_ksp_as_smoother = FALSE
       initial_guess_nonzero = TRUE
       ksp_type = "preonly"
       pc_type = "lu"
