@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    IBImplicitStaggeredHierarchyIntegrator_bad_duplicate::registerJacobianOperatorBuilder():
+  (ISOLATED_KERNEL) has already been registered.
+

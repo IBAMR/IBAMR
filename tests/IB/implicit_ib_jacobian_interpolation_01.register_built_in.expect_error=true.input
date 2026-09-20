@@ -1,0 +1,13 @@
+// A kernel with a built-in evaluator cannot be registered.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+IBMethod {
+}
+INSStaggeredHierarchyIntegrator {
+   mu = 1.0
+   rho = 1.0
+   start_time = 0.0
+   end_time = 1.0
+}
