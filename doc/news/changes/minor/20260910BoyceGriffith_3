@@ -1,0 +1,3 @@
+New: PETScLevelSolver shell preconditioners solve subdomain problems through a replaceable PETScLevelSolverSubdomainSolver, which is any type with the needed operations, and IBTK::check_dof_coverage() checks that subdomains cover the DOFs.
+<br>
+(Boyce Griffith, 2026/09/10)
