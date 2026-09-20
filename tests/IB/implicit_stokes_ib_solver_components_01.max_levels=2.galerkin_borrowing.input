@@ -1,7 +1,7 @@
 test_case = "foundation"
-// Two-level Galerkin solver-components case. The coarse Stokes+IB operator is
-// owned by the FAC hierarchy and borrowed by its level solver across setup,
-// teardown, and reinitialization.
+// Two-level Galerkin solver-components case. The FAC hierarchy creates the
+// coarse Stokes-IB matrix; its level solver retains a reference to the same
+// matrix.
 
 MU                                  = 0.01
 RHO                                 = 1.0

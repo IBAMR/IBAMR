@@ -1,8 +1,5 @@
 test_case = "foundation_time_stepping_initialized"
-// Single-level solver-components case.
-// This input is used by implicit_stokes_ib_solver_components_01.cpp to
-// exercise the nonlinear residual, Jacobian, and FAC-preconditioned linear
-// solve on the coarsest hierarchy only.
+// The FAC operator rejects a change of IB time-stepping type while its state is initialized.
 
 MU                     = 0.01
 RHO                    = 1.0
