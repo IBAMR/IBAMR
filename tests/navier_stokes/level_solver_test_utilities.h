@@ -70,13 +70,13 @@ public:
     }
     bool shellStorageEmpty() const
     {
-        return this->d_sub_x.empty() && this->d_sub_y.empty() && this->d_sub_ksp.empty() &&
-               this->d_restriction.empty() && this->d_prolongation.empty() && this->d_sub_mat == nullptr;
+        return !this->d_subdomain_rhs && !this->d_subdomain_solution && !this->d_restriction &&
+               this->d_subdomain_rhs_views.empty() && this->d_subdomain_offsets.empty() && this->d_sub_mat == nullptr;
     }
     std::vector<Vec> retainShellVectors()
     {
-        std::vector<Vec> result = this->d_sub_x;
-        result.insert(result.end(), this->d_sub_y.begin(), this->d_sub_y.end());
+        std::vector<Vec> result = { this->d_subdomain_rhs, this->d_subdomain_solution };
+        result.insert(result.end(), this->d_subdomain_rhs_views.begin(), this->d_subdomain_rhs_views.end());
         for (Vec v : result)
         {
             PetscErrorCode ierr = PetscObjectReference(reinterpret_cast<PetscObject>(v));
