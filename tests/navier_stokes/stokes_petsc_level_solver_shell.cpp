@@ -11,6 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
+#include <ibamr/StaggeredStokesEigenSchurComplementSubdomainSolver.h>
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 
@@ -35,6 +36,7 @@
 #include <cmath>
 #include <iomanip>
 #include <memory>
+#include <optional>
 #include <set>
 #include <type_traits>
 #include <utility>
@@ -392,6 +394,183 @@ protected:
         }
     }
 };
+
+// Solve small dense systems directly with the Eigen subdomain solvers, whose solutions are known.
+int
+check_eigen_local(Pointer<Database> test)
+{
+    const std::string mode = test->getString("eigen_local");
+    const bool spd = mode == "all";
+    const bool rank_test = mode == "rank";
+    // A coupled (non-diagonal) rank-deficient matrix: unlike a diagonal matrix, truncating its
+    // rank actually eliminates a nonzero off-diagonal coupling term, so this case distinguishes a
+    // solver that applies the configured threshold before factoring from one that applies it after.
+    const bool rank_coupled_test = mode == "rank_coupled";
+    const std::vector<std::string> types =
+        mode == "all"     ? std::vector<std::string>{ "LLT",
+                                                      "LDLT",
+                                                      "PARTIAL_PIV_LU",
+                                                      "FULL_PIV_LU",
+                                                      "HOUSEHOLDER_QR",
+                                                      "COL_PIV_HOUSEHOLDER_QR",
+                                                      "COMPLETE_ORTHOGONAL_DECOMPOSITION",
+                                                      "FULL_PIV_HOUSEHOLDER_QR",
+                                                      "JACOBI_SVD",
+                                                      "BDC_SVD" } :
+        rank_coupled_test ? std::vector<std::string>{ "COMPLETE_ORTHOGONAL_DECOMPOSITION" } :
+        rank_test         ? std::vector<std::string>{ "COMPLETE_ORTHOGONAL_DECOMPOSITION", "JACOBI_SVD", "BDC_SVD" } :
+                    std::vector<std::string>{ "FULL_PIV_HOUSEHOLDER_QR", "COL_PIV_HOUSEHOLDER_QR", "PARTIAL_PIV_LU" };
+    const double spd_entries[3][3] = { { 4.0, 1.0, 1.0 }, { 1.0, 3.0, -1.0 }, { 1.0, -1.0, 5.0 } };
+    const double nonsymmetric_entries[3][3] = { { 4.0, 2.0, 1.0 }, { 1.0, 3.0, -1.0 }, { 0.0, -1.0, 5.0 } };
+    Mat mat = nullptr;
+    int ierr = MatCreateSeqDense(PETSC_COMM_SELF, 3, 3, nullptr, &mat);
+    IBTK_CHKERRQ(ierr);
+    const double target[3] = { 1.0, -2.0, 3.0 };
+    double rhs_values[3] = { 0.0, 0.0, 0.0 }, expected[3] = { 0.0, 0.0, 0.0 };
+    for (PetscInt i = 0; i < 3; ++i)
+    {
+        for (PetscInt j = 0; j < 3; ++j)
+        {
+            // With a rank threshold of 0.1, the second and third pivots of the diagonal matrix are dropped.
+            // rank_coupled_test additionally couples the first two rows, so truncating to rank one also
+            // eliminates that coupling term rather than leaving it untouched.
+            const double value = rank_coupled_test ? (i == 0 && j == 1 ? 1.0 :
+                                                      i == j           ? (i == 0 ? 2.0 :
+                                                                          i == 1 ? 0.01 :
+                                                                                   0.0) :
+                                                                         0.0) :
+                                 rank_test         ? (i == j ? (i == 0 ? 2.0 :
+                                                                i == 1 ? 0.01 :
+                                                                         0.0) :
+                                                               0.0) :
+                                                     (spd ? spd_entries[i][j] : nonsymmetric_entries[i][j]);
+            ierr = MatSetValue(mat, i, j, value, INSERT_VALUES);
+            IBTK_CHKERRQ(ierr);
+            rhs_values[i] += (rank_test || rank_coupled_test) ? 0.0 : value * target[j];
+        }
+        expected[i] = (rank_test || rank_coupled_test) ? 0.0 : target[i];
+    }
+    if (rank_test)
+    {
+        std::fill_n(rhs_values, 3, 1.0);
+        rhs_values[0] = 2.0;
+        expected[0] = 1.0;
+    }
+    if (rank_coupled_test)
+    {
+        // The unique rank-one pseudoinverse action: truncating the trailing 0.01 pivot also removes
+        // its contribution to the coupled first row, which a solver reusing rank-two factors would not do.
+        rhs_values[0] = 1.0;
+        expected[0] = 0.4;
+        expected[1] = 0.2;
+    }
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    // The subdomain has global DOFs 10, 11, 12. The Schur cases use the velocity and pressure DOFs
+    // {10, 12} and {11}, {} and {10, 11, 12}, or {10, 11, 12} and {}, and an invalid case that omits DOF 11.
+    const std::set<int> velocity = mode == "schur_pressure_only" ? std::set<int>{} :
+                                   mode == "schur_velocity_only" ? std::set<int>{ 10, 11, 12 } :
+                                                                   std::set<int>{ 10, 12 };
+    const std::set<int> pressure = mode == "schur_pressure_only"  ? std::set<int>{ 10, 11, 12 } :
+                                   mode == "schur_velocity_only"  ? std::set<int>{} :
+                                   mode == "schur_invalid_fields" ? std::set<int>{} :
+                                                                    std::set<int>{ 11 };
+    IS subdomain = nullptr;
+    const PetscInt dofs[3] = { 10, 11, 12 };
+    ierr = ISCreateGeneral(PETSC_COMM_SELF, 3, dofs, PETSC_COPY_VALUES, &subdomain);
+    IBTK_CHKERRQ(ierr);
+    Vec b = nullptr, x = nullptr;
+    ierr = VecCreateSeq(PETSC_COMM_SELF, 3, &b);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(b, &x);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt i = 0; i < 3; ++i)
+    {
+        ierr = VecSetValue(b, i, rhs_values[i], INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+    double max_error = 0.0;
+    const bool schur = mode.rfind("schur", 0) == 0;
+    for (const std::string& type : schur ? std::vector<std::string>{ "" } : types)
+    {
+        for (const std::string& name :
+             schur ? std::vector<std::string>{ "schur" } : std::vector<std::string>{ "eigen", "eigen-pseudoinverse" })
+        {
+            Pointer<MemoryDatabase> db = new MemoryDatabase("eigen");
+            db->putString("eigen_subdomain_solver_type", type);
+            db->putString("eigen_subdomain_pseudoinverse_type", type);
+            db->putDouble("eigen_subdomain_solver_threshold", (rank_test || rank_coupled_test) ? 0.1 : -1.0);
+            db->putDouble("eigen_subdomain_pseudoinverse_threshold", (rank_test || rank_coupled_test) ? 0.1 : -1.0);
+            std::optional<PETScLevelSolverSubdomainSolver> subdomain_solver;
+            if (schur)
+            {
+                subdomain_solver.emplace(std::in_place_type<StaggeredStokesEigenSchurComplementSubdomainSolver>,
+                                         db,
+                                         [&]()
+                                         {
+                                             Vec indicators = nullptr;
+                                             int provider_ierr = VecCreateSeq(PETSC_COMM_SELF, 13, &indicators);
+                                             IBTK_CHKERRQ(provider_ierr);
+                                             provider_ierr = VecSet(indicators, -1.0);
+                                             IBTK_CHKERRQ(provider_ierr);
+                                             for (const int dof : velocity)
+                                             {
+                                                 provider_ierr = VecSetValue(indicators, dof, 0.0, INSERT_VALUES);
+                                                 IBTK_CHKERRQ(provider_ierr);
+                                             }
+                                             for (const int dof : pressure)
+                                             {
+                                                 provider_ierr = VecSetValue(indicators, dof, 1.0, INSERT_VALUES);
+                                                 IBTK_CHKERRQ(provider_ierr);
+                                             }
+                                             return indicators;
+                                         });
+            }
+            else
+            {
+                subdomain_solver.emplace(name == "eigen" ? make_eigen_subdomain_solver(db) :
+                                                           make_eigen_pseudoinverse_subdomain_solver(db));
+            }
+            // Reinitialization reuses the subdomain solver.
+            for (int cycle = 0; cycle < 2; ++cycle)
+            {
+                subdomain_solver->initializeSolverState({ mat }, { subdomain }, "eigen_");
+                ierr = VecSet(x, OUTPUT_SENTINEL);
+                IBTK_CHKERRQ(ierr);
+                subdomain_solver->solve(0, 1, b, x);
+                subdomain_solver->deallocateSolverState();
+                const PetscScalar* values = nullptr;
+                ierr = VecGetArrayRead(x, &values);
+                IBTK_CHKERRQ(ierr);
+                for (PetscInt i = 0; i < 3; ++i)
+                {
+                    // std::max would discard a NaN.
+                    const double entry_error = std::abs(values[i] - expected[i]);
+                    max_error = std::isfinite(entry_error) ? std::max(max_error, entry_error) :
+                                                             std::numeric_limits<double>::infinity();
+                }
+                ierr = VecRestoreArrayRead(x, &values);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
+    }
+    if (!(max_error < 1.0e-10))
+    {
+        TBOX_ERROR("Failed check: max_error < 1.0e-10 (max_error = " << max_error << ").\n");
+    }
+    plog << "max_error = " << max_error << '\n';
+    ierr = MatDestroy(&mat);
+    IBTK_CHKERRQ(ierr);
+    ierr = ISDestroy(&subdomain);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&b);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&x);
+    IBTK_CHKERRQ(ierr);
+    return 0;
+}
 } // namespace
 
 int
@@ -403,6 +582,10 @@ main(int argc, char* argv[])
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
     Pointer<Database> input = app->getInputDatabase();
     Pointer<Database> test = input->getDatabase("test");
+    if (test->keyExists("eigen_local"))
+    {
+        return check_eigen_local(test);
+    }
     const bool lifetime = test->getBoolWithDefault("lifetime", false);
     const bool application_subdomain_solver = test->getBoolWithDefault("application_subdomain_solver", false);
     const bool null_subdomain_solver = test->getBoolWithDefault("null_subdomain_solver", false);
@@ -501,6 +684,13 @@ main(int argc, char* argv[])
         if (test->keyExists("blas_lapack_subdomain_solver_rcond"))
         {
             db->putDouble("blas_lapack_subdomain_solver_rcond", test->getDouble("blas_lapack_subdomain_solver_rcond"));
+        }
+        for (const std::string key : { "eigen_subdomain_solver_type", "eigen_subdomain_pseudoinverse_type" })
+        {
+            if (test->keyExists(key))
+            {
+                db->putString(key, test->getString(key));
+            }
         }
         CommunicationProbe solver("shell_solver", db, "shell_");
         PoissonSpecifications coefficients("coefficients");

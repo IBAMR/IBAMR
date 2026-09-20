@@ -78,24 +78,35 @@ namespace IBTK
  * For pc_type = "shell", shell_pc_type = "additive" selects an additive
  * preconditioner on the ASM subdomains: each subdomain solves its local problem
  * for the right-hand side and writes the solution at the DOFs of its
- * nonoverlapping subset. shell_pc_type = "multiplicative" selects a multiplicative
- * preconditioner in stages: at stage s each rank visits the s-th subdomain of its
- * visiting order, and each visit solves its local problem for the current residual of
- * the original system, including the corrections of earlier stages, and adds its
- * whole correction to the output, including the DOFs of other ranks. A rank that has
- * visited all of its subdomains takes part in the remaining stages with an empty
- * visit, and the corrections that different ranks add at the same stage are summed.
- * It does not use the nonoverlapping subsets. shell_pc_subdomain_traversal is a
- * case-insensitive FORWARD (default), REVERSE, or SYMMETRIC, which sets the visiting
- * order of the n subdomains of a rank to 0, ..., n - 1; n - 1, ..., 0; or
- * 0, ..., n - 1, n - 2, ..., 0; it applies only to the multiplicative shell. Both solve their local problems with a
- * PETScLevelSolverSubdomainSolver: the one supplied to setSubdomainSolver() or,
- * otherwise, the built-in subdomain solver named by subdomain_solver, which is "petsc"
- * (default) or "blas-lapack". The settings of the "blas-lapack" subdomain solver are
- * read from the solver's input database, and validated, when the solver is
- * constructed. See make_blas_lapack_subdomain_solver(). shell_pc_type must
- * be specified when selecting a shell preconditioner, including through PETSc
- * options.
+ * nonoverlapping subset. shell_pc_type = "multiplicative" selects a
+ * multiplicative preconditioner in stages: at stage s each rank visits the s-th
+ * subdomain of its visiting order, and each visit solves its local problem for
+ * the current residual of the original system, including the corrections of
+ * earlier stages, and adds its whole correction to the output, including the DOFs
+ * of other ranks. A rank that has visited all of its subdomains takes part in
+ * the remaining stages with an empty visit, and the corrections that different
+ * ranks add at the same stage are summed. It does not use the nonoverlapping
+ * subsets.
+ *
+ * shell_pc_subdomain_traversal is FORWARD (default), REVERSE,
+ * or SYMMETRIC, which sets the visiting order of the n subdomains of a rank to
+ * 0, ..., n - 1; n - 1, ..., 0; or 0, ..., n - 1, n - 2, ..., 0. It applies only
+ * to the multiplicative shell.
+ *
+ * Both shells solve their local problems with a PETScLevelSolverSubdomainSolver: the
+ * one supplied to setSubdomainSolver() or, otherwise, the built-in subdomain solver named
+ * by subdomain_solver, which is "petsc" (default), "blas-lapack", "eigen", or
+ * "eigen-pseudoinverse". The settings of the other subdomain solvers are read from
+ * the solver's input database, and validated, when the solver is constructed.
+ * See make_blas_lapack_subdomain_solver(), make_eigen_subdomain_solver(), and
+ * make_eigen_pseudoinverse_subdomain_solver(). shell_pc_type must be specified when
+ * selecting a shell preconditioner, including through PETSc options. The values
+ * of shell_pc_type, shell_pc_subdomain_traversal, and subdomain_solver are
+ * case-insensitive.
+ *
+ * The additive preconditioner needs the nonoverlapping subsets of the subdomains to
+ * partition the DOFs. If check_subdomain_coverage is TRUE, which is its default in
+ * debug builds only, initialization checks this with IBTK::check_dof_coverage().
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
@@ -129,7 +140,8 @@ public:
      * in place of the built-in subdomain solver that uses PETSc.
      *
      * The solver takes ownership of subdomain_solver, which must not be empty, and
-     * retains it across reinitialization of the solver state. It is initialized
+     * retains it across reinitialization of the solver state. It takes precedence
+     * over the subdomain_solver key of the input database. It is initialized
      * and deallocated only when pc_type = "shell". Call this before initializing
      * the level solver, or after calling its deallocateSolverState().
      */
@@ -262,19 +274,27 @@ public:
 protected:
     /*!
      * \brief Basic initialization.
+     *
+     * Reads the settings from input_db and reports an unknown setting. A subdomain solver named by the
+     * subdomain_solver key is created here if it is built in ("petsc", "blas-lapack", "eigen", or
+     * "eigen-pseudoinverse"). A derived class that provides further subdomain solvers lists their names in
+     * additional_subdomain_solver_names, so that they are not reported as unknown, and calls setSubdomainSolver() for
+     * them after this function returns.
      */
-    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
+    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+              const std::string& default_options_prefix,
+              const std::vector<std::string>& additional_subdomain_solver_names = {});
 
     /*!
-     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     * \brief Generate IS/subdomains for Schwarz type preconditioners.
      *
      * The subdomains of this rank are listed in order, and overlap_is[i] and nonoverlap_is[i]
      * describe the same subdomain with global DOF indices. Each overlapping set contains the
      * DOFs of its subdomain, and each nonoverlapping set is a subset of the overlapping set of
-     * the same subdomain. The additive shell preconditioner and the restricted ASM
-     * preconditioner also need the nonoverlapping sets of this rank to partition the DOFs that it
-     * owns. Initialization reports a violation of these requirements. A rank may have no
-     * subdomains.
+     * the same subdomain. The additive shell preconditioner also needs the nonoverlapping sets of
+     * the ranks to partition the DOFs; if check_subdomain_coverage is TRUE, initialization reports a
+     * violation. The other preconditioners do not need the subdomains to cover the DOFs. A rank may
+     * have no subdomains.
      */
     virtual void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
                                        std::vector<std::set<int>>& nonoverlap_is);
@@ -361,6 +381,10 @@ protected:
     };
     ShellTraversal d_shell_traversal = ShellTraversal::FORWARD;
     std::string d_options_prefix;
+    //! The subdomain_solver input. A subclass with subdomain solvers of its own creates them in its constructor.
+    std::string d_subdomain_solver_type = "petsc";
+    //! Whether initialization checks that the subdomains cover the DOFs as the preconditioner requires.
+    bool d_check_subdomain_coverage = default_check_dof_coverage();
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
     MatNullSpace d_petsc_nullsp = nullptr;
@@ -427,11 +451,9 @@ protected:
     //\}
 
 private:
-    std::string d_subdomain_solver_type = "petsc";
     std::optional<PETScLevelSolverSubdomainSolver> d_subdomain_solver;
     bool d_subdomain_solver_initialized = false;
     bool d_generated_subdomain_is = false;
-    bool d_check_subdomain_coverage = default_check_dof_coverage();
 
     /*!
      * \brief Copy constructor.

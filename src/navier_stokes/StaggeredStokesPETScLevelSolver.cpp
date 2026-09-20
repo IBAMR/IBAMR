@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/StaggeredStokesEigenSchurComplementSubdomainSolver.h>
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
@@ -24,6 +25,7 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/PoissonUtilities.h>
+#include <ibtk/string_utilities.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -193,7 +195,11 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
                                                                  const std::string& default_options_prefix)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
-    PETScLevelSolver::init(input_db, default_options_prefix);
+    PETScLevelSolver::init(input_db, default_options_prefix, { "eigen-schur-complement" });
+    if (equals_ignore_case(d_subdomain_solver_type, "eigen-schur-complement"))
+    {
+        setSubdomainSolver(makeEigenSchurComplementSubdomainSolver(input_db));
+    }
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
@@ -299,6 +305,52 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
 
     return;
 } // generateASMSubdomains
+
+IBTK::PETScLevelSolverSubdomainSolver
+StaggeredStokesPETScLevelSolver::makeEigenSchurComplementSubdomainSolver(Pointer<Database> input_db)
+{
+    // The fields depend on the patch layout, so they are obtained each time the solver state is initialized.
+    return IBTK::PETScLevelSolverSubdomainSolver(
+        std::in_place_type<StaggeredStokesEigenSchurComplementSubdomainSolver>,
+        input_db,
+        [this]()
+        {
+            std::vector<std::string> names;
+            std::vector<std::set<int>> fields;
+            generateFieldSplitSubdomains(names, fields);
+            const std::vector<std::string>::const_iterator velocity =
+                std::find(names.cbegin(), names.cend(), "velocity");
+            const std::vector<std::string>::const_iterator pressure =
+                std::find(names.cbegin(), names.cend(), "pressure");
+            if (velocity == names.cend() || pressure == names.cend())
+            {
+                TBOX_ERROR(d_object_name << "::makeEigenSchurComplementSubdomainSolver():\n"
+                                         << "  the Eigen Schur subdomain solver requires named velocity and pressure "
+                                         << "fields.\n");
+            }
+            // DOFs of neither field, such as those that another subclass adds, are marked with -1.
+            Vec indicators = nullptr;
+            int ierr = VecDuplicate(d_petsc_x, &indicators);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecSet(indicators, -1.0);
+            IBTK_CHKERRQ(ierr);
+            for (const int dof : fields[velocity - names.cbegin()])
+            {
+                ierr = VecSetValue(indicators, dof, 0.0, INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+            for (const int dof : fields[pressure - names.cbegin()])
+            {
+                ierr = VecSetValue(indicators, dof, 1.0, INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = VecAssemblyBegin(indicators);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(indicators);
+            IBTK_CHKERRQ(ierr);
+            return indicators;
+        });
+}
 
 void
 StaggeredStokesPETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::string>& field_names,

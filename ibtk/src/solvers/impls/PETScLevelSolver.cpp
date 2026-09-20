@@ -71,13 +71,21 @@ static Timer* t_deallocate_solver_state;
 std::optional<PETScLevelSolverSubdomainSolver>
 make_built_in_subdomain_solver(const std::string& subdomain_solver_type, Pointer<Database> input_db)
 {
-    if (subdomain_solver_type == "petsc")
+    if (equals_ignore_case(subdomain_solver_type, "petsc"))
     {
         return make_petsc_subdomain_solver();
     }
-    if (subdomain_solver_type == "blas-lapack")
+    if (equals_ignore_case(subdomain_solver_type, "blas-lapack"))
     {
         return make_blas_lapack_subdomain_solver(input_db);
+    }
+    if (equals_ignore_case(subdomain_solver_type, "eigen"))
+    {
+        return make_eigen_subdomain_solver(input_db);
+    }
+    if (equals_ignore_case(subdomain_solver_type, "eigen-pseudoinverse"))
+    {
+        return make_eigen_pseudoinverse_subdomain_solver(input_db);
     }
     return std::nullopt;
 }
@@ -729,8 +737,10 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         // Set up the subdomain solvers.
         if (!d_subdomain_solver)
         {
-            TBOX_ERROR(d_object_name << " unsupported subdomain_solver = " << d_subdomain_solver_type
-                                     << "; supported values are \"petsc\" and \"blas-lapack\".\n");
+            TBOX_ERROR(
+                d_object_name << "::initializeSolverState():\n"
+                              << "  the subdomain solver " << d_subdomain_solver_type
+                              << " has not been set; a derived class that names it must call setSubdomainSolver().\n");
         }
         d_subdomain_solver->initializeSolverState(
             std::vector<Mat>(d_sub_mat, d_sub_mat + d_n_local_subdomains), d_overlap_is, d_options_prefix);
@@ -891,7 +901,9 @@ PETScLevelSolver::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
+PETScLevelSolver::init(Pointer<Database> input_db,
+                       const std::string& default_options_prefix,
+                       const std::vector<std::string>& additional_subdomain_solver_names)
 {
     d_options_prefix = default_options_prefix;
     if (input_db)
@@ -953,8 +965,32 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
         if (input_db->keyExists("subdomain_overlap_size"))
             input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
     }
-    // The settings of a built-in subdomain solver are validated now, when the solver is constructed.
-    d_subdomain_solver = make_built_in_subdomain_solver(d_subdomain_solver_type, input_db);
+    // A subclass that calls setSubdomainSolver() before PETScLevelSolver::init() (none does today) takes
+    // precedence over subdomain_solver; this guard is what makes that ordering safe.
+    if (!d_subdomain_solver)
+    {
+        d_subdomain_solver = make_built_in_subdomain_solver(d_subdomain_solver_type, input_db);
+    }
+    if (!d_subdomain_solver &&
+        std::none_of(additional_subdomain_solver_names.begin(),
+                     additional_subdomain_solver_names.end(),
+                     [&](const std::string& name) { return equals_ignore_case(name, d_subdomain_solver_type); }))
+    {
+        std::vector<std::string> supported_names = { "petsc", "blas-lapack", "eigen", "eigen-pseudoinverse" };
+        supported_names.insert(
+            supported_names.end(), additional_subdomain_solver_names.begin(), additional_subdomain_solver_names.end());
+        std::string supported;
+        for (std::size_t k = 0; k < supported_names.size(); ++k)
+        {
+            supported += (k == 0                          ? "" :
+                          k + 1 == supported_names.size() ? ", and " :
+                                                            ", ") +
+                         std::string("\"") + supported_names[k] + "\"";
+        }
+        TBOX_ERROR(d_object_name << "::init():\n"
+                                 << "  unsupported subdomain_solver = " << d_subdomain_solver_type
+                                 << "; supported values are " << supported << ".\n");
+    }
     return;
 } // init
 

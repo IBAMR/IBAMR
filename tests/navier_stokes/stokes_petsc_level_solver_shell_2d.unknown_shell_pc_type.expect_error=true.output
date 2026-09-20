@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::init():
+  unknown shell_pc_type = sequential; valid values are "additive" and "multiplicative".
+

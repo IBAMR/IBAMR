@@ -1,0 +1,3 @@
+local subdomains: min = 2, max = 2
+action_norm = 0.525889952319
+error = 7.631741615e-14
