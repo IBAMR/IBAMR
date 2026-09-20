@@ -47,6 +47,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -174,6 +175,63 @@ check_owned_output(const std::string& context,
                            << "  the owned DOFs do not partition the DOFs of this rank: " << n_wrong
                            << (n_wrong == 1 ? " DOF is" : " DOFs are") << " not owned exactly once; the lowest is "
                            << n_lo + (first_wrong - writes.cbegin()) << ".\n");
+    }
+}
+
+// The names of the built-in subdomain solvers.
+const std::vector<std::string>&
+built_in_subdomain_solver_names()
+{
+    static const std::vector<std::string> names = { "petsc", "blas-lapack" };
+    return names;
+}
+
+// The factory of the built-in subdomain solver with the given name, or an empty function if the name is not that
+// of one.
+PETScLevelSolver::SubdomainSolverFactory
+built_in_subdomain_solver_factory(const std::string& subdomain_solver_type)
+{
+    if (equals_ignore_case(subdomain_solver_type, "petsc"))
+    {
+        return make_petsc_subdomain_solver;
+    }
+    if (equals_ignore_case(subdomain_solver_type, "blas-lapack"))
+    {
+        return make_blas_lapack_subdomain_solver;
+    }
+    return {};
+}
+
+// Report a factory that cannot be selected by name: one with an empty name or function, or with the name of a
+// built-in subdomain solver or of an earlier factory.
+void
+check_subdomain_solver_factories(const std::string& object_name,
+                                 const PETScLevelSolver::SubdomainSolverFactories& factories)
+{
+    for (std::size_t i = 0; i < factories.size(); ++i)
+    {
+        const std::string& name = factories[i].first;
+        if (name.empty() || !factories[i].second)
+        {
+            TBOX_ERROR(object_name << "::init():\n"
+                                   << "  a subdomain solver factory needs a nonempty name and a nonempty function.\n");
+        }
+        const auto same_name = [&](const std::string& other) { return equals_ignore_case(other, name); };
+        if (std::any_of(built_in_subdomain_solver_names().begin(), built_in_subdomain_solver_names().end(), same_name))
+        {
+            TBOX_ERROR(object_name << "::init():\n"
+                                   << "  the subdomain solver factory " << name
+                                   << " has the name of a built-in subdomain solver.\n");
+        }
+        for (std::size_t j = 0; j < i; ++j)
+        {
+            if (same_name(factories[j].first))
+            {
+                TBOX_ERROR(object_name << "::init():\n"
+                                       << "  the subdomain solver factory " << name
+                                       << " is supplied more than once.\n");
+            }
+        }
     }
 }
 
@@ -701,7 +759,13 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         // Set up the subdomain solvers.
         if (!d_subdomain_solver)
         {
-            d_subdomain_solver = make_petsc_subdomain_solver(d_subdomain_solver_db);
+            d_subdomain_solver = d_subdomain_solver_factory(d_subdomain_solver_db);
+            if (!*d_subdomain_solver)
+            {
+                TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                         << "  the factory of the subdomain solver " << d_subdomain_solver_type
+                                         << " returned an empty subdomain solver.\n");
+            }
         }
         d_subdomain_solver->initializeSolverState(
             std::vector<Mat>(d_sub_mat, d_sub_mat + d_n_local_subdomains), d_overlap_is, d_options_prefix);
@@ -844,8 +908,11 @@ PETScLevelSolver::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
+PETScLevelSolver::init(Pointer<Database> input_db,
+                       const std::string& default_options_prefix,
+                       const SubdomainSolverFactories& subdomain_solver_factories)
 {
+    check_subdomain_solver_factories(d_object_name, subdomain_solver_factories);
     d_options_prefix = default_options_prefix;
     if (input_db)
     {
@@ -927,13 +994,7 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
             if (relaxation_db->keyExists("subdomain_solver"))
             {
                 d_subdomain_solver_db = relaxation_db->getDatabase("subdomain_solver");
-                const std::string type = d_subdomain_solver_db->getStringWithDefault("type", "petsc");
-                if (!equals_ignore_case(type, "petsc"))
-                {
-                    TBOX_ERROR(d_object_name << "::init():\n"
-                                             << "  unsupported subdomain_solver type = " << type
-                                             << "; the supported value is \"petsc\".\n");
-                }
+                d_subdomain_solver_type = d_subdomain_solver_db->getStringWithDefault("type", d_subdomain_solver_type);
             }
         }
         if (input_db->keyExists("initial_guess_nonzero"))
@@ -944,6 +1005,36 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
             input_db->getIntegerArray("subdomain_box_size", d_box_size, NDIM);
         if (input_db->keyExists("subdomain_overlap_size"))
             input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
+    }
+    // The selected subdomain solver is created, and its settings are validated, only when a shell preconditioner
+    // needs it.
+    d_subdomain_solver_factory = built_in_subdomain_solver_factory(d_subdomain_solver_type);
+    if (!d_subdomain_solver_factory)
+    {
+        const SubdomainSolverFactories::const_iterator factory =
+            std::find_if(subdomain_solver_factories.begin(),
+                         subdomain_solver_factories.end(),
+                         [&](const auto& entry) { return equals_ignore_case(entry.first, d_subdomain_solver_type); });
+        if (factory == subdomain_solver_factories.end())
+        {
+            std::vector<std::string> supported_names = built_in_subdomain_solver_names();
+            for (const auto& entry : subdomain_solver_factories)
+            {
+                supported_names.push_back(entry.first);
+            }
+            std::string supported;
+            for (std::size_t k = 0; k < supported_names.size(); ++k)
+            {
+                supported += (k == 0                          ? "" :
+                              k + 1 == supported_names.size() ? ", and " :
+                                                                ", ") +
+                             std::string("\"") + supported_names[k] + "\"";
+            }
+            TBOX_ERROR(d_object_name << "::init():\n"
+                                     << "  unsupported subdomain_solver type = " << d_subdomain_solver_type
+                                     << "; supported values are " << supported << ".\n");
+        }
+        d_subdomain_solver_factory = factory->second;
     }
     return;
 } // init
