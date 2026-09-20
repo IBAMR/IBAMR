@@ -377,9 +377,13 @@ public:
     void calculateInterfacialFluidForces(int p_data_idx, double data_time);
 
     /*!
-     * Indicate that multistep time stepping will be used.
+     * Configure storage for the previous velocity value required by the AB2
+     * structural update used with BDF2 time stepping.
      *
-     * @param[in] n_previous_steps Number of previous solution values that can be used by the multistep scheme.
+     * IIMethod currently supports exactly one previous value. On the first time
+     * step, AB2Step() uses forward Euler since no previous value is available.
+     *
+     * @param[in] n_previous_steps Number of previous velocity values to retain; must be 1.
      */
     void setUseMultistepTimeStepping(unsigned int n_previous_steps = 1) override;
 
@@ -649,8 +653,7 @@ protected:
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_old_vecs, d_U_old_updated_vecs,
-        d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_old_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
     std::vector<std::array<libMesh::PetscVector<double>*, NDIM>> d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
