@@ -1,4 +1,4 @@
-petsc_settings_shell {
+petsc_settings_shell_ {
    sub_pc_type = "svd"
 }
 
@@ -26,10 +26,10 @@ CartesianGeometry {
 GriddingAlgorithm {
    max_levels = 1
    largest_patch_size {
-      level_0 = N, N
+      level_0 = 4, 8
    }
    smallest_patch_size {
-      level_0 = N, N
+      level_0 = 4, 8
    }
 }
 StandardTagAndInitialize {

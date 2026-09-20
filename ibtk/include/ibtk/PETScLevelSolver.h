@@ -92,8 +92,8 @@ namespace IBTK
  * - "additive": restricted additive Schwarz. Every subdomain is solved with the same right-hand side,
  *   and each keeps its solution only on its nonoverlapping subset, so those subsets must partition the
  *   DOFs (checked when check_subdomain_coverage is TRUE).
- * - "multiplicative": multiplicative Schwarz within each rank. Its subdomains are solved one after
- *   another, each with the residual left by the previous solves.
+ * - "multiplicative": multiplicative Schwarz. The subdomains are solved one after another, each with
+ *   the residual left by the previous solves; ranks work through their own subdomains in parallel.
  *
  * <b>Subdomain solvers</b>
  *
@@ -396,16 +396,17 @@ protected:
      * \name ASM subdomains and the storage of the shell preconditioners.
      */
     //\{
-    Vec d_local_x, d_local_y;
     SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
     int d_n_local_subdomains = 0;
     std::vector<IS> d_overlap_is, d_nonoverlap_is;
-    Mat *d_sub_mat = nullptr, *d_sub_bc_mat = nullptr;
+    Mat* d_sub_mat = nullptr;
 
     /*!
      * The right-hand sides and solutions of the local problems of the subdomains of this rank, packed
      * in order into sequential vectors: subdomain i occupies the entries from d_subdomain_offsets[i] up
-     * to d_subdomain_offsets[i + 1]. One scatter gathers all of the right-hand sides.
+     * to d_subdomain_offsets[i + 1]. One scatter gathers all of the right-hand sides. The vectors are
+     * host memory (VECSEQ), and the vectors that view the entries of one subdomain share their arrays
+     * for as long as the packed vectors exist.
      */
     Vec d_subdomain_rhs = nullptr, d_subdomain_solution = nullptr;
     VecScatter d_restriction = nullptr;
@@ -420,9 +421,27 @@ protected:
      * nonoverlapping DOFs, and d_write_targets, their local indices in the output.
      */
     std::vector<PetscInt> d_write_offsets, d_write_sources, d_write_targets;
+    //\}
 
-    //! Vectors that share the storage of each subdomain's packed right-hand side, for multiplicative shells.
-    std::vector<Vec> d_subdomain_rhs_views;
+    /*!
+     * \name Multiplicative shell preconditioner.
+     *
+     * The multiplicative shell visits stages 0, ..., d_n_stages - 1, the largest number of subdomains on any
+     * rank, and uses subdomain i of this rank at stage i, if there is one. For subdomain i,
+     * d_residual_matrices[i] is the matrix -A(O_i, C_i) of its rows and the columns C_i that they couple to.
+     * For stage s, d_halo_vectors[s] holds the current output on C_i for the subdomain i of the stage, and
+     * the scatters of the stage gather those values and add the corrections from O_i to the output.
+     */
+    //\{
+    int d_n_stages = 0;
+    //! Vectors that share the storage of each subdomain's packed right-hand side and solution.
+    std::vector<Vec> d_subdomain_rhs_views, d_subdomain_solution_views;
+    std::vector<Mat> d_residual_matrices;
+    std::vector<Vec> d_halo_vectors;
+    std::vector<VecScatter> d_halo_scatters, d_correction_scatters;
+    //! Whether each stage needs its scatter, or works on the local indices of the output, which are also kept.
+    std::vector<bool> d_halo_communicates, d_correction_communicates;
+    std::vector<std::vector<PetscInt>> d_halo_local_indices, d_correction_local_indices;
     //\}
 
     /*!
@@ -474,6 +493,12 @@ private:
      * \brief Gather the right-hand sides of all subdomains from x into the packed vector.
      */
     PetscErrorCode gatherSubdomainRhs(Vec x) const;
+
+    /*!
+     * \brief Set up the stages of the multiplicative shell from the rows of the operator on each
+     * overlapping subdomain, with every column.
+     */
+    void initializeMultiplicativeShell(Mat* rows);
 
     /*!
      * \brief Write the nonoverlapping parts of the packed solutions of subdomains first, ..., last - 1

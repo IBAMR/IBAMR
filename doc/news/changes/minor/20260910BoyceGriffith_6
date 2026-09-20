@@ -1,0 +1,3 @@
+Changed: The multiplicative shell of PETScLevelSolver adds the whole correction of each subdomain, computed from the current residual of the original system.
+<br>
+(Boyce Griffith, 2026/09/10)

@@ -2,5 +2,6 @@ restriction communicates = 0
 stages = 4
 halo communicating stages = 0
 correction communicating stages = 0
+local subdomains: min = 0, max = 4
 action_norm = 0.221430365668
 error = 8.77427216106e-16
