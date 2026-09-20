@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    PETScLevelSolverPetscSubdomainSolver::initializeSolverState():
+  options prefix "shell_": setting up the preconditioner failed for subdomain 0, for example because the subdomain matrix is singular.
+

@@ -36,9 +36,11 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace SAMRAI
@@ -82,7 +84,7 @@ namespace IBTK
     grouping = "RANK"                      // no default; only for MULTIPLICATIVE composition
     output = "FULL"                        // no default: "FULL" or "OWNED"
     subdomain_solver {                     // optional; see "Subdomain solvers" below
-       type = "petsc"
+       type = "petsc"                      // the default
     }
  }
  \endverbatim
@@ -122,8 +124,10 @@ namespace IBTK
  * <b>Subdomain solvers</b>
  *
  * The optional database subdomain_relaxation.subdomain_solver selects the subdomain solver by its type
- * and holds its settings. The only type is "petsc", the default; see make_petsc_subdomain_solver().
- * setSubdomainSolver() supplies another subdomain solver.
+ * and holds its settings. The type is "petsc" (default) or "blas-lapack"; see make_petsc_subdomain_solver()
+ * and make_blas_lapack_subdomain_solver() for their settings. The type can also name one of the
+ * SubdomainSolverFactories that a derived class or its user supplies, and setSubdomainSolver() supplies
+ * another subdomain solver.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
@@ -132,6 +136,23 @@ namespace IBTK
 class PETScLevelSolver : public LinearSolver
 {
 public:
+    /*!
+     * \brief A function that creates a subdomain solver from the subdomain_solver database, which may be null.
+     *
+     * The function validates the settings of the database, which include the type that selected it and may include
+     * petsc_settings databases. The level solver keeps a copy of the selected function until it first sets up a
+     * shell preconditioner. The subdomain solver owns whatever it needs after the function returns, or borrows only
+     * objects that outlive it.
+     */
+    using SubdomainSolverFactory =
+        std::function<PETScLevelSolverSubdomainSolver(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>)>;
+
+    /*!
+     * \brief Names and factories of subdomain solvers that the type of the subdomain_solver database can select
+     * in addition to the built-in ones. Names are compared without regard to case.
+     */
+    using SubdomainSolverFactories = std::vector<std::pair<std::string, SubdomainSolverFactory>>;
+
     /*!
      * \brief Default constructor.
      */
@@ -290,8 +311,16 @@ public:
 protected:
     /*!
      * \brief Basic initialization.
+     *
+     * Reads the settings from input_db and selects the factory of the subdomain solver that the type of the
+     * subdomain_solver database names: a built-in one or the entry of subdomain_solver_factories with that name.
+     * It is an error for a name to be empty, to be that of a built-in subdomain solver, or to be supplied twice, for
+     * a function to be empty, and for the type to name none of these. The factory is called only when a shell
+     * preconditioner is set up without a subdomain solver, and it is an error for it to return an empty one.
      */
-    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
+    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+              const std::string& default_options_prefix,
+              const SubdomainSolverFactories& subdomain_solver_factories = {});
 
     /*!
      * \brief Generate IS/subdomains for Schwarz type preconditioners.
@@ -465,6 +494,9 @@ private:
     std::string d_selected_pc_type = PCILU;
     //! The subdomain_relaxation.subdomain_solver database, if there is one.
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_subdomain_solver_db;
+    //! The type of the subdomain solver and the factory that creates it from d_subdomain_solver_db.
+    std::string d_subdomain_solver_type = "petsc";
+    SubdomainSolverFactory d_subdomain_solver_factory;
     //! The subdomain solver of subdomain relaxation.
     std::optional<PETScLevelSolverSubdomainSolver> d_subdomain_solver;
     //! Whether d_subdomain_solver is initialized for the current solver state.

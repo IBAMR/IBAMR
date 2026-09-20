@@ -188,12 +188,14 @@ insert_velocity_block_rows(Mat source, AO mapping, Mat destination)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::string& object_name,
-                                                                 Pointer<Database> input_db,
-                                                                 const std::string& default_options_prefix)
+StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix,
+    const SubdomainSolverFactories& subdomain_solver_factories)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
-    PETScLevelSolver::init(input_db, default_options_prefix);
+    PETScLevelSolver::init(input_db, default_options_prefix, subdomain_solver_factories);
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
