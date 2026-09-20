@@ -27,6 +27,7 @@
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesSolver.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/IBOperatorBuilder.h>
 
 #include <tbox/Pointer.h>
@@ -41,6 +42,7 @@
 #include <IntVector.h>
 #include <SAMRAIVectorReal.h>
 
+#include <map>
 #include <optional>
 #include <string>
 
@@ -91,9 +93,10 @@ public:
      * The input database key jacobian_delta_fcn selects the kernel of the
      * Jacobian's interpolation matrix; its default is IB_4. A name that is not a
      * valid kernel name is an error. A valid name selects a built-in builder only if
-     * dispatch_ib_kernel_evaluator() supports it, which is fewer kernels than the
-     * IBTK::IBKernel and LEInteractor catalogs; otherwise call
-     * setJacobianOperatorBuilder() before initializeHierarchyIntegrator().
+     * IBTK::IBOperatorBuilder::is_built_in() accepts the kernel (see its
+     * documentation for the built-in set). Otherwise call
+     * registerJacobianOperatorBuilder() or setJacobianOperatorBuilder() before
+     * initializeHierarchyIntegrator().
      */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -145,14 +148,34 @@ public:
      * be called before initializeHierarchyIntegrator().
      *
      * The Jacobian's kernel is independent of the kernels that the IB strategy
-     * uses for interpolation and spreading.
+     * uses for interpolation and spreading. The builder is not written to
+     * restart files: after a restart, call this function again, since the input
+     * key jacobian_delta_fcn cannot name it.
      */
     void setJacobianOperatorBuilder(IBTK::IBOperatorBuilder builder);
 
     /*!
+     * Associate builder with kernel, so that jacobian_delta_fcn = kernel's name
+     * selects it. Must be called before initializeHierarchyIntegrator(). It is
+     * an error to register a kernel that IBTK::IBOperatorBuilder::is_built_in()
+     * already accepts, or to register the same kernel twice.
+     *
+     * A registration only supplies the builder for jacobian_delta_fcn if that
+     * key is otherwise unresolved when initializeHierarchyIntegrator() runs;
+     * an explicit call to setJacobianOperatorBuilder() always takes precedence,
+     * whether it happens before or after this call. Registering a kernel that
+     * jacobian_delta_fcn does not name has no other effect.
+     *
+     * Like setJacobianOperatorBuilder(), registrations are not written to
+     * restart files: after a restart, the application must register again
+     * before initializeHierarchyIntegrator().
+     */
+    void registerJacobianOperatorBuilder(const IBTK::IBKernelTensorProduct& kernel, IBTK::IBOperatorBuilder builder);
+
+    /*!
      * Return the builder of the Jacobian's interpolation matrix. It is an
      * error if jacobian_delta_fcn is not a built-in kernel and no builder has
-     * been set.
+     * been set or registered for it.
      */
     const IBTK::IBOperatorBuilder& getJacobianOperatorBuilder() const;
 
@@ -387,6 +410,7 @@ private:
     bool d_solve_for_position = false;
     std::string d_jac_delta_fcn = "IB_4";
     std::optional<IBTK::IBOperatorBuilder> d_jacobian_operator_builder;
+    std::map<IBTK::IBKernelTensorProduct, IBTK::IBOperatorBuilder> d_registered_jacobian_operator_builders;
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;

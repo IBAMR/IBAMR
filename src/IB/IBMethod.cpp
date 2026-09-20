@@ -34,7 +34,6 @@
 #include <ibtk/LMesh.h>
 #include <ibtk/LNode.h>
 #include <ibtk/LSiloDataWriter.h>
-#include <ibtk/PETScMatUtilities.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
@@ -1029,7 +1028,7 @@ IBMethod::getFinestLevelLECouplingPositions(const double data_time)
     if (!X_LE_data)
     {
         TBOX_ERROR("IBMethod::getFinestLevelLECouplingPositions():\n"
-                   << "  data_time = " << data_time << " does not equal the current, half, or new time.");
+                   << "  data_time = " << data_time << " does not equal the current, half, or new time.\n");
     }
 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

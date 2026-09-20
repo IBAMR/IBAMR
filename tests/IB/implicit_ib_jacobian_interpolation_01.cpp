@@ -256,12 +256,15 @@ check_interp_matrix(Mat J,
 }
 
 // The builder that an IBImplicitStaggeredHierarchyIntegrator constructed with
-// jacobian_delta_fcn = kernel_name uses, after the optional application override.
+// jacobian_delta_fcn = kernel_name uses, after the optional application override
+// or registration (use_registration selects registerJacobianOperatorBuilder()
+// instead of the direct setJacobianOperatorBuilder()).
 IBTK::IBOperatorBuilder
 make_jacobian_builder(Pointer<AppInitializer> app,
                       const std::string& tag,
                       const std::string& kernel_name,
-                      const std::optional<IBTK::IBOperatorBuilder>& application_builder = std::nullopt)
+                      const std::optional<IBTK::IBOperatorBuilder>& application_builder = std::nullopt,
+                      bool use_registration = false)
 {
     Pointer<INSStaggeredHierarchyIntegrator> ins_integrator = new INSStaggeredHierarchyIntegrator(
         "INSStaggeredHierarchyIntegrator" + tag, app->getComponentDatabase("INSStaggeredHierarchyIntegrator"), false);
@@ -270,7 +273,13 @@ make_jacobian_builder(Pointer<AppInitializer> app,
     input_db->putString("jacobian_delta_fcn", kernel_name);
     Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
         "IBImplicitStaggeredHierarchyIntegrator" + tag, input_db, method, ins_integrator, false);
-    if (application_builder) integrator->setJacobianOperatorBuilder(*application_builder);
+    if (application_builder)
+    {
+        if (use_registration)
+            integrator->registerJacobianOperatorBuilder(IBTK::IBKernelTensorProduct(kernel_name), *application_builder);
+        else
+            integrator->setJacobianOperatorBuilder(*application_builder);
+    }
     return integrator->getJacobianOperatorBuilder();
 }
 
@@ -335,7 +344,7 @@ run_fixture(Pointer<AppInitializer> app,
         const IntVector<NDIM> ghosts =
             var_db->getPatchDescriptor()->getPatchDataFactory(u_dof_idx)->getGhostCellWidth();
         IntVector<NDIM> expected = method->getMinimumGhostCellWidth();
-        expected.max(IntVector<NDIM>(static_cast<int>((WIDE_TENT_WIDTH + 1) / 2 + 1)));
+        expected.max(IntVector<NDIM>(static_cast<int>(WIDE_TENT_WIDTH / 2 + 1)));
         dof_ghost_mismatches += !(ghosts == expected);
         dof_ghost_mismatches += !(ghosts.max() > method->getMinimumGhostCellWidth().max());
     }
@@ -359,6 +368,20 @@ run_fixture(Pointer<AppInitializer> app,
                               suffix + "_application",
                               "APPLICATION_KERNEL",
                               IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<4>{} })));
+    // The same application kernel, but selected through registerJacobianOperatorBuilder()
+    // instead of the direct setter, with a wider stencil so its ghost width is
+    // independently exercised.
+    jacobian_kernels.emplace_back(KernelCase{ "REGISTERED_KERNEL",
+                                              static_cast<int>(WIDE_TENT_WIDTH),
+                                              static_cast<int>(WIDE_TENT_WIDTH),
+                                              tent_weight,
+                                              tent_weight },
+                                  make_jacobian_builder(app,
+                                                        suffix + "_registered",
+                                                        "REGISTERED_KERNEL",
+                                                        IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{
+                                                            TentKernel<WIDE_TENT_WIDTH>{} }),
+                                                        /*use_registration*/ true));
     IntVector<NDIM> dof_ghosts = method->getMinimumGhostCellWidth();
     for (const auto& [kernel, builder] : jacobian_kernels)
     {
@@ -484,6 +507,155 @@ try_construct_implicit_integrator(Pointer<AppInitializer> app, const bool query_
                                                    false);
     if (query_builder) integrator->getJacobianOperatorBuilder();
 }
+
+// Trigger one of registerJacobianOperatorBuilder()'s rejected cases: registering
+// after initializeHierarchyIntegrator(), registering a name that already has a
+// built-in evaluator, registering the same kernel twice, or querying a builder
+// on a second integrator that never registered the first integrator's kernel
+// (proving registrations do not leak between integrators).
+void
+try_bad_registration(Pointer<AppInitializer> app, const std::string& kind)
+{
+    auto make_evaluator_builder = []
+    { return IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<4>{} }); };
+    Pointer<INSStaggeredHierarchyIntegrator> ins_integrator =
+        new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator_bad_" + kind,
+                                            app->getComponentDatabase("INSStaggeredHierarchyIntegrator"),
+                                            false);
+    Pointer<IBMethod> method = new IBMethod("IBMethod_bad_" + kind, app->getComponentDatabase("IBMethod"), false);
+    Pointer<Database> input_db = new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator_bad_" + kind);
+    // after_init needs a resolvable kernel so that initializeHierarchyIntegrator()
+    // itself succeeds, leaving the later registration attempt as the only failure.
+    input_db->putString("jacobian_delta_fcn", kind == "after_init" ? "IB_4" : "ISOLATED_KERNEL");
+    Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
+        "IBImplicitStaggeredHierarchyIntegrator_bad_" + kind, input_db, method, ins_integrator, false);
+
+    if (kind == "after_init")
+    {
+        Pointer<CartesianGridGeometry<NDIM>> geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry_bad_" + kind, app->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM>> hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy_bad_" + kind, geometry);
+        Pointer<StandardTagAndInitialize<NDIM>> tagger = new StandardTagAndInitialize<NDIM>(
+            "StandardTagAndInitialize_bad_" + kind, method, app->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsos<NDIM>> boxes = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> balancer =
+            new LoadBalancer<NDIM>("LoadBalancer_bad_" + kind, app->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM>> gridding = new GriddingAlgorithm<NDIM>(
+            "GriddingAlgorithm_bad_" + kind, app->getComponentDatabase("GriddingAlgorithm"), tagger, boxes, balancer);
+        integrator->initializeHierarchyIntegrator(hierarchy, gridding);
+        integrator->registerJacobianOperatorBuilder(IBTK::IBKernelTensorProduct("ISOLATED_KERNEL"),
+                                                    make_evaluator_builder());
+        return;
+    }
+    if (kind == "built_in")
+    {
+        integrator->registerJacobianOperatorBuilder(IBTK::IBKernelTensorProduct("IB_4"), make_evaluator_builder());
+        return;
+    }
+    if (kind == "duplicate")
+    {
+        integrator->registerJacobianOperatorBuilder(IBTK::IBKernelTensorProduct("ISOLATED_KERNEL"),
+                                                    make_evaluator_builder());
+        integrator->registerJacobianOperatorBuilder(IBTK::IBKernelTensorProduct("ISOLATED_KERNEL"),
+                                                    make_evaluator_builder());
+        return;
+    }
+    if (kind == "unregistered_second_integrator")
+    {
+        // A different integrator registers ISOLATED_KERNEL; this one, selecting the
+        // same name, never does. If registration leaked between integrators, this
+        // would succeed instead of failing.
+        Pointer<INSStaggeredHierarchyIntegrator> other_ins =
+            new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator_bad_other",
+                                                app->getComponentDatabase("INSStaggeredHierarchyIntegrator"),
+                                                false);
+        Pointer<IBMethod> other_method =
+            new IBMethod("IBMethod_bad_other", app->getComponentDatabase("IBMethod"), false);
+        Pointer<Database> other_input_db = new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator_bad_other");
+        other_input_db->putString("jacobian_delta_fcn", "ISOLATED_KERNEL");
+        Pointer<IBImplicitStaggeredHierarchyIntegrator> other_integrator = new IBImplicitStaggeredHierarchyIntegrator(
+            "IBImplicitStaggeredHierarchyIntegrator_bad_other", other_input_db, other_method, other_ins, false);
+        other_integrator->registerJacobianOperatorBuilder(IBTK::IBKernelTensorProduct("ISOLATED_KERNEL"),
+                                                          make_evaluator_builder());
+        integrator->getJacobianOperatorBuilder();
+        return;
+    }
+    TBOX_ERROR("try_bad_registration(): unknown kind = " << kind << "\n");
+}
+
+// Verify registerJacobianOperatorBuilder()'s precedence and ownership rules that
+// do not themselves trigger an error, so they can run in the normal (non
+// expect_error) driver alongside run_fixture():
+// - a direct setJacobianOperatorBuilder() always wins over a matching
+//   registration, whether the direct call happens before or after registration;
+// - the integrator owns a registered builder, so the caller's evaluator object
+//   can leave scope once registration returns.
+void
+check_registration_semantics(Pointer<AppInitializer> app)
+{
+    auto make_integrator = [&](const std::string& tag, const std::string& kernel_name)
+    {
+        Pointer<INSStaggeredHierarchyIntegrator> ins =
+            new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator" + tag,
+                                                app->getComponentDatabase("INSStaggeredHierarchyIntegrator"),
+                                                false);
+        Pointer<IBMethod> method = new IBMethod("IBMethod" + tag, app->getComponentDatabase("IBMethod"), false);
+        Pointer<Database> input_db = new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator" + tag);
+        input_db->putString("jacobian_delta_fcn", kernel_name);
+        return Pointer<IBImplicitStaggeredHierarchyIntegrator>(new IBImplicitStaggeredHierarchyIntegrator(
+            "IBImplicitStaggeredHierarchyIntegrator" + tag, input_db, method, ins, false));
+    };
+
+    // Registration first, then a direct override: the direct override must win.
+    {
+        Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator =
+            make_integrator("_precedence_a", "PRECEDENCE_KERNEL");
+        integrator->registerJacobianOperatorBuilder(
+            IBTK::IBKernelTensorProduct("PRECEDENCE_KERNEL"),
+            IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<2>{} }));
+        integrator->setJacobianOperatorBuilder(
+            IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<6>{} }));
+        if (!(integrator->getJacobianOperatorBuilder().getMinimumGhostWidth() ==
+              IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<6>{} }).getMinimumGhostWidth()))
+        {
+            TBOX_ERROR("Failed check: a direct override after a matching registration did not win.\n");
+        }
+    }
+
+    // A direct override first, then a matching registration: the direct override must still win.
+    {
+        Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator =
+            make_integrator("_precedence_b", "PRECEDENCE_KERNEL");
+        integrator->setJacobianOperatorBuilder(
+            IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<6>{} }));
+        integrator->registerJacobianOperatorBuilder(
+            IBTK::IBKernelTensorProduct("PRECEDENCE_KERNEL"),
+            IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<2>{} }));
+        if (!(integrator->getJacobianOperatorBuilder().getMinimumGhostWidth() ==
+              IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<6>{} }).getMinimumGhostWidth()))
+        {
+            TBOX_ERROR("Failed check: a direct override before a matching registration did not win.\n");
+        }
+    }
+
+    // Caller lifetime: the registered evaluator can leave scope once registration
+    // returns, since the integrator owns a copy of the builder.
+    {
+        Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = make_integrator("_lifetime", "LIFETIME_KERNEL");
+        const int expected_ghost_width = static_cast<int>(WIDE_TENT_WIDTH / 2 + 1);
+        {
+            TentKernel<WIDE_TENT_WIDTH> local_kernel;
+            integrator->registerJacobianOperatorBuilder(
+                IBTK::IBKernelTensorProduct("LIFETIME_KERNEL"),
+                IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ local_kernel }));
+            // local_kernel is destroyed at the end of this block.
+        }
+        if (integrator->getJacobianOperatorBuilder().getMinimumGhostWidth() != expected_ghost_width)
+        {
+            TBOX_ERROR("Failed check: a registered builder did not survive its evaluator's scope.\n");
+        }
+    }
+}
 } // namespace
 
 int
@@ -493,6 +665,7 @@ main(int argc, char* argv[])
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "IB.log");
     const std::string input_file = argc > 1 ? argv[1] : "";
 
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Logger::Appender> abort_appender = new TestAppender();
     SAMRAI::tbox::Logger::getInstance()->setAbortAppender(abort_appender);
 
@@ -524,6 +697,19 @@ main(int argc, char* argv[])
                     /*trigger_bad_accessor_time*/ true);
         return 0;
     }
+    for (const char* kind :
+         { "register_after_init", "register_built_in", "register_duplicate", "unregistered_second_integrator" })
+    {
+        if (input_file.find(kind) != std::string::npos)
+        {
+            SAMRAI::tbox::PIO::logOnlyNodeZero("output");
+            const std::string kind_str(kind);
+            try_bad_registration(app, kind_str.substr(kind_str.find("register_") == 0 ? 9 : 0));
+            return 0;
+        }
+    }
+
+    check_registration_semantics(app);
 
     // Built-in kernels beyond the ones with independent weights below.
     int names_accepted = 0;
