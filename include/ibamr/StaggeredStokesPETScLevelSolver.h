@@ -71,10 +71,14 @@ class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public St
 public:
     /*!
      * \brief Constructor.
+     *
+     * The input key subdomain_solver can also select any of subdomain_solver_factories, which is documented
+     * in IBTK::PETScLevelSolver.
      */
     StaggeredStokesPETScLevelSolver(const std::string& object_name,
                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                    const std::string& default_options_prefix);
+                                    const std::string& default_options_prefix,
+                                    const SubdomainSolverFactories& subdomain_solver_factories = {});
 
     /*!
      * \brief Destructor.

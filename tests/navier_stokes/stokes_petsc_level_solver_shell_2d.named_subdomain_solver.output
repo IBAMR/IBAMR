@@ -1,0 +1,11 @@
+action_norm = 0.148816957066
+error = 0
+repeated_error = 0
+action_norm = 0.148816957066
+error = 0
+repeated_error = 0
+subdomain solver initializations = 3
+subdomain solver deallocations = 3
+subdomain solver calls = 4
+subdomain solver subdomain solves = 16
+subdomain solver contract violations = 0

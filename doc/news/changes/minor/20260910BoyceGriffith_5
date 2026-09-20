@@ -1,0 +1,3 @@
+New: PETScLevelSolver accepts subdomain_solver = "blas-lapack", and a derived class or its user can supply PETScLevelSolver::SubdomainSolverFactories so that subdomain_solver also selects an application-defined subdomain solver by name.
+<br>
+(Boyce Griffith, 2026/09/10)

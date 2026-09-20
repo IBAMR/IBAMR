@@ -26,6 +26,7 @@
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+#include <ibamr/StaggeredStokesSolverManager.h>
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/AppInitializer.h>
@@ -75,6 +76,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <deque>
 #include <iomanip>
 #include <limits>
 #include <map>
@@ -2670,6 +2672,88 @@ run_foundation(Pointer<AppInitializer> app_initializer)
 
     return 0;
 }
+
+// Counts the use of one application subdomain solver, which the factory below creates for each level solver.
+struct NamedSubdomainSolverCounters
+{
+    int initializations = 0, deallocations = 0, solves = 0;
+};
+
+std::deque<NamedSubdomainSolverCounters> named_subdomain_solver_counters;
+
+// Applies the built-in subdomain solver and counts its use.
+class CountingSubdomainSolver
+{
+public:
+    explicit CountingSubdomainSolver(NamedSubdomainSolverCounters& counters) : d_counters(counters)
+    {
+    }
+    void initializeSolverState(const std::vector<Mat>& matrices,
+                               const std::vector<IS>& subdomains,
+                               const std::string& options_prefix)
+    {
+        ++d_counters.initializations;
+        d_petsc_solver.initializeSolverState(matrices, subdomains, options_prefix);
+    }
+    void deallocateSolverState()
+    {
+        ++d_counters.deallocations;
+        d_petsc_solver.deallocateSolverState();
+    }
+    void solve(const std::size_t first, const std::size_t last, Vec b, Vec x)
+    {
+        d_counters.solves += static_cast<int>(last - first);
+        d_petsc_solver.solve(first, last, b, x);
+    }
+
+private:
+    NamedSubdomainSolverCounters& d_counters;
+    PETScLevelSolverSubdomainSolver d_petsc_solver = make_petsc_subdomain_solver();
+};
+
+// A level solver factory for StaggeredStokesSolverManager, which the FAC operator uses for its level and coarse
+// solvers when level_solver_type and coarse_solver_type name it. The input key subdomain_solver = "COUNTING" then
+// selects the application subdomain solver, and each level solver gets an independent one.
+Pointer<StaggeredStokesSolver>
+allocate_counting_level_solver(const std::string& object_name,
+                               Pointer<Database> input_db,
+                               const std::string& default_options_prefix)
+{
+    return new StaggeredStokesPETScLevelSolver(object_name,
+                                               input_db,
+                                               default_options_prefix,
+                                               { { "COUNTING",
+                                                   [](Pointer<Database>)
+                                                   {
+                                                       named_subdomain_solver_counters.emplace_back();
+                                                       return PETScLevelSolverSubdomainSolver(
+                                                           std::in_place_type<CountingSubdomainSolver>,
+                                                           named_subdomain_solver_counters.back());
+                                                   } } });
+}
+
+// Check that the FAC operator solved with an application subdomain solver on the fine level and on the coarse level,
+// each of its own, and released them. It also creates solvers that it does not apply.
+void
+check_named_subdomain_solvers(Pointer<AppInitializer> app)
+{
+    if (!app->getInputDatabase()->getBoolWithDefault("VERIFY_NAMED_SUBDOMAIN_SOLVERS", false)) return;
+    const int expected = app->getInputDatabase()->getInteger("EXPECTED_NAMED_SUBDOMAIN_SOLVERS");
+    int used = 0;
+    bool valid = true;
+    for (const NamedSubdomainSolverCounters& counters : named_subdomain_solver_counters)
+    {
+        used += counters.solves > 0;
+        valid = valid && counters.initializations == counters.deallocations;
+    }
+    valid = valid && used == expected;
+    pout << "named_subdomain_solvers_valid = " << (valid ? "true" : "false") << std::endl;
+    if (!valid)
+    {
+        TBOX_ERROR("The FAC operator did not use an application subdomain solver on each of its " << expected
+                                                                                                  << " levels.\n");
+    }
+}
 } // namespace
 
 int
@@ -2678,10 +2762,14 @@ main(int argc, char* argv[])
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
     Logger::getInstance()->setWarning(false);
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "components.log");
+    StaggeredStokesSolverManager::getManager()->registerSolverFactoryFunction("COUNTING_LEVEL_SOLVER",
+                                                                              allocate_counting_level_solver);
     const std::string test_case = app->getInputDatabase()->getString("test_case");
     if (test_case == "foundation")
     {
-        return run_foundation(app);
+        const int status = run_foundation(app);
+        check_named_subdomain_solvers(app);
+        return status;
     }
     if (test_case == "foundation_coarse_solver" || test_case == "foundation_time_stepping_initialized")
     {

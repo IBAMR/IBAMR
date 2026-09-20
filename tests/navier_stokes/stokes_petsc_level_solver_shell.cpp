@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <deque>
 #include <iomanip>
 #include <memory>
 #include <set>
@@ -365,9 +366,22 @@ main(int argc, char* argv[])
     const bool null_subdomain_solver = test->getBoolWithDefault("null_subdomain_solver", false);
     const bool subdomain_solver_unused = test->getBoolWithDefault("subdomain_solver_unused", false);
     const bool replace_initialized = test->getBoolWithDefault("replace_initialized", false);
+    const bool named_subdomain_solver = test->getBoolWithDefault("named_subdomain_solver", false);
     const bool uneven_subdomains = test->getBoolWithDefault("uneven_subdomains", false);
     const std::string shell_type = test->getString("shell_pc_type");
+    const std::string subdomain_solver_type = test->getStringWithDefault("subdomain_solver", "petsc");
     const bool multiplicative = shell_type == "multiplicative";
+    const bool diagonal_operator = test->getBoolWithDefault("diagonal_operator", false);
+    const double small_diagonal = test->getDoubleWithDefault("small_diagonal", 1.0e-12);
+    // "rank_one", "upper" or "symmetric" supplies a dense operator times operator_scale.
+    const std::string dense_operator = test->getStringWithDefault("dense_operator", "");
+    const double operator_scale = test->getDoubleWithDefault("operator_scale", 1.0);
+    const bool supplied_operator = diagonal_operator || !dense_operator.empty();
+    const bool all_blas_modes = test->getBoolWithDefault("all_blas_modes", false);
+    const std::vector<std::string> solver_types =
+        all_blas_modes ?
+            std::vector<std::string>{ "", "svd", "lu", "symmetric-indefinite", "qr" } :
+            std::vector<std::string>{ test->getStringWithDefault("blas_lapack_subdomain_solver_type", "") };
     const auto hierarchy_data = setup_hierarchy<NDIM>(app);
     Pointer<PatchHierarchy<NDIM>> hierarchy = std::get<0>(hierarchy_data);
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
@@ -425,230 +439,365 @@ main(int argc, char* argv[])
     db->putString("ksp_type", "preonly");
     db->putString("pc_type", test->getStringWithDefault("pc_type", "shell"));
     db->putString("shell_pc_type", shell_type);
+    db->putString("subdomain_solver", subdomain_solver_type);
     db->putBool("initial_guess_nonzero", false);
     db->putBool("check_subdomain_coverage", true);
     db->putInteger("max_iterations", 1);
     int box_size[NDIM];
     std::fill_n(box_size, NDIM, 4);
     db->putIntegerArray("subdomain_box_size", box_size, NDIM);
-    // The level solver owns its subdomain solver, so the counters must outlive it.
-    SubdomainSolverCounters application_counters, replacement_counters;
-    SubdomainSolverCounters* counts = nullptr;
-    CommunicationProbe solver("shell_solver", db, "shell_");
-    PoissonSpecifications coefficients("coefficients");
-    coefficients.setCConstant(1.0);
-    coefficients.setDConstant(-1.0);
-    solver.break_partition = test->getBoolWithDefault("break_partition", false);
-    solver.setVelocityPoissonSpecifications(coefficients);
-    solver.setComponentsHaveNullSpace(false, true);
-    if (application_subdomain_solver)
+    // A named application subdomain solver, selected by the subdomain_solver key. Each call of the factory
+    // creates an independent solver with counters of its own.
+    std::deque<SubdomainSolverCounters> factory_counters;
+    PETScLevelSolver::SubdomainSolverFactories factories;
+    if (named_subdomain_solver)
     {
-        PETScLevelSolverSubdomainSolver subdomain_solver(std::in_place_type<ScaledCountingSubdomainSolver>,
-                                                         application_counters);
-        counts = &application_counters;
-        // Moving a handle transfers the implementation, which is constructed once and never moved.
-        PETScLevelSolverSubdomainSolver installed(std::move(subdomain_solver));
-        if (subdomain_solver || !installed || application_counters.constructions != 1)
-        {
-            TBOX_ERROR("Failed check: moving a subdomain solver did not transfer ownership.\n");
-        }
-        solver.setSubdomainSolver(std::move(installed));
-    }
-    if (null_subdomain_solver)
-    {
-        // A handle that has been moved from is empty.
-        PETScLevelSolverSubdomainSolver spent = make_petsc_subdomain_solver();
-        PETScLevelSolverSubdomainSolver taken(std::move(spent));
-        solver.setSubdomainSolver(std::move(spent));
-        return 0;
-    }
-    solver.initializeSolverState(x, b);
-    if (test->getBoolWithDefault("report_communication", false))
-    {
-        plog << "restriction communicates = " << solver.restrictionCommunicates() << '\n';
-    }
-    if (replace_initialized)
-    {
-        solver.setSubdomainSolver(
-            PETScLevelSolverSubdomainSolver(std::in_place_type<ScaledCountingSubdomainSolver>, replacement_counters));
-        return 0;
-    }
-    if (subdomain_solver_unused)
-    {
-        // The subdomain solver is initialized only for a shell preconditioner.
-        x.setToScalar(0.0);
-        if (!solver.solveSystem(x, b))
-        {
-            TBOX_ERROR("Failed check: solver.solveSystem(x, b).\n");
-        }
-        solver.deallocateSolverState();
-        plog << "subdomain solver initializations = " << counts->initializations
-             << "\nsubdomain solver deallocations = " << counts->deallocations
-             << "\nsubdomain solver calls = " << counts->calls << '\n';
-        if (counts->initializations != 0 || counts->deallocations != 0 || counts->calls != 0)
-        {
-            TBOX_ERROR("The subdomain solver was used although the preconditioner is not a shell.\n");
-        }
-        return 0;
-    }
-    Mat supplied = nullptr;
-    if (lifetime)
-    {
-        Mat assembled = nullptr;
-        ierr = KSPGetOperators(solver.getPETScKSP(), &assembled, nullptr);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatDuplicate(assembled, MAT_COPY_VALUES, &supplied);
-        IBTK_CHKERRQ(ierr);
-        solver.deallocateSolverState();
-        solver.setOperatorMat(supplied);
-        solver.setOperatorMat(supplied);
-        solver.initializeSolverState(x, b);
+        factories.emplace_back(test->getStringWithDefault("factory_name", "application"),
+                               [&factory_counters](Pointer<Database>)
+                               {
+                                   factory_counters.emplace_back();
+                                   return PETScLevelSolverSubdomainSolver(
+                                       std::in_place_type<ScaledCountingSubdomainSolver>, factory_counters.back());
+                               });
     }
     plog << std::setprecision(12);
-    // An application subdomain solver is also replaced by another one after the cycles.
-    const int reinitialization_cycles = lifetime ? 2 : 1;
-    SubdomainSolverCounters original_counters;
-    for (int cycle = 0; cycle < reinitialization_cycles + (counts ? 1 : 0); ++cycle)
+    for (const std::string& solver_type : solver_types)
     {
-        const bool replacement = cycle == reinitialization_cycles;
-        const char* const label = replacement ? "replacement " : "";
-        if (replacement)
+        if (!solver_type.empty())
         {
-            original_counters = *counts;
-            PETScLevelSolverSubdomainSolver replaced(std::in_place_type<ScaledCountingSubdomainSolver>,
-                                                     replacement_counters);
-            solver.setSubdomainSolver(std::move(replaced));
-            if (replaced)
+            db->putString("blas_lapack_subdomain_solver_type", solver_type);
+        }
+        if (test->keyExists("blas_lapack_subdomain_solver_rcond"))
+        {
+            db->putDouble("blas_lapack_subdomain_solver_rcond", test->getDouble("blas_lapack_subdomain_solver_rcond"));
+        }
+        // The level solver owns its subdomain solver, so the counters must outlive it.
+        SubdomainSolverCounters application_counters, replacement_counters;
+        CommunicationProbe solver("shell_solver", db, "shell_", factories);
+        PoissonSpecifications coefficients("coefficients");
+        coefficients.setCConstant(1.0);
+        coefficients.setDConstant(-1.0);
+        solver.break_partition = test->getBoolWithDefault("break_partition", false);
+        solver.setVelocityPoissonSpecifications(coefficients);
+        solver.setComponentsHaveNullSpace(false, !supplied_operator);
+        SubdomainSolverCounters* counts = nullptr;
+        if (named_subdomain_solver)
+        {
+            counts = &factory_counters.back();
+            // The factory runs once for each level solver, not once for each initialization, and another
+            // level solver has an independent subdomain solver.
+            CommunicationProbe other_solver("other_shell_solver", db, "shell_", factories);
+            if (factory_counters.size() != 2 || counts == &factory_counters.back())
             {
-                TBOX_ERROR("Failed check: replacing a subdomain solver did not transfer ownership.\n");
+                TBOX_ERROR("Failed check: each level solver needs its own subdomain solver from the factory.\n");
             }
+        }
+        if (application_subdomain_solver)
+        {
+            PETScLevelSolverSubdomainSolver subdomain_solver(std::in_place_type<ScaledCountingSubdomainSolver>,
+                                                             application_counters);
+            counts = &application_counters;
+            // Moving a handle transfers the implementation, which is constructed once and never moved.
+            PETScLevelSolverSubdomainSolver installed(std::move(subdomain_solver));
+            if (subdomain_solver || !installed || application_counters.constructions != 1)
+            {
+                TBOX_ERROR("Failed check: moving a subdomain solver did not transfer ownership.\n");
+            }
+            solver.setSubdomainSolver(std::move(installed));
+        }
+        if (null_subdomain_solver)
+        {
+            // A handle that has been moved from is empty.
+            PETScLevelSolverSubdomainSolver spent = make_petsc_subdomain_solver();
+            PETScLevelSolverSubdomainSolver taken(std::move(spent));
+            solver.setSubdomainSolver(std::move(spent));
+            return 0;
+        }
+        Mat supplied = nullptr;
+        if (diagonal_operator)
+        {
+            // The operator is diagonal, with 2 on even rows and small_diagonal on odd rows. For the SVD
+            // solver, the expected action is that of its truncated pseudoinverse: entries below the
+            // requested cutoff contribute zero, and the others divide by two.
+            PetscInt n = 0;
+            ierr = VecGetSize(rhs, &n);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, n, n, 1, nullptr, &supplied);
+            IBTK_CHKERRQ(ierr);
+            for (PetscInt j = 0; j < n; ++j)
+            {
+                ierr = MatSetValue(supplied, j, j, j % 2 == 0 ? 2.0 : small_diagonal, INSERT_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = MatAssemblyBegin(supplied, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(supplied, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            solver.setOperatorMat(supplied);
+        }
+        else if (!dense_operator.empty())
+        {
+            // Every principal submatrix of "rank_one" has rank one, of "upper" is nonsymmetric with
+            // relative asymmetry of order one, and of "symmetric" is symmetric positive definite.
+            PetscInt n = 0;
+            ierr = VecGetSize(rhs, &n);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatCreateSeqDense(PETSC_COMM_SELF, n, n, nullptr, &supplied);
+            IBTK_CHKERRQ(ierr);
+            for (PetscInt i = 0; i < n; ++i)
+            {
+                for (PetscInt j = 0; j < n; ++j)
+                {
+                    double value = 0.0;
+                    if (dense_operator == "rank_one")
+                    {
+                        value = (1.0 + i % 3) * (1.0 + j % 3);
+                    }
+                    else if (dense_operator == "upper")
+                    {
+                        value = i <= j ? 1.0 : 0.0;
+                    }
+                    else
+                    {
+                        value = i == j ? 2.0 : 1.0;
+                    }
+                    ierr = MatSetValue(supplied, i, j, operator_scale * value, INSERT_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+            ierr = MatAssemblyBegin(supplied, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(supplied, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            solver.setOperatorMat(supplied);
+        }
+        solver.initializeSolverState(x, b);
+        if (test->getBoolWithDefault("report_communication", false))
+        {
+            plog << "restriction communicates = " << solver.restrictionCommunicates() << '\n';
+        }
+        if (replace_initialized)
+        {
+            SubdomainSolverCounters replacement_counters;
+            solver.setSubdomainSolver(PETScLevelSolverSubdomainSolver(std::in_place_type<ScaledCountingSubdomainSolver>,
+                                                                      replacement_counters));
+            return 0;
+        }
+        if (subdomain_solver_unused)
+        {
+            // The subdomain solver is initialized only for a shell preconditioner.
+            x.setToScalar(0.0);
+            if (!solver.solveSystem(x, b))
+            {
+                TBOX_ERROR("Failed check: solver.solveSystem(x, b).\n");
+            }
+            solver.deallocateSolverState();
+            plog << "subdomain solver initializations = " << counts->initializations
+                 << "\nsubdomain solver deallocations = " << counts->deallocations
+                 << "\nsubdomain solver calls = " << counts->calls << '\n';
+            if (counts->initializations != 0 || counts->deallocations != 0 || counts->calls != 0)
+            {
+                TBOX_ERROR("The subdomain solver was used although the preconditioner is not a shell.\n");
+            }
+            return 0;
+        }
+        if (lifetime && !diagonal_operator)
+        {
+            Mat assembled = nullptr;
+            ierr = KSPGetOperators(solver.getPETScKSP(), &assembled, nullptr);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDuplicate(assembled, MAT_COPY_VALUES, &supplied);
+            IBTK_CHKERRQ(ierr);
+            solver.deallocateSolverState();
+            solver.setOperatorMat(supplied);
+            solver.setOperatorMat(supplied);
             solver.initializeSolverState(x, b);
         }
-        Mat mat = nullptr;
-        PC pc = nullptr;
-        ierr = KSPGetOperators(solver.getPETScKSP(), &mat, nullptr);
-        IBTK_CHKERRQ(ierr);
-        ierr = KSPGetPC(solver.getPETScKSP(), &pc);
-        IBTK_CHKERRQ(ierr);
-        PCType pc_type = nullptr;
-        ierr = PCGetType(pc, &pc_type);
-        IBTK_CHKERRQ(ierr);
-        if (std::string(pc_type) != "shell" || (lifetime && mat != supplied))
+        if (all_blas_modes)
         {
-            TBOX_ERROR("Failed check: std::string(pc_type) != 'shell' || (lifetime && mat != supplied).\n");
+            plog << "solver_type = " << (solver_type.empty() ? "default" : solver_type) << '\n';
         }
-        std::vector<IS>* overlap = nullptr;
-        std::vector<IS>* partition = nullptr;
-        solver.getASMSubdomains(&partition, &overlap);
-        if (IBTK_MPI::getNodes() > 1)
+        // An application subdomain solver is also replaced by another one after the cycles.
+        const int reinitialization_cycles = lifetime ? 2 : 1;
+        SubdomainSolverCounters original_counters;
+        for (int cycle = 0; cycle < reinitialization_cycles + (application_subdomain_solver ? 1 : 0); ++cycle)
         {
-            // Ranks with different numbers of subdomains must still all take part in the collective scatters.
-            const int local_count = static_cast<int>(overlap->size());
-            const int min_count = IBTK_MPI::minReduction(local_count);
-            const int max_count = IBTK_MPI::maxReduction(local_count);
-            plog << "local subdomains: min = " << min_count << ", max = " << max_count << '\n';
-            if (uneven_subdomains && min_count == max_count)
+            const bool replacement = cycle == reinitialization_cycles;
+            const char* const label = replacement ? "replacement " : "";
+            if (replacement)
             {
-                TBOX_ERROR("Failed check: uneven_subdomains && min_count == max_count.\n");
+                original_counters = *counts;
+                PETScLevelSolverSubdomainSolver replaced(std::in_place_type<ScaledCountingSubdomainSolver>,
+                                                         replacement_counters);
+                solver.setSubdomainSolver(std::move(replaced));
+                if (replaced)
+                {
+                    TBOX_ERROR("Failed check: replacing a subdomain solver did not transfer ownership.\n");
+                }
+                solver.initializeSolverState(x, b);
             }
-        }
-        // The supplied subdomain solver, not the built-in one, determines the action.
-        reference_action(
-            mat, rhs, expected, *overlap, *partition, multiplicative, counts ? SUBDOMAIN_SOLVER_SCALE : 1.0);
-        // Left-preconditioned PETSc KSP removes the operator nullspace after PCApply.
-        MatNullSpace nullspace = nullptr;
-        ierr = MatGetNullSpace(mat, &nullspace);
-        IBTK_CHKERRQ(ierr);
-        if (nullspace)
-        {
-            ierr = MatNullSpaceRemove(nullspace, expected);
+            Mat mat = nullptr;
+            PC pc = nullptr;
+            ierr = KSPGetOperators(solver.getPETScKSP(), &mat, nullptr);
             IBTK_CHKERRQ(ierr);
-        }
-        x.setToScalar(0.0);
-        if (!solver.solveSystem(x, b))
-        {
-            TBOX_ERROR("Failed check: !solver.solveSystem(x, b).\n");
-        }
-        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
-        const double action_norm = norm_inf(actual);
-        ierr = VecAXPY(actual, -1.0, expected);
-        IBTK_CHKERRQ(ierr);
-        const double error = norm_inf(actual);
-        if (!std::isfinite(error) || error > 1.0e-9 || action_norm <= 0.0)
-        {
-            TBOX_ERROR("Failed check: !std::isfinite(error) || error > 1.0e-9 || action_norm <= 0.0.\n");
-        }
-        plog << label << "action_norm = " << action_norm << '\n' << label << "error = " << error << '\n';
-        if (lifetime)
-        {
+            ierr = KSPGetPC(solver.getPETScKSP(), &pc);
+            IBTK_CHKERRQ(ierr);
+            PCType pc_type = nullptr;
+            ierr = PCGetType(pc, &pc_type);
+            IBTK_CHKERRQ(ierr);
+            if (std::string(pc_type) != "shell" || (lifetime && mat != supplied))
+            {
+                TBOX_ERROR("Failed check: std::string(pc_type) != 'shell' || (lifetime && mat != supplied).\n");
+            }
+            if (diagonal_operator)
+            {
+                const PetscScalar* rhs_values = nullptr;
+                PetscScalar* expected_values = nullptr;
+                PetscInt n = 0;
+                ierr = VecGetSize(rhs, &n);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecGetArrayRead(rhs, &rhs_values);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(expected, &expected_values);
+                IBTK_CHKERRQ(ierr);
+                for (PetscInt j = 0; j < n; ++j)
+                {
+                    expected_values[j] = j % 2 == 0 ? rhs_values[j] / (cycle == 0 ? 2.0 : 4.0) : 0.0;
+                }
+                ierr = VecRestoreArray(expected, &expected_values);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArrayRead(rhs, &rhs_values);
+                IBTK_CHKERRQ(ierr);
+            }
+            else
+            {
+                std::vector<IS>* overlap = nullptr;
+                std::vector<IS>* partition = nullptr;
+                solver.getASMSubdomains(&partition, &overlap);
+                if (IBTK_MPI::getNodes() > 1)
+                {
+                    // Ranks with different numbers of subdomains must still all take part in the collective scatters.
+                    const int local_count = static_cast<int>(overlap->size());
+                    const int min_count = IBTK_MPI::minReduction(local_count);
+                    const int max_count = IBTK_MPI::maxReduction(local_count);
+                    plog << "local subdomains: min = " << min_count << ", max = " << max_count << '\n';
+                    if (uneven_subdomains && min_count == max_count)
+                    {
+                        TBOX_ERROR("Failed check: uneven_subdomains && min_count == max_count.\n");
+                    }
+                }
+                // The supplied subdomain solver, not the built-in one, determines the action.
+                reference_action(
+                    mat, rhs, expected, *overlap, *partition, multiplicative, counts ? SUBDOMAIN_SOLVER_SCALE : 1.0);
+                // Left-preconditioned PETSc KSP removes the operator nullspace after PCApply.
+                MatNullSpace nullspace = nullptr;
+                ierr = MatGetNullSpace(mat, &nullspace);
+                IBTK_CHKERRQ(ierr);
+                if (nullspace)
+                {
+                    ierr = MatNullSpaceRemove(nullspace, expected);
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+            x.setToScalar(0.0);
             if (!solver.solveSystem(x, b))
             {
                 TBOX_ERROR("Failed check: !solver.solveSystem(x, b).\n");
             }
             StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
+            const double action_norm = norm_inf(actual);
             ierr = VecAXPY(actual, -1.0, expected);
             IBTK_CHKERRQ(ierr);
-            const double repeated_error = norm_inf(actual);
-            if (!std::isfinite(repeated_error) || repeated_error > 1.0e-9)
-            {
-                TBOX_ERROR("Failed check: !std::isfinite(repeated_error) || repeated_error > 1.0e-9.\n");
-            }
-            plog << label << "repeated_error = " << repeated_error << '\n';
-        }
-        solver.deallocateSolverState();
-        if (replacement)
-        {
-            // The replaced solver is not used again, and the new one is initialized, used, and released once.
-            if (*counts != original_counters || replacement_counters.constructions != 1 ||
-                replacement_counters.initializations != 1 || replacement_counters.deallocations != 1 ||
-                replacement_counters.calls < 1 || replacement_counters.subdomain_solves < 1 ||
-                replacement_counters.contract_violations != 0)
+            const double error = norm_inf(actual);
+            if (!std::isfinite(error) || error > 1.0e-9 * action_norm || action_norm <= 0.0)
             {
                 TBOX_ERROR(
-                    "Failed check: the replacement subdomain solver was not the only one used after replacement.\n");
+                    "Failed check: !std::isfinite(error) || error > 1.0e-9 * action_norm || action_norm <= 0.0.\n");
+            }
+            plog << label << "action_norm = " << action_norm << '\n'
+                 << label << "error = " << error / action_norm << '\n';
+            if (lifetime)
+            {
+                if (!solver.solveSystem(x, b))
+                {
+                    TBOX_ERROR("Failed check: !solver.solveSystem(x, b).\n");
+                }
+                StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
+                ierr = VecAXPY(actual, -1.0, expected);
+                IBTK_CHKERRQ(ierr);
+                const double repeated_error = norm_inf(actual);
+                if (!std::isfinite(repeated_error) || repeated_error > 1.0e-9)
+                {
+                    TBOX_ERROR("Failed check: !std::isfinite(repeated_error) || repeated_error > 1.0e-9.\n");
+                }
+                plog << label << "repeated_error = " << repeated_error << '\n';
+            }
+            solver.deallocateSolverState();
+            if (replacement)
+            {
+                // The replaced solver is not used again, and the new one is initialized, used, and released once.
+                if (*counts != original_counters || replacement_counters.constructions != 1 ||
+                    replacement_counters.initializations != 1 || replacement_counters.deallocations != 1 ||
+                    replacement_counters.calls < 1 || replacement_counters.subdomain_solves < 1 ||
+                    replacement_counters.contract_violations != 0)
+                {
+                    TBOX_ERROR(
+                        "Failed check: the replacement subdomain solver was not the only one used after "
+                        "replacement.\n");
+                }
+            }
+            if (lifetime)
+            {
+                PetscReal matrix_norm = 0.0;
+                ierr = MatNorm(supplied, NORM_INFINITY, &matrix_norm);
+                IBTK_CHKERRQ(ierr);
+                if (!(matrix_norm > 0.0))
+                {
+                    TBOX_ERROR("Failed check: !(matrix_norm > 0.0).\n");
+                }
+                if (cycle == 0)
+                {
+                    if (subdomain_solver_type == "blas-lapack")
+                    {
+                        ierr = MatScale(supplied, 2.0);
+                        IBTK_CHKERRQ(ierr);
+                    }
+                    solver.initializeSolverState(x, b);
+                }
             }
         }
-        if (lifetime)
+        if (counts)
         {
-            PetscReal matrix_norm = 0.0;
-            ierr = MatNorm(supplied, NORM_INFINITY, &matrix_norm);
-            IBTK_CHKERRQ(ierr);
-            if (!(matrix_norm > 0.0))
+            // The subdomain solver is initialized and released once per solver initialization.
+            plog << "subdomain solver initializations = " << counts->initializations
+                 << "\nsubdomain solver deallocations = " << counts->deallocations
+                 << "\nsubdomain solver calls = " << counts->calls
+                 << "\nsubdomain solver subdomain solves = " << counts->subdomain_solves
+                 << "\nsubdomain solver contract violations = " << counts->contract_violations << '\n';
+            if (counts->contract_violations != 0)
             {
-                TBOX_ERROR("Failed check: !(matrix_norm > 0.0).\n");
+                TBOX_ERROR("The subdomain solver contract was violated " << counts->contract_violations << " times.\n");
             }
-            if (cycle == 0)
+            if (counts->constructions != 1 || counts->calls < 1 || counts->initializations != counts->deallocations)
             {
-                solver.initializeSolverState(x, b);
+                TBOX_ERROR(
+                    "Failed check: the subdomain solver was not constructed once, called, and released as often as "
+                    "initialized.\n");
             }
         }
+        if (named_subdomain_solver &&
+            (factory_counters[1].constructions != 1 || factory_counters[1].initializations != 0))
+        {
+            TBOX_ERROR("Failed check: the other level solver's subdomain solver was used.\n");
+        }
+        ierr = MatDestroy(&supplied);
+        IBTK_CHKERRQ(ierr);
     }
-    ierr = MatDestroy(&supplied);
-    IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&rhs);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&expected);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&actual);
     IBTK_CHKERRQ(ierr);
-    if (counts)
-    {
-        // The subdomain solver is initialized and released once per solver initialization.
-        plog << "subdomain solver initializations = " << counts->initializations
-             << "\nsubdomain solver deallocations = " << counts->deallocations
-             << "\nsubdomain solver calls = " << counts->calls
-             << "\nsubdomain solver subdomain solves = " << counts->subdomain_solves
-             << "\nsubdomain solver contract violations = " << counts->contract_violations << '\n';
-        if (counts->contract_violations != 0)
-        {
-            TBOX_ERROR("The subdomain solver contract was violated " << counts->contract_violations << " times.\n");
-        }
-        if (counts->constructions != 1 || counts->calls < 1 || counts->initializations != counts->deallocations)
-        {
-            TBOX_ERROR(
-                "Failed check: the subdomain solver was not constructed once, called, and released as often as "
-                "initialized.\n");
-        }
-    }
     return 0;
 }

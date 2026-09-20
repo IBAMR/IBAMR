@@ -36,9 +36,11 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace SAMRAI
@@ -77,6 +79,7 @@ namespace IBTK
  subdomain_box_size = 2, 2                 // the size of the ASM subdomains, one entry per direction
  subdomain_overlap_size = 1, 1             // the overlap of the ASM subdomains, one entry per direction
  shell_pc_type = "additive"                // no default; see "Shell preconditioners" below
+ subdomain_solver = "petsc"                // see "Subdomain solvers" below
  check_subdomain_coverage = FALSE          // TRUE by default in debug builds
  \endverbatim
  *
@@ -94,8 +97,9 @@ namespace IBTK
  *
  * <b>Subdomain solvers</b>
  *
- * The subdomain problems are solved with PETSc (see make_petsc_subdomain_solver()), unless
- * setSubdomainSolver() supplies another subdomain solver.
+ * subdomain_solver chooses how each subdomain problem is solved: "petsc" (default) or "blas-lapack";
+ * see make_petsc_subdomain_solver() and make_blas_lapack_subdomain_solver() for their settings.
+ * setSubdomainSolver() or a derived class can supply others.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
@@ -104,6 +108,22 @@ namespace IBTK
 class PETScLevelSolver : public LinearSolver
 {
 public:
+    /*!
+     * \brief A function that creates a subdomain solver, with its settings read from the input database of the
+     * level solver, which may be null.
+     *
+     * The subdomain solver owns whatever it needs after the function returns, or borrows only objects that outlive
+     * it: the factory itself is not retained.
+     */
+    using SubdomainSolverFactory =
+        std::function<PETScLevelSolverSubdomainSolver(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>)>;
+
+    /*!
+     * \brief Names and factories of subdomain solvers that subdomain_solver can select in addition to the built-in
+     * ones. Names are compared without regard to case.
+     */
+    using SubdomainSolverFactories = std::vector<std::pair<std::string, SubdomainSolverFactory>>;
+
     /*!
      * \brief Default constructor.
      */
@@ -262,8 +282,15 @@ public:
 protected:
     /*!
      * \brief Basic initialization.
+     *
+     * Reads the settings from input_db and creates the subdomain solver that subdomain_solver names: a built-in one
+     * or the one of the entry of subdomain_solver_factories with that name. It is an error for a name to be empty, to
+     * be that of a built-in subdomain solver, or to be supplied twice, for a function to be empty or to return an
+     * empty subdomain solver, and for subdomain_solver to name none of these.
      */
-    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
+    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+              const std::string& default_options_prefix,
+              const SubdomainSolverFactories& subdomain_solver_factories = {});
 
     /*!
      * \brief Generate IS/subdomains for Schwarz type preconditioners.
@@ -407,6 +434,8 @@ protected:
     //\}
 
 private:
+    //! The subdomain_solver input.
+    std::string d_subdomain_solver_type = "petsc";
     //! The subdomain solver of the shell preconditioners.
     std::optional<PETScLevelSolverSubdomainSolver> d_subdomain_solver;
     //! Whether d_subdomain_solver is initialized for the current solver state.
