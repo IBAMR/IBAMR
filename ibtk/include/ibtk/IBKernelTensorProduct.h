@@ -41,6 +41,7 @@ namespace IBTK
  * COMPOSITE_BSPLINE_7_8 both denote
  * <code>IBKernelTensorProduct{ IBKernel("BSPLINE_7"), IBKernel("BSPLINE_8") }</code>.
  * Multi-digit orders require the separator, as in COMPOSITE_BSPLINE_12_11.
+ * DISCONTINUOUS_LINEAR is an alias for COMPOSITE_BSPLINE_2_1.
  */
 class IBKernelTensorProduct
 {
