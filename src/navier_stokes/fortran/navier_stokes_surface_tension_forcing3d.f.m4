@@ -143,7 +143,16 @@ c
 c     Local variables.
 c
       INTEGER i0,i1,i2
+      INTEGER grad_gcw
       REAL fac0,fac1,fac2
+
+c     Both arrays need one ghost layer for the tangential interpolation.
+c     Keep their allocated strides and limit work to available input data.
+      if (min(N_gcw,U_gcw).lt.1) then
+         print *,'sc_normal: at least one ghost cell is required'
+         call abort
+      endif
+      grad_gcw = min(N_gcw,U_gcw)
       
       fac0 = 1.d0/(dx(0))
       fac1 = 1.d0/(dx(1))
@@ -154,9 +163,9 @@ c     Find face normal gradients first and then interpolate
 c     face tangential gradients
 
 c     Do N00.
-      do i2 = ilower2 - 2, iupper2 + 2
-        do i1 = ilower1 - 2, iupper1 + 2
-          do i0 = ilower0 - 1, iupper0 + 2
+      do i2 = ilower2 - grad_gcw, iupper2 + grad_gcw
+        do i1 = ilower1 - grad_gcw, iupper1 + grad_gcw
+          do i0 = ilower0 + 1 - grad_gcw, iupper0 + grad_gcw
              
             N00(i0,i1,i2) = fac0*(U(i0,i1,i2) - U(i0-1,i1,i2))
 
@@ -166,9 +175,9 @@ c     Do N00.
 
       
 c     Do N11.
-      do i2 = ilower2 - 2, iupper2 + 2
-        do i1 = ilower1 - 1, iupper1 + 2
-          do i0 = ilower0 - 2, iupper0 + 2
+      do i2 = ilower2 - grad_gcw, iupper2 + grad_gcw
+        do i1 = ilower1 + 1 - grad_gcw, iupper1 + grad_gcw
+          do i0 = ilower0 - grad_gcw, iupper0 + grad_gcw
              
               N11(i0,i1,i2) = fac1*(U(i0,i1,i2) - U(i0,i1-1,i2))
 
@@ -177,9 +186,9 @@ c     Do N11.
       enddo
 
 c     Do N22.
-      do i2 = ilower2 - 1, iupper2 + 2
-        do i1 = ilower1 - 2, iupper1 + 2
-          do i0 = ilower0 - 2, iupper0 + 2
+      do i2 = ilower2 + 1 - grad_gcw, iupper2 + grad_gcw
+        do i1 = ilower1 - grad_gcw, iupper1 + grad_gcw
+          do i0 = ilower0 - grad_gcw, iupper0 + grad_gcw
              
               N22(i0,i1,i2) = fac2*(U(i0,i1,i2) - U(i0,i1,i2-1))
 
@@ -188,9 +197,9 @@ c     Do N22.
       enddo
 
 c     Interpolate N11 to N01
-      do i2 = ilower2 - 1, iupper2 + 1
-        do i1 = ilower1 - 1, iupper1 + 1
-          do i0 = ilower0 - 1, iupper0 + 2
+      do i2 = ilower2 - grad_gcw, iupper2 + grad_gcw
+        do i1 = ilower1 + 1 - grad_gcw, iupper1 + grad_gcw - 1
+          do i0 = ilower0 + 1 - grad_gcw, iupper0 + grad_gcw
              
               N01(i0,i1,i2) = fourth*(N11(i0-1,i1,i2) + N11(i0,i1,i2) + 
      &                         N11(i0-1,i1+1,i2) + N11(i0,i1+1,i2)) 
@@ -199,9 +208,9 @@ c     Interpolate N11 to N01
       enddo
 
 c     Interpolate N22 to N02
-      do i2 = ilower2 - 1, iupper2 + 1
-        do i1 = ilower1 - 1, iupper1 + 1
-          do i0 = ilower0 - 1, iupper0 + 2
+      do i2 = ilower2 + 1 - grad_gcw, iupper2 + grad_gcw - 1
+        do i1 = ilower1 - grad_gcw, iupper1 + grad_gcw
+          do i0 = ilower0 + 1 - grad_gcw, iupper0 + grad_gcw
              
               N02(i0,i1,i2) = fourth*(N22(i0-1,i1,i2) + N22(i0,i1,i2) + 
      &                         N22(i0-1,i1,i2+1) + N22(i0,i1,i2+1)) 
@@ -210,9 +219,9 @@ c     Interpolate N22 to N02
       enddo
 
 c     Interpolate N00 to N10
-      do i2 = ilower2 - 1, iupper2 + 1
-        do i1 = ilower1 - 1, iupper1 + 2
-          do i0 = ilower0 - 1, iupper0 + 1
+      do i2 = ilower2 - grad_gcw, iupper2 + grad_gcw
+        do i1 = ilower1 + 1 - grad_gcw, iupper1 + grad_gcw
+          do i0 = ilower0 + 1 - grad_gcw, iupper0 + grad_gcw - 1
 
               N10(i0,i1,i2) = fourth*(N00(i0,i1,i2) + N00(i0+1,i1,i2) +
      &                         N00(i0,i1-1,i2) + N00(i0+1,i1-1,i2))
@@ -222,9 +231,9 @@ c     Interpolate N00 to N10
       enddo
 
 c     Interpolate N22 to N12
-      do i2 = ilower2 - 1, iupper2 + 1
-        do i1 = ilower1 - 1, iupper1 + 2
-          do i0 = ilower0 - 1, iupper0 + 1
+      do i2 = ilower2 + 1 - grad_gcw, iupper2 + grad_gcw - 1
+        do i1 = ilower1 + 1 - grad_gcw, iupper1 + grad_gcw
+          do i0 = ilower0 - grad_gcw, iupper0 + grad_gcw
 
               N12(i0,i1,i2) = fourth*(N22(i0,i1,i2) + N22(i0,i1,i2+1) +
      &                         N22(i0,i1-1,i2) + N22(i0,i1-1,i2+1))
@@ -234,9 +243,9 @@ c     Interpolate N22 to N12
       enddo
 
 c     Interpolate N00 to N20
-      do i2 = ilower2 - 1, iupper2 + 2
-        do i1 = ilower1 - 1, iupper1 + 1
-          do i0 = ilower0 - 1, iupper0 + 1
+      do i2 = ilower2 + 1 - grad_gcw, iupper2 + grad_gcw
+        do i1 = ilower1 - grad_gcw, iupper1 + grad_gcw
+          do i0 = ilower0 + 1 - grad_gcw, iupper0 + grad_gcw - 1
 
               N20(i0,i1,i2) = fourth*(N00(i0,i1,i2) + N00(i0+1,i1,i2) +
      &                         N00(i0,i1,i2-1) + N00(i0+1,i1,i2-1))
@@ -246,9 +255,9 @@ c     Interpolate N00 to N20
       enddo
 
 c     Interpolate N11 to N21
-      do i2 = ilower2 - 1, iupper2 + 2
-        do i1 = ilower1 - 1, iupper1 + 1
-          do i0 = ilower0 - 1, iupper0 + 1
+      do i2 = ilower2 + 1 - grad_gcw, iupper2 + grad_gcw
+        do i1 = ilower1 + 1 - grad_gcw, iupper1 + grad_gcw - 1
+          do i0 = ilower0 - grad_gcw, iupper0 + grad_gcw
              
               N21(i0,i1,i2) = fourth*(N11(i0,i1,i2-1) + N11(i0,i1,i2) + 
      &                         N11(i0,i1+1,i2-1) + N11(i0,i1+1,i2)) 

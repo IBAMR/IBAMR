@@ -1,0 +1,308 @@
+// constants
+PI = 3.1415926535897932
+
+// parameters
+RHO_L   = 1.0
+RHO_S   = 1.0
+RHO_G   = 0.4
+KAPPA_L = 0.05
+KAPPA_S = 1.0
+KAPPA_G = 61.0e-3
+CP_L    = 1.0
+CP_S    = 1.0
+CP_G    = 1.1e3
+MU_L    = 0.0
+MU_S    = 0.0
+MU_G    = 0.0
+LATENT_HEAT = 0.53
+
+MELT_TEMPERATURE = 1.0
+LIQUID_TEMPERATURE = 1.53
+SOLID_TEMPERATURE = 1.1
+INITIAL_INTERFACE_POSITION = 0.2
+
+MIN_TAG_VAL = 0.3
+MAX_TAG_VAL = 0.8
+
+// grid spacing parameters
+L          = 0.0156
+H          = 1.0
+MAX_LEVELS = 1        // maximum number of levels in locally refined grid
+REF_RATIO  = 4        // refinement ratio between levels
+REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
+
+Nx = 32
+Ny = 2048                                // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
+HFINEST = L/NFINEST
+
+HeavisideInitialConditions{
+  function = "1.0"
+}
+
+TemperatureBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+LiquidFractionBcCoefs {
+  acoef_function_0 = "0.0"
+  acoef_function_1 = "0.0"
+  acoef_function_2 = "0.0"
+  acoef_function_3 = "0.0"
+
+  bcoef_function_0 = "1.0"
+  bcoef_function_1 = "1.0"
+  bcoef_function_2 = "1.0"
+  bcoef_function_3 = "1.0"
+
+  gcoef_function_0 = "0.0"
+  gcoef_function_1 = "0.0"
+  gcoef_function_2 = "0.0"
+  gcoef_function_3 = "0.0"
+}
+
+HeavisideBcCoefs {
+  acoef_function_0 = "0.0"
+  acoef_function_1 = "0.0"
+  acoef_function_2 = "0.0"
+  acoef_function_3 = "0.0"
+
+  bcoef_function_0 = "1.0"
+  bcoef_function_1 = "1.0"
+  bcoef_function_2 = "1.0"
+  bcoef_function_3 = "1.0"
+
+  gcoef_function_0 = "0.0"
+  gcoef_function_1 = "0.0"
+  gcoef_function_2 = "0.0"
+  gcoef_function_3 = "0.0"
+}
+
+ThermalConductivityBcCoefs {
+  acoef_function_0 = "0.0"
+  acoef_function_1 = "0.0"
+  acoef_function_2 = "0.0"
+  acoef_function_3 = "0.0"
+
+  bcoef_function_0 = "1.0"
+  bcoef_function_1 = "1.0"
+  bcoef_function_2 = "1.0"
+  bcoef_function_3 = "1.0"
+
+  gcoef_function_0 = "0.0"
+  gcoef_function_1 = "0.0"
+  gcoef_function_2 = "0.0"
+  gcoef_function_3 = "0.0"
+}
+
+// Simulation Parameters
+SOLVER_TYPE          = "STAGGERED"
+DISCRETIZATION_FORM  = "CONSERVATIVE"
+START_TIME           =   0.0e0     // initial simulation time
+END_TIME             =   0.1   // final simulation time
+GROW_DT              =   2.0e0     // growth factor for timesteps
+MAX_INTEGRATOR_STEPS =   10  // max number of simulation timesteps
+REGRID_INTERVAL      =   1
+CFL_MAX              =   0.5
+NUM_INS_CYCLES       =   1
+CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
+INIT_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"
+CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"    // convective time stepping type
+NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
+TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
+DT_MAX               = 1e-7
+ENABLE_LOGGING       = TRUE
+SOLVE_MASS_CONSERVATION = FALSE
+
+
+// AdvDiff solver parameters
+ADV_DIFF_SOLVER_TYPE        = "SEMI_IMPLICIT"   // the advection-diffusion solver to use
+ADV_DIFF_NUM_CYCLES         = 2                // number of cycles of fixed-point iteration
+ADV_DIFF_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // convective time stepping type
+ADV_DIFF_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
+ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
+
+TEMPERATURE_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // "FORWARD_EULER" // convective time stepping type
+TEMPERATURE_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
+TEMPERATURE_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
+TEMPERATURE_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the diffusion terms
+K_VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
+
+LIQUID_FRACTION_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // "FORWARD_EULER" // convective time stepping type
+LIQUID_FRACTION_CONVECTIVE_OP_TYPE = "CUI_CONSERVATIVE"             // convective differencing discretization type
+LIQUID_FRACTION_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
+LIQUID_FRACTION_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the diffusion terms
+INTERPOLATION_FUNCTION_PROFILE       = "QUARTIC"
+
+// Allen-Cahn parameters
+A_LF           = 0.0625
+NU_LF          = 1.0
+ZETA_LF        = 2e-3
+M_LF           = 1.0 / (NU_LF * ZETA_LF * ZETA_LF * LATENT_HEAT)
+LAMBDA_LF      = 1.0 / (NU_LF * M_LF)
+EPS_LF         = sqrt(2.0 * A_LF) * ZETA_LF
+SOLVE_ENERGY   = TRUE
+
+AllenCahnHierarchyIntegrator {
+   start_time                       = START_TIME
+   end_time                         = END_TIME
+   grow_dt                          = GROW_DT
+   num_cycles                       = ADV_DIFF_NUM_CYCLES
+   convective_time_stepping_type    = ADV_DIFF_CONVECTIVE_TS_TYPE
+   convective_op_type               = ADV_DIFF_CONVECTIVE_OP_TYPE
+   convective_difference_form       = ADV_DIFF_CONVECTIVE_FORM
+   T_diffusion_time_stepping_type   = TEMPERATURE_DIFFUSION_TS_TYPE
+   T_convective_time_stepping_type  = TEMPERATURE_CONVECTIVE_TS_TYPE
+   T_convective_op_type             = TEMPERATURE_CONVECTIVE_OP_TYPE
+   T_convective_difference_form     = TEMPERATURE_CONVECTIVE_FORM
+   lf_diffusion_time_stepping_type  = LIQUID_FRACTION_DIFFUSION_TS_TYPE
+   lf_convective_time_stepping_type = LIQUID_FRACTION_CONVECTIVE_TS_TYPE
+   lf_convective_op_type            = LIQUID_FRACTION_CONVECTIVE_OP_TYPE
+   lf_convective_difference_form    = LIQUID_FRACTION_CONVECTIVE_FORM
+   cfl                              = CFL_MAX
+   dt_max                           = DT_MAX
+   tag_buffer                       = TAG_BUFFER
+   enable_logging                   = ENABLE_LOGGING
+   max_integrator_steps             = MAX_INTEGRATOR_STEPS
+   regrid_interval                  = REGRID_INTERVAL
+   latent_heat                      = LATENT_HEAT
+   rho_liquid                       = RHO_L
+   rho_solid                        = RHO_S
+   specific_heat_liquid             = CP_L
+   specific_heat_solid              = CP_S
+   specific_heat_gas                = CP_L // there is no gas region in this example. So this won't be used.
+   T_melt                           = MELT_TEMPERATURE
+   mobility_lf                      = M_LF
+   mixing_energy_density_lf         = LAMBDA_LF
+   interface_thickness_lf           = EPS_LF
+   solve_mass_conservation          = SOLVE_MASS_CONSERVATION
+   solve_energy                     = SOLVE_ENERGY
+   k_vc_interpolation_type          = K_VC_INTERPOLATION_TYPE
+   interpolation_function_profile   = INTERPOLATION_FUNCTION_PROFILE
+
+
+      T_solver_type = "PETSC_KRYLOV_SOLVER"
+      T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+      T_solver_db
+      {
+        ksp_type             = "fgmres"
+        rel_residual_tol     = 1.0e-12
+        max_iterations       = 1000
+      }
+
+      T_precond_db
+      {
+          num_pre_sweeps  = 0
+          num_post_sweeps = 3
+          prolongation_method = "LINEAR_REFINE"
+          restriction_method  = "CONSERVATIVE_COARSEN"
+          coarse_solver_type = "PETSC_LEVEL_SOLVER"
+          coarse_solver_rel_residual_tol = 1.0e-12
+          coarse_solver_abs_residual_tol = 1.0e-50
+          coarse_solver_max_iterations = 100
+          coarse_solver_db {
+             ksp_type = "gmres"
+             pc_type = "jacobi"
+          }
+      }
+}
+
+Main {
+   solver_type = SOLVER_TYPE
+   adv_diff_solver_type = ADV_DIFF_SOLVER_TYPE
+   discretization_form  = DISCRETIZATION_FORM
+
+// log file parameters
+   log_file_name               = "stefan_problem_ac.log"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 100
+   viz_dump_dirname            = "viz_stefan_problem_ac_2d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_stefan_problem_ac_2d"
+
+// timer dump parameters
+   timer_dump_interval         = 0
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0) , ( Nx - 1, Ny - 1) ]
+   x_lo         =   0,   0           // lower end of computational domain.
+   x_up         =   L,   H         // upper end of computational domain.
+   periodic_dimension = 1,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO
+   }
+
+   largest_patch_size {
+      level_0 = 2048, 2048 // largest patch allowed in hierarchy
+                          // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =  4, 4 // smallest patch allowed in hierarchy
+                            // all finer levels will use same values as level_0...
+   }
+
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+   efficiency_tolerance   = 0.80e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.80e0    // chop box if sum of volumes of smaller
+                                      // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+   RefineBoxes {
+      level_0 = [( 0 , 0 ),( Nx - 1 , Ny - 1 )]
+      level_1 = [( 0 , 0 ),( 2*Nx - 1 , 2*Ny - 1 )]
+      level_2 = [( 0 , 0 ),( 4*Nx - 1 , 4*Ny - 1 )]
+      level_3 = [( 0 , 0 ),( 8*Nx - 1 , 8*Ny - 1 )]
+      level_4 = [( 0 , 0 ),( 16*Nx - 1 , 16*Ny - 1 )]
+      level_5 = [( 0 , 0 ),( 32*Nx - 1 , 32*Ny - 1 )]
+      level_6 = [( 0 , 0 ),( 64*Nx - 1 , 64*Ny - 1 )]
+      level_7 = [( 0 , 0 ),( 128*Nx - 1 , 128*Ny - 1 )]
+      level_8 = [( 0 , 0 ),( 256*Nx - 1 , 256*Ny - 1 )]
+      level_9 = [( 0 , 0 ),( 512*Nx - 1 , 512*Ny - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 0.1
+
+   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+}
