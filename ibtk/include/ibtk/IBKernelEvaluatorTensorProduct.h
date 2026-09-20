@@ -22,6 +22,16 @@
 
 namespace IBTK
 {
+namespace detail
+{
+/*! \brief The requirements of IBKernelEvaluatorTensorProduct::evaluate(). */
+template <class Product, class NormalEvaluator, class TransverseEvaluator, int Axis, class Output, class Input>
+concept IBKernelTensorProductEvaluable =
+    Axis >= 0 && Axis < NDIM && IBKernelWritableWeights<Output, ib_kernel_stencil_size<Product, Axis>()> &&
+    IBKernelEvaluatorScalar<NormalEvaluator, Input, ib_kernel_weights_value_t<Output>> &&
+    IBKernelEvaluatorScalar<TransverseEvaluator, Input, ib_kernel_weights_value_t<Output>>;
+} // namespace detail
+
 /*!
  * \brief Tensor product of one-dimensional IB kernel evaluators.
  *
@@ -60,12 +70,13 @@ public:
      * r[d].
      */
     template <int Axis, IBKernelWeights Output, std::floating_point Input>
-    requires(Axis >= 0 && Axis < NDIM &&
-             detail::IBKernelWritableWeights<Output,
-                                             detail::ib_kernel_stencil_size<IBKernelEvaluatorTensorProduct, Axis>()> &&
-             IBKernelEvaluatorScalar<NormalEvaluator, Input, ib_kernel_weights_value_t<Output>> &&
-             IBKernelEvaluatorScalar<TransverseEvaluator, Input, ib_kernel_weights_value_t<Output>>) Output
-        evaluate(const std::array<Input, NDIM>& r) const;
+    requires detail::IBKernelTensorProductEvaluable<IBKernelEvaluatorTensorProduct,
+                                                    NormalEvaluator,
+                                                    TransverseEvaluator,
+                                                    Axis,
+                                                    Output,
+                                                    Input>
+        Output evaluate(const std::array<Input, NDIM>& r) const;
 
 private:
     /*! \brief Evaluate the one-dimensional factor for coordinate Direction. */

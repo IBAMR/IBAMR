@@ -42,44 +42,8 @@ using IBTK::IBKernelTensorProduct;
 
 bool ib_kernel_static_initialization_valid();
 
-struct MissingExtentWeights
-{
-    float operator[](std::size_t) const;
-};
-
-struct RuntimeExtentWeights
-{
-    float operator[](std::size_t) const;
-};
-
-struct FractionalExtentWeights
-{
-    float operator[](std::size_t) const;
-};
-
-template <>
-struct IBTK::IBKernelWeightsTraits<MissingExtentWeights>
-{
-    using value_type = float;
-};
-
-template <>
-struct IBTK::IBKernelWeightsTraits<RuntimeExtentWeights>
-{
-    using value_type = float;
-    static std::size_t extent;
-};
-
-template <>
-struct IBTK::IBKernelWeightsTraits<FractionalExtentWeights>
-{
-    using value_type = float;
-    static constexpr double extent = 2.5;
-};
-
-static_assert(!IBTK::IBKernelWeights<MissingExtentWeights>);
-static_assert(!IBTK::IBKernelWeights<RuntimeExtentWeights>);
-static_assert(!IBTK::IBKernelWeights<FractionalExtentWeights>);
+static_assert(!IBTK::IBKernelWeights<float>);
+static_assert(!IBTK::IBKernelWeights<std::vector<float>>);
 
 namespace
 {
@@ -224,8 +188,7 @@ struct TensorShape
         return widths;
     }
     template <int Axis, class Output, class Input>
-    requires(IBTK::IBKernelWeightsTraits<Output>::extent == Count) Output
-        evaluate(const std::array<Input, NDIM>&) const;
+    requires(IBTK::ib_kernel_weights_extent_v<Output> == Count) Output evaluate(const std::array<Input, NDIM>&) const;
 };
 
 static_assert(IBTK::IBKernelEvaluatorScalar<IBTK::IBKernelEvaluators::IB3>);
