@@ -299,7 +299,10 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
     d_u_dof_index_var = new SideVariable<NDIM, int>(d_object_name + "::u_dof_index");
     d_p_dof_index_var = new CellVariable<NDIM, int>(d_object_name + "::p_dof_index");
     IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
-    ib_ghosts.max(IntVector<NDIM>(getJacobianOperatorBuilder().getMinimumGhostWidth()));
+    if (!d_solve_for_position)
+    {
+        ib_ghosts.max(IntVector<NDIM>(getJacobianOperatorBuilder().getMinimumGhostWidth()));
+    }
     const IntVector<NDIM> no_ghosts = 0;
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, getScratchContext(), ib_ghosts);
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, getScratchContext(), no_ghosts);
@@ -318,10 +321,38 @@ IBImplicitStaggeredHierarchyIntegrator::setJacobianOperatorBuilder(IBTK::IBOpera
     if (d_integrator_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setJacobianOperatorBuilder():\n"
-                                 << "  the builder must be set before initializeHierarchyIntegrator().");
+                                 << "  the builder must be set before initializeHierarchyIntegrator().\n");
     }
     d_jacobian_operator_builder = std::move(builder);
 } // setJacobianOperatorBuilder
+
+void
+IBImplicitStaggeredHierarchyIntegrator::registerJacobianOperatorBuilder(const IBTK::IBKernelTensorProduct& kernel,
+                                                                        IBTK::IBOperatorBuilder builder)
+{
+    if (d_integrator_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::registerJacobianOperatorBuilder():\n"
+                                 << "  a kernel must be registered before initializeHierarchyIntegrator().\n");
+    }
+    if (IBTK::IBOperatorBuilder::is_built_in(kernel))
+    {
+        TBOX_ERROR(d_object_name << "::registerJacobianOperatorBuilder():\n"
+                                 << "  " << kernel << " already has a built-in evaluator.\n");
+    }
+    if (d_registered_jacobian_operator_builders.find(kernel) != d_registered_jacobian_operator_builders.end())
+    {
+        TBOX_ERROR(d_object_name << "::registerJacobianOperatorBuilder():\n"
+                                 << "  " << kernel << " has already been registered.\n");
+    }
+    if (!d_jacobian_operator_builder && kernel == IBTK::IBKernelTensorProduct(d_jac_delta_fcn))
+    {
+        // Copy, rather than move, since builder is also owned by the registration table below: an
+        // IBOperatorBuilder's shared immutable evaluator makes this copy cheap and safe.
+        d_jacobian_operator_builder = builder;
+    }
+    d_registered_jacobian_operator_builders.emplace(kernel, std::move(builder));
+} // registerJacobianOperatorBuilder
 
 const IBTK::IBOperatorBuilder&
 IBImplicitStaggeredHierarchyIntegrator::getJacobianOperatorBuilder() const
@@ -330,8 +361,9 @@ IBImplicitStaggeredHierarchyIntegrator::getJacobianOperatorBuilder() const
     {
         TBOX_ERROR(d_object_name << "::getJacobianOperatorBuilder():\n"
                                  << "  jacobian_delta_fcn = " << d_jac_delta_fcn
-                                 << " has no built-in evaluator and no builder has been set.\n"
-                                 << "  Call setJacobianOperatorBuilder() before initializeHierarchyIntegrator().");
+                                 << " has no built-in evaluator and no builder has been set or registered for it.\n"
+                                 << "  Call setJacobianOperatorBuilder() or registerJacobianOperatorBuilder() "
+                                    "before initializeHierarchyIntegrator().\n");
     }
     return *d_jacobian_operator_builder;
 } // getJacobianOperatorBuilder
