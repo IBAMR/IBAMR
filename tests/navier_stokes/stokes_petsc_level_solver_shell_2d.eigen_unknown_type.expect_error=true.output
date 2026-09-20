@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    make_eigen_dense_solver():
+  unknown Eigen subdomain solver type = cholesky; valid values are LLT, LDLT, PARTIAL_PIV_LU, FULL_PIV_LU, HOUSEHOLDER_QR, COL_PIV_HOUSEHOLDER_QR, COMPLETE_ORTHOGONAL_DECOMPOSITION, FULL_PIV_HOUSEHOLDER_QR, JACOBI_SVD, and BDC_SVD.
+

@@ -64,6 +64,14 @@ namespace IBAMR
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
  *
+ * <b>Subdomain solver "eigen-schur-complement"</b>
+ *
+ * In addition to the subdomain solvers of IBTK::PETScLevelSolver, subdomain_solver can be
+ * "eigen-schur-complement", which solves each subdomain problem through the Schur complement of its
+ * pressure block. a00_solver_type and schur_solver_type (default FULL_PIV_HOUSEHOLDER_QR) and
+ * a00_solver_threshold and schur_solver_threshold (default -1) take the values of
+ * IBTK::make_eigen_subdomain_solver().
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public StaggeredStokesSolver
@@ -147,7 +155,7 @@ public:
 
 protected:
     /*!
-     * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     * \brief Generate IS/subdomains for Schwarz type preconditioners.
      */
     void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
                                std::vector<std::set<int>>& nonoverlap_is) override;
@@ -191,6 +199,14 @@ protected:
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
 private:
+    /*!
+     * \brief Return the subdomain solver "eigen-schur-complement", with its settings from input_db. It obtains the
+     * velocity and pressure fields of the level each time the solver state is initialized, and precomputes the solve
+     * matrices of A00 and of the Schur complement.
+     */
+    IBTK::PETScLevelSolverSubdomainSolver
+    makeEigenSchurComplementSubdomainSolver(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
     /*!
      * \brief Default constructor.
      *

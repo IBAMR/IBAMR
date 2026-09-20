@@ -153,7 +153,8 @@ public:
      * in place of the built-in subdomain solver that uses PETSc.
      *
      * The solver takes ownership of subdomain_solver, which must not be empty, and
-     * retains it across reinitialization of the solver state. It is initialized
+     * retains it across reinitialization of the solver state. It takes precedence
+     * over the subdomain_solver key of the input database. It is initialized
      * and deallocated only when pc_type = "shell". Call this before initializing
      * the level solver, or after calling its deallocateSolverState().
      */
@@ -302,10 +303,10 @@ protected:
      * The subdomains of this rank are listed in order, and overlap_is[i] and nonoverlap_is[i]
      * describe the same subdomain with global DOF indices. Each overlapping set contains the
      * DOFs of its subdomain, and each nonoverlapping set is a subset of the overlapping set of
-     * the same subdomain. The additive shell preconditioner and the restricted ASM
-     * preconditioner also need the nonoverlapping sets of this rank to partition the DOFs that it
-     * owns. Initialization reports a violation of these requirements. A rank may have no
-     * subdomains.
+     * the same subdomain. The additive shell preconditioner also needs the nonoverlapping sets of
+     * the ranks to partition the DOFs; if check_subdomain_coverage is TRUE, initialization reports a
+     * violation. The other preconditioners do not need the subdomains to cover the DOFs. A rank may
+     * have no subdomains.
      */
     virtual void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
                                        std::vector<std::set<int>>& nonoverlap_is);
@@ -392,6 +393,10 @@ protected:
     //! Set from shell_pc_type; required only when a shell preconditioner is selected, possibly through PETSc options.
     std::optional<ShellComposition> d_shell_composition;
     ShellTraversal d_shell_traversal = ShellTraversal::FORWARD;
+    //! The subdomain_solver input. A subclass with subdomain solvers of its own creates them in its constructor.
+    std::string d_subdomain_solver_type = "petsc";
+    //! Whether initialization checks that the subdomains cover the DOFs as the preconditioner requires.
+    bool d_check_subdomain_coverage = default_check_dof_coverage();
     //\}
 
     /*!
@@ -468,8 +473,6 @@ protected:
     //\}
 
 private:
-    //! The subdomain_solver input.
-    std::string d_subdomain_solver_type = "petsc";
     //! The subdomain solver of the shell preconditioners.
     std::optional<PETScLevelSolverSubdomainSolver> d_subdomain_solver;
     //! Whether d_subdomain_solver is initialized for the current solver state.
@@ -481,8 +484,6 @@ private:
      * PETSc index sets directly instead manage their own regeneration.
      */
     bool d_generated_subdomain_is = false;
-    //! Whether initialization checks that the subdomains cover the DOFs as the preconditioner requires.
-    bool d_check_subdomain_coverage = default_check_dof_coverage();
 
     /*!
      * \brief Copy constructor.

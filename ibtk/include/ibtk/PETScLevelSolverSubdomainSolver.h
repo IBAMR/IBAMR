@@ -233,6 +233,47 @@ PETScLevelSolverSubdomainSolver make_petsc_subdomain_solver();
  */
 PETScLevelSolverSubdomainSolver
 make_blas_lapack_subdomain_solver(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
+/*!
+ * \brief Return the subdomain solver that factors each subdomain matrix with Eigen.
+ *
+ * The factorization is selected by eigen_subdomain_solver_type (default COL_PIV_HOUSEHOLDER_QR,
+ * for the same reason make_blas_lapack_subdomain_solver()'s default is SVD: a singular subdomain gets a
+ * bounded pseudo-solution from the truncated pivots instead of the Inf or NaN that PARTIAL_PIV_LU or
+ * HOUSEHOLDER_QR would return, at the cost of allocating a solve matrix at setup instead of solving
+ * in place; PARTIAL_PIV_LU is available for callers who already know their subdomains are nonsingular
+ * and want to skip that cost) and eigen_subdomain_solver_threshold
+ * (default -1). Available types are LLT, LDLT,
+ * PARTIAL_PIV_LU, FULL_PIV_LU, HOUSEHOLDER_QR, COL_PIV_HOUSEHOLDER_QR,
+ * COMPLETE_ORTHOGONAL_DECOMPOSITION, FULL_PIV_HOUSEHOLDER_QR, JACOBI_SVD and
+ * BDC_SVD. Names are case-insensitive. LLT requires positive definiteness and LDLT requires symmetry.
+ * Thresholds must be finite. A nonnegative value sets Eigen's relative rank threshold
+ * where the type supports one, and a negative value retains its default. Eigen's LLT,
+ * LDLT and PARTIAL_PIV_LU solve in place. The other types allocate a temporary vector
+ * in each solve, so they form the solve matrix at setup instead, as
+ * make_eigen_pseudoinverse_subdomain_solver() does, and an application is a matrix-vector
+ * product that does not allocate.
+ *
+ * Only LLT and LDLT report a failed factorization. The other types do not detect a
+ * singular subdomain matrix: PARTIAL_PIV_LU and HOUSEHOLDER_QR then return infinite or
+ * NaN values. COL_PIV_HOUSEHOLDER_QR uses Eigen's own internal pivot cutoff in solve():
+ * eigen_subdomain_solver_threshold does not control truncation for this type.
+ * FULL_PIV_HOUSEHOLDER_QR, COMPLETE_ORTHOGONAL_DECOMPOSITION, JACOBI_SVD and BDC_SVD do
+ * honor the configured threshold in solve(), treating pivots or singular values below it
+ * as zero.
+ */
+PETScLevelSolverSubdomainSolver make_eigen_subdomain_solver(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
+/*!
+ * \brief Return the subdomain solver that forms the solve matrix of each subdomain with Eigen.
+ *
+ * The type is eigen_subdomain_pseudoinverse_type (default COL_PIV_HOUSEHOLDER_QR) and the
+ * threshold is eigen_subdomain_pseudoinverse_threshold (default -1), with the values that
+ * make_eigen_subdomain_solver() accepts. COMPLETE_ORTHOGONAL_DECOMPOSITION and the SVD types form Moore-Penrose
+ * pseudoinverses. The other types solve against the identity and retain their pivot and rank policy.
+ */
+PETScLevelSolverSubdomainSolver
+make_eigen_pseudoinverse_subdomain_solver(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 } // namespace IBTK
 
 #include <ibtk/private/PETScLevelSolverSubdomainSolver-inl.h>

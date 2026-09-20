@@ -71,7 +71,7 @@ static Timer* t_deallocate_solver_state;
 const std::vector<std::string>&
 built_in_subdomain_solver_names()
 {
-    static const std::vector<std::string> names = { "petsc", "blas-lapack" };
+    static const std::vector<std::string> names = { "petsc", "blas-lapack", "eigen", "eigen-pseudoinverse" };
     return names;
 }
 
@@ -86,6 +86,14 @@ make_built_in_subdomain_solver(const std::string& subdomain_solver_type, Pointer
     if (equals_ignore_case(subdomain_solver_type, "blas-lapack"))
     {
         return make_blas_lapack_subdomain_solver(input_db);
+    }
+    if (equals_ignore_case(subdomain_solver_type, "eigen"))
+    {
+        return make_eigen_subdomain_solver(input_db);
+    }
+    if (equals_ignore_case(subdomain_solver_type, "eigen-pseudoinverse"))
+    {
+        return make_eigen_pseudoinverse_subdomain_solver(input_db);
     }
     return std::nullopt;
 }
