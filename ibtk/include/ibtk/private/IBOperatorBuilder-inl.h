@@ -50,7 +50,7 @@ public:
         {
             width = std::max(width, *std::max_element(widths.begin(), widths.end()));
         }
-        return static_cast<int>((width + 1) / 2 + 1);
+        return static_cast<int>(width / 2 + 1);
     }
 
     void
