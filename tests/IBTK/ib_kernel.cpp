@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2026 - 2026 by the IBAMR developers
+// Copyright (c) 2026 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -41,8 +41,6 @@ bool ib_kernel_static_initialization_valid();
 
 namespace
 {
-constexpr std::size_t ENCODED_BLOCK_COUNT = 2;
-
 std::vector<std::string>
 spellings(const std::string& name)
 {
@@ -55,14 +53,13 @@ spellings(const std::string& name)
     return { name, lower, mixed };
 }
 
-// Test-only inspection of the compact layout, without adding a public key API.
-std::array<std::uint64_t, ENCODED_BLOCK_COUNT>
-numeric_blocks(const IBKernel& kernel)
+// The bytes of a kernel, which the trivially copyable IBKernel can be compared and sent as.
+std::array<unsigned char, sizeof(IBKernel)>
+kernel_bytes(const IBKernel& kernel)
 {
-    std::array<std::uint64_t, ENCODED_BLOCK_COUNT> blocks{};
-    static_assert(sizeof(kernel) == sizeof(blocks), "identity must contain the expected number of blocks");
-    std::memcpy(blocks.data(), &kernel, sizeof(kernel));
-    return blocks;
+    std::array<unsigned char, sizeof(IBKernel)> bytes{};
+    std::memcpy(bytes.data(), &kernel, sizeof(kernel));
+    return bytes;
 }
 
 IBKernelTensorProduct
@@ -77,7 +74,6 @@ int
 main(int argc, char* argv[])
 {
     static_assert(std::is_trivially_copyable<IBKernel>::value, "identity copies must be trivial");
-    static_assert(std::is_standard_layout<IBKernel>::value, "test inspects the two-block layout");
     static_assert(std::is_convertible<std::string, IBKernelTensorProduct>::value,
                   "strings must convert to tensor products");
     static_assert(std::is_convertible<const char*, IBKernelTensorProduct>::value,
@@ -104,53 +100,45 @@ main(int argc, char* argv[])
         const IBKernel invalid("BAD NAME");
         return 0;
     }
+    if (input_file.find("malformed_composite") != std::string::npos)
+    {
+        SAMRAI::tbox::PIO::logOnlyNodeZero("output");
+        const IBKernelTensorProduct malformed("COMPOSITE_BSPLINE_1");
+        return 0;
+    }
 
-    // Ranks construct shared names in opposite orders with disjoint extras.
-    // Compare the actual integers via typed MPI transport, not decoded names
-    // or host-order bytes. The serial fixtures check the same value path.
+    // Ranks construct shared names in opposite orders with disjoint extras. Identical names must give identical
+    // kernels on every rank, whatever else the rank has constructed.
     constexpr const char* COMMON_NAMES[] = {
         "IB_4", "APPLICATION_KERNEL", "ABCDEFGHIJKLMNOPQRSTUVWX", "custom_unknown"
     };
     constexpr std::size_t COMMON_NAME_COUNT = std::size(COMMON_NAMES);
-    std::array<std::uint64_t, ENCODED_BLOCK_COUNT * COMMON_NAME_COUNT> common_blocks{};
+    std::array<unsigned char, sizeof(IBKernel) * COMMON_NAME_COUNT> common_bytes{};
     for (std::size_t j = 0; j < COMMON_NAME_COUNT; ++j)
     {
         const std::size_t i = rank % 2 ? COMMON_NAME_COUNT - 1 - j : j;
         const IBKernel extra((rank % 2 ? "ODD_EXTRA_" : "EVEN_EXTRA_") + std::to_string(j));
         const IBKernel common(COMMON_NAMES[i]);
-        const std::array<std::uint64_t, ENCODED_BLOCK_COUNT> blocks = numeric_blocks(common);
-        for (std::size_t block = 0; block < ENCODED_BLOCK_COUNT; ++block)
-        {
-            common_blocks[ENCODED_BLOCK_COUNT * i + block] = blocks[block];
-        }
+        const auto bytes = kernel_bytes(common);
+        std::copy(bytes.begin(), bytes.end(), common_bytes.begin() + sizeof(IBKernel) * i);
     }
-    auto root_blocks = common_blocks;
-    MPI_Bcast(root_blocks.data(), static_cast<int>(root_blocks.size()), MPI_UINT64_T, 0, MPI_COMM_WORLD);
-    TBOX_ASSERT(common_blocks == root_blocks);
+    auto root_bytes = common_bytes;
+    MPI_Bcast(root_bytes.data(), static_cast<int>(root_bytes.size()), MPI_BYTE, 0, MPI_COMM_WORLD);
+    TBOX_ASSERT(common_bytes == root_bytes);
 
-    // Independently tabulated values for the canonical letter, digit, and
-    // underscore encoding with fixed-width block padding.
-    struct Encoding
+    // Names of every length and block boundary survive construction and copying.
+    for (const char* name : { "A",
+                              "_",
+                              "ABCDEFGHIJKL",
+                              "ABCDEFGHIJKLM",
+                              "ABCDEFGHIJKLMNOPQRSTUVWX",
+                              "ABCDEFGHIJKLMNOPQRSTUVW_",
+                              "USER_DEFINED",
+                              "IB_4" })
     {
-        const char* name;
-        std::array<std::uint64_t, ENCODED_BLOCK_COUNT> blocks;
-    };
-    const Encoding encodings[] = {
-        { "A", { { UINT64_C(238572050223552512), 0 } } },
-        { "_", { { UINT64_C(8827165858271442944), 0 } } },
-        { "ABCDEFGHIJKL", { { UINT64_C(251642104107238734), 0 } } },
-        { "ABCDEFGHIJKLM", { { UINT64_C(251642104107238734), UINT64_C(3101436652906182656) } } },
-        { "ABCDEFGHIJKLMNOPQRSTUVWX", { { UINT64_C(251642104107238734), UINT64_C(3191881425781291314) } } },
-        { "ABCDEFGHIJKLMNOPQRSTUVW_", { { UINT64_C(251642104107238734), UINT64_C(3191881425781291327) } } },
-        { "USER_DEFINED", { { UINT64_C(5130207666400688530), 0 } } },
-        { "IB_4", { { UINT64_C(2165952653010967808), 0 } } }
-    };
-    for (const auto& expected : encodings)
-    {
-        const IBKernel kernel(expected.name), copy(kernel);
-        TBOX_ASSERT(numeric_blocks(kernel) == expected.blocks);
-        TBOX_ASSERT(copy == kernel && numeric_blocks(copy) == expected.blocks);
-        TBOX_ASSERT(copy.getName() == expected.name);
+        const IBKernel kernel(name), copy(kernel);
+        TBOX_ASSERT(copy == kernel);
+        TBOX_ASSERT(copy.getName() == name);
     }
     TBOX_ASSERT(IBKernel("ABCDEFGHIJKL") != IBKernel("ABCDEFGHIJKLM"));
     TBOX_ASSERT(IBKernel("ABCDEFGHIJKLMNOPQRSTUVWX") != IBKernel("ABCDEFGHIJKLMNOPQRSTUVW_"));
@@ -238,7 +226,7 @@ main(int argc, char* argv[])
             TBOX_ASSERT(product[1].getName() == expected.tangential);
             TBOX_ASSERT(product == IBKernelTensorProduct({ IBKernel(expected.normal), IBKernel(expected.tangential) }));
             TBOX_ASSERT(product != IBKernelTensorProduct({ IBKernel(expected.tangential), IBKernel(expected.normal) }));
-            TBOX_ASSERT(IBKernel(spelling).getName() == std::string(expected.name));
+            TBOX_ASSERT(!IBKernel::is_valid_name(spelling));
         }
     }
 
@@ -293,9 +281,23 @@ main(int argc, char* argv[])
     }
     TBOX_ASSERT(custom != IBKernel("USER_DEFINED"));
     TBOX_ASSERT(IBKernel("IB_4_custom").getName() == "IB_4_CUSTOM");
-    TBOX_ASSERT(IBKernel("composite_bspline_custom").getName() == "COMPOSITE_BSPLINE_CUSTOM");
-    TBOX_ASSERT(IBKernelTensorProduct("composite_bspline_custom") ==
-                IBKernelTensorProduct({ IBKernel("COMPOSITE_BSPLINE_CUSTOM") }));
+    // Scalar kernels cannot use the names that IBKernelTensorProduct reserves, and malformed composite names are
+    // not silently treated as application kernels.
+    for (const std::string& reserved : { std::string("composite_bspline_custom"),
+                                         std::string("COMPOSITE_BSPLINE_12"),
+                                         std::string("COMPOSITE_BSPLINE_"),
+                                         std::string("discontinuous_linear") })
+    {
+        TBOX_ASSERT(!IBKernel::is_valid_name(reserved));
+    }
+    for (const std::string& malformed : { std::string("composite_bspline_custom"),
+                                          std::string("COMPOSITE_BSPLINE_1"),
+                                          std::string("COMPOSITE_BSPLINE_0_2"),
+                                          std::string("COMPOSITE_BSPLINE_23_") })
+    {
+        TBOX_ASSERT(!IBKernelTensorProduct::is_valid_name(malformed));
+    }
+    TBOX_ASSERT(IBKernelTensorProduct::is_valid_name("discontinuous_linear"));
     TBOX_ASSERT(IBKernelTensorProduct(custom.getName()) == IBKernelTensorProduct({ custom }));
     IBKernel normal("ApplicationKernel"), tangential("AnotherKernel");
     const IBKernelTensorProduct product({ normal, tangential });

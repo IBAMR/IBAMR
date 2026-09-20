@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2026 - 2026 by the IBAMR developers
+// Copyright (c) 2026 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -28,9 +28,28 @@ namespace IBTK
 /*!
  * \brief Class IBKernel identifies a one-dimensional IB kernel by name.
  *
+ * The name is stored packed into a fixed number of integers rather than as a
+ * std::string or a closed enumeration. A closed enumeration would compare and
+ * copy as cheaply as this encoding does, but adding a name to it needs a
+ * library change, so a consumer could never accept a name it does not already
+ * know about; a std::string can name any kernel, but every comparison, and
+ * every dispatch keyed on the kernel (interpolation and spreading, called for
+ * every IB point on every patch, every timestep), would then cost a string
+ * comparison; master's LEInteractor dispatched on individual characters of the name to avoid exactly that cost. This
+ * encoding gives an unrestricted name (like a string) at the comparison and copy cost of a small fixed-size integer
+ * array (like an enum), without needing a character-by-character dispatch.
+ *
+ * IBKernel itself does not restrict which names may be constructed, other
+ * than the reserved prefixes below, but recognizing a name is up to each
+ * consumer: LEInteractor recognizes a fixed catalog of built-in kernels plus
+ * the single name USER_DEFINED, whose implementation an application supplies
+ * through LEInteractor::s_kernel_fcn; it does not otherwise accept
+ * application-chosen names.
+ *
  * Names are case-insensitive. PIECEWISE_CONSTANT and PIECEWISE_LINEAR are
- * aliases for BSPLINE_1 and BSPLINE_2, respectively. Applications may define
- * additional names, but must provide the corresponding kernel implementations.
+ * aliases for BSPLINE_1 and BSPLINE_2, respectively.
+ * Names that begin with COMPOSITE_BSPLINE_, and the name DISCONTINUOUS_LINEAR,
+ * are reserved for IBKernelTensorProduct and are not valid scalar kernel names.
  *
  * The same name has the same encoded value on every MPI process. Use getName()
  * to write kernel names to input or restart files.
@@ -59,8 +78,8 @@ public:
      *
      * Use is_valid_name() to check whether a name is accepted.
      *
-     * \param name Nonempty name containing ASCII letters, digits, or underscores.
-     * Names are case-insensitive; scalar aliases are accepted.
+     * \param name Name of 1 to 24 ASCII letters, digits, or underscores. Names are
+     * case-insensitive; scalar aliases are accepted.
      */
     explicit IBKernel(const std::string& name);
 
@@ -68,14 +87,14 @@ public:
      * \brief Construct a kernel from its name.
      *
      * \param name Nonnull C string satisfying the name requirements of
-     * IBKernel(const std::string&).
+     * IBKernel(const std::string&). A null pointer is an error.
      */
     explicit IBKernel(const char* name);
 
     /*! \brief Return whether \p name satisfies the scalar kernel-name requirements. */
     static bool is_valid_name(const std::string& name);
 
-    /*! \brief Return the standard scalar kernels in alphabetical order. */
+    /*! \brief Return the standard scalar kernels, in the order of their comparison. */
     static const std::vector<IBKernel>& get_standard_kernels();
 
     /*! \brief Return the uppercase kernel name, with aliases replaced by standard names. */

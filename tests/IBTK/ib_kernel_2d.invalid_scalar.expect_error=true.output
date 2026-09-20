@@ -1,4 +1,5 @@
 Program abort called with error message
 
-    IBKernel requires a nonnull name with 1 to 24 ASCII letters, digits, or underscores
+    IBKernel::IBKernel():
+  the name "BAD NAME" is not valid: a name has 1 to 24 ASCII letters, digits, or underscores, and is not reserved for tensor products (COMPOSITE_BSPLINE_*, DISCONTINUOUS_LINEAR).
 
