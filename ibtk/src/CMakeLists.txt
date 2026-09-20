@@ -240,7 +240,6 @@ IF(IBAMR_HAVE_LIBMESH)
     )
 ENDIF()
 
-
 # TARGET_SOURCES needs to use private - if we used public then dependencies on
 # this target will also compile the source files
 TARGET_SOURCES(IBTK2d PRIVATE ${FORTRAN_GENERATED_SRC2D} ${CXX_SRC})

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2026 - 2026 by the IBAMR developers
+// Copyright (c) 2026 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -23,65 +23,40 @@
 
 namespace IBTK
 {
-bool
-IBKernel::is_valid_name(const std::string& name)
+namespace
 {
-    std::array<std::uint64_t, NAME_BLOCK_COUNT> encoded_name;
-    return try_encode_name(name, encoded_name);
-}
-
-bool
-IBKernel::try_encode_name(std::string_view name, std::array<std::uint64_t, NAME_BLOCK_COUNT>& encoded_name)
+const char*
+require_non_null_name(const char* name)
 {
-    if (name.empty() || name.size() > MAX_NAME_LENGTH)
+    if (!name)
     {
-        return false;
+        TBOX_ERROR("IBKernel::IBKernel():\n"
+                   << "  the name is a null pointer.\n");
     }
-
-    std::array<char, MAX_NAME_LENGTH> canonical_name{};
-    for (std::size_t i = 0; i < name.size(); ++i)
-    {
-        const char input = name[i];
-        const char canonical = input >= 'a' && input <= 'z' ? static_cast<char>(input - 'a' + 'A') : input;
-        if (!((canonical >= 'A' && canonical <= 'Z') || (canonical >= '0' && canonical <= '9') || canonical == '_'))
-        {
-            return false;
-        }
-        canonical_name[i] = canonical;
-    }
-
-    const std::string_view canonical(canonical_name.data(), name.size());
-    if (canonical == "PIECEWISE_CONSTANT")
-    {
-        encoded_name = encode_name("BSPLINE_1");
-    }
-    else if (canonical == "PIECEWISE_LINEAR")
-    {
-        encoded_name = encode_name("BSPLINE_2");
-    }
-    else
-    {
-        encoded_name = encode_name(canonical);
-    }
-    return true;
+    return name;
 }
+} // namespace
 
 IBKernel::IBKernel(const std::string& name)
 {
     if (!try_encode_name(name, d_name))
     {
-        TBOX_ERROR("IBKernel requires 1 to " << MAX_NAME_LENGTH << " ASCII letters, digits, or underscores: " << name
-                                             << '\n');
+        TBOX_ERROR("IBKernel::IBKernel():\n"
+                   << "  the name \"" << name << "\" is not valid: a name has 1 to " << MAX_NAME_LENGTH
+                   << " ASCII letters, digits, or underscores, and is not reserved for tensor products "
+                      "(COMPOSITE_BSPLINE_*, DISCONTINUOUS_LINEAR).\n");
     }
 }
 
-IBKernel::IBKernel(const char* name)
+IBKernel::IBKernel(const char* name) : IBKernel(std::string(require_non_null_name(name)))
 {
-    if (!name || !try_encode_name(name, d_name))
-    {
-        TBOX_ERROR("IBKernel requires a nonnull name with 1 to " << MAX_NAME_LENGTH
-                                                                 << " ASCII letters, digits, or underscores\n");
-    }
+}
+
+bool
+IBKernel::is_valid_name(const std::string& name)
+{
+    std::array<std::uint64_t, NAME_BLOCK_COUNT> encoded_name;
+    return try_encode_name(name, encoded_name);
 }
 
 const std::vector<IBKernel>&
@@ -116,6 +91,47 @@ IBKernel::getName() const
         name.resize(padding);
     }
     return name;
+}
+
+bool
+IBKernel::try_encode_name(std::string_view name, std::array<std::uint64_t, NAME_BLOCK_COUNT>& encoded_name)
+{
+    if (name.empty() || name.size() > MAX_NAME_LENGTH)
+    {
+        return false;
+    }
+
+    std::array<char, MAX_NAME_LENGTH> canonical_name{};
+    for (std::size_t i = 0; i < name.size(); ++i)
+    {
+        const char input = name[i];
+        const char canonical = input >= 'a' && input <= 'z' ? static_cast<char>(input - 'a' + 'A') : input;
+        if (!((canonical >= 'A' && canonical <= 'Z') || (canonical >= '0' && canonical <= '9') || canonical == '_'))
+        {
+            return false;
+        }
+        canonical_name[i] = canonical;
+    }
+
+    const std::string_view canonical(canonical_name.data(), name.size());
+    // These names belong to IBKernelTensorProduct, whose parser must be the only way to construct them.
+    if (canonical.starts_with("COMPOSITE_BSPLINE_") || canonical == "DISCONTINUOUS_LINEAR")
+    {
+        return false;
+    }
+    if (canonical == "PIECEWISE_CONSTANT")
+    {
+        encoded_name = encode_name("BSPLINE_1");
+    }
+    else if (canonical == "PIECEWISE_LINEAR")
+    {
+        encoded_name = encode_name("BSPLINE_2");
+    }
+    else
+    {
+        encoded_name = encode_name(canonical);
+    }
+    return true;
 }
 
 } // namespace IBTK

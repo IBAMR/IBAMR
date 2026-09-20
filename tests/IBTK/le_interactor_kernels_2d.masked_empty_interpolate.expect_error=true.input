@@ -1,6 +1,6 @@
 error_operation = "masked_empty_interpolate"
 Main {
-   log_file_name = "le_interactor_kernels.log"
+   log_file_name = "output"
    log_all_nodes = FALSE
 }
 CartesianGeometry {

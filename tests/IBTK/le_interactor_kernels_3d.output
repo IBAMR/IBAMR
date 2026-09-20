@@ -1,6 +1,6 @@
 interpolation error = 0
 spreading error = 0
-reference interpolation error = 0
-reference spreading error = 0
+reference interpolation error = 1.28785870857e-14
+reference spreading error = 7.55724637837e-15
 masked interpolation error = 0
 masked spreading error = 0

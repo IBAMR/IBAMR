@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2026 - 2026 by the IBAMR developers
+// Copyright (c) 2026 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -12,12 +12,12 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/IBKernelTensorProduct.h>
+#include <ibtk/string_utilities.h>
 
 #include <tbox/Utilities.h>
 
 #include <algorithm>
 #include <array>
-#include <cctype>
 #include <charconv>
 #include <optional>
 #include <ostream>
@@ -28,28 +28,18 @@
 
 namespace
 {
-bool
-equal_ignoring_case(std::string_view lhs, std::string_view rhs)
-{
-    return std::equal(
-        lhs.begin(),
-        lhs.end(),
-        rhs.begin(),
-        rhs.end(),
-        [](char l, char r) -> bool
-        { return std::tolower(static_cast<unsigned char>(l)) == std::tolower(static_cast<unsigned char>(r)); });
-}
+using IBTK::equals_ignore_case;
 
 std::optional<std::array<unsigned int, 2>>
 composite_bspline_orders(std::string_view name)
 {
-    if (equal_ignoring_case(name, "DISCONTINUOUS_LINEAR"))
+    if (equals_ignore_case(name, "DISCONTINUOUS_LINEAR"))
     {
         return std::array<unsigned int, 2>{ { 2, 1 } };
     }
 
     constexpr std::string_view prefix = "COMPOSITE_BSPLINE_";
-    if (name.size() <= prefix.size() || !equal_ignoring_case(name.substr(0, prefix.size()), prefix))
+    if (name.size() <= prefix.size() || !equals_ignore_case(name.substr(0, prefix.size()), prefix))
     {
         return std::nullopt;
     }
@@ -112,45 +102,6 @@ IBKernelTensorProduct::is_valid_name(const std::string& name)
     return composite_bspline_orders(name).has_value() || IBKernel::is_valid_name(name);
 }
 
-IBKernelTensorProduct::IBKernelTensorProduct(CanonicalFactors factors)
-    : d_factors(std::move(factors.factors)), d_size(factors.size)
-{
-}
-
-IBKernelTensorProduct::CanonicalFactors
-IBKernelTensorProduct::canonicalize(std::initializer_list<IBKernel> factors)
-{
-    if (factors.size() < MIN_ACTIVE_FACTORS || factors.size() > MAX_ACTIVE_FACTORS)
-    {
-        TBOX_ERROR("IBKernelTensorProduct requires one or two factors\n");
-    }
-    const IBKernel first = *factors.begin();
-    const IBKernel second = factors.size() == MAX_ACTIVE_FACTORS ? *(factors.begin() + 1) : first;
-    return { { { first, second } },
-             static_cast<std::size_t>(first == second ? MIN_ACTIVE_FACTORS : MAX_ACTIVE_FACTORS) };
-}
-
-IBKernelTensorProduct::CanonicalFactors
-IBKernelTensorProduct::parse_name(std::string_view name)
-{
-    const std::optional<std::array<unsigned int, 2>> orders = composite_bspline_orders(name);
-    if (orders)
-    {
-        return IBKernelTensorProduct::canonicalize({ bspline_kernel((*orders)[0]), bspline_kernel((*orders)[1]) });
-    }
-    return IBKernelTensorProduct::canonicalize({ IBKernel(std::string(name)) });
-}
-
-IBKernelTensorProduct::CanonicalFactors
-IBKernelTensorProduct::parse_name(const char* name)
-{
-    if (!name)
-    {
-        TBOX_ERROR("Invalid null IB kernel tensor-product name\n");
-    }
-    return parse_name(std::string_view(name));
-}
-
 std::size_t
 IBKernelTensorProduct::size() const
 {
@@ -160,6 +111,7 @@ IBKernelTensorProduct::size() const
 const IBKernel&
 IBKernelTensorProduct::operator[](std::size_t slot) const
 {
+    TBOX_ASSERT(slot < d_size);
     return d_factors[slot];
 }
 
@@ -202,4 +154,53 @@ operator<<(std::ostream& stream, const IBKernelTensorProduct& kernel)
     }
     return stream << ')';
 }
+
+IBKernelTensorProduct::IBKernelTensorProduct(CanonicalFactors factors)
+    : d_factors(std::move(factors.factors)), d_size(factors.size)
+{
+}
+
+IBKernelTensorProduct::CanonicalFactors
+IBKernelTensorProduct::canonicalize(std::initializer_list<IBKernel> factors)
+{
+    if (factors.size() < MIN_ACTIVE_FACTORS || factors.size() > MAX_ACTIVE_FACTORS)
+    {
+        TBOX_ERROR("IBKernelTensorProduct::canonicalize():\n  a tensor product requires one or two factors.\n");
+    }
+    const IBKernel first = *factors.begin();
+    const IBKernel second = factors.size() == MAX_ACTIVE_FACTORS ? *(factors.begin() + 1) : first;
+    return { { { first, second } },
+             static_cast<std::size_t>(first == second ? MIN_ACTIVE_FACTORS : MAX_ACTIVE_FACTORS) };
+}
+
+IBKernelTensorProduct::CanonicalFactors
+IBKernelTensorProduct::parse_name(std::string_view name)
+{
+    const std::optional<std::array<unsigned int, 2>> orders = composite_bspline_orders(name);
+    if (orders)
+    {
+        return IBKernelTensorProduct::canonicalize({ bspline_kernel((*orders)[0]), bspline_kernel((*orders)[1]) });
+    }
+    constexpr std::string_view composite_prefix = "COMPOSITE_BSPLINE_";
+    if (name.size() >= composite_prefix.size() &&
+        equals_ignore_case(name.substr(0, composite_prefix.size()), composite_prefix))
+    {
+        TBOX_ERROR("IBKernelTensorProduct::parse_name():\n"
+                   << "  malformed composite B-spline name " << name
+                   << "; expected COMPOSITE_BSPLINE_<m><n> with single-digit orders or COMPOSITE_BSPLINE_<m>_<n> with "
+                      "positive orders, or DISCONTINUOUS_LINEAR.\n");
+    }
+    return IBKernelTensorProduct::canonicalize({ IBKernel(std::string(name)) });
+}
+
+IBKernelTensorProduct::CanonicalFactors
+IBKernelTensorProduct::parse_name(const char* name)
+{
+    if (!name)
+    {
+        TBOX_ERROR("IBKernelTensorProduct::parse_name():\n  the name must not be null.\n");
+    }
+    return parse_name(std::string_view(name));
+}
+
 } // namespace IBTK

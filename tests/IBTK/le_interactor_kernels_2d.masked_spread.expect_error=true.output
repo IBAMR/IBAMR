@@ -1,4 +1,5 @@
 Program abort called with error message
 
-    LEInteractor: unsupported masked kernel description (BSPLINE_1,BSPLINE_2)
+    LEInteractor::require_supported_masked_kernel():
+  unsupported masked kernel description (BSPLINE_1,BSPLINE_2).
 

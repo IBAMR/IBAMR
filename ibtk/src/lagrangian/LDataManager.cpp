@@ -565,7 +565,7 @@ LDataManager::spread(const int f_data_idx,
     const IBKernelTensorProduct spread_kernel(spread_kernel_fcn);
     if (!LEInteractor::isKnownKernel(spread_kernel))
     {
-        TBOX_ERROR("LDataManager::spread(): unsupported IB kernel " << spread_kernel << '\n');
+        TBOX_ERROR("LDataManager::spread():\n  unsupported IB kernel " << spread_kernel << ".\n");
     }
 
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
@@ -714,7 +714,7 @@ LDataManager::interp(const int f_data_idx,
     const IBKernelTensorProduct interp_kernel(d_default_interp_kernel_fcn);
     if (!LEInteractor::isKnownKernel(interp_kernel))
     {
-        TBOX_ERROR("LDataManager::interp(): unsupported IB kernel " << interp_kernel << '\n');
+        TBOX_ERROR("LDataManager::interp():\n  unsupported IB kernel " << interp_kernel << ".\n");
     }
 
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);

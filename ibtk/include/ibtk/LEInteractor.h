@@ -78,15 +78,15 @@ namespace IBTK
  * distinguished axis is the side-normal axis for side data, the edge axis for
  * edge data, and axis zero for cell and node data.
  *
- * String names implicitly construct a kernel description at the API
- * boundary. Code that repeatedly applies the same kernel should construct and
- * reuse an IBKernelTensorProduct.
+ * A string argument constructs an IBKernelTensorProduct on each call; code
+ * that applies the same kernel repeatedly should construct one and reuse it.
  *
  * Supported specifications are the scalar kernels in
  * IBKernel::get_standard_kernels(), their isotropic products, and composite
  * B-spline pairs (2,1), (2,3), (3,2), (3,4), (4,3), (4,5), (5,4), (5,6),
- * and (6,5). USER_DEFINED selects s_kernel_fcn. Other valid kernel names need
- * not be supported; use isKnownKernel() to query this consumer.
+ * and (6,5). USER_DEFINED selects s_kernel_fcn. isKnownKernel() returns whether
+ * LEInteractor implements a kernel; a name that IBKernelTensorProduct accepts is
+ * not necessarily implemented here.
  * Overloads taking mask_data support only the isotropic IB_4 and USER_DEFINED
  * kernels.
  */
