@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBTK_MPI.h>
+
 #include <tbox/MathUtilities.h>
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
@@ -35,6 +37,9 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
+#include <iomanip>
+#include <sstream>
+#include <string>
 #include <utility>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
@@ -408,7 +413,27 @@ checked_dereference(SAMRAI::tbox::Pointer<T>& p)
     return *p;
 }
 
+/*!
+ * Generate a filename for a SAMRAI data file using the output directory,
+ * data prefix, iteration number, and MPI rank. This removes the need for duplicated
+ * filename-generation code.
+ */
+inline std::string
+format_samrai_output_filename(int iteration_num, const std::string& data_dump_dirname, const std::string& prefix);
+
+/*!
+ * Generate a filename for an iteration data file using the output directory,
+ * data prefix, and iteration number. This removes the need for duplicated
+ * filename-generation code.
+ */
+inline std::string
+format_iteration_output_filename(int iteration_num, const std::string& data_dump_dirname, const std::string& prefix);
+
 } // namespace IBTK
+
+/////////////////////////////// INLINE ///////////////////////////////////////
+
+#include <ibtk/private/ibtk_utilities-inl.h> // IWYU pragma: keep
 
 //////////////////////////////////////////////////////////////////////////////
 
