@@ -1,4 +1,4 @@
-// IB_4_W8 has no evaluator.
+// IB_4_W8 has no built-in evaluator for IBOperatorBuilder.
 operator_builder = TRUE
 unsupported_kernel = "IB_4_W8"
 Main {
