@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    StaggeredStokesEigenSchurComplementSubdomainSolver::initializeSolverState():
+  every subdomain DOF must belong to exactly one Stokes field.
+

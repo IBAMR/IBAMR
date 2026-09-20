@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::init():
+  unsupported subdomain_relaxation composition = SEQUENTIAL; supported values are "ADDITIVE" and "MULTIPLICATIVE".
+
