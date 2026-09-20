@@ -18,6 +18,9 @@
 
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScMatUtilities.h>
+#include <ibtk/ibtk_utilities.h>
+
+#include <tbox/Utilities.h>
 
 #include <Box.h>
 #include <Index.h>
@@ -29,6 +32,7 @@
 #include <algorithm>
 #include <array>
 #include <limits>
+#include <utility>
 
 namespace IBTK
 {
@@ -101,15 +105,27 @@ PETScMatUtilities::constructSCInterpOpAxis(SCInterpOpData& data, const Evaluator
                 data.d_x_lower[d];
             r[d] = (X[d] - x_lower) / data.d_dx[d];
         }
-        const Weights values = evaluator.template evaluate<Axis, Weights>(r);
+        const Weights values = evaluator.template evaluate<Axis, Weights>(std::as_const(r));
 
         std::array<PetscInt, nvalues> columns;
 
         const tbox::Pointer<pdat::SideData<NDIM, int>>& indices = data.d_dof_index_data[point];
         int entry = 0;
+        bool stencil_outside_domain = false;
         for (typename hier::Box<NDIM>::Iterator b(box); b; b++, ++entry)
         {
             columns[entry] = (*indices)(pdat::SideIndex<NDIM>(b(), Axis, pdat::SideIndex<NDIM>::Lower));
+            stencil_outside_domain = stencil_outside_domain || columns[entry] < 0;
+        }
+        if (stencil_outside_domain)
+        {
+            // A negative column is outside the domain (e.g. at a non-periodic physical boundary) and has no
+            // DOF; MatSetValues() below silently drops that entry instead of adding it, so the row's weights
+            // sum to less than one. No folding or renormalization is attempted.
+            IBTK_DO_ONCE(TBOX_WARNING("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                                      << "  an interpolation stencil extends past a non-periodic physical "
+                                         "boundary; the weights of the stencil points outside the domain are "
+                                         "dropped, not folded or renormalized.\n"););
         }
         const PetscInt row = data.d_row_lower + NDIM * point + Axis;
         // Periodic stencil points can share a column; sum their contributions.
