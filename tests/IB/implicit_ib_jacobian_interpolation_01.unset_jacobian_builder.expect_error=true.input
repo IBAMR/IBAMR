@@ -13,6 +13,6 @@ INSStaggeredHierarchyIntegrator {
    end_time = 1.0
 }
 IBImplicitStaggeredHierarchyIntegrator {
-   eliminate_eulerian_vars = TRUE
+   eliminate_eulerian_vars = FALSE
    jacobian_delta_fcn = "APPLICATION_KERNEL"
 }
