@@ -34,7 +34,7 @@ IBOperatorBuilder::IBOperatorBuilder(const IBKernelTensorProduct& kernel)
                    << "  no built-in evaluator for kernel " << kernel << ".\n"
                    << "  Built-in kernels are BSPLINE_1 through BSPLINE_" << MAX_BUILT_IN_BSPLINE_ORDER
                    << ", IB_3 through IB_6, and composite B-splines whose orders differ by one.\n"
-                   << "  Construct the builder from an evaluator to use any other kernel.");
+                   << "  Construct the builder from an evaluator to use any other kernel.\n");
     }
 }
 

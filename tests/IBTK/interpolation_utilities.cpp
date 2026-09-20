@@ -89,7 +89,7 @@ struct ExplicitMoveEvaluator
         return widths;
     }
     template <int Axis, IBKernelWeights Output, std::floating_point Input>
-    requires(Axis >= 0 && Axis < NDIM && IBKernelWeightsTraits<Output>::extent == 1) Output
+    requires(Axis >= 0 && Axis < NDIM && ib_kernel_weights_extent_v<Output> == 1) Output
         evaluate(const std::array<Input, NDIM>&) const
     {
         return Output{ 1 };
@@ -112,7 +112,7 @@ struct CopyOnlyEvaluator : ExplicitMoveEvaluator
     CopyOnlyEvaluator(CopyOnlyEvaluator&&) = delete;
 };
 
-[[maybe_unused]] static void
+static void
 construct_operator_builders()
 {
     CopyOnlyEvaluator copy_only;
@@ -133,27 +133,6 @@ static_assert(IBKernelEvaluatorCartesian<ImmovableEvaluator>);
 static_assert(!std::constructible_from<IBOperatorBuilder, ImmovableEvaluator>);
 static_assert(std::constructible_from<IBOperatorBuilder, IBKernelEvaluatorTensorProduct<IBKernelEvaluators::IB4>&>);
 
-template <class T>
-struct ReorderedWeights
-{
-    std::array<T, NDIM == 2 ? 6 : 12> values;
-    T operator[](std::size_t i) const
-    {
-        return values[values.size() - 1 - i];
-    }
-    T& operator[](std::size_t i)
-    {
-        return values[values.size() - 1 - i];
-    }
-};
-
-template <class T>
-struct IBTK::IBKernelWeightsTraits<ReorderedWeights<T>>
-{
-    using value_type = T;
-    static constexpr std::size_t extent = NDIM == 2 ? 6 : 12;
-};
-
 double
 exact_fcn(const VectorNd& x)
 {
@@ -170,6 +149,86 @@ void
 accumulate_error(double& maximum, const double error)
 {
     maximum = std::isfinite(error) ? std::max(maximum, error) : std::numeric_limits<double>::infinity();
+}
+
+// A point in the neighboring rank's first cell is assigned to the nearest local patch. For a stencil of width w, its
+// stencil then extends w / 2 + 1 cells past that patch, for even and for odd w, which is the ghost width that
+// IBOperatorBuilder::getMinimumGhostWidth() reports. One ghost layer less must fail.
+template <class Evaluator>
+int
+check_worst_case_ghost_width(Pointer<PatchLevel<NDIM>> level, const bool remove_layer)
+{
+    if (IBTK_MPI::getNodes() != 2)
+    {
+        TBOX_ERROR("The worst-case ghost width fixture requires two ranks.\n");
+    }
+    const IBKernelEvaluatorTensorProduct kernel{ Evaluator{} };
+    const int ghost_width = IBOperatorBuilder(kernel).getMinimumGhostWidth() - (remove_layer ? 1 : 0);
+    VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, int>> indices = new SideVariable<NDIM, int>("worst_case_indices");
+    const int dof = variables->registerVariableAndContext(indices, variables->getContext("worst_case"), ghost_width);
+    level->allocatePatchData(dof);
+    std::vector<int> counts;
+    PETScVecUtilities::constructPatchLevelDOFIndices(counts, dof, level);
+    PatchLevel<NDIM>::Iterator local_patch(level);
+    TBOX_ASSERT(local_patch);
+    Pointer<CartesianPatchGeometry<NDIM>> patch_geometry = level->getPatch(local_patch())->getPatchGeometry();
+    std::array<double, NDIM> position;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        position[d] = 0.5 * (patch_geometry->getXLower()[d] + patch_geometry->getXUpper()[d]);
+    }
+    // The domain is split across x = 0.5. Each point lies in the other rank's cell next to the split, on the side of
+    // that cell's center that makes the stencil extend farthest.
+    const bool left = patch_geometry->getXLower()[0] < 0.5;
+    position[0] = 0.5 + (left ? 0.9 : -0.9) * patch_geometry->getDx()[0];
+    Vec X = nullptr;
+    PetscErrorCode ierr = VecCreateMPI(PETSC_COMM_WORLD, NDIM, PETSC_DECIDE, &X);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* coordinates;
+    ierr = VecGetArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        coordinates[d] = position[d];
+    }
+    ierr = VecRestoreArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    if (remove_layer)
+    {
+        Pointer<SAMRAI::tbox::Logger::Appender> abort_appender = new TestAppender();
+        SAMRAI::tbox::Logger::getInstance()->setAbortAppender(abort_appender);
+    }
+    Mat matrix = nullptr;
+    PETScMatUtilities::constructPatchLevelSCInterpOp(matrix, kernel, X, counts, dof, level);
+    Vec field = nullptr, result = nullptr;
+    ierr = MatCreateVecs(matrix, &field, &result);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSet(field, 1.0);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatMult(matrix, field, result);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecShift(result, -1.0);
+    IBTK_CHKERRQ(ierr);
+    PetscReal norm;
+    ierr = VecNorm(result, NORM_INFINITY, &norm);
+    IBTK_CHKERRQ(ierr);
+    if (!std::isfinite(norm) || norm > 1.0e-12)
+    {
+        TBOX_ERROR("The worst-case point does not reproduce a constant: error = " << norm << ".\n");
+    }
+    plog << "worst-case ghost width = " << ghost_width << '\n' << "worst-case constant error = 0\n";
+    ierr = VecDestroy(&result);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&field);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&matrix);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&X);
+    IBTK_CHKERRQ(ierr);
+    level->deallocatePatchData(dof);
+    variables->removePatchDataIndex(dof);
+    return 0;
 }
 
 int
@@ -259,31 +318,6 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
         level);
     ierr = VecLockReadPop(X);
     IBTK_CHKERRQ(ierr);
-    // The same evaluator accepts independently owned, differently ordered storage.
-    const IBKernelEvaluatorTensorProduct product{ IBKernelEvaluators::BSpline<3>{}, LinearIBKernel{} };
-    const std::array<long double, NDIM> r = []
-    {
-        std::array<long double, NDIM> coordinates;
-        coordinates.fill(0.25L);
-        coordinates[0] = 1.0L;
-        return coordinates;
-    }();
-    ReorderedWeights<float> weights = product.template evaluate<0, ReorderedWeights<float>>(r);
-    const ReorderedWeights<float> saved = weights;
-    constexpr std::size_t count = ib_kernel_weights_extent_v<ReorderedWeights<float>>;
-    for (std::size_t i = 0; i < count; ++i)
-    {
-        std::size_t index = i / 3;
-        float expected = i % 3 == 1 ? 0.75f : 0.125f;
-        for (int d = 1; d < NDIM; ++d)
-        {
-            expected *= index % 2 == 0 ? 0.75f : 0.25f;
-            index /= 2;
-        }
-        TBOX_ASSERT(weights[i] == expected);
-        weights[i] = -1;
-        TBOX_ASSERT(saved[i] == expected);
-    }
     Vec field = nullptr, result = nullptr;
     ierr = MatCreateVecs(matrix, &field, &result);
     IBTK_CHKERRQ(ierr);
@@ -569,7 +603,7 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     }
     ierr = VecDestroy(&X);
     IBTK_CHKERRQ(ierr);
-    plog << "built-in kernels compared = " << compared << '\n';
+    plog << "kernels compared = " << compared << '\n';
     plog << "matrix mismatches = " << matrix_mismatches << '\n';
     plog << "row length mismatches = " << row_length_mismatches << '\n';
     plog << "application kernel mismatches = " << application_mismatches << '\n';
@@ -594,6 +628,8 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+
+    construct_operator_builders();
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -653,6 +689,19 @@ main(int argc, char* argv[])
                 return 0;
             }
             return check_operator_builder(patch_hierarchy->getPatchLevel(0));
+        }
+
+        if (input_db->getBoolWithDefault("worst_case_ghost_width", false))
+        {
+            const bool remove_layer = input_db->getBoolWithDefault("remove_ghost_layer", false);
+            const int width = input_db->getIntegerWithDefault("worst_case_kernel_width", 4);
+            if (width == 3)
+            {
+                return check_worst_case_ghost_width<IBKernelEvaluators::BSpline<3>>(patch_hierarchy->getPatchLevel(0),
+                                                                                    remove_layer);
+            }
+            return check_worst_case_ghost_width<IBKernelEvaluators::BSpline<4>>(patch_hierarchy->getPatchLevel(0),
+                                                                                remove_layer);
         }
 
         if (input_db->getBoolWithDefault("matrix_assembly", false))

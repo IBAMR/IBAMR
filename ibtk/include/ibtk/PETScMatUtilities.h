@@ -208,7 +208,10 @@ public:
      *
      * An existing mat is destroyed and replaced; the caller owns the new matrix.
      *
-     * \warning Physical boundary conditions are not handled.
+     * \warning Physical boundary conditions are not handled: a stencil point outside the domain at a
+     * non-periodic boundary has no DOF, so its weight is dropped from the row instead of being folded or
+     * renormalized, and a row whose stencil crosses such a boundary sums to less than one. A one-time warning
+     * is logged when this happens.
      */
     template <IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
     static void constructPatchLevelSCInterpOp(Mat& mat,
@@ -291,7 +294,7 @@ private:
         int d_n_local_points = 0, d_row_lower = 0;
         //! Component stencil boxes for each IB point.
         std::vector<std::array<SAMRAI::hier::Box<NDIM>, NDIM>> d_stencil_boxes;
-        //! Borrowed DOF index data for each local IB point's patch, used to
+        //! Shared DOF index data for each local IB point's patch, used to
         //! read global column indices without repeating the patch lookup.
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, int>>> d_dof_index_data;
     };

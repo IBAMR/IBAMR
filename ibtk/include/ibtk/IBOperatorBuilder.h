@@ -72,13 +72,26 @@ public:
      */
     explicit IBOperatorBuilder(const IBKernelTensorProduct& kernel);
 
-    /*! \brief Return whether kernel has a built-in evaluator. */
+    /*!
+     * \brief Return whether kernel has a built-in evaluator: BSPLINE_1 through
+     * BSPLINE_@a n for @a n = MAX_BUILT_IN_BSPLINE_ORDER, IB_3 through IB_6,
+     * and composite B-splines whose orders differ by one. Any other kernel
+     * needs an evaluator supplied to the constructor.
+     */
     static bool is_built_in(const IBKernelTensorProduct& kernel);
 
     /*!
-     * \brief Return the ghost width of the DOF index data that covers every
-     * stencil: (maximum stencil width + 1) / 2 + 1, where the last cell allows
-     * for a point that lies just outside its patch.
+     * \brief Return the smallest ghost width of the DOF index data that covers
+     * every stencil: w / 2 + 1 for a maximum stencil width w, with integer
+     * division.
+     *
+     * A point is assigned to a patch if it lies in the patch or in a cell next to
+     * it, so its stencil is centered at most one cell outside the patch and
+     * extends w / 2 cells further in every direction, for even and for odd w.
+     * LEInteractor::getMinimumGhostWidth() gives the same value for kernels with an
+     * even stencil size, and one layer more for the kernels with three or five
+     * points (for example IB_3, IB_5 and BSPLINE_3), because LEInteractor uses the
+     * next even stencil size for them.
      */
     int getMinimumGhostWidth() const;
 
