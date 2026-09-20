@@ -137,7 +137,7 @@ static Timer* t_begin_data_redistribution;
 static Timer* t_end_data_redistribution;
 static Timer* t_apply_gradient_detector;
 // Version of IIMethod restart file data.
-static const int IIM_VERSION = 4;
+static const int IIM_VERSION = 5;
 
 std::string
 libmesh_restart_file_name(const std::string& object_name,
@@ -417,9 +417,12 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
     d_U_new_vecs.resize(d_num_parts);
     d_U_half_vecs.resize(d_num_parts);
 
-    d_U_old_systems.resize(d_num_parts);
-    d_U_old_vecs.resize(d_num_parts);
-    d_U_old_updated_vecs.resize(d_num_parts);
+    if (d_multistep_n_previous_steps > 0)
+    {
+        d_U_old_systems.resize(d_num_parts);
+        d_U_old_vecs.resize(d_num_parts);
+        d_U_old_updated_vecs.resize(d_num_parts);
+    }
 
     d_U_n_systems.resize(d_num_parts);
     d_U_n_current_vecs.resize(d_num_parts);
@@ -681,18 +684,18 @@ IIMethod::postprocessIntegrateData(double current_time, double new_time, int /*n
         vec_collection_update.push_back(d_TAU_in_half_vecs);
         vec_collection_update.push_back(d_TAU_out_half_vecs);
     }
-    batch_vec_ghost_update(vec_collection_update, INSERT_VALUES, SCATTER_FORWARD);
-
     if (d_multistep_n_previous_steps > 0)
     {
-        TBOX_ASSERT(d_multistep_n_previous_steps == 1);
-
         for (unsigned part = 0; part < d_num_parts; ++part)
         {
             int ierr = VecCopy(d_U_current_vecs[part]->vec(), d_U_old_updated_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
+    }
+    batch_vec_ghost_update(vec_collection_update, INSERT_VALUES, SCATTER_FORWARD);
 
+    if (d_multistep_n_previous_steps > 0)
+    {
         d_dt_old.push_front(new_time - current_time);
         if (d_dt_old.size() > static_cast<size_t>(d_multistep_n_previous_steps)) d_dt_old.pop_back();
     }
@@ -2487,6 +2490,7 @@ IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time
 void
 IIMethod::setUseMultistepTimeStepping(const unsigned int n_previous_steps)
 {
+    TBOX_ASSERT(n_previous_steps == 1);
     d_multistep_n_previous_steps = n_previous_steps;
     return;
 } // setUseMultistepTimeStepping
@@ -2616,6 +2620,9 @@ IIMethod::AB2Step(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        IBTK_CHKERRQ(ierr);
+        d_X_new_vecs[part]->close();
+        d_X_half_vecs[part]->close();
     }
     return;
 } // AB2Step
@@ -2624,6 +2631,9 @@ void
 IIMethod::computeLagrangianForce(const double data_time)
 {
     IBAMR_TIMER_START(t_compute_lagrangian_force);
+    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
+                MathUtilities<double>::equalEps(data_time, d_half_time) ||
+                MathUtilities<double>::equalEps(data_time, d_new_time));
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         batch_vec_ghost_update(d_X_current_vecs, INSERT_VALUES, SCATTER_FORWARD);
@@ -2636,10 +2646,6 @@ IIMethod::computeLagrangianForce(const double data_time)
     {
         batch_vec_ghost_update(d_X_new_vecs, INSERT_VALUES, SCATTER_FORWARD);
     }
-    // std::cout<<"lag"<<std::endl;
-
-    std::ofstream smoothed_velocit_output;
-
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -3038,6 +3044,9 @@ IIMethod::spreadForce(const int f_data_idx,
                       const double data_time)
 {
     IBAMR_TIMER_START(t_spread_force);
+    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
+                MathUtilities<double>::equalEps(data_time, d_half_time) ||
+                MathUtilities<double>::equalEps(data_time, d_new_time));
 
     std::vector<std::vector<libMesh::PetscVector<double>*>> vec_collection_update = { d_X_IB_ghost_vecs,
                                                                                       d_F_IB_ghost_vecs,
@@ -3218,12 +3227,19 @@ IIMethod::initializeFEEquationSystems()
             // vector FE systems:
             std::vector<std::string> vector_system_names{
                 COORDS_SYSTEM_NAME,          COORD_MAPPING_SYSTEM_NAME,       VELOCITY_SYSTEM_NAME,
-                NORMAL_VELOCITY_SYSTEM_NAME, TANGENTIAL_VELOCITY_SYSTEM_NAME, FORCE_SYSTEM_NAME,
-                VELOCITY_OLD_SYSTEM_NAME
+                NORMAL_VELOCITY_SYSTEM_NAME, TANGENTIAL_VELOCITY_SYSTEM_NAME, FORCE_SYSTEM_NAME
             };
-            std::vector<std::string> vector_variable_prefixes{ "X", "dX", "U", "U_n", "U_t", "F", "U_old" };
+            std::vector<std::string> vector_variable_prefixes{ "X", "dX", "U", "U_n", "U_t", "F" };
             std::vector<libMesh::FEFamily> vector_fe_family(vector_system_names.size(), d_fe_family[part]);
             std::vector<libMesh::Order> vector_fe_order(vector_system_names.size(), d_fe_order[part]);
+
+            if (d_multistep_n_previous_steps > 0)
+            {
+                vector_system_names.push_back(VELOCITY_OLD_SYSTEM_NAME);
+                vector_variable_prefixes.push_back("U_old");
+                vector_fe_family.push_back(d_fe_family[part]);
+                vector_fe_order.push_back(d_fe_order[part]);
+            }
 
             if (d_use_velocity_jump_conditions)
             {
@@ -3321,7 +3337,6 @@ IIMethod::initializeFEData()
         auto& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
         auto& U_n_system = equation_systems->get_system<System>(NORMAL_VELOCITY_SYSTEM_NAME);
         auto& U_t_system = equation_systems->get_system<System>(TANGENTIAL_VELOCITY_SYSTEM_NAME);
-        auto& U_old_system = equation_systems->get_system<System>(VELOCITY_OLD_SYSTEM_NAME);
         auto& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
 
         X_system.assemble_before_solve = false;
@@ -3333,8 +3348,12 @@ IIMethod::initializeFEData()
         U_system.assemble_before_solve = false;
         U_system.assemble();
 
-        U_old_system.assemble_before_solve = false;
-        U_old_system.assemble();
+        if (d_multistep_n_previous_steps > 0)
+        {
+            auto& U_old_system = equation_systems->get_system<System>(VELOCITY_OLD_SYSTEM_NAME);
+            U_old_system.assemble_before_solve = false;
+            U_old_system.assemble();
+        }
 
         U_n_system.assemble_before_solve = false;
         U_n_system.assemble();

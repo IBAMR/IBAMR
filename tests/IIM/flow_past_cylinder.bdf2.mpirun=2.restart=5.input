@@ -150,7 +150,6 @@ INSCollocatedHierarchyIntegrator {
    projection_method_type        = PROJECTION_METHOD_TYPE
    use_2nd_order_pressure_update = SECOND_ORDER_PRESSURE_UPDATE
    enable_logging_solver_iterations = FALSE
-   viscous_time_stepping_type = "BDF2"
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -175,6 +174,7 @@ INSStaggeredHierarchyIntegrator {
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
    enable_logging_solver_iterations = FALSE
+   viscous_time_stepping_type    = "BDF2"
 }
 
 Main {
@@ -191,7 +191,7 @@ Main {
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
+   restart_dump_interval       = 1
    restart_dump_dirname        = "restart_IIM2d"
 
 // hierarchy data dump parameters

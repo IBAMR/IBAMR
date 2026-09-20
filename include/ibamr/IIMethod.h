@@ -377,9 +377,13 @@ public:
     void calculateInterfacialFluidForces(int p_data_idx, double data_time);
 
     /*!
-     * Indicate that multistep time stepping will be used.
+     * Configure storage for the previous velocity value required by the AB2
+     * structural update used with BDF2 time stepping.
      *
-     * @param[in] n_previous_steps Number of previous solution values that can be used by the multistep scheme.
+     * IIMethod currently supports exactly one previous value. On the first time
+     * step, AB2Step() uses forward Euler since no previous value is available.
+     *
+     * @param[in] n_previous_steps Number of previous velocity values to retain; must be 1.
      */
     void setUseMultistepTimeStepping(unsigned int n_previous_steps = 1) override;
 
