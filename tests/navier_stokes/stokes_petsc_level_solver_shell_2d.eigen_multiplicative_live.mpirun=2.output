@@ -1,0 +1,7 @@
+local subdomains: min = 2, max = 2
+distance from the ADDITIVE FULL action = 0.373631963834
+distance from the ADDITIVE OWNED action = 0.353690374438
+distance from the MULTIPLICATIVE OWNED action = 0.302740787016
+apply_error = 8.40390386617e-14
+action_norm = 0.524468803779
+error = 7.91702782355e-14
