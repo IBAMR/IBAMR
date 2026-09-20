@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::init():
+  unknown shell_pc_subdomain_traversal = PALINDROMIC; valid values are FORWARD, REVERSE, and SYMMETRIC.
+

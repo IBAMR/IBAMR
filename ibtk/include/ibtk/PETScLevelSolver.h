@@ -79,6 +79,7 @@ namespace IBTK
  subdomain_box_size = 2, 2                 // the size of the ASM subdomains, one entry per direction
  subdomain_overlap_size = 1, 1             // the overlap of the ASM subdomains, one entry per direction
  shell_pc_type = "additive"                // no default; see "Shell preconditioners" below
+ shell_pc_subdomain_traversal = "FORWARD"  // see "Shell preconditioners" below
  subdomain_solver = "petsc"                // see "Subdomain solvers" below
  check_subdomain_coverage = FALSE          // TRUE by default in debug builds
  \endverbatim
@@ -94,6 +95,9 @@ namespace IBTK
  *   DOFs (checked when check_subdomain_coverage is TRUE).
  * - "multiplicative": multiplicative Schwarz. The subdomains are solved one after another, each with
  *   the residual left by the previous solves; ranks work through their own subdomains in parallel.
+ *
+ * shell_pc_subdomain_traversal sets the order of the multiplicative solves: FORWARD (default), REVERSE,
+ * or SYMMETRIC (forward, then back).
  *
  * <b>Subdomain solvers</b>
  *
@@ -376,10 +380,18 @@ protected:
         ADDITIVE,
         MULTIPLICATIVE
     };
+    //! The order in which a multiplicative shell preconditioner visits the subdomains of a rank.
+    enum class ShellTraversal
+    {
+        FORWARD,
+        REVERSE,
+        SYMMETRIC
+    };
     std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU;
     std::string d_options_prefix;
     //! Set from shell_pc_type; required only when a shell preconditioner is selected, possibly through PETSc options.
     std::optional<ShellComposition> d_shell_composition;
+    ShellTraversal d_shell_traversal = ShellTraversal::FORWARD;
     //\}
 
     /*!
@@ -426,16 +438,19 @@ protected:
     /*!
      * \name Multiplicative shell preconditioner.
      *
-     * The multiplicative shell visits stages 0, ..., d_n_stages - 1, the largest number of subdomains on any
-     * rank, and uses subdomain i of this rank at stage i, if there is one. For subdomain i,
-     * d_residual_matrices[i] is the matrix -A(O_i, C_i) of its rows and the columns C_i that they couple to.
-     * For stage s, d_halo_vectors[s] holds the current output on C_i for the subdomain i of the stage, and
-     * the scatters of the stage gather those values and add the corrections from O_i to the output.
+     * The multiplicative shell visits stages 0, ..., d_n_stages - 1, the largest number of visits on any rank.
+     * This rank visits subdomain d_stage_subdomains[s] at stage s, if there is one, and takes part in the
+     * collective scatters of the stage with empty ones if not. For subdomain i, d_residual_matrices[i] is the
+     * matrix -A(O_i, C_i) of its rows and the columns C_i that they couple to. For stage s, d_halo_vectors[s]
+     * holds the current output on C_i for the subdomain i of the stage, and the scatters of the stage gather
+     * those values and add the corrections from O_i to the output.
      */
     //\{
     int d_n_stages = 0;
-    //! Vectors that share the storage of each subdomain's packed right-hand side and solution.
-    std::vector<Vec> d_subdomain_rhs_views, d_subdomain_solution_views;
+    std::vector<int> d_stage_subdomains;
+    Vec d_subdomain_residual = nullptr, d_empty_vector = nullptr;
+    //! Vectors that share the storage of each subdomain's packed right-hand side, residual and solution.
+    std::vector<Vec> d_subdomain_rhs_views, d_subdomain_residual_views, d_subdomain_solution_views;
     std::vector<Mat> d_residual_matrices;
     std::vector<Vec> d_halo_vectors;
     std::vector<VecScatter> d_halo_scatters, d_correction_scatters;
@@ -493,6 +508,13 @@ private:
      * \brief Gather the right-hand sides of all subdomains from x into the packed vector.
      */
     PetscErrorCode gatherSubdomainRhs(Vec x) const;
+
+    /*!
+     * \brief Return the subdomains, in the order in which a rank visits them, for a traversal of its
+     * n subdomains: FORWARD visits 0, ..., n - 1, REVERSE visits n - 1, ..., 0, and SYMMETRIC visits
+     * 0, ..., n - 1, n - 2, ..., 0, the last subdomain once.
+     */
+    static std::vector<int> subdomainVisitOrder(ShellTraversal traversal, int n);
 
     /*!
      * \brief Set up the stages of the multiplicative shell from the rows of the operator on each

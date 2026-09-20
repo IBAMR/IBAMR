@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::initializeSolverState():
+  shell_pc_subdomain_traversal applies only to multiplicative composition.
+

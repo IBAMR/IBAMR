@@ -125,9 +125,10 @@ check_shell_state(LevelSolverProbe<Solver>& solver,
             TBOX_ERROR(name << ": the level solve did not converge to the exact solution.\n");
         }
         std::vector<Vec> retained = solver.retainShellVectors();
-        // The packed right-hand sides and solutions, and for the multiplicative shell a view of the right-hand
-        // side and of the solution of each subdomain and a vector of the halo of each stage.
-        const size_t expected_vectors = 2 + (multiplicative ? 3 * overlap->size() : 0);
+        // The packed right-hand sides and solutions, and for the multiplicative shell also the packed residuals,
+        // an empty vector, a view of the right-hand side, residual and solution of each subdomain, and a vector
+        // of the halo of each stage, of which there is one for each subdomain.
+        const size_t expected_vectors = 2 + (multiplicative ? 2 + 4 * overlap->size() : 0);
         if (retained.size() != expected_vectors)
         {
             TBOX_ERROR(name << ": expected " << expected_vectors << " shell work vectors, found " << retained.size()
