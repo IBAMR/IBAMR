@@ -72,14 +72,22 @@ public:
     {
         return !this->d_subdomain_rhs && !this->d_subdomain_solution && !this->d_restriction &&
                this->d_subdomain_rhs_views.empty() && this->d_subdomain_solution_views.empty() &&
+               !this->d_subdomain_residual && !this->d_empty_vector && this->d_subdomain_residual_views.empty() &&
                this->d_halo_vectors.empty() && this->d_halo_scatters.empty() && this->d_correction_scatters.empty() &&
                this->d_residual_matrices.empty() && this->d_subdomain_offsets.empty() && this->d_sub_mat == nullptr;
     }
     std::vector<Vec> retainShellVectors()
     {
         std::vector<Vec> result = { this->d_subdomain_rhs, this->d_subdomain_solution };
-        for (const std::vector<Vec>* views :
-             { &this->d_subdomain_rhs_views, &this->d_subdomain_solution_views, &this->d_halo_vectors })
+        if (this->d_subdomain_residual)
+        {
+            result.push_back(this->d_subdomain_residual);
+            result.push_back(this->d_empty_vector);
+        }
+        for (const std::vector<Vec>* views : { &this->d_subdomain_rhs_views,
+                                               &this->d_subdomain_residual_views,
+                                               &this->d_subdomain_solution_views,
+                                               &this->d_halo_vectors })
         {
             result.insert(result.end(), views->begin(), views->end());
         }
