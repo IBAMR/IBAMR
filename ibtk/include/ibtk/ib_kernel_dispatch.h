@@ -40,7 +40,9 @@ inline constexpr std::size_t MAX_BUILT_IN_BSPLINE_ORDER = 8;
  * differ by one (for example COMPOSITE_BSPLINE_2_3 and COMPOSITE_BSPLINE_3_2),
  * up to MAX_BUILT_IN_BSPLINE_ORDER. The visitor is called once, with an
  * IBKernelEvaluatorTensorProduct prvalue, so the kernel is a compile-time
- * type inside the visitor and its evaluation can be inlined.
+ * type inside the visitor and its evaluation can be inlined. The visitor must
+ * accept every one of these evaluator types, whichever kernel is requested at
+ * run time, so a generic lambda is suitable. Its return value is ignored.
  *
  * \return true if the visitor was called, and false if kernel is not built in.
  */
