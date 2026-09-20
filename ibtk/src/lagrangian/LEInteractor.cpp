@@ -1925,6 +1925,14 @@ enum KernelType
     INVALID
 };
 
+// The lookup tables below are searched with std::lower_bound, which requires them to be sorted.
+template <class Table>
+bool
+is_sorted_by_kernel(const Table& table)
+{
+    return std::is_sorted(table.begin(), table.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+}
+
 KernelType
 kernel_to_backend(const IBKernelTensorProduct& kernel)
 {
@@ -1947,6 +1955,8 @@ kernel_to_backend(const IBKernelTensorProduct& kernel)
               { IBKernel::PIECEWISE_CUBIC, PIECEWISE_CUBIC },
               { user_defined_kernel(), USER_DEFINED } }
         };
+        static const bool scalar_backends_sorted = is_sorted_by_kernel(scalar_backends);
+        TBOX_ASSERT(scalar_backends_sorted);
         const auto result =
             std::lower_bound(scalar_backends.begin(),
                              scalar_backends.end(),
@@ -1970,6 +1980,8 @@ kernel_to_backend(const IBKernelTensorProduct& kernel)
           { { { IBKernel::BSPLINE_5, IBKernel::BSPLINE_6 } }, COMPOSITE_BSPLINE_56 },
           { { { IBKernel::BSPLINE_6, IBKernel::BSPLINE_5 } }, COMPOSITE_BSPLINE_65 } }
     };
+    static const bool composite_backends_sorted = is_sorted_by_kernel(composite_backends);
+    TBOX_ASSERT(composite_backends_sorted);
     const auto result =
         std::lower_bound(composite_backends.begin(),
                          composite_backends.end(),
@@ -1987,7 +1999,7 @@ require_supported_kernel(const IBKernelTensorProduct& kernel)
 {
     if (kernel_to_backend(kernel) == INVALID)
     {
-        TBOX_ERROR("LEInteractor: unsupported kernel description " << kernel << '\n');
+        TBOX_ERROR("LEInteractor::require_supported_kernel():\n  unsupported kernel description " << kernel << ".\n");
     }
 }
 
@@ -1996,7 +2008,8 @@ require_supported_masked_kernel(const IBKernelTensorProduct& kernel)
 {
     if (kernel != IBKernel::IB_4 && kernel != user_defined_kernel())
     {
-        TBOX_ERROR("LEInteractor: unsupported masked kernel description " << kernel << '\n');
+        TBOX_ERROR("LEInteractor::require_supported_masked_kernel():\n  unsupported masked kernel description "
+                   << kernel << ".\n");
     }
 }
 
@@ -2040,6 +2053,13 @@ get_stencil_size(KernelType kernel_type, const IBKernelTensorProduct& kernel_fcn
                    << "  Unsupported kernel function " << kernel_fcn << std::endl);
     }
     return -1;
+}
+
+// The ghost cells that a stencil of the given size needs around a point in a patch.
+int
+minimum_ghost_width(const int stencil_size)
+{
+    return stencil_size / 2 + 1;
 }
 
 } // namespace
@@ -2090,7 +2110,7 @@ LEInteractor::getStencilSize(const IBKernelTensorProduct& kernel_fcn)
 int
 LEInteractor::getMinimumGhostWidth(const IBKernelTensorProduct& kernel_fcn)
 {
-    return static_cast<int>(floor(0.5 * getStencilSize(kernel_fcn))) + 1;
+    return minimum_ghost_width(getStencilSize(kernel_fcn));
 }
 
 template <class T>
@@ -4513,7 +4533,7 @@ LEInteractor::interpolate(double* const Q_data,
 {
     const KernelType kernel_type = kernel_to_backend(interp_fcn);
     const int stencil_size = get_stencil_size(kernel_type, interp_fcn);
-    const int min_ghosts = static_cast<int>(floor(0.5 * stencil_size)) + 1;
+    const int min_ghosts = minimum_ghost_width(stencil_size);
     const int q_gcw_min = q_gcw.min();
     if (q_gcw_min < min_ghosts)
     {
@@ -5276,7 +5296,7 @@ LEInteractor::spread(double* const q_data,
 {
     const KernelType kernel_type = kernel_to_backend(spread_fcn);
     const int stencil_size = get_stencil_size(kernel_type, spread_fcn);
-    const int min_ghosts = static_cast<int>(floor(0.5 * stencil_size)) + 1;
+    const int min_ghosts = minimum_ghost_width(stencil_size);
     const int q_gcw_min = q_gcw.min();
     bool patch_touches_physical_bdry = false;
     for (unsigned int d = 0; d < NDIM; ++d)

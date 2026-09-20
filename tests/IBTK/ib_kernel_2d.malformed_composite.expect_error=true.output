@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    IBKernelTensorProduct::parse_name():
+  malformed composite B-spline name COMPOSITE_BSPLINE_1; expected COMPOSITE_BSPLINE_<m><n> with single-digit orders or COMPOSITE_BSPLINE_<m>_<n> with positive orders, or DISCONTINUOUS_LINEAR.
+
