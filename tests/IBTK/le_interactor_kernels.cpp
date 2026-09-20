@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2026 - 2026 by the IBAMR developers
+// Copyright (c) 2026 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <iomanip>
 #include <string>
 #include <vector>
@@ -88,8 +89,7 @@ check_patch(Pointer<Patch<NDIM>> patch,
         }
     }
 
-    // This is a valid, extensible tensor-product description, but
-    // LEInteractor does not yet provide its numerical implementation.
+    // This is a valid tensor-product description that LEInteractor has no numerical implementation for.
     const IBKernelTensorProduct unsupported("COMPOSITE_BSPLINE_12");
     TBOX_ASSERT(!LEInteractor::isKnownKernel(unsupported));
     TBOX_ASSERT(LEInteractor::isKnownKernel("IB_4"));
@@ -154,26 +154,50 @@ check_patch(Pointer<Patch<NDIM>> patch,
     const IBKernelTensorProduct linear_constant("DISCONTINUOUS_LINEAR");
     const IBKernelTensorProduct explicit_linear_constant({ IBKernel::BSPLINE_2, IBKernel::BSPLINE_1 });
     TBOX_ASSERT(linear_constant == explicit_linear_constant);
-    LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, linear_constant);
-    typed_spread->fillAll(0.0);
-    LEInteractor::spread(typed_spread, force, NDIM, X, NDIM, patch, box, linear_constant);
-    for (int component = 0; component < NDIM; ++component)
+
+    // Compare the interpolation and spreading of a kernel with a reference computed here from the closed form of its
+    // weight function, w(|distance| in cells), in the direction normal to the side (normal_weight) and in the
+    // directions along it (tangential_weight). The side data are aligned with the grid in the normal direction and
+    // staggered by half a cell in the others.
+    const auto compare_with_reference = [&](const IBKernelTensorProduct& kernel,
+                                            const std::function<double(double)>& normal_weight,
+                                            const std::function<double(double)>& tangential_weight)
     {
-        double expected_value = 0.0;
-        for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
+        LEInteractor::interpolate(string_value, NDIM, X, NDIM, field, patch, box, kernel);
+        typed_spread->fillAll(0.0);
+        LEInteractor::spread(typed_spread, force, NDIM, X, NDIM, patch, box, kernel);
+        for (int component = 0; component < NDIM; ++component)
         {
-            double weight = 1.0;
-            for (int d = 0; d < NDIM; ++d)
+            double expected_value = 0.0;
+            for (SideIterator<NDIM> i(field->getGhostBox(), component); i; i++)
             {
-                const double grid_x = x_lower[d] + (i()(d) - box.lower()(d) + (d == component ? 0.0 : 0.5)) * dx[d];
-                const double distance = std::abs((X[d] - grid_x) / dx[d]);
-                weight *= d == component ? std::max(0.0, 1.0 - distance) : (distance < 0.5 ? 1.0 : 0.0);
+                double weight = 1.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    const double grid_x = x_lower[d] + (i()(d) - box.lower()(d) + (d == component ? 0.0 : 0.5)) * dx[d];
+                    const double distance = std::abs((X[d] - grid_x) / dx[d]);
+                    weight *= d == component ? normal_weight(distance) : tangential_weight(distance);
+                }
+                expected_value += weight * (*field)(i());
+                reference_spreading_error += std::abs((*typed_spread)(i()) * cell_volume - force[component] * weight);
             }
-            expected_value += weight * (*field)(i());
-            reference_spreading_error += std::abs((*typed_spread)(i()) * cell_volume - force[component] * weight);
+            reference_interpolation_error += std::abs(string_value[component] - expected_value);
         }
-        reference_interpolation_error += std::abs(string_value[component] - expected_value);
-    }
+    };
+    const auto constant = [](const double r) { return r < 0.5 ? 1.0 : 0.0; };
+    const auto hat = [](const double r) { return std::max(0.0, 1.0 - r); };
+    const auto quadratic_bspline = [](const double r)
+    { return r < 0.5 ? 0.75 - r * r : (r < 1.5 ? 0.5 * (1.5 - r) * (1.5 - r) : 0.0); };
+    const auto ib_4 = [](const double r)
+    {
+        if (r <= 1.0) return (3.0 - 2.0 * r + std::sqrt(std::max(0.0, 1.0 + 4.0 * r - 4.0 * r * r))) / 8.0;
+        if (r < 2.0) return (5.0 - 2.0 * r - std::sqrt(std::max(0.0, -7.0 + 12.0 * r - 4.0 * r * r))) / 8.0;
+        return 0.0;
+    };
+    compare_with_reference(linear_constant, hat, constant);
+    compare_with_reference(IBKernelTensorProduct("piecewise_constant"), constant, constant);
+    compare_with_reference(IBKernelTensorProduct("composite_bspline_23"), hat, quadratic_bspline);
+    compare_with_reference(IBKernelTensorProduct("IB_4"), ib_4, ib_4);
 
     const auto saved_kernel = LEInteractor::s_kernel_fcn;
     const int saved_stencil_size = LEInteractor::s_kernel_fcn_stencil_size;
@@ -272,7 +296,7 @@ main(int argc, char* argv[])
     const std::string input_file = argc > 1 ? argv[1] : "";
     const bool expect_error = input_file.find("expect_error=true") != std::string::npos;
 
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "le_interactor_kernels.log");
+    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "output");
     PIO::logOnlyNodeZero("output");
     Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));

@@ -947,7 +947,7 @@ FEDataManager::spread(const int f_data_idx,
     const IBKernelTensorProduct spread_kernel(spread_spec.kernel_fcn);
     if (!LEInteractor::isKnownKernel(spread_kernel))
     {
-        TBOX_ERROR("FEDataManager::spread(): unsupported IB kernel " << spread_kernel << '\n');
+        TBOX_ERROR("FEDataManager::spread():\n  unsupported IB kernel " << spread_kernel << ".\n");
     }
 
     // Determine the type of data centering.
@@ -1708,7 +1708,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     const IBKernelTensorProduct interp_kernel(interp_spec.kernel_fcn);
     if (!LEInteractor::isKnownKernel(interp_kernel))
     {
-        TBOX_ERROR("FEDataManager::interpWeighted(): unsupported IB kernel " << interp_kernel << '\n');
+        TBOX_ERROR("FEDataManager::interpWeighted():\n  unsupported IB kernel " << interp_kernel << ".\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
