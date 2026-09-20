@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/StaggeredStokesIBJacobianFACPreconditioner.h>
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 
@@ -38,7 +37,7 @@ checked_strategy(const std::string& object_name, Pointer<StaggeredStokesIBLevelR
     if (!strategy)
     {
         TBOX_ERROR(object_name << "::StaggeredStokesIBJacobianFACPreconditioner():\n"
-                               << "  fac_strategy must be nonnull.");
+                               << "  fac_strategy must be nonnull.\n");
     }
     return strategy;
 }
@@ -79,26 +78,6 @@ StaggeredStokesIBJacobianFACPreconditioner::setIBInterpOp(Mat J_mat)
     getIBFACPreconditionerStrategy()->setIBInterpOp(J_mat);
     return;
 } // setIBInterpOp
-
-void
-StaggeredStokesIBJacobianFACPreconditioner::setIBImplicitStrategy(Pointer<IBImplicitStrategy> ib_implicit_ops)
-{
-    d_ib_implicit_ops = ib_implicit_ops;
-    return;
-} // setIBImplicitStrategy
-
-void
-StaggeredStokesIBJacobianFACPreconditioner::initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b)
-{
-    if (d_ib_implicit_ops)
-    {
-        d_ib_implicit_ops->setUseFixedLEOperators(true);
-        d_ib_implicit_ops->updateFixedLEOperators();
-    }
-    FACPreconditioner::initializeSolverState(x, b);
-    return;
-} // initializeSolverState
 
 Pointer<StaggeredStokesIBLevelRelaxationFACOperator>
 StaggeredStokesIBJacobianFACPreconditioner::getIBFACPreconditionerStrategy() const
