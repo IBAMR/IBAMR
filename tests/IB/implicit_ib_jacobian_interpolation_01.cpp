@@ -495,6 +495,7 @@ main(int argc, char* argv[])
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "IB.log");
     const std::string input_file = argc > 1 ? argv[1] : "";
 
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Logger::Appender> abort_appender = new TestAppender();
     SAMRAI::tbox::Logger::getInstance()->setAbortAppender(abort_appender);
 
