@@ -302,7 +302,7 @@ protected:
     std::string d_options_prefix;
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
-    MatNullSpace d_petsc_nullsp;
+    MatNullSpace d_petsc_nullsp = nullptr;
     Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
     //\}
 
