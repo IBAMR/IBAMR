@@ -271,6 +271,7 @@ SETUP(IBTK child_integrators.cpp IBAMR2d)
 SETUP(IBTK version_macros.cpp IBAMR2d)
 SETUP(IBTK restart_cleaner_interface_test.cpp IBAMR2d)
 SETUP(IBTK restart_cleaner_function_test.cpp IBAMR2d)
+SETUP(IBTK string_utilities.cpp IBAMR2d)
 
 IF(${IBAMR_HAVE_LIBMESH})
   SETUP(IBTK elem_hmax_01.cpp IBAMR2d)
