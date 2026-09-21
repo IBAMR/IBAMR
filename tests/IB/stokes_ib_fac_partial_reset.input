@@ -1,0 +1,88 @@
+// Two-level periodic hierarchy with a single Lagrangian point. Only the finest level is reset, and the coarse
+// Stokes operators are rediscretized.
+
+MU = 0.01
+RHO = 1.0
+DT = 0.005
+SPRING_STIFFNESS = 2.0e2
+N = 8
+
+stokes_ib_precond_db {
+   rediscretize_stokes = TRUE
+   res_rediscretized_stokes = TRUE
+   level_solver_type = "PETSC_LEVEL_SOLVER"
+   level_solver_rel_residual_tol = 1.0e-10
+   level_solver_abs_residual_tol = 1.0e-50
+   level_solver_max_iterations = 1
+   level_solver_db {
+      use_ksp_as_smoother = TRUE
+      initial_guess_nonzero = TRUE
+      ksp_type = "richardson"
+      pc_type = "asm"
+      subdomain_box_size = 8, 8
+      subdomain_overlap_size = 0, 0
+   }
+   coarse_solver_type = "PETSC_LEVEL_SOLVER"
+   coarse_solver_rel_residual_tol = 1.0e-10
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations = 1
+   coarse_solver_db {
+      use_ksp_as_smoother = FALSE
+      initial_guess_nonzero = TRUE
+      ksp_type = "preonly"
+      pc_type = "lu"
+      subdomain_box_size = N, N
+      subdomain_overlap_size = 0, 0
+   }
+}
+
+Main {
+   petsc_settings {
+      stokes_ib_pc_level_ksp_type = "richardson"
+      stokes_ib_pc_level_ksp_richardson_self_scale = TRUE
+      stokes_ib_pc_level_pc_type = "asm"
+      stokes_ib_pc_level_0_ksp_type = "preonly"
+      stokes_ib_pc_level_0_pc_type = "svd"
+   }
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0, 0), (N - 1, N - 1) ]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = N, N
+      level_1 = 2 * N, 2 * N
+   }
+   smallest_patch_size {
+      level_0 = N, N
+      level_1 = 2 * N, 2 * N
+   }
+   efficiency_tolerance = 0.85
+   combine_efficiency = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [ (0, 0), (N - 1, N - 1) ]
+   }
+}
+
+LoadBalancer {
+   processor_mapping = "SFC"
+   max_workload_factor = 1.0
+   workload_patch_data_index = -1
+   workload_tolerance = 0.0
+   bin_pack_method = "SPATIAL"
+}
