@@ -1,0 +1,3 @@
+Fixed: PETScLevelSolver's shell preconditioner now counts its subdomains after generating them from std::set data and finishes each additive scatter into its output vector before starting the next.
+<br>
+(Boyce Griffith, 2026/09/14)
