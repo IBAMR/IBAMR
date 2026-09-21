@@ -157,6 +157,7 @@ SETUP_3D(navier_stokes navier_stokes_01.cpp)
 SETUP_2D(navier_stokes poiseuille_flow.cpp)
 SETUP_2D(navier_stokes stokes_operator.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
+SETUP(navier_stokes stokes_petsc_level_solver_state.cpp IBAMR2d)
 
 # physical_boundary:
 SETUP(physical_boundary extrapolation_01.cpp IBAMR2d)
