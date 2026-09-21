@@ -136,12 +136,41 @@ main(int argc, char* argv[])
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
+        // Optionally check that the TimePoint overload of IBMethod::getForceData() returns the actual force data
+        // computed by computeLagrangianForce(), rather than position data, and stop before time stepping. Print the
+        // same per-vertex force components that the main time-stepping loop below prints, so the numerical values
+        // are checked against the expected output.
+        const bool check_time_point_data = input_db->getBoolWithDefault("CHECK_TIME_POINT_DATA", false);
+        if (check_time_point_data)
+        {
+            const double current_time = time_integrator->getIntegratorTime();
+            const double new_time = current_time + time_integrator->getMaximumTimeStepSize();
+            ib_method_ops->preprocessIntegrateData(current_time, new_time, 1);
+            const TimePoint time_points[] = { TimePoint::CURRENT_TIME, TimePoint::HALF_TIME };
+            for (const auto time_pt : time_points)
+            {
+                const double time = ib_method_ops->convertTimeEnumToDouble(time_pt);
+                ib_method_ops->computeLagrangianForce(time);
+                std::vector<Pointer<LData>>* F_data = nullptr;
+                bool* F_needs_ghost_fill = nullptr;
+                ib_method_ops->getForceData(&F_data, &F_needs_ghost_fill, time_pt);
+                auto* F_array = (*F_data)[finest_ln]->getVecArray();
+                for (auto&& F : *F_array)
+                {
+                    pout << F[0] << " " << F[1] << "\n";
+                }
+                (*F_data)[finest_ln]->restoreArrays();
+            }
+            ib_method_ops->postprocessIntegrateData(current_time, new_time, 1);
+        }
+
         // Main time step loop.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
+        while (!check_time_point_data && !IBTK::rel_equal_eps(loop_time, loop_time_end) &&
+               time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
