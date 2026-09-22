@@ -1,5 +1,6 @@
-// Like the original test, but uses a W-cycle for the velocity preconditioner
-// to verify that codepath in FACPreconditioner
+// Like the original test, but at a larger grid size (N = 64) and run on 4 MPI ranks; tests/navier_stokes/'s
+// only parallel fixture. Formerly ran a W-cycle; rebaselined to run FACPreconditioner's default V-cycle
+// (the only cycle type it now supports; see FACPreconditioner.h).
 
 // physical parameters
 MU  = 1.0e-2                              // fluid viscosity
@@ -242,8 +243,6 @@ INSStaggeredHierarchyIntegrator {
          split_solver_type    = "PFMG"
          enable_logging       = FALSE
       }
-
-      cycle_type = "W_CYCLE"
    }
 
    pressure_solver_type = "PETSC_KRYLOV_SOLVER"

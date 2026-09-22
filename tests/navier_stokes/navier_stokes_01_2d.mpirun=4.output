@@ -2,7 +2,7 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 1
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 8
-INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 3.85232e-19
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 3.82911e-19
 Input database:
 input_db {
    MU                           = 0.01                      // input used
@@ -222,7 +222,6 @@ input_db {
          coarse_solver_rel_residual_tol = 1e-12             // input used
          coarse_solver_abs_residual_tol = 1e-50             // input used
          coarse_solver_max_iterations   = 1                 // input used
-         cycle_type                     = "W_CYCLE"         // input used
          coarse_solver_db {
             solver_type       = "Split"                     // input used
             split_solver_type = "PFMG"                      // input used
@@ -994,8 +993,8 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.00976562
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0122031
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00100495
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.179094
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -1012,11 +1011,11 @@ Writing visualization files...
 Computing error norms.
 
 Error in u at time 0.01:
-  L1-norm:  0.0001240726256
-  L2-norm:  0.0001574110116
-  max-norm: 0.002094512541
+  L1-norm:  0.0001234822862
+  L2-norm:  0.0001563570316
+  max-norm: 0.002090392788
 Error in p at time 0.0098828125:
-  L1-norm:  0.004179832215
-  L2-norm:  0.00485225825
-  max-norm: 0.01929308086
+  L1-norm:  0.001196205385
+  L2-norm:  0.001834282756
+  max-norm: 0.01508626273
 +++++++++++++++++++++++++++++++++++++++++++++++++++
