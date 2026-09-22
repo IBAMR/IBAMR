@@ -15,6 +15,7 @@
 
 #include <ibamr/PETScKrylovStaggeredStokesSolver.h>
 #include <ibamr/StaggeredStokesBlockFactorizationPreconditioner.h>
+#include <ibamr/StaggeredStokesBoxRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
@@ -176,6 +177,8 @@ StaggeredStokesSolverManager::StaggeredStokesSolverManager()
                                   StaggeredStokesLevelRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(LEVEL_RELAXATION_FAC_PRECONDITIONER,
                                   StaggeredStokesLevelRelaxationFACOperator::allocate_solver);
+    registerSolverFactoryFunction(BOX_RELAXATION_FAC_PRECONDITIONER,
+                                  StaggeredStokesBoxRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, StaggeredStokesPETScLevelSolver::allocate_solver);
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, StaggeredStokesPETScLevelSolver::allocate_solver);
     return;
