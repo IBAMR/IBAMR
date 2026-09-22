@@ -1,0 +1,7 @@
+Fixed: IBTK::CCPoissonPointRelaxationFACOperator,
+IBTK::SCPoissonPointRelaxationFACOperator, and
+IBTK::VCSCViscousOpPointRelaxationFACOperator used uninitialized scratch data
+with RED_BLACK_GAUSS_SEIDEL smoothing and a single requested sweep on a
+refined level.
+<br>
+(Boyce Griffith, 2026/09/22)
