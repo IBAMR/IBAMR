@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/StaggeredStokesFACPreconditionerStrategy.h>
 
 #include <tbox/Pointer.h>
@@ -73,6 +74,21 @@ public:
      * \brief Destructor.
      */
     ~StaggeredStokesBoxRelaxationFACOperator();
+
+    /*!
+     * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
+     * StaggeredStokesBoxRelaxationFACOperator FAC strategy.
+     */
+    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    allocate_solver(const std::string& object_name,
+                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    const std::string& default_options_prefix)
+    {
+        SAMRAI::tbox::Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
+            new StaggeredStokesBoxRelaxationFACOperator(
+                object_name + "::StaggeredStokesBoxRelaxationFACOperator", input_db, default_options_prefix);
+        return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
+    } // allocate_solver
 
     /*!
      * \name Implementation of FACPreconditionerStrategy interface.
