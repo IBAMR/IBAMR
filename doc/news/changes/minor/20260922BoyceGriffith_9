@@ -1,0 +1,3 @@
+Fixed: IBTK::CCPoissonBoxRelaxationFACOperator::smoothError() does not modify its residual argument.
+<br>
+(Boyce Griffith, 2026/09/22)

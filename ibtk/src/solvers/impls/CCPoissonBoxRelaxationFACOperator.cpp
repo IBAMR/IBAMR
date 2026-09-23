@@ -207,6 +207,18 @@ CCPoissonBoxRelaxationFACOperator::CCPoissonBoxRelaxationFACOperator(const std::
     // Configure the coarse level solver.
     setCoarseSolverType(d_coarse_solver_type);
 
+    // Register scratch data for smoothError()'s copy of the residual.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<CellVariable<NDIM, double>> residual_scratch_var =
+        new CellVariable<NDIM, double>(object_name + "::residual_scratch", DEFAULT_DATA_DEPTH);
+    if (var_db->checkVariableExists(residual_scratch_var->getName()))
+    {
+        residual_scratch_var = var_db->getVariable(residual_scratch_var->getName());
+        d_residual_scratch_idx = var_db->mapVariableAndContextToIndex(residual_scratch_var, d_context);
+        var_db->removePatchDataIndex(d_residual_scratch_idx);
+    }
+    d_residual_scratch_idx = var_db->registerVariableAndContext(residual_scratch_var, d_context, d_gcw);
+
     // Setup Timers.
     IBTK_DO_ONCE(
         t_smooth_error = TimerManager::getManager()->getTimer("IBTK::CCPoissonBoxRelaxationFACOperator::smoothError()");
@@ -381,9 +393,11 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
             // imposed on different components of the vector-valued solution
             // data.
 
-            // Reset ghost cell values in the residual data so that patch
-            // boundary conditions are properly handled.
-            residual_data->getArrayData().copy(
+            // Copy the residual and reset the copy's ghost cell values so that patch boundary conditions are
+            // properly handled.
+            Pointer<CellData<NDIM, double>> residual_scratch_data = patch->getPatchData(d_residual_scratch_idx);
+            residual_scratch_data->copy(*residual_data);
+            residual_scratch_data->getArrayData().copy(
                 error_data->getArrayData(), d_patch_bc_box_overlap[level_num][patch_counter], IntVector<NDIM>(0));
 
             for (int depth = 0; depth < error_data->getDepth(); ++depth)
@@ -399,7 +413,7 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
                 Vec& f = d_patch_vec_f[level_num][patch_counter];
                 ierr = VecPlaceArray(e, error_data->getPointer(depth));
                 IBTK_CHKERRQ(ierr);
-                ierr = VecPlaceArray(f, residual_data->getPointer(depth));
+                ierr = VecPlaceArray(f, residual_scratch_data->getPointer(depth));
                 IBTK_CHKERRQ(ierr);
                 ierr = KSPSolve(d_patch_ksp[level_num][patch_counter], f, e);
                 IBTK_CHKERRQ(ierr);
@@ -548,6 +562,14 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
     Pointer<CellDataFactory<NDIM, double>> scratch_pdat_fac =
         var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
     scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
+    Pointer<CellDataFactory<NDIM, double>> residual_scratch_pdat_fac =
+        var_db->getPatchDescriptor()->getPatchDataFactory(d_residual_scratch_idx);
+    residual_scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
+    for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_residual_scratch_idx)) level->allocatePatchData(d_residual_scratch_idx);
+    }
 
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver)
@@ -718,6 +740,15 @@ CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int 
             IBTK_CHKERRQ(ierr);
         }
         d_patch_ksp[ln].clear();
+    }
+
+    // The hierarchy may have fewer levels than when this state was allocated.
+    for (int ln = coarsest_reset_ln;
+         ln <= std::min({ d_finest_ln, finest_reset_ln, d_hierarchy->getFinestLevelNumber() });
+         ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        if (level->checkAllocated(d_residual_scratch_idx)) level->deallocatePatchData(d_residual_scratch_idx);
     }
 
     if (!d_in_initialize_operator_state)

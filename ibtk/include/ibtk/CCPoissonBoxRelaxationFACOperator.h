@@ -290,6 +290,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
+     * Scratch copy of the residual used by smoothError().
+     */
+    int d_residual_scratch_idx = IBTK::invalid_index;
+
+    /*
      * Mappings from patch indices to patch operators.
      */
     std::string d_petsc_options_prefix = "cc_poisson_fac_";
