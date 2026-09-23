@@ -880,10 +880,23 @@ VCSCViscousOpPointRelaxationFACOperator::restrictResidual(const SAMRAIVectorReal
     const int src_idx = src.getComponentDescriptorIndex(0);
     const int dst_idx = dst.getComponentDescriptorIndex(0);
 
-    // Copy src into scratch and rescale
+    // Copy src into scratch and rescale.
+    //
+    // An empty d_A_scale (only ever populated by setOperatorScaling()) means no scaling; a non-empty d_A_scale
+    // must have one entry per hierarchy level (see
+    // INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator()), so indexing past its end is an error.
+    const bool A_scale_is_set = d_A_scale.size() > 0;
+    if (A_scale_is_set && dst_ln + 1 >= d_A_scale.size())
+    {
+        TBOX_ERROR(d_object_name << "::restrictResidual():\n"
+                                 << "  d_A_scale has " << d_A_scale.size() << " entries, which is too few for level "
+                                 << (dst_ln + 1) << ".\n");
+    }
+    const double A_scale_coarse = A_scale_is_set ? d_A_scale[dst_ln] : 1.0;
+    const double A_scale_fine = A_scale_is_set ? d_A_scale[dst_ln + 1] : 1.0;
     d_level_data_ops[dst_ln + 1]->copyData(d_scratch_idx, src_idx, /*interior_only*/ false);
     d_level_data_ops[dst_ln + 1]->scale(
-        d_scratch_idx, d_A_scale[dst_ln] / d_A_scale[dst_ln + 1], d_scratch_idx, /*interior_only*/ false);
+        d_scratch_idx, A_scale_coarse / A_scale_fine, d_scratch_idx, /*interior_only*/ false);
 
     if (src_idx != dst_idx)
     {
