@@ -382,7 +382,7 @@ CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
         d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
             transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
     InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0),
                                                                DATA_REFINE_TYPE,
@@ -468,7 +468,7 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         level_solver->setMaxIterations(d_level_solver_max_iterations);
         level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
         level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
-        level_solver->setHomogeneousBc(true);
+        level_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
     }
@@ -485,7 +485,7 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        d_coarse_solver->setHomogeneousBc(true);
+        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }

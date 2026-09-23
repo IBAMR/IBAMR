@@ -815,7 +815,7 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
         d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
             transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
     InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0),
                                                                DATA_REFINE_TYPE,

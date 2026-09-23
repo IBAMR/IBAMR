@@ -35,8 +35,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditionerStrategy::FACPreconditionerStrategy(std::string object_name, bool homogeneous_bc)
-    : d_object_name(std::move(object_name)), d_homogeneous_bc(homogeneous_bc)
+FACPreconditionerStrategy::FACPreconditionerStrategy(std::string object_name) : d_object_name(std::move(object_name))
 {
     // intentionally blank
     return;
@@ -60,19 +59,6 @@ FACPreconditionerStrategy::setFACPreconditioner(ConstPointer<FACPreconditioner> 
     d_preconditioner = preconditioner;
     return;
 } // setFACPreconditioner
-
-void
-FACPreconditionerStrategy::setHomogeneousBc(bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-} // setHomogeneousBc
-
-bool
-FACPreconditionerStrategy::getHomogeneousBc() const
-{
-    return d_homogeneous_bc;
-} // getHomogeneousBc
 
 void
 FACPreconditionerStrategy::setSolutionTime(double solution_time)
@@ -157,7 +143,6 @@ FACPreconditionerStrategy::printClassData(std::ostream& stream)
     stream << "\n"
            << "object_name = " << d_object_name << "\n"
            << "is_initialized = " << d_is_initialized << "\n"
-           << "homogeneous_bc = " << d_homogeneous_bc << "\n"
            << "solution_time = " << d_solution_time << "\n"
            << "current_time = " << d_current_time << "\n"
            << "new_time = " << d_new_time << "\n";

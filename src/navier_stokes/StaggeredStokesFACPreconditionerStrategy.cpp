@@ -570,7 +570,7 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
     {
         d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponents(U_P_components);
     }
-    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
 
     InterpolationTransactionComponent default_U_scratch_component(d_solution->getComponentDescriptorIndex(0),
@@ -704,7 +704,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        d_coarse_solver->setHomogeneousBc(true);
+        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         d_coarse_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
@@ -945,13 +945,13 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleProlongation(const std::pai
     const int U_dst_idx = dst_idxs.first;
     const int U_src_idx = src_idxs.first;
     d_U_bc_op->setPatchDataIndex(U_dst_idx);
-    d_U_bc_op->setHomogeneousBc(true);
+    d_U_bc_op->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_U_cf_bdry_op->setPatchDataIndex(U_dst_idx);
 
     const int P_dst_idx = dst_idxs.second;
     const int P_src_idx = src_idxs.second;
     d_P_bc_op->setPatchDataIndex(P_dst_idx);
-    d_P_bc_op->setHomogeneousBc(true);
+    d_P_bc_op->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_P_cf_bdry_op->setPatchDataIndex(P_dst_idx);
 
     RefineAlgorithm<NDIM> refine_alg;
@@ -991,11 +991,11 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const std
 {
     const int U_dst_idx = dst_idxs.first;
     d_U_bc_op->setPatchDataIndex(U_dst_idx);
-    d_U_bc_op->setHomogeneousBc(true);
+    d_U_bc_op->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
 
     const int P_dst_idx = dst_idxs.second;
     d_P_bc_op->setPatchDataIndex(P_dst_idx);
-    d_P_bc_op->setHomogeneousBc(true);
+    d_P_bc_op->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
 
     RefineAlgorithm<NDIM> refine_alg;
     refine_alg.registerRefine(

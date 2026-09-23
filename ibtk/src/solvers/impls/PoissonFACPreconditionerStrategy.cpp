@@ -550,14 +550,14 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, con
     d_cf_bdry_op->setPatchDataIndex(dst_idx);
     d_bc_op->setPatchDataIndex(dst_idx);
     d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
-    d_bc_op->setHomogeneousBc(true);
+    d_bc_op->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     for (const auto& bc_coef : d_bc_coefs)
     {
         auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
         if (extended_bc_coef)
         {
             extended_bc_coef->setTargetPatchDataIndex(dst_idx);
-            extended_bc_coef->setHomogeneousBc(true);
+            extended_bc_coef->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         }
     }
     RefineAlgorithm<NDIM> refiner;
@@ -589,14 +589,14 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int dst_idx
 {
     d_bc_op->setPatchDataIndex(dst_idx);
     d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
-    d_bc_op->setHomogeneousBc(true);
+    d_bc_op->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     for (const auto& bc_coef : d_bc_coefs)
     {
         auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
         if (extended_bc_coef)
         {
             extended_bc_coef->setTargetPatchDataIndex(dst_idx);
-            extended_bc_coef->setHomogeneousBc(true);
+            extended_bc_coef->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         }
     }
     RefineAlgorithm<NDIM> refiner;

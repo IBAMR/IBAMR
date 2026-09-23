@@ -290,7 +290,7 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         level_solver->setMaxIterations(d_level_solver_max_iterations);
         level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
         level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
-        level_solver->setHomogeneousBc(true);
+        level_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         level_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));

@@ -498,7 +498,7 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double
         d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
             transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
     InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0),
                                                                DATA_REFINE_TYPE,
@@ -572,7 +572,7 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
         d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
-        d_coarse_solver->setHomogeneousBc(true);
+        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
