@@ -86,7 +86,7 @@ namespace IBAMR
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_type = "ADDITIVE"                     // see setSmootherType(); presently unused
+ smoother_type = "ADDITIVE"                     // see setSmootherType()
  U_prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethods()
  P_prolongation_method = "LINEAR_REFINE"        // see setProlongationMethods()
  U_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
@@ -182,10 +182,7 @@ public:
     /*!
      * \brief Specify the smoother type.
      *
-     * \note This value is presently unused: none of the concrete FAC operators derived from this class
-     * (StaggeredStokesBoxRelaxationFACOperator, StaggeredStokesLevelRelaxationFACOperator,
-     * StaggeredStokesIBLevelRelaxationFACOperator) consult d_smoother_type. Calling this (or setting
-     * "smoother_type" in the input database) has no effect.
+     * \note Use of \c smoother_type is relegated to derived classes and is not used in the base class.
      */
     void setSmootherType(const std::string& smoother_type);
 
