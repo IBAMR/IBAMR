@@ -1,0 +1,3 @@
+Fixed: PETScMFFDJacobianOperator evaluates its base function in a SAMRAI-backed vector, so it works outside a Newton solve.
+<br>
+(Boyce Griffith, 2026/09/13)

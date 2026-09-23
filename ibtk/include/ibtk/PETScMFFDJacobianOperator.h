@@ -53,7 +53,7 @@ public:
     PETScMFFDJacobianOperator(std::string object_name, std::string options_prefix = "");
 
     /*!
-     * \brief Empty destructor.
+     * \brief Deallocate operator state and destroy the operator.
      */
     ~PETScMFFDJacobianOperator();
 
@@ -75,17 +75,14 @@ public:
     //\{
 
     /*!
-     * \brief Compute hierarchy dependent data required for evaluating F'[x].
+     * \brief Set the base state required for evaluating \f$F'[u]\f$.
      *
-     * \param x value where the Jacobian is to be evaluated
+     * \param u standalone value where the Jacobian is to be evaluated
      */
     void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
-     *
-     * \note This member function returns a nullptr pointer if the operator is not
-     * initialized, or if formJacobian() has not been called.
      */
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> getBaseVector() const override;
 
@@ -150,8 +147,6 @@ public:
      *
      * \param in input vector
      * \param out output vector
-     *
-     * \note The default implementation is empty.
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
@@ -165,8 +160,6 @@ public:
      * already deallocated.
      *
      * \see initializeOperatorState
-     *
-     * \note The default implementation is empty.
      */
     void deallocateOperatorState() override;
 
@@ -205,8 +198,8 @@ private:
     SAMRAI::tbox::Pointer<GeneralOperator> d_F;
     SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac = nullptr;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_op_u, d_op_x, d_op_y;
-    Vec d_petsc_u = nullptr, d_petsc_x = nullptr, d_petsc_y = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_op_u, d_op_f_base, d_op_x, d_op_y;
+    Vec d_petsc_u = nullptr, d_petsc_f_base = nullptr, d_petsc_x = nullptr, d_petsc_y = nullptr;
     std::string d_options_prefix;
 };
 } // namespace IBTK
