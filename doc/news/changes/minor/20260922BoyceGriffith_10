@@ -1,0 +1,4 @@
+Fixed: IBAMR::StaggeredStokesBoxRelaxationFACOperator's Vanka smoother was
+incorrect.
+<br>
+(Boyce Griffith, 2026/09/22)
