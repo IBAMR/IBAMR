@@ -1,0 +1,4 @@
+Fixed: IBTK::CCPoissonBoxRelaxationFACOperator::smoothError() no longer writes
+into the caller's residual vector through its const reference parameter.
+<br>
+(Boyce Griffith, 2026/09/22)
