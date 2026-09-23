@@ -318,6 +318,12 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
+     * Patch descriptor index for a per-level scratch copy of the residual data used by smoothError() to apply
+     * patch boundary conditions without mutating the (const) residual vector passed in by the caller.
+     */
+    int d_residual_scratch_idx = IBTK::invalid_index;
+
+    /*
      * Mappings from patch indices to patch operators.
      */
     std::string d_petsc_options_prefix = "cc_poisson_fac_";
