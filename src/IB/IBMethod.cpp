@@ -653,6 +653,12 @@ IBMethod::updateFixedLEOperators()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        if (ln >= static_cast<int>(d_X_LE_new_data.size()) || !d_X_LE_new_data[ln])
+        {
+            TBOX_ERROR(d_object_name << "::updateFixedLEOperators():\n"
+                                     << "  fixed LE data is not initialized; call setUseFixedLEOperators(true) before "
+                                        "preprocessIntegrateData().\n");
+        }
         ierr = VecCopy(d_X_new_data[ln]->getVec(), d_X_LE_new_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
     }
