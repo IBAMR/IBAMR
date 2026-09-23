@@ -376,6 +376,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         if (!d_overlap_is.size())
         {
             generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
+            d_generated_subdomain_is = true;
         }
 
         int num_subdomains = static_cast<int>(d_overlap_is.size());
@@ -443,6 +444,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         if (!d_overlap_is.size())
         {
             generate_petsc_is_from_std_is(overlap_is, nonoverlap_is, d_overlap_is, d_nonoverlap_is);
+            d_generated_subdomain_is = true;
         }
         d_n_local_subdomains = static_cast<int>(d_overlap_is.size());
         d_n_subdomains_max = IBTK_MPI::maxReduction(d_n_local_subdomains);
@@ -712,6 +714,26 @@ PETScLevelSolver::deallocateSolverState()
         d_sub_ksp.clear();
         d_sub_x.clear();
         d_sub_y.clear();
+    }
+
+    // Discard PETSc index sets converted from the subclass's std::set<int> lists, so that they
+    // are rebuilt for the next layout. Subclasses that construct PETSc index sets directly
+    // manage their own regeneration.
+    if (d_generated_subdomain_is)
+    {
+        for (IS& is : d_nonoverlap_is)
+        {
+            ierr = ISDestroy(&is);
+            IBTK_CHKERRQ(ierr);
+        }
+        for (IS& is : d_overlap_is)
+        {
+            ierr = ISDestroy(&is);
+            IBTK_CHKERRQ(ierr);
+        }
+        d_nonoverlap_is.clear();
+        d_overlap_is.clear();
+        d_generated_subdomain_is = false;
     }
 
     d_petsc_ksp = nullptr;

@@ -318,6 +318,14 @@ protected:
     std::vector<KSP> d_sub_ksp;
     Mat *d_sub_mat, *d_sub_bc_mat;
     std::vector<Vec> d_sub_x, d_sub_y;
+
+    /*!
+     * Whether initializeSolverState() converted std::set<int> subdomains from
+     * generateASMSubdomains() into d_overlap_is and d_nonoverlap_is itself, so that
+     * deallocateSolverState() should destroy and clear them. Subclasses that construct
+     * PETSc index sets directly instead manage their own regeneration.
+     */
+    bool d_generated_subdomain_is = false;
     //\}
 
     /*!
