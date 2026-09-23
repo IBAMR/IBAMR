@@ -86,17 +86,18 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<SideVariable<NDIM, double>> u_sc_var = new SideVariable<NDIM, double>("u_sc");
-        Pointer<SideVariable<NDIM, double>> f_sc_var = new SideVariable<NDIM, double>("f_sc");
-        Pointer<SideVariable<NDIM, double>> e_sc_var = new SideVariable<NDIM, double>("e_sc");
+        const int depth = input_db->getIntegerWithDefault("depth", 1);
+        Pointer<SideVariable<NDIM, double>> u_sc_var = new SideVariable<NDIM, double>("u_sc", depth);
+        Pointer<SideVariable<NDIM, double>> f_sc_var = new SideVariable<NDIM, double>("f_sc", depth);
+        Pointer<SideVariable<NDIM, double>> e_sc_var = new SideVariable<NDIM, double>("e_sc", depth);
 
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(1));
         const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVector<NDIM>(1));
         const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVector<NDIM>(1));
 
-        Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
-        Pointer<CellVariable<NDIM, double>> f_cc_var = new CellVariable<NDIM, double>("f_cc", NDIM);
-        Pointer<CellVariable<NDIM, double>> e_cc_var = new CellVariable<NDIM, double>("e_cc", NDIM);
+        Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM * depth);
+        Pointer<CellVariable<NDIM, double>> f_cc_var = new CellVariable<NDIM, double>("f_cc", NDIM * depth);
+        Pointer<CellVariable<NDIM, double>> e_cc_var = new CellVariable<NDIM, double>("e_cc", NDIM * depth);
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(0));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(0));
@@ -156,7 +157,7 @@ main(int argc, char* argv[])
 
         // Compute u DOFs per processor.
         std::vector<std::vector<int>> num_dofs_per_proc;
-        Pointer<SideVariable<NDIM, int>> u_dof_index_var = new SideVariable<NDIM, int>("u_dof_index");
+        Pointer<SideVariable<NDIM, int>> u_dof_index_var = new SideVariable<NDIM, int>("u_dof_index", depth);
         ;
         const IntVector<NDIM> no_ghosts = 0;
         const int u_dof_index_idx = var_db->registerVariableAndContext(u_dof_index_var, ctx, no_ghosts);
