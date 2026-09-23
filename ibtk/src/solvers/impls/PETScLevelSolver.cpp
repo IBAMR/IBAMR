@@ -144,18 +144,6 @@ PETScLevelSolver::~PETScLevelSolver()
         TBOX_ERROR(d_object_name << "::~PETScLevelSolver()\n"
                                  << "  subclass must call deallocateSolverState in subclass destructor" << std::endl);
     }
-
-    int ierr;
-    for (auto& is : d_nonoverlap_is)
-    {
-        ierr = ISDestroy(&is);
-        IBTK_CHKERRQ(ierr);
-    }
-    for (auto& is : d_overlap_is)
-    {
-        ierr = ISDestroy(&is);
-        IBTK_CHKERRQ(ierr);
-    }
     return;
 } // ~PETScLevelSolver
 
@@ -713,6 +701,20 @@ PETScLevelSolver::deallocateSolverState()
         d_sub_x.clear();
         d_sub_y.clear();
     }
+
+    // Destroy the subdomain index sets; the next initialization generates them again.
+    for (IS& is : d_nonoverlap_is)
+    {
+        ierr = ISDestroy(&is);
+        IBTK_CHKERRQ(ierr);
+    }
+    for (IS& is : d_overlap_is)
+    {
+        ierr = ISDestroy(&is);
+        IBTK_CHKERRQ(ierr);
+    }
+    d_nonoverlap_is.clear();
+    d_overlap_is.clear();
 
     d_petsc_ksp = nullptr;
     d_petsc_mat = nullptr;
