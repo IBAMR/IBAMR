@@ -1,0 +1,4 @@
+Fixed: IBTK::CartCellDoubleCubicCoarsen and IBTK::CartSideDoubleCubicCoarsen
+now validate the refinement ratio is even in release builds too.
+<br>
+(Boyce Griffith, 2026/09/22)
