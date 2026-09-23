@@ -371,6 +371,10 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
     const bool red_black_ordering = use_red_black_ordering(smoother_type);
     const bool update_local_data = do_local_data_update(smoother_type);
 
+    // Red-black ordering does two passes (red, then black) per requested sweep, so double num_sweeps before
+    // deciding whether to cache the coarse-fine ghost values below: that decision depends on the actual number
+    // of passes that will run, not the number of sweeps the caller requested.
+    if (red_black_ordering) num_sweeps *= 2;
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln && num_sweeps > 1)
     {
@@ -396,7 +400,6 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
     }
 
     // Smooth the error by the specified number of sweeps.
-    if (red_black_ordering) num_sweeps *= 2;
     for (int isweep = 0; isweep < num_sweeps; ++isweep)
     {
         // Re-fill ghost cell data as needed.
