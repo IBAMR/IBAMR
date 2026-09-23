@@ -1513,7 +1513,8 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                 for (unsigned d = 0; d < depth; ++d)
                 {
                     if (samrai_petsc_map[d * n_interpolants] >= 0 &&
-                        samrai_petsc_map[d * n_interpolants] >= j_coarse_lower && samrai_petsc_map[d] < j_coarse_upper)
+                        samrai_petsc_map[d * n_interpolants] >= j_coarse_lower &&
+                        samrai_petsc_map[d * n_interpolants] < j_coarse_upper)
                     {
                         d_nnz[local_row[d]] = 1;
                     }
@@ -1548,6 +1549,8 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                         0,
                         get_data_or_null(o_nnz),
                         &mat);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
     IBTK_CHKERRQ(ierr);
 
     // Determine the matrix-coefficients
@@ -1636,6 +1639,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
                     }
 
                     ierr = MatSetValues(mat, 1, &row, col_size, col.data(), col_val.data(), INSERT_VALUES);
+                    IBTK_CHKERRQ(ierr);
                 }
             }
         }

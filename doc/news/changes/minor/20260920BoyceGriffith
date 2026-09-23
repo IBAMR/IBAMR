@@ -1,0 +1,3 @@
+Fixed: The RT0 prolongation matrix now counts diagonal-block entries correctly across ranks for depth greater than one, and errors immediately on a preallocation miss instead of reallocating.
+<br>
+(Boyce Griffith, 2026/09/20)
