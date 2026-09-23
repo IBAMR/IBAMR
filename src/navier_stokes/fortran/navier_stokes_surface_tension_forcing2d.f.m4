@@ -706,48 +706,158 @@ c
       return
       end
 
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute side-centered VOF surface tension force.
+c
+c     Cell-centered curvature is interpolated to the face using
+c
+c             w = C*(1-C)
+c
+c     whenever curvature is valid in both adjacent cells.
+c
+c     If curvature is available in only one adjacent cell, use
+c     that curvature directly.
+c
+c     The returned force does NOT include sigma. The caller is
+c     responsible for multiplying by the surface tension coefficient.
+c
+c                 F = kappa_f * grad(C)
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
       subroutine sc_surface_tension_force_vof_2d(
      &     F0,F1,F_gcw,
      &     K,K_valid,K_gcw,
+     &     C,C_gcw,
      &     N00,N11,N_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1)
 
       implicit none
 
+c
+c     Patch information.
+c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER F_gcw,K_gcw,N_gcw
 
+      INTEGER F_gcw
+      INTEGER K_gcw
+      INTEGER C_gcw
+      INTEGER N_gcw
+
+c
+c     Side-centered force.
+c
       REAL F0(SIDE2d0(ilower,iupper,F_gcw))
       REAL F1(SIDE2d1(ilower,iupper,F_gcw))
 
+c
+c     Cell-centered curvature and validity.
+c
       REAL K(CELL2d(ilower,iupper,K_gcw))
       REAL K_valid(CELL2d(ilower,iupper,K_gcw))
 
+c
+c     Raw VOF field.
+c
+      REAL C(CELL2d(ilower,iupper,C_gcw))
+
+c
+c     Side-centered gradient of raw VOF.
+c
       REAL N00(SIDE2d0(ilower,iupper,N_gcw))
       REAL N11(SIDE2d1(ilower,iupper,N_gcw))
 
+c
+c     Local variables.
+c
       INTEGER i0,i1
       INTEGER vl,vr
-      REAL kappa
 
+      REAL al,ar
+      REAL wl,wr
+      REAL wsum
+      REAL kappa
+      REAL eps
+
+      eps = 1.d-14
+
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     X faces.
 c
+c     Face i0 lies between cells:
+c
+c             (i0-1,i1) | (i0,i1)
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0+1
 
             vl = 0
             vr = 0
 
-            if (K_valid(i0-1,i1) .gt. 0.5d0) vl = 1
-            if (K_valid(i0,i1)   .gt. 0.5d0) vr = 1
+            wl = 0.d0
+            wr = 0.d0
 
+c
+c           Left cell.
+c
+            if (K_valid(i0-1,i1) .gt. 0.5d0) then
+
+               vl = 1
+
+               al = max(0.d0,
+     &                  min(1.d0,C(i0-1,i1)))
+
+               wl = al*(1.d0-al)
+
+            endif
+
+c
+c           Right cell.
+c
+            if (K_valid(i0,i1) .gt. 0.5d0) then
+
+               vr = 1
+
+               ar = max(0.d0,
+     &                  min(1.d0,C(i0,i1)))
+
+               wr = ar*(1.d0-ar)
+
+            endif
+
+c
+c           Determine face-centered curvature.
+c
             if (vl+vr .eq. 2) then
 
-               kappa =
-     &              0.5d0*(K(i0-1,i1)+K(i0,i1))
+               wsum = wl+wr
+
+               if (wsum .gt. eps) then
+
+                  kappa =
+     &               (wl*K(i0-1,i1)
+     &               +wr*K(i0,i1))/wsum
+
+               else
+
+c
+c                 Both curvatures are valid but both weights
+c                 are extremely small. Use symmetric fallback.
+c
+                  kappa =
+     &               0.5d0*(K(i0-1,i1)
+     &                     +K(i0,i1))
+
+               endif
 
             else if (vl .eq. 1) then
 
@@ -760,31 +870,90 @@ c
             else
 
                kappa = 0.d0
-c we can add normal gradient calculation here 
 
             endif
 
+c
+c           Balanced-force CSF:
+c
+c                 Fx = kappa_f * dC/dx
+c
             F0(i0,i1) = kappa*N00(i0,i1)
 
          enddo
       enddo
 
 c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Y faces.
 c
+c     Face i1 lies between cells:
+c
+c             (i0,i1-1)
+c                 ---
+c              (i0,i1)
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+
       do i1 = ilower1,iupper1+1
          do i0 = ilower0,iupper0
 
             vl = 0
             vr = 0
 
-            if (K_valid(i0,i1-1) .gt. 0.5d0) vl = 1
-            if (K_valid(i0,i1)   .gt. 0.5d0) vr = 1
+            wl = 0.d0
+            wr = 0.d0
 
+c
+c           Lower cell.
+c
+            if (K_valid(i0,i1-1) .gt. 0.5d0) then
+
+               vl = 1
+
+               al = max(0.d0,
+     &                  min(1.d0,C(i0,i1-1)))
+
+               wl = al*(1.d0-al)
+
+            endif
+
+c
+c           Upper cell.
+c
+            if (K_valid(i0,i1) .gt. 0.5d0) then
+
+               vr = 1
+
+               ar = max(0.d0,
+     &                  min(1.d0,C(i0,i1)))
+
+               wr = ar*(1.d0-ar)
+
+            endif
+
+c
+c           Determine face-centered curvature.
+c
             if (vl+vr .eq. 2) then
 
-               kappa =
-     &              0.5d0*(K(i0,i1-1)+K(i0,i1))
+               wsum = wl+wr
+
+               if (wsum .gt. eps) then
+
+                  kappa =
+     &               (wl*K(i0,i1-1)
+     &               +wr*K(i0,i1))/wsum
+
+               else
+
+                  kappa =
+     &               0.5d0*(K(i0,i1-1)
+     &                     +K(i0,i1))
+
+               endif
 
             else if (vl .eq. 1) then
 
@@ -796,11 +965,15 @@ c
 
             else
 
-               kappa = 0.d0 
-c we can add normal gradient calculation here 
+               kappa = 0.d0
 
             endif
 
+c
+c           Balanced-force CSF:
+c
+c                 Fy = kappa_f * dC/dy
+c
             F1(i0,i1) = kappa*N11(i0,i1)
 
          enddo

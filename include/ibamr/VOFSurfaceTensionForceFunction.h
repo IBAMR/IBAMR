@@ -92,6 +92,13 @@ private:
 
     void computeAlphaFromLevelSetOnPatch(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch);
 
+    void mollifyData(int C_idx,
+        int coarsest_ln,
+        int finest_ln,
+        double data_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
+
     void setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> F_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const double data_time,
@@ -103,6 +110,7 @@ private:
                             double data_time,
                             bool initial_time,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level);
+
 
     TimeSteppingType d_ts_type = MIDPOINT_RULE;
 
@@ -121,6 +129,7 @@ private:
 
     int d_phi_idx = IBTK::invalid_index;
     int d_alpha_idx = IBTK::invalid_index;
+    int d_alpha_smooth_idx = IBTK::invalid_index;
 
     
     double d_sigma = 1.0;
@@ -130,6 +139,7 @@ private:
     double d_gradient_tol = 1.0e-12;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_alpha_scratch_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_alpha_smooth_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_vof_var;
 
