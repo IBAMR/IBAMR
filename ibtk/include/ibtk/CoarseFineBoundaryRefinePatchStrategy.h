@@ -148,11 +148,12 @@ public:
     //\{
 
     /*!
-     * Whether or not to employ a consistent interpolation scheme at "Type 2"
-     * coarse-fine interface ghost cells.
+     * Whether or not to employ a consistent interpolation scheme at coarse-fine interface ghost cells of
+     * co-dimension greater than 1 (i.e. cells diagonal to the interface, such as corner cells in 2D or
+     * edge/corner cells in 3D, as opposed to the co-dimension 1 cells directly across a coarse-fine face).
      *
-     * \note This subclasses may choose not to support a consistent "Type 2"
-     * coarse-fine interface ghost cell interpolation scheme.
+     * \note Subclasses may choose not to support a consistent interpolation scheme at these higher-co-dimension
+     * ghost cells.
      */
     virtual void setConsistentInterpolationScheme(bool consistent_type_2_bdry) = 0;
 
