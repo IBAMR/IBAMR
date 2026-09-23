@@ -62,9 +62,32 @@ class FACPreconditionerStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
+     * \brief Every concrete FACPreconditionerStrategy implements the FAC
+     * correction scheme: it solves the error equation \f$ A e = r \f$ for a
+     * Krylov (or standalone FACPreconditioner) linear preconditioner
+     * application, and the boundary conditions satisfied by an error/
+     * correction are always the homogeneous form of the original problem's
+     * boundary conditions. This is a mathematical consequence of what a
+     * correction equation is, not a configurable option, so unlike
+     * SAMRAI::solv::RobinBcCoefStrategy-facing classes elsewhere in IBTK,
+     * FACPreconditionerStrategy does not expose a settable homogeneous-BC
+     * toggle; see FACPreconditioner::setHomogeneousBc(), which enforces this
+     * invariant on the one place a caller can attempt to configure it.
+     *
+     * This constant is named, rather than left as a bare \c true at each of
+     * the many call sites in concrete implementations that configure a
+     * ghost-cell-filling or level-solver object's own homogeneous-BC
+     * setting, so that a future extension supporting a standalone (as
+     * opposed to preconditioner-only) FAC or FAS solver -- which would need
+     * real, inhomogeneous boundary conditions -- has exactly one symbol to
+     * find and repurpose.
+     */
+    static constexpr bool ALWAYS_HOMOGENEOUS_BC = true;
+
+    /*!
      * \brief Constructor.
      */
-    FACPreconditionerStrategy(std::string object_name, bool homogeneous_bc = false);
+    FACPreconditionerStrategy(std::string object_name);
 
     /*!
      * \brief Empty virtual desctructor.
@@ -86,17 +109,6 @@ public:
      * with the concrete FACPreconditionerStrategy.
      */
     virtual void setFACPreconditioner(SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
-
-    /*!
-     * \brief Set whether the solver should use homogeneous boundary conditions.
-     */
-    virtual void setHomogeneousBc(bool homogeneous_bc);
-
-    /*!
-     * \brief Return whether the solver is using homogeneous boundary
-     * conditions.
-     */
-    virtual bool getHomogeneousBc() const;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
@@ -247,7 +259,6 @@ protected:
     bool d_is_initialized = false;
 
     // Solver configuration.
-    bool d_homogeneous_bc;
     double d_solution_time = std::numeric_limits<double>::quiet_NaN(),
            d_current_time = std::numeric_limits<double>::quiet_NaN(),
            d_new_time = std::numeric_limits<double>::quiet_NaN();
