@@ -242,10 +242,12 @@ public:
                   const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
 
     /*!
-     * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable
-     * on a particular patch level to a positive integer. Such a mapping can
-     * be useful for creating an application ordering (AO) between SAMRAI and
-     * PETSc data structures.
+     * \brief Map a SAMRAI variable's array index to an application-ordering
+     * integer.
+     *
+     * The (i,j,k,d) index of a DOF on a particular patch level maps to a
+     * nonnegative integer, which is useful for creating an application ordering
+     * (AO) between SAMRAI and PETSc data structures.
      *
      * \param i AMR index representing the (i,j,k) array data index for a
      * variable on particular patch level.
@@ -269,8 +271,8 @@ public:
      *
      * \param periodic_shift Periodic shift in each direction.
      *
-     * \return The linear mapping of an AMR index to a continuous non-negative
-     * integer space.
+     * \return The nonnegative linear index, or -1 if the index is outside
+     * the supplied array extent after periodic adjustment.
      */
     static int
     mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,

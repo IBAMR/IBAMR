@@ -1,0 +1,8 @@
+Fix: IBTK::IndexUtilities::mapIndexToInteger() now returns -1 for an index outside
+the supplied array extent after periodic adjustment, instead of an integer that
+need not correspond to any entry of the array. The three-dimensional
+side-centered linear prolongation matrix from
+IBTK::PETScMatUtilities::constructProlongationOp() no longer adds a corner
+weight that falls outside the physical domain to the wrong neighboring cell.
+<br>
+(Boyce Griffith, 2026/09/09)
