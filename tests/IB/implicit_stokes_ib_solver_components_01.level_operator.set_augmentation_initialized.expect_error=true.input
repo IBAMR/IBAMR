@@ -1,0 +1,11 @@
+test_case = "set_augmentation_initialized"
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+CartesianGeometry {
+   domain_boxes = [(0,0),(15,15)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 1, 1
+}
