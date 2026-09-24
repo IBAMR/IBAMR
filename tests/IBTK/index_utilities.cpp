@@ -24,6 +24,41 @@ main(int argc, char** argv)
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
     tbox::Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
 
+    if (app_initializer->getInputDatabase()->getBoolWithDefault("test_mapping", false))
+    {
+        hier::Index<NDIM> lower(-3), extent(4);
+        lower(1) = 2;
+        extent(1) = 3;
+        const hier::Index<NDIM> upper = lower + extent - 1;
+        const int offset = 17;
+        const int depth = 2;
+        auto map_index = [&](const hier::Index<NDIM>& i, const hier::IntVector<NDIM>& periodic_shift)
+        { return IndexUtilities::mapIndexToInteger(i, lower, extent, depth, offset, periodic_shift); };
+        const hier::IntVector<NDIM> no_shift(0);
+        tbox::pout << "lower = " << map_index(lower, no_shift) << '\n'
+                   << "upper = " << map_index(upper, no_shift) << '\n';
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            hier::Index<NDIM> below = lower, above = upper;
+            --below(axis);
+            ++above(axis);
+            hier::IntVector<NDIM> periodic_shift(0);
+            periodic_shift(axis) = extent(axis);
+            tbox::pout << "axis " << axis << ":\n"
+                       << "  below = " << map_index(below, no_shift) << '\n'
+                       << "  above = " << map_index(above, no_shift) << '\n'
+                       << "  below, periodic = " << map_index(below, periodic_shift) << '\n'
+                       << "  above, periodic = " << map_index(above, periodic_shift) << '\n';
+            // An index that is also outside the array along a nonperiodic axis.
+            --below((axis + 1) % NDIM);
+            tbox::pout << "  below along two axes, periodic = " << map_index(below, periodic_shift) << '\n';
+        }
+        const hier::IntVector<NDIM> periodic_shift(extent);
+        tbox::pout << "lower - 1, periodic = " << map_index(lower - 1, periodic_shift) << '\n'
+                   << "upper + 1, periodic = " << map_index(upper + 1, periodic_shift) << '\n';
+        return 0;
+    }
+
     auto tuple = setup_hierarchy<NDIM>(app_initializer);
     auto patch_hierarchy = std::get<0>(tuple);
 
