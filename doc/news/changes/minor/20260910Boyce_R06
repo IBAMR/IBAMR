@@ -1,0 +1,8 @@
+Fixed: StaggeredStokesFACPreconditionerStrategy::restrictResidual() with the
+"RT0_COARSEN" velocity restriction method now fills the ghost cells of a copy of the
+fine-level residual, from neighboring patches of that level and from homogeneous
+physical boundary conditions, before restricting it. The FAC correction therefore no
+longer depends on those ghost values of the right-hand side. Ghost cells next to
+a coarse-fine interface are still read from the residual.
+<br>
+(Boyce Griffith, 2026/09/10)
