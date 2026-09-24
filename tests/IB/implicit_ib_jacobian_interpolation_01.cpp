@@ -267,7 +267,6 @@ make_jacobian_builder(Pointer<AppInitializer> app,
         "INSStaggeredHierarchyIntegrator" + tag, app->getComponentDatabase("INSStaggeredHierarchyIntegrator"), false);
     Pointer<IBMethod> method = new IBMethod("IBMethod" + tag, app->getComponentDatabase("IBMethod"), false);
     Pointer<Database> input_db = new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator" + tag);
-    input_db->putBool("eliminate_eulerian_vars", true);
     input_db->putString("jacobian_delta_fcn", kernel_name);
     Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
         "IBImplicitStaggeredHierarchyIntegrator" + tag, input_db, method, ins_integrator, false);
@@ -299,7 +298,6 @@ run_fixture(Pointer<AppInitializer> app,
     // needs (for getStartTime()). One run uses the kernel of the input, and
     // the other an application kernel that is wider than the strategy's.
     Pointer<Database> integrator_db = new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator" + suffix);
-    integrator_db->putBool("eliminate_eulerian_vars", true);
     if (use_fixed_ops) integrator_db->putString("jacobian_delta_fcn", "APPLICATION_KERNEL");
     Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
         "IBImplicitStaggeredHierarchyIntegrator" + suffix, integrator_db, method, ins_integrator, false);
