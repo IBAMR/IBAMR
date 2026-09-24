@@ -1,0 +1,5 @@
+Fixed: StaggeredStokesPETScLevelSolver::setupKSPVecs() overwrote the boundary-adjusted
+right-hand side with the unadjusted one, so the level solver ignored nonhomogeneous
+physical boundary data.
+<br>
+(Boyce Griffith, 2026/09/10)
