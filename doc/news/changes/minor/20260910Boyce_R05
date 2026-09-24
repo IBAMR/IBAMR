@@ -1,0 +1,5 @@
+Fixed: IBTK::LEInteractor::spread() with the IB_5 kernel in three dimensions
+accumulated the weights of every first-coordinate stencil point into a single
+grid cell. The weights are now spread over the full stencil.
+<br>
+(Boyce Griffith, 2026/09/10)
