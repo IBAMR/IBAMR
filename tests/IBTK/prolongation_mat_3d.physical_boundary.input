@@ -1,0 +1,54 @@
+// Linear prolongation of side-centered data on a fully refined two-level hierarchy with physical boundaries.
+// Each component is constant in its tangential directions between the outermost coarse cell centers and the boundary.
+f {
+   function_0 = "X0 + max(-0.875, min(0.875, X1)) * (2 + max(-0.875, min(0.875, X2)))"
+   function_1 = "X1 + max(-0.875, min(0.875, X2)) * (2 + max(-0.875, min(0.875, X0)))"
+   function_2 = "X2 + max(-0.875, min(0.875, X0)) * (2 + max(-0.875, min(0.875, X1)))"
+}
+
+prolongation_op_type = "LINEAR"
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz3d"
+   visit_number_procs_per_file = 1
+}
+
+N = 8
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = -1, -1, -1
+   x_up               = 1, 1, 1
+   periodic_dimension = 0, 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+
+   ratio_to_coarser {
+      level_1 = 4, 4, 4
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512, 512
+   }
+
+   smallest_patch_size {
+      level_0 = 1, 1, 1
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0,0), (N - 1,N - 1,N - 1)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
