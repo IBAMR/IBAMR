@@ -16,6 +16,7 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
@@ -24,7 +25,6 @@
 #include <PatchHierarchy.h>
 #include <Variable.h>
 
-#include <string>
 #include <vector>
 
 namespace IBTK
@@ -43,7 +43,7 @@ std::vector<double> interpolate(const VectorNd& X,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
                                 int Q_depth,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                                std::string kernel_fcn = "IB_4");
+                                const IBKernelTensorProduct& kernel_fcn = { IBKernel::IB_4 });
 
 /*
  * Interpolates the data stored in data_idx to the locations provided in X using the provided kernel function. The
@@ -59,7 +59,7 @@ std::vector<double> interpolate(const std::vector<VectorNd>& X,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Q_var,
                                 int Q_depth,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
-                                std::string kernel_fcn = "IB_4");
+                                const IBKernelTensorProduct& kernel_fcn = { IBKernel::IB_4 });
 
 } // namespace IBTK
 #endif
