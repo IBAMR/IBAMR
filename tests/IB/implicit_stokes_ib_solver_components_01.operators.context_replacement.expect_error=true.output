@@ -1,0 +1,4 @@
+IBRedundantInitializer:  Deallocating initialization data.
+Program abort called with error message
+
+    jacobian::setOperatorContext(): deallocate operator state before replacing the Context
