@@ -28,6 +28,7 @@
 
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/KrylovLinearSolver.h>
@@ -74,6 +75,7 @@
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -97,29 +99,6 @@ namespace
 {
 // Version of IBImplicitStaggeredHierarchyIntegrator restart file data.
 static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
-
-// IB-4 interpolation function.
-static void
-ib_4_interp_fcn(const double r, double* const w)
-{
-    const double q = std::sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
-    w[0] = 0.125 * (5.0 - 2.0 * r - q);
-    w[1] = 0.125 * (5.0 - 2.0 * r + q);
-    w[2] = 0.125 * (-1.0 + 2.0 * r + q);
-    w[3] = 0.125 * (-1.0 + 2.0 * r - q);
-    return;
-} // ib_4_interp_fcn
-static const int ib_4_interp_stencil = 4;
-
-// Piecewise linear interpolation function
-static void
-pwl_interp_fcn(const double r, double* const w)
-{
-    w[0] = 1.0 - r;
-    w[1] = r;
-    return;
-} // pwl_interp_fcn
-static const int pwl_interp_stencil = 2;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -150,6 +129,11 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
         if (input_db->keyExists("use_structure_predictor"))
             d_use_structure_predictor = input_db->getBool("use_structure_predictor");
         if (input_db->keyExists("jacobian_delta_fcn")) d_jac_delta_fcn = input_db->getString("jacobian_delta_fcn");
+    }
+    const IBTK::IBKernelTensorProduct jacobian_kernel(d_jac_delta_fcn);
+    if (IBTK::IBOperatorBuilder::is_built_in(jacobian_kernel))
+    {
+        d_jacobian_operator_builder.emplace(jacobian_kernel);
     }
 
     if (d_use_structure_predictor)
@@ -312,7 +296,8 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_u_dof_index_var = new SideVariable<NDIM, int>(d_object_name + "::u_dof_index");
     d_p_dof_index_var = new CellVariable<NDIM, int>(d_object_name + "::p_dof_index");
-    const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
+    IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
+    ib_ghosts.max(IntVector<NDIM>(getJacobianOperatorBuilder().getMinimumGhostWidth()));
     const IntVector<NDIM> no_ghosts = 0;
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, getScratchContext(), ib_ghosts);
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, getScratchContext(), no_ghosts);
@@ -324,6 +309,30 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
     return;
 } // initializeHierarchyIntegrator
+
+void
+IBImplicitStaggeredHierarchyIntegrator::setJacobianOperatorBuilder(IBTK::IBOperatorBuilder builder)
+{
+    if (d_integrator_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setJacobianOperatorBuilder():\n"
+                                 << "  the builder must be set before initializeHierarchyIntegrator().");
+    }
+    d_jacobian_operator_builder = std::move(builder);
+} // setJacobianOperatorBuilder
+
+const IBTK::IBOperatorBuilder&
+IBImplicitStaggeredHierarchyIntegrator::getJacobianOperatorBuilder() const
+{
+    if (!d_jacobian_operator_builder)
+    {
+        TBOX_ERROR(d_object_name << "::getJacobianOperatorBuilder():\n"
+                                 << "  jacobian_delta_fcn = " << d_jac_delta_fcn
+                                 << " has no built-in evaluator and no builder has been set.\n"
+                                 << "  Call setJacobianOperatorBuilder() before initializeHierarchyIntegrator().");
+    }
+    return *d_jacobian_operator_builder;
+} // getJacobianOperatorBuilder
 
 int
 IBImplicitStaggeredHierarchyIntegrator::getNumberOfCycles() const
@@ -630,29 +639,9 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ, data_time);
     stokes_fac_op->setIBForceJacobian(elastic_op);
     Mat interp_op = nullptr;
-    if (d_jac_delta_fcn == "IB_4")
-    {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             ib_4_interp_fcn,
-                                             ib_4_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
-    }
-    else if (d_jac_delta_fcn == "PIECEWISE_LINEAR")
-    {
-        d_ib_implicit_ops->constructInterpOp(interp_op,
-                                             pwl_interp_fcn,
-                                             pwl_interp_stencil,
-                                             d_num_dofs_per_proc[finest_ln],
-                                             d_u_dof_index_idx,
-                                             data_time);
-    }
-    else
-    {
-        TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity()."
-                   << " Delta function " << d_jac_delta_fcn << " is not supported in creating Jacobian." << std::endl);
-    }
+    Vec X_LE_vec = d_ib_implicit_ops->getFinestLevelLECouplingPositions(data_time);
+    getJacobianOperatorBuilder().constructInterpolationMatrixSide(
+        interp_op, X_LE_vec, d_num_dofs_per_proc[finest_ln], d_u_dof_index_idx, d_hierarchy->getPatchLevel(finest_ln));
     stokes_fac_op->setIBInterpOp(interp_op);
     stokes_fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
 

@@ -27,6 +27,8 @@
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesSolver.h>
 
+#include <ibtk/IBOperatorBuilder.h>
+
 #include <tbox/Pointer.h>
 
 #include <petscksp.h>
@@ -39,6 +41,7 @@
 #include <IntVector.h>
 #include <SAMRAIVectorReal.h>
 
+#include <optional>
 #include <string>
 
 namespace IBAMR
@@ -84,6 +87,13 @@ public:
      * some default values, reads in configuration information from input and
      * restart databases, and registers the integrator object with the restart
      * manager when requested.
+     *
+     * The input database key jacobian_delta_fcn selects the kernel of the
+     * Jacobian's interpolation matrix; its default is IB_4. A name that is not a
+     * valid kernel name is an error. A valid name selects a built-in builder only if
+     * dispatch_ib_kernel_evaluator() supports it, which is fewer kernels than the
+     * IBTK::IBKernel and LEInteractor catalogs; otherwise call
+     * setJacobianOperatorBuilder() before initializeHierarchyIntegrator().
      */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -128,6 +138,23 @@ public:
      * Returns the number of cycles to perform for the present time step.
      */
     int getNumberOfCycles() const override;
+
+    /*!
+     * Use builder to construct the interpolation matrix of the Jacobian. This
+     * replaces the builder selected by the jacobian_delta_fcn input, and must
+     * be called before initializeHierarchyIntegrator().
+     *
+     * The Jacobian's kernel is independent of the kernels that the IB strategy
+     * uses for interpolation and spreading.
+     */
+    void setJacobianOperatorBuilder(IBTK::IBOperatorBuilder builder);
+
+    /*!
+     * Return the builder of the Jacobian's interpolation matrix. It is an
+     * error if jacobian_delta_fcn is not a built-in kernel and no builder has
+     * been set.
+     */
+    const IBTK::IBOperatorBuilder& getJacobianOperatorBuilder() const;
 
 protected:
     /*!
@@ -359,6 +386,7 @@ private:
     // Solvers and associated vectors.
     bool d_solve_for_position = false;
     std::string d_jac_delta_fcn = "IB_4";
+    std::optional<IBTK::IBOperatorBuilder> d_jacobian_operator_builder;
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;
