@@ -18,7 +18,6 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/SAMRAIScopedVectorCopy.h>
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
-#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -28,6 +27,7 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <cstring>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -112,40 +112,23 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     // Set the initial guess to equal zero.
     x.setToScalar(0.0, /*interior_only*/ false);
 
-    // Apply a single FAC cycle.
-    if (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0)
+    // Clone the right-hand-side vector to avoid modifying it during the preconditioning operation: both cycles
+    // below restrict a residual into the vector's own coarser-level patch data as they descend, and callers
+    // (e.g. a PETSc KSP invoking this class as a preconditioner via PCApply_SAMRAI, which obtains this vector via
+    // getSAMRAIVectorRead) may treat b as read-only.
+    SAMRAIScopedVectorCopy<double> f(b);
+
+    // Apply a single FAC V-cycle.
+    if (d_num_pre_sweeps == 0)
     {
-        // V-cycle MG without presmoothing keeps the residual equal to the
-        // initial right-hand-side vector f, so we can simply use that vector
-        // for the residual in the FAC algorithm.
-        FACVCycleNoPreSmoothing(x, b, d_finest_ln);
+        // V-cycle MG without presmoothing keeps the residual equal to the initial right-hand-side vector f, so
+        // we can simply use (a copy of) that vector for the residual in the FAC algorithm.
+        FACVCycleNoPreSmoothing(x, f, d_finest_ln);
     }
     else
     {
-        // Clone the right-hand-side vector to avoid modifying it during the
-        // preconditioning operation.
-        SAMRAIScopedVectorCopy<double> f(b);
         SAMRAIScopedVectorDuplicate<double> r(b);
-
-        switch (d_cycle_type)
-        {
-        case F_CYCLE:
-            FCycle(x, f, r, d_finest_ln);
-            break;
-        case FMG_CYCLE:
-            FMGCycle(x, f, r, d_finest_ln, 1);
-            break;
-        case V_CYCLE:
-            muCycle(x, f, r, d_finest_ln, 1);
-            break;
-        case W_CYCLE:
-            muCycle(x, f, r, d_finest_ln, 2);
-            break;
-        default:
-            TBOX_ERROR(d_object_name << "::solveSystem():\n"
-                                     << "  unsupported FAC cycle type: " << enum_to_string<MGCycleType>(d_cycle_type)
-                                     << "." << std::endl);
-        }
+        FACVCycle(x, f, r, d_finest_ln);
     }
 
     // Deallocate the solver, when necessary.
@@ -222,19 +205,6 @@ FACPreconditioner::setMaxIterations(int max_iterations)
 } // setMaxIterations
 
 void
-FACPreconditioner::setMGCycleType(MGCycleType cycle_type)
-{
-    d_cycle_type = cycle_type;
-    return;
-} // setMGCycleType
-
-MGCycleType
-FACPreconditioner::getMGCycleType() const
-{
-    return d_cycle_type;
-} // getMGCycleType
-
-void
 FACPreconditioner::setNumPreSmoothingSweeps(int num_pre_sweeps)
 {
     d_num_pre_sweeps = num_pre_sweeps;
@@ -301,11 +271,10 @@ FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
 } // FACVCycleNoPreSmoothing
 
 void
-FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
-                           SAMRAIVectorReal<NDIM, double>& f,
-                           SAMRAIVectorReal<NDIM, double>& r,
-                           int level_num,
-                           int mu)
+FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u,
+                             SAMRAIVectorReal<NDIM, double>& f,
+                             SAMRAIVectorReal<NDIM, double>& r,
+                             int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -320,7 +289,7 @@ FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
         d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
         d_fac_strategy->restrictResidual(r, f, level_num - 1);
         d_fac_strategy->setToZero(u, level_num - 1);
-        for (int k = 0; k < mu; ++k) muCycle(u, f, r, level_num - 1, mu);
+        FACVCycle(u, f, r, level_num - 1);
         d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
         if (d_num_post_sweeps > 0)
         {
@@ -328,58 +297,7 @@ FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
         }
     }
     return;
-} // muCycle
-
-void
-FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u,
-                          SAMRAIVectorReal<NDIM, double>& f,
-                          SAMRAIVectorReal<NDIM, double>& r,
-                          int level_num)
-{
-    if (level_num == d_coarsest_ln)
-    {
-        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
-    }
-    else
-    {
-        if (d_num_pre_sweeps > 0)
-        {
-            d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
-        }
-        d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
-        d_fac_strategy->restrictResidual(r, f, level_num - 1);
-        d_fac_strategy->setToZero(u, level_num - 1);
-        muCycle(u, f, r, level_num - 1, 2);
-        muCycle(u, f, r, level_num - 1, 1);
-        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
-        if (d_num_post_sweeps > 0)
-        {
-            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
-        }
-    }
-    return;
-} // FCycle
-
-void
-FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u,
-                            SAMRAIVectorReal<NDIM, double>& f,
-                            SAMRAIVectorReal<NDIM, double>& r,
-                            int level_num,
-                            int mu)
-{
-    if (level_num == d_coarsest_ln)
-    {
-        d_fac_strategy->setToZero(u, level_num);
-    }
-    else
-    {
-        d_fac_strategy->restrictResidual(f, f, level_num - 1);
-        FMGCycle(u, f, r, level_num - 1, mu);
-        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
-    }
-    muCycle(u, f, r, level_num, mu);
-    return;
-} // FMGCycle
+} // FACVCycle
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -387,7 +305,20 @@ void
 FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
 {
     if (!db) return;
-    if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
+    // This class supports only V-cycles (see the class documentation); fail loudly for any explicit
+    // "cycle_type" request that is not a V-cycle spelling rather than silently ignoring the key. Accepts the
+    // same case-insensitive spellings ("V", "V_CYCLE", "V-CYCLE") that were always accepted here.
+    if (db->keyExists("cycle_type"))
+    {
+        const std::string cycle_type = db->getString("cycle_type");
+        if (strcasecmp(cycle_type.c_str(), "V") != 0 && strcasecmp(cycle_type.c_str(), "V_CYCLE") != 0 &&
+            strcasecmp(cycle_type.c_str(), "V-CYCLE") != 0)
+        {
+            TBOX_ERROR(d_object_name << "::getFromInput():\n"
+                                     << "  only V_CYCLE is supported; cycle_type = \"" << cycle_type
+                                     << "\" is not a valid setting." << std::endl);
+        }
+    }
     if (db->keyExists("num_pre_sweeps")) setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));
     if (db->keyExists("num_post_sweeps")) setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
     if (db->keyExists("enable_logging")) setLoggingEnabled(db->getBool("enable_logging"));

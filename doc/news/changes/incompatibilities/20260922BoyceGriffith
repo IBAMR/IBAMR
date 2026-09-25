@@ -1,0 +1,3 @@
+Removed: IBTK::FACPreconditioner no longer supports F/W/FMG cycles, only V-cycles.
+<br>
+(Boyce Griffith, 2026/09/22)

@@ -21,7 +21,6 @@
 #include <ibtk/config.h>
 
 #include <ibtk/LinearSolver.h>
-#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
 
@@ -62,10 +61,14 @@ namespace IBTK
  * stand-alone solver; rather, it is intended to be used in conjunction with an
  * iterative Krylov method.
  *
+ * \note This class implements only the V-cycle.  Cycle types that revisit a coarser level more
+ * than once per solve (F-cycles, W-cycles, FMG-cycles) require the FAC strategy to preserve a
+ * level's accumulated correction and restricted residual across each repeat visit at a
+ * coarse-fine interface; FACPreconditionerStrategy provides no such operation.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- cycle_type = "V_CYCLE"  // see setMGCycleType()
  num_pre_sweeps = 0      // see setNumPreSmoothingSweeps()
  num_post_sweeps = 2     // see setNumPostSmoothingSweeps()
  enable_logging = FALSE  // see setLoggingEnabled()
@@ -229,16 +232,6 @@ public:
     void setMaxIterations(int max_iterations) override;
 
     /*!
-     * \brief Set the multigrid algorithm cycle type.
-     */
-    void setMGCycleType(MGCycleType cycle_type);
-
-    /*!
-     * \brief Get the multigrid algorithm cycle type.
-     */
-    MGCycleType getMGCycleType() const;
-
-    /*!
      * \brief Set the number of pre-smoothing sweeps to employ.
      */
     void setNumPreSmoothingSweeps(int num_pre_sweeps);
@@ -273,28 +266,15 @@ protected:
                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                                  int level_num);
 
-    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                 int level_num,
-                 int mu);
-
-    void FCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                int level_num);
-
-    void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                  int level_num,
-                  int mu);
+    void FACVCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
+                   int level_num);
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = 0;
     int d_finest_ln = 0;
-    MGCycleType d_cycle_type = V_CYCLE;
     int d_num_pre_sweeps = 0, d_num_post_sweeps = 2;
 
 private:
