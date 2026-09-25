@@ -245,6 +245,12 @@ public:
     void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) override;
 
     /*!
+     * \brief Fill physical-boundary and same-level ghosts of velocity and
+     * pressure while preserving the coarse-fine interpolation contributions.
+     */
+    void fillGhostCellsNoCoarse(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) override;
+
+    /*!
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
      *

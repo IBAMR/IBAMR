@@ -1,0 +1,44 @@
+// The fourth level distinguishes recursive F-then-V from W-then-V.
+levels = 4
+N = 16
+
+fac_db {
+   cycle_type = "V_CYCLE"
+   cycle_multiplicity = 2
+   smoother_type = "PATCH_GAUSS_SEIDEL"
+   prolongation_method = "LINEAR_REFINE"
+   restriction_method = "CONSERVATIVE_COARSEN"
+   data_coarsen_type = "CONSERVATIVE_COARSEN"
+   coarse_solver_type = "PATCH_GAUSS_SEIDEL"
+   coarse_solver_max_iterations = 3
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+CartesianGeometry {
+   domain_boxes = [(0,0),(N - 1,N - 1)]
+   x_lo = 0, 0
+   x_up = 1, 1
+   periodic_dimension = 0, 0
+}
+GriddingAlgorithm {
+   max_levels = levels
+   ratio_to_coarser { level_1 = 2, 2 level_2 = 2, 2 level_3 = 2, 2 }
+   largest_patch_size { level_0 = 512, 512 }
+   smallest_patch_size { level_0 = 4, 4 }
+   efficiency_tolerance = 0.70
+   combine_efficiency = 0.85
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(4,4),(7,7)], [(8,4),(11,7)], [(4,8),(7,11)]
+      level_1 = [(10,10),(13,13)], [(14,10),(17,13)], [(10,14),(13,17)]
+      level_2 = [(22,22),(25,25)], [(26,22),(29,25)], [(22,26),(25,29)]
+   }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
