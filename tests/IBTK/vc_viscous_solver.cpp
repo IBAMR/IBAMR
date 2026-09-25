@@ -249,7 +249,10 @@ main(int argc, char* argv[])
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
         std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> U_nul_vecs(NDIM);
-        const bool has_velocity_nullspace = periodic_shift.min() > 0;
+        // PREP CHANGE (for a future #2012 replacement, not #2007): a nonzero diagonal shift (C != 0) removes
+        // the constant-velocity modes from the operator's actual nullspace, so attaching them and projecting
+        // them out of the RHS is only correct when C == 0.
+        const bool has_velocity_nullspace = periodic_shift.min() > 0 && input_db->getDouble("C") == 0.0;
         if (has_velocity_nullspace)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -368,6 +371,16 @@ main(int argc, char* argv[])
             }
         }
 
+        // PREP CHANGE (for a future #2012 replacement, not #2007): opt-in operator-generated RHS, so a
+        // shifted regression case can use a RHS that is compatible with the composite operator by
+        // construction, without altering any existing analytic-manufactured-solution test (default is
+        // unchanged, off).
+        if (input_db->getBoolWithDefault("use_discrete_rhs", false))
+        {
+            viscous_op.setHomogeneousBc(false);
+            viscous_op.apply(e_vec, f_vec);
+        }
+
         // Solve L*u = f.
         u_vec.setToScalar(0.0);
         poisson_solver->initializeSolverState(u_vec, f_vec);
@@ -413,12 +426,31 @@ main(int argc, char* argv[])
         r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
                        Pointer<SAMRAIVectorReal<NDIM, double>>(&r_vec, false));
 
+        const double r_max_norm = r_vec.maxNorm();
+        const double r_l2_norm = r_vec.L2Norm();
+        const double r_l1_norm = r_vec.L1Norm();
+        pout << "|r|_oo = " << r_max_norm << "\n";
+        pout << "|r|_2  = " << r_l2_norm << "\n";
+        pout << "|r|_1  = " << r_l1_norm << "\n";
+
         if (IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
             out << "|e|_oo = " << e_max_norm << "\n";
             out << "|e|_2  = " << e_l2_norm << "\n";
             out << "|e|_1  = " << e_l1_norm << "\n";
+            // PREP CHANGE (for a future #2012 replacement, not #2007): the recomputed residual after fixed
+            // work is the sensitive discriminator for the ghost-correction bug on this shifted, well-posed
+            // configuration -- record it in the checked output, not just PETSc's own monitor stdout. Gated on
+            // the same use_discrete_rhs flag as the shifted RHS itself, so every existing test's checked
+            // output (3 lines) is completely unaffected -- caught during verification that writing these
+            // lines unconditionally would have broken #2012's own existing golden output.
+            if (input_db->getBoolWithDefault("use_discrete_rhs", false))
+            {
+                out << "|r|_oo = " << r_max_norm << "\n";
+                out << "|r|_2  = " << r_l2_norm << "\n";
+                out << "|r|_1  = " << r_l1_norm << "\n";
+            }
         }
 
         // Interpolate the side-centered data to cell centers for output.
