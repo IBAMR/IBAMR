@@ -96,6 +96,19 @@ namespace IBTK
  smoother_type = "PATCH_GAUSS_SEIDEL"         // see setSmootherType()
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
+ data_refine_type = "NONE"                    // type of data refining to perform prior to
+                                               // setting ghost cell values via space/time
+                                               // interpolation
+ use_cf_interpolation = TRUE                  // whether to use coarse-fine interface
+                                               // interpolation when setting ghost cell values
+ data_coarsen_type = "CUBIC_COARSEN"          // type of data coarsening to perform prior to
+                                               // setting coarse-fine interface ghost cell values
+ bdry_extrap_type = "LINEAR"                  // type of extrapolation to use at physical
+                                               // boundaries when evaluating composite grid
+                                               // residuals
+ use_consistent_type_2_bdry = FALSE           // whether to enforce consistent interpolated
+                                               // values at coarse-fine interface ghost cells of
+                                               // co-dimension greater than 1
  coarse_solver_type = "HYPRE_LEVEL_SOLVER"    // see setCoarseSolverType()
  coarse_solver_rel_residual_tol = 1.0e-5      // see setCoarseSolverRelativeTolerance()
  coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
@@ -253,6 +266,21 @@ private:
      * \return A reference to this object.
      */
     CCPoissonBoxRelaxationFACOperator& operator=(const CCPoissonBoxRelaxationFACOperator& that) = delete;
+
+    /*
+     * Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary
+     * ghost cell values, and whether to enforce consistent interpolated values at higher-co-dimension
+     * (corner/edge) coarse-fine interface ghost cells. These defaults match
+     * CCPoissonPointRelaxationFACOperator's own defaults, and (like that class) may be overridden via the
+     * "data_refine_type", "use_cf_interpolation", "data_coarsen_type", "bdry_extrap_type", and
+     * "use_consistent_type_2_bdry" input database keys. d_use_consistent_type_2_bdry is currently a no-op: see
+     * CartCellDoubleQuadraticCFInterpolation::setConsistentInterpolationScheme().
+     */
+    std::string d_data_refine_type = "NONE";
+    bool d_use_cf_interpolation = true;
+    std::string d_data_coarsen_type = "CUBIC_COARSEN";
+    std::string d_bdry_extrap_type = "LINEAR";
+    bool d_use_consistent_type_2_bdry = false;
 
     /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted
