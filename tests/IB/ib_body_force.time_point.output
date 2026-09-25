@@ -1,0 +1,9 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+1 -0.25
+-1 0.25
+1 -0.25
+-1 0.25
+IBRedundantInitializer:  Deallocating initialization data.
