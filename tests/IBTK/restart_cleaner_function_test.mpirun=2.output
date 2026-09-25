@@ -54,7 +54,7 @@ Invalid content test: PASSED
 Test 5 PASSED: Error handling works correctly
 
 === Test 6: MPI Environment Compatibility ===
-MPI rank=0, size=1
+MPI rank=0, size=2
 Test 6 PASSED: MPI environment compatibility verified
 
 === Test 7: markImportant Creates Marker File ===
@@ -121,7 +121,7 @@ Round 3 PASSED
 Test 10 PASSED: Markers persist across multiple cleanups and new objects
 
 === Test 11: markImportant Returns on All Processors for Missing Directory ===
-markImportant returned on 1 of 1 processors
+markImportant returned on 2 of 2 processors
 Test 11 PASSED: markImportant returned on all processors and skipped the missing directory
 
 === RestartCleaner Functional Test Summary ===

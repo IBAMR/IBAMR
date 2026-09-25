@@ -17,8 +17,10 @@
 #include <ibtk/RestartCleaner.h>
 
 #include <tbox/Database.h>
+#include <tbox/Logger.h>
 #include <tbox/MemoryDatabase.h>
 #include <tbox/SAMRAIManager.h>
+#include <tbox/Utilities.h>
 
 #include <mpi.h>
 
@@ -45,8 +47,13 @@
  * 4. Database constructor parameter handling
  * 5. Error handling and edge cases
  * 6. MPI environment compatibility
+ * 7. Importance marking and its effect on cleanup
+ * 8. Parallel execution (all tests also run on multiple processors)
  *
  * \note This is an END-TO-END functional test using real file system operations.
+ *
+ * \note An unexpected exception on any processor terminates the whole MPI job, since a processor
+ * that continued on its own would leave the other processors waiting in a collective operation.
  */
 
 namespace
@@ -61,12 +68,15 @@ public:
 
     ~TestDirGuard()
     {
-        if (!d_path.empty() && std::filesystem::exists(d_path))
+        // Wait until all processors are done with the directory, then remove it on the master processor only
+        IBTK_MPI::barrier();
+        if (IBTK_MPI::getRank() == 0 && !d_path.empty())
         {
             std::error_code ec;
             std::filesystem::remove_all(d_path, ec);
             // Silently ignore errors in destructor
         }
+        IBTK_MPI::barrier();
     }
 
     // Disable copy to prevent double deletion
@@ -77,75 +87,86 @@ private:
     std::string d_path;
 };
 
+// Only the master processor creates the test directories; the other processors wait until it is done
 void
 create_test_restart_dirs(const std::string& base_path, const std::vector<int>& restart_restore_numbers)
 {
-    std::filesystem::create_directories(base_path);
-
-    for (int restart_restore_number : restart_restore_numbers)
+    if (IBTK_MPI::getRank() == 0)
     {
-        std::ostringstream dirname;
-        dirname << "restore." << std::setfill('0') << std::setw(6) << restart_restore_number;
-        std::filesystem::path dir_path = std::filesystem::path(base_path) / dirname.str();
-        std::filesystem::create_directories(dir_path);
+        std::filesystem::create_directories(base_path);
 
-        // Create realistic IBAMR restart files
-        for (int i = 0; i < 3; ++i)
+        for (int restart_restore_number : restart_restore_numbers)
         {
-            std::filesystem::path data_file = dir_path / ("samrai_data_" + std::to_string(i) + ".dat");
-            std::ofstream file(data_file);
-            file << "SAMRAI restart data file " << i << " for iteration " << restart_restore_number << std::endl;
-            file.close();
-        }
+            std::ostringstream dirname;
+            dirname << "restore." << std::setfill('0') << std::setw(6) << restart_restore_number;
+            std::filesystem::path dir_path = std::filesystem::path(base_path) / dirname.str();
+            std::filesystem::create_directories(dir_path);
 
-        // Create subdirectory with hierarchy data
-        std::filesystem::path sub_dir = dir_path / "hier_data";
-        std::filesystem::create_directories(sub_dir);
-        std::filesystem::path hier_file = sub_dir / "hierarchy.samrai.00000";
-        std::ofstream hier(hier_file);
-        hier << "Hierarchy data for iteration " << restart_restore_number << std::endl;
-        hier.close();
+            // Create realistic IBAMR restart files
+            for (int i = 0; i < 3; ++i)
+            {
+                std::filesystem::path data_file = dir_path / ("samrai_data_" + std::to_string(i) + ".dat");
+                std::ofstream file(data_file);
+                file << "SAMRAI restart data file " << i << " for iteration " << restart_restore_number << std::endl;
+                file.close();
+            }
+
+            // Create subdirectory with hierarchy data
+            std::filesystem::path sub_dir = dir_path / "hier_data";
+            std::filesystem::create_directories(sub_dir);
+            std::filesystem::path hier_file = sub_dir / "hierarchy.samrai.00000";
+            std::ofstream hier(hier_file);
+            hier << "Hierarchy data for iteration " << restart_restore_number << std::endl;
+            hier.close();
+        }
     }
+    IBTK_MPI::barrier();
 }
 
 void
 create_invalid_dirs(const std::string& base_path, const std::vector<std::string>& dir_names)
 {
-    std::filesystem::create_directories(base_path);
-
-    for (const auto& name : dir_names)
+    if (IBTK_MPI::getRank() == 0)
     {
-        std::filesystem::path dir_path = std::filesystem::path(base_path) / name;
-        std::filesystem::create_directories(dir_path);
+        std::filesystem::create_directories(base_path);
 
-        // Create dummy files to make directories realistic
-        std::filesystem::path test_file = dir_path / "invalid_data.txt";
-        std::ofstream file(test_file);
-        file << "Invalid directory content for " << name << std::endl;
-        file.close();
+        for (const auto& name : dir_names)
+        {
+            std::filesystem::path dir_path = std::filesystem::path(base_path) / name;
+            std::filesystem::create_directories(dir_path);
+
+            // Create dummy files to make directories realistic
+            std::filesystem::path test_file = dir_path / "invalid_data.txt";
+            std::ofstream file(test_file);
+            file << "Invalid directory content for " << name << std::endl;
+            file.close();
+        }
     }
+    IBTK_MPI::barrier();
 }
 
 int
 count_dirs_matching_pattern(const std::string& base_path)
 {
+    // Count on the master processor and broadcast the result so that all processors agree
     int count = 0;
-    if (!std::filesystem::exists(base_path)) return 0;
-
-    std::regex pattern("restore\\.([0-9]{6,})");
-    for (const auto& entry : std::filesystem::directory_iterator(base_path))
+    if (IBTK_MPI::getRank() == 0 && std::filesystem::exists(base_path))
     {
-        if (entry.is_directory())
+        std::regex pattern("restore\\.([0-9]{6,})");
+        for (const auto& entry : std::filesystem::directory_iterator(base_path))
         {
-            std::string dirname = entry.path().filename().string();
-            if (std::regex_match(dirname, pattern))
+            if (entry.is_directory())
             {
-                count++;
+                std::string dirname = entry.path().filename().string();
+                if (std::regex_match(dirname, pattern))
+                {
+                    count++;
+                }
             }
         }
     }
 
-    return count;
+    return IBTK_MPI::bcast(count, 0);
 }
 } // namespace
 
@@ -182,11 +203,11 @@ main(int argc, char** argv)
             "restore.000100_backup" // extra suffix
         };
 
-        create_test_restart_dirs(test_dir, valid_restart_restore_numbers);
-        create_invalid_dirs(test_dir, invalid_names);
-
         try
         {
+            create_test_restart_dirs(test_dir, valid_restart_restore_numbers);
+            create_invalid_dirs(test_dir, invalid_names);
+
             // Create database configuration for parsing test
             Pointer<MemoryDatabase> db = new MemoryDatabase("ParsingTestConfig");
             db->putString("restart_directory", test_dir);
@@ -225,8 +246,7 @@ main(int argc, char** argv)
         }
         catch (const std::exception& e)
         {
-            pout << "FAILED: Exception in parsing test: " << e.what() << std::endl;
-            test_failures++;
+            TBOX_ERROR("Exception in parsing test: " << e.what() << std::endl);
         }
     }
 
@@ -237,10 +257,10 @@ main(int argc, char** argv)
         TestDirGuard guard(test_dir);
         std::vector<int> restart_restore_numbers = { 100, 200, 300, 400, 500, 600, 700, 800 };
 
-        create_test_restart_dirs(test_dir, restart_restore_numbers);
-
         try
         {
+            create_test_restart_dirs(test_dir, restart_restore_numbers);
+
             int dirs_before = count_dirs_matching_pattern(test_dir);
             pout << "Directories before cleanup: " << dirs_before << std::endl;
 
@@ -285,8 +305,7 @@ main(int argc, char** argv)
         }
         catch (const std::exception& e)
         {
-            pout << "FAILED: Exception in cleanup test: " << e.what() << std::endl;
-            test_failures++;
+            TBOX_ERROR("Exception in cleanup test: " << e.what() << std::endl);
         }
     }
 
@@ -297,10 +316,10 @@ main(int argc, char** argv)
         TestDirGuard guard(test_dir);
         std::vector<int> restart_restore_numbers = { 10, 20, 30, 40, 50, 60 };
 
-        create_test_restart_dirs(test_dir, restart_restore_numbers);
-
         try
         {
+            create_test_restart_dirs(test_dir, restart_restore_numbers);
+
             int dirs_before = count_dirs_matching_pattern(test_dir);
             pout << "Directories before dry run: " << dirs_before << std::endl;
 
@@ -330,8 +349,7 @@ main(int argc, char** argv)
         }
         catch (const std::exception& e)
         {
-            pout << "FAILED: Exception in dry run test: " << e.what() << std::endl;
-            test_failures++;
+            TBOX_ERROR("Exception in dry run test: " << e.what() << std::endl);
         }
     }
 
@@ -342,10 +360,10 @@ main(int argc, char** argv)
         TestDirGuard guard(test_dir);
         std::vector<int> restart_restore_numbers = { 10, 20, 30, 40, 50, 60, 70, 80 };
 
-        create_test_restart_dirs(test_dir, restart_restore_numbers);
-
         try
         {
+            create_test_restart_dirs(test_dir, restart_restore_numbers);
+
             // Create database configuration
             Pointer<MemoryDatabase> db = new MemoryDatabase("DatabaseTest");
             db->putString("restart_directory", test_dir);
@@ -376,20 +394,22 @@ main(int argc, char** argv)
         }
         catch (const std::exception& e)
         {
-            pout << "FAILED: Exception in database test: " << e.what() << std::endl;
-            test_failures++;
+            TBOX_ERROR("Exception in database test: " << e.what() << std::endl);
         }
     }
 
     // Test 5: Error handling and edge cases
     pout << "\n=== Test 5: Error Handling and Edge Cases ===" << std::endl;
     {
+        const std::string empty_dir = "test_empty_dir";
+        const std::string invalid_dir = "test_invalid_content";
+        TestDirGuard empty_guard(empty_dir);
+        TestDirGuard invalid_guard(invalid_dir);
+
         try
         {
             // Test empty directory
-            const std::string empty_dir = "test_empty_dir";
-            TestDirGuard empty_guard(empty_dir);
-            std::filesystem::create_directories(empty_dir);
+            create_test_restart_dirs(empty_dir, {});
 
             // Create database configuration for empty directory test
             Pointer<MemoryDatabase> db1 = new MemoryDatabase("EmptyDirTestConfig");
@@ -411,11 +431,7 @@ main(int argc, char** argv)
             }
 
             // Test directory with no valid restore directories
-            const std::string invalid_dir = "test_invalid_content";
-            TestDirGuard invalid_guard(invalid_dir);
-            std::filesystem::create_directories(invalid_dir);
-            std::filesystem::create_directories(invalid_dir + "/not_a_restore_dir");
-            std::filesystem::create_directories(invalid_dir + "/restore_wrong_format");
+            create_invalid_dirs(invalid_dir, { "not_a_restore_dir", "restore_wrong_format" });
 
             // Create database configuration for invalid content test
             Pointer<MemoryDatabase> db2 = new MemoryDatabase("InvalidContentTestConfig");
@@ -443,8 +459,7 @@ main(int argc, char** argv)
         }
         catch (const std::exception& e)
         {
-            pout << "FAILED: Exception in error handling test: " << e.what() << std::endl;
-            test_failures++;
+            TBOX_ERROR("Exception in error handling test: " << e.what() << std::endl);
         }
     }
 
@@ -464,10 +479,311 @@ main(int argc, char** argv)
         }
         catch (const std::exception& e)
         {
-            pout << "FAILED: Exception in MPI test: " << e.what() << std::endl;
-            test_failures++;
+            TBOX_ERROR("Exception in MPI test: " << e.what() << std::endl);
         }
     }
+
+    // Test 7: markImportant creates marker file
+    pout << "\n=== Test 7: markImportant Creates Marker File ===" << std::endl;
+    {
+        const std::string test_dir = "test_restart_mark";
+        TestDirGuard guard(test_dir);
+        std::vector<int> restart_restore_numbers = { 100, 200, 300, 400, 500 };
+
+        try
+        {
+            create_test_restart_dirs(test_dir, restart_restore_numbers);
+
+            Pointer<MemoryDatabase> db = new MemoryDatabase("MarkTestConfig");
+            db->putString("restart_directory", test_dir);
+            db->putInteger("keep_recent_files", 10);
+            db->putString("cleanup_strategy", "KEEP_RECENT_N");
+
+            RestartCleaner cleaner("MarkTest", db);
+            cleaner.markImportant(300);
+
+            // Verify marker file exists in restore.000300
+            std::filesystem::path marker_path = std::filesystem::path(test_dir) / "restore.000300" / ".important";
+            bool marker_exists = std::filesystem::exists(marker_path);
+
+            // Verify marker file does NOT exist in other directories
+            bool no_marker_100 =
+                !std::filesystem::exists(std::filesystem::path(test_dir) / "restore.000100" / ".important");
+            bool no_marker_500 =
+                !std::filesystem::exists(std::filesystem::path(test_dir) / "restore.000500" / ".important");
+
+            if (marker_exists && no_marker_100 && no_marker_500)
+            {
+                pout << "Test 7 PASSED: markImportant correctly created marker file" << std::endl;
+            }
+            else
+            {
+                pout << "FAILED: Marker file state incorrect" << std::endl;
+                test_failures++;
+            }
+        }
+        catch (const std::exception& e)
+        {
+            TBOX_ERROR("Exception in markImportant test: " << e.what() << std::endl);
+        }
+    }
+
+    // Test 8: Cleanup respects importance markers
+    pout << "\n=== Test 8: Cleanup Respects Importance Markers ===" << std::endl;
+    {
+        const std::string test_dir = "test_restart_importance";
+        TestDirGuard guard(test_dir);
+        std::vector<int> restart_restore_numbers = { 100, 200, 300, 400, 500, 600, 700, 800 };
+
+        try
+        {
+            create_test_restart_dirs(test_dir, restart_restore_numbers);
+
+            Pointer<MemoryDatabase> db = new MemoryDatabase("ImportanceTestConfig");
+            db->putString("restart_directory", test_dir);
+            db->putInteger("keep_recent_files", 3);
+            db->putString("cleanup_strategy", "KEEP_RECENT_N");
+            db->putBool("dry_run", false);
+
+            RestartCleaner cleaner("ImportanceTest", db);
+
+            // Mark 200 and 400 as important
+            cleaner.markImportant(200);
+            cleaner.markImportant(400);
+
+            // Cleanup: keep_recent=3 means keep {600,700,800}
+            // Plus important: {200, 400}
+            // Expected survivors: {200, 400, 600, 700, 800}
+            // Expected deletions: {100, 300, 500}
+            cleaner.cleanup();
+
+            auto remaining = cleaner.getAvailableRestartRestoreNumbers();
+            pout << "Remaining after importance cleanup: ";
+            for (int n : remaining) pout << n << " ";
+            pout << std::endl;
+
+            std::vector<int> expected = { 200, 400, 600, 700, 800 };
+            if (remaining == expected)
+            {
+                pout << "Test 8 PASSED: Cleanup correctly preserved important directories" << std::endl;
+            }
+            else
+            {
+                pout << "FAILED: Wrong directories survived cleanup" << std::endl;
+                test_failures++;
+            }
+        }
+        catch (const std::exception& e)
+        {
+            TBOX_ERROR("Exception in importance cleanup test: " << e.what() << std::endl);
+        }
+    }
+
+    // Test 9: Important oldest directory survives cleanup
+    pout << "\n=== Test 9: Important Oldest Directory Survives ===" << std::endl;
+    {
+        const std::string test_dir = "test_restart_oldest_important";
+        TestDirGuard guard(test_dir);
+        std::vector<int> restart_restore_numbers = { 100, 200, 300, 400, 500 };
+
+        try
+        {
+            create_test_restart_dirs(test_dir, restart_restore_numbers);
+
+            Pointer<MemoryDatabase> db = new MemoryDatabase("OldestImportantTestConfig");
+            db->putString("restart_directory", test_dir);
+            db->putInteger("keep_recent_files", 2);
+            db->putString("cleanup_strategy", "KEEP_RECENT_N");
+            db->putBool("dry_run", false);
+
+            RestartCleaner cleaner("OldestImportantTest", db);
+
+            // Mark the oldest directory as important
+            cleaner.markImportant(100);
+
+            // Cleanup: keep_recent=2 means keep {400,500}
+            // Plus important: {100}
+            // Expected survivors: {100, 400, 500}
+            // Expected deletions: {200, 300}
+            cleaner.cleanup();
+
+            auto remaining = cleaner.getAvailableRestartRestoreNumbers();
+            pout << "Remaining after oldest-important cleanup: ";
+            for (int n : remaining) pout << n << " ";
+            pout << std::endl;
+
+            std::vector<int> expected = { 100, 400, 500 };
+            if (remaining == expected)
+            {
+                pout << "Test 9 PASSED: Oldest important directory correctly preserved" << std::endl;
+            }
+            else
+            {
+                pout << "FAILED: Wrong directories survived cleanup" << std::endl;
+                test_failures++;
+            }
+        }
+        catch (const std::exception& e)
+        {
+            TBOX_ERROR("Exception in oldest-important test: " << e.what() << std::endl);
+        }
+    }
+
+    // Test 10: Marker persistence across multiple cleanups and new objects
+    pout << "\n=== Test 10: Marker Persistence Across Multiple Cleanups ===" << std::endl;
+    {
+        const std::string test_dir = "test_restart_persistence";
+        TestDirGuard guard(test_dir);
+        std::vector<int> restart_restore_numbers = { 100, 200, 300, 400, 500, 600, 700, 800 };
+
+        try
+        {
+            create_test_restart_dirs(test_dir, restart_restore_numbers);
+
+            Pointer<MemoryDatabase> db = new MemoryDatabase("PersistenceTestConfig");
+            db->putString("restart_directory", test_dir);
+            db->putInteger("keep_recent_files", 3);
+            db->putString("cleanup_strategy", "KEEP_RECENT_N");
+            db->putBool("dry_run", false);
+
+            RestartCleaner cleaner("PersistenceTest", db);
+
+            // Mark 200 as important
+            cleaner.markImportant(200);
+
+            // Round 1: cleanup with 8 dirs, keep 3
+            // Expected survivors: {200, 600, 700, 800}
+            cleaner.cleanup();
+
+            auto round1 = cleaner.getAvailableRestartRestoreNumbers();
+            pout << "Round 1 survivors: ";
+            for (int n : round1) pout << n << " ";
+            pout << std::endl;
+
+            std::vector<int> expected1 = { 200, 600, 700, 800 };
+            if (round1 == expected1)
+            {
+                pout << "Round 1 PASSED" << std::endl;
+            }
+            else
+            {
+                pout << "FAILED: Round 1 wrong survivors" << std::endl;
+                test_failures++;
+            }
+
+            // Add new directories simulating continued simulation
+            create_test_restart_dirs(test_dir, { 900, 1000 });
+
+            // Round 2: cleanup with 6 dirs {200,600,700,800,900,1000}, keep 3
+            // Expected survivors: {200, 800, 900, 1000}
+            cleaner.cleanup();
+
+            auto round2 = cleaner.getAvailableRestartRestoreNumbers();
+            pout << "Round 2 survivors: ";
+            for (int n : round2) pout << n << " ";
+            pout << std::endl;
+
+            std::vector<int> expected2 = { 200, 800, 900, 1000 };
+            if (round2 == expected2)
+            {
+                pout << "Round 2 PASSED" << std::endl;
+            }
+            else
+            {
+                pout << "FAILED: Round 2 wrong survivors" << std::endl;
+                test_failures++;
+            }
+
+            // Round 3: construct a NEW RestartCleaner from a fresh database
+            // to simulate a new simulation run. The .important marker on disk must persist.
+            Pointer<MemoryDatabase> db2 = new MemoryDatabase("PersistenceNewObjConfig");
+            db2->putString("restart_directory", test_dir);
+            db2->putInteger("keep_recent_files", 3);
+            db2->putString("cleanup_strategy", "KEEP_RECENT_N");
+            db2->putBool("dry_run", false);
+
+            RestartCleaner cleaner2("PersistenceNewObj", db2);
+            cleaner2.cleanup();
+
+            auto round3 = cleaner2.getAvailableRestartRestoreNumbers();
+            pout << "Round 3 survivors: ";
+            for (int n : round3) pout << n << " ";
+            pout << std::endl;
+
+            std::vector<int> expected3 = { 200, 800, 900, 1000 };
+            if (round3 == expected3)
+            {
+                pout << "Round 3 PASSED" << std::endl;
+            }
+            else
+            {
+                pout << "FAILED: Round 3 wrong survivors" << std::endl;
+                test_failures++;
+            }
+
+            if (round1 == expected1 && round2 == expected2 && round3 == expected3)
+            {
+                pout << "Test 10 PASSED: Markers persist across multiple cleanups and new objects" << std::endl;
+            }
+        }
+        catch (const std::exception& e)
+        {
+            TBOX_ERROR("Exception in persistence test: " << e.what() << std::endl);
+        }
+    }
+
+    // Test 11: markImportant on a missing directory returns on all processors
+    pout << "\n=== Test 11: markImportant Returns on All Processors for Missing Directory ===" << std::endl;
+    {
+        const std::string test_dir = "test_restart_missing";
+        TestDirGuard guard(test_dir);
+        std::vector<int> restart_restore_numbers = { 100, 200, 300 };
+
+        try
+        {
+            create_test_restart_dirs(test_dir, restart_restore_numbers);
+
+            Pointer<MemoryDatabase> db = new MemoryDatabase("MissingDirTestConfig");
+            db->putString("restart_directory", test_dir);
+            db->putInteger("keep_recent_files", 10);
+            db->putString("cleanup_strategy", "KEEP_RECENT_N");
+
+            RestartCleaner cleaner("MissingDirTest", db);
+
+            // The warning for a missing directory includes the source file name and line number,
+            // so it is suppressed to keep the output independent of the build location
+            SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+            cleaner.markImportant(999);
+            SAMRAI::tbox::Logger::getInstance()->setWarning(true);
+
+            // Each processor adds one only after markImportant() has returned, so the sum proves no processor is stuck
+            const int num_returned = IBTK_MPI::sumReduction(1);
+            pout << "markImportant returned on " << num_returned << " of " << IBTK_MPI::getNodes() << " processors"
+                 << std::endl;
+
+            // Verify that nothing was created for the missing directory and the others are untouched
+            bool no_dir_999 = !std::filesystem::exists(std::filesystem::path(test_dir) / "restore.000999");
+            int dirs_after = count_dirs_matching_pattern(test_dir);
+
+            if (num_returned == IBTK_MPI::getNodes() && no_dir_999 && dirs_after == 3)
+            {
+                pout << "Test 11 PASSED: markImportant returned on all processors and skipped the missing directory"
+                     << std::endl;
+            }
+            else
+            {
+                pout << "FAILED: markImportant did not handle the missing directory correctly" << std::endl;
+                test_failures++;
+            }
+        }
+        catch (const std::exception& e)
+        {
+            TBOX_ERROR("Exception in missing directory test: " << e.what() << std::endl);
+        }
+    }
+
+    // Combine the failure counts from all processors so that a failure on any processor is reported
+    test_failures = IBTK_MPI::sumReduction(test_failures);
 
     // Final summary
     pout << "\n=== RestartCleaner Functional Test Summary ===" << std::endl;
