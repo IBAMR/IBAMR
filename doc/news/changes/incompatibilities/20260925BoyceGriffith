@@ -1,0 +1,10 @@
+Changed: FACPreconditionerStrategy implementations must provide the new
+fillGhostCellsNoCoarse() operation, which refreshes same-level and physical
+boundary ghosts while preserving coarse-fine interpolation data. Poisson
+and staggered Stokes strategies implement this operation using their
+existing cached schedules. FAC cycles other than V-cycles without
+presmoothing currently require a level range starting at hierarchy level
+zero, since the strategy residual operators can access data below a
+nonzero coarsest level.
+<br>
+(Boyce Griffith, 2026/09/25)

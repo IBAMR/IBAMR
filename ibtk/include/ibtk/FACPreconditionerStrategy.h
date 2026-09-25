@@ -136,10 +136,27 @@ public:
     virtual double getDt() const;
 
     /*!
-     * \brief Zero-out the provided vector on the specified level of the patch
-     * hierarchy.
+     * \brief Zero all components of the provided vector on the specified
+     * level, including patch interiors and ghost cells.
      */
     virtual void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) = 0;
+
+    /*!
+     * \brief Fill the physical-boundary and same-level ghost values required
+     * by the strategy on the specified level without interpolating from
+     * coarser levels.
+     *
+     * The fill applies to every vector component, using the strategy's
+     * stencil-specific fill pattern; excluded ghost locations need not be
+     * filled. Interior values shared by patches must be consistent on entry.
+     * Coarse-fine interpolation contributions in ghosts that receive neither
+     * same-level nor physical-boundary data must be preserved. In particular,
+     * this operation must not perform coarse-fine normal extension. Physical
+     * boundary conditions are homogeneous and may reset constrained boundary
+     * degrees of freedom. Other interior values and data on other levels must
+     * remain unchanged. Custom FAC strategies must implement this operation.
+     */
+    virtual void fillGhostCellsNoCoarse(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) = 0;
 
     /*!
      * \brief Restrict the residual from the source vector to the destination
@@ -199,6 +216,24 @@ public:
     /*!
      * \brief Compute the composite-grid residual on the specified range of
      * levels of the patch hierarchy.
+     *
+     * The three vectors must not alias one another. The right-hand side is
+     * not modified. Despite its const vector handle, the solution's patch
+     * data may be modified to fill ghosts and synchronize
+     * coarse representations from finer levels, including covered cells and
+     * coarse-fine interface values. Callers that must preserve these data
+     * must evaluate the residual using a copy of the solution.
+     *
+     * For a solution satisfying the homogeneous physical boundary conditions
+     * and same-level consistency, the finest level's interior values must
+     * remain unchanged. Boundary filling may otherwise reset constrained
+     * physical-boundary degrees of freedom or synchronize duplicate values
+     * on patch boundaries. Residual ghost values are not specified.
+     *
+     * Implementations may require solution data immediately below
+     * coarsest_level_num for coarse-fine interpolation and synchronization
+     * when coarsest_level_num is greater than zero; the level range alone
+     * does not guarantee that those data are untouched.
      */
     virtual void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
