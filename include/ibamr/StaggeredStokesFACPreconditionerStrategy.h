@@ -181,6 +181,8 @@ public:
 
     /*!
      * \brief Specify the smoother type.
+     *
+     * \note Use of \c smoother_type is relegated to derived classes and is not used in the base class.
      */
     void setSmootherType(const std::string& smoother_type);
 
@@ -432,6 +434,8 @@ protected:
 
     /*
      * The kind of smoothing to perform.
+     *
+     * \note Unused; see setSmootherType().
      */
     std::string d_smoother_type = "ADDITIVE";
 

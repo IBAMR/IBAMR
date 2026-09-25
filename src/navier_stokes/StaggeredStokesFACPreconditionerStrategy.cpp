@@ -47,7 +47,9 @@
 
 #include <petscksp.h>
 
+#include <BoxList.h>
 #include <CartesianGridGeometry.h>
+#include <CellData.h>
 #include <CellVariable.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenOperator.h>
@@ -66,6 +68,8 @@
 #include <RefineSchedule.h>
 #include <RobinBcCoefStrategy.h>
 #include <SAMRAIVectorReal.h>
+#include <SideData.h>
+#include <SideGeometry.h>
 #include <SideVariable.h>
 #include <Variable.h>
 #include <VariableContext.h>
@@ -445,22 +449,50 @@ StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVec
 
     // Prolong the correction from the coarse level src data into the fine level
     // scratch data and then correct the fine level dst data.
-    static const bool interior_only = false;
     if (U_src_idx != U_dst_idx)
     {
         HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops_coarse(d_hierarchy, dst_ln - 1, dst_ln - 1);
-        level_sc_data_ops_coarse.add(U_dst_idx, U_dst_idx, U_src_idx, interior_only);
+        level_sc_data_ops_coarse.add(U_dst_idx, U_dst_idx, U_src_idx, /*interior_only*/ false);
     }
     if (P_src_idx != P_dst_idx)
     {
         HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops_coarse(d_hierarchy, dst_ln - 1, dst_ln - 1);
-        level_cc_data_ops_coarse.add(P_dst_idx, P_dst_idx, P_src_idx, interior_only);
+        level_cc_data_ops_coarse.add(P_dst_idx, P_dst_idx, P_src_idx, /*interior_only*/ false);
     }
     xeqScheduleProlongation(scratch_idxs, src_idxs, dst_ln);
+
+    // Add the prolonged correction into the fine level's interior only; the fine level's ghost cells are replaced
+    // by the prolonged ghost values below, not added to whatever they held before this call, for the same reason
+    // as in PoissonFACPreconditionerStrategy::prolongErrorAndCorrect (CartSideDoubleQuadraticCFInterpolation::
+    // computeNormalExtension() treats a ghost's current value as the coarse-side contribution to its quadratic
+    // extrapolation).
     HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
-    level_sc_data_ops_fine.add(U_dst_idx, U_dst_idx, d_side_scratch_idx, interior_only);
+    level_sc_data_ops_fine.add(U_dst_idx, U_dst_idx, d_side_scratch_idx, /*interior_only*/ true);
     HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
-    level_cc_data_ops_fine.add(P_dst_idx, P_dst_idx, d_cell_scratch_idx, interior_only);
+    level_cc_data_ops_fine.add(P_dst_idx, P_dst_idx, d_cell_scratch_idx, /*interior_only*/ true);
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double>> U_dst = patch->getPatchData(U_dst_idx);
+        Pointer<SideData<NDIM, double>> U_src = patch->getPatchData(d_side_scratch_idx);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            BoxList<NDIM> ghost_boxes(SideGeometry<NDIM>::toSideBox(U_dst->getGhostBox(), axis));
+            ghost_boxes.removeIntersections(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis));
+            for (BoxList<NDIM>::Iterator b(ghost_boxes); b; b++)
+                U_dst->getArrayData(axis).copy(U_src->getArrayData(axis), b(), IntVector<NDIM>(0));
+        }
+        Pointer<CellData<NDIM, double>> P_dst = patch->getPatchData(P_dst_idx);
+        Pointer<CellData<NDIM, double>> P_src = patch->getPatchData(d_cell_scratch_idx);
+        BoxList<NDIM> ghost_boxes(P_dst->getGhostBox());
+        ghost_boxes.removeIntersections(patch->getBox());
+        for (BoxList<NDIM>::Iterator b(ghost_boxes); b; b++)
+            P_dst->getArrayData().copy(P_src->getArrayData(), b(), IntVector<NDIM>(0));
+    }
+    // Refill the physical-boundary and same-level ghost cells from the corrected interior; the coarse-fine ghost
+    // cells keep the (coarse-only) prolonged values set above.
+    xeqScheduleGhostFillNoCoarse(std::make_pair(U_dst_idx, P_dst_idx), dst_ln);
 
     IBAMR_TIMER_STOP(t_prolong_error_and_correct);
     return;

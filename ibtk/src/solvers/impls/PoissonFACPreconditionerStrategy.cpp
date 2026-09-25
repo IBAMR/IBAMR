@@ -30,7 +30,9 @@
 #include <tbox/Utilities.h>
 
 #include <Box.h>
+#include <BoxList.h>
 #include <CartesianGridGeometry.h>
+#include <CellData.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenOperator.h>
 #include <CoarsenSchedule.h>
@@ -47,6 +49,8 @@
 #include <RefineSchedule.h>
 #include <RobinBcCoefStrategy.h>
 #include <SAMRAIVectorReal.h>
+#include <SideData.h>
+#include <SideGeometry.h>
 #include <Variable.h>
 #include <VariableContext.h>
 #include <VariableDatabase.h>
@@ -318,7 +322,58 @@ PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<
         d_level_data_ops[dst_ln - 1]->add(dst_idx, dst_idx, src_idx, /*interior_only*/ false);
     }
     xeqScheduleProlongation(d_scratch_idx, src_idx, dst_ln);
-    d_level_data_ops[dst_ln]->add(dst_idx, dst_idx, d_scratch_idx, /*interior_only*/ false);
+
+    // Add the prolonged correction into dst's interior only; the fine level's ghost cells are replaced by the
+    // prolonged ghost values below, not added to whatever they held before this call, since
+    // CartCellDoubleQuadraticCFInterpolation::computeNormalExtension() (et al.) treats a ghost's current value
+    // as the coarse-side contribution to its quadratic extrapolation, and a stale extrapolated value plus this
+    // correction is not a valid fresh coarse-side value.
+    d_level_data_ops[dst_ln]->add(dst_idx, dst_idx, d_scratch_idx, /*interior_only*/ true);
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        // This class is the shared FAC strategy base for both cell-centered (CCPoisson*) and side-centered
+        // (SCPoisson*, VCSCViscousOp*) operators, so dst_idx/d_scratch_idx may refer to either CellData or
+        // SideData depending on the concrete subclass in use; dispatch on whichever type is actually present.
+        Pointer<CellData<NDIM, double>> dst_cc_data = patch->getPatchData(dst_idx);
+        if (dst_cc_data)
+        {
+            Pointer<CellData<NDIM, double>> src_cc_data = patch->getPatchData(d_scratch_idx);
+#if !defined(NDEBUG)
+            TBOX_ASSERT(src_cc_data);
+#endif
+            BoxList<NDIM> ghost_boxes(dst_cc_data->getGhostBox());
+            ghost_boxes.removeIntersections(patch->getBox());
+            for (BoxList<NDIM>::Iterator b(ghost_boxes); b; b++)
+                dst_cc_data->getArrayData().copy(src_cc_data->getArrayData(), b(), IntVector<NDIM>(0));
+            continue;
+        }
+        Pointer<SideData<NDIM, double>> dst_sc_data = patch->getPatchData(dst_idx);
+        if (dst_sc_data)
+        {
+            Pointer<SideData<NDIM, double>> src_sc_data = patch->getPatchData(d_scratch_idx);
+#if !defined(NDEBUG)
+            TBOX_ASSERT(src_sc_data);
+#endif
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                BoxList<NDIM> ghost_boxes(SideGeometry<NDIM>::toSideBox(dst_sc_data->getGhostBox(), axis));
+                ghost_boxes.removeIntersections(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis));
+                for (BoxList<NDIM>::Iterator b(ghost_boxes); b; b++)
+                    dst_sc_data->getArrayData(axis).copy(src_sc_data->getArrayData(axis), b(), IntVector<NDIM>(0));
+            }
+            continue;
+        }
+        TBOX_ERROR(d_object_name << "::prolongErrorAndCorrect():\n"
+                                 << "  patch data at index " << dst_idx
+                                 << " is neither CellData nor SideData; this class does not know how to replace "
+                                    "its coarse-fine interface ghost cell values."
+                                 << std::endl);
+    }
+    // Refill the physical-boundary and same-level ghost cells from the corrected interior; the coarse-fine ghost
+    // cells keep the (coarse-only) prolonged values set above.
+    xeqScheduleGhostFillNoCoarse(dst_idx, dst_ln);
 
     IBTK_TIMER_STOP(t_prolong_error_and_correct);
     return;
