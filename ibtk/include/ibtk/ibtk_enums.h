@@ -59,6 +59,7 @@ enum MGCycleType
     FMG_CYCLE,
     V_CYCLE,
     W_CYCLE,
+    MU_CYCLE,
     UNKNOWN_MG_CYCLE_TYPE = -1
 };
 
@@ -78,6 +79,10 @@ string_to_enum<MGCycleType>(const std::string& val)
     if (strcasecmp(val.c_str(), "W") == 0) return W_CYCLE;
     if (strcasecmp(val.c_str(), "W_CYCLE") == 0) return W_CYCLE;
     if (strcasecmp(val.c_str(), "W-CYCLE") == 0) return W_CYCLE;
+    if (strcasecmp(val.c_str(), "MU_CYCLE") == 0)
+    {
+        return MU_CYCLE;
+    }
     return UNKNOWN_MG_CYCLE_TYPE;
 } // string_to_enum
 
@@ -89,6 +94,10 @@ enum_to_string<MGCycleType>(MGCycleType val)
     if (val == FMG_CYCLE) return "FMG_CYCLE";
     if (val == V_CYCLE) return "V_CYCLE";
     if (val == W_CYCLE) return "W_CYCLE";
+    if (val == MU_CYCLE)
+    {
+        return "MU_CYCLE";
+    }
     return "UNKNOWN_MG_CYCLE_TYPE";
 } // enum_to_string
 

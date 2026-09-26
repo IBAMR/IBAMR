@@ -238,6 +238,7 @@ FACPreconditioner::setMGCycleType(MGCycleType cycle_type)
     case W_CYCLE:
     case F_CYCLE:
     case FMG_CYCLE:
+    case MU_CYCLE:
         break;
     default:
         TBOX_ERROR(d_object_name << "::setMGCycleType(): unsupported FAC cycle type." << std::endl);
@@ -251,6 +252,23 @@ FACPreconditioner::getMGCycleType() const
 {
     return d_cycle_type;
 } // getMGCycleType
+
+void
+FACPreconditioner::setMGCycleMultiplicity(const int cycle_multiplicity)
+{
+    if (cycle_multiplicity < 1)
+    {
+        TBOX_ERROR(d_object_name << "::setMGCycleMultiplicity(): the multiplicity must be positive." << std::endl);
+    }
+    d_cycle_multiplicity = cycle_multiplicity;
+    return;
+} // setMGCycleMultiplicity
+
+int
+FACPreconditioner::getMGCycleMultiplicity() const
+{
+    return d_cycle_multiplicity;
+} // getMGCycleMultiplicity
 
 void
 FACPreconditioner::setNumPreSmoothingSweeps(int num_pre_sweeps)
@@ -378,6 +396,9 @@ FACPreconditioner::zeroStartCycle(SAMRAIVectorReal<NDIM, double>& u,
                 break;
             case W_CYCLE:
                 multiplicity = 2;
+                break;
+            case MU_CYCLE:
+                multiplicity = d_cycle_multiplicity;
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::zeroStartCycle(): unsupported FAC cycle type." << std::endl);
@@ -511,7 +532,8 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
                 manager->getOperationsDouble(solution.getComponentVariable(comp), d_hierarchy, /*get_unique*/ true));
         }
     }
-    const bool repeated = d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE;
+    const bool repeated =
+        d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE || (d_cycle_type == MU_CYCLE && d_cycle_multiplicity > 1);
     const bool fmg = d_cycle_type == FMG_CYCLE;
     const int finest_warm_ln = fmg ? d_finest_ln : d_finest_ln - 1;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -567,6 +589,10 @@ FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
 {
     if (!db) return;
     if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
+    if (db->keyExists("cycle_multiplicity"))
+    {
+        setMGCycleMultiplicity(db->getInteger("cycle_multiplicity"));
+    }
     if (db->keyExists("num_pre_sweeps")) setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));
     if (db->keyExists("num_post_sweeps")) setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
     if (db->keyExists("enable_logging")) setLoggingEnabled(db->getBool("enable_logging"));
