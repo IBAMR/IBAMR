@@ -16,5 +16,3 @@ range = 2 2; cycle = FMG_CYCLE; pre = 0; correction L2 = 0.000114516
 range = 2 2; cycle = FMG_CYCLE; pre = 2; correction L2 = 0.000114516
 range = 1 2; cycle = V_CYCLE; pre = 0; correction L2 = 0.000837923
 range = 1 2; cycle = V_CYCLE; pre = 2; correction L2 = 0.605509
-range = 1 2; cycle = FMG_CYCLE; pre = 0; correction L2 = 0.605436
-range = 1 2; cycle = FMG_CYCLE; pre = 2; correction L2 = 0.60545

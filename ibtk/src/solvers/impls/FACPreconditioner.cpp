@@ -524,11 +524,13 @@ FACPreconditioner::validateCycleInputs(const SAMRAIVectorReal<NDIM, double>& sol
         return;
     }
     const bool repeated = d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE;
-    if (d_coarsest_ln != 0 && repeated)
+    const bool fmg = d_cycle_type == FMG_CYCLE;
+    if (d_coarsest_ln != 0 && (repeated || fmg))
     {
-        TBOX_ERROR(d_object_name << "::validateCycleInputs():\n"
-                                 << "  multilevel repeated FAC visits require coarsest level zero: private residual\n"
-                                 << "  evaluation storage is not allocated below the vector range." << std::endl);
+        TBOX_ERROR(
+            d_object_name << "::validateCycleInputs():\n"
+                          << "  multilevel repeated visits and FMG require coarsest level zero: private residual\n"
+                          << "  evaluation storage is not allocated below the vector range." << std::endl);
     }
     if (d_coarsest_ln != 0)
     {

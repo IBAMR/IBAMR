@@ -1,6 +1,6 @@
 Program abort called with error message
 
     range_fac::validateCycleInputs():
-  multilevel repeated FAC visits require coarsest level zero: private residual
+  multilevel repeated visits and FMG require coarsest level zero: private residual
   evaluation storage is not allocated below the vector range.
 

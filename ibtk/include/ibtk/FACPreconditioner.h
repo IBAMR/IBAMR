@@ -130,8 +130,7 @@ public:
      * levels below the vector range. Residual ghost filling may read this
      * storage and overwrite interiors and ghosts on the immediately preceding
      * level. This is caller-owned backing storage, not additional solved levels.
-     * The retained FMG implementation has the same requirement, with or without
-     * presmoothing. No preservation of solution ghosts is guaranteed.
+     * No preservation of solution ghosts is guaranteed.
      * Single-level cycles and V-cycles without presmoothing do not require this
      * additional allocation. Strategy-specific requirements still apply.
      * These allocation requirements also apply to initializeSolverState().
@@ -255,9 +254,9 @@ public:
      * child visit. FMG_CYCLE performs nested iteration with one V-cycle on each
      * successively finer hierarchy.
      *
-     * Multilevel W- and F-cycles require coarsest level zero: their private
+     * Multilevel W-, F-, and FMG-cycles require coarsest level zero: their private
      * residual evaluation storage does not extend below the vector range.
-     * Single-level cycles support nonzero levels. For multilevel V and FMG
+     * Single-level cycles support nonzero levels. For multilevel V-cycle
      * allocation and mutation requirements, see solveSystem().
      */
     void setMGCycleType(MGCycleType cycle_type);

@@ -456,7 +456,7 @@ check_ranges(Pointer<PatchHierarchy<NDIM>> hierarchy,
             const bool single = lower == upper;
             for (MGCycleType cycle : { V_CYCLE, W_CYCLE, F_CYCLE, FMG_CYCLE })
             {
-                if (!single && (cycle == W_CYCLE || cycle == F_CYCLE))
+                if (!single && (cycle == W_CYCLE || cycle == F_CYCLE || cycle == FMG_CYCLE))
                 {
                     continue;
                 }
@@ -504,7 +504,7 @@ check_ranges(Pointer<PatchHierarchy<NDIM>> hierarchy,
                             }
                         }
                         changed_below = IBTK_MPI::sumReduction(changed_below);
-                        const bool below_access = !single && (pre > 0 || cycle == FMG_CYCLE);
+                        const bool below_access = !single && pre > 0;
                         if ((changed_below != 0) != below_access)
                         {
                             TBOX_ERROR("FAC range test: unexpected below-range mutation\n");
