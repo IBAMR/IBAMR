@@ -68,7 +68,6 @@ namespace IBTK
  * values): \verbatim
 
  cycle_type = "V_CYCLE"  // see setMGCycleType()
- cycle_multiplicity = 2  // see setMGCycleMultiplicity()
  num_pre_sweeps = 0      // see setNumPreSmoothingSweeps()
  num_post_sweeps = 2     // see setNumPostSmoothingSweeps()
  enable_logging = FALSE  // see setLoggingEnabled()
@@ -239,14 +238,14 @@ public:
      * \brief Set the multigrid algorithm cycle type.
      *
      * V and W cycles make one and two recursive child visits, respectively.
-     * MU_CYCLE uses setMGCycleMultiplicity(). F_CYCLE recursively makes an
-     * F-cycle child visit followed by a V-cycle child visit. FMG_CYCLE performs
-     * nested iteration with one V-cycle on each successively finer hierarchy.
+     * F_CYCLE recursively makes an F-cycle child visit followed by a V-cycle
+     * child visit. FMG_CYCLE may overwrite coarse-grid equations and corrections
+     * on AMR hierarchies.
      *
-     * Except for V-cycles without presmoothing, this preconditioner currently
-     * requires the initialized hierarchy range to begin at level zero, since
-     * strategy residual ghost fills may access data below that range. Nonzero
-     * coarsest levels are rejected for these cycles.
+     * V-cycles with presmoothing, W-cycles, and F-cycles currently require the
+     * initialized hierarchy range to begin at level zero, since strategy residual
+     * ghost fills may access data below that range. Nonzero coarsest levels are
+     * rejected for these cycles.
      */
     void setMGCycleType(MGCycleType cycle_type);
 
@@ -254,19 +253,6 @@ public:
      * \brief Get the multigrid algorithm cycle type.
      */
     MGCycleType getMGCycleType() const;
-
-    /*!
-     * \brief Set the positive number of child visits used by MU_CYCLE.
-     *
-     * The default is two. A multiplicity of one gives a V-cycle, and two gives
-     * a W-cycle. This parameter does not change the other cycle types.
-     */
-    void setMGCycleMultiplicity(int cycle_multiplicity);
-
-    /*!
-     * \brief Get the number of child visits used by MU_CYCLE.
-     */
-    int getMGCycleMultiplicity() const;
 
     /*!
      * \brief Set the number of pre-smoothing sweeps to employ.
@@ -299,34 +285,48 @@ public:
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> getFACPreconditionerStrategy() const;
 
 protected:
+    /*! \brief Apply the V-cycle specialization without presmoothing. */
     void FACVCycleNoPreSmoothing(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                                  int level_num);
 
-    // Apply a cycle to an owned correction that is zero, including ghosts, on
-    // the complete truncated hierarchy. The RHS is borrowed and preserved.
+    /*!
+     * \brief Apply a cycle to an owned correction that is zero, including ghosts,
+     * on the complete truncated hierarchy. The RHS is borrowed and preserved.
+     */
     void zeroStartCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                         SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                         int level_num,
                         MGCycleType cycle_type);
 
-    // Improve a retained iterate by u += B(f - A*u), preserving its auxiliary
-    // covered-cell values while evaluating the composite residual.
+    /*!
+     * \brief Improve a retained iterate by u += B(f - A*u), preserving its
+     * auxiliary covered-cell values while evaluating the composite residual.
+     */
     void improveCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                       int level_num,
                       MGCycleType cycle_type);
 
+    /*! \brief Apply the recursive correction sweep used by FMGCycle(). */
+    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
+                 int level_num,
+                 int mu);
+
+    /*! \brief Apply FMG using the shared coarse-grid equations and corrections. */
     void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                  int level_num);
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
+                  int level_num,
+                  int mu);
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = 0;
     int d_finest_ln = 0;
     MGCycleType d_cycle_type = V_CYCLE;
-    int d_cycle_multiplicity = 2;
     int d_num_pre_sweeps = 0, d_num_post_sweeps = 2;
 
 private:
@@ -357,17 +357,21 @@ private:
      */
     FACPreconditioner& operator=(const FACPreconditioner& that) = delete;
 
+    /*! \brief Return a borrowed-data view using the FAC-private data operations. */
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>
     getRangeVector(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vector, int coarsest_ln, int finest_ln) const;
 
+    /*! \brief Allocate a zeroed, independently owned vector on a hierarchy prefix. */
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>
     allocateRangeVector(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vector,
                         const std::string& name,
                         int finest_ln) const;
 
+    /*! \brief Allocate any missing workspace required by the current cycle options. */
     void allocateCycleScratchData(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
 
+    /*! \brief Read the cycle and smoothing options from the input database. */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     // Vector arithmetic resets the operation object's level range. Keep these
@@ -379,7 +383,6 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_residual_vectors;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_rhs_vectors;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_correction_vectors;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_fmg_rhs_vectors;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_evaluation_vector;
 };
 } // namespace IBTK
