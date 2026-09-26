@@ -1,0 +1,27 @@
+test { operator = "LINEAR" }
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz"
+}
+CartesianGeometry {
+   domain_boxes = [(-4, 2, -2), (1, 7, 3)]
+   x_lo = 0.0, 0.0, 0.0
+   x_up = 1.0, 1.0, 1.0
+   periodic_dimension = 0, 0, 0
+}
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser { level_1 = 4, 2, 3 }
+   largest_patch_size { level_0 = 128, 128, 128 }
+   smallest_patch_size { level_0 = 2, 2, 2 }
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes { level_0 = [(-4, 2, -2), (1, 7, 3)] }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
