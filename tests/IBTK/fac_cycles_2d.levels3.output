@@ -12,6 +12,10 @@ F visits = 1 2 3
 F first correction L2 = 0.181517; residual L2 = 7.49029
 F start = zero; final residual ratio = 0.00208402; final error ratio = 0.00309565
 F start = nonzero; final residual ratio = 0.00208402; final error ratio = 0.00309565
+FMG visits = 2 3 3
+FMG first correction L2 = 0.181502; residual L2 = 7.48866
+FMG start = zero; final residual ratio = 0.00208242; final error ratio = 0.00309442
+FMG start = nonzero; final residual ratio = 0.00208242; final error ratio = 0.00309442
 pre_sweeps = 2
 V visits = 1 1 1
 V first correction L2 = 0.082813; residual L2 = 11.3395
@@ -25,5 +29,9 @@ F visits = 1 2 3
 F first correction L2 = 0.186421; residual L2 = 7.40603
 F start = zero; final residual ratio = 0.00164278; final error ratio = 0.00243413
 F start = nonzero; final residual ratio = 0.00164278; final error ratio = 0.00243413
+FMG visits = 2 3 3
+FMG first correction L2 = 0.186585; residual L2 = 7.40439
+FMG start = zero; final residual ratio = 0.00162274; final error ratio = 0.00240264
+FMG start = nonzero; final residual ratio = 0.00162274; final error ratio = 0.00240264
 Presmoothing changes match fresh initialization
 Caller data operations retain the full hierarchy range
