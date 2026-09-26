@@ -1,0 +1,3 @@
+New: PETScLevelSolver accepts shell_pc_subdomain_traversal = FORWARD, REVERSE, or SYMMETRIC.
+<br>
+(Boyce Griffith, 2026/09/10)

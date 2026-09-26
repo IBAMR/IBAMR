@@ -31,6 +31,7 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <iomanip>
 #include <memory>
@@ -66,7 +67,8 @@ reference_action(Mat mat,
                  const std::vector<IS>& overlap,
                  const std::vector<IS>& partition,
                  const bool multiplicative,
-                 const double scale)
+                 const double scale,
+                 const std::string& traversal)
 {
     Vec residual = nullptr, gathered = nullptr;
     VecScatter gather = nullptr;
@@ -87,11 +89,25 @@ reference_action(Mat mat,
         ierr = VecScatterEnd(gather, rhs, gathered, INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);
     }
-    const std::size_t n_stages =
-        multiplicative ? static_cast<std::size_t>(IBTK_MPI::maxReduction(static_cast<int>(overlap.size()))) :
-                         overlap.size();
-    for (std::size_t i = 0; i < n_stages; ++i)
+    // The subdomains that this rank visits at each stage of the multiplicative shell.
+    std::vector<std::size_t> visits;
+    for (std::size_t i = 0; i < overlap.size(); ++i)
     {
+        visits.push_back(traversal == "REVERSE" ? overlap.size() - 1 - i : i);
+    }
+    if (traversal == "SYMMETRIC")
+    {
+        for (std::size_t i = 1; i < overlap.size(); ++i)
+        {
+            visits.push_back(overlap.size() - 1 - i);
+        }
+    }
+    const std::size_t n_stages = multiplicative ?
+                                     static_cast<std::size_t>(IBTK_MPI::maxReduction(static_cast<int>(visits.size()))) :
+                                     overlap.size();
+    for (std::size_t stage = 0; stage < n_stages; ++stage)
+    {
+        const std::size_t i = multiplicative && stage < visits.size() ? visits[stage] : stage;
         if (multiplicative)
         {
             ierr = MatMult(mat, result, residual);
@@ -103,7 +119,7 @@ reference_action(Mat mat,
             ierr = VecScatterEnd(gather, residual, gathered, INSERT_VALUES, SCATTER_FORWARD);
             IBTK_CHKERRQ(ierr);
         }
-        if (i < overlap.size())
+        if (multiplicative ? stage < visits.size() : i < overlap.size())
         {
             PetscInt n = 0, m = 0;
             const PetscInt* indices = nullptr;
@@ -394,6 +410,7 @@ main(int argc, char* argv[])
     const bool replace_initialized = test->getBoolWithDefault("replace_initialized", false);
     const bool uneven_subdomains = test->getBoolWithDefault("uneven_subdomains", false);
     const std::string shell_type = test->getString("shell_pc_type");
+    std::string traversal = test->getStringWithDefault("shell_pc_subdomain_traversal", "FORWARD");
     const std::string subdomain_solver_type = test->getStringWithDefault("subdomain_solver", "petsc");
     const bool multiplicative = shell_type == "multiplicative";
     const bool diagonal_operator = test->getBoolWithDefault("diagonal_operator", false);
@@ -464,6 +481,9 @@ main(int argc, char* argv[])
     db->putString("ksp_type", "preonly");
     db->putString("pc_type", test->getStringWithDefault("pc_type", "shell"));
     db->putString("shell_pc_type", shell_type);
+    db->putString("shell_pc_subdomain_traversal", traversal);
+    std::transform(
+        traversal.begin(), traversal.end(), traversal.begin(), [](const unsigned char c) { return std::toupper(c); });
     db->putString("subdomain_solver", subdomain_solver_type);
     db->putBool("initial_guess_nonzero", false);
     db->putBool("check_subdomain_coverage", true);
@@ -675,8 +695,14 @@ main(int argc, char* argv[])
                     }
                 }
                 // The supplied subdomain solver, not the built-in one, determines the action.
-                reference_action(
-                    mat, rhs, expected, *overlap, *partition, multiplicative, counts ? SUBDOMAIN_SOLVER_SCALE : 1.0);
+                reference_action(mat,
+                                 rhs,
+                                 expected,
+                                 *overlap,
+                                 *partition,
+                                 multiplicative,
+                                 counts ? SUBDOMAIN_SOLVER_SCALE : 1.0,
+                                 traversal);
                 // Left-preconditioned PETSc KSP removes the operator nullspace after PCApply.
                 MatNullSpace nullspace = nullptr;
                 ierr = MatGetNullSpace(mat, &nullspace);
