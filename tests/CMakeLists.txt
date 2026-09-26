@@ -92,7 +92,8 @@ ENDMACRO()
 # The experimental patch couplers only require IBTK. Benchmarks have no attest fixtures.
 FOREACH(_dimension 2 3)
   SET(_target tests-matrix_free_side_coupling_${_dimension}d)
-  ADD_EXECUTABLE(${_target} EXCLUDE_FROM_ALL matrix_free/side_coupling.cpp matrix_free/fixture.cpp)
+  ADD_EXECUTABLE(${_target} EXCLUDE_FROM_ALL
+    matrix_free/side_coupling.cpp matrix_free/cartesian_coupling.cpp matrix_free/fixture.cpp)
   TARGET_LINK_LIBRARIES(${_target} PRIVATE IBTK${_dimension}d)
   TARGET_INCLUDE_DIRECTORIES(${_target} PRIVATE ${CMAKE_SOURCE_DIR}/ibtk/src/lagrangian/experimental)
   SET_TARGET_PROPERTIES(${_target} PROPERTIES

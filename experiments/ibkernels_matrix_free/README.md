@@ -2,6 +2,8 @@
 
 This opt-in experiment is based on PR #1997 at
 `e80aa6cae02f054a733a65d64b9c016bf0b89b70`, using the owning-output evaluator API.
+It also incorporates the four centering commits from PR #1985 at
+`88d1773b2053608faf86cb13cb8da7290c220ead`.
 It does not depend on the later implicit-integrator or FAC changes in the CAV
 stack. The known 3D Fortran IB5 spread index error is corrected;
 production coupling defaults are unchanged.
@@ -11,6 +13,7 @@ The original study used qualified R01d base
 measurement evidence are preserved; historical timing results do not qualify
 the rebased implementation. See [REBASE_1997.md](REBASE_1997.md) for migration
 and correctness-validation details.
+See [CENTERING.md](CENTERING.md) for the all-centering extension and its validation.
 
 See [FACTORIZATION.md](FACTORIZATION.md) for the historical CBS performance results
 with owning one-dimensional factors and tensor contractions.
@@ -23,19 +26,31 @@ the initial three-kernel comparison.
 
 ## Source
 
-- `ibtk/src/lagrangian/experimental/SideCoupling.h` and its inline header provide
-  a patch-geometry object with generic component gather/scatter operations.
-  The header is source-private and is not installed.
+- `ibtk/src/lagrangian/experimental/CartesianCoupling.h` and its inline header
+  provide component gather/scatter operations for cell, node, side, face, and
+  edge data using `CartesianCentering<C>` from #1985. `SideCoupling.h` retains
+  the side specialization as an alias. These headers are source-private and
+  are not installed.
 - `tests/matrix_free/side_coupling.cpp` is the shared native 2D/3D regression.
+- `tests/matrix_free/cartesian_coupling.cpp` supplies the all-centering cases
+  in the same test executable.
 - `tests/matrix_free/benchmark.cpp` is a standalone benchmark with no timing
   fixtures or CI performance threshold.
 - `tests/matrix_free/coupling.h` demonstrates all-component use and a compiled
   application-defined cosine kernel. `fixture.cpp` contains independent scalar
   reference formulas, real SAMRAI patch construction and direct Fortran symbols.
 
-The field has depth one and all side directions. Marker coordinates and vector
-values are interleaved. Index lists are explicit; shifts are indexed by list
-position. Gather overwrites selected marker components. Scatter adds values
+The operation selects one field depth plane and marker component per call.
+`Axis` selects an allocated staggered direction; cell and node data use zero.
+`KernelAxis` selects the distinguished evaluator direction and defaults to
+`Axis`; depth and centering do not select the CBS family. The caller obtains
+the field pointer with `getPointer(depth)` for cell/node data or
+`getPointer(Axis, depth)` for staggered data. Partial side direction vectors
+are supported. The benchmark continues to use depth-one side vectors.
+
+Marker coordinates are interleaved; marker values may be scalar or strided.
+Index lists are explicit; shifts are indexed by list position.
+Gather overwrites selected marker components. Scatter adds values
 divided by cell volume; the marker input must already contain any desired
 Lagrangian quadrature factors. Stencils clip at allocated ghost bounds, without
 renormalization. The caller owns selection, ghost synchronization, physical
@@ -53,7 +68,10 @@ on `interpolateAxis` and `spreadAxis`.
 Default factors and field/marker arithmetic are double. The regression also
 requests float factors with double coordinates and contracted field arithmetic.
 Contractions intentionally reassociate operations; deterministic execution is
-required, while bitwise agreement between algorithms is not.
+required, while bitwise agreement between algorithms is not. Face arrays use
+SAMRAI's cyclic storage permutation: the face normal is the contiguous
+direction. Loop bounds and factor access follow that order at compile time;
+evaluator coordinates and expanded coefficient indices remain Cartesian.
 Complete stencils use fixed loop bounds and invariant row offsets; clipped
 stencils retain their bounded loops. There are no marker-coordinate copies,
 matrices, per-weight callbacks or heap allocations in the component loops.
@@ -73,6 +91,16 @@ formula independently of the evaluator recurrence. They also check the
 cell-volume-scaled gather/scatter adjoint identity. Full and clipped cases compare
 all three tensor modes. Additional checks cover factor ownership, float factors,
 and fallback through a custom Cartesian evaluator without a factor interface.
+
+The `centerings` fixtures additionally run BS2–6 and every adjacent-order CBS
+pair on all five centerings and all coordinate directions. They use noncubic
+patches, unequal ghost widths, three depth planes, scalar marker buffers,
+indexed shifts, and empty stencils. Dense references use SAMRAI indexed access
+and independently reconstructed physical coordinates. Representative CBS32
+cases compare all three modes with a kernel direction distinct from the data
+direction; additional cases cover face fallback and partial side allocations.
+Numerical errors, adjoint errors, and selected values are compared by `attest`;
+the tests also reject nonfinite results and changes to unselected storage.
 
 IB5's scalar Fortran delta supplies its reference values. The 3D spreading
 routine now updates the x-index in its innermost loop; its numerical regression

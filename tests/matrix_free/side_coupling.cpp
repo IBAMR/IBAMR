@@ -5,6 +5,9 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/ib_kernel_evaluators.h>
 
+#include <tbox/InputManager.h>
+#include <tbox/MemoryDatabase.h>
+
 #include <CartesianPatchGeometry.h>
 #include <SideIterator.h>
 
@@ -15,6 +18,7 @@
 #include <numeric>
 #include <tuple>
 
+#include "cartesian_coupling.h"
 #include "coupling.h"
 #include "fixture.h"
 
@@ -288,6 +292,16 @@ main(int argc, char** argv)
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
     PIO::logOnlyNodeZero("output");
     plog << std::setprecision(12) << std::scientific;
+    if (argc > 1)
+    {
+        Pointer<MemoryDatabase> input = new MemoryDatabase("input");
+        InputManager::getManager()->parseInputFile(argv[1], input);
+        if (input->getBoolWithDefault("test_centerings", false))
+        {
+            MatrixFreeTest::check_cartesian_coupling();
+            return 0;
+        }
+    }
     for (int ghosts : { 4, 0 })
     {
         check_case("IB_4", IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB4{} }, true, ghosts);
