@@ -1,0 +1,3 @@
+New: Add CartCellDoubleLinearRefine and CartCellDoubleLinearCoarsen, self-registered by StaggeredStokesFACPreconditionerStrategy, and the matching "LINEAR" prolongation matrix for cell-centered data.
+<br>
+(Boyce Griffith, 2026/09/09)
