@@ -7,7 +7,8 @@
 // neighbor contribution to the right-hand side (its matrix coefficient is +D/dx^2, so the correct right-hand
 // side term is -D*u_neighbor/dx^2). This input's refine box also touches the x_lo boundary, so
 // smoothError()'s Dirichlet-normal-velocity boundary correction runs; this fixture does not, however, verify
-// that correction (its numerical effect is below what this input's tolerances can detect).
+// that correction (its numerical effect is below what this input's tolerances can detect). The
+// stokes_operator box_mixed fixtures check the normal boundary values directly after smoothing.
 
 // physical parameters
 MU  = 1.0e-2                              // fluid viscosity
@@ -295,8 +296,7 @@ GriddingAlgorithm {
 // this box touches the x_lo physical boundary, so the box smoother runs on level 1 patches that have
 // Dirichlet-normal-velocity boundary DOFs (the x-velocity at x_lo is Dirichlet; see VelocityBcCoefs_0
 // above). Without that, the smoother would only ever run on level 0 (handled by the coarse solver, not
-// smoothError()) or on interior level-1 patches that never touch a physical boundary, and item #13's fix
-// (enforceNormalVelocityBoundaryConditions() in smoothError()) would be untested dead code in this test.
+// smoothError()) or on interior level-1 patches that never touch a physical boundary.
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {

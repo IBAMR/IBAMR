@@ -617,16 +617,19 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
         // d_box_op[level_num] is a single, shared, translation-invariant local operator and so cannot
         // special-case a boundary row; enforce the Dirichlet normal-velocity condition after each sweep instead,
         // exactly as StaggeredStokesOperator::imposeSolBcs() does for the same purpose elsewhere.
-        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-            d_U_bc_coefs, d_P_bc_coef, U_error_idx, P_error_idx, /*homogeneous_bc*/ true);
-        d_bc_helper->enforceNormalVelocityBoundaryConditions(U_error_idx,
-                                                             P_error_idx,
-                                                             d_U_bc_coefs,
-                                                             d_solution_time,
-                                                             /*homogeneous_bc*/ true,
-                                                             level_num,
-                                                             level_num);
-        StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+        if (d_bc_helper)
+        {
+            StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+                d_U_bc_coefs, d_P_bc_coef, U_error_idx, P_error_idx, /*homogeneous_bc*/ true);
+            d_bc_helper->enforceNormalVelocityBoundaryConditions(U_error_idx,
+                                                                 P_error_idx,
+                                                                 d_U_bc_coefs,
+                                                                 d_solution_time,
+                                                                 /*homogeneous_bc*/ true,
+                                                                 level_num,
+                                                                 level_num);
+            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+        }
     }
 
     // Synchronize data along patch boundaries.
@@ -644,14 +647,24 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
                                                                             const int coarsest_reset_ln,
                                                                             const int finest_reset_ln)
 {
-    // smoothError() relies on d_bc_helper to correct Dirichlet-normal-velocity boundary DOFs after each sweep
-    // (see the comment there); unlike StaggeredStokesLevelRelaxationFACOperator, which hands d_bc_helper to its
-    // level solver, nothing else in this class touches d_bc_helper, so check for it explicitly here.
+    // Physical boundary DOFs need correction after each sweep. Fully periodic
+    // hierarchies do not require a boundary helper.
     if (!d_bc_helper)
     {
-        TBOX_ERROR(d_object_name << "::initializeOperatorStateSpecialized():\n"
-                                 << "  a StaggeredStokesPhysicalBoundaryHelper must be provided via "
-                                 << "setPhysicalBoundaryHelper() before initializing this class.\n");
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                if (patch->getPatchGeometry()->getTouchesRegularBoundary())
+                {
+                    TBOX_ERROR(d_object_name << "::initializeOperatorStateSpecialized():\n"
+                                             << "  physical boundaries require a StaggeredStokesPhysicalBoundaryHelper "
+                                             << "provided via setPhysicalBoundaryHelper().\n");
+                }
+            }
+        }
     }
 
     // Initialize the box relaxation data on each level of the patch hierarchy.
