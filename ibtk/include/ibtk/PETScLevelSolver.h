@@ -101,9 +101,11 @@ namespace IBTK
  *
  * <b>Subdomain solvers</b>
  *
- * subdomain_solver chooses how each subdomain problem is solved: "petsc" (default) or "blas-lapack";
- * see make_petsc_subdomain_solver() and make_blas_lapack_subdomain_solver() for their settings.
- * setSubdomainSolver() or a derived class can supply others.
+ * subdomain_solver chooses how each subdomain problem is solved: "petsc" (default), "blas-lapack",
+ * "eigen", or "eigen-pseudoinverse"; see make_petsc_subdomain_solver(),
+ * make_blas_lapack_subdomain_solver(), make_eigen_subdomain_solver(), and
+ * make_eigen_pseudoinverse_subdomain_solver() for their settings. setSubdomainSolver() or a derived
+ * class can supply others.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
