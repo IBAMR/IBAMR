@@ -79,7 +79,7 @@ string_to_enum<MGCycleType>(const std::string& val)
     if (strcasecmp(val.c_str(), "W") == 0) return W_CYCLE;
     if (strcasecmp(val.c_str(), "W_CYCLE") == 0) return W_CYCLE;
     if (strcasecmp(val.c_str(), "W-CYCLE") == 0) return W_CYCLE;
-    if (strcasecmp(val.c_str(), "MU_CYCLE") == 0)
+    if (val == "MU_CYCLE")
     {
         return MU_CYCLE;
     }

@@ -293,7 +293,8 @@ main(int argc, char* argv[])
             ops.subtract(indices[RESIDUAL], indices[RHS], indices[RESIDUAL], false);
         };
         TBOX_ASSERT(string_to_enum<MGCycleType>("MU_CYCLE") == MU_CYCLE);
-        TBOX_ASSERT(string_to_enum<MGCycleType>("mu_cycle") == MU_CYCLE);
+        TBOX_ASSERT(string_to_enum<MGCycleType>("mu_cycle") == UNKNOWN_MG_CYCLE_TYPE);
+        TBOX_ASSERT(string_to_enum<MGCycleType>("Mu_Cycle") == UNKNOWN_MG_CYCLE_TYPE);
         TBOX_ASSERT(string_to_enum<MGCycleType>("MU") == UNKNOWN_MG_CYCLE_TYPE);
         TBOX_ASSERT(string_to_enum<MGCycleType>("MU-CYCLE") == UNKNOWN_MG_CYCLE_TYPE);
         TBOX_ASSERT(enum_to_string(MU_CYCLE) == "MU_CYCLE");
