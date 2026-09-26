@@ -296,7 +296,9 @@ main(int argc, char* argv[])
             const char* name;
             int multiplicity;
         };
-        const std::array<CycleCase, 3> cycles = { { { V_CYCLE, "V", 1 }, { W_CYCLE, "W", 2 }, { F_CYCLE, "F", 2 } } };
+        const std::array<CycleCase, 4> cycles = {
+            { { V_CYCLE, "V", 1 }, { W_CYCLE, "W", 2 }, { F_CYCLE, "F", 2 }, { FMG_CYCLE, "FMG", 1 } }
+        };
         plog << "levels = " << finest + 1 << '\n';
         for (int pre : { 0, 2 })
         {
@@ -314,7 +316,13 @@ main(int argc, char* argv[])
                 {
                     const int depth = finest - ln;
                     int expected = cycle.type == F_CYCLE ? depth + 1 : 1;
-                    if (cycle.type != F_CYCLE)
+                    if (cycle.type == FMG_CYCLE)
+                    {
+                        // Each nested V-cycle visits this level once. Noncoarse levels
+                        // also receive the initial FMG prolongation.
+                        expected = depth + (ln > 0 ? 2 : 1);
+                    }
+                    else if (cycle.type != F_CYCLE)
                     {
                         for (int i = 0; i < depth; ++i)
                         {
@@ -329,6 +337,10 @@ main(int argc, char* argv[])
                 residual();
                 plog << cycle.name << " first correction L2 = " << vectors[RESULT]->L2Norm()
                      << "; residual L2 = " << vectors[RESIDUAL]->L2Norm() << '\n';
+                if (cycle.type == FMG_CYCLE && !(vectors[RESIDUAL]->L2Norm() < vectors[RHS]->L2Norm()))
+                {
+                    TBOX_ERROR("FAC cycle test: FMG did not reduce the residual\n");
+                }
 
                 apply(SECOND_RESULT, SECOND_RHS);
                 apply(THIRD_RESULT, COMBINED_RHS);
@@ -418,22 +430,6 @@ main(int argc, char* argv[])
                          << "; final residual ratio = " << final_residual / initial_residual
                          << "; final error ratio = " << final_error / initial_error << '\n';
                 }
-            }
-            fac.setMGCycleType(FMG_CYCLE);
-            apply(RESULT, RHS);
-            copy(ITERATE, RESULT);
-            residual();
-            plog << "FMG first correction L2 = " << vectors[RESULT]->L2Norm()
-                 << "; residual L2 = " << vectors[RESIDUAL]->L2Norm() << '\n';
-            if (!(vectors[RESIDUAL]->L2Norm() < vectors[RHS]->L2Norm()))
-            {
-                TBOX_ERROR("FAC cycle test: FMG did not reduce the residual\n");
-            }
-            ops.setToScalar(indices[ERROR], 0.0, false);
-            apply(CORRECTION, ERROR);
-            if (difference(CORRECTION, ERROR) != 0.0)
-            {
-                TBOX_ERROR("FAC cycle test: FMG zero RHS produced a nonzero correction\n");
             }
             fac.deallocateSolverState();
         }
