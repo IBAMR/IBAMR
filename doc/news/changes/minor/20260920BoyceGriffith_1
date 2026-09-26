@@ -1,0 +1,3 @@
+Fixed: make_eigen_subdomain_solver's COMPLETE_ORTHOGONAL_DECOMPOSITION type sets eigen_subdomain_solver_threshold before factoring, so the configured threshold actually determines the truncated rank instead of the one implied by Eigen's default threshold at factorization time.
+<br>
+(Boyce Griffith, 2026/09/20)
