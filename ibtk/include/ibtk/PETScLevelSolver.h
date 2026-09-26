@@ -235,6 +235,14 @@ protected:
                                        std::vector<std::set<int>>& nonoverlap_is);
 
     /*!
+     * \brief Whether initializeSolverState() converted std::set<int> subdomains from
+     * generateASMSubdomains() into d_overlap_is and d_nonoverlap_is itself, so that
+     * deallocateSolverState() should destroy and clear them. Subclasses that construct
+     * PETSc index sets directly instead manage their own regeneration.
+     */
+    bool d_generated_subdomain_is = false;
+
+    /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
      */
     virtual void generateFieldSplitSubdomains(std::vector<std::string>& field_names,
