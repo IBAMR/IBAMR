@@ -1,0 +1,3 @@
+New: Add StaggeredStokesPETScLevelSolver::setOperatorMat() and setAugmentedOperatorMat().
+<br>
+(Boyce Griffith, 2026/09/14)
