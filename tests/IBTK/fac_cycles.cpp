@@ -281,7 +281,12 @@ private:
 };
 
 double
-data_difference(Pointer<PatchHierarchy<NDIM>> hierarchy, int first, int second, int weight, bool active_only)
+data_difference(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                int first,
+                int second,
+                int weight,
+                bool active_only,
+                bool interiors_only = false)
 {
     double maximum = 0.0;
     int nonfinite = 0;
@@ -293,7 +298,7 @@ data_difference(Pointer<PatchHierarchy<NDIM>> hierarchy, int first, int second, 
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<CellData<NDIM, double>> x = patch->getPatchData(first), y = patch->getPatchData(second),
                                             w = patch->getPatchData(weight);
-            for (CellIterator<NDIM> c(active_only ? patch->getBox() : x->getGhostBox()); c; c++)
+            for (CellIterator<NDIM> c(active_only || interiors_only ? patch->getBox() : x->getGhostBox()); c; c++)
             {
                 if (active_only && (*w)(c()) == 0.0)
                 {
@@ -414,6 +419,7 @@ check_ranges(Pointer<PatchHierarchy<NDIM>> hierarchy,
         reset();
         fac.setMGCycleType(string_to_enum<MGCycleType>(input->getString("reject_cycle")));
         fac.setNumPreSmoothingSweeps(input->getIntegerWithDefault("pre_sweeps", 2));
+        fac.setMGCycleMultiplicity(input->getIntegerWithDefault("multiplicity", 2));
         const int lower = input->getIntegerWithDefault("range_lower", 1);
         Pointer<HierarchyVector> x = view(indices[0], lower, finest), b = view(indices[1], lower, finest);
         const bool initial_setup = input->getBoolWithDefault("initial_setup", false);
@@ -454,9 +460,17 @@ check_ranges(Pointer<PatchHierarchy<NDIM>> hierarchy,
             const int lower = range.first, upper = range.second;
             Pointer<HierarchyVector> x = view(indices[0], lower, upper), b = view(indices[1], lower, upper);
             const bool single = lower == upper;
-            for (MGCycleType cycle : { V_CYCLE, W_CYCLE, F_CYCLE, FMG_CYCLE })
+            const std::vector<std::pair<MGCycleType, int>> cycles = { { V_CYCLE, 1 },  { W_CYCLE, 2 },
+                                                                      { F_CYCLE, 2 },  { FMG_CYCLE, 1 },
+                                                                      { MU_CYCLE, 1 }, { MU_CYCLE, 2 },
+                                                                      { MU_CYCLE, 3 } };
+            for (const auto& cycle_case : cycles)
             {
-                if (!single && (cycle == W_CYCLE || cycle == F_CYCLE || cycle == FMG_CYCLE))
+                const MGCycleType cycle = cycle_case.first;
+                const int multiplicity = cycle_case.second;
+                fac.setMGCycleMultiplicity(multiplicity);
+                if (!single && (cycle == W_CYCLE || cycle == F_CYCLE || cycle == FMG_CYCLE ||
+                                (cycle == MU_CYCLE && multiplicity > 1)))
                 {
                     continue;
                 }
@@ -560,8 +574,24 @@ check_ranges(Pointer<PatchHierarchy<NDIM>> hierarchy,
                             TBOX_ERROR("FAC range test: single-level solve depends on backing data\n");
                         }
                     }
-                    plog << "range = " << lower << ' ' << upper << "; cycle = " << enum_to_string(cycle)
-                         << "; pre = " << pre << "; correction L2 = " << view(indices[3], lower, upper)->L2Norm()
+                    if (cycle == MU_CYCLE && multiplicity == 1)
+                    {
+                        reset();
+                        fac.setMGCycleType(V_CYCLE);
+                        fac.solveSystem(*x, *b);
+                        // The default V path does not promise identical ghosts.
+                        // Compare every interior, including covered cells.
+                        if (data_difference(hierarchy, indices[0], indices[3], weight, false, pre == 0) != 0.0)
+                        {
+                            TBOX_ERROR("FAC range test: multiplicity one differs from V\n");
+                        }
+                    }
+                    plog << "range = " << lower << ' ' << upper << "; cycle = " << enum_to_string(cycle);
+                    if (cycle == MU_CYCLE)
+                    {
+                        plog << "; mu = " << multiplicity;
+                    }
+                    plog << "; pre = " << pre << "; correction L2 = " << view(indices[3], lower, upper)->L2Norm()
                          << '\n';
                 }
             }
@@ -573,9 +603,13 @@ check_ranges(Pointer<PatchHierarchy<NDIM>> hierarchy,
                 hierarchy->getPatchLevel(ln)->deallocatePatchData(indices[0]);
                 hierarchy->getPatchLevel(ln)->deallocatePatchData(indices[1]);
             }
-            fac.setMGCycleType(V_CYCLE);
-            fac.setNumPreSmoothingSweeps(single ? 2 : 0);
-            fac.solveSystem(*x, *b);
+            for (MGCycleType cycle : { V_CYCLE, MU_CYCLE })
+            {
+                fac.setMGCycleType(cycle);
+                fac.setMGCycleMultiplicity(1);
+                fac.setNumPreSmoothingSweeps(single ? 2 : 0);
+                fac.solveSystem(*x, *b);
+            }
             for (int ln = 0; ln < lower; ++ln)
             {
                 hierarchy->getPatchLevel(ln)->allocatePatchData(indices[0]);

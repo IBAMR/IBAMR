@@ -554,7 +554,7 @@ FACPreconditioner::validateCycleInputs(const SAMRAIVectorReal<NDIM, double>& sol
                           << "  multilevel repeated visits and FMG require coarsest level zero: private residual\n"
                           << "  evaluation storage is not allocated below the vector range." << std::endl);
     }
-    if (d_coarsest_ln != 0)
+    if (d_coarsest_ln != 0 && d_num_pre_sweeps > 0)
     {
         // Residual ghost fills synchronize into the preceding level and may
         // recursively interpolate from still coarser levels. Check each solve:
@@ -586,7 +586,8 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
     {
         return;
     }
-    const bool repeated = d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE;
+    const bool repeated =
+        d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE || (d_cycle_type == MU_CYCLE && d_cycle_multiplicity > 1);
     if (d_vector_data_ops.empty())
     {
         // cloneVector() shares operation objects with its source. Restricting

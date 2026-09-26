@@ -1,4 +1,6 @@
 New: IBTK::FACPreconditioner supports MU_CYCLE with a positive
-cycle_multiplicity setting, defaulting to two.
+cycle_multiplicity setting, defaulting to two. Multiplicity one has the V-cycle
+allocation requirements. Multilevel cycles with larger multiplicities require
+coarsest level zero; single-level cycles support nonzero levels.
 <br>
 (Boyce Griffith, 2026/09/25)

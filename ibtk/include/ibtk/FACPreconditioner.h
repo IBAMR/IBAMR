@@ -126,14 +126,16 @@ public:
      * patch data in these vectors must be allocated prior to calling this
      * method.
      *
-     * For a multilevel V-cycle with presmoothing and a nonzero coarsest level,
-     * solution component data must also be allocated and initialized on the
+     * For a multilevel V-cycle (or MU_CYCLE with multiplicity one) with
+     * presmoothing and a nonzero coarsest level, solution component data must
+     * also be allocated and initialized on the
      * levels below the vector range. Residual ghost filling may read this
      * storage and overwrite interiors and ghosts on the immediately preceding
      * level. This is caller-owned backing storage, not additional solved levels.
      * No preservation of solution ghosts is guaranteed.
-     * Single-level cycles and V-cycles without presmoothing do not require this
-     * additional allocation. Strategy-specific requirements still apply.
+     * Single-level cycles, V-cycles without presmoothing, and MU_CYCLE with
+     * multiplicity one without presmoothing do not require this additional
+     * allocation. Strategy-specific requirements still apply.
      * These allocation requirements also apply to initializeSolverState().
      *
      * \note V-cycles without presmoothing restrict covered coarse RHS data in
@@ -255,8 +257,9 @@ public:
      * F-cycle child visit followed by a V-cycle child visit. FMG_CYCLE performs
      * nested iteration with one V-cycle on each successively finer hierarchy.
      *
-     * Multilevel W-, F-, and FMG-cycles require coarsest level zero: their private
-     * residual evaluation storage does not extend below the vector range.
+     * Multilevel W-, F-, and FMG-cycles require coarsest level zero, as does
+     * MU_CYCLE with multiplicity greater than one. Their private residual
+     * evaluation storage does not extend below the vector range.
      * Single-level cycles support nonzero levels. For multilevel V-cycle
      * allocation and mutation requirements, see solveSystem().
      */

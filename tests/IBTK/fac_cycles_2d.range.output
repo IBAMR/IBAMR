@@ -6,6 +6,12 @@ range = 1 1; cycle = F_CYCLE; pre = 0; correction L2 = 0.000617602
 range = 1 1; cycle = F_CYCLE; pre = 2; correction L2 = 0.000617602
 range = 1 1; cycle = FMG_CYCLE; pre = 0; correction L2 = 0.000617602
 range = 1 1; cycle = FMG_CYCLE; pre = 2; correction L2 = 0.000617602
+range = 1 1; cycle = MU_CYCLE; mu = 1; pre = 0; correction L2 = 0.000617602
+range = 1 1; cycle = MU_CYCLE; mu = 1; pre = 2; correction L2 = 0.000617602
+range = 1 1; cycle = MU_CYCLE; mu = 2; pre = 0; correction L2 = 0.000617602
+range = 1 1; cycle = MU_CYCLE; mu = 2; pre = 2; correction L2 = 0.000617602
+range = 1 1; cycle = MU_CYCLE; mu = 3; pre = 0; correction L2 = 0.000617602
+range = 1 1; cycle = MU_CYCLE; mu = 3; pre = 2; correction L2 = 0.000617602
 range = 2 2; cycle = V_CYCLE; pre = 0; correction L2 = 0.000114516
 range = 2 2; cycle = V_CYCLE; pre = 2; correction L2 = 0.000114516
 range = 2 2; cycle = W_CYCLE; pre = 0; correction L2 = 0.000114516
@@ -14,5 +20,13 @@ range = 2 2; cycle = F_CYCLE; pre = 0; correction L2 = 0.000114516
 range = 2 2; cycle = F_CYCLE; pre = 2; correction L2 = 0.000114516
 range = 2 2; cycle = FMG_CYCLE; pre = 0; correction L2 = 0.000114516
 range = 2 2; cycle = FMG_CYCLE; pre = 2; correction L2 = 0.000114516
+range = 2 2; cycle = MU_CYCLE; mu = 1; pre = 0; correction L2 = 0.000114516
+range = 2 2; cycle = MU_CYCLE; mu = 1; pre = 2; correction L2 = 0.000114516
+range = 2 2; cycle = MU_CYCLE; mu = 2; pre = 0; correction L2 = 0.000114516
+range = 2 2; cycle = MU_CYCLE; mu = 2; pre = 2; correction L2 = 0.000114516
+range = 2 2; cycle = MU_CYCLE; mu = 3; pre = 0; correction L2 = 0.000114516
+range = 2 2; cycle = MU_CYCLE; mu = 3; pre = 2; correction L2 = 0.000114516
 range = 1 2; cycle = V_CYCLE; pre = 0; correction L2 = 0.000837923
 range = 1 2; cycle = V_CYCLE; pre = 2; correction L2 = 0.605509
+range = 1 2; cycle = MU_CYCLE; mu = 1; pre = 0; correction L2 = 0.000837923
+range = 1 2; cycle = MU_CYCLE; mu = 1; pre = 2; correction L2 = 0.605509
