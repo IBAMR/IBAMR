@@ -282,6 +282,14 @@ IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
         }
     }
 
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (idx(d) < domain_lower(d) || idx(d) - domain_lower(d) >= n_cells(d))
+        {
+            return -1;
+        }
+    }
+
 #if (NDIM == 1)
     return (idx(0) - domain_lower(0) + depth * n_cells(0) + offset);
 #elif (NDIM == 2)
