@@ -205,7 +205,6 @@ main(int argc, char* argv[])
         fac_op.setPhysicalBoundaryHelper(bc_helper);
         fac_op.setTimeInterval(0.0, dt);
         fac_op.setSolutionTime(dt);
-        fac_op.setHomogeneousBc(true);
         fac_op.setComponentsHaveNullSpace(false, true);
         fac_op.setIBTimeSteppingType(BACKWARD_EULER);
         fac_op.setIBForceJacobian(A);
