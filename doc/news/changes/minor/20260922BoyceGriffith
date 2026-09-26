@@ -1,0 +1,3 @@
+Changed: CartSideDoubleRT0Coarsen now rejects a refinement ratio larger than its stencil width in every build, where it previously read out of bounds in optimized builds.
+<br>
+(Boyce Griffith, 2026/09/22)
