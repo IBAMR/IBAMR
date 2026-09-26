@@ -13,6 +13,7 @@
 
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/PETScKrylovStaggeredStokesSolver.h>
+#include <ibamr/StaggeredStokesBoxRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolverManager.h>
@@ -27,10 +28,16 @@
 
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <SAMRAI_config.h>
+#include <SideGeometry.h>
 #include <StandardTagAndInitialize.h>
+
+#include <algorithm>
+#include <cmath>
+#include <iomanip>
 
 #include <ibamr/app_namespaces.h>
 
@@ -186,38 +193,111 @@ main(int argc, char* argv[])
         const double C = input_db->getDouble("C");
         poisson_spec.setDConstant(D);
         poisson_spec.setCConstant(C);
-        if (periodic_shift.min() > 0)
+        if (input_db->getBoolWithDefault("test_box_smoother", false))
         {
-            StaggeredStokesOperator stokes_op("stokes_op", true);
+            // A zero error has valid initial ghost and Dirichlet data. The nonzero
+            // interior forcing must not introduce normal velocity on a physical face.
+            TBOX_ASSERT(patch_hierarchy->getFinestLevelNumber() == 0);
+            u_vec.setToScalar(0.0, /*interior_only*/ false);
+            Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper;
+            if (periodic_shift.min() == 0)
+            {
+                bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+                bc_helper->cacheBcCoefData(u_bc_coefs, 0.0, patch_hierarchy);
+                bc_helper->copyDataAtDirichletBoundaries(e_sc_idx, u_sc_idx);
+            }
+            StaggeredStokesBoxRelaxationFACOperator fac_op("box_smoother", nullptr, "box_");
+            fac_op.setVelocityPoissonSpecifications(poisson_spec);
+            fac_op.setPhysicalBcCoefs(u_bc_coefs, nullptr);
+            if (bc_helper)
+            {
+                fac_op.setPhysicalBoundaryHelper(bc_helper);
+            }
+            fac_op.setSolutionTime(0.0);
+            fac_op.setTimeInterval(0.0, 1.0);
+            fac_op.initializeOperatorState(u_vec, e_vec);
+            fac_op.smoothError(u_vec, e_vec, 0, 1, false, false);
 
-            stokes_op.setVelocityPoissonSpecifications(poisson_spec);
-            stokes_op.initializeOperatorState(u_vec, f_vec);
-            // Apply the operator
-            stokes_op.apply(u_vec, f_vec);
+            double normal_velocity_error = 0.0;
+            int boundary_dofs = 0;
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(0);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_sc_idx);
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (int side = 0; side < 2; ++side)
+                    {
+                        if (!pgeom->getTouchesRegularBoundary(axis, side))
+                        {
+                            continue;
+                        }
+                        Box<NDIM> boundary_box = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
+                        const int boundary_index = side == 0 ? boundary_box.lower(axis) : boundary_box.upper(axis);
+                        boundary_box.lower(axis) = boundary_index;
+                        boundary_box.upper(axis) = boundary_index;
+                        for (Box<NDIM>::Iterator b(boundary_box); b; b++)
+                        {
+                            const double value = (*u_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower));
+                            if (!std::isfinite(value))
+                            {
+                                TBOX_ERROR("Box smoothing produced a nonfinite boundary value.\n");
+                            }
+                            normal_velocity_error = std::max(normal_velocity_error, std::abs(value));
+                            ++boundary_dofs;
+                        }
+                    }
+                }
+            }
+            boundary_dofs = SAMRAI_MPI::sumReduction(boundary_dofs);
+            normal_velocity_error = SAMRAI_MPI::maxReduction(normal_velocity_error);
+            TBOX_ASSERT((boundary_dofs > 0) == (periodic_shift.min() == 0));
+            const double correction_norm = u_vec.L2Norm();
+            if (!std::isfinite(correction_norm) || correction_norm == 0.0)
+            {
+                TBOX_ERROR("Box smoothing did not produce a finite nonzero correction.\n");
+            }
+            plog << std::setprecision(12) << "correction L2 norm = " << correction_norm << '\n';
+            plog << "normal velocity boundary error = " << normal_velocity_error << '\n';
+            fac_op.deallocateOperatorState();
         }
         else
         {
-            Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
-            bc_helper->cacheBcCoefData(u_bc_coefs, 0.0, patch_hierarchy);
-            bc_helper->copyDataAtDirichletBoundaries(e_sc_idx, u_sc_idx);
-            // Setup the stokes operator
-            StaggeredStokesOperator stokes_op("stokes_op", false, input_db);
-            stokes_op.setPhysicalBcCoefs(u_bc_coefs, nullptr);
-            stokes_op.setVelocityPoissonSpecifications(poisson_spec);
-            stokes_op.setPhysicalBoundaryHelper(bc_helper);
-            stokes_op.initializeOperatorState(u_vec, f_vec);
+            if (periodic_shift.min() > 0)
+            {
+                StaggeredStokesOperator stokes_op("stokes_op", true);
 
-            // Apply the operator
-            stokes_op.apply(u_vec, f_vec);
+                stokes_op.setVelocityPoissonSpecifications(poisson_spec);
+                stokes_op.initializeOperatorState(u_vec, f_vec);
+                // Apply the operator
+                stokes_op.apply(u_vec, f_vec);
+            }
+            else
+            {
+                Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+                bc_helper->cacheBcCoefData(u_bc_coefs, 0.0, patch_hierarchy);
+                bc_helper->copyDataAtDirichletBoundaries(e_sc_idx, u_sc_idx);
+                // Setup the stokes operator
+                StaggeredStokesOperator stokes_op("stokes_op", false, input_db);
+                stokes_op.setPhysicalBcCoefs(u_bc_coefs, nullptr);
+                stokes_op.setVelocityPoissonSpecifications(poisson_spec);
+                stokes_op.setPhysicalBoundaryHelper(bc_helper);
+                stokes_op.initializeOperatorState(u_vec, f_vec);
+
+                // Apply the operator
+                stokes_op.apply(u_vec, f_vec);
+            }
+
+            // Compute error and print error norms.
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
+                           Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false));
+            // print out the errors in each norm
+            pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
+            pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
+            pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
         }
-
-        // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false));
-        // print out the errors in each norm
-        pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
-        pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
-        pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
 
         // Deallocate level data
         // Allocate data on each level of the patch hierarchy.

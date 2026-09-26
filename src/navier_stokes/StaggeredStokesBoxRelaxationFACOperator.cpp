@@ -313,9 +313,12 @@ modifyRhsForBcs(Vec& v,
                 const hier::Index<NDIM> u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
+                    // The box operator's matrix coefficient for this off-box neighbor is +D/dx^2 (see
+                    // buildBoxOperator() above), so moving its known value to the right-hand side requires
+                    // subtracting, not adding, its contribution.
                     ierr = VecSetValue(v,
                                        idx,
-                                       +D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
+                                       -D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
                                            (dx[d] * dx[d]),
                                        ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
@@ -324,7 +327,7 @@ modifyRhsForBcs(Vec& v,
                 {
                     ierr = VecSetValue(v,
                                        idx,
-                                       +D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
+                                       -D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
                                            (dx[d] * dx[d]),
                                        ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
@@ -610,6 +613,23 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                 copyFromVec(e, *U_error_data, *P_error_data, box, box);
             }
         }
+
+        // d_box_op[level_num] is a single, shared, translation-invariant local operator and so cannot
+        // special-case a boundary row; enforce the Dirichlet normal-velocity condition after each sweep instead,
+        // exactly as StaggeredStokesOperator::imposeSolBcs() does for the same purpose elsewhere.
+        if (d_bc_helper)
+        {
+            StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+                d_U_bc_coefs, d_P_bc_coef, U_error_idx, P_error_idx, /*homogeneous_bc*/ true);
+            d_bc_helper->enforceNormalVelocityBoundaryConditions(U_error_idx,
+                                                                 P_error_idx,
+                                                                 d_U_bc_coefs,
+                                                                 d_solution_time,
+                                                                 /*homogeneous_bc*/ true,
+                                                                 level_num,
+                                                                 level_num);
+            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+        }
     }
 
     // Synchronize data along patch boundaries.
@@ -627,6 +647,26 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
                                                                             const int coarsest_reset_ln,
                                                                             const int finest_reset_ln)
 {
+    // Physical boundary DOFs need correction after each sweep. Fully periodic
+    // hierarchies do not require a boundary helper.
+    if (!d_bc_helper)
+    {
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                if (patch->getPatchGeometry()->getTouchesRegularBoundary())
+                {
+                    TBOX_ERROR(d_object_name << "::initializeOperatorStateSpecialized():\n"
+                                             << "  physical boundaries require a StaggeredStokesPhysicalBoundaryHelper "
+                                             << "provided via setPhysicalBoundaryHelper().\n");
+                }
+            }
+        }
+    }
+
     // Initialize the box relaxation data on each level of the patch hierarchy.
     d_box_op.resize(d_finest_ln + 1);
     d_box_e.resize(d_finest_ln + 1);
