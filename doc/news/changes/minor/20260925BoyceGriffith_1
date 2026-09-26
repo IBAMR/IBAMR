@@ -1,0 +1,4 @@
+Fixed: IBTK::FACPreconditioner now preserves the nested coarse equations
+in FMG cycles and applies a V-cycle correction on each finer hierarchy.
+<br>
+(Boyce Griffith, 2026/09/25)

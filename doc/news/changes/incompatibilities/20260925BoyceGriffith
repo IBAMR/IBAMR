@@ -1,7 +1,7 @@
 Changed: IBTK::FACPreconditionerStrategy implementations must provide
 fillGhostCellsNoCoarse(), which refreshes same-level and physical-boundary
-ghosts while preserving coarse-fine interpolation data. Multilevel W- and
-F-cycles require a level range starting at zero. V-cycles with presmoothing
+ghosts while preserving coarse-fine interpolation data. Multilevel W-, F-, and
+FMG-cycles require a level range starting at zero. V-cycles with presmoothing
 support nonzero coarsest levels with initialized caller solution backing storage
 on all lower levels; ghost filling may modify the immediately preceding level.
 Single-level cycles support nonzero levels without this additional allocation.

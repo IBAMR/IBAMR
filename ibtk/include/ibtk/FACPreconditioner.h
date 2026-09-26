@@ -252,8 +252,8 @@ public:
      *
      * V and W cycles make one and two recursive child visits, respectively.
      * F_CYCLE recursively makes an F-cycle child visit followed by a V-cycle
-     * child visit. FMG_CYCLE may overwrite coarse-grid equations and corrections
-     * on AMR hierarchies.
+     * child visit. FMG_CYCLE performs nested iteration with one V-cycle on each
+     * successively finer hierarchy.
      *
      * Multilevel W- and F-cycles require coarsest level zero: their private
      * residual evaluation storage does not extend below the vector range.
@@ -322,19 +322,10 @@ protected:
                       int level_num,
                       MGCycleType cycle_type);
 
-    /*! \brief Apply the recursive correction sweep used by FMGCycle(). */
-    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                 int level_num,
-                 int mu);
-
-    /*! \brief Apply FMG using the shared coarse-grid equations and corrections. */
+    /*! \brief Apply nested iteration with a V-cycle on each finer hierarchy. */
     void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                  int level_num,
-                  int mu);
+                  int level_num);
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
@@ -400,6 +391,7 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_residual_vectors;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_rhs_vectors;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_correction_vectors;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_fmg_rhs_vectors;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_evaluation_vector;
 
     // Isolate the affine boundary term for nonzero-coarsest lower prefixes.
