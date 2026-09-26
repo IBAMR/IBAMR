@@ -16,6 +16,8 @@
 #include <ibtk/FACPreconditioner.h>
 #include <ibtk/FACPreconditionerStrategy.h>
 #include <ibtk/LinearSolver.h>
+#include <ibtk/SAMRAIScopedVectorCopy.h>
+#include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
@@ -26,6 +28,7 @@
 #include <HierarchyDataOpsManager.h>
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
+#include <Variable.h>
 #include <VariableDatabase.h>
 
 #include <ostream>
@@ -125,7 +128,9 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     }
     else if (d_cycle_type == FMG_CYCLE)
     {
-        FMGCycle(x, b, d_finest_ln);
+        SAMRAIScopedVectorCopy<double> f(b);
+        SAMRAIScopedVectorDuplicate<double> r(b);
+        FMGCycle(x, f, r, d_finest_ln, 1);
     }
     else
     {
@@ -164,7 +169,6 @@ FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& s
     d_residual_vectors.resize(d_finest_ln + 1);
     d_rhs_vectors.resize(d_finest_ln + 1);
     d_correction_vectors.resize(d_finest_ln + 1);
-    d_fmg_rhs_vectors.resize(d_finest_ln + 1);
     allocateCycleScratchData(solution, rhs);
 
     // Indicate the operator is initialized.
@@ -178,15 +182,22 @@ FACPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Free patch indices as well as data, including after hierarchy changes.
-    for (auto* vectors : { &d_residual_vectors, &d_rhs_vectors, &d_correction_vectors, &d_fmg_rhs_vectors })
+    for (std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>* vectors :
+         { &d_residual_vectors, &d_rhs_vectors, &d_correction_vectors })
     {
-        for (auto& vector : *vectors)
+        for (Pointer<SAMRAIVectorReal<NDIM, double>>& vector : *vectors)
         {
-            if (vector) free_vector_components(*vector);
+            if (vector)
+            {
+                free_vector_components(*vector);
+            }
         }
         vectors->clear();
     }
-    if (d_evaluation_vector) free_vector_components(*d_evaluation_vector);
+    if (d_evaluation_vector)
+    {
+        free_vector_components(*d_evaluation_vector);
+    }
     d_evaluation_vector.setNull();
     d_vector_data_ops.clear();
     d_fac_strategy->deallocateScratchData();
@@ -230,7 +241,6 @@ FACPreconditioner::setMGCycleType(MGCycleType cycle_type)
     case W_CYCLE:
     case F_CYCLE:
     case FMG_CYCLE:
-    case MU_CYCLE:
         break;
     default:
         TBOX_ERROR(d_object_name << "::setMGCycleType(): unsupported FAC cycle type." << std::endl);
@@ -244,23 +254,6 @@ FACPreconditioner::getMGCycleType() const
 {
     return d_cycle_type;
 } // getMGCycleType
-
-void
-FACPreconditioner::setMGCycleMultiplicity(const int cycle_multiplicity)
-{
-    if (cycle_multiplicity < 1)
-    {
-        TBOX_ERROR(d_object_name << "::setMGCycleMultiplicity(): the multiplicity must be positive." << std::endl);
-    }
-    d_cycle_multiplicity = cycle_multiplicity;
-    return;
-} // setMGCycleMultiplicity
-
-int
-FACPreconditioner::getMGCycleMultiplicity() const
-{
-    return d_cycle_multiplicity;
-} // getMGCycleMultiplicity
 
 void
 FACPreconditioner::setNumPreSmoothingSweeps(int num_pre_sweeps)
@@ -340,7 +333,7 @@ FACPreconditioner::zeroStartCycle(SAMRAIVectorReal<NDIM, double>& u,
     }
     else
     {
-        auto residual = d_residual_vectors[level_num];
+        Pointer<SAMRAIVectorReal<NDIM, double>> residual = d_residual_vectors[level_num];
         if (d_num_pre_sweeps > 0)
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
@@ -357,13 +350,14 @@ FACPreconditioner::zeroStartCycle(SAMRAIVectorReal<NDIM, double>& u,
             // the child top level, so only its lower prefix needs an explicit copy.
             if (level_num > d_coarsest_ln + 1)
             {
-                auto prefix = getRangeVector(*residual, d_coarsest_ln, level_num - 2);
+                Pointer<SAMRAIVectorReal<NDIM, double>> prefix =
+                    getRangeVector(*residual, d_coarsest_ln, level_num - 2);
                 prefix->copyVector(getRangeVector(f, d_coarsest_ln, level_num - 2), /*interior_only*/ false);
             }
             d_fac_strategy->restrictResidual(f, *residual, level_num - 1);
         }
-        auto child_u = getRangeVector(u, d_coarsest_ln, level_num - 1);
-        auto child_rhs = getRangeVector(*residual, d_coarsest_ln, level_num - 1);
+        Pointer<SAMRAIVectorReal<NDIM, double>> child_u = getRangeVector(u, d_coarsest_ln, level_num - 1);
+        Pointer<SAMRAIVectorReal<NDIM, double>> child_rhs = getRangeVector(*residual, d_coarsest_ln, level_num - 1);
         if (d_num_pre_sweeps > 0)
         {
             // Remove every covered value written by residual synchronization,
@@ -388,15 +382,14 @@ FACPreconditioner::zeroStartCycle(SAMRAIVectorReal<NDIM, double>& u,
             case W_CYCLE:
                 multiplicity = 2;
                 break;
-            case MU_CYCLE:
-                multiplicity = d_cycle_multiplicity;
-                break;
             default:
                 TBOX_ERROR(d_object_name << "::zeroStartCycle(): unsupported FAC cycle type." << std::endl);
             }
             zeroStartCycle(*child_u, *child_rhs, level_num - 1, cycle_type);
             for (int visit = 1; visit < multiplicity; ++visit)
+            {
                 improveCycle(*child_u, *child_rhs, level_num - 1, cycle_type);
+            }
         }
 
         // The child already occupies u's complete lower span. The same-vector
@@ -417,40 +410,66 @@ FACPreconditioner::improveCycle(SAMRAIVectorReal<NDIM, double>& u,
                                 const int level_num,
                                 const MGCycleType cycle_type)
 {
-    auto evaluation = getRangeVector(*d_evaluation_vector, d_coarsest_ln, level_num);
+    Pointer<SAMRAIVectorReal<NDIM, double>> evaluation = getRangeVector(*d_evaluation_vector, d_coarsest_ln, level_num);
     evaluation->copyVector(getRangeVector(u, d_coarsest_ln, level_num), /*interior_only*/ false);
-    auto rhs = d_rhs_vectors[level_num];
-    auto correction = d_correction_vectors[level_num];
+    Pointer<SAMRAIVectorReal<NDIM, double>> rhs = d_rhs_vectors[level_num];
+    Pointer<SAMRAIVectorReal<NDIM, double>> correction = d_correction_vectors[level_num];
     d_fac_strategy->computeResidual(*rhs, *evaluation, f, d_coarsest_ln, level_num);
     correction->setToScalar(0.0, /*interior_only*/ false);
     zeroStartCycle(*correction, *rhs, level_num, cycle_type);
-    auto solution = getRangeVector(u, d_coarsest_ln, level_num);
+    Pointer<SAMRAIVectorReal<NDIM, double>> solution = getRangeVector(u, d_coarsest_ln, level_num);
     solution->add(solution, correction, /*interior_only*/ false);
     return;
 } // improveCycle
 
 void
-FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, const int level_num)
+FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
+                           SAMRAIVectorReal<NDIM, double>& f,
+                           SAMRAIVectorReal<NDIM, double>& r,
+                           int level_num,
+                           int mu)
 {
     if (level_num == d_coarsest_ln)
     {
-        zeroStartCycle(u, f, level_num, V_CYCLE);
+        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
     }
     else
     {
-        // Keep the parent RHS intact while constructing the next nested equation.
-        auto child_rhs = d_fmg_rhs_vectors[level_num - 1];
-        if (level_num > d_coarsest_ln + 1)
+        if (d_num_pre_sweeps > 0)
         {
-            auto prefix = getRangeVector(*child_rhs, d_coarsest_ln, level_num - 2);
-            prefix->copyVector(getRangeVector(f, d_coarsest_ln, level_num - 2), /*interior_only*/ false);
+            d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
         }
-        d_fac_strategy->restrictResidual(f, *child_rhs, level_num - 1);
-        auto child_u = getRangeVector(u, d_coarsest_ln, level_num - 1);
-        FMGCycle(*child_u, *child_rhs, level_num - 1);
-        d_fac_strategy->prolongError(u, u, level_num);
-        improveCycle(u, f, level_num, V_CYCLE);
+        d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
+        d_fac_strategy->restrictResidual(r, f, level_num - 1);
+        d_fac_strategy->setToZero(u, level_num - 1);
+        for (int k = 0; k < mu; ++k) muCycle(u, f, r, level_num - 1, mu);
+        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
+        if (d_num_post_sweeps > 0)
+        {
+            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+        }
     }
+    return;
+} // muCycle
+
+void
+FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u,
+                            SAMRAIVectorReal<NDIM, double>& f,
+                            SAMRAIVectorReal<NDIM, double>& r,
+                            int level_num,
+                            int mu)
+{
+    if (level_num == d_coarsest_ln)
+    {
+        d_fac_strategy->setToZero(u, level_num);
+    }
+    else
+    {
+        d_fac_strategy->restrictResidual(f, f, level_num - 1);
+        FMGCycle(u, f, r, level_num - 1, mu);
+        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
+    }
+    muCycle(u, f, r, level_num, mu);
     return;
 } // FMGCycle
 
@@ -480,10 +499,10 @@ FACPreconditioner::allocateRangeVector(const SAMRAIVectorReal<NDIM, double>& vec
 {
     Pointer<SAMRAIVectorReal<NDIM, double>> scratch = new SAMRAIVectorReal<NDIM, double>(
         name, vector.getPatchHierarchy(), vector.getCoarsestLevelNumber(), finest_ln);
-    auto* variable_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase<NDIM>* variable_db = VariableDatabase<NDIM>::getDatabase();
     for (int comp = 0; comp < vector.getNumberOfComponents(); ++comp)
     {
-        const auto variable = vector.getComponentVariable(comp);
+        const Pointer<Variable<NDIM>> variable = vector.getComponentVariable(comp);
         const int index = variable_db->registerClonedPatchDataIndex(variable, vector.getComponentDescriptorIndex(comp));
         scratch->addComponent(variable, index, vector.getControlVolumeIndex(comp), d_vector_data_ops[comp]);
     }
@@ -496,9 +515,12 @@ void
 FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAIVectorReal<NDIM, double>& rhs)
 {
-    // Preserve the inexpensive default V-cycle path, including its existing
-    // in-place restriction of covered RHS data.
-    if (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0) return;
+    // FMG uses scoped workspace. The default V-cycle restricts covered RHS
+    // data in place and needs no additional vectors.
+    if (d_cycle_type == FMG_CYCLE || (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0))
+    {
+        return;
+    }
     if (d_coarsest_ln != 0)
     {
         TBOX_ERROR(d_object_name << "::allocateCycleScratchData():\n"
@@ -511,40 +533,45 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
         // cloneVector() shares operation objects with its source. Restricting
         // their level range would also restrict a caller's subsequent direct
         // hierarchy operations, so neither scratch nor views may borrow them.
-        auto* manager = HierarchyDataOpsManager<NDIM>::getManager();
+        HierarchyDataOpsManager<NDIM>* manager = HierarchyDataOpsManager<NDIM>::getManager();
         for (int comp = 0; comp < solution.getNumberOfComponents(); ++comp)
+        {
             d_vector_data_ops.push_back(
                 manager->getOperationsDouble(solution.getComponentVariable(comp), d_hierarchy, /*get_unique*/ true));
+        }
     }
-    const bool repeated =
-        d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE || (d_cycle_type == MU_CYCLE && d_cycle_multiplicity > 1);
-    const bool fmg = d_cycle_type == FMG_CYCLE;
-    const int finest_warm_ln = fmg ? d_finest_ln : d_finest_ln - 1;
+    const bool repeated = d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE;
+    const int finest_warm_ln = d_finest_ln - 1;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         const std::string suffix = "::level_" + std::to_string(ln);
         if (ln > d_coarsest_ln)
         {
             const int residual_finest_ln = d_num_pre_sweeps > 0 ? ln : ln - 1;
-            auto& residual = d_residual_vectors[ln];
+            Pointer<SAMRAIVectorReal<NDIM, double>>& residual = d_residual_vectors[ln];
             if (residual && residual->getFinestLevelNumber() < residual_finest_ln)
             {
                 free_vector_components(*residual);
                 residual.setNull();
             }
             if (!residual)
+            {
                 residual = allocateRangeVector(rhs, d_object_name + "::residual" + suffix, residual_finest_ln);
+            }
         }
-        if ((repeated || (fmg && ln > d_coarsest_ln)) && ln <= finest_warm_ln)
+        if (repeated && ln <= finest_warm_ln)
         {
-            if (!d_rhs_vectors[ln]) d_rhs_vectors[ln] = allocateRangeVector(rhs, d_object_name + "::rhs" + suffix, ln);
+            if (!d_rhs_vectors[ln])
+            {
+                d_rhs_vectors[ln] = allocateRangeVector(rhs, d_object_name + "::rhs" + suffix, ln);
+            }
             if (!d_correction_vectors[ln])
+            {
                 d_correction_vectors[ln] = allocateRangeVector(solution, d_object_name + "::correction" + suffix, ln);
+            }
         }
-        if (fmg && ln < d_finest_ln && !d_fmg_rhs_vectors[ln])
-            d_fmg_rhs_vectors[ln] = allocateRangeVector(rhs, d_object_name + "::fmg_rhs" + suffix, ln);
     }
-    if ((repeated || fmg) && finest_warm_ln >= d_coarsest_ln && d_finest_ln > d_coarsest_ln)
+    if (repeated && finest_warm_ln >= d_coarsest_ln && d_finest_ln > d_coarsest_ln)
     {
         if (d_evaluation_vector && d_evaluation_vector->getFinestLevelNumber() < finest_warm_ln)
         {
@@ -552,7 +579,9 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
             d_evaluation_vector.setNull();
         }
         if (!d_evaluation_vector)
+        {
             d_evaluation_vector = allocateRangeVector(solution, d_object_name + "::evaluation", finest_warm_ln);
+        }
     }
     return;
 } // allocateCycleScratchData
@@ -562,7 +591,6 @@ FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
 {
     if (!db) return;
     if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
-    if (db->keyExists("cycle_multiplicity")) setMGCycleMultiplicity(db->getInteger("cycle_multiplicity"));
     if (db->keyExists("num_pre_sweeps")) setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));
     if (db->keyExists("num_post_sweeps")) setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
     if (db->keyExists("enable_logging")) setLoggingEnabled(db->getBool("enable_logging"));

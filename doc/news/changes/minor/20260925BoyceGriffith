@@ -1,8 +1,5 @@
-Fixed: FAC cycles with presmoothing or repeated coarse visits now maintain
-separate composite correction equations over the full range of levels.
-F_CYCLE uses a recursive F visit followed by a V visit, and FMG_CYCLE uses
-nested initialization followed by a V correction at each finer level.
-Added MU_CYCLE with a positive cycle_multiplicity parameter (default two).
-The V-cycle without presmoothing retains its existing implementation.
+Fixed: IBTK::FACPreconditioner now maintains composite correction equations
+through V-cycles with presmoothing and repeated W- and F-cycle visits.
+F-cycles use a recursive F visit followed by a V visit.
 <br>
 (Boyce Griffith, 2026/09/25)

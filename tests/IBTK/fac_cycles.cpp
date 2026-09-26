@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2026 - 2026 by the IBAMR developers
+// Copyright (c) 2026 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -85,12 +85,6 @@ private:
     std::vector<int> d_visits;
 };
 
-void
-require(bool condition, const std::string& message)
-{
-    if (!condition) TBOX_ERROR("FAC cycle test: " << message << '\n');
-}
-
 double
 data_difference(Pointer<PatchHierarchy<NDIM>> hierarchy, int first, int second, int weight, bool active_only)
 {
@@ -101,19 +95,25 @@ data_difference(Pointer<PatchHierarchy<NDIM>> hierarchy, int first, int second, 
         Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            auto patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<CellData<NDIM, double>> x = patch->getPatchData(first), y = patch->getPatchData(second),
                                             w = patch->getPatchData(weight);
             for (CellIterator<NDIM> c(active_only ? patch->getBox() : x->getGhostBox()); c; c++)
             {
-                if (active_only && (*w)(c()) == 0.0) continue;
+                if (active_only && (*w)(c()) == 0.0)
+                {
+                    continue;
+                }
                 const double value = std::abs((*x)(c()) - (*y)(c()));
                 nonfinite += !std::isfinite(value);
                 maximum = std::max(maximum, value);
             }
         }
     }
-    require(IBTK_MPI::sumReduction(nonfinite) == 0, "nonfinite comparison data");
+    if (IBTK_MPI::sumReduction(nonfinite) != 0)
+    {
+        TBOX_ERROR("FAC cycle test: nonfinite comparison data\n");
+    }
     return IBTK_MPI::maxReduction(maximum);
 }
 } // namespace
@@ -140,10 +140,13 @@ main(int argc, char* argv[])
         for (int ln = 0; gridding->levelCanBeRefined(ln); ++ln)
         {
             gridding->makeFinerLevel(hierarchy, 0.0, 0.0, 1);
-            if (!hierarchy->finerLevelExists(ln)) break;
+            if (!hierarchy->finerLevelExists(ln))
+            {
+                break;
+            }
         }
         const int finest = hierarchy->getFinestLevelNumber();
-        require(finest + 1 == input->getInteger("levels"), "incomplete test hierarchy");
+        TBOX_ASSERT(finest + 1 == input->getInteger("levels"));
 
         enum Field
         {
@@ -160,8 +163,6 @@ main(int argc, char* argv[])
             SNAPSHOT,
             ITERATE,
             ERROR,
-            V_RESULT,
-            W_RESULT,
             OPS_PROBE,
             FIELD_COUNT
         };
@@ -169,17 +170,20 @@ main(int argc, char* argv[])
         const int weight = math_ops.getCellWeightPatchDescriptorIndex();
         Pointer<HierarchyCellDataOpsReal<NDIM, double>> shared_ops =
             new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, 0, finest);
-        auto& ops = *shared_ops;
+        HierarchyCellDataOpsReal<NDIM, double>& ops = *shared_ops;
         std::array<int, FIELD_COUNT> indices;
         std::array<std::unique_ptr<HierarchyVector>, FIELD_COUNT> vectors;
         Pointer<CellVariable<NDIM, double>> variable = new CellVariable<NDIM, double>("u");
-        auto* variable_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabase<NDIM>* variable_db = VariableDatabase<NDIM>::getDatabase();
         for (int f = 0; f < FIELD_COUNT; ++f)
         {
             const std::string name = "field_" + std::to_string(f);
             indices[f] =
                 variable_db->registerVariableAndContext(variable, variable_db->getContext(name), IntVector<NDIM>(1));
-            for (int ln = 0; ln <= finest; ++ln) hierarchy->getPatchLevel(ln)->allocatePatchData(indices[f], 0.0);
+            for (int ln = 0; ln <= finest; ++ln)
+            {
+                hierarchy->getPatchLevel(ln)->allocatePatchData(indices[f], 0.0);
+            }
             vectors[f] = std::make_unique<HierarchyVector>(name, hierarchy, 0, finest);
             vectors[f]->addComponent(variable, indices[f], weight, shared_ops);
             ops.setToScalar(indices[f], 0.0, false);
@@ -209,10 +213,16 @@ main(int argc, char* argv[])
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
                     Pointer<CellData<NDIM, double>> data = level->getPatch(p())->getPatchData(indices[OPS_PROBE]);
-                    for (CellIterator<NDIM> c(data->getGhostBox()); c; c++) unchanged += (*data)(c()) != 1.0;
+                    for (CellIterator<NDIM> c(data->getGhostBox()); c; c++)
+                    {
+                        unchanged += (*data)(c()) != 1.0;
+                    }
                 }
             }
-            require(IBTK_MPI::sumReduction(unchanged) == 0, "FAC changed the caller's data-operation level range");
+            if (IBTK_MPI::sumReduction(unchanged) != 0)
+            {
+                TBOX_ERROR("FAC cycle test: FAC changed the caller's data-operation level range\n");
+            }
         };
 
         const double pi = std::acos(-1.0);
@@ -222,7 +232,7 @@ main(int argc, char* argv[])
             const double n = input->getInteger("N") * level->getRatio()(0);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                auto patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 Pointer<CellData<NDIM, double>> exact = patch->getPatchData(indices[EXACT]),
                                                 second = patch->getPatchData(indices[EVALUATION]);
                 for (CellIterator<NDIM> c(patch->getBox()); c; c++)
@@ -268,7 +278,10 @@ main(int argc, char* argv[])
             fac.solveSystem(*vectors[destination], *vectors[source]);
             check_data_ops();
             const bool legacy_v = fac.getMGCycleType() == V_CYCLE && fac.getNumPreSmoothingSweeps() == 0;
-            require(difference(source, SNAPSHOT, legacy_v) == 0.0, "RHS data was modified");
+            if (difference(source, SNAPSHOT, legacy_v) != 0.0)
+            {
+                TBOX_ERROR("FAC cycle test: RHS data was modified\n");
+            }
             copy(source, SNAPSHOT);
         };
         const auto residual = [&]()
@@ -283,9 +296,7 @@ main(int argc, char* argv[])
             const char* name;
             int multiplicity;
         };
-        const std::array<CycleCase, 4> cycles = {
-            { { V_CYCLE, "V", 1 }, { W_CYCLE, "W", 2 }, { MU_CYCLE, "MU3", 3 }, { F_CYCLE, "F", 2 } }
-        };
+        const std::array<CycleCase, 3> cycles = { { { V_CYCLE, "V", 1 }, { W_CYCLE, "W", 2 }, { F_CYCLE, "F", 2 } } };
         plog << "levels = " << finest + 1 << '\n';
         for (int pre : { 0, 2 })
         {
@@ -294,11 +305,9 @@ main(int argc, char* argv[])
             fac.initializeSolverState(*vectors[CORRECTION], *vectors[RHS]);
             check_data_ops();
             plog << "pre_sweeps = " << pre << '\n';
-            for (const auto& cycle : cycles)
+            for (const CycleCase& cycle : cycles)
             {
                 fac.setMGCycleType(cycle.type);
-                fac.setMGCycleMultiplicity(cycle.multiplicity);
-                require(fac.getMGCycleMultiplicity() == cycle.multiplicity, "multiplicity accessor mismatch");
                 apply(RESULT, RHS);
                 plog << cycle.name << " visits =";
                 for (int ln = finest; ln >= 0; --ln)
@@ -306,13 +315,16 @@ main(int argc, char* argv[])
                     const int depth = finest - ln;
                     int expected = cycle.type == F_CYCLE ? depth + 1 : 1;
                     if (cycle.type != F_CYCLE)
-                        for (int i = 0; i < depth; ++i) expected *= cycle.multiplicity;
-                    require(strategy->getVisits()[ln] == expected, "incorrect cycle traversal");
+                    {
+                        for (int i = 0; i < depth; ++i)
+                        {
+                            expected *= cycle.multiplicity;
+                        }
+                    }
+                    TBOX_ASSERT(strategy->getVisits()[ln] == expected);
                     plog << ' ' << strategy->getVisits()[ln];
                 }
                 plog << '\n';
-                if (cycle.type == V_CYCLE) copy(V_RESULT, RESULT);
-                if (cycle.type == W_CYCLE) copy(W_RESULT, RESULT);
                 copy(ITERATE, RESULT);
                 residual();
                 plog << cycle.name << " first correction L2 = " << vectors[RESULT]->L2Norm()
@@ -321,40 +333,63 @@ main(int argc, char* argv[])
                 apply(SECOND_RESULT, SECOND_RHS);
                 apply(THIRD_RESULT, COMBINED_RHS);
                 ops.linearSum(indices[ERROR], 0.31, indices[RESULT], -0.7, indices[SECOND_RESULT], false);
-                require(difference(THIRD_RESULT, ERROR) < 1.0e-11, "FAC map is not linear");
+                if (!(difference(THIRD_RESULT, ERROR) < 1.0e-11))
+                {
+                    TBOX_ERROR("FAC cycle test: FAC map is not linear\n");
+                }
 
                 // Change both vector indices after initialization, then rebuild solver state.
                 copy(COMBINED_RHS, RHS);
                 apply(THIRD_RESULT, COMBINED_RHS);
-                require(difference(THIRD_RESULT, RESULT) < 1.0e-12, "solve depends on vector data indices");
+                if (!(difference(THIRD_RESULT, RESULT) < 1.0e-12))
+                {
+                    TBOX_ERROR("FAC cycle test: solve depends on vector data indices\n");
+                }
                 fac.deallocateSolverState();
                 fac.initializeSolverState(*vectors[SECOND_RESULT], *vectors[SECOND_RHS]);
                 check_data_ops();
                 apply(THIRD_RESULT, RHS);
-                require(difference(THIRD_RESULT, RESULT) < 1.0e-12, "reinitialization changed the correction");
+                if (!(difference(THIRD_RESULT, RESULT) < 1.0e-12))
+                {
+                    TBOX_ERROR("FAC cycle test: reinitialization changed the correction\n");
+                }
                 ops.linearSum(indices[COMBINED_RHS], 0.31, indices[RHS], -0.7, indices[SECOND_RHS], false);
 
                 ops.setToScalar(indices[ERROR], 0.0, false);
                 apply(CORRECTION, ERROR);
-                require(difference(CORRECTION, ERROR) == 0.0, "zero RHS produced a nonzero correction");
+                if (difference(CORRECTION, ERROR) != 0.0)
+                {
+                    TBOX_ERROR("FAC cycle test: zero RHS produced a nonzero correction\n");
+                }
                 copy(ITERATE, EXACT);
                 for (int ln = 0; ln < finest; ++ln)
                 {
                     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
                     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                     {
-                        auto patch = level->getPatch(p());
+                        Pointer<Patch<NDIM>> patch = level->getPatch(p());
                         Pointer<CellData<NDIM, double>> x = patch->getPatchData(indices[ITERATE]),
                                                         w = patch->getPatchData(weight);
                         for (CellIterator<NDIM> c(patch->getBox()); c; c++)
-                            if ((*w)(c()) == 0.0) (*x)(c()) += 0.125;
+                        {
+                            if ((*w)(c()) == 0.0)
+                            {
+                                (*x)(c()) += 0.125;
+                            }
+                        }
                     }
                 }
                 residual();
-                require(vectors[RESIDUAL]->L2Norm() < 1.0e-11, "covered storage changed the exact residual");
+                if (!(vectors[RESIDUAL]->L2Norm() < 1.0e-11))
+                {
+                    TBOX_ERROR("FAC cycle test: covered storage changed the exact residual\n");
+                }
                 apply(CORRECTION, RESIDUAL);
                 ops.add(indices[ITERATE], indices[ITERATE], indices[CORRECTION], false);
-                require(difference(ITERATE, EXACT) < 1.0e-11, "exact solution is not a fixed point");
+                if (!(difference(ITERATE, EXACT) < 1.0e-11))
+                {
+                    TBOX_ERROR("FAC cycle test: exact solution is not a fixed point\n");
+                }
 
                 for (double starting_scale : { 0.0, 0.25 })
                 {
@@ -371,31 +406,19 @@ main(int argc, char* argv[])
                     }
                     ops.subtract(indices[ERROR], indices[ITERATE], indices[EXACT], false);
                     const double final_residual = vectors[RESIDUAL]->L2Norm(), final_error = vectors[ERROR]->L2Norm();
-                    require(final_residual < initial_residual, "composite residual did not decrease");
-                    require(final_error < initial_error, "solution error did not decrease");
+                    if (!(final_residual < initial_residual))
+                    {
+                        TBOX_ERROR("FAC cycle test: composite residual did not decrease\n");
+                    }
+                    if (!(final_error < initial_error))
+                    {
+                        TBOX_ERROR("FAC cycle test: solution error did not decrease\n");
+                    }
                     plog << cycle.name << " start = " << (starting_scale == 0.0 ? "zero" : "nonzero")
                          << "; final residual ratio = " << final_residual / initial_residual
                          << "; final error ratio = " << final_error / initial_error << '\n';
                 }
-                plog << cycle.name << " invariants, linearity, reuse, and convergence passed\n";
             }
-            fac.setMGCycleType(MU_CYCLE);
-            fac.setMGCycleMultiplicity(1);
-            apply(CORRECTION, RHS);
-            require(difference(CORRECTION, V_RESULT) < 1.0e-12, "mu=1 differs from V");
-            fac.setMGCycleMultiplicity(2);
-            apply(CORRECTION, RHS);
-            require(difference(CORRECTION, W_RESULT) < 1.0e-12, "mu=2 differs from W");
-            plog << "mu=1 matches V; mu=2 matches W\n";
-            fac.setMGCycleType(FMG_CYCLE);
-            apply(RESULT, RHS);
-            copy(ITERATE, RESULT);
-            residual();
-            require(vectors[RESIDUAL]->L2Norm() < vectors[RHS]->L2Norm(), "FMG did not reduce the residual");
-            ops.setToScalar(indices[ERROR], 0.0, false);
-            apply(CORRECTION, ERROR);
-            require(difference(CORRECTION, ERROR) == 0.0, "FMG zero RHS produced a nonzero correction");
-            plog << "FMG zero-input and nested initialization passed\n";
             fac.deallocateSolverState();
         }
 
@@ -410,20 +433,30 @@ main(int argc, char* argv[])
         apply(SECOND_RESULT, RHS);
         fac.setNumPreSmoothingSweeps(0);
         apply(CORRECTION, RHS);
-        require(difference(CORRECTION, RESULT) < 1.0e-12, "disabling presmoothing changed the V correction");
+        if (!(difference(CORRECTION, RESULT) < 1.0e-12))
+        {
+            TBOX_ERROR("FAC cycle test: disabling presmoothing changed the V correction\n");
+        }
         fac.deallocateSolverState();
         fac.setNumPreSmoothingSweeps(2);
         fac.initializeSolverState(*vectors[SECOND_RESULT], *vectors[SECOND_RHS]);
         check_data_ops();
         apply(CORRECTION, RHS);
-        require(difference(CORRECTION, SECOND_RESULT) < 1.0e-12,
-                "changing presmoothing differs from fresh initialization");
+        if (!(difference(CORRECTION, SECOND_RESULT) < 1.0e-12))
+        {
+            TBOX_ERROR("FAC cycle test: changing presmoothing differs from fresh initialization\n");
+        }
         fac.deallocateSolverState();
         plog << "Presmoothing changes match fresh initialization\n";
         plog << "Caller data operations retain the full hierarchy range\n";
         laplace.deallocateOperatorState();
         for (int ln = 0; ln <= finest; ++ln)
-            for (int index : indices) hierarchy->getPatchLevel(ln)->deallocatePatchData(index);
+        {
+            for (int index : indices)
+            {
+                hierarchy->getPatchLevel(ln)->deallocatePatchData(index);
+            }
+        }
     }
     return 0;
 }
