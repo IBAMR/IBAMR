@@ -268,6 +268,13 @@ PoissonFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, double>& vec,
 } // setToZero
 
 void
+PoissonFACPreconditionerStrategy::fillGhostCellsNoCoarse(SAMRAIVectorReal<NDIM, double>& error, const int level_num)
+{
+    xeqScheduleGhostFillNoCoarse(error.getComponentDescriptorIndex(0), level_num);
+    return;
+} // fillGhostCellsNoCoarse
+
+void
 PoissonFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
                                                    SAMRAIVectorReal<NDIM, double>& dst,
                                                    int dst_ln)

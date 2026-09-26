@@ -376,6 +376,15 @@ StaggeredStokesFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, doubl
 } // setToZero
 
 void
+StaggeredStokesFACPreconditionerStrategy::fillGhostCellsNoCoarse(SAMRAIVectorReal<NDIM, double>& error,
+                                                                 const int level_num)
+{
+    xeqScheduleGhostFillNoCoarse(
+        std::make_pair(error.getComponentDescriptorIndex(0), error.getComponentDescriptorIndex(1)), level_num);
+    return;
+} // fillGhostCellsNoCoarse
+
+void
 StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
                                                            SAMRAIVectorReal<NDIM, double>& dst,
                                                            int dst_ln)

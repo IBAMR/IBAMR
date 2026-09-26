@@ -1,0 +1,42 @@
+// Nested, extruded L-shaped refinement regions exercise 3D composite visits.
+levels = 3
+N = 16
+
+fac_db {
+   cycle_type = "V_CYCLE"
+   smoother_type = "PATCH_GAUSS_SEIDEL"
+   prolongation_method = "LINEAR_REFINE"
+   restriction_method = "CONSERVATIVE_COARSEN"
+   data_coarsen_type = "CONSERVATIVE_COARSEN"
+   coarse_solver_type = "PATCH_GAUSS_SEIDEL"
+   coarse_solver_max_iterations = 3
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+CartesianGeometry {
+   domain_boxes = [(0,0,0),(N - 1,N - 1,N - 1)]
+   x_lo = 0, 0, 0
+   x_up = 1, 1, 1
+   periodic_dimension = 0, 0, 0
+}
+GriddingAlgorithm {
+   max_levels = levels
+   ratio_to_coarser { level_1 = 2, 2, 2 level_2 = 2, 2, 2 }
+   largest_patch_size { level_0 = 512, 512, 512 }
+   smallest_patch_size { level_0 = 4, 4, 4 }
+   efficiency_tolerance = 0.70
+   combine_efficiency = 0.85
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(4,4,4),(7,7,11)], [(8,4,4),(11,7,11)], [(4,8,4),(7,11,11)]
+      level_1 = [(10,10,10),(13,13,21)], [(14,10,10),(17,13,21)], [(10,14,10),(13,17,21)]
+   }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

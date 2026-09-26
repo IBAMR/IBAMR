@@ -26,11 +26,13 @@
 #include <tbox/Pointer.h>
 
 #include <Box.h>
+#include <HierarchyDataOpsReal.h>
 #include <IntVector.h>
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
 #include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -123,12 +125,16 @@ public:
      * patch data in these vectors must be allocated prior to calling this
      * method.
      *
+     * \note V-cycles without presmoothing restrict covered coarse RHS data in
+     * place. Other cycle configurations preserve the RHS.
+     *
      * \param x solution vector
      * \param b right-hand-side vector
      *
      * <b>Conditions on Parameters:</b>
      * - vectors \a x and \a b must have same patch hierarchy
      * - vectors \a x and \a b must have same structure, depth, etc.
+     * - vectors \a x and \a b must not share component patch-data indices
      *
      * \note The vector arguments for solveSystem() need not match those for
      * initializeSolverState().  However, there must be a certain degree of
@@ -230,6 +236,16 @@ public:
 
     /*!
      * \brief Set the multigrid algorithm cycle type.
+     *
+     * V and W cycles make one and two recursive child visits, respectively.
+     * F_CYCLE recursively makes an F-cycle child visit followed by a V-cycle
+     * child visit. FMG_CYCLE may overwrite coarse-grid equations and corrections
+     * on AMR hierarchies.
+     *
+     * V-cycles with presmoothing, W-cycles, and F-cycles currently require the
+     * initialized hierarchy range to begin at level zero, since strategy residual
+     * ghost fills may access data below that range. Nonzero coarsest levels are
+     * rejected for these cycles.
      */
     void setMGCycleType(MGCycleType cycle_type);
 
@@ -269,21 +285,37 @@ public:
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> getFACPreconditionerStrategy() const;
 
 protected:
+    /*! \brief Apply the V-cycle specialization without presmoothing. */
     void FACVCycleNoPreSmoothing(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                                  int level_num);
 
+    /*!
+     * \brief Apply a cycle to an owned correction that is zero, including ghosts,
+     * on the complete truncated hierarchy. The RHS is borrowed and preserved.
+     */
+    void zeroStartCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                        SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                        int level_num,
+                        MGCycleType cycle_type);
+
+    /*!
+     * \brief Improve a retained iterate by u += B(f - A*u), preserving its
+     * auxiliary covered-cell values while evaluating the composite residual.
+     */
+    void improveCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                      int level_num,
+                      MGCycleType cycle_type);
+
+    /*! \brief Apply the recursive correction sweep used by FMGCycle(). */
     void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
                  int level_num,
                  int mu);
 
-    void FCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                int level_num);
-
+    /*! \brief Apply FMG using the shared coarse-grid equations and corrections. */
     void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
@@ -325,7 +357,33 @@ private:
      */
     FACPreconditioner& operator=(const FACPreconditioner& that) = delete;
 
+    /*! \brief Return a borrowed-data view using the FAC-private data operations. */
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>
+    getRangeVector(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vector, int coarsest_ln, int finest_ln) const;
+
+    /*! \brief Allocate a zeroed, independently owned vector on a hierarchy prefix. */
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>
+    allocateRangeVector(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vector,
+                        const std::string& name,
+                        int finest_ln) const;
+
+    /*! \brief Allocate any missing workspace required by the current cycle options. */
+    void allocateCycleScratchData(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+
+    /*! \brief Read the cycle and smoothing options from the input database. */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    // Vector arithmetic resets the operation object's level range. Keep these
+    // objects independent of the caller, which may use its operations directly.
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double>>> d_vector_data_ops;
+
+    // Each recursion depth owns its child equation and any warm-visit
+    // increment. Storage can be reused only after that invocation returns.
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_residual_vectors;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_rhs_vectors;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_correction_vectors;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_evaluation_vector;
 };
 } // namespace IBTK
 

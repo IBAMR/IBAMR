@@ -1,0 +1,5 @@
+Fixed: IBTK::FACPreconditioner now maintains composite correction equations
+through V-cycles with presmoothing and repeated W- and F-cycle visits.
+F-cycles use a recursive F visit followed by a V visit.
+<br>
+(Boyce Griffith, 2026/09/25)
