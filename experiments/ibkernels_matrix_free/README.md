@@ -7,6 +7,9 @@ production coupling defaults are unchanged.
 
 See [FACTORIZATION.md](FACTORIZATION.md) for the current CBS performance results
 with owning one-dimensional factors and tensor contractions.
+The [independent-review follow-up](REVIEW_FOLLOWUP.md) records corrections to
+the interpretation, cache-model limitations and deferred experiments. Live
+benchmarking and profiling remain on hold while the system is in other use.
 [IMPROVEMENTS.md](IMPROVEMENTS.md) records the expanded native comparison,
 earlier C++ optimizations and IB5 correction. [RESULTS.md](RESULTS.md) preserves
 the initial three-kernel comparison.

@@ -6,12 +6,17 @@ CBS56/65 gather is **3.9–4.4× faster on the small 3D field** and **2.5–2.7�
 on the large shuffled 3D field**. Their large-field spreading improves about
 **1.5×**. These are patch coupling measurements on one Apple M1 Max CPU thread.
 
-Use **CONTRACTED** as the general experimental default. Keep **FACTORIZED** as
-an explicit operation-level choice: it is consistently better for **2D CBS65
-spreading**, improving the expanded path by **1.60–1.63×**, versus **1.15–1.17×**
-for contraction. Factorized CBS56 spreading also has a smaller 2D advantage.
-The lowest-order CBS12/21 cases are essentially ties. No kernel-specific dispatch
-or machine-specific selection threshold is introduced.
+Use **CONTRACTED** as the general experimental default. Retain **FACTORIZED**
+for comparison while investigating an unresolved **2D CBS65 contracted-spread
+slowdown**. Factorized CBS65 spreading improves the expanded path by
+**1.60–1.63×**, versus **1.15–1.17×** for contraction, but the mirrored CBS56
+case does not show the same slowdown. These timings do not establish an intrinsic
+advantage for factorized CBS65 spreading. The lowest-order CBS12/21 cases are
+essentially ties. No kernel-specific dispatch or machine-specific selection
+threshold is introduced.
+
+The [independent-review follow-up](REVIEW_FOLLOWUP.md) qualifies the cache model,
+counter attribution and validation coverage. Live measurements remain on hold.
 
 Measured implementation: `ca0dc4b521827ae2dc8e84dd6e601eeac66d31f2`.
 The clean starting revision was `24f9ae65366dce550db25db1f30f85ed1c913d78`;
@@ -80,6 +85,11 @@ Large-case spreading is 2.93–3.02× faster than direct Fortran.
 All nine supported CBS Fortran forms are retained in the raw comparison;
 CBS12 has no existing matching Fortran backend.
 
+These are implementation comparisons: C++ uses Apple Clang and Fortran uses
+GNU Fortran, with differently structured loops and timed prologues. The ratios
+do not isolate language or tensor-contraction effects. The expanded C++ path
+provides the same-compiler baseline for evaluating the algorithm change.
+
 C++ patch-entry timings show the same high-order 3D benefit: CBS56/65 gather
 improves 3.95–4.35× on the small cases and 2.41–2.72× on the large case; large-case
 spread improves 1.50–1.51×. The summary also retains LEInteractor timings.
@@ -128,9 +138,13 @@ values do not imply that evaluation is fully inlined.
 Both factorized and contracted CBS65 2D axis-0 spread paths emit two-double SIMD
 updates. Contraction uses fewer multiplications but is slower in the measured
 all-component operation. Arithmetic count alone does not explain that result;
-the factorized override is supported by repeated timings, not an asserted
-microarchitectural cause. Exact assembly, extracted functions and compiler
-vectorization remarks are retained with the evidence.
+the mirrored CBS56 contracted paths have nearly identical assembly yet avoid
+the large slowdown. In the small ordered 2D case, contracted CBS65 takes
+80.8 microseconds versus 57.9 for contracted CBS56, while the two kernels have
+similar expanded times and similar factorized times. Per-axis comparisons and
+array-pitch/alignment variations are deferred discriminating checks. Exact
+assembly, extracted functions and compiler vectorization remarks are retained
+with the evidence; no microarchitectural cause has been established.
 
 ## Correctness
 
@@ -149,6 +163,15 @@ errors below 3e-8. The previous 3D Fortran IB5 correction remains intact.
 Every benchmark invocation checks complete outputs before timing. Within every
 kernel/operation series, all nine repetitions produce the same recorded checksum.
 
+These maxima describe the saved validation runs. The regression explicitly
+checks mode differences and the expanded/factorized adjoint discrepancies at
+1e-11. Reference, Fortran and default contracted adjoint errors are printed and
+checked through the normal output comparison (`numdiff -r 1e-6 -a 1e-10`).
+Float-error values are also stored in expected output; explicit scale-aware
+bounds would better express their intended tolerance. Empty clipped stencils,
+partial ghost widths and scalar component stride one need native regression
+cases. Stride one is already exercised by the benchmark's pre-timing checks.
+
 ## Measurement method and variation
 
 Apple M1 Max, macOS 15.7.7, Xcode 26.3/Apple Clang 17 via `xcrun`, GNU Fortran
@@ -158,10 +181,17 @@ files and both IBTK libraries still match their pre-experiment hashes.
 No dependency rebuild was needed. Strict-warning builds and `make indent`
 with clang-format 16.0.6 pass; inherited linker warnings are unchanged.
 
+The earlier `environment-preparation.json` records a successful hardware query
+identifying Apple M1 Max, 64 GiB and 10 physical/logical cores. The later failed
+query in `environment-native.json` does not invalidate that saved record.
+Cache capacities, line sizes and the mapping of CPUs to shared-cache clusters
+were not established by those queries.
+
 Three warmups precede nine samples, rotating operation order. Reset and consumed
-checksums are outside timing. Each invocation uses one MPI rank and one thread;
-OMP, OpenBLAS and Accelerate thread limits are one. Builds and assembly
-inspection run outside the timing interval. The seven invocations retain
+checksums are outside timing but can affect initial cache state. Each invocation
+uses one MPI rank and single-threaded numerical operations; runtime helper
+threads may also exist. OMP, OpenBLAS and Accelerate thread limits are one.
+Builds and assembly inspection run outside the timing interval. The seven invocations retain
 **9,828 raw timing samples**; all complete successfully.
 
 | Dimension / case | Cells per side | Markers | Iterations per sample |
@@ -192,6 +222,14 @@ high-order gains. Every sample is preserved. This is an interactive desktop;
 near-ties and percent-level differences are inconclusive. Reduced gains on the
 large 3D field are consistent with a greater memory-access cost, but no hardware
 counter measurement isolates that cost here.
+
+All large-field invocations use shuffled markers; no ordered large-field
+comparison was measured. The 3D marker placement covers four x-cell bands.
+The 8.548 MiB CBS65 unique-entry count is not a cache footprint: under aligned
+array assumptions, the union is 15.533 MiB with 64-byte lines or 28.359 MiB with
+128-byte lines. Components execute sequentially, so neither aggregate alone
+establishes capacity misses. See the follow-up for component footprints and
+the limits of the reviewer's cache model.
 
 Direct paths use the same component buffers, marker data, selected indices and
 explicit zero shifts. C++ caches strides and inverse cell volume in its geometry
