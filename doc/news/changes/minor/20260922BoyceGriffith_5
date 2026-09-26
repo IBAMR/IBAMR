@@ -1,0 +1,5 @@
+Changed: IBTK::CartCellDoubleQuadraticCFInterpolation no longer contains an
+unreachable alternate implementation selectable only by a nonexistent build
+flag.
+<br>
+(Boyce Griffith, 2026/09/22)

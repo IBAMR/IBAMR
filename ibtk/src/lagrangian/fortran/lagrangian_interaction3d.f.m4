@@ -186,12 +186,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -385,12 +385,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -636,12 +636,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -881,12 +881,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -1113,12 +1113,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -1363,12 +1363,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -1664,12 +1664,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -2012,12 +2012,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -2403,12 +2403,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -2726,12 +2726,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -2956,12 +2956,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -3185,12 +3185,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -3415,12 +3415,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -3771,12 +3771,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -3890,12 +3890,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -4259,12 +4259,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -4384,12 +4384,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -4745,12 +4745,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -4864,12 +4864,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -5233,12 +5233,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c
@@ -5359,12 +5359,12 @@ c
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
       REAL X(0:NDIM-1,0:*)
-c
-c     Input/Output.
-c
       REAL V(0:depth-1,0:*)
+c
+c     Input/Output: spreading adds to the existing Cartesian grid values u.
+c
+      REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
 c
 c     Local variables.
 c

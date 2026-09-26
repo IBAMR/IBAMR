@@ -1,0 +1,7 @@
+H(-1), H(0), H(1): 0 0.5 1
+H(-1+1e-3), delta(-1+1e-3): 8.224666275726683e-10 2.467399070916948e-06
+AdvDiff::initializePatchHierarchy(): tag_buffer = 0
+eta = 0; normalized gas, liquid, solid volumes: 0 0 1
+eta = 0.001; normalized gas, liquid, solid volumes: 6.764513534707583e-19 8.22466626896217e-10 0.9999999991775333
+eta = 0.5; normalized gas, liquid, solid volumes: 0.008252824364636775 0.08259223254346788 0.9091549430918954
+maximum normalized phase-sum error: 0

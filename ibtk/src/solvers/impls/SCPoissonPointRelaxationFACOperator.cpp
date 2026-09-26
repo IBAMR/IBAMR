@@ -382,6 +382,10 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
     const bool red_black_ordering = use_red_black_ordering(smoother_type);
     const bool update_local_data = do_local_data_update(smoother_type);
 
+    // Red-black ordering does two passes (red, then black) per requested sweep, so double num_sweeps before
+    // deciding whether to cache the coarse-fine ghost values below: that decision depends on the actual number
+    // of passes that will run, not the number of sweeps the caller requested.
+    if (red_black_ordering) num_sweeps *= 2;
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln && num_sweeps > 1)
     {
@@ -407,7 +411,6 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
     }
 
     // Smooth the error by the specified number of sweeps.
-    if (red_black_ordering) num_sweeps *= 2;
     for (int isweep = 0; isweep < num_sweeps; ++isweep)
     {
         // Re-fill ghost cell data as needed.
@@ -685,7 +688,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
         d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
             transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
     InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0),
                                                                d_data_refine_type,
@@ -769,7 +772,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
         d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
-        d_coarse_solver->setHomogeneousBc(true);
+        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
