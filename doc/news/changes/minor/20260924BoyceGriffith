@@ -1,0 +1,5 @@
+New: A shifted periodic regression for
+IBTK::VCSCViscousOpPointRelaxationFACOperator checks coarse-fine ghost handling
+without the unshifted operator's constant-velocity nullspace.
+<br>
+(Boyce Griffith, 2026/09/24)

@@ -249,7 +249,8 @@ main(int argc, char* argv[])
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
         std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> U_nul_vecs(NDIM);
-        const bool has_velocity_nullspace = periodic_shift.min() > 0;
+        // Constant velocity is a null mode of the periodic operator only when the diagonal shift is zero.
+        const bool has_velocity_nullspace = periodic_shift.min() > 0 && input_db->getDouble("C") == 0.0;
         if (has_velocity_nullspace)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -368,6 +369,13 @@ main(int argc, char* argv[])
             }
         }
 
+        // Optionally use a discrete manufactured RHS to measure algebraic solver error.
+        if (input_db->getBoolWithDefault("use_discrete_rhs", false))
+        {
+            viscous_op.setHomogeneousBc(false);
+            viscous_op.apply(e_vec, f_vec);
+        }
+
         // Solve L*u = f.
         u_vec.setToScalar(0.0);
         poisson_solver->initializeSolverState(u_vec, f_vec);
@@ -413,12 +421,26 @@ main(int argc, char* argv[])
         r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
                        Pointer<SAMRAIVectorReal<NDIM, double>>(&r_vec, false));
 
+        const double r_max_norm = r_vec.maxNorm();
+        const double r_l2_norm = r_vec.L2Norm();
+        const double r_l1_norm = r_vec.L1Norm();
+        pout << "|r|_oo = " << r_max_norm << "\n";
+        pout << "|r|_2  = " << r_l2_norm << "\n";
+        pout << "|r|_1  = " << r_l1_norm << "\n";
+
         if (IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
             out << "|e|_oo = " << e_max_norm << "\n";
             out << "|e|_2  = " << e_l2_norm << "\n";
             out << "|e|_1  = " << e_l1_norm << "\n";
+            // Record the independently recomputed residual for the discrete-RHS regression.
+            if (input_db->getBoolWithDefault("use_discrete_rhs", false))
+            {
+                out << "|r|_oo = " << r_max_norm << "\n";
+                out << "|r|_2  = " << r_l2_norm << "\n";
+                out << "|r|_1  = " << r_l1_norm << "\n";
+            }
         }
 
         // Interpolate the side-centered data to cell centers for output.
