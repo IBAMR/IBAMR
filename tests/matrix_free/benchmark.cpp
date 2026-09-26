@@ -3,7 +3,7 @@
 #include <ibtk/IBKernelEvaluatorTensorProduct.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/LEInteractor.h>
-#include <ibtk/ib_kernels.h>
+#include <ibtk/ib_kernel_evaluators.h>
 
 #include <CartesianPatchGeometry.h>
 #include <SideGeometry.h>
@@ -368,8 +368,8 @@ main(int argc, char** argv)
             benchmark(name, evaluator, cells, markers, iterations, repeats, shuffled);
         }
     };
-    run("IB_4", IBKernelEvaluatorTensorProduct{ IBKernels::IB4{} });
-    run("IB_5", IBKernelEvaluatorTensorProduct{ IBKernels::IB5{} });
+    run("IB_4", IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB4{} });
+    run("IB_5", IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB5{} });
     MatrixFreeTest::for_each_bspline(run);
     return selected ? 0 : 1;
 }

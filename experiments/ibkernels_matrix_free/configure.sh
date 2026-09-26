@@ -2,6 +2,7 @@
 set -euo pipefail
 experiment_source=$(cd "$(dirname "$0")/../.." && pwd)
 experiment_mode=${1:-Debug}
+experiment_build_root=${EXPERIMENT_BUILD_ROOT:-$experiment_source/build/ibkernels-matrix-free-pr1997}
 case "$experiment_mode" in
   Debug) package_mode=dbg; mesh_method=devel; cxx_opt=-O1; fortran_opt=-O2; cpu_flags=; build_name=Debug ;;
   Release) package_mode=opt; mesh_method=opt; cxx_opt=-O3; fortran_opt=-O3; cpu_flags=-mcpu=native; build_name=Release-native ;;
@@ -20,7 +21,7 @@ export CCACHE_DIR=${CCACHE_DIR:-/Users/boyceg/Library/Caches/ccache}
 export CCACHE_TEMPDIR="$experiment_source/.cache/ibkernels-ccache-tmp"
 export CCACHE_BASEDIR="$experiment_source"
 mkdir -p "$CCACHE_TEMPDIR"
-cmake -S "$experiment_source" -B "$experiment_source/build/ibkernels-matrix-free/$build_name" \
+cmake -S "$experiment_source" -B "$experiment_build_root/$build_name" \
   -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE="$experiment_mode" \
   -DCMAKE_C_COMPILER="$(xcrun --find clang)" -DCMAKE_CXX_COMPILER="$(xcrun --find clang++)" \
   -DCMAKE_Fortran_COMPILER=/opt/homebrew/bin/gfortran \

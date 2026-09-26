@@ -63,7 +63,6 @@ static const int SILO_MPI_ROOT = 0;
 static const int SILO_MPI_TAG = 0;
 
 // The name of the Silo dumps and database filenames.
-static const int SILO_NAME_BUFSIZE = 128;
 #if defined(IBTK_HAVE_SILO)
 static const std::string VISIT_DUMPS_FILENAME = "lag_data.visit";
 static const std::string SILO_DUMP_DIR_PREFIX = "lag_data.cycle_";
@@ -1970,7 +1969,6 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 #else
     NULL_USE(SILO_MPI_ROOT);
     NULL_USE(SILO_MPI_TAG);
-    NULL_USE(SILO_NAME_BUFSIZE);
     NULL_USE(d_time_step_number);
     NULL_USE(d_summary_file_opened);
     NULL_USE(time_step_number);

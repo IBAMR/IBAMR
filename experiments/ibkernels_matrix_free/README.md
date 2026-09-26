@@ -1,11 +1,18 @@
 # Matrix-free IBKernels experiment
 
-This opt-in experiment uses the owning-output evaluator API from qualified
-R01d `c37b111fdabf267e83229c069698eca1a152bf1e`. It is independent of the CAV
-implementation stack. The known 3D Fortran IB5 spread index error is corrected;
+This opt-in experiment is based on PR #1997 at
+`e80aa6cae02f054a733a65d64b9c016bf0b89b70`, using the owning-output evaluator API.
+It does not depend on the later implicit-integrator or FAC changes in the CAV
+stack. The known 3D Fortran IB5 spread index error is corrected;
 production coupling defaults are unchanged.
 
-See [FACTORIZATION.md](FACTORIZATION.md) for the current CBS performance results
+The original study used qualified R01d base
+`c37b111fdabf267e83229c069698eca1a152bf1e`. Its source revisions, binaries and
+measurement evidence are preserved; historical timing results do not qualify
+the rebased implementation. See [REBASE_1997.md](REBASE_1997.md) for migration
+and correctness-validation details.
+
+See [FACTORIZATION.md](FACTORIZATION.md) for the historical CBS performance results
 with owning one-dimensional factors and tensor contractions.
 The [independent-review follow-up](REVIEW_FOLLOWUP.md) records corrections to
 the interpretation, cache-model limitations and deferred experiments. Live
@@ -36,7 +43,7 @@ boundary treatment and concurrent-spread synchronization.
 
 The numerical operation uses exact stencil widths. Tensor-product evaluators
 provide `evaluateFactors<Axis, Coefficient>(r)`, returning an owning tuple of
-one-dimensional `IBKernels::Weights` arrays. The default `CONTRACTED` mode
+one-dimensional `IBKernelEvaluators::Weights` arrays. The default `CONTRACTED` mode
 gathers through successive row/plane sums and spreads through scaled row/plane
 values. `FACTORIZED` forms coefficient products on demand; `EXPANDED` requests
 the complete coefficient tensor by value. Evaluators without the optional factor
@@ -87,17 +94,18 @@ Fortran uses GNU Fortran. Both configurations use applicable strict macOS
 warnings. Debug uses `-O1` C++/`-O2` Fortran plus debug flags; Release uses
 `-O3 -mcpu=native` for C, C++ and Fortran, with `NDEBUG` for C/C++.
 Fast-math is explicitly disabled. Only Release runs support performance claims.
-The native Release build has a separate persistent directory so earlier results
-remain distinguishable from results with the rebuilt dependencies.
+The rebased builds use `build/ibkernels-matrix-free-pr1997/` to preserve the
+original build artifacts. `EXPERIMENT_BUILD_ROOT` can select another build root.
+Release configuration and performance measurement remain deferred.
 
 ```sh
 bash experiments/ibkernels_matrix_free/configure.sh Debug
 export CCACHE_DIR=/Users/boyceg/Library/Caches/ccache
 export CCACHE_BASEDIR="$PWD"
 export CCACHE_TEMPDIR="$PWD/.cache/ibkernels-ccache-tmp"
-cmake --build build/ibkernels-matrix-free/Debug --target indent
-cmake --build build/ibkernels-matrix-free/Debug --target tests-matrix_free -j4
-cd build/ibkernels-matrix-free/Debug
+cmake --build build/ibkernels-matrix-free-pr1997/Debug --target indent
+cmake --build build/ibkernels-matrix-free-pr1997/Debug --target tests-matrix_free -j2
+cd build/ibkernels-matrix-free-pr1997/Debug
 ../../../attest -N -R '^matrix_free/'
 ../../../attest -R '^matrix_free/'
 ```
@@ -106,7 +114,7 @@ From the source root, build optimized targets:
 
 ```sh
 bash experiments/ibkernels_matrix_free/configure.sh Release
-cmake --build build/ibkernels-matrix-free/Release-native \
+cmake --build build/ibkernels-matrix-free-pr1997/Release-native \
   --target tests-matrix_free benchmark-matrix-free-2d benchmark-matrix-free-3d -j4
 ```
 
@@ -118,7 +126,7 @@ forms for focused performance work:
 
 ```sh
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
-  build/ibkernels-matrix-free/Release-native/tests/benchmark-matrix-free-3d \
+  build/ibkernels-matrix-free-pr1997/Release-native/tests/benchmark-matrix-free-3d \
   16 4096 30 9 0 CBS
 ```
 

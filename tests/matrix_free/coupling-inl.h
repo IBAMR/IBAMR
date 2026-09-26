@@ -19,15 +19,15 @@ for_each_bspline(const Visitor& visit)
     [&]<std::size_t... K>(std::index_sequence<K...>)
     {
         (visit("BSPLINE_" + std::to_string(K + 2),
-               IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernels::BSpline<K + 2>{} }),
+               IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernelEvaluators::BSpline<K + 2>{} }),
          ...);
         (visit("COMPOSITE_BSPLINE_" + std::to_string(K + 2) + std::to_string(K + 1),
-               IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernels::BSpline<K + 2>{},
-                                                     IBTK::IBKernels::BSpline<K + 1>{} }),
+               IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernelEvaluators::BSpline<K + 2>{},
+                                                     IBTK::IBKernelEvaluators::BSpline<K + 1>{} }),
          ...);
         (visit("COMPOSITE_BSPLINE_" + std::to_string(K + 1) + std::to_string(K + 2),
-               IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernels::BSpline<K + 1>{},
-                                                     IBTK::IBKernels::BSpline<K + 2>{} }),
+               IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernelEvaluators::BSpline<K + 1>{},
+                                                     IBTK::IBKernelEvaluators::BSpline<K + 2>{} }),
          ...);
     }(std::make_index_sequence<5>{});
 }
@@ -42,8 +42,8 @@ template <class Output, class Input>
 Output
 CosineKernel::evaluate(const Input r) const
 {
-    static_assert(IBTK::IBKernelWeightsTraits<Output>::extent == get_stencil_width());
-    using Coefficient = typename IBTK::IBKernelWeightsTraits<Output>::value_type;
+    static_assert(IBTK::ib_kernel_weights_extent_v<Output> == get_stencil_width());
+    using Coefficient = IBTK::ib_kernel_weights_value_t<Output>;
     const Coefficient x = r;
     const Coefficient half_pi = std::acos(Coefficient{ -1 }) / 2;
     Output weights{};

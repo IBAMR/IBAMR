@@ -6,7 +6,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/IBKernelEvaluatorTensorProduct.h>
-#include <ibtk/ib_kernels.h>
+#include <ibtk/ib_kernel_evaluators.h>
 
 #include <SideCoupling.h>
 

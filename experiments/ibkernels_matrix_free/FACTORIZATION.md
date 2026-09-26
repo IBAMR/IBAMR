@@ -1,5 +1,9 @@
 # Factorized CBS coupling: native performance results
 
+**Historical measurements:** these results describe the original implementation
+and build recorded below. The experiment was subsequently rebased onto PR #1997;
+see [REBASE_1997.md](REBASE_1997.md). No timings were collected for that migration.
+
 Keeping one-dimensional factors and contracting the tensor product substantially
 improves high-order CBS gathering. Against the preceding expanded C++ algorithm,
 CBS56/65 gather is **3.9–4.4× faster on the small 3D field** and **2.5–2.7× faster

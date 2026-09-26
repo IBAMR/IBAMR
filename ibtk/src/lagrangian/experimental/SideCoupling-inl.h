@@ -89,12 +89,12 @@ SideCoupling::applyAxis(const Evaluator& evaluator,
                               widths.end(),
                               [](std::size_t n)
                               { return n <= static_cast<std::size_t>(std::numeric_limits<int>::max()); }));
-    using Weights = IBKernels::Weights<Coefficient, detail::ib_kernel_stencil_size<Evaluator, Axis>()>;
-    using Factors = std::tuple<IBKernels::Weights<Coefficient, widths[0]>,
-                               IBKernels::Weights<Coefficient, widths[1]>
+    using Weights = IBKernelEvaluators::Weights<Coefficient, detail::ib_kernel_stencil_size<Evaluator, Axis>()>;
+    using Factors = std::tuple<IBKernelEvaluators::Weights<Coefficient, widths[0]>,
+                               IBKernelEvaluators::Weights<Coefficient, widths[1]>
 #if (NDIM == 3)
                                ,
-                               IBKernels::Weights<Coefficient, widths[2]>
+                               IBKernelEvaluators::Weights<Coefficient, widths[2]>
 #endif
                                >;
     constexpr bool factorized =

@@ -72,10 +72,10 @@ public:
      * with Axis selecting the normal width. No tensor products are formed.
      */
     template <int Axis, std::floating_point Coefficient = double, std::floating_point Input>
-    requires(
-        Axis >= 0 && Axis < NDIM && IBKernelEvaluatorScalar<NormalEvaluator, Input, Coefficient> &&
-        IBKernelEvaluatorScalar<TransverseEvaluator, Input, Coefficient>) auto evaluateFactors(const std::array<Input, NDIM>& r)
-        const;
+    requires(Axis >= 0 && Axis < NDIM && IBKernelEvaluatorScalar<NormalEvaluator, Input, Coefficient> &&
+             IBKernelEvaluatorScalar<TransverseEvaluator,
+                                     Input,
+                                     Coefficient>) auto evaluateFactors(const std::array<Input, NDIM>& r) const;
 
     /*!
      * \brief Return the product of the one-dimensional weights at r: the

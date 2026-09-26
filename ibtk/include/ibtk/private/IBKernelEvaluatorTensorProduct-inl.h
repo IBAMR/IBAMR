@@ -75,7 +75,9 @@ template <IBKernelScalarStencil NormalEvaluator, IBKernelScalarStencil Transvers
 template <int Axis, std::floating_point Coefficient, std::floating_point Input>
 requires(
     Axis >= 0 && Axis < NDIM && IBKernelEvaluatorScalar<NormalEvaluator, Input, Coefficient> &&
-    IBKernelEvaluatorScalar<TransverseEvaluator, Input, Coefficient>) auto IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::
+    IBKernelEvaluatorScalar<TransverseEvaluator,
+                            Input,
+                            Coefficient>) auto IBKernelEvaluatorTensorProduct<NormalEvaluator, TransverseEvaluator>::
     evaluateFactors(const std::array<Input, NDIM>& r) const
 {
     return std::tuple

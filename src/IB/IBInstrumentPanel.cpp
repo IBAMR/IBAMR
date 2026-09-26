@@ -93,7 +93,6 @@ static Timer* t_write_plot_data;
 static const unsigned int SILO_MPI_ROOT = 0;
 
 // The name of the Silo dumps and database filenames.
-static const int SILO_NAME_BUFSIZE = 128;
 #if defined(IBAMR_HAVE_SILO)
 static const std::string VISIT_DUMPS_FILENAME = "meter_data.visit";
 static const std::string SILO_DUMP_DIR_PREFIX = "meter_data.cycle_";
@@ -1333,7 +1332,6 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     }
 #else
     NULL_USE(SILO_MPI_ROOT);
-    NULL_USE(SILO_NAME_BUFSIZE);
     NULL_USE(timestep_num);
     NULL_USE(simulation_time);
     TBOX_WARNING("IBInstrumentPanel::writePlotData(): SILO is not installed; cannot write data." << std::endl);

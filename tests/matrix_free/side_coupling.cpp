@@ -3,7 +3,7 @@
 #include <ibtk/IBKernelEvaluatorTensorProduct.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/LEInteractor.h>
-#include <ibtk/ib_kernels.h>
+#include <ibtk/ib_kernel_evaluators.h>
 
 #include <CartesianPatchGeometry.h>
 #include <SideIterator.h>
@@ -186,7 +186,7 @@ check_indexed_clipping()
         shifts[d] = -0.73125 * geometry->getDx()[d];
         shifts[2 * NDIM + d] = 0.25 * geometry->getDx()[d];
     }
-    const IBKernelEvaluatorTensorProduct kernel{ IBKernels::BSpline<3>{}, IBKernels::BSpline<2>{} };
+    const IBKernelEvaluatorTensorProduct kernel{ IBKernelEvaluators::BSpline<3>{}, IBKernelEvaluators::BSpline<2>{} };
     std::vector<double> force(positions.size(), 0.75), values(positions.size(), -17.0);
     // Duplicate indices with different shifts are meaningful for spread. Gather uses unique indices.
     couple<false, float, Application>(kernel,
@@ -256,15 +256,18 @@ check_factor_ownership()
     {
         std::array<double, NDIM> r;
         r.fill(2.125);
-        return IBKernelEvaluatorTensorProduct{ IBKernels::BSpline<6>{}, IBKernels::BSpline<5>{} }.evaluateFactors<0>(r);
+        return IBKernelEvaluatorTensorProduct{
+            IBKernelEvaluators::BSpline<6>{}, IBKernelEvaluators::BSpline<5>{}
+        }.evaluateFactors<0>(r);
     }();
     auto copied_factors = factors;
     std::get<0>(copied_factors)[0] += 1.0;
     std::array<double, NDIM> r;
     r.fill(2.125);
-    const IBKernelEvaluatorTensorProduct kernel{ IBKernels::BSpline<6>{}, IBKernels::BSpline<5>{} };
+    const IBKernelEvaluatorTensorProduct kernel{ IBKernelEvaluators::BSpline<6>{}, IBKernelEvaluators::BSpline<5>{} };
     const auto expanded =
-        kernel.evaluate<0, IBKernels::Weights<double, detail::ib_kernel_stencil_size<decltype(kernel), 0>()>>(r);
+        kernel.evaluate<0, IBKernelEvaluators::Weights<double, detail::ib_kernel_stencil_size<decltype(kernel), 0>()>>(
+            r);
     double error = 0.0;
     for (std::size_t n = 0; n < expanded.size(); ++n)
     {
@@ -287,8 +290,8 @@ main(int argc, char** argv)
     plog << std::setprecision(12) << std::scientific;
     for (int ghosts : { 4, 0 })
     {
-        check_case("IB_4", IBKernelEvaluatorTensorProduct{ IBKernels::IB4{} }, true, ghosts);
-        check_case("IB_5", IBKernelEvaluatorTensorProduct{ IBKernels::IB5{} }, true, ghosts);
+        check_case("IB_4", IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB4{} }, true, ghosts);
+        check_case("IB_5", IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB5{} }, true, ghosts);
         MatrixFreeTest::for_each_bspline([&](const std::string& name, const auto& evaluator)
                                          { check_case(name, evaluator, name != "COMPOSITE_BSPLINE_12", ghosts); });
         check_case("COSINE_4", MatrixFreeTest::CartesianCosineKernel{}, false, ghosts);
