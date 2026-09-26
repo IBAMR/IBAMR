@@ -68,6 +68,7 @@ namespace IBTK
  * values): \verbatim
 
  cycle_type = "V_CYCLE"  // see setMGCycleType()
+ cycle_multiplicity = 2  // see setMGCycleMultiplicity()
  num_pre_sweeps = 0      // see setNumPreSmoothingSweeps()
  num_post_sweeps = 2     // see setNumPostSmoothingSweeps()
  enable_logging = FALSE  // see setLoggingEnabled()
@@ -238,9 +239,9 @@ public:
      * \brief Set the multigrid algorithm cycle type.
      *
      * V and W cycles make one and two recursive child visits, respectively.
-     * F_CYCLE recursively makes an F-cycle child visit followed by a V-cycle
-     * child visit. FMG_CYCLE performs nested iteration with one V-cycle on each
-     * successively finer hierarchy.
+     * MU_CYCLE uses setMGCycleMultiplicity(). F_CYCLE recursively makes an
+     * F-cycle child visit followed by a V-cycle child visit. FMG_CYCLE performs
+     * nested iteration with one V-cycle on each successively finer hierarchy.
      *
      * Except for V-cycles without presmoothing, this preconditioner currently
      * requires the initialized hierarchy range to begin at level zero, since
@@ -253,6 +254,19 @@ public:
      * \brief Get the multigrid algorithm cycle type.
      */
     MGCycleType getMGCycleType() const;
+
+    /*!
+     * \brief Set the positive number of child visits used by MU_CYCLE.
+     *
+     * The default is two. A multiplicity of one gives a V-cycle, and two gives
+     * a W-cycle. This parameter does not change the other cycle types.
+     */
+    void setMGCycleMultiplicity(int cycle_multiplicity);
+
+    /*!
+     * \brief Get the number of child visits used by MU_CYCLE.
+     */
+    int getMGCycleMultiplicity() const;
 
     /*!
      * \brief Set the number of pre-smoothing sweeps to employ.
@@ -318,6 +332,7 @@ protected:
     int d_coarsest_ln = 0;
     int d_finest_ln = 0;
     MGCycleType d_cycle_type = V_CYCLE;
+    int d_cycle_multiplicity = 2;
     int d_num_pre_sweeps = 0, d_num_post_sweeps = 2;
 
 private:

@@ -4,6 +4,7 @@ N = 16
 
 fac_db {
    cycle_type = "V_CYCLE"
+   cycle_multiplicity = 2
    smoother_type = "PATCH_GAUSS_SEIDEL"
    prolongation_method = "LINEAR_REFINE"
    restriction_method = "CONSERVATIVE_COARSEN"

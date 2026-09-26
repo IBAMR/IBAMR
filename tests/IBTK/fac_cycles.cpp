@@ -163,6 +163,8 @@ main(int argc, char* argv[])
             SNAPSHOT,
             ITERATE,
             ERROR,
+            V_RESULT,
+            W_RESULT,
             OPS_PROBE,
             FIELD_COUNT
         };
@@ -290,15 +292,23 @@ main(int argc, char* argv[])
             laplace.apply(*vectors[EVALUATION], *vectors[RESIDUAL]);
             ops.subtract(indices[RESIDUAL], indices[RHS], indices[RESIDUAL], false);
         };
+        TBOX_ASSERT(string_to_enum<MGCycleType>("MU_CYCLE") == MU_CYCLE);
+        TBOX_ASSERT(string_to_enum<MGCycleType>("mu_cycle") == UNKNOWN_MG_CYCLE_TYPE);
+        TBOX_ASSERT(string_to_enum<MGCycleType>("Mu_Cycle") == UNKNOWN_MG_CYCLE_TYPE);
+        TBOX_ASSERT(string_to_enum<MGCycleType>("MU") == UNKNOWN_MG_CYCLE_TYPE);
+        TBOX_ASSERT(string_to_enum<MGCycleType>("MU-CYCLE") == UNKNOWN_MG_CYCLE_TYPE);
+        TBOX_ASSERT(enum_to_string(MU_CYCLE) == "MU_CYCLE");
         struct CycleCase
         {
             MGCycleType type;
             const char* name;
             int multiplicity;
         };
-        const std::array<CycleCase, 4> cycles = {
-            { { V_CYCLE, "V", 1 }, { W_CYCLE, "W", 2 }, { F_CYCLE, "F", 2 }, { FMG_CYCLE, "FMG", 1 } }
-        };
+        const std::array<CycleCase, 5> cycles = { { { V_CYCLE, "V", 1 },
+                                                    { W_CYCLE, "W", 2 },
+                                                    { MU_CYCLE, "MU3", 3 },
+                                                    { F_CYCLE, "F", 2 },
+                                                    { FMG_CYCLE, "FMG", 1 } } };
         plog << "levels = " << finest + 1 << '\n';
         for (int pre : { 0, 2 })
         {
@@ -310,6 +320,8 @@ main(int argc, char* argv[])
             for (const CycleCase& cycle : cycles)
             {
                 fac.setMGCycleType(cycle.type);
+                fac.setMGCycleMultiplicity(cycle.multiplicity);
+                TBOX_ASSERT(fac.getMGCycleMultiplicity() == cycle.multiplicity);
                 apply(RESULT, RHS);
                 plog << cycle.name << " visits =";
                 for (int ln = finest; ln >= 0; --ln)
@@ -333,6 +345,14 @@ main(int argc, char* argv[])
                     plog << ' ' << strategy->getVisits()[ln];
                 }
                 plog << '\n';
+                if (cycle.type == V_CYCLE)
+                {
+                    copy(V_RESULT, RESULT);
+                }
+                if (cycle.type == W_CYCLE)
+                {
+                    copy(W_RESULT, RESULT);
+                }
                 copy(ITERATE, RESULT);
                 residual();
                 plog << cycle.name << " first correction L2 = " << vectors[RESULT]->L2Norm()
@@ -430,6 +450,19 @@ main(int argc, char* argv[])
                          << "; final residual ratio = " << final_residual / initial_residual
                          << "; final error ratio = " << final_error / initial_error << '\n';
                 }
+            }
+            fac.setMGCycleType(MU_CYCLE);
+            fac.setMGCycleMultiplicity(1);
+            apply(CORRECTION, RHS);
+            if (!(difference(CORRECTION, V_RESULT) < 1.0e-12))
+            {
+                TBOX_ERROR("FAC cycle test: mu=1 differs from V\n");
+            }
+            fac.setMGCycleMultiplicity(2);
+            apply(CORRECTION, RHS);
+            if (!(difference(CORRECTION, W_RESULT) < 1.0e-12))
+            {
+                TBOX_ERROR("FAC cycle test: mu=2 differs from W\n");
             }
             fac.deallocateSolverState();
         }
