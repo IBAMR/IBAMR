@@ -214,6 +214,7 @@ SETUP(IB explicit_ex0.cpp IBAMR2d)
 SETUP(IB explicit_ex1.cpp IBAMR2d)
 SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)
+SETUP(IB stokes_ib_fac_partial_reset.cpp IBAMR2d)
 
 # IBFE:
 IF(${IBAMR_HAVE_LIBMESH})

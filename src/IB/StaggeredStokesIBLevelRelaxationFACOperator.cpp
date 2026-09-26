@@ -651,8 +651,9 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         }
     }
 
-    // Initialize the coarse level solver when needed.
-    if (d_coarse_solver_init_subclass && coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "LEVEL_SMOOTHER")
+    // Initialize the coarse level solver.  This is done even when the coarsest level is not being reset because the
+    // solution and rhs vectors are recreated above, and the retained coarse solver refers to the old ones.
+    if (d_coarse_solver_init_subclass && d_coarse_solver_type != "LEVEL_SMOOTHER")
     {
         if (!d_coarse_solver)
         {
@@ -758,7 +759,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(
     int ierr;
 
     // Deallocate level solvers and overlap boxes for side and cell data.
-    if (d_coarse_solver == d_level_solvers[d_coarsest_ln]) d_coarse_solver.setNull();
+    if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver == d_level_solvers[d_coarsest_ln])
+        d_coarse_solver.setNull();
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
         if (d_level_solvers[ln]) d_level_solvers[ln]->deallocateSolverState();
