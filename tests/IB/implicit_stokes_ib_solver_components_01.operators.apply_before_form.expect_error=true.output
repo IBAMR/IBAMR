@@ -1,0 +1,6 @@
+IBRedundantInitializer:  Deallocating initialization data.
+Program abort called with error message
+
+    jacobian::apply():
+  formJacobian() must be called before the strategy action is applied.
+
