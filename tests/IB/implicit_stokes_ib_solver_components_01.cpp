@@ -1702,6 +1702,7 @@ generate_structure(const unsigned int& strct_num,
     for (int k = 0; k < num_vertices; ++k)
     {
         const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_vertices);
+        vertex_posn[k].setConstant(0.5);
         vertex_posn[k](0) = spec->x_center + spec->x_radius * std::cos(theta);
         vertex_posn[k](1) = spec->y_center + spec->y_radius * std::sin(theta);
     }
@@ -1810,6 +1811,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         const double rho = input_db->getDoubleWithDefault("RHO", 1.0);
         const double mu = input_db->getDoubleWithDefault("MU", 1.0);
         const double new_time = current_time + dt;
+        const bool application_only = input_db->getBoolWithDefault("CAV_APPLICATION_ONLY", false);
+        const bool verify_physical_residuals = input_db->getBoolWithDefault("VERIFY_FGMRES_PHYSICAL_RESIDUALS", false);
         StructureSpec structure_spec;
         structure_spec.ds = input_db->getDoubleWithDefault("DS", 1.0 / 64.0);
         structure_spec.x_center = input_db->getDoubleWithDefault("X_CENTER", 0.5);
@@ -2176,6 +2179,237 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             fac_pc->setIBTimeSteppingType(ctx.time_stepping_type);
         }
 
+        Pointer<SAMRAIVectorReal<NDIM, double>> linear_sol = eul_sol_vec->cloneVector("linear_sol");
+        linear_sol->allocateVectorData();
+        linear_sol->setToScalar(0.0);
+        const auto cleanup = [&]()
+        {
+            jac_op->deallocateOperatorState();
+            nonlinear_op.deallocateOperatorState();
+            stokes_op->deallocateOperatorState();
+
+            ib_method_ops->postprocessIntegrateData(current_time, new_time, /*num_cycles*/ 1);
+
+            for (const Pointer<SAMRAIVectorReal<NDIM, double>>& vec :
+                 { nonlinear_probe, f_probe, v, jv, diff, linear_sol })
+            {
+                free_vector_components(*vec);
+            }
+
+            deallocate_vector_data(*eul_sol_vec);
+            deallocate_vector_data(*eul_rhs_vec);
+            free_vector_components(*eul_sol_vec);
+            free_vector_components(*eul_rhs_vec);
+
+            for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+                for (const int data_idx : allocated_patch_data_indices)
+                {
+                    if (level->checkAllocated(data_idx))
+                    {
+                        level->deallocatePatchData(data_idx);
+                    }
+                }
+            }
+
+            PetscErrorCode ierr = MatDestroy(&A);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&J);
+            IBTK_CHKERRQ(ierr);
+
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                delete u_bc_coefs[d];
+            }
+        };
+        if (application_only)
+        {
+            const int expected_levels = input_db->getInteger("MAX_LEVELS");
+            if (finest_ln + 1 != expected_levels)
+            {
+                TBOX_ERROR("CAV lifecycle did not construct the assigned hierarchy.\n");
+            }
+            std::vector<Vec> first_elasticity_action(finest_ln + 1, nullptr);
+            double initial_force_norm = 0.0, initial_interp_norm = 0.0;
+            PetscErrorCode ierr = MatNorm(A, NORM_FROBENIUS, &initial_force_norm);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatNorm(J, NORM_FROBENIUS, &initial_interp_norm);
+            IBTK_CHKERRQ(ierr);
+            for (int lifetime = 0; lifetime < 2; ++lifetime)
+            {
+                if (lifetime == 1)
+                {
+                    fac_pc->initializeSolverState(*eul_sol_vec, *eul_rhs_vec);
+                }
+                std::vector<Pointer<StaggeredStokesPETScLevelSolver>> level_solvers;
+                std::vector<std::vector<IS>*> overlap_containers;
+                int total_dofs = 0, total_patches = 0, max_patch_dofs = 0;
+                double elasticity_norm = 0.0, elasticity_error = 0.0;
+                for (int ln = 0; ln <= finest_ln; ++ln)
+                {
+                    Pointer<StaggeredStokesPETScLevelSolver> solver = fac_op->getStaggeredStokesPETScLevelSolver(ln);
+                    level_solvers.push_back(solver);
+                    const KSP ksp = solver->getPETScKSP();
+                    TBOX_ASSERT(ksp);
+                    PC pc = nullptr;
+                    PCType pc_type = nullptr;
+                    ierr = KSPGetPC(ksp, &pc);
+                    IBTK_CHKERRQ(ierr);
+                    ierr = PCGetType(pc, &pc_type);
+                    IBTK_CHKERRQ(ierr);
+                    std::vector<IS>* overlap = nullptr;
+                    std::vector<IS>* nonoverlap = nullptr;
+                    solver->getASMSubdomains(&nonoverlap, &overlap);
+                    overlap_containers.push_back(overlap);
+                    const int cells_per_axis = input_db->getInteger("N") * (1 << ln);
+                    const int cells = static_cast<int>(std::pow(cells_per_axis, NDIM));
+                    // Periodic full-domain levels contain one pressure patch per cell.
+                    Mat level_operator = nullptr;
+                    ierr = KSPGetOperators(ksp, &level_operator, nullptr);
+                    IBTK_CHKERRQ(ierr);
+                    PetscInt rows = 0, columns = 0;
+                    ierr = MatGetSize(level_operator, &rows, &columns);
+                    IBTK_CHKERRQ(ierr);
+                    if (std::string(pc_type) != PCSHELL || !overlap || static_cast<int>(overlap->size()) != cells ||
+                        rows != (NDIM + 1) * cells || columns != rows)
+                    {
+                        TBOX_ERROR("CAV lifecycle level solver or patch/DOF cardinality mismatch.\n");
+                    }
+                    total_dofs += rows;
+                    total_patches += overlap->size();
+                    const Mat elasticity = fac_op->getEulerianElasticityLevelOp(ln);
+                    // The installed patches must be those of the public constructor, applied to this level's matrix.
+                    std::vector<std::set<int>> expected_patches;
+                    std::vector<int> expected_seeds;
+                    StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+                        expected_patches,
+                        expected_seeds,
+                        num_dofs_per_proc[ln],
+                        u_dof_index_idx,
+                        p_dof_index_idx,
+                        patch_hierarchy->getPatchLevel(ln),
+                        elasticity);
+                    std::vector<std::set<int>> installed_patches;
+                    for (const IS is : *overlap)
+                    {
+                        PetscInt count = 0;
+                        const PetscInt* dofs = nullptr;
+                        ierr = ISGetLocalSize(is, &count);
+                        IBTK_CHKERRQ(ierr);
+                        ierr = ISGetIndices(is, &dofs);
+                        IBTK_CHKERRQ(ierr);
+                        installed_patches.emplace_back(dofs, dofs + count);
+                        ierr = ISRestoreIndices(is, &dofs);
+                        IBTK_CHKERRQ(ierr);
+                    }
+                    for (const std::set<int>& patch : installed_patches)
+                    {
+                        max_patch_dofs = std::max(max_patch_dofs, static_cast<int>(patch.size()));
+                    }
+                    if (installed_patches != expected_patches || !nonoverlap->empty())
+                    {
+                        TBOX_ERROR(
+                            "The CAV patches installed by the FAC operator differ from the public construction "
+                            "on level "
+                            << ln << ".\n");
+                    }
+                    Vec input = nullptr, action = nullptr;
+                    ierr = MatCreateVecs(elasticity, &input, &action);
+                    IBTK_CHKERRQ(ierr);
+                    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(input,
+                                                                          v->getComponentDescriptorIndex(0),
+                                                                          u_dof_index_idx,
+                                                                          v->getComponentDescriptorIndex(1),
+                                                                          p_dof_index_idx,
+                                                                          patch_hierarchy->getPatchLevel(ln));
+                    ierr = MatMult(elasticity, input, action);
+                    IBTK_CHKERRQ(ierr);
+                    double norm = 0.0;
+                    ierr = VecNorm(action, NORM_2, &norm);
+                    IBTK_CHKERRQ(ierr);
+                    if (!std::isfinite(norm) || norm <= 1.0e-14)
+                    {
+                        TBOX_ERROR("CAV lifecycle requires a finite nonzero elasticity action on every level.\n");
+                    }
+                    elasticity_norm = std::hypot(elasticity_norm, norm);
+                    if (lifetime == 0)
+                    {
+                        ierr = VecDuplicate(action, &first_elasticity_action[ln]);
+                        IBTK_CHKERRQ(ierr);
+                        ierr = VecCopy(action, first_elasticity_action[ln]);
+                        IBTK_CHKERRQ(ierr);
+                    }
+                    else
+                    {
+                        ierr = VecAXPY(action, -1.0, first_elasticity_action[ln]);
+                        IBTK_CHKERRQ(ierr);
+                        ierr = VecNorm(action, NORM_2, &norm);
+                        IBTK_CHKERRQ(ierr);
+                        elasticity_error = std::hypot(elasticity_error, norm);
+                    }
+                    ierr = VecDestroy(&input);
+                    IBTK_CHKERRQ(ierr);
+                    ierr = VecDestroy(&action);
+                    IBTK_CHKERRQ(ierr);
+                }
+                diff->setToScalar(0.0);
+                fac_pc->solveSystem(*diff, *jv);
+                const double correction_norm = diff->L2Norm();
+                if (lifetime == 0)
+                {
+                    linear_sol->copyVector(diff);
+                }
+                diff->subtract(diff, linear_sol);
+                const double reconstruction_error = diff->L2Norm();
+                constexpr double RECONSTRUCTION_TOL = 1.0e-10;
+                if (!std::isfinite(correction_norm) || correction_norm <= 1.0e-14 ||
+                    !std::isfinite(reconstruction_error) ||
+                    reconstruction_error > RECONSTRUCTION_TOL * std::max(1.0, correction_norm) ||
+                    !std::isfinite(elasticity_error) ||
+                    elasticity_error > RECONSTRUCTION_TOL * std::max(1.0, elasticity_norm))
+                {
+                    TBOX_ERROR("CAV lifecycle action did not reconstruct within its relative bound: correction = "
+                               << correction_norm << ", error = " << reconstruction_error
+                               << ", elasticity = " << elasticity_norm << ", error = " << elasticity_error << '\n');
+                }
+                // A standard Vanka patch has one pressure DOF and the 2 * NDIM velocity DOFs on the faces of its cell.
+                // Coupling through the structure must enlarge at least one patch.
+                if (max_patch_dofs <= 2 * NDIM + 1)
+                {
+                    TBOX_ERROR("No CAV patch exceeds the " << 2 * NDIM + 1 << " DOFs of a standard Vanka patch.\n");
+                }
+                plog << "lifetime " << lifetime + 1 << " levels " << finest_ln + 1 << " dofs " << total_dofs
+                     << " patches " << total_patches << " max_patch_dofs " << max_patch_dofs << " correction_L2 "
+                     << correction_norm << " elasticity_L2 " << elasticity_norm << " reconstruction_error "
+                     << reconstruction_error << " elasticity_error " << elasticity_error << '\n';
+                fac_pc->deallocateSolverState();
+                for (int ln = 0; ln <= finest_ln; ++ln)
+                {
+                    if (level_solvers[ln]->getPETScKSP() || !overlap_containers[ln]->empty())
+                    {
+                        TBOX_ERROR("CAV level state survived FAC teardown.\n");
+                    }
+                }
+            }
+            for (Vec& action : first_elasticity_action)
+            {
+                ierr = VecDestroy(&action);
+                IBTK_CHKERRQ(ierr);
+            }
+            double force_norm = 0.0, interp_norm = 0.0;
+            ierr = MatNorm(A, NORM_FROBENIUS, &force_norm);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatNorm(J, NORM_FROBENIUS, &interp_norm);
+            IBTK_CHKERRQ(ierr);
+            if (force_norm != initial_force_norm || interp_norm != initial_interp_norm)
+            {
+                TBOX_ERROR("FAC lifecycle changed caller-owned force/interpolation matrices.\n");
+            }
+            cleanup();
+            return 0;
+        }
+
         const bool verify_galerkin_operator_borrowing =
             input_db->getBoolWithDefault("VERIFY_GALERKIN_OPERATOR_BORROWING", false);
         const bool rediscretize_stokes = stokes_ib_precond_db->getBoolWithDefault("rediscretize_stokes", true);
@@ -2515,9 +2749,6 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         // uses a right preconditioner and measures the unpreconditioned residual.
         linear_solver->setKSPType("fgmres");
 
-        Pointer<SAMRAIVectorReal<NDIM, double>> linear_sol = eul_sol_vec->cloneVector("linear_sol");
-        linear_sol->allocateVectorData();
-        linear_sol->setToScalar(0.0);
         linear_solver->initializeSolverState(*linear_sol, *jv);
         // Outer initialization clears the Jacobian base and rebuilds FAC state.
         jac_op->formJacobian(*eul_sol_vec);
@@ -2550,7 +2781,16 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         {
             TBOX_ERROR("krylov linear solve failed\n");
         }
-        pout << "krylov_linear_iterations = " << linear_solver->getNumIterations() << std::endl;
+        if (!verify_physical_residuals)
+        {
+            pout << "krylov_linear_iterations = " << linear_solver->getNumIterations() << std::endl;
+        }
+        if (input_db->keyExists("MAX_KRYLOV_ITERATIONS") &&
+            linear_solver->getNumIterations() > input_db->getInteger("MAX_KRYLOV_ITERATIONS"))
+        {
+            TBOX_ERROR("The Krylov solve took " << linear_solver->getNumIterations() << " iterations, more than "
+                                                << input_db->getInteger("MAX_KRYLOV_ITERATIONS") << ".\n");
+        }
         jac_op->apply(*linear_sol, *diff);
         diff->subtract(diff, jv);
         const double actual_residual = diff->L2Norm();
@@ -2576,9 +2816,12 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                                                   linear_solver->getResidualNorm() >= 0.0 && physical_residual_valid;
         // The integration check requires a bounded physical residual, not a
         // particular over-converged residual from the preconditioned solve.
-        pout << "physical_residual_valid = " << (physical_residual_valid ? "true" : "false")
-             << ", acceptance_bound = " << residual_bound << ", pc_side = " << side << ", norm_type = " << norm_type
-             << ", ksp_type = " << ksp_type << ", reason = " << reason << std::endl;
+        if (!verify_physical_residuals)
+        {
+            pout << "physical_residual_valid = " << (physical_residual_valid ? "true" : "false")
+                 << ", acceptance_bound = " << residual_bound << ", pc_side = " << side << ", norm_type = " << norm_type
+                 << ", ksp_type = " << ksp_type << ", reason = " << reason << std::endl;
+        }
         if (!krylov_linear_residual_valid)
         {
             TBOX_ERROR("Krylov residual check failed: actual_residual = "
@@ -2600,6 +2843,51 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             TBOX_ERROR("krylov linear solve action is trivial\n");
         }
 
+        if (verify_physical_residuals)
+        {
+            Pointer<SAMRAIVectorReal<NDIM, double>> linear_action = eul_rhs_vec->cloneVector("linear_action");
+            Pointer<SAMRAIVectorReal<NDIM, double>> original_residual = eul_rhs_vec->cloneVector("original_residual");
+            for (const Pointer<SAMRAIVectorReal<NDIM, double>>& diagnostic_vec : { linear_action, original_residual })
+            {
+                diagnostic_vec->allocateVectorData();
+                diagnostic_vec->setToScalar(0.0);
+            }
+
+            // Re-evaluate the original matrix-free Jacobian after the solve;
+            // the KSP-reported residual is not used as a physical substitute.
+            jac_op->apply(*linear_sol, *linear_action);
+            original_residual->subtract(jv, linear_action);
+
+            const double rhs_momentum_norm =
+                hier_velocity_data_ops->L2Norm(jv->getComponentDescriptorIndex(0), wgt_sc_idx);
+            const double rhs_divergence_norm =
+                hier_pressure_data_ops->L2Norm(jv->getComponentDescriptorIndex(1), wgt_cc_idx);
+            const double momentum_residual_norm =
+                hier_velocity_data_ops->L2Norm(original_residual->getComponentDescriptorIndex(0), wgt_sc_idx);
+            const double divergence_residual_norm =
+                hier_pressure_data_ops->L2Norm(original_residual->getComponentDescriptorIndex(1), wgt_cc_idx);
+            const double rhs_norm = std::hypot(rhs_momentum_norm, rhs_divergence_norm);
+            const double original_residual_norm = std::hypot(momentum_residual_norm, divergence_residual_norm);
+            const double denominator_floor = std::sqrt(std::numeric_limits<double>::epsilon()) * rhs_norm;
+            const double original_relative_residual = original_residual_norm / std::max(rhs_norm, 1.0e-30);
+            const double momentum_relative_residual =
+                momentum_residual_norm / std::max({ rhs_momentum_norm, denominator_floor, 1.0e-30 });
+            const double divergence_relative_residual =
+                divergence_residual_norm / std::max({ rhs_divergence_norm, denominator_floor, 1.0e-30 });
+
+            if (!std::isfinite(momentum_relative_residual) || !std::isfinite(divergence_relative_residual) ||
+                !std::isfinite(original_relative_residual) || original_relative_residual > 1.0e-10)
+            {
+                TBOX_ERROR("FGMRES physical residual exceeded 1e-10: " << original_relative_residual << '\n');
+            }
+            plog << "physical_K " << structure_spec.spring_stiffness * structure_spec.ds << " momentum_L2 "
+                 << momentum_residual_norm << " divergence_L2 " << divergence_residual_norm << " original_relative "
+                 << original_relative_residual << '\n';
+            for (const Pointer<SAMRAIVectorReal<NDIM, double>>& vector : { linear_action, original_residual })
+            {
+                free_vector_components(*vector);
+            }
+        }
         linear_solver->deallocateSolverState();
         fac_pc->deallocateSolverState();
         for (int ln = 0; ln <= finest_ln; ++ln)
@@ -2629,43 +2917,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         pout << "fac_residual_repeat_error = " << fac_residual_work_vector_reuse_error
              << ", reinitialized_repeat_error = " << fac_residual_work_vector_reinitialize_error << std::endl;
 
-        jac_op->deallocateOperatorState();
-        nonlinear_op.deallocateOperatorState();
-        stokes_op->deallocateOperatorState();
-
-        ib_method_ops->postprocessIntegrateData(current_time, new_time, /*num_cycles*/ 1);
-
-        for (auto vec : { nonlinear_probe, f_probe, v, jv, diff, linear_sol })
-        {
-            free_vector_components(*vec);
-        }
-
-        deallocate_vector_data(*eul_sol_vec);
-        deallocate_vector_data(*eul_rhs_vec);
-        free_vector_components(*eul_sol_vec);
-        free_vector_components(*eul_rhs_vec);
-
-        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            for (const int data_idx : allocated_patch_data_indices)
-            {
-                if (level->checkAllocated(data_idx))
-                {
-                    level->deallocatePatchData(data_idx);
-                }
-            }
-        }
-
-        PetscErrorCode ierr = MatDestroy(&A);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatDestroy(&J);
-        IBTK_CHKERRQ(ierr);
-
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            delete u_bc_coefs[d];
-        }
+        cleanup();
     }
 
     return 0;
