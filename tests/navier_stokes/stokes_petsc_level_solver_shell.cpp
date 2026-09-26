@@ -16,6 +16,7 @@
 
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScLevelSolverSubdomainSolver.h>
 
 #include <tbox/MemoryDatabase.h>
@@ -53,9 +54,11 @@ norm_inf(Vec x)
     return value;
 }
 
-// Gather the RHS independently of the restriction/prolongation scatters of the
-// solver, solve each local matrix, scale the local solution, and write only its
-// partition subset.
+// The action of the shell preconditioner, computed independently of the solver. It gathers the
+// right-hand side on every rank and solves each local matrix. The additive shell writes the
+// nonoverlapping part of each scaled solution. The multiplicative shell visits the subdomains stage by
+// stage, with the subdomain i of each rank at stage i, computes the residual of the original system
+// from the current result, and adds the whole scaled solution of each subdomain.
 void
 reference_action(Mat mat,
                  Vec rhs,
@@ -84,12 +87,13 @@ reference_action(Mat mat,
         ierr = VecScatterEnd(gather, rhs, gathered, INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);
     }
-    for (std::size_t i = 0; i < overlap.size(); ++i)
+    const std::size_t n_stages =
+        multiplicative ? static_cast<std::size_t>(IBTK_MPI::maxReduction(static_cast<int>(overlap.size()))) :
+                         overlap.size();
+    for (std::size_t i = 0; i < n_stages; ++i)
     {
         if (multiplicative)
         {
-            // The multiplicative test runs in serial; recompute the residual after each subdomain
-            // correction.
             ierr = MatMult(mat, result, residual);
             IBTK_CHKERRQ(ierr);
             ierr = VecAYPX(residual, -1.0, rhs);
@@ -99,72 +103,84 @@ reference_action(Mat mat,
             ierr = VecScatterEnd(gather, residual, gathered, INSERT_VALUES, SCATTER_FORWARD);
             IBTK_CHKERRQ(ierr);
         }
-        PetscInt n = 0, m = 0;
-        const PetscInt* indices = nullptr;
-        const PetscInt* owned = nullptr;
-        ierr = ISGetLocalSize(overlap[i], &n);
-        IBTK_CHKERRQ(ierr);
-        ierr = ISGetLocalSize(partition[i], &m);
-        IBTK_CHKERRQ(ierr);
-        ierr = ISGetIndices(overlap[i], &indices);
-        IBTK_CHKERRQ(ierr);
-        ierr = ISGetIndices(partition[i], &owned);
-        IBTK_CHKERRQ(ierr);
-        Vec local_rhs = nullptr, local_solution = nullptr;
-        ierr = MatCreateVecs(submat[i], &local_solution, &local_rhs);
-        IBTK_CHKERRQ(ierr);
-        const PetscScalar* global_values = nullptr;
-        PetscScalar* local_values = nullptr;
-        ierr = VecGetArrayRead(gathered, &global_values);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecGetArray(local_rhs, &local_values);
-        IBTK_CHKERRQ(ierr);
-        for (PetscInt j = 0; j < n; ++j)
+        if (i < overlap.size())
         {
-            local_values[j] = global_values[indices[j]];
-        }
-        ierr = VecRestoreArray(local_rhs, &local_values);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecRestoreArrayRead(gathered, &global_values);
-        IBTK_CHKERRQ(ierr);
-        KSP ksp = nullptr;
-        PC pc = nullptr;
-        ierr = KSPCreate(PETSC_COMM_SELF, &ksp);
-        IBTK_CHKERRQ(ierr);
-        ierr = KSPSetOperators(ksp, submat[i], submat[i]);
-        IBTK_CHKERRQ(ierr);
-        ierr = KSPSetType(ksp, KSPPREONLY);
-        IBTK_CHKERRQ(ierr);
-        ierr = KSPGetPC(ksp, &pc);
-        IBTK_CHKERRQ(ierr);
-        ierr = PCSetType(pc, PCSVD);
-        IBTK_CHKERRQ(ierr);
-        ierr = KSPSolve(ksp, local_rhs, local_solution);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecScale(local_solution, scale);
-        IBTK_CHKERRQ(ierr);
-        const PetscScalar* solution_values = nullptr;
-        ierr = VecGetArrayRead(local_solution, &solution_values);
-        IBTK_CHKERRQ(ierr);
-        for (PetscInt j = 0; j < m; ++j)
-        {
-            const PetscInt position = static_cast<PetscInt>(std::lower_bound(indices, indices + n, owned[j]) - indices);
-            TBOX_ASSERT(position < n && indices[position] == owned[j]);
-            ierr = VecSetValue(result, owned[j], solution_values[position], INSERT_VALUES);
+            PetscInt n = 0, m = 0;
+            const PetscInt* indices = nullptr;
+            const PetscInt* owned = nullptr;
+            ierr = ISGetLocalSize(overlap[i], &n);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetLocalSize(partition[i], &m);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetIndices(overlap[i], &indices);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetIndices(partition[i], &owned);
+            IBTK_CHKERRQ(ierr);
+            Vec local_rhs = nullptr, local_solution = nullptr;
+            ierr = MatCreateVecs(submat[i], &local_solution, &local_rhs);
+            IBTK_CHKERRQ(ierr);
+            const PetscScalar* global_values = nullptr;
+            PetscScalar* local_values = nullptr;
+            ierr = VecGetArrayRead(gathered, &global_values);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecGetArray(local_rhs, &local_values);
+            IBTK_CHKERRQ(ierr);
+            for (PetscInt j = 0; j < n; ++j)
+            {
+                local_values[j] = global_values[indices[j]];
+            }
+            ierr = VecRestoreArray(local_rhs, &local_values);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecRestoreArrayRead(gathered, &global_values);
+            IBTK_CHKERRQ(ierr);
+            KSP ksp = nullptr;
+            PC pc = nullptr;
+            ierr = KSPCreate(PETSC_COMM_SELF, &ksp);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPSetOperators(ksp, submat[i], submat[i]);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPSetType(ksp, KSPPREONLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPGetPC(ksp, &pc);
+            IBTK_CHKERRQ(ierr);
+            ierr = PCSetType(pc, PCSVD);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPSolve(ksp, local_rhs, local_solution);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecScale(local_solution, scale);
+            IBTK_CHKERRQ(ierr);
+            const PetscScalar* solution_values = nullptr;
+            ierr = VecGetArrayRead(local_solution, &solution_values);
+            IBTK_CHKERRQ(ierr);
+            if (multiplicative)
+            {
+                ierr = VecSetValues(result, n, indices, solution_values, ADD_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+            else
+            {
+                for (PetscInt j = 0; j < m; ++j)
+                {
+                    const PetscInt position =
+                        static_cast<PetscInt>(std::lower_bound(indices, indices + n, owned[j]) - indices);
+                    TBOX_ASSERT(position < n && indices[position] == owned[j]);
+                    ierr = VecSetValue(result, owned[j], solution_values[position], INSERT_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+            ierr = VecRestoreArrayRead(local_solution, &solution_values);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISRestoreIndices(partition[i], &owned);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISRestoreIndices(overlap[i], &indices);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPDestroy(&ksp);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&local_rhs);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&local_solution);
             IBTK_CHKERRQ(ierr);
         }
-        ierr = VecRestoreArrayRead(local_solution, &solution_values);
-        IBTK_CHKERRQ(ierr);
-        ierr = ISRestoreIndices(partition[i], &owned);
-        IBTK_CHKERRQ(ierr);
-        ierr = ISRestoreIndices(overlap[i], &indices);
-        IBTK_CHKERRQ(ierr);
-        ierr = KSPDestroy(&ksp);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&local_rhs);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&local_solution);
-        IBTK_CHKERRQ(ierr);
         if (multiplicative)
         {
             ierr = VecAssemblyBegin(result);
@@ -333,6 +349,18 @@ public:
     bool restrictionCommunicates() const
     {
         return d_restriction_communicates;
+    }
+    int numberOfStages() const
+    {
+        return d_n_stages;
+    }
+    int haloCommunicatingStages() const
+    {
+        return static_cast<int>(std::count(d_halo_communicates.begin(), d_halo_communicates.end(), true));
+    }
+    int correctionCommunicatingStages() const
+    {
+        return static_cast<int>(std::count(d_correction_communicates.begin(), d_correction_communicates.end(), true));
     }
     // Remove a DOF from the nonoverlapping set of the first subdomain, so that the sets no longer partition the DOFs.
     bool break_partition = false;
@@ -546,6 +574,12 @@ main(int argc, char* argv[])
         if (test->getBoolWithDefault("report_communication", false))
         {
             plog << "restriction communicates = " << solver.restrictionCommunicates() << '\n';
+            if (multiplicative)
+            {
+                plog << "stages = " << solver.numberOfStages()
+                     << "\nhalo communicating stages = " << solver.haloCommunicatingStages()
+                     << "\ncorrection communicating stages = " << solver.correctionCommunicatingStages() << '\n';
+            }
         }
         if (replace_initialized)
         {

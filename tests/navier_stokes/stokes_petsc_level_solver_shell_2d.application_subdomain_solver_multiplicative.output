@@ -1,8 +1,8 @@
-action_norm = 0.151634166927
-error = 5.55111512313e-17
+action_norm = 0.243513300982
+error = 2.27959421549e-16
 repeated_error = 5.55111512313e-17
-action_norm = 0.151634166927
-error = 5.55111512313e-17
+action_norm = 0.243513300982
+error = 2.27959421549e-16
 repeated_error = 5.55111512313e-17
 subdomain solver initializations = 3
 subdomain solver deallocations = 3

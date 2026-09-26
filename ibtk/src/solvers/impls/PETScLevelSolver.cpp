@@ -81,6 +81,76 @@ make_built_in_subdomain_solver(const std::string& subdomain_solver_type, Pointer
     return std::nullopt;
 }
 
+// The columns of the sequential matrix rows that are in the list of global column indices, in the order of the
+// list, scaled by scale. Entries of rows in other columns are dropped. The list has no repeated indices. This does
+// O(nnz log n_columns) work and, unlike MatCreateSubMatrix() with an index set of the columns, allocates nothing
+// of the size of the columns of rows.
+Mat
+extract_columns(Mat rows, const PetscInt* columns, const PetscInt n_columns, const PetscScalar scale)
+{
+    std::vector<std::pair<PetscInt, PetscInt>> positions(n_columns);
+    for (PetscInt k = 0; k < n_columns; ++k) positions[k] = std::make_pair(columns[k], k);
+    std::sort(positions.begin(), positions.end());
+    const auto position_of = [&](const PetscInt column) -> PetscInt
+    {
+        const auto found = std::lower_bound(positions.begin(), positions.end(), std::make_pair(column, PetscInt(0)));
+        return found != positions.end() && found->first == column ? found->second : -1;
+    };
+    PetscInt n_rows = 0;
+    int ierr = MatGetSize(rows, &n_rows, nullptr);
+    IBTK_CHKERRQ(ierr);
+    std::vector<PetscInt> row_counts(n_rows, 0);
+    for (PetscInt row = 0; row < n_rows; ++row)
+    {
+        PetscInt count = 0;
+        const PetscInt* indices = nullptr;
+        ierr = MatGetRow(rows, row, &count, &indices, nullptr);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt k = 0; k < count; ++k) row_counts[row] += position_of(indices[k]) >= 0;
+        ierr = MatRestoreRow(rows, row, &count, &indices, nullptr);
+        IBTK_CHKERRQ(ierr);
+    }
+    Mat extracted = nullptr;
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, n_rows, n_columns, 0, row_counts.data(), &extracted);
+    IBTK_CHKERRQ(ierr);
+    std::vector<PetscInt> extracted_columns;
+    std::vector<PetscScalar> extracted_values;
+    for (PetscInt row = 0; row < n_rows; ++row)
+    {
+        PetscInt count = 0;
+        const PetscInt* indices = nullptr;
+        const PetscScalar* values = nullptr;
+        ierr = MatGetRow(rows, row, &count, &indices, &values);
+        IBTK_CHKERRQ(ierr);
+        extracted_columns.clear();
+        extracted_values.clear();
+        for (PetscInt k = 0; k < count; ++k)
+        {
+            const PetscInt position = position_of(indices[k]);
+            if (position >= 0)
+            {
+                extracted_columns.push_back(position);
+                extracted_values.push_back(scale * values[k]);
+            }
+        }
+        ierr = MatRestoreRow(rows, row, &count, &indices, &values);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatSetValues(extracted,
+                            1,
+                            &row,
+                            static_cast<PetscInt>(extracted_columns.size()),
+                            extracted_columns.data(),
+                            extracted_values.data(),
+                            INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = MatAssemblyBegin(extracted, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(extracted, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    return extracted;
+}
+
 void
 generate_petsc_is_from_std_is(std::vector<std::set<int>>& overlap_std,
                               std::vector<std::set<int>>& nonoverlap_std,
@@ -472,11 +542,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                                         "preconditioner is a shell.\n");
         }
 
-        Mat diagonal_mat_block;
-        ierr = MatGetDiagonalBlock(d_petsc_mat, &diagonal_mat_block);
-        IBTK_CHKERRQ(ierr);
-        ierr = MatCreateVecs(diagonal_mat_block, &d_local_x, &d_local_y);
-        IBTK_CHKERRQ(ierr);
+        const bool multiplicative = d_shell_composition == ShellComposition::MULTIPLICATIVE;
 
         // Generate user-defined subdomains.
         std::vector<std::set<int>> overlap_is, nonoverlap_is;
@@ -490,14 +556,58 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
         d_n_local_subdomains = static_cast<int>(d_overlap_is.size());
 
-        // Get the local submatrices.
-        ierr = MatCreateSubMatrices(d_petsc_mat,
-                                    d_n_local_subdomains,
-                                    d_overlap_is.data(),
-                                    d_overlap_is.data(),
-                                    MAT_INITIAL_MATRIX,
-                                    &d_sub_mat);
-        IBTK_CHKERRQ(ierr);
+        // Get the local submatrices. The multiplicative shell also needs the rows of each subdomain
+        // with every column, from which the submatrices follow without another collective extraction.
+        Mat* subdomain_rows = nullptr;
+        if (multiplicative)
+        {
+            PetscInt n_columns = 0;
+            ierr = MatGetSize(d_petsc_mat, nullptr, &n_columns);
+            IBTK_CHKERRQ(ierr);
+            IS all_columns = nullptr;
+            ierr = ISCreateStride(PETSC_COMM_SELF, n_columns, 0, 1, &all_columns);
+            IBTK_CHKERRQ(ierr);
+            std::vector<IS> all_columns_of_subdomains(d_n_local_subdomains, all_columns);
+            ierr = MatCreateSubMatrices(d_petsc_mat,
+                                        d_n_local_subdomains,
+                                        get_data_or_null(d_overlap_is),
+                                        get_data_or_null(all_columns_of_subdomains),
+                                        MAT_INITIAL_MATRIX,
+                                        &subdomain_rows);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&all_columns);
+            IBTK_CHKERRQ(ierr);
+            // d_sub_mat is populated below one matrix at a time, not by MatCreateSubMatrices(), but
+            // MatDestroySubMatrices() (used for both branches) still expects an array of exactly this
+            // shape: one extra trailing slot, which it reads to decide whether a type-specific reuse
+            // context is present. PetscCalloc1(), not PetscMalloc1(), zero-initializes that slot so
+            // MatDestroySubMatrices() finds no such context and falls back to destroying each matrix
+            // individually, instead of reading uninitialized memory there.
+            ierr = PetscCalloc1(d_n_local_subdomains + 1, &d_sub_mat);
+            IBTK_CHKERRQ(ierr);
+            for (int i = 0; i < d_n_local_subdomains; ++i)
+            {
+                PetscInt overlap_size = 0;
+                const PetscInt* overlap_indices = nullptr;
+                ierr = ISGetLocalSize(d_overlap_is[i], &overlap_size);
+                IBTK_CHKERRQ(ierr);
+                ierr = ISGetIndices(d_overlap_is[i], &overlap_indices);
+                IBTK_CHKERRQ(ierr);
+                d_sub_mat[i] = extract_columns(subdomain_rows[i], overlap_indices, overlap_size, 1.0);
+                ierr = ISRestoreIndices(d_overlap_is[i], &overlap_indices);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
+        else
+        {
+            ierr = MatCreateSubMatrices(d_petsc_mat,
+                                        d_n_local_subdomains,
+                                        d_overlap_is.data(),
+                                        d_overlap_is.data(),
+                                        MAT_INITIAL_MATRIX,
+                                        &d_sub_mat);
+            IBTK_CHKERRQ(ierr);
+        }
 
         // The right-hand sides and solutions of the local problems of all subdomains are packed,
         // in order, into two sequential vectors, so that one scatter gathers every right-hand
@@ -512,51 +622,56 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         std::vector<PetscInt> gathered_indices;
         for (int i = 0; i < d_n_local_subdomains; ++i)
         {
-            PetscInt overlap_size = 0, nonoverlap_size = 0;
+            PetscInt overlap_size = 0;
             ierr = ISGetLocalSize(d_overlap_is[i], &overlap_size);
             IBTK_CHKERRQ(ierr);
-            ierr = ISGetLocalSize(d_nonoverlap_is[i], &nonoverlap_size);
-            IBTK_CHKERRQ(ierr);
-            const PetscInt *overlap_indices = nullptr, *nonoverlap_indices = nullptr;
+            const PetscInt* overlap_indices = nullptr;
             ierr = ISGetIndices(d_overlap_is[i], &overlap_indices);
-            IBTK_CHKERRQ(ierr);
-            ierr = ISGetIndices(d_nonoverlap_is[i], &nonoverlap_indices);
             IBTK_CHKERRQ(ierr);
             gathered_indices.insert(gathered_indices.end(), overlap_indices, overlap_indices + overlap_size);
 
-            // The subdomain's nonoverlapping DOFs are owned by this rank. Since the IS are sorted, they
-            // are found in one pass over the overlapping DOFs.
-            PetscInt jj = 0;
-            for (PetscInt ii = 0; ii < overlap_size && jj < nonoverlap_size; ++ii)
+            if (!multiplicative)
             {
-                if (overlap_indices[ii] == nonoverlap_indices[jj])
+                // The subdomain's nonoverlapping DOFs are owned by this rank. Since the IS are sorted, they
+                // are found in one pass over the overlapping DOFs.
+                PetscInt nonoverlap_size = 0;
+                ierr = ISGetLocalSize(d_nonoverlap_is[i], &nonoverlap_size);
+                IBTK_CHKERRQ(ierr);
+                const PetscInt* nonoverlap_indices = nullptr;
+                ierr = ISGetIndices(d_nonoverlap_is[i], &nonoverlap_indices);
+                IBTK_CHKERRQ(ierr);
+                PetscInt jj = 0;
+                for (PetscInt ii = 0; ii < overlap_size && jj < nonoverlap_size; ++ii)
                 {
-                    if (nonoverlap_indices[jj] < n_lo || nonoverlap_indices[jj] >= n_hi)
+                    if (overlap_indices[ii] == nonoverlap_indices[jj])
                     {
-                        TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
-                                                 << "  nonoverlapping DOF " << nonoverlap_indices[jj]
-                                                 << " of subdomain " << i << " is not owned by this rank.\n");
+                        if (nonoverlap_indices[jj] < n_lo || nonoverlap_indices[jj] >= n_hi)
+                        {
+                            TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                                     << "  nonoverlapping DOF " << nonoverlap_indices[jj]
+                                                     << " of subdomain " << i << " is not owned by this rank.\n");
+                        }
+                        d_write_sources.push_back(d_subdomain_offsets[i] + ii);
+                        d_write_targets.push_back(nonoverlap_indices[jj] - n_lo);
+                        ++jj;
                     }
-                    d_write_sources.push_back(d_subdomain_offsets[i] + ii);
-                    d_write_targets.push_back(nonoverlap_indices[jj] - n_lo);
-                    ++jj;
                 }
-            }
-            if (jj != nonoverlap_size)
-            {
-                TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
-                                         << "  the nonoverlapping set of subdomain " << i
-                                         << " is not a subset of its overlapping set.\n");
+                if (jj != nonoverlap_size)
+                {
+                    TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                             << "  the nonoverlapping set of subdomain " << i
+                                             << " is not a subset of its overlapping set.\n");
+                }
+                ierr = ISRestoreIndices(d_nonoverlap_is[i], &nonoverlap_indices);
+                IBTK_CHKERRQ(ierr);
             }
             d_subdomain_offsets[i + 1] = d_subdomain_offsets[i] + overlap_size;
             d_write_offsets[i + 1] = static_cast<PetscInt>(d_write_sources.size());
             ierr = ISRestoreIndices(d_overlap_is[i], &overlap_indices);
             IBTK_CHKERRQ(ierr);
-            ierr = ISRestoreIndices(d_nonoverlap_is[i], &nonoverlap_indices);
-            IBTK_CHKERRQ(ierr);
         }
         // The additive preconditioner needs the nonoverlapping subsets to partition the DOFs.
-        if (d_check_subdomain_coverage)
+        if (!multiplicative && d_check_subdomain_coverage)
         {
             check_dof_coverage(
                 d_object_name + "::initializeSolverState()", d_nonoverlap_is, n_hi - n_lo, DOFCoverage::EXACTLY_ONCE);
@@ -598,46 +713,10 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                 dof -= n_lo;
             }
         }
-        if (d_shell_composition == ShellComposition::MULTIPLICATIVE)
+        if (multiplicative)
         {
-            // The multiplicative preconditioner updates the right-hand side of one subdomain at a time,
-            // through vectors that share the storage of the packed right-hand sides.
-            PetscScalar* rhs_values = nullptr;
-            ierr = VecGetArray(d_subdomain_rhs, &rhs_values);
-            IBTK_CHKERRQ(ierr);
-            d_subdomain_rhs_views.resize(d_n_local_subdomains);
-            for (int i = 0; i < d_n_local_subdomains; ++i)
-            {
-                ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,
-                                             1,
-                                             d_subdomain_offsets[i + 1] - d_subdomain_offsets[i],
-                                             rhs_values + d_subdomain_offsets[i],
-                                             &d_subdomain_rhs_views[i]);
-                IBTK_CHKERRQ(ierr);
-            }
-            ierr = VecRestoreArray(d_subdomain_rhs, &rhs_values);
-            IBTK_CHKERRQ(ierr);
-        }
-
-        if (d_shell_composition == ShellComposition::MULTIPLICATIVE)
-        {
-            IS local_idx;
-            ierr = ISCreateStride(PETSC_COMM_WORLD, n_hi - n_lo, n_lo, 1, &local_idx);
-            IBTK_CHKERRQ(ierr);
-            std::vector<IS> local_idxs(d_n_local_subdomains, local_idx);
-            ierr = MatCreateSubMatrices(d_petsc_mat,
-                                        d_n_local_subdomains,
-                                        get_data_or_null(d_overlap_is),
-                                        get_data_or_null(local_idxs),
-                                        MAT_INITIAL_MATRIX,
-                                        &d_sub_bc_mat);
-            IBTK_CHKERRQ(ierr);
-            for (int i = 0; i < d_n_local_subdomains; ++i)
-            {
-                ierr = MatScale(d_sub_bc_mat[i], -1.0);
-                IBTK_CHKERRQ(ierr);
-            }
-            ierr = ISDestroy(&local_idx);
+            initializeMultiplicativeShell(subdomain_rows);
+            ierr = MatDestroySubMatrices(d_n_local_subdomains, &subdomain_rows);
             IBTK_CHKERRQ(ierr);
         }
 
@@ -719,12 +798,35 @@ PETScLevelSolver::deallocateSolverState()
     // Deallocate PETSc objects for shell preconditioner.
     if (d_pc_type == "shell")
     {
-        for (Vec& view : d_subdomain_rhs_views)
+        for (std::vector<Vec>* vectors : { &d_subdomain_rhs_views, &d_subdomain_solution_views, &d_halo_vectors })
         {
-            ierr = VecDestroy(&view);
+            for (Vec& vector : *vectors)
+            {
+                ierr = VecDestroy(&vector);
+                IBTK_CHKERRQ(ierr);
+            }
+            vectors->clear();
+        }
+        for (std::vector<VecScatter>* scatters : { &d_halo_scatters, &d_correction_scatters })
+        {
+            for (VecScatter& scatter : *scatters)
+            {
+                ierr = VecScatterDestroy(&scatter);
+                IBTK_CHKERRQ(ierr);
+            }
+            scatters->clear();
+        }
+        for (Mat& matrix : d_residual_matrices)
+        {
+            ierr = MatDestroy(&matrix);
             IBTK_CHKERRQ(ierr);
         }
-        d_subdomain_rhs_views.clear();
+        d_residual_matrices.clear();
+        d_n_stages = 0;
+        d_halo_communicates.clear();
+        d_correction_communicates.clear();
+        d_halo_local_indices.clear();
+        d_correction_local_indices.clear();
         ierr = VecScatterDestroy(&d_restriction);
         IBTK_CHKERRQ(ierr);
         d_gather_indices.clear();
@@ -738,18 +840,7 @@ PETScLevelSolver::deallocateSolverState()
         d_write_targets.clear();
         ierr = MatDestroySubMatrices(d_n_local_subdomains, &d_sub_mat);
         IBTK_CHKERRQ(ierr);
-        if (d_shell_composition == ShellComposition::MULTIPLICATIVE && d_n_local_subdomains > 0)
-        {
-            ierr = MatDestroySubMatrices(d_n_local_subdomains, &d_sub_bc_mat);
-            IBTK_CHKERRQ(ierr);
-        }
         d_sub_mat = nullptr;
-        ierr = VecDestroy(&d_local_x);
-        IBTK_CHKERRQ(ierr);
-        d_local_x = nullptr;
-        ierr = VecDestroy(&d_local_y);
-        IBTK_CHKERRQ(ierr);
-        d_local_y = nullptr;
         d_n_local_subdomains = 0;
     }
 
@@ -887,6 +978,184 @@ PETScLevelSolver::setupNullSpace()
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
+void
+PETScLevelSolver::initializeMultiplicativeShell(Mat* rows)
+{
+    d_n_stages = IBTK_MPI::maxReduction(d_n_local_subdomains);
+
+    // The packed right-hand sides and solutions hold the subdomains one after another, so a view of
+    // each subdomain shares their storage.
+    std::vector<PetscScalar*> storage(2, nullptr);
+    int ierr = VecGetArray(d_subdomain_rhs, &storage[0]);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGetArray(d_subdomain_solution, &storage[1]);
+    IBTK_CHKERRQ(ierr);
+    d_subdomain_rhs_views.resize(d_n_local_subdomains);
+    d_subdomain_solution_views.resize(d_n_stages);
+    for (int i = 0; i < d_n_stages; ++i)
+    {
+        if (i >= d_n_local_subdomains)
+        {
+            // A rank without a subdomain at this stage has an empty one.
+            ierr = VecCreateSeq(PETSC_COMM_SELF, 0, &d_subdomain_solution_views[i]);
+            IBTK_CHKERRQ(ierr);
+            continue;
+        }
+        const PetscInt size = d_subdomain_offsets[i + 1] - d_subdomain_offsets[i];
+        ierr = VecCreateSeqWithArray(
+            PETSC_COMM_SELF, 1, size, storage[0] + d_subdomain_offsets[i], &d_subdomain_rhs_views[i]);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecCreateSeqWithArray(
+            PETSC_COMM_SELF, 1, size, storage[1] + d_subdomain_offsets[i], &d_subdomain_solution_views[i]);
+        IBTK_CHKERRQ(ierr);
+    }
+    ierr = VecRestoreArray(d_subdomain_solution, &storage[1]);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(d_subdomain_rhs, &storage[0]);
+    IBTK_CHKERRQ(ierr);
+
+    // The rows of the operator for each subdomain contain the columns that the residual on the subdomain
+    // depends on. The columns are numbered globally, so that the rows of subdomains that include DOFs of
+    // other ranks are available.
+    d_residual_matrices.assign(d_n_local_subdomains, nullptr);
+    std::vector<std::vector<PetscInt>> halos(d_n_local_subdomains);
+    for (int i = 0; i < d_n_local_subdomains; ++i)
+    {
+        PetscInt n_rows = 0;
+        ierr = MatGetSize(rows[i], &n_rows, nullptr);
+        IBTK_CHKERRQ(ierr);
+        for (PetscInt row = 0; row < n_rows; ++row)
+        {
+            PetscInt count = 0;
+            const PetscInt* indices = nullptr;
+            ierr = MatGetRow(rows[i], row, &count, &indices, nullptr);
+            IBTK_CHKERRQ(ierr);
+            halos[i].insert(halos[i].end(), indices, indices + count);
+            ierr = MatRestoreRow(rows[i], row, &count, &indices, nullptr);
+            IBTK_CHKERRQ(ierr);
+        }
+        std::sort(halos[i].begin(), halos[i].end());
+        halos[i].erase(std::unique(halos[i].begin(), halos[i].end()), halos[i].end());
+        d_residual_matrices[i] =
+            extract_columns(rows[i], halos[i].data(), static_cast<PetscInt>(halos[i].size()), -1.0);
+    }
+
+    // A stage needs communication to gather the halo, or to add the correction, only if some rank has a
+    // subdomain at that stage with a DOF that another rank owns. Every rank learns this from one reduction
+    // at setup, so the collective scatters of a stage are created and applied by all ranks or by none, and
+    // a stage without communication works on the local array of the output.
+    PetscInt n_lo = 0, n_hi = 0;
+    ierr = VecGetOwnershipRange(d_petsc_x, &n_lo, &n_hi);
+    IBTK_CHKERRQ(ierr);
+    const auto has_remote_dof = [&](const PetscInt* dofs, const PetscInt n)
+    {
+        for (PetscInt k = 0; k < n; ++k)
+        {
+            if (dofs[k] < n_lo || dofs[k] >= n_hi) return true;
+        }
+        return false;
+    };
+    std::vector<int> communicates(2 * d_n_stages, 0);
+    for (int stage = 0; stage < d_n_local_subdomains; ++stage)
+    {
+        // The output is zero at the first stage, which needs no halo.
+        communicates[2 * stage] =
+            stage > 0 && has_remote_dof(halos[stage].data(), static_cast<PetscInt>(halos[stage].size()));
+        PetscInt overlap_size = 0;
+        const PetscInt* overlap_dofs = nullptr;
+        ierr = ISGetLocalSize(d_overlap_is[stage], &overlap_size);
+        IBTK_CHKERRQ(ierr);
+        ierr = ISGetIndices(d_overlap_is[stage], &overlap_dofs);
+        IBTK_CHKERRQ(ierr);
+        communicates[2 * stage + 1] = has_remote_dof(overlap_dofs, overlap_size);
+        ierr = ISRestoreIndices(d_overlap_is[stage], &overlap_dofs);
+        IBTK_CHKERRQ(ierr);
+    }
+    IBTK_MPI::maxReduction(communicates.data(), static_cast<int>(communicates.size()));
+
+    d_halo_vectors.assign(d_n_stages, nullptr);
+    d_halo_scatters.assign(d_n_stages, nullptr);
+    d_correction_scatters.assign(d_n_stages, nullptr);
+    d_halo_communicates.assign(d_n_stages, false);
+    d_correction_communicates.assign(d_n_stages, false);
+    d_halo_local_indices.assign(d_n_stages, {});
+    d_correction_local_indices.assign(d_n_stages, {});
+    for (int stage = 0; stage < d_n_stages; ++stage)
+    {
+        const bool visits = stage < d_n_local_subdomains;
+        d_halo_communicates[stage] = communicates[2 * stage] != 0;
+        d_correction_communicates[stage] = communicates[2 * stage + 1] != 0;
+        const std::vector<PetscInt> no_dofs;
+        const std::vector<PetscInt>& halo = visits && stage > 0 ? halos[stage] : no_dofs;
+        ierr = VecCreateSeq(PETSC_COMM_SELF, static_cast<PetscInt>(halo.size()), &d_halo_vectors[stage]);
+        IBTK_CHKERRQ(ierr);
+        if (d_halo_communicates[stage])
+        {
+            // A rank without a subdomain at this stage uses empty index sets.
+            IS halo_is = nullptr, halo_positions = nullptr;
+            ierr = ISCreateGeneral(
+                PETSC_COMM_SELF, static_cast<PetscInt>(halo.size()), halo.data(), PETSC_COPY_VALUES, &halo_is);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISCreateStride(PETSC_COMM_SELF, static_cast<PetscInt>(halo.size()), 0, 1, &halo_positions);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecScatterCreate(d_petsc_x, halo_is, d_halo_vectors[stage], halo_positions, &d_halo_scatters[stage]);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&halo_is);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&halo_positions);
+            IBTK_CHKERRQ(ierr);
+        }
+        else if (visits)
+        {
+            d_halo_local_indices[stage] = halo;
+            for (PetscInt& dof : d_halo_local_indices[stage])
+            {
+                dof -= n_lo;
+            }
+        }
+
+        IS overlap = nullptr, overlap_positions = nullptr;
+        PetscInt overlap_size = 0;
+        if (visits)
+        {
+            overlap = d_overlap_is[stage];
+            ierr = ISGetLocalSize(overlap, &overlap_size);
+            IBTK_CHKERRQ(ierr);
+        }
+        if (d_correction_communicates[stage])
+        {
+            IS empty = nullptr;
+            ierr = ISCreateGeneral(PETSC_COMM_SELF, 0, nullptr, PETSC_COPY_VALUES, &empty);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISCreateStride(PETSC_COMM_SELF, overlap_size, 0, 1, &overlap_positions);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecScatterCreate(d_petsc_x,
+                                    visits ? overlap : empty,
+                                    d_subdomain_solution_views[stage],
+                                    overlap_positions,
+                                    &d_correction_scatters[stage]);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&empty);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&overlap_positions);
+            IBTK_CHKERRQ(ierr);
+        }
+        else if (visits)
+        {
+            const PetscInt* overlap_dofs = nullptr;
+            ierr = ISGetIndices(overlap, &overlap_dofs);
+            IBTK_CHKERRQ(ierr);
+            d_correction_local_indices[stage].assign(overlap_dofs, overlap_dofs + overlap_size);
+            for (PetscInt& dof : d_correction_local_indices[stage])
+            {
+                dof -= n_lo;
+            }
+            ierr = ISRestoreIndices(overlap, &overlap_dofs);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+}
+
 PetscErrorCode
 PETScLevelSolver::gatherSubdomainRhs(Vec x) const
 {
@@ -982,23 +1251,87 @@ PETScLevelSolver::PCApply_Multiplicative(PC pc, Vec x, Vec y)
     CHKERRQ(ierr);
     ierr = solver->gatherSubdomainRhs(x);
     CHKERRQ(ierr);
-    for (int i = 0; i < solver->d_n_local_subdomains; ++i)
+    for (int stage = 0; stage < solver->d_n_stages; ++stage)
     {
-        if (i > 0)
+        // A rank that has visited all of its subdomains takes part in the scatters with empty ones.
+        const bool visits = stage < solver->d_n_local_subdomains;
+        // The output is zero at the first stage, so the residual there is the right-hand side.
+        if (stage > 0)
         {
-            ierr = VecGetLocalVectorRead(y, solver->d_local_y);
+            if (solver->d_halo_communicates[stage])
+            {
+                ierr = VecScatterBegin(
+                    solver->d_halo_scatters[stage], y, solver->d_halo_vectors[stage], INSERT_VALUES, SCATTER_FORWARD);
+                CHKERRQ(ierr);
+                ierr = VecScatterEnd(
+                    solver->d_halo_scatters[stage], y, solver->d_halo_vectors[stage], INSERT_VALUES, SCATTER_FORWARD);
+                CHKERRQ(ierr);
+            }
+            else if (visits)
+            {
+                const PetscScalar* y_values = nullptr;
+                PetscScalar* halo_values = nullptr;
+                ierr = VecGetArrayRead(y, &y_values);
+                CHKERRQ(ierr);
+                ierr = VecGetArray(solver->d_halo_vectors[stage], &halo_values);
+                CHKERRQ(ierr);
+                const std::vector<PetscInt>& indices = solver->d_halo_local_indices[stage];
+                for (std::size_t k = 0; k < indices.size(); ++k)
+                {
+                    halo_values[k] = y_values[indices[k]];
+                }
+                ierr = VecRestoreArray(solver->d_halo_vectors[stage], &halo_values);
+                CHKERRQ(ierr);
+                ierr = VecRestoreArrayRead(y, &y_values);
+                CHKERRQ(ierr);
+            }
+            if (visits)
+            {
+                ierr = MatMultAdd(solver->d_residual_matrices[stage],
+                                  solver->d_halo_vectors[stage],
+                                  solver->d_subdomain_rhs_views[stage],
+                                  solver->d_subdomain_rhs_views[stage]);
+                CHKERRQ(ierr);
+            }
+        }
+        if (visits)
+        {
+            solver->d_subdomain_solver->solve(stage, stage + 1, solver->d_subdomain_rhs, solver->d_subdomain_solution);
+        }
+        // Add the whole correction of the subdomain, including the DOFs of other ranks.
+        if (solver->d_correction_communicates[stage])
+        {
+            ierr = VecScatterBegin(solver->d_correction_scatters[stage],
+                                   solver->d_subdomain_solution_views[stage],
+                                   y,
+                                   ADD_VALUES,
+                                   SCATTER_REVERSE);
             CHKERRQ(ierr);
-            ierr = MatMultAdd(solver->d_sub_bc_mat[i],
-                              solver->d_local_y,
-                              solver->d_subdomain_rhs_views[i],
-                              solver->d_subdomain_rhs_views[i]);
-            CHKERRQ(ierr);
-            ierr = VecRestoreLocalVectorRead(y, solver->d_local_y);
+            ierr = VecScatterEnd(solver->d_correction_scatters[stage],
+                                 solver->d_subdomain_solution_views[stage],
+                                 y,
+                                 ADD_VALUES,
+                                 SCATTER_REVERSE);
             CHKERRQ(ierr);
         }
-        solver->d_subdomain_solver->solve(i, i + 1, solver->d_subdomain_rhs, solver->d_subdomain_solution);
-        ierr = solver->writeSubdomainSolutions(i, i + 1, y);
-        CHKERRQ(ierr);
+        else if (visits)
+        {
+            const PetscScalar* correction = nullptr;
+            PetscScalar* y_values = nullptr;
+            ierr = VecGetArrayRead(solver->d_subdomain_solution_views[stage], &correction);
+            CHKERRQ(ierr);
+            ierr = VecGetArray(y, &y_values);
+            CHKERRQ(ierr);
+            const std::vector<PetscInt>& indices = solver->d_correction_local_indices[stage];
+            for (std::size_t k = 0; k < indices.size(); ++k)
+            {
+                y_values[indices[k]] += correction[k];
+            }
+            ierr = VecRestoreArray(y, &y_values);
+            CHKERRQ(ierr);
+            ierr = VecRestoreArrayRead(solver->d_subdomain_solution_views[stage], &correction);
+            CHKERRQ(ierr);
+        }
     }
     PetscFunctionReturn(0);
 } // PCApply_Multiplicative
