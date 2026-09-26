@@ -75,10 +75,9 @@ namespace IBAMR
  * Coupling-aware construction uses the following terms. The standard Vanka patch
  * of a cell consists of its pressure DOF and the 2*NDIM velocity DOFs on its
  * faces, which are the DOFs of the cell's discrete divergence equation. A seed
- * is a DOF from which one subdomain is generated. Two velocity DOFs are coupled
- * if the matrix entry between them is larger than a threshold set by
- * relative_zero_tol. Expanding a seed adds the velocity DOFs coupled to it. The
- * closure policy selects the cells whose
+ * is a velocity DOF or a pressure DOF from which one subdomain is generated. Two velocity DOFs are coupled
+ * if the matrix entry between them is larger than a threshold set by relative_zero_tol. Expanding a seed
+ * adds the velocity DOFs coupled to it. The closure policy selects the cells whose
  * standard Vanka patches are joined into the subdomain: RELAXED joins every cell
  * incident to an expanded velocity DOF (the closure of Gruninger and Griffith,
  * arXiv:2608.14310), and STRICT joins only cells whose
@@ -93,7 +92,14 @@ namespace IBAMR
  * The coupling-aware settings are read at construction. Each input key has the
  * prefix coupling_aware_asm_:
  *
- * - seed_axis (default 0): the velocity component whose DOFs are the seeds.
+ * - patch_seed_type (default VELOCITY_COMPONENT): VELOCITY_COMPONENT or PRESSURE_CELL.
+ *   PRESSURE_CELL seeds one subdomain at each pressure DOF and selects the
+ *   coupling-aware Vanka (CAV) patches of Gruninger and Griffith
+ *   (arXiv:2608.14310), which are unions of standard Vanka patches. Their
+ *   contract is given by
+ *   StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches().
+ * - seed_axis (default 0): the velocity component whose DOFs are the seeds of
+ *   VELOCITY_COMPONENT construction.
  * - seed_stride (default 1): every seed_stride-th seed is used.
  * - seed_traversal_order (default I_J in 2D and I_J_K in 3D): the order in which
  *   the seeds are visited, from the slowest to the fastest varying logical
@@ -102,6 +108,12 @@ namespace IBAMR
  * - closure_policy (default RELAXED): RELAXED or STRICT.
  * - relative_zero_tol (default 1.0e-14): the relative threshold below which
  *   couplings are ignored, as defined by the construction contract.
+ *
+ * PRESSURE_CELL patches are applied only by a shell preconditioner with
+ * multiplicative composition, so the constructor requires pc_type = shell and
+ * shell_pc_type = multiplicative. They are constructed from a matrix supplied
+ * through setCouplingAwareASMConstructionMat(), and no nonoverlap partition is
+ * formed. The subdomain solves and residual updates use the coupled level operator.
  *
  * \see INSStaggeredHierarchyIntegrator
  *
@@ -187,9 +199,25 @@ public:
      */
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
+    /*!
+     * \brief Set the Eulerian elasticity matrix used to construct pressure-cell patches.
+     *
+     * The matrix uses full coupled level numbering with zero pressure rows and
+     * columns, as required by
+     * StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches().
+     * Unlike setOperatorMat() and setAugmentedOperatorMat(), which the solver needs for every apply() over its
+     * whole lifetime and so retains a PETSc reference to, this matrix is read once, during initialization, to
+     * build the patches; the solver has no further use for it afterward. It is therefore borrowed without
+     * copying, modifying or retaining a reference. Keep it alive and unchanged until deallocateSolverState(),
+     * which clears the borrowed handle. Set, replace or clear it only while deallocated, and resupply it
+     * before reinitialization. Passing nullptr clears the construction matrix.
+     */
+    void setCouplingAwareASMConstructionMat(Mat construction_mat);
+
 protected:
     /*!
-     * \brief Require pc_type = asm or shell when the ASM subdomains are coupling-aware.
+     * \brief Require pc_type = asm or shell when the ASM subdomains are coupling-aware, and a multiplicative shell
+     * for pressure-cell seeds.
      */
     void validatePreconditionerType() override;
 
@@ -287,6 +315,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
     ASMSubdomainConstructionMode d_asm_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
+    CouplingAwareASMPatchSeedType d_ca_seed_type = CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT;
+    Mat d_ca_construction_mat = nullptr; // Borrowed for one solver-state lifetime.
     int d_ca_seed_axis = 0, d_ca_seed_stride = 1;
 #if (NDIM == 2)
     CouplingAwareASMSeedTraversalOrder d_ca_order = CouplingAwareASMSeedTraversalOrder::I_J;

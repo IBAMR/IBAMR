@@ -206,6 +206,8 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     {
         d_asm_mode = string_to_enum<ASMSubdomainConstructionMode>(
             input_db->getStringWithDefault("asm_subdomain_construction_mode", "GEOMETRICAL"));
+        d_ca_seed_type = string_to_enum<CouplingAwareASMPatchSeedType>(
+            input_db->getStringWithDefault("coupling_aware_asm_patch_seed_type", "VELOCITY_COMPONENT"));
         d_ca_seed_axis = input_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", d_ca_seed_axis);
         d_ca_seed_stride = input_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", d_ca_seed_stride);
         d_ca_order = string_to_enum<CouplingAwareASMSeedTraversalOrder>(
@@ -339,11 +341,42 @@ StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_
     return;
 } // setAugmentedOperatorMat
 
+void
+StaggeredStokesPETScLevelSolver::setCouplingAwareASMConstructionMat(Mat construction_mat)
+{
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setCouplingAwareASMConstructionMat():\n"
+                                 << "  deallocate the solver state before changing the matrix.\n");
+    }
+    d_ca_construction_mat = construction_mat;
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
 StaggeredStokesPETScLevelSolver::validatePreconditionerType()
 {
+    if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE &&
+        d_ca_seed_type == CouplingAwareASMPatchSeedType::PRESSURE_CELL)
+    {
+        // Pressure-cell CAV patches generally overlap (a velocity DOF sits on the shared face of two pressure
+        // cells' patches), so they cannot be partitioned into the nonoverlapping decomposition that the additive
+        // shell and PETSc's own "asm" PC need to combine corrections; only the multiplicative shell, which visits
+        // patches sequentially against the running residual and needs no such partition, is supported here. An
+        // additive/ASM-compatible version is deferred until the multiplicative algorithm of Gruninger and Griffith
+        // (arXiv:2608.14310) is fully implemented and validated.
+        if (d_pc_type != "shell")
+        {
+            TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
+                                     << "  pressure-cell CAV requires pc_type = shell.\n");
+        }
+        if (d_shell_composition != ShellComposition::MULTIPLICATIVE)
+        {
+            TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
+                                     << "  pressure-cell CAV requires shell_pc_type = multiplicative.\n");
+        }
+    }
     if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE && d_pc_type != "asm" && d_pc_type != "shell")
     {
         TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
@@ -358,6 +391,37 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
 {
     if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE)
     {
+        if (d_ca_seed_type == CouplingAwareASMPatchSeedType::PRESSURE_CELL)
+        {
+            if (!d_ca_construction_mat)
+            {
+                TBOX_ERROR(d_object_name << "::generateASMSubdomains():\n"
+                                         << "  pressure-cell CAV requires a live elasticity construction matrix.\n");
+            }
+            std::vector<int> pressure_seeds;
+            StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+                overlap_is,
+                pressure_seeds,
+                d_num_dofs_per_proc,
+                d_u_dof_index_idx,
+                d_p_dof_index_idx,
+                d_level,
+                d_ca_construction_mat,
+                d_ca_seed_stride,
+                d_ca_order,
+                d_ca_policy,
+                d_ca_relative_zero_tol);
+            nonoverlap_is.clear();
+            // Vanka smoothing needs every DOF to be in a patch, which a seed stride above one gives up.
+            if (d_check_subdomain_coverage)
+            {
+                check_dof_coverage(d_object_name + "::generateASMSubdomains()",
+                                   overlap_is,
+                                   d_num_dofs_per_proc[IBTK_MPI::getRank()],
+                                   DOFCoverage::AT_LEAST_ONCE);
+            }
+            return;
+        }
         StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(overlap_is,
                                                                                               nonoverlap_is,
                                                                                               d_num_dofs_per_proc,
@@ -649,6 +713,8 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
         d_petsc_mat = nullptr;
         d_petsc_pc = nullptr;
     }
+
+    d_ca_construction_mat = nullptr;
 
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);

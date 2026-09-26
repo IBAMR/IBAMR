@@ -61,6 +61,7 @@
 #include <Variable.h>
 #include <VariableDatabase.h>
 #include <VariableFillPattern.h>
+#include <strings.h>
 
 #include <algorithm>
 #include <array>

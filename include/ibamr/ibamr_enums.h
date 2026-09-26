@@ -628,7 +628,7 @@ enum_to_string<IndicatorFunctionType>(IndicatorFunctionType val)
     return "UNKNOWN_INDICATOR_FUNC_TYPE";
 } // enum_to_string
 
-/*! \brief Geometrical or velocity-coupling-based ASM construction. */
+/*! \brief Geometrical or coupling-based ASM construction. */
 enum class ASMSubdomainConstructionMode
 {
     GEOMETRICAL,
@@ -656,6 +656,38 @@ enum_to_string<ASMSubdomainConstructionMode>(ASMSubdomainConstructionMode val)
         return "GEOMETRICAL";
     case ASMSubdomainConstructionMode::COUPLING_AWARE:
         return "COUPLING_AWARE";
+    }
+    return "";
+} // enum_to_string
+
+/*! \brief Velocity-component or pressure-cell seeds for coupling-aware patches. */
+enum class CouplingAwareASMPatchSeedType
+{
+    VELOCITY_COMPONENT,
+    PRESSURE_CELL
+};
+
+template <>
+inline CouplingAwareASMPatchSeedType
+string_to_enum<CouplingAwareASMPatchSeedType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "VELOCITY_COMPONENT") == 0) return CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT;
+    if (strcasecmp(val.c_str(), "PRESSURE_CELL") == 0) return CouplingAwareASMPatchSeedType::PRESSURE_CELL;
+    TBOX_ERROR("Unknown coupling-aware patch seed type \""
+               << val << "\".\nValid values are VELOCITY_COMPONENT and PRESSURE_CELL.\n");
+    return CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<CouplingAwareASMPatchSeedType>(CouplingAwareASMPatchSeedType val)
+{
+    switch (val)
+    {
+    case CouplingAwareASMPatchSeedType::VELOCITY_COMPONENT:
+        return "VELOCITY_COMPONENT";
+    case CouplingAwareASMPatchSeedType::PRESSURE_CELL:
+        return "PRESSURE_CELL";
     }
     return "";
 } // enum_to_string
