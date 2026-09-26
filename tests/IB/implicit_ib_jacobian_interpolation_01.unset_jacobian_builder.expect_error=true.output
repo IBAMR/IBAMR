@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    IBImplicitStaggeredHierarchyIntegrator::getJacobianOperatorBuilder():
+  jacobian_delta_fcn = APPLICATION_KERNEL has no built-in evaluator and no builder has been set or registered for it.
+  Call setJacobianOperatorBuilder() or registerJacobianOperatorBuilder() before initializeHierarchyIntegrator().
+

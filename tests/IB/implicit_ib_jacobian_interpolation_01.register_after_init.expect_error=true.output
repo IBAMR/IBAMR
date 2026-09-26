@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    IBImplicitStaggeredHierarchyIntegrator_bad_after_init::registerJacobianOperatorBuilder():
+  a kernel must be registered before initializeHierarchyIntegrator().
+

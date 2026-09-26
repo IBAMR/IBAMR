@@ -133,14 +133,18 @@ public:
         double data_time) = 0;
 
     /*!
-     * Construct the IB interpolation operator.
+     * Return the Vec of Lagrangian-Eulerian coupling positions on the finest
+     * hierarchy level at the given time, for use in constructing the
+     * implicit Jacobian's interpolation operator. data_time must equal the
+     * current, half, or new time.
+     *
+     * The vector belongs to the strategy. The caller must not destroy it or
+     * modify its entries, and must not use it after
+     * postprocessIntegrateData(). It is available from
+     * preprocessIntegrateData() onward, and reflects later updates of the
+     * positions within the time step.
      */
-    virtual void constructInterpOp(Mat& J,
-                                   void (*spread_fnc)(const double, double*),
-                                   int stencil_width,
-                                   const std::vector<int>& num_dofs_per_proc,
-                                   int dof_index_idx,
-                                   double data_time) = 0;
+    virtual Vec getFinestLevelLECouplingPositions(double data_time) = 0;
 
 protected:
 private:
