@@ -239,13 +239,13 @@ public:
      *
      * V and W cycles make one and two recursive child visits, respectively.
      * F_CYCLE recursively makes an F-cycle child visit followed by a V-cycle
-     * child visit. FMG_CYCLE may overwrite coarse-grid equations and corrections
-     * on AMR hierarchies.
+     * child visit. FMG_CYCLE performs nested iteration with one V-cycle on each
+     * successively finer hierarchy.
      *
-     * V-cycles with presmoothing, W-cycles, and F-cycles currently require the
-     * initialized hierarchy range to begin at level zero, since strategy residual
-     * ghost fills may access data below that range. Nonzero coarsest levels are
-     * rejected for these cycles.
+     * Except for V-cycles without presmoothing, this preconditioner currently
+     * requires the initialized hierarchy range to begin at level zero, since
+     * strategy residual ghost fills may access data below that range. Nonzero
+     * coarsest levels are rejected for these cycles.
      */
     void setMGCycleType(MGCycleType cycle_type);
 
@@ -308,19 +308,10 @@ protected:
                       int level_num,
                       MGCycleType cycle_type);
 
-    /*! \brief Apply the recursive correction sweep used by FMGCycle(). */
-    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                 int level_num,
-                 int mu);
-
-    /*! \brief Apply FMG using the shared coarse-grid equations and corrections. */
+    /*! \brief Apply nested iteration with a V-cycle on each finer hierarchy. */
     void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                  int level_num,
-                  int mu);
+                  int level_num);
 
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
@@ -383,6 +374,7 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_residual_vectors;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_rhs_vectors;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_correction_vectors;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_fmg_rhs_vectors;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_evaluation_vector;
 };
 } // namespace IBTK

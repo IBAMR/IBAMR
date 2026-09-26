@@ -419,6 +419,22 @@ main(int argc, char* argv[])
                          << "; final error ratio = " << final_error / initial_error << '\n';
                 }
             }
+            fac.setMGCycleType(FMG_CYCLE);
+            apply(RESULT, RHS);
+            copy(ITERATE, RESULT);
+            residual();
+            plog << "FMG first correction L2 = " << vectors[RESULT]->L2Norm()
+                 << "; residual L2 = " << vectors[RESIDUAL]->L2Norm() << '\n';
+            if (!(vectors[RESIDUAL]->L2Norm() < vectors[RHS]->L2Norm()))
+            {
+                TBOX_ERROR("FAC cycle test: FMG did not reduce the residual\n");
+            }
+            ops.setToScalar(indices[ERROR], 0.0, false);
+            apply(CORRECTION, ERROR);
+            if (difference(CORRECTION, ERROR) != 0.0)
+            {
+                TBOX_ERROR("FAC cycle test: FMG zero RHS produced a nonzero correction\n");
+            }
             fac.deallocateSolverState();
         }
 
