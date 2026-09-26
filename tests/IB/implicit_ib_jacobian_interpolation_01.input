@@ -7,6 +7,9 @@ Main {
 IBMethod {
    delta_fcn = "IB_4"
 }
+IBImplicitStaggeredHierarchyIntegrator {
+   jacobian_delta_fcn = "REGISTERED_KERNEL"
+}
 INSStaggeredHierarchyIntegrator {
    mu = 1.0
    rho = 1.0

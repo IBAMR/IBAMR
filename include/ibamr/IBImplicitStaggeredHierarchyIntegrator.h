@@ -148,9 +148,9 @@ public:
      * be called before initializeHierarchyIntegrator().
      *
      * The Jacobian's kernel is independent of the kernels that the IB strategy
-     * uses for interpolation and spreading. The builder is not written to
-     * restart files: after a restart, call this function again, since the input
-     * key jacobian_delta_fcn cannot name it.
+     * uses for interpolation and spreading. An explicitly supplied builder is
+     * not restored from restart files; supply it again before
+     * initializeHierarchyIntegrator().
      */
     void setJacobianOperatorBuilder(IBTK::IBOperatorBuilder builder);
 
@@ -160,15 +160,14 @@ public:
      * an error to register a kernel that IBTK::IBOperatorBuilder::is_built_in()
      * already accepts, or to register the same kernel twice.
      *
-     * A registration only supplies the builder for jacobian_delta_fcn if that
-     * key is otherwise unresolved when initializeHierarchyIntegrator() runs;
-     * an explicit call to setJacobianOperatorBuilder() always takes precedence,
-     * whether it happens before or after this call. Registering a kernel that
-     * jacobian_delta_fcn does not name has no other effect.
+     * If kernel is the one named by jacobian_delta_fcn and no builder has been
+     * selected, this call selects builder immediately. An explicit call to
+     * setJacobianOperatorBuilder() takes precedence, whether it happens before
+     * or after this call. Registering a kernel that jacobian_delta_fcn does not
+     * name has no other effect.
      *
-     * Like setJacobianOperatorBuilder(), registrations are not written to
-     * restart files: after a restart, the application must register again
-     * before initializeHierarchyIntegrator().
+     * Registrations are not written to restart files: after a restart, the
+     * application must register again before initializeHierarchyIntegrator().
      */
     void registerJacobianOperatorBuilder(const IBTK::IBKernelTensorProduct& kernel, IBTK::IBOperatorBuilder builder);
 
