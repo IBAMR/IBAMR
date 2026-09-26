@@ -162,6 +162,8 @@ SETUP(multiphase_flow water_entry_circular_cylinder.cpp IBAMR2d)
 
 # navier_stokes:
 SETUP_2D(navier_stokes stokes_petsc_level_solver_shell.cpp)
+SETUP_2D(navier_stokes stokes_petsc_level_solver_coupling_aware.cpp)
+SETUP_3D(navier_stokes stokes_petsc_level_solver_coupling_aware.cpp)
 SETUP_2D(navier_stokes stokes_petsc_level_solver_reinitialization.cpp)
 SETUP_2D(navier_stokes side_prolongation.cpp)
 SETUP_3D(navier_stokes side_prolongation.cpp)

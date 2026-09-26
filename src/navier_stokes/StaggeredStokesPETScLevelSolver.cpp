@@ -19,6 +19,7 @@
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
+#include <ibtk/DOFCoverage.h>
 #include <ibtk/GeneralSolver.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
@@ -56,6 +57,7 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -200,6 +202,57 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     {
         setSubdomainSolver(makeEigenSchurComplementSubdomainSolver(input_db));
     }
+    if (input_db)
+    {
+        d_asm_mode = string_to_enum<ASMSubdomainConstructionMode>(
+            input_db->getStringWithDefault("asm_subdomain_construction_mode", "GEOMETRICAL"));
+        d_ca_seed_axis = input_db->getIntegerWithDefault("coupling_aware_asm_seed_axis", d_ca_seed_axis);
+        d_ca_seed_stride = input_db->getIntegerWithDefault("coupling_aware_asm_seed_stride", d_ca_seed_stride);
+        d_ca_order = string_to_enum<CouplingAwareASMSeedTraversalOrder>(
+            input_db->getStringWithDefault("coupling_aware_asm_seed_traversal_order", enum_to_string(d_ca_order)));
+        d_ca_policy = string_to_enum<CouplingAwareASMClosurePolicy>(
+            input_db->getStringWithDefault("coupling_aware_asm_closure_policy", "RELAXED"));
+        d_ca_relative_zero_tol =
+            input_db->getDoubleWithDefault("coupling_aware_asm_relative_zero_tol", d_ca_relative_zero_tol);
+    }
+#if (NDIM == 2)
+    const bool valid_order =
+        d_ca_order == CouplingAwareASMSeedTraversalOrder::I_J || d_ca_order == CouplingAwareASMSeedTraversalOrder::J_I;
+#else
+    const bool valid_order = d_ca_order == CouplingAwareASMSeedTraversalOrder::I_J_K ||
+                             d_ca_order == CouplingAwareASMSeedTraversalOrder::J_K_I ||
+                             d_ca_order == CouplingAwareASMSeedTraversalOrder::K_I_J;
+#endif
+    if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE && IBTK_MPI::getNodes() != 1)
+    {
+        TBOX_ERROR(d_object_name << "::StaggeredStokesPETScLevelSolver():\n"
+                                 << "  coupling-aware ASM subdomains are constructed on one MPI rank only.\n");
+    }
+    validatePreconditionerType();
+    if (!valid_order)
+    {
+        TBOX_ERROR(d_object_name << "::StaggeredStokesPETScLevelSolver():\n"
+                                 << "  coupling_aware_asm_seed_traversal_order = " << enum_to_string(d_ca_order)
+                                 << " is not a valid order for " << NDIM << " dimensions.\n");
+    }
+    if (d_ca_seed_axis < 0 || d_ca_seed_axis >= NDIM)
+    {
+        TBOX_ERROR(d_object_name << "::StaggeredStokesPETScLevelSolver():\n"
+                                 << "  coupling_aware_asm_seed_axis = " << d_ca_seed_axis << " is not in [0, " << NDIM
+                                 << ").\n");
+    }
+    if (d_ca_seed_stride < 1)
+    {
+        TBOX_ERROR(d_object_name << "::StaggeredStokesPETScLevelSolver():\n"
+                                 << "  coupling_aware_asm_seed_stride = " << d_ca_seed_stride
+                                 << " must be positive.\n");
+    }
+    if (!std::isfinite(d_ca_relative_zero_tol) || d_ca_relative_zero_tol < 0.0)
+    {
+        TBOX_ERROR(d_object_name << "::StaggeredStokesPETScLevelSolver():\n"
+                                 << "  coupling_aware_asm_relative_zero_tol = " << d_ca_relative_zero_tol
+                                 << " must be finite and nonnegative.\n");
+    }
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
@@ -289,9 +342,44 @@ StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
+StaggeredStokesPETScLevelSolver::validatePreconditionerType()
+{
+    if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE && d_pc_type != "asm" && d_pc_type != "shell")
+    {
+        TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
+                                 << "  coupling-aware ASM subdomains require pc_type = asm or shell, not " << d_pc_type
+                                 << ".\n");
+    }
+}
+
+void
 StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
                                                        std::vector<std::set<int>>& nonoverlap_is)
 {
+    if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE)
+    {
+        StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(overlap_is,
+                                                                                              nonoverlap_is,
+                                                                                              d_num_dofs_per_proc,
+                                                                                              d_u_dof_index_idx,
+                                                                                              d_p_dof_index_idx,
+                                                                                              d_level,
+                                                                                              d_petsc_mat,
+                                                                                              d_ca_seed_axis,
+                                                                                              d_ca_seed_stride,
+                                                                                              d_ca_order,
+                                                                                              d_ca_policy,
+                                                                                              d_ca_relative_zero_tol);
+        // Vanka smoothing needs every DOF to be in a patch.
+        if (d_check_subdomain_coverage)
+        {
+            check_dof_coverage(d_object_name + "::generateASMSubdomains()",
+                               overlap_is,
+                               d_num_dofs_per_proc[IBTK_MPI::getRank()],
+                               DOFCoverage::AT_LEAST_ONCE);
+        }
+        return;
+    }
     // Construct subdomains for ASM and MSM preconditioner.
     StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(overlap_is,
                                                                        nonoverlap_is,

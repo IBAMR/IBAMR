@@ -1,0 +1,6 @@
+dofs = 48
+Program abort called with error message
+
+    ca_solver_asm_RELAXED::validatePreconditionerType():
+  coupling-aware ASM subdomains require pc_type = asm or shell, not ilu.
+
