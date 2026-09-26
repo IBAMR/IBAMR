@@ -20,6 +20,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBKernelEvaluatorTensorProduct.h>
+#include <ibtk/IBKernelTensorProduct.h>
 #include <ibtk/IBOperatorBuilder.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -223,8 +224,10 @@ main(int argc, char* argv[])
         {
             auto lifetime = std::make_shared<const int>(1);
             evaluator_lifetime = lifetime;
-            integrator->setJacobianOperatorBuilder(IBOperatorBuilder(
-                IBKernelEvaluatorTensorProduct{ CustomKernel{ 1.0, lifetime }, CustomKernel{ 1.0, lifetime } }));
+            integrator->registerJacobianOperatorBuilder(
+                IBKernelTensorProduct("APP_CUSTOM"),
+                IBOperatorBuilder(
+                    IBKernelEvaluatorTensorProduct{ CustomKernel{ 1.0, lifetime }, CustomKernel{ 1.0, lifetime } }));
         }
         CycleData cycles{ 0, method.getPointer() };
         integrator->registerIntegrateHierarchyCallback(count_integration_cycles, &cycles);
