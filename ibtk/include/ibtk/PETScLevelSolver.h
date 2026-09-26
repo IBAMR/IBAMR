@@ -20,7 +20,9 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/DOFCoverage.h>
 #include <ibtk/LinearSolver.h>
+#include <ibtk/PETScLevelSolverSubdomainSolver.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
@@ -34,6 +36,8 @@
 #include <PatchHierarchy.h>
 #include <SAMRAIVectorReal.h>
 
+#include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -71,6 +75,17 @@ namespace IBTK
  enable_logging = FALSE        // see setLoggingEnabled()
  \endverbatim
  *
+ * For pc_type = "shell", shell_pc_type = "additive" selects an additive
+ * preconditioner and shell_pc_type = "multiplicative" selects a multiplicative
+ * preconditioner on the ASM subdomains. Both solve their local problems with a
+ * PETScLevelSolverSubdomainSolver: the one supplied to setSubdomainSolver() or,
+ * otherwise, the built-in subdomain solver that uses PETSc. shell_pc_type must be
+ * specified when selecting a shell preconditioner, including through PETSc
+ * options. The additive preconditioner needs the nonoverlapping subsets of the
+ * subdomains to partition the DOFs; if check_subdomain_coverage is TRUE, which is
+ * its default in debug builds only, initialization checks this with
+ * IBTK::check_dof_coverage().
+ *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
@@ -97,6 +112,17 @@ public:
      * \brief Set the options prefix used by this PETSc solver object.
      */
     void setOptionsPrefix(const std::string& options_prefix);
+
+    /*!
+     * \brief Use subdomain_solver for the local problems of the shell preconditioners,
+     * in place of the built-in subdomain solver that uses PETSc.
+     *
+     * The solver takes ownership of subdomain_solver, which must not be empty, and
+     * retains it across reinitialization of the solver state. It is initialized
+     * and deallocated only when pc_type = "shell". Call this before initializing
+     * the level solver, or after calling its deallocateSolverState().
+     */
+    void setSubdomainSolver(PETScLevelSolverSubdomainSolver subdomain_solver);
 
     /*!
      * \brief Get the PETSc KSP object.
@@ -230,17 +256,17 @@ protected:
 
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
+     *
+     * The subdomains of this rank are listed in order, and overlap_is[i] and nonoverlap_is[i]
+     * describe the same subdomain with global DOF indices. Each overlapping set contains the
+     * DOFs of its subdomain, and each nonoverlapping set is a subset of the overlapping set of
+     * the same subdomain. The additive shell preconditioner and the restricted ASM
+     * preconditioner also need the nonoverlapping sets of this rank to partition the DOFs that it
+     * owns. Initialization reports a violation of these requirements. A rank may have no
+     * subdomains.
      */
     virtual void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
                                        std::vector<std::set<int>>& nonoverlap_is);
-
-    /*!
-     * \brief Whether initializeSolverState() converted std::set<int> subdomains from
-     * generateASMSubdomains() into d_overlap_is and d_nonoverlap_is itself, so that
-     * deallocateSolverState() should destroy and clear them. Subclasses that construct
-     * PETSc index sets directly instead manage their own regeneration.
-     */
-    bool d_generated_subdomain_is = false;
 
     /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
@@ -306,7 +332,15 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU, d_shell_pc_type;
+    std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU;
+    //! How a shell preconditioner composes the corrections of its subdomains.
+    enum class ShellComposition
+    {
+        ADDITIVE,
+        MULTIPLICATIVE
+    };
+    //! Set from shell_pc_type; required only when a shell preconditioner is selected, possibly through PETSc options.
+    std::optional<ShellComposition> d_shell_composition;
     std::string d_options_prefix;
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
@@ -320,12 +354,31 @@ protected:
     //\{
     Vec d_local_x, d_local_y;
     SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
-    int d_n_local_subdomains, d_n_subdomains_max;
-    std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
-    std::vector<VecScatter> d_restriction, d_prolongation;
-    std::vector<KSP> d_sub_ksp;
-    Mat *d_sub_mat, *d_sub_bc_mat;
-    std::vector<Vec> d_sub_x, d_sub_y;
+    int d_n_local_subdomains = 0;
+    std::vector<IS> d_overlap_is, d_nonoverlap_is;
+    Mat *d_sub_mat = nullptr, *d_sub_bc_mat = nullptr;
+
+    /*!
+     * The right-hand sides and solutions of the local problems of the subdomains of this rank, packed
+     * in order into sequential vectors: subdomain i occupies the entries from d_subdomain_offsets[i] up
+     * to d_subdomain_offsets[i + 1]. One scatter gathers all of the right-hand sides.
+     */
+    Vec d_subdomain_rhs = nullptr, d_subdomain_solution = nullptr;
+    VecScatter d_restriction = nullptr;
+    //! Whether gathering the right-hand sides needs the scatter, or only the local array at these indices.
+    bool d_restriction_communicates = true;
+    std::vector<PetscInt> d_gather_indices;
+    std::vector<PetscInt> d_subdomain_offsets;
+
+    /*!
+     * The entries of the packed solutions that a subdomain writes to the output, from
+     * d_write_offsets[i] up to d_write_offsets[i + 1] in d_write_sources, the packed positions of the
+     * nonoverlapping DOFs, and d_write_targets, their local indices in the output.
+     */
+    std::vector<PetscInt> d_write_offsets, d_write_sources, d_write_targets;
+
+    //! Vectors that share the storage of each subdomain's packed right-hand side, for multiplicative shells.
+    std::vector<Vec> d_subdomain_rhs_views;
     //\}
 
     /*!
@@ -337,25 +390,41 @@ protected:
     //\}
 
 private:
+    std::optional<PETScLevelSolverSubdomainSolver> d_subdomain_solver;
+    bool d_subdomain_solver_initialized = false;
+    bool d_generated_subdomain_is = false;
+    bool d_check_subdomain_coverage = default_check_dof_coverage();
+
     /*!
      * \brief Copy constructor.
      *
-     * \note This constructor is not implemented and should not be used.
+     * \note This constructor is deleted.
      *
      * \param from The value to copy to this object.
      */
-    PETScLevelSolver(const PETScLevelSolver& from);
+    PETScLevelSolver(const PETScLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
      *
-     * \note This operator is not implemented and should not be used.
+     * \note This operator is deleted.
      *
      * \param that The value to assign to this object.
      *
      * \return A reference to this object.
      */
     PETScLevelSolver& operator=(const PETScLevelSolver& that) = delete;
+
+    /*!
+     * \brief Gather the right-hand sides of all subdomains from x into the packed vector.
+     */
+    PetscErrorCode gatherSubdomainRhs(Vec x) const;
+
+    /*!
+     * \brief Write the nonoverlapping parts of the packed solutions of subdomains first, ..., last - 1
+     * to y.
+     */
+    PetscErrorCode writeSubdomainSolutions(int first, int last, Vec y) const;
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
@@ -366,11 +435,6 @@ private:
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
     static PetscErrorCode PCApply_Multiplicative(PC pc, Vec x, Vec y);
-
-    /*!
-     * \brief Apply the preconditioner to \a x and store the result in \a y.
-     */
-    static PetscErrorCode PCApply_RedBlackMultiplicative(PC pc, Vec x, Vec y);
 };
 } // namespace IBTK
 

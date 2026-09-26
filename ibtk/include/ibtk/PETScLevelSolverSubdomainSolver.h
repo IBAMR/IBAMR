@@ -1,0 +1,215 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2026 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
+#ifndef included_IBTK_PETScLevelSolverSubdomainSolver
+#define included_IBTK_PETScLevelSolverSubdomainSolver
+
+#include <ibtk/config.h>
+
+#include <petscksp.h>
+
+#include <concepts>
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace IBTK
+{
+/*!
+ * \brief Requirements of an implementation of the subdomain solver of a PETScLevelSolver
+ * shell preconditioner.
+ *
+ * A type T models this concept when a mutable T provides the operations of
+ * PETScLevelSolverSubdomainSolver, with no result. T need not derive from an IBAMR class
+ * and need not be copyable, movable, or default constructible. The concept checks only that
+ * the operations can be called; the requirements on what they do are those documented for
+ * PETScLevelSolverSubdomainSolver.
+ */
+template <class T>
+concept PETScLevelSolverSubdomainSolverImplementation = requires(T & solver,
+                                                                 const std::vector<Mat>& matrices,
+                                                                 const std::vector<IS>& subdomains,
+                                                                 const std::string& options_prefix,
+                                                                 std::size_t first,
+                                                                 std::size_t last,
+                                                                 Vec b,
+                                                                 Vec x)
+{
+    {
+        solver.initializeSolverState(matrices, subdomains, options_prefix)
+    } -> std::same_as<void>;
+    {
+        solver.deallocateSolverState()
+    } -> std::same_as<void>;
+    {
+        solver.solve(first, last, b, x)
+    } -> std::same_as<void>;
+};
+
+/*!
+ * \brief Solver for the subdomain problems of a PETScLevelSolver shell preconditioner.
+ *
+ * With A the level operator, PETScLevelSolver divides the level into overlapping
+ * subdomains and forms the sequential matrix A_i = A(O_i, O_i) for each
+ * subdomain i of this rank, in which O_i is the sorted index set of the
+ * subdomain. PETScLevelSolver composes the subdomain corrections, additively or
+ * multiplicatively, and performs all communication. A subdomain solver only applies
+ * (an approximation to) the inverse of A_i to a sequential vector.
+ *
+ * This class is a move-only handle that owns an implementation, which is any type that
+ * satisfies PETScLevelSolverSubdomainSolverImplementation. It is constructed in place, so
+ * an implementation need not be copyable or movable. For example,
+ * \code
+ * class MySolver
+ * {
+ * public:
+ *     explicit MySolver(double tolerance);
+ *     void initializeSolverState(const std::vector<Mat>& matrices,
+ *                                const std::vector<IS>& subdomains,
+ *                                const std::string& options_prefix);
+ *     void deallocateSolverState();
+ *     void solve(std::size_t first, std::size_t last, Vec b, Vec x);
+ * };
+ *
+ * level_solver.setSubdomainSolver(
+ *     IBTK::PETScLevelSolverSubdomainSolver(std::in_place_type<MySolver>, 1.0e-10));
+ * \endcode
+ *
+ * initializeSolverState() receives the matrices of this rank's subdomains and their
+ * index sets, which are borrowed during initialization; implementations retain any
+ * objects they need afterwards. deallocateSolverState() releases owned state, is called
+ * only after initializeSolverState(), and may be called repeatedly. solve() may be
+ * called only while solver state is initialized. A rank may have no subdomains.
+ * PETScLevelSolver calls initializeSolverState() and deallocateSolverState() on every
+ * rank, so they may communicate, and every rank must take part in that communication.
+ * solve() is not collective and must not communicate.
+ *
+ * The right-hand sides and solutions of the subdomains are packed, in order, into
+ * two sequential vectors, so that solve() needs no copies to gather or scatter
+ * them and can solve many subdomains in one call: the entries of subdomain i
+ * follow those of subdomains 0, ..., i - 1, and their number is the order of A_i.
+ *
+ * Destroying a handle destroys its implementation without calling
+ * deallocateSolverState(), which can communicate and can depend on the state of the
+ * owning PETScLevelSolver. The implementation must release its own resources when it is
+ * destroyed.
+ *
+ * A handle that has been moved from is empty: it converts to false and must not be used.
+ */
+class PETScLevelSolverSubdomainSolver
+{
+public:
+    /*!
+     * \brief Construct an implementation of type Implementation in place from args.
+     */
+    template <class Implementation, class... Args>
+    requires PETScLevelSolverSubdomainSolverImplementation<Implementation>&&
+        std::constructible_from<Implementation, Args...> explicit PETScLevelSolverSubdomainSolver(
+            std::in_place_type_t<Implementation>,
+            Args&&... args);
+
+    /*!
+     * \brief Copying is not supported.
+     */
+    PETScLevelSolverSubdomainSolver(const PETScLevelSolverSubdomainSolver&) = delete;
+
+    /*!
+     * \brief Copying is not supported.
+     */
+    PETScLevelSolverSubdomainSolver& operator=(const PETScLevelSolverSubdomainSolver&) = delete;
+
+    /*!
+     * \brief Transfer ownership of the implementation of other, which becomes empty.
+     */
+    PETScLevelSolverSubdomainSolver(PETScLevelSolverSubdomainSolver&& other) noexcept;
+
+    /*!
+     * \brief Replace the implementation with that of other, which becomes empty.
+     */
+    PETScLevelSolverSubdomainSolver& operator=(PETScLevelSolverSubdomainSolver&& other) noexcept;
+
+    /*!
+     * \brief Destroy the implementation.
+     */
+    ~PETScLevelSolverSubdomainSolver();
+
+    /*!
+     * \brief Return whether this handle owns an implementation.
+     */
+    explicit operator bool() const;
+
+    /*!
+     * \brief Initialize the solvers of the subdomain matrices.
+     *
+     * The rows and columns of matrices[i] are those of the sorted index set subdomains[i], which
+     * contains global DOF indices; the two vectors have one entry for each subdomain of this rank.
+     * The options prefix is that of the level solver.
+     */
+    void initializeSolverState(const std::vector<Mat>& matrices,
+                               const std::vector<IS>& subdomains,
+                               const std::string& options_prefix);
+
+    /*!
+     * \brief Release the initialized state.
+     */
+    void deallocateSolverState();
+
+    /*!
+     * \brief Solve A_i x_i = b_i for the subdomains i = first, ..., last - 1.
+     *
+     * The vectors b and x are distinct sequential vectors in host memory that hold the
+     * packed right-hand sides and solutions of all subdomains, so 0 <= first <= last <= the
+     * number of subdomains, and first == last is a valid call that does nothing. This
+     * method overwrites the entries of x of the subdomains that it solves, whatever their
+     * initial values, and does not modify b or the other entries of x. The entries of b of
+     * subdomains outside first, ..., last - 1 are unspecified and must not be used. The
+     * subdomains of one call are independent of each other, so an implementation may solve
+     * them in any order or concurrently.
+     */
+    void solve(std::size_t first, std::size_t last, Vec b, Vec x);
+
+private:
+    //! Type-erased operations of an implementation.
+    class Adapter
+    {
+    public:
+        virtual ~Adapter() = default;
+        virtual void initializeSolverState(const std::vector<Mat>& matrices,
+                                           const std::vector<IS>& subdomains,
+                                           const std::string& options_prefix) = 0;
+        virtual void deallocateSolverState() = 0;
+        virtual void solve(std::size_t first, std::size_t last, Vec b, Vec x) = 0;
+    };
+
+    //! Adapter that holds an implementation.
+    template <class Implementation>
+    class ImplementationAdapter;
+
+    std::unique_ptr<Adapter> d_adapter;
+};
+
+/*!
+ * \brief Return the built-in subdomain solver, which uses PETSc.
+ *
+ * There is one KSP for each subdomain, with the level options prefix followed by
+ * "_sub". It defaults to preonly with LU, and PETSc options may override this
+ * configuration.
+ */
+PETScLevelSolverSubdomainSolver make_petsc_subdomain_solver();
+} // namespace IBTK
+
+#include <ibtk/private/PETScLevelSolverSubdomainSolver-inl.h>
+
+#endif

@@ -1,0 +1,5 @@
+// The scenario is the part of the file name that follows "dof_coverage.".
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}

@@ -1,0 +1,4 @@
+restriction communicates = 1
+local subdomains: min = 2, max = 2
+action_norm = 0.297633914131
+error = 0

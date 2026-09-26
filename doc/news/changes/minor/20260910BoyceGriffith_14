@@ -1,0 +1,3 @@
+Fixed: PETScLevelSolver's additive shell preconditioner zeros its output vector before writing subdomain solutions, so a DOF that no subdomain covers gets a zero correction instead of a stale value.
+<br>
+(Boyce Griffith, 2026/09/10)
