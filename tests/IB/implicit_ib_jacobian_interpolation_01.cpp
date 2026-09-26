@@ -256,15 +256,12 @@ check_interp_matrix(Mat J,
 }
 
 // The builder that an IBImplicitStaggeredHierarchyIntegrator constructed with
-// jacobian_delta_fcn = kernel_name uses, after the optional application override
-// or registration (use_registration selects registerJacobianOperatorBuilder()
-// instead of the direct setJacobianOperatorBuilder()).
+// jacobian_delta_fcn = kernel_name uses, after the optional application override.
 IBTK::IBOperatorBuilder
 make_jacobian_builder(Pointer<AppInitializer> app,
                       const std::string& tag,
                       const std::string& kernel_name,
-                      const std::optional<IBTK::IBOperatorBuilder>& application_builder = std::nullopt,
-                      bool use_registration = false)
+                      const std::optional<IBTK::IBOperatorBuilder>& application_builder = std::nullopt)
 {
     Pointer<INSStaggeredHierarchyIntegrator> ins_integrator = new INSStaggeredHierarchyIntegrator(
         "INSStaggeredHierarchyIntegrator" + tag, app->getComponentDatabase("INSStaggeredHierarchyIntegrator"), false);
@@ -273,13 +270,7 @@ make_jacobian_builder(Pointer<AppInitializer> app,
     input_db->putString("jacobian_delta_fcn", kernel_name);
     Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
         "IBImplicitStaggeredHierarchyIntegrator" + tag, input_db, method, ins_integrator, false);
-    if (application_builder)
-    {
-        if (use_registration)
-            integrator->registerJacobianOperatorBuilder(IBTK::IBKernelTensorProduct(kernel_name), *application_builder);
-        else
-            integrator->setJacobianOperatorBuilder(*application_builder);
-    }
+    if (application_builder) integrator->setJacobianOperatorBuilder(*application_builder);
     return integrator->getJacobianOperatorBuilder();
 }
 
@@ -304,15 +295,18 @@ run_fixture(Pointer<AppInitializer> app,
     Pointer<INSStaggeredHierarchyIntegrator> ins_integrator = new INSStaggeredHierarchyIntegrator(
         "INSStaggeredHierarchyIntegrator" + suffix, app->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
     // The integrator registers itself with method, which preprocessIntegrateData()
-    // needs (for getStartTime()). One run uses the kernel of the input, and
-    // the other an application kernel that is wider than the strategy's.
-    Pointer<Database> integrator_db = new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator" + suffix);
-    if (use_fixed_ops) integrator_db->putString("jacobian_delta_fcn", "APPLICATION_KERNEL");
+    // needs (for getStartTime()). One run uses the kernel of the default input, and
+    // the other selects, by name in its input, a registered application kernel that
+    // is wider than the strategy's.
+    Pointer<Database> integrator_db =
+        use_fixed_ops ? app->getComponentDatabase("IBImplicitStaggeredHierarchyIntegrator") :
+                        Pointer<Database>(new MemoryDatabase("IBImplicitStaggeredHierarchyIntegrator" + suffix));
     Pointer<IBImplicitStaggeredHierarchyIntegrator> integrator = new IBImplicitStaggeredHierarchyIntegrator(
         "IBImplicitStaggeredHierarchyIntegrator" + suffix, integrator_db, method, ins_integrator, false);
     if (use_fixed_ops)
     {
-        integrator->setJacobianOperatorBuilder(
+        integrator->registerJacobianOperatorBuilder(
+            IBTK::IBKernelTensorProduct("REGISTERED_KERNEL"),
             IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<WIDE_TENT_WIDTH>{} }));
     }
     method->setUseFixedLEOperators(use_fixed_ops);
@@ -368,20 +362,18 @@ run_fixture(Pointer<AppInitializer> app,
                               suffix + "_application",
                               "APPLICATION_KERNEL",
                               IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{ TentKernel<4>{} })));
-    // The same application kernel, but selected through registerJacobianOperatorBuilder()
-    // instead of the direct setter, with a wider stencil so its ghost width is
-    // independently exercised.
-    jacobian_kernels.emplace_back(KernelCase{ "REGISTERED_KERNEL",
-                                              static_cast<int>(WIDE_TENT_WIDTH),
-                                              static_cast<int>(WIDE_TENT_WIDTH),
-                                              tent_weight,
-                                              tent_weight },
-                                  make_jacobian_builder(app,
-                                                        suffix + "_registered",
-                                                        "REGISTERED_KERNEL",
-                                                        IBTK::IBOperatorBuilder(IBTK::IBKernelEvaluatorTensorProduct{
-                                                            TentKernel<WIDE_TENT_WIDTH>{} }),
-                                                        /*use_registration*/ true));
+    // The kernel that the fixed-operator integrator selected by name from its input,
+    // which was registered before its initialization. The stencil of this kernel is
+    // wider than that of the others, so its ghost width is independently exercised.
+    if (use_fixed_ops)
+    {
+        jacobian_kernels.emplace_back(KernelCase{ "REGISTERED_KERNEL",
+                                                  static_cast<int>(WIDE_TENT_WIDTH),
+                                                  static_cast<int>(WIDE_TENT_WIDTH),
+                                                  tent_weight,
+                                                  tent_weight },
+                                      integrator->getJacobianOperatorBuilder());
+    }
     IntVector<NDIM> dof_ghosts = method->getMinimumGhostCellWidth();
     for (const auto& [kernel, builder] : jacobian_kernels)
     {
