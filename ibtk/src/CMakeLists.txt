@@ -153,6 +153,7 @@ SET(CXX_SRC
   solvers/impls/VCSCViscousPETScLevelSolver.cpp
   solvers/impls/PETScLevelSolver.cpp
   solvers/impls/PETScLevelSolverPetscSubdomainSolver.cpp
+  solvers/impls/PETScLevelSolverBlasLapackSubdomainSolver.cpp
   solvers/impls/PETScLevelSolverSubdomainSolver.cpp
   solvers/impls/CCPoissonSolverManager.cpp
   solvers/impls/PoissonFACPreconditionerStrategy.cpp

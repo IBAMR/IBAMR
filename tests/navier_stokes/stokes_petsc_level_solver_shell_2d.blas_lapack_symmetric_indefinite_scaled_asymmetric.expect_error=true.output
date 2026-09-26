@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    PETScLevelSolverBlasLapackSubdomainSolver::verifySymmetricSubdomainMatrix():
+  options prefix "shell_": subdomain 0 is not symmetric enough for the symmetric-indefinite solver; maximum asymmetry is 1 times the largest entry, above the limit of 2.22045e-14.
+

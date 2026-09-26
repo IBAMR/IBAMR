@@ -46,6 +46,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -64,6 +65,21 @@ namespace
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
+
+// Return the built-in subdomain solver with the given name, or nothing if the name is not that of one.
+std::optional<PETScLevelSolverSubdomainSolver>
+make_built_in_subdomain_solver(const std::string& subdomain_solver_type, Pointer<Database> input_db)
+{
+    if (subdomain_solver_type == "petsc")
+    {
+        return make_petsc_subdomain_solver();
+    }
+    if (subdomain_solver_type == "blas-lapack")
+    {
+        return make_blas_lapack_subdomain_solver(input_db);
+    }
+    return std::nullopt;
+}
 
 void
 generate_petsc_is_from_std_is(std::vector<std::set<int>>& overlap_std,
@@ -628,7 +644,8 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         // Set up the subdomain solvers.
         if (!d_subdomain_solver)
         {
-            d_subdomain_solver = make_petsc_subdomain_solver();
+            TBOX_ERROR(d_object_name << " unsupported subdomain_solver = " << d_subdomain_solver_type
+                                     << "; supported values are \"petsc\" and \"blas-lapack\".\n");
         }
         d_subdomain_solver->initializeSolverState(
             std::vector<Mat>(d_sub_mat, d_sub_mat + d_n_local_subdomains), d_overlap_is, d_options_prefix);
@@ -801,6 +818,7 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
                                          << "; valid values are \"additive\" and \"multiplicative\".\n");
             }
         }
+        d_subdomain_solver_type = input_db->getStringWithDefault("subdomain_solver", d_subdomain_solver_type);
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
         d_check_subdomain_coverage =
@@ -810,6 +828,8 @@ PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_op
         if (input_db->keyExists("subdomain_overlap_size"))
             input_db->getIntegerArray("subdomain_overlap_size", d_overlap_size, NDIM);
     }
+    // The settings of a built-in subdomain solver are validated now, when the solver is constructed.
+    d_subdomain_solver = make_built_in_subdomain_solver(d_subdomain_solver_type, input_db);
     return;
 } // init
 

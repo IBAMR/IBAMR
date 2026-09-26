@@ -79,12 +79,12 @@ namespace IBTK
  * preconditioner and shell_pc_type = "multiplicative" selects a multiplicative
  * preconditioner on the ASM subdomains. Both solve their local problems with a
  * PETScLevelSolverSubdomainSolver: the one supplied to setSubdomainSolver() or,
- * otherwise, the built-in subdomain solver that uses PETSc. shell_pc_type must be
- * specified when selecting a shell preconditioner, including through PETSc
- * options. The additive preconditioner needs the nonoverlapping subsets of the
- * subdomains to partition the DOFs; if check_subdomain_coverage is TRUE, which is
- * its default in debug builds only, initialization checks this with
- * IBTK::check_dof_coverage().
+ * otherwise, the built-in subdomain solver named by subdomain_solver, which is "petsc"
+ * (default) or "blas-lapack". The settings of the "blas-lapack" subdomain solver are
+ * read from the solver's input database, and validated, when the solver is
+ * constructed. See make_blas_lapack_subdomain_solver(). shell_pc_type must
+ * be specified when selecting a shell preconditioner, including through PETSc
+ * options.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
@@ -390,6 +390,7 @@ protected:
     //\}
 
 private:
+    std::string d_subdomain_solver_type = "petsc";
     std::optional<PETScLevelSolverSubdomainSolver> d_subdomain_solver;
     bool d_subdomain_solver_initialized = false;
     bool d_generated_subdomain_is = false;

@@ -16,6 +16,9 @@
 
 #include <ibtk/config.h>
 
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
 #include <petscksp.h>
 
 #include <concepts>
@@ -208,6 +211,28 @@ private:
  * configuration.
  */
 PETScLevelSolverSubdomainSolver make_petsc_subdomain_solver();
+
+/*!
+ * \brief Return the subdomain solver that uses BLAS/LAPACK routines. Each subdomain
+ * retains a factorization or inverse/pseudoinverse.
+ *
+ * This subdomain solver requires real PETSc scalars. The settings are read from
+ * input_db, and defaults are used for a null database.
+ * blas_lapack_subdomain_solver_type is "svd" (default), "lu",
+ * "symmetric-indefinite", or "qr". LU, symmetric-indefinite and QR fail on a
+ * singular subdomain matrix (QR: on one that is rank-deficient by its threshold),
+ * whereas SVD never fails and forms a pseudoinverse.
+ * blas_lapack_subdomain_solver_rcond must be finite, defaults to -1.0, and
+ * affects only SVD and QR. Let epsilon be the machine epsilon of PetscReal and
+ * n the subdomain size. A negative value selects LAPACK's SVD default cutoff
+ * and, for QR, the threshold n * epsilon; a nonnegative value is the relative
+ * SVD cutoff or the QR threshold. QR is a full-rank solver: it fails if any
+ * |R_ii| is at most the threshold times max_j |R_jj|, with R the triangular
+ * factor. The symmetric-indefinite solver requires the subdomain matrix A to
+ * satisfy max_ij |A_ij - A_ji| <= 100 * epsilon * max_ij |A_ij|.
+ */
+PETScLevelSolverSubdomainSolver
+make_blas_lapack_subdomain_solver(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 } // namespace IBTK
 
 #include <ibtk/private/PETScLevelSolverSubdomainSolver-inl.h>
