@@ -199,6 +199,7 @@ struct SubdomainSolverCounters
 {
     int constructions = 0, initializations = 0, deallocations = 0, calls = 0, subdomain_solves = 0,
         contract_violations = 0;
+    bool operator==(const SubdomainSolverCounters&) const = default;
 };
 
 // An application-supplied subdomain solver that scales the solution of the built-in one, counts its use and checks
@@ -430,7 +431,8 @@ main(int argc, char* argv[])
     int box_size[NDIM];
     std::fill_n(box_size, NDIM, 4);
     db->putIntegerArray("subdomain_box_size", box_size, NDIM);
-    SubdomainSolverCounters application_counters;
+    // The level solver owns its subdomain solver, so the counters must outlive it.
+    SubdomainSolverCounters application_counters, replacement_counters;
     SubdomainSolverCounters* counts = nullptr;
     CommunicationProbe solver("shell_solver", db, "shell_");
     PoissonSpecifications coefficients("coefficients");
@@ -467,7 +469,6 @@ main(int argc, char* argv[])
     }
     if (replace_initialized)
     {
-        SubdomainSolverCounters replacement_counters;
         solver.setSubdomainSolver(
             PETScLevelSolverSubdomainSolver(std::in_place_type<ScaledCountingSubdomainSolver>, replacement_counters));
         return 0;
@@ -504,8 +505,25 @@ main(int argc, char* argv[])
         solver.initializeSolverState(x, b);
     }
     plog << std::setprecision(12);
-    for (int cycle = 0; cycle < (lifetime ? 2 : 1); ++cycle)
+    // An application subdomain solver is also replaced by another one after the cycles.
+    const int reinitialization_cycles = lifetime ? 2 : 1;
+    SubdomainSolverCounters original_counters;
+    for (int cycle = 0; cycle < reinitialization_cycles + (counts ? 1 : 0); ++cycle)
     {
+        const bool replacement = cycle == reinitialization_cycles;
+        const char* const label = replacement ? "replacement " : "";
+        if (replacement)
+        {
+            original_counters = *counts;
+            PETScLevelSolverSubdomainSolver replaced(std::in_place_type<ScaledCountingSubdomainSolver>,
+                                                     replacement_counters);
+            solver.setSubdomainSolver(std::move(replaced));
+            if (replaced)
+            {
+                TBOX_ERROR("Failed check: replacing a subdomain solver did not transfer ownership.\n");
+            }
+            solver.initializeSolverState(x, b);
+        }
         Mat mat = nullptr;
         PC pc = nullptr;
         ierr = KSPGetOperators(solver.getPETScKSP(), &mat, nullptr);
@@ -560,7 +578,7 @@ main(int argc, char* argv[])
         {
             TBOX_ERROR("Failed check: !std::isfinite(error) || error > 1.0e-9 || action_norm <= 0.0.\n");
         }
-        plog << "action_norm = " << action_norm << "\nerror = " << error << '\n';
+        plog << label << "action_norm = " << action_norm << '\n' << label << "error = " << error << '\n';
         if (lifetime)
         {
             if (!solver.solveSystem(x, b))
@@ -575,9 +593,21 @@ main(int argc, char* argv[])
             {
                 TBOX_ERROR("Failed check: !std::isfinite(repeated_error) || repeated_error > 1.0e-9.\n");
             }
-            plog << "repeated_error = " << repeated_error << '\n';
+            plog << label << "repeated_error = " << repeated_error << '\n';
         }
         solver.deallocateSolverState();
+        if (replacement)
+        {
+            // The replaced solver is not used again, and the new one is initialized, used, and released once.
+            if (*counts != original_counters || replacement_counters.constructions != 1 ||
+                replacement_counters.initializations != 1 || replacement_counters.deallocations != 1 ||
+                replacement_counters.calls < 1 || replacement_counters.subdomain_solves < 1 ||
+                replacement_counters.contract_violations != 0)
+            {
+                TBOX_ERROR(
+                    "Failed check: the replacement subdomain solver was not the only one used after replacement.\n");
+            }
+        }
         if (lifetime)
         {
             PetscReal matrix_norm = 0.0;
