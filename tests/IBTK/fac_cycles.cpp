@@ -38,6 +38,8 @@
 #include <string>
 #include <vector>
 
+#include "../tests.h"
+
 #include <ibtk/app_namespaces.h>
 
 namespace
@@ -116,6 +118,232 @@ data_difference(Pointer<PatchHierarchy<NDIM>> hierarchy, int first, int second, 
     }
     return IBTK_MPI::maxReduction(maximum);
 }
+// Exercise vector views separately from their caller-owned backing allocation.
+void
+check_ranges(Pointer<PatchHierarchy<NDIM>> hierarchy,
+             Pointer<CellVariable<NDIM, double>> variable,
+             int weight,
+             Pointer<Database> input,
+             PoissonSpecifications specification,
+             RobinBcCoefStrategy<NDIM>* boundary)
+{
+    const int finest = hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* variable_db = VariableDatabase<NDIM>::getDatabase();
+    std::array<int, 4> indices;
+    for (int k = 0; k < 4; ++k)
+    {
+        indices[k] = variable_db->registerVariableAndContext(
+            variable, variable_db->getContext("range_" + std::to_string(k)), IntVector<NDIM>(1));
+        for (int ln = 0; ln <= finest; ++ln)
+        {
+            hierarchy->getPatchLevel(ln)->allocatePatchData(indices[k]);
+        }
+    }
+    Pointer<HierarchyCellDataOpsReal<NDIM, double>> caller_ops =
+        new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, 0, finest);
+    const auto reset = [&]()
+    {
+        for (int ln = 0; ln <= finest; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<CellData<NDIM, double>> x = level->getPatch(p())->getPatchData(indices[0]),
+                                                b = level->getPatch(p())->getPatchData(indices[1]);
+                x->fillAll(7.0);
+                for (CellIterator<NDIM> c(b->getGhostBox()); c; c++)
+                {
+                    (*b)(c()) = 1.0 + 0.01 * (c()(0) + 2 * c()(1));
+                }
+            }
+        }
+        caller_ops->copyData(indices[2], indices[1], false);
+    };
+    const auto view = [&](int index, int lower, int upper)
+    {
+        Pointer<HierarchyVector> vector = new HierarchyVector("range", hierarchy, lower, upper);
+        Pointer<HierarchyCellDataOpsReal<NDIM, double>> range_ops =
+            new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, lower, upper);
+        vector->addComponent(variable, index, weight, range_ops);
+        return vector;
+    };
+    Pointer<CountingFACOperator> strategy = new CountingFACOperator(input->getDatabase("fac_db"), finest + 1);
+    PoissonFACPreconditioner fac("range_fac", strategy, input->getDatabase("fac_db"), "");
+    fac.setPoissonSpecifications(specification);
+    fac.setPhysicalBcCoef(boundary);
+    fac.setHomogeneousBc(true);
+    fac.setNumPostSmoothingSweeps(2);
+    if (input->keyExists("reject_cycle"))
+    {
+        reset();
+        fac.setMGCycleType(string_to_enum<MGCycleType>(input->getString("reject_cycle")));
+        fac.setNumPreSmoothingSweeps(input->getIntegerWithDefault("pre_sweeps", 2));
+        Pointer<HierarchyVector> x = view(indices[0], 1, finest), b = view(indices[1], 1, finest);
+        // Initialize through the supported default, then change configuration
+        // and component allocation before solveSystem() rechecks its inputs.
+        const MGCycleType cycle = fac.getMGCycleType();
+        const int pre = fac.getNumPreSmoothingSweeps();
+        fac.setMGCycleType(V_CYCLE);
+        fac.setNumPreSmoothingSweeps(0);
+        fac.initializeSolverState(*x, *b);
+        fac.setMGCycleType(cycle);
+        fac.setNumPreSmoothingSweeps(pre);
+        if (input->getBoolWithDefault("missing_backing", false))
+        {
+            hierarchy->getPatchLevel(0)->deallocatePatchData(indices[0]);
+        }
+        fac.solveSystem(*x, *b);
+        fac.deallocateSolverState();
+    }
+    else
+    {
+        std::vector<std::pair<int, int>> ranges = { { 1, 1 }, { finest, finest }, { 1, finest } };
+        if (finest > 2)
+        {
+            ranges.emplace_back(2, finest);
+        }
+        for (const auto& range : ranges)
+        {
+            const int lower = range.first, upper = range.second;
+            Pointer<HierarchyVector> x = view(indices[0], lower, upper), b = view(indices[1], lower, upper);
+            const bool single = lower == upper;
+            for (MGCycleType cycle : { V_CYCLE, W_CYCLE, F_CYCLE, FMG_CYCLE })
+            {
+                if (!single && (cycle == W_CYCLE || cycle == F_CYCLE))
+                {
+                    continue;
+                }
+                for (int pre : { 0, 2 })
+                {
+                    fac.setMGCycleType(cycle);
+                    fac.setNumPreSmoothingSweeps(0);
+                    reset();
+                    fac.initializeSolverState(*x, *b);
+                    fac.setNumPreSmoothingSweeps(pre);
+                    for (int repeat = 0; repeat < 2; ++repeat)
+                    {
+                        reset();
+                        strategy->resetVisits();
+                        fac.solveSystem(*x, *b);
+                        // Compare every RHS entry, including ghosts and levels
+                        // outside the view, except the legacy in-place V path.
+                        if (!(cycle == V_CYCLE && pre == 0) &&
+                            data_difference(hierarchy, indices[1], indices[2], weight, false) != 0.0)
+                        {
+                            TBOX_ERROR("FAC range test: RHS changed\n");
+                        }
+                        int changed_below = 0;
+                        for (int ln = 0; ln <= finest; ++ln)
+                        {
+                            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+                            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                            {
+                                Pointer<CellData<NDIM, double>> data = level->getPatch(p())->getPatchData(indices[0]);
+                                for (CellIterator<NDIM> c(data->getGhostBox()); c; c++)
+                                {
+                                    if (!std::isfinite((*data)(c())))
+                                    {
+                                        TBOX_ERROR("FAC range test: nonfinite solution\n");
+                                    }
+                                    if (ln < lower && (*data)(c()) != 7.0)
+                                    {
+                                        ++changed_below;
+                                    }
+                                    if ((ln > upper || ln < lower - 1) && (*data)(c()) != 7.0)
+                                    {
+                                        TBOX_ERROR("FAC range test: unexpected outside-range mutation\n");
+                                    }
+                                }
+                            }
+                        }
+                        changed_below = IBTK_MPI::sumReduction(changed_below);
+                        const bool below_access = !single && (pre > 0 || cycle == FMG_CYCLE);
+                        if ((changed_below != 0) != below_access)
+                        {
+                            TBOX_ERROR("FAC range test: unexpected below-range mutation\n");
+                        }
+                        if (single && strategy->getVisits()[lower] != 1)
+                        {
+                            TBOX_ERROR("FAC range test: single-level cycle did not coarse-solve once\n");
+                        }
+                        if (repeat == 0)
+                        {
+                            caller_ops->copyData(indices[3], indices[0], false);
+                        }
+                        else if (data_difference(hierarchy, indices[0], indices[3], weight, false) != 0.0)
+                        {
+                            TBOX_ERROR("FAC range test: reused solve changed interiors or ghosts\n");
+                        }
+                    }
+                    fac.deallocateSolverState();
+                    // A fresh state with another component index must reproduce
+                    // every entry, including the permitted below-range writes.
+                    reset();
+                    caller_ops->setToScalar(indices[2], 7.0, false);
+                    Pointer<HierarchyVector> alternate = view(indices[2], lower, upper);
+                    fac.initializeSolverState(*x, *b);
+                    fac.solveSystem(*alternate, *b);
+                    fac.deallocateSolverState();
+                    if (data_difference(hierarchy, indices[2], indices[3], weight, false) != 0.0)
+                    {
+                        TBOX_ERROR("FAC range test: fresh solve changed interiors or ghosts\n");
+                    }
+                    if (single)
+                    {
+                        reset();
+                        for (int ln = 0; ln < lower; ++ln)
+                        {
+                            hierarchy->getPatchLevel(ln)->deallocatePatchData(indices[0]);
+                            hierarchy->getPatchLevel(ln)->deallocatePatchData(indices[1]);
+                        }
+                        fac.solveSystem(*x, *b);
+                        for (int ln = 0; ln < lower; ++ln)
+                        {
+                            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+                            level->allocatePatchData(indices[0]);
+                            level->allocatePatchData(indices[1]);
+                            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                            {
+                                Pointer<CellData<NDIM, double>> data = level->getPatch(p())->getPatchData(indices[0]);
+                                data->fillAll(7.0);
+                            }
+                        }
+                        if (data_difference(hierarchy, indices[0], indices[3], weight, false) != 0.0)
+                        {
+                            TBOX_ERROR("FAC range test: single-level solve depends on backing data\n");
+                        }
+                    }
+                    plog << "range = " << lower << ' ' << upper << "; cycle = " << enum_to_string(cycle)
+                         << "; pre = " << pre << "; correction L2 = " << view(indices[3], lower, upper)->L2Norm()
+                         << '\n';
+                }
+            }
+            // The default V path and single-level solves need no backing data
+            // below the view. Check with both caller components absent there.
+            reset();
+            for (int ln = 0; ln < lower; ++ln)
+            {
+                hierarchy->getPatchLevel(ln)->deallocatePatchData(indices[0]);
+                hierarchy->getPatchLevel(ln)->deallocatePatchData(indices[1]);
+            }
+            fac.setMGCycleType(V_CYCLE);
+            fac.setNumPreSmoothingSweeps(single ? 2 : 0);
+            fac.solveSystem(*x, *b);
+            for (int ln = 0; ln < lower; ++ln)
+            {
+                hierarchy->getPatchLevel(ln)->allocatePatchData(indices[0]);
+                hierarchy->getPatchLevel(ln)->allocatePatchData(indices[1]);
+            }
+        }
+    }
+    for (int ln = 0; ln <= finest; ++ln)
+    {
+        for (int index : indices)
+        {
+            hierarchy->getPatchLevel(ln)->deallocatePatchData(index);
+        }
+    }
+}
 } // namespace
 
 int
@@ -175,6 +403,21 @@ main(int argc, char* argv[])
         std::array<std::unique_ptr<HierarchyVector>, FIELD_COUNT> vectors;
         Pointer<CellVariable<NDIM, double>> variable = new CellVariable<NDIM, double>("u");
         VariableDatabase<NDIM>* variable_db = VariableDatabase<NDIM>::getDatabase();
+        LocationIndexRobinBcCoefs<NDIM> boundary("boundary", nullptr);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            boundary.setBoundaryValue(2 * d, 0.0);
+            boundary.setBoundaryValue(2 * d + 1, 0.0);
+        }
+        PoissonSpecifications specification("specification");
+        specification.setCConstant(1.0);
+        specification.setDConstant(-1.0);
+        if (input->getBoolWithDefault("range_test", false))
+        {
+            Logger::getInstance()->setAbortAppender(new TestAppender());
+            check_ranges(hierarchy, variable, weight, input, specification, &boundary);
+            return 0;
+        }
         for (int f = 0; f < FIELD_COUNT; ++f)
         {
             const std::string name = "field_" + std::to_string(f);
@@ -244,15 +487,6 @@ main(int argc, char* argv[])
                 }
             }
         }
-        LocationIndexRobinBcCoefs<NDIM> boundary("boundary", nullptr);
-        for (int d = 0; d < NDIM; ++d)
-        {
-            boundary.setBoundaryValue(2 * d, 0.0);
-            boundary.setBoundaryValue(2 * d + 1, 0.0);
-        }
-        PoissonSpecifications specification("specification");
-        specification.setCConstant(1.0);
-        specification.setDConstant(-1.0);
         CCLaplaceOperator laplace("laplace", input->getDatabase("fac_db"));
         laplace.setPoissonSpecifications(specification);
         laplace.setPhysicalBcCoef(&boundary);

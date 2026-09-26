@@ -125,6 +125,17 @@ public:
      * patch data in these vectors must be allocated prior to calling this
      * method.
      *
+     * For a multilevel V-cycle with presmoothing and a nonzero coarsest level,
+     * solution component data must also be allocated and initialized on the
+     * levels below the vector range. Residual ghost filling may read this
+     * storage and overwrite interiors and ghosts on the immediately preceding
+     * level. This is caller-owned backing storage, not additional solved levels.
+     * The retained FMG implementation has the same requirement, with or without
+     * presmoothing. No preservation of solution ghosts is guaranteed.
+     * Single-level cycles and V-cycles without presmoothing do not require this
+     * additional allocation. Strategy-specific requirements still apply.
+     * These allocation requirements also apply to initializeSolverState().
+     *
      * \note V-cycles without presmoothing restrict covered coarse RHS data in
      * place. Other cycle configurations preserve the RHS.
      *
@@ -242,10 +253,10 @@ public:
      * child visit. FMG_CYCLE may overwrite coarse-grid equations and corrections
      * on AMR hierarchies.
      *
-     * V-cycles with presmoothing, W-cycles, and F-cycles currently require the
-     * initialized hierarchy range to begin at level zero, since strategy residual
-     * ghost fills may access data below that range. Nonzero coarsest levels are
-     * rejected for these cycles.
+     * Multilevel W- and F-cycles require coarsest level zero: their private
+     * residual evaluation storage does not extend below the vector range.
+     * Single-level cycles support nonzero levels. For multilevel V and FMG
+     * allocation and mutation requirements, see solveSystem().
      */
     void setMGCycleType(MGCycleType cycle_type);
 

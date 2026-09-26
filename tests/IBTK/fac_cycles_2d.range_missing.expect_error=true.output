@@ -1,0 +1,7 @@
+Program abort called with error message
+
+    range_fac::allocateCycleScratchData():
+  multilevel FAC residual evaluation requires caller solution data
+  allocated and initialized on all levels below the vector range;
+  ghost filling may overwrite data on the preceding level.
+

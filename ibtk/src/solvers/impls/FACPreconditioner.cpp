@@ -27,6 +27,7 @@
 
 #include <HierarchyDataOpsManager.h>
 #include <PatchHierarchy.h>
+#include <PatchLevel.h>
 #include <SAMRAIVectorReal.h>
 #include <Variable.h>
 #include <VariableDatabase.h>
@@ -342,6 +343,16 @@ FACPreconditioner::zeroStartCycle(SAMRAIVectorReal<NDIM, double>& u,
             // residual evaluation can synchronize its covered coarse values.
             // The child equation needs the residual over the whole parent range.
             d_fac_strategy->computeResidual(*residual, u, f, d_coarsest_ln, level_num);
+            if (d_coarsest_ln > 0 && level_num > d_coarsest_ln + 1)
+            {
+                // Preserve the legacy V-cycle's lower equations. Below-range
+                // solution data can impose nonzero coarse-fine boundary values:
+                // including their residual here would count them again when
+                // forming the child's residual after presmoothing.
+                Pointer<SAMRAIVectorReal<NDIM, double>> prefix =
+                    getRangeVector(*residual, d_coarsest_ln, level_num - 2);
+                prefix->copyVector(getRangeVector(f, d_coarsest_ln, level_num - 2), /*interior_only*/ false);
+            }
             d_fac_strategy->restrictResidual(*residual, *residual, level_num - 1);
         }
         else
@@ -515,18 +526,44 @@ void
 FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAIVectorReal<NDIM, double>& rhs)
 {
-    // FMG uses scoped workspace. The default V-cycle restricts covered RHS
-    // data in place and needs no additional vectors.
-    if (d_cycle_type == FMG_CYCLE || (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0))
+    // Single-level cycles never evaluate a composite residual. Preserve the
+    // default V path, including its in-place restriction of covered RHS data.
+    if (d_coarsest_ln == d_finest_ln || (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0))
     {
         return;
     }
-    if (d_coarsest_ln != 0)
+    const bool repeated = d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE;
+    if (d_coarsest_ln != 0 && repeated)
     {
         TBOX_ERROR(d_object_name << "::allocateCycleScratchData():\n"
-                                 << "  this FAC cycle requires coarsest level zero: the current strategy residual\n"
-                                 << "  ghost-fill operators can access data below a nonzero coarsest level."
-                                 << std::endl);
+                                 << "  multilevel repeated FAC visits require coarsest level zero: private residual\n"
+                                 << "  evaluation storage is not allocated below the vector range." << std::endl);
+    }
+    if (d_coarsest_ln != 0)
+    {
+        // Residual ghost fills synchronize into the preceding level and may
+        // recursively interpolate from still coarser levels. Check each solve:
+        // component indices and presmoothing can change without reinitialization.
+        for (int ln = 0; ln < d_coarsest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (int comp = 0; comp < solution.getNumberOfComponents(); ++comp)
+            {
+                if (!level->checkAllocated(solution.getComponentDescriptorIndex(comp)))
+                {
+                    TBOX_ERROR(d_object_name << "::allocateCycleScratchData():\n"
+                                             << "  multilevel FAC residual evaluation requires caller solution data\n"
+                                             << "  allocated and initialized on all levels below the vector range;\n"
+                                             << "  ghost filling may overwrite data on the preceding level."
+                                             << std::endl);
+                }
+            }
+        }
+    }
+    // The retained FMG implementation uses scoped RHS and residual workspace.
+    if (d_cycle_type == FMG_CYCLE)
+    {
+        return;
     }
     if (d_vector_data_ops.empty())
     {
@@ -540,7 +577,6 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
                 manager->getOperationsDouble(solution.getComponentVariable(comp), d_hierarchy, /*get_unique*/ true));
         }
     }
-    const bool repeated = d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE;
     const int finest_warm_ln = d_finest_ln - 1;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {

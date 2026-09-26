@@ -1,5 +1,8 @@
 Fixed: IBTK::FACPreconditioner now maintains composite correction equations
 through V-cycles with presmoothing and repeated W- and F-cycle visits.
-F-cycles use a recursive F visit followed by a V visit.
+F-cycles use a recursive F visit followed by a V visit. Single-level cycles
+support nonzero levels; multilevel W/F require level zero. Multilevel V-cycles
+with presmoothing support nonzero coarsest levels when caller solution storage
+also exists on all lower levels. Ghost filling may modify the preceding level.
 <br>
 (Boyce Griffith, 2026/09/25)
