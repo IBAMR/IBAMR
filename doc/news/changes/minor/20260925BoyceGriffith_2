@@ -1,0 +1,4 @@
+New: IBTK::FACPreconditioner supports MU_CYCLE with a positive
+cycle_multiplicity setting, defaulting to two.
+<br>
+(Boyce Griffith, 2026/09/25)
