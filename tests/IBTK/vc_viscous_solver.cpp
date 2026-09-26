@@ -249,9 +249,7 @@ main(int argc, char* argv[])
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
         std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> U_nul_vecs(NDIM);
-        // PREP CHANGE (for a future #2012 replacement, not #2007): a nonzero diagonal shift (C != 0) removes
-        // the constant-velocity modes from the operator's actual nullspace, so attaching them and projecting
-        // them out of the RHS is only correct when C == 0.
+        // Constant velocity is a null mode of the periodic operator only when the diagonal shift is zero.
         const bool has_velocity_nullspace = periodic_shift.min() > 0 && input_db->getDouble("C") == 0.0;
         if (has_velocity_nullspace)
         {
@@ -371,10 +369,7 @@ main(int argc, char* argv[])
             }
         }
 
-        // PREP CHANGE (for a future #2012 replacement, not #2007): opt-in operator-generated RHS, so a
-        // shifted regression case can use a RHS that is compatible with the composite operator by
-        // construction, without altering any existing analytic-manufactured-solution test (default is
-        // unchanged, off).
+        // Optionally use a discrete manufactured RHS to measure algebraic solver error.
         if (input_db->getBoolWithDefault("use_discrete_rhs", false))
         {
             viscous_op.setHomogeneousBc(false);
@@ -439,12 +434,7 @@ main(int argc, char* argv[])
             out << "|e|_oo = " << e_max_norm << "\n";
             out << "|e|_2  = " << e_l2_norm << "\n";
             out << "|e|_1  = " << e_l1_norm << "\n";
-            // PREP CHANGE (for a future #2012 replacement, not #2007): the recomputed residual after fixed
-            // work is the sensitive discriminator for the ghost-correction bug on this shifted, well-posed
-            // configuration -- record it in the checked output, not just PETSc's own monitor stdout. Gated on
-            // the same use_discrete_rhs flag as the shifted RHS itself, so every existing test's checked
-            // output (3 lines) is completely unaffected -- caught during verification that writing these
-            // lines unconditionally would have broken #2012's own existing golden output.
+            // Record the independently recomputed residual for the discrete-RHS regression.
             if (input_db->getBoolWithDefault("use_discrete_rhs", false))
             {
                 out << "|r|_oo = " << r_max_norm << "\n";

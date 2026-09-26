@@ -1,13 +1,8 @@
-// PREP INPUT for a future #2012 replacement PR (not #2007's own regression -- see plans/pr2007_ci_failure_report.md).
-// Like vc_viscous_solver_2d.max_levels=2.input, but with a nonzero diagonal shift (C = -0.01, i.e.
-// epsilon^2 = 0.01 added to the positive-definite side of the operator) to avoid the known, separate spurious
-// constant-velocity nullspace of the periodic side-centered discretization, and an operator-generated RHS
-// (use_discrete_rhs = TRUE) so the RHS is compatible with the composite operator's range by construction. Runs
-// a FIXED five outer iterations (not driven to convergence) and records the recomputed residual after that
-// fixed work in the checked output file -- the sensitive discriminator for
-// PoissonFACPreconditionerStrategy::prolongErrorAndCorrect()'s coarse-fine ghost-cell handling, confirmed
-// directly: with the ghost-correction fix reverted, |r|_oo/|r|_2/|r|_1 after this fixed work are roughly 3x/2x
-// larger than with the fix present (see the investigation report for the exact figures).
+// Two-level, partially refined VC-viscous FAC regression with presmoothing. The nonzero diagonal
+// shift removes the expected constant-velocity nullspace of the unshifted periodic operator.
+// An operator-generated RHS isolates algebraic solver error. Residual norms after the iteration-limited solve
+// detect coarse-fine ghost corruption. Leaving operator scaling unset also exercises restriction with
+// the default empty scale array.
 
 // Scalar parameters
 C = -0.01

@@ -1,7 +1,5 @@
-Added: a shifted (nonzero diagonal coefficient) variant of the
-IBTK::VCSCViscousOpPointRelaxationFACOperator regression test, avoiding the
-known singular constant-velocity nullspace of the periodic side-centered
-discretization so this test exercises coarse-fine ghost handling on a
-well-posed problem.
+New: A shifted periodic regression for
+IBTK::VCSCViscousOpPointRelaxationFACOperator checks coarse-fine ghost handling
+without the unshifted operator's constant-velocity nullspace.
 <br>
 (Boyce Griffith, 2026/09/24)
