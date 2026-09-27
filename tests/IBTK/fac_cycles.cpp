@@ -170,7 +170,8 @@ public:
                            actual_residual.getComponentDescriptorIndex(0),
                            residual.getComponentDescriptorIndex(0),
                            true);
-        if (check_ops.maxNorm(actual_residual.getComponentDescriptorIndex(0)) != 0.0)
+        const double discrepancy = check_ops.L1Norm(actual_residual.getComponentDescriptorIndex(0));
+        if (!std::isfinite(discrepancy) || discrepancy != 0.0)
         {
             TBOX_ERROR("FAC prefix test: paired evaluations changed the actual residual\n");
         }
