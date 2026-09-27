@@ -129,7 +129,7 @@ public:
                     nonfinite += !std::isfinite((*a)(c())) || !std::isfinite((*z)(c())) || !std::isfinite((*u)(c()));
                     backing_difference = std::max(backing_difference, std::abs((*a)(c()) - (*z)(c())));
                     actual_change = std::max(actual_change, std::abs((*a)(c()) - (*u)(c())));
-                    zero_change = std::max(zero_change, std::abs((*z)(c()) - (*u)(c())));
+                    zero_change = std::max(zero_change, std::abs((*z)(c()) - (ln < lower ? (*u)(c()) : 0.0)));
                 }
                 if (ln >= lower)
                 {
