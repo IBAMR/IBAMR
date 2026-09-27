@@ -2,8 +2,8 @@ N = 8
 MAX_LEVELS = 2
 VERIFY_REGRID = TRUE
 IB_RULE = "BACKWARD_EULER"
-JAC_KERNEL = "IB_4"
-custom_kernel = FALSE
+JAC_KERNEL = "APP_CUSTOM"
+custom_kernel = TRUE
 IBHierarchyIntegrator {
    start_time = 0.0
    end_time = 0.0025
@@ -29,12 +29,13 @@ IBHierarchyIntegrator {
       initial_guess_nonzero = FALSE
       ksp_type = "preonly"
       pc_type = "shell"
-      shell_pc_type = "multiplicative"
-      shell_pc_subdomain_traversal = "FORWARD"
-      asm_subdomain_construction_mode = "COUPLING_AWARE"
-      coupling_aware_asm_patch_seed_type = "PRESSURE_CELL"
-      coupling_aware_asm_closure_policy = "RELAXED"
-      coupling_aware_asm_seed_stride = 1
+      subdomain_construction = "COUPLING_AWARE"
+      subdomain_relaxation {
+         composition = "MULTIPLICATIVE"
+         grouping = "RANK"
+         output = "FULL"
+         traversal = "FORWARD"
+      }
       }
       coarse_solver_max_iterations = 1
       coarse_solver_db {
