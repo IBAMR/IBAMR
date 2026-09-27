@@ -1,0 +1,12 @@
+fine_cells 4096 interface_markers 4
+edge_prolongation 2
+step 0 coarse_sync_change 2.025836596301e-01
+step 0 level 0 shared_edges 1968 copy_error 0.000000000000e+00
+step 0 level 1 shared_edges 544 copy_error 0.000000000000e+00
+step 0 level 0 depth 3 errors 2.220446049250e-15 2.220446049250e-16
+step 0 level 1 depth 3 errors 1.776356839400e-15 1.665334536938e-16
+step 1 coarse_sync_change 2.025836596301e-01
+step 1 level 0 shared_edges 1968 copy_error 0.000000000000e+00
+step 1 level 1 shared_edges 544 copy_error 0.000000000000e+00
+step 1 level 0 depth 3 errors 1.998401444325e-15 2.498001805407e-16
+step 1 level 1 depth 3 errors 1.776356839400e-15 2.220446049250e-16

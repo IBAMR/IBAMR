@@ -1,7 +1,9 @@
 // Copyright (c) 2026 by the IBAMR developers
 // This file is part of IBAMR and is distributed under the 3-clause BSD license.
 #include <ibtk/IBKernelEvaluatorTensorProduct.h>
+#include <ibtk/IBOperator.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/ib_kernel_evaluators.h>
 
@@ -9,6 +11,7 @@
 #include <tbox/MemoryDatabase.h>
 
 #include <CartesianPatchGeometry.h>
+#include <PatchDescriptor.h>
 #include <SideIterator.h>
 
 #include <algorithm>
@@ -17,6 +20,7 @@
 #include <iomanip>
 #include <numeric>
 #include <tuple>
+#include <vector>
 
 #include "cartesian_coupling.h"
 #include "coupling.h"
@@ -27,6 +31,249 @@
 namespace
 {
 using Mode = IBTK::Experimental::TensorProductMode;
+
+// Deliberately nonseparable, with nonzero support endpoints and const-only input.
+class EndpointEvaluator
+{
+public:
+    EndpointEvaluator() : d_coefficients(1 << NDIM)
+    {
+        for (std::size_t k = 0; k < d_coefficients.size(); ++k)
+        {
+            d_coefficients[k] = k + 1;
+        }
+    }
+    template <int Axis>
+    static constexpr std::array<std::size_t, NDIM> get_stencil_widths()
+    {
+        std::array<std::size_t, NDIM> widths;
+        widths.fill(2);
+        return widths;
+    }
+    template <int Axis, class Output, class Input>
+    Output evaluate(const std::array<Input, NDIM>&) const
+    {
+        Output weights{};
+        for (std::size_t k = 0; k < weights.size(); ++k)
+        {
+            weights[k] = d_coefficients[k];
+        }
+        return weights;
+    }
+    template <int Axis, class Output, class Input>
+    Output evaluate(std::array<Input, NDIM>&) const = delete;
+
+private:
+    std::vector<double> d_coefficients;
+};
+struct CopyOnlyEndpoint : EndpointEvaluator
+{
+    CopyOnlyEndpoint() = default;
+    CopyOnlyEndpoint(const CopyOnlyEndpoint&) = default;
+    CopyOnlyEndpoint(CopyOnlyEndpoint&&) = delete;
+};
+struct MoveOnlyEndpoint : EndpointEvaluator
+{
+    MoveOnlyEndpoint() = default;
+    MoveOnlyEndpoint(const MoveOnlyEndpoint&) = delete;
+    MoveOnlyEndpoint(MoveOnlyEndpoint&&) = default;
+};
+struct ConstFactors : IBKernelEvaluatorTensorProduct<IBKernelEvaluators::BSpline<2>>
+{
+    ConstFactors() : IBKernelEvaluatorTensorProduct(IBKernelEvaluators::BSpline<2>{})
+    {
+    }
+    using IBKernelEvaluatorTensorProduct::evaluateFactors;
+    template <int Axis, class Coefficient, class Input>
+    auto evaluateFactors(std::array<Input, NDIM>&) const = delete;
+};
+
+// A non-templated consumer retains and forwards a shared immutable handle.
+class OperatorConsumer
+{
+public:
+    explicit OperatorConsumer(IBOperator op) : d_operator(std::move(op))
+    {
+    }
+    const IBOperator& getOperator() const
+    {
+        return d_operator;
+    }
+
+private:
+    IBOperator d_operator;
+};
+
+void
+check_operator_contracts()
+{
+    const OperatorConsumer consumer = []
+    {
+        CopyOnlyEndpoint evaluator;
+        IBOperator op(evaluator);
+        return OperatorConsumer(op);
+    }();
+    const IBOperator moved(MoveOnlyEndpoint{});
+    const Pointer<Patch<NDIM>> patch = MatrixFreeTest::make_patch(8);
+    const Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
+    SideData<NDIM, double> field(patch->getBox(), 1, IntVector<NDIM>(4));
+    MatrixFreeTest::fill_field(field);
+    const std::array<int, 1> indices{ 0 };
+    double maximum_error = 0.0, tie_value = 0.0;
+    for (int neighbor : { -1, 0, 1 })
+    {
+        std::array<double, NDIM> positions;
+        hier::Index<NDIM> lower;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            const double tie = geometry->getXLower()[d] + (4.0 + (d == 0 ? 0.0 : 0.5)) * geometry->getDx()[d];
+            positions[d] = neighbor == 0 ? tie : std::nextafter(tie, neighbor < 0 ? -INFINITY : INFINITY);
+        }
+        // Use SAMRAI's physical-cell mapping; direct/assembled parity is checked
+        // independently with actual matrices in interpolation_utilities.
+        const hier::Index<NDIM> cell = IndexUtilities::getCellIndex(positions, geometry, patch->getBox());
+        for (int d = 0; d < NDIM; ++d)
+        {
+            const double center =
+                (cell(d) - patch->getBox().lower()(d) + 0.5) * geometry->getDx()[d] + geometry->getXLower()[d];
+            lower(d) = cell(d) - (d != 0 && positions[d] <= center ? 1 : 0);
+        }
+        double expected = 0.0;
+        for (int n = 0; n < (1 << NDIM); ++n)
+        {
+            hier::Index<NDIM> index = lower;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                index(d) += (n >> d) & 1;
+            }
+            expected += (n + 1) * field(SideIndex<NDIM>(index, 0, SideIndex<NDIM>::Lower));
+        }
+        for (const IBOperator* op : { &consumer.getOperator(), &moved })
+        {
+            double actual = -1.0;
+            op->interpolate<DataCentering::SIDE>(*patch, field, 0, 0, 0, positions, indices, {}, &actual);
+            TBOX_ASSERT(std::isfinite(actual));
+            maximum_error = std::max(maximum_error, std::abs(actual - expected));
+            if (neighbor == 0)
+            {
+                tie_value = actual;
+            }
+        }
+        const IBOperator factors{ ConstFactors{} };
+        double actual = 0.0;
+        factors.interpolate<DataCentering::SIDE>(*patch, field, 0, 0, 0, positions, indices, {}, &actual);
+        factors.spread<DataCentering::SIDE>(*patch, field, 0, 0, 0, positions, {}, {}, nullptr);
+    }
+    TBOX_ASSERT(maximum_error < 1.0e-12);
+    plog << "endpoint_ties max_error " << maximum_error << " tie_value " << tie_value << '\n';
+}
+
+// Check the real operator against physical hat-function weights, without using
+// the shared stencil helpers or the assembled operator's ratio convention.
+void
+check_signed_ratios()
+{
+    const hier::Box<NDIM> base_box(hier::Index<NDIM>(0), hier::Index<NDIM>(23));
+    hier::BoxArray<NDIM> domain(1);
+    domain[0] = base_box;
+    std::array<double, NDIM> x_lower, x_upper, position;
+    x_lower.fill(0.3);
+    x_upper.fill(2.7);
+    position.fill(1.13);
+    const Pointer<CartesianGridGeometry<NDIM>> grid =
+        new CartesianGridGeometry<NDIM>("signed_ratio_geometry", x_lower.data(), x_upper.data(), domain, false);
+    tbox::Array<tbox::Array<bool>> boundaries(NDIM);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        boundaries[d].resizeArray(2);
+        boundaries[d][0] = boundaries[d][1] = true;
+    }
+    const IBOperator op{ IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<2>{} } };
+    const std::array<int, 1> indices{ 0 };
+    const double force = 1.7;
+    for (const int ratio : { -2, 3 })
+    {
+        const hier::Box<NDIM> box = ratio < 0 ? hier::Box<NDIM>::coarsen(base_box, IntVector<NDIM>(-ratio)) :
+                                                hier::Box<NDIM>::refine(base_box, IntVector<NDIM>(ratio));
+        const Pointer<Patch<NDIM>> patch = new Patch<NDIM>(box, new PatchDescriptor<NDIM>());
+        tbox::Array<tbox::Array<bool>> periodic_boundaries(NDIM);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            periodic_boundaries[d].resizeArray(2);
+            periodic_boundaries[d][0] = periodic_boundaries[d][1] = false;
+        }
+        grid->setGeometryDataOnPatch(*patch, IntVector<NDIM>(ratio), boundaries, periodic_boundaries);
+        const Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
+        SideData<NDIM, double> field(box, 1, IntVector<NDIM>(0)), spread(box, 1, IntVector<NDIM>(0));
+        const double dx = (x_upper[0] - x_lower[0]) / box.numberCells(0);
+        const double volume = std::pow(dx, NDIM);
+        if (!std::isfinite(volume) || volume <= 0.0)
+        {
+            TBOX_ERROR("Invalid volume in signed-ratio regression.\n");
+        }
+        double gather_error = 0.0, spread_error = 0.0, mass_error = 0.0, adjoint_error = 0.0;
+        TBOX_ASSERT(geometry->getRatio() == IntVector<NDIM>(ratio));
+        for (int d = 0; d < NDIM; ++d)
+        {
+            TBOX_ASSERT(geometry->getDx()[d] > 0.0);
+            TBOX_ASSERT(std::abs(geometry->getDx()[d] - dx) < 1.0e-14);
+        }
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            double expected = 0.0;
+            for (SideIterator<NDIM> i(box, axis); i; i++)
+            {
+                double value = 1.0, weight = 1.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    const double x = x_lower[d] + (i()(d) + (d == axis ? 0.0 : 0.5)) * dx;
+                    value += (d + 1) * x * x;
+                    weight *= std::max(0.0, 1.0 - std::abs(position[d] - x) / dx);
+                }
+                field(i()) = value;
+                expected += weight * value;
+            }
+            double actual = 0.0;
+            op.interpolate<DataCentering::SIDE>(*patch, field, axis, 0, axis, position, indices, {}, &actual, 1, grid);
+            if (!std::isfinite(actual) || !std::isfinite(expected))
+            {
+                TBOX_ERROR("Nonfinite gather in signed-ratio regression.\n");
+            }
+            spread.fillAll(0.0);
+            op.spread<DataCentering::SIDE>(*patch, spread, axis, 0, axis, position, indices, {}, &force, 1, grid);
+            double mass = 0.0, pairing = 0.0;
+            for (SideIterator<NDIM> i(box, axis); i; i++)
+            {
+                double weight = 1.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    const double x = x_lower[d] + (i()(d) + (d == axis ? 0.0 : 0.5)) * dx;
+                    weight *= std::max(0.0, 1.0 - std::abs(position[d] - x) / dx);
+                }
+                if (!std::isfinite(spread(i())) || !std::isfinite(weight) ||
+                    !std::isfinite(volume * spread(i()) - force * weight))
+                {
+                    TBOX_ERROR("Nonfinite spread in signed-ratio regression.\n");
+                }
+                spread_error = std::max(spread_error, std::abs(volume * spread(i()) - force * weight));
+                mass += volume * spread(i());
+                pairing += volume * spread(i()) * field(i());
+            }
+            if (!std::isfinite(mass) || !std::isfinite(pairing) || !std::isfinite(actual - expected) ||
+                !std::isfinite(mass - force) || !std::isfinite(pairing - force * actual))
+            {
+                TBOX_ERROR("Nonfinite reduction in signed-ratio regression.\n");
+            }
+            gather_error = std::max(gather_error, std::abs(actual - expected));
+            mass_error = std::max(mass_error, std::abs(mass - force));
+            adjoint_error = std::max(adjoint_error, std::abs(pairing - force * actual));
+        }
+        plog << "ratio " << ratio << " dx " << dx << " errors " << gather_error << ' ' << spread_error << ' '
+             << mass_error << ' ' << adjoint_error << std::endl;
+        TBOX_ASSERT(gather_error < 1.0e-11 && spread_error < 1.0e-11 && mass_error < 1.0e-11 &&
+                    adjoint_error < 1.0e-11);
+    }
+}
 
 template <class Evaluator>
 void
@@ -296,6 +543,16 @@ main(int argc, char** argv)
     {
         Pointer<MemoryDatabase> input = new MemoryDatabase("input");
         InputManager::getManager()->parseInputFile(argv[1], input);
+        if (input->getBoolWithDefault("test_signed_ratios", false))
+        {
+            check_signed_ratios();
+            return 0;
+        }
+        if (input->getBoolWithDefault("test_operator_contracts", false))
+        {
+            check_operator_contracts();
+            return 0;
+        }
         if (input->getBoolWithDefault("test_centerings", false))
         {
             MatrixFreeTest::check_cartesian_coupling();

@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    LDataManager: insufficient ghost cells for matrix-free cell/node coupling.
+

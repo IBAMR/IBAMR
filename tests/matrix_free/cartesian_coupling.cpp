@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/CartesianCentering.h>
+#include <ibtk/IBOperator.h>
 
 #include <tbox/Array.h>
 
@@ -254,6 +255,38 @@ check_axis(const std::string& name, const Evaluator& evaluator, const bool parti
         evaluator, selected_pointer(*field), positions, indices, shifts, values.data(), 1);
     coupling.template spreadAxis<Axis, double, Application, KernelAxis>(
         evaluator, selected_pointer(*spread), positions, indices, shifts, force.data(), 1);
+    const IBTK::IBOperator op = name == "COSINE_4" ? IBTK::IBOperator(MatrixFreeTest::CartesianCosineKernel{}) :
+                                                     IBTK::IBOperator(IBTK::IBKernelTensorProduct(name));
+    const std::unique_ptr<Data> handle_spread = make_data();
+    handle_spread->fillAll(initial_spread);
+    std::array<double, 18> handle_values, handle_force;
+    handle_values.fill(-17.0);
+    handle_force.fill(-99.0);
+    for (int k = 0; k < 6; ++k)
+    {
+        handle_force[3 * k + 1] = force[k];
+    }
+    op.template interpolate<C>(
+        *patch, *field, Axis, 1, KernelAxis, positions, indices, shifts, handle_values.data() + 1, 3);
+    op.template spread<C>(
+        *patch, *handle_spread, Axis, 1, KernelAxis, positions, indices, shifts, handle_force.data() + 1, 3);
+    op.template interpolate<C>(*patch, *field, Axis, 1, KernelAxis, {}, {}, {}, nullptr);
+    op.template spread<C>(*patch, *handle_spread, Axis, 1, KernelAxis, {}, {}, {}, nullptr);
+    for (int k = 0; k < 6; ++k)
+    {
+        TBOX_ASSERT(std::isfinite(handle_values[3 * k + 1]));
+        TBOX_ASSERT(std::abs(handle_values[3 * k + 1] - values[k]) < 1.0e-12);
+        TBOX_ASSERT(handle_values[3 * k] == -17.0 && handle_values[3 * k + 2] == -17.0);
+        values[k] = handle_values[3 * k + 1];
+    }
+    visit_grid<C>(field->getGhostBox(),
+                  Axis,
+                  [&](const auto& index, const hier::Index<NDIM>&)
+                  {
+                      TBOX_ASSERT(std::isfinite((*handle_spread)(index, 1)));
+                      TBOX_ASSERT(std::abs((*handle_spread)(index, 1) - (*spread)(index, 1)) < 1.0e-10);
+                      (*spread)(index, 1) = (*handle_spread)(index, 1);
+                  });
     double volume = 1.0;
     for (int d = 0; d < NDIM; ++d)
     {
@@ -329,6 +362,11 @@ check_axis(const std::string& name, const Evaluator& evaluator, const bool parti
                       axis,
                       [&](const auto& index, const hier::Index<NDIM>& cartesian)
                       {
+                          for (int depth = 0; depth < 3; ++depth)
+                          {
+                              TBOX_ASSERT(std::isfinite((*handle_spread)(index, depth)));
+                              TBOX_ASSERT(std::abs((*handle_spread)(index, depth) - (*spread)(index, depth)) < 1.0e-10);
+                          }
                           if ((*field)(index, 0) != -4.25 || (*field)(index, 1) != field_value(cartesian, axis) ||
                               (*field)(index, 2) != -9.5 || (*spread)(index, 0) != initial_spread ||
                               (*spread)(index, 2) != initial_spread ||

@@ -1,0 +1,22 @@
+direct_assembly = TRUE
+Main {
+ log_file_name = "output"
+ log_all_nodes = FALSE
+}
+CartesianGeometry {
+ domain_boxes = [(0,0), (9,9)]
+ x_lo = 0,0
+ x_up = 1,1
+ periodic_dimension = 0,0
+}
+GriddingAlgorithm {
+ max_levels = 1
+ largest_patch_size { level_0 = 10,10 }
+ smallest_patch_size { level_0 = 10,10 }
+}
+StandardTagAndInitialize {
+ tagging_method = "REFINE_BOXES"
+ RefineBoxes { }
+}
+LoadBalancer { }
+direct_position = 0.6,0.65

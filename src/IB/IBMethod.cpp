@@ -162,12 +162,14 @@ IBMethod::IBMethod(std::string object_name, Pointer<Database> input_db, bool reg
     }
 
     // Get the Lagrangian Data Manager.
-    d_l_data_manager = LDataManager::getManager(d_object_name + "::LDataManager",
-                                                d_interp_kernel_fcn,
-                                                d_spread_kernel_fcn,
-                                                d_error_if_points_leave_domain,
-                                                d_ghosts,
-                                                d_registered_for_restart);
+    d_l_data_manager =
+        LDataManager::getManager(d_object_name + "::LDataManager",
+                                 d_interp_kernel_fcn,
+                                 d_spread_kernel_fcn,
+                                 d_error_if_points_leave_domain,
+                                 d_ghosts,
+                                 d_registered_for_restart,
+                                 input_db && input_db->getBoolWithDefault("use_matrix_free_ib_operator", false));
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.

@@ -151,6 +151,130 @@ static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
+
+/*! \brief Apply one side or edge vector using the manager's cached local PETSc numbering. */
+template <DataCentering C, bool Spread>
+void
+apply_vector_operator(const IBOperator& op,
+                      const int required_ghosts,
+                      Patch<NDIM>& patch,
+                      typename CartesianCentering<C>::template Data<double>& field,
+                      LData& values,
+                      LData& positions,
+                      const LNodeSetData& index_data,
+                      const CartesianGridGeometry<NDIM>& grid_geometry)
+{
+    static_assert(C == DataCentering::SIDE || C == DataCentering::EDGE);
+    if constexpr (C == DataCentering::EDGE && NDIM != 3)
+    {
+        TBOX_ERROR("LDataManager: matrix-free edge coupling requires NDIM == 3.\n");
+    }
+    if (field.getDepth() != 1 || values.getDepth() != NDIM || positions.getDepth() != NDIM)
+    {
+        TBOX_ERROR(
+            "LDataManager: " << (C == DataCentering::SIDE ? "side" : "edge")
+                             << " coupling requires a depth-one field and NDIM marker components and positions.\n");
+    }
+    const Pointer<CartesianPatchGeometry<NDIM>> geometry = patch.getPatchGeometry();
+    if ((!Spread || geometry->getTouchesRegularBoundary()) && field.getGhostCellWidth().min() < required_ghosts)
+    {
+        TBOX_ERROR("LDataManager: insufficient ghost cells for matrix-free "
+                   << (C == DataCentering::SIDE ? "side" : "edge") << " coupling.\n");
+    }
+    const std::vector<int>& indices =
+        Spread ? index_data.getLocalPETScIndices() : index_data.getInteriorLocalPETScIndices();
+    const std::vector<double>& shifts =
+        Spread ? index_data.getPeriodicShifts() : index_data.getInteriorPeriodicShifts();
+    if (!indices.empty())
+    {
+        boost::multi_array_ref<double, 2>& X = *positions.getGhostedLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& Q = *values.getGhostedLocalFormVecArray();
+        const std::span<const double> coordinates(X.data(), X.num_elements());
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            if constexpr (Spread)
+            {
+                op.spread<C>(
+                    patch, field, axis, 0, axis, coordinates, indices, shifts, Q.data() + axis, NDIM, &grid_geometry);
+            }
+            else
+            {
+                op.interpolate<C>(
+                    patch, field, axis, 0, axis, coordinates, indices, shifts, Q.data() + axis, NDIM, &grid_geometry);
+            }
+        }
+    }
+    values.restoreArrays();
+    positions.restoreArrays();
+}
+/*! \brief Apply cell or node components using cached local PETSc numbering. */
+template <DataCentering C, bool Spread>
+void
+apply_component_operator(const IBOperator& op,
+                         const int required_ghosts,
+                         Patch<NDIM>& patch,
+                         typename CartesianCentering<C>::template Data<double>& field,
+                         LData& values,
+                         LData& positions,
+                         const LNodeSetData& index_data,
+                         const CartesianGridGeometry<NDIM>& grid_geometry)
+{
+    static_assert(C == DataCentering::CELL || C == DataCentering::NODE);
+    if (field.getDepth() < 1 || values.getDepth() != static_cast<unsigned int>(field.getDepth()) ||
+        positions.getDepth() != NDIM)
+    {
+        TBOX_ERROR(
+            "LDataManager: cell/node coupling requires equal positive field and marker depths and NDIM positions.\n");
+    }
+    const Pointer<CartesianPatchGeometry<NDIM>> geometry = patch.getPatchGeometry();
+    if ((!Spread || geometry->getTouchesRegularBoundary()) && field.getGhostCellWidth().min() < required_ghosts)
+    {
+        TBOX_ERROR("LDataManager: insufficient ghost cells for matrix-free cell/node coupling.\n");
+    }
+    const std::vector<int>& indices =
+        Spread ? index_data.getLocalPETScIndices() : index_data.getInteriorLocalPETScIndices();
+    const std::vector<double>& shifts =
+        Spread ? index_data.getPeriodicShifts() : index_data.getInteriorPeriodicShifts();
+    if (!indices.empty())
+    {
+        boost::multi_array_ref<double, 2>& X = *positions.getGhostedLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& Q = *values.getGhostedLocalFormVecArray();
+        const std::span<const double> coordinates(X.data(), X.num_elements());
+        for (int c = 0; c < field.getDepth(); ++c)
+        {
+            if constexpr (Spread)
+            {
+                op.spread<C>(patch,
+                             field,
+                             0,
+                             c,
+                             0,
+                             coordinates,
+                             indices,
+                             shifts,
+                             Q.data() + c,
+                             values.getDepth(),
+                             &grid_geometry);
+            }
+            else
+            {
+                op.interpolate<C>(patch,
+                                  field,
+                                  0,
+                                  c,
+                                  0,
+                                  coordinates,
+                                  indices,
+                                  shifts,
+                                  Q.data() + c,
+                                  values.getDepth(),
+                                  &grid_geometry);
+            }
+        }
+    }
+    values.restoreArrays();
+    positions.restoreArrays();
+}
 } // namespace
 
 const std::string LDataManager::POSN_DATA_NAME = "X";
@@ -165,25 +289,42 @@ LDataManager*
 LDataManager::getManager(const std::string& name,
                          const std::string& default_interp_kernel_fcn,
                          const std::string& default_spread_kernel_fcn,
-                         bool error_if_points_leave_domain,
+                         const bool error_if_points_leave_domain,
                          const IntVector<NDIM>& min_ghost_width,
-                         bool register_for_restart)
+                         const bool register_for_restart,
+                         const bool use_matrix_free)
 {
-    // Validate the kernel choices.
-    TBOX_ASSERT(LEInteractor::isKnownKernel(default_interp_kernel_fcn));
-    TBOX_ASSERT(LEInteractor::isKnownKernel(default_spread_kernel_fcn));
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
-        const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
-            min_ghost_width,
-            IntVector<NDIM>(std::max(LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
-                                     LEInteractor::getMinimumGhostWidth(default_spread_kernel_fcn))));
+        std::optional<IBOperator> interpolation, spreading;
+        const auto configure = [use_matrix_free](const std::string& name, std::optional<IBOperator>& op)
+        {
+            const IBKernelTensorProduct kernel(name);
+            const bool legacy = LEInteractor::isKnownKernel(kernel);
+            if (use_matrix_free && IBOperator::is_built_in(kernel))
+            {
+                op.emplace(kernel);
+            }
+            if (!legacy && !op)
+            {
+                TBOX_ERROR("LDataManager: unsupported IB kernel " << kernel << ".\n");
+            }
+            return std::max(legacy ? LEInteractor::getMinimumGhostWidth(kernel) : 0,
+                            op ? op->getMinimumGhostWidth() : 0);
+        };
+        const int interpolation_width = configure(default_interp_kernel_fcn, interpolation);
+        const int spreading_width = configure(default_spread_kernel_fcn, spreading);
+        const IntVector<NDIM> ghost_width =
+            IntVector<NDIM>::max(min_ghost_width, IntVector<NDIM>(std::max(interpolation_width, spreading_width)));
         s_data_manager_instances[name] = new LDataManager(name,
                                                           default_interp_kernel_fcn,
                                                           default_spread_kernel_fcn,
                                                           error_if_points_leave_domain,
                                                           ghost_width,
-                                                          register_for_restart);
+                                                          register_for_restart,
+                                                          std::move(interpolation),
+                                                          std::move(spreading),
+                                                          use_matrix_free);
     }
     if (!s_registered_callback)
     {
@@ -191,7 +332,38 @@ LDataManager::getManager(const std::string& name,
         s_registered_callback = true;
     }
     return s_data_manager_instances[name];
-} // getManager
+}
+
+LDataManager*
+LDataManager::getManager(const std::string& name,
+                         const IBOperator& interpolation,
+                         const IBOperator& spreading,
+                         const bool error_if_points_leave_domain,
+                         const IntVector<NDIM>& min_ghost_width,
+                         const bool register_for_restart)
+{
+    if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
+    {
+        const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
+            min_ghost_width,
+            IntVector<NDIM>(std::max(interpolation.getMinimumGhostWidth(), spreading.getMinimumGhostWidth())));
+        s_data_manager_instances[name] = new LDataManager(name,
+                                                          "",
+                                                          "",
+                                                          error_if_points_leave_domain,
+                                                          ghost_width,
+                                                          register_for_restart,
+                                                          interpolation,
+                                                          spreading,
+                                                          true);
+    }
+    if (!s_registered_callback)
+    {
+        ShutdownRegistry::registerShutdownRoutine(freeAllManagers, s_shutdown_priority);
+        s_registered_callback = true;
+    }
+    return s_data_manager_instances[name];
+}
 
 void
 LDataManager::freeAllManagers()
@@ -406,9 +578,6 @@ LDataManager::spread(const int f_data_idx,
                      const int finest_ln_in)
 {
     IBTK_TIMER_START(t_spread);
-#ifndef NDEBUG
-    TBOX_ASSERT(LEInteractor::isKnownKernel(spread_kernel_fcn));
-#endif
 
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -562,10 +731,32 @@ LDataManager::spread(const int f_data_idx,
                      const int finest_ln_in)
 {
     IBTK_TIMER_START(t_spread);
-    const IBKernelTensorProduct spread_kernel(spread_kernel_fcn);
-    if (!LEInteractor::isKnownKernel(spread_kernel))
+    std::optional<IBKernelTensorProduct> spread_kernel;
+    if (!spread_kernel_fcn.empty())
     {
-        TBOX_ERROR("LDataManager::spread():\n  unsupported IB kernel " << spread_kernel << ".\n");
+        spread_kernel.emplace(spread_kernel_fcn);
+    }
+    std::optional<IBOperator> override_operator;
+    const IBOperator* spread_operator = d_spreading_operator ? &*d_spreading_operator : nullptr;
+    if (spread_kernel_fcn != d_default_spread_kernel_fcn)
+    {
+        spread_operator = nullptr;
+        if (d_use_matrix_free && spread_kernel && IBOperator::is_built_in(*spread_kernel))
+        {
+            override_operator.emplace(*spread_kernel);
+            spread_operator = &*override_operator;
+        }
+    }
+    const bool legacy_spread = spread_kernel && LEInteractor::isKnownKernel(*spread_kernel);
+    if (!legacy_spread && !spread_operator)
+    {
+        TBOX_ERROR("LDataManager::spread(): unsupported IB kernel.\n");
+    }
+    const int spread_ghosts = std::max(legacy_spread ? LEInteractor::getMinimumGhostWidth(*spread_kernel) : 0,
+                                       spread_operator ? spread_operator->getMinimumGhostWidth() : 0);
+    if (d_use_matrix_free && spread_ghosts > d_ghost_width.min())
+    {
+        TBOX_ERROR("LDataManager: configured ghost width does not cover the spreading kernel override.\n");
     }
 
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
@@ -590,6 +781,10 @@ LDataManager::spread(const int f_data_idx,
     const bool nc_data = f_nc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || ec_data || nc_data || sc_data);
+    if (!(cc_data || ec_data || nc_data || sc_data) && !legacy_spread)
+    {
+        TBOX_ERROR("LDataManager: this evaluator requires cell-, edge-, node-, or side-centered data.\n");
+    }
 
     // Make a copy of the Eulerian data.
     const auto f_copy_data_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx);
@@ -634,26 +829,82 @@ LDataManager::spread(const int f_data_idx,
             if (cc_data)
             {
                 Pointer<CellData<NDIM, double>> f_cc_data = f_data;
-                LEInteractor::spread(
-                    f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel);
+                if (spread_operator)
+                {
+                    apply_component_operator<DataCentering::CELL, true>(*spread_operator,
+                                                                        spread_ghosts,
+                                                                        *patch,
+                                                                        *f_cc_data,
+                                                                        *F_data[ln],
+                                                                        *X_data[ln],
+                                                                        *idx_data,
+                                                                        *grid_geom);
+                }
+                else
+                {
+                    LEInteractor::spread(
+                        f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, *spread_kernel);
+                }
             }
             if (ec_data)
             {
                 Pointer<EdgeData<NDIM, double>> f_ec_data = f_data;
-                LEInteractor::spread(
-                    f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel);
+                if (spread_operator)
+                {
+                    apply_vector_operator<DataCentering::EDGE, true>(*spread_operator,
+                                                                     spread_ghosts,
+                                                                     *patch,
+                                                                     *f_ec_data,
+                                                                     *F_data[ln],
+                                                                     *X_data[ln],
+                                                                     *idx_data,
+                                                                     *grid_geom);
+                }
+                else
+                {
+                    LEInteractor::spread(
+                        f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, *spread_kernel);
+                }
             }
             if (nc_data)
             {
                 Pointer<NodeData<NDIM, double>> f_nc_data = f_data;
-                LEInteractor::spread(
-                    f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel);
+                if (spread_operator)
+                {
+                    apply_component_operator<DataCentering::NODE, true>(*spread_operator,
+                                                                        spread_ghosts,
+                                                                        *patch,
+                                                                        *f_nc_data,
+                                                                        *F_data[ln],
+                                                                        *X_data[ln],
+                                                                        *idx_data,
+                                                                        *grid_geom);
+                }
+                else
+                {
+                    LEInteractor::spread(
+                        f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, *spread_kernel);
+                }
             }
             if (sc_data)
             {
                 Pointer<SideData<NDIM, double>> f_sc_data = f_data;
-                LEInteractor::spread(
-                    f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel);
+                if (spread_operator)
+                {
+                    apply_vector_operator<DataCentering::SIDE, true>(*spread_operator,
+                                                                     spread_ghosts,
+                                                                     *patch,
+                                                                     *f_sc_data,
+                                                                     *F_data[ln],
+                                                                     *X_data[ln],
+                                                                     *idx_data,
+                                                                     *grid_geom);
+                }
+                else
+                {
+                    LEInteractor::spread(
+                        f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, *spread_kernel);
+                }
             }
             if (f_phys_bdry_op)
             {
@@ -711,11 +962,14 @@ LDataManager::interp(const int f_data_idx,
                      const int finest_ln_in)
 {
     IBTK_TIMER_START(t_interp);
-    const IBKernelTensorProduct interp_kernel(d_default_interp_kernel_fcn);
-    if (!LEInteractor::isKnownKernel(interp_kernel))
+    std::optional<IBKernelTensorProduct> interp_kernel;
+    if (!d_default_interp_kernel_fcn.empty())
     {
-        TBOX_ERROR("LDataManager::interp():\n  unsupported IB kernel " << interp_kernel << ".\n");
+        interp_kernel.emplace(d_default_interp_kernel_fcn);
     }
+    const bool legacy_interp = interp_kernel && LEInteractor::isKnownKernel(*interp_kernel);
+    const int interp_ghosts = std::max(legacy_interp ? LEInteractor::getMinimumGhostWidth(*interp_kernel) : 0,
+                                       d_interpolation_operator ? d_interpolation_operator->getMinimumGhostWidth() : 0);
 
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -733,6 +987,10 @@ LDataManager::interp(const int f_data_idx,
     const bool nc_data = f_nc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || ec_data || nc_data || sc_data);
+    if (!legacy_interp && (!(cc_data || ec_data || nc_data || sc_data) || !d_interpolation_operator))
+    {
+        TBOX_ERROR("LDataManager: this evaluator requires cell-, edge-, node-, or side-centered data.\n");
+    }
 
     // Synchronize Eulerian values.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -764,26 +1022,82 @@ LDataManager::interp(const int f_data_idx,
             if (cc_data)
             {
                 Pointer<CellData<NDIM, double>> f_cc_data = f_data;
-                LEInteractor::interpolate(
-                    F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, interp_kernel);
+                if (d_interpolation_operator)
+                {
+                    apply_component_operator<DataCentering::CELL, false>(*d_interpolation_operator,
+                                                                         interp_ghosts,
+                                                                         *patch,
+                                                                         *f_cc_data,
+                                                                         *F_data[ln],
+                                                                         *X_data[ln],
+                                                                         *idx_data,
+                                                                         *grid_geom);
+                }
+                else
+                {
+                    LEInteractor::interpolate(
+                        F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, *interp_kernel);
+                }
             }
             if (ec_data)
             {
                 Pointer<EdgeData<NDIM, double>> f_ec_data = f_data;
-                LEInteractor::interpolate(
-                    F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, interp_kernel);
+                if (d_interpolation_operator)
+                {
+                    apply_vector_operator<DataCentering::EDGE, false>(*d_interpolation_operator,
+                                                                      interp_ghosts,
+                                                                      *patch,
+                                                                      *f_ec_data,
+                                                                      *F_data[ln],
+                                                                      *X_data[ln],
+                                                                      *idx_data,
+                                                                      *grid_geom);
+                }
+                else
+                {
+                    LEInteractor::interpolate(
+                        F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift, *interp_kernel);
+                }
             }
             if (nc_data)
             {
                 Pointer<NodeData<NDIM, double>> f_nc_data = f_data;
-                LEInteractor::interpolate(
-                    F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, interp_kernel);
+                if (d_interpolation_operator)
+                {
+                    apply_component_operator<DataCentering::NODE, false>(*d_interpolation_operator,
+                                                                         interp_ghosts,
+                                                                         *patch,
+                                                                         *f_nc_data,
+                                                                         *F_data[ln],
+                                                                         *X_data[ln],
+                                                                         *idx_data,
+                                                                         *grid_geom);
+                }
+                else
+                {
+                    LEInteractor::interpolate(
+                        F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, *interp_kernel);
+                }
             }
             if (sc_data)
             {
                 Pointer<SideData<NDIM, double>> f_sc_data = f_data;
-                LEInteractor::interpolate(
-                    F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, interp_kernel);
+                if (d_interpolation_operator)
+                {
+                    apply_vector_operator<DataCentering::SIDE, false>(*d_interpolation_operator,
+                                                                      interp_ghosts,
+                                                                      *patch,
+                                                                      *f_sc_data,
+                                                                      *F_data[ln],
+                                                                      *X_data[ln],
+                                                                      *idx_data,
+                                                                      *grid_geom);
+                }
+                else
+                {
+                    LEInteractor::interpolate(
+                        F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, *interp_kernel);
+                }
             }
         }
     }
@@ -2820,11 +3134,17 @@ LDataManager::LDataManager(std::string object_name,
                            std::string default_spread_kernel_fcn,
                            bool error_if_points_leave_domain,
                            IntVector<NDIM> ghost_width,
-                           bool register_for_restart)
+                           bool register_for_restart,
+                           std::optional<IBOperator> interpolation,
+                           std::optional<IBOperator> spreading,
+                           bool use_matrix_free)
     : d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
       d_default_interp_kernel_fcn(std::move(default_interp_kernel_fcn)),
       d_default_spread_kernel_fcn(std::move(default_spread_kernel_fcn)),
+      d_interpolation_operator(std::move(interpolation)),
+      d_spreading_operator(std::move(spreading)),
+      d_use_matrix_free(use_matrix_free),
       d_error_if_points_leave_domain(error_if_points_leave_domain),
       d_ghost_width(std::move(ghost_width))
 {

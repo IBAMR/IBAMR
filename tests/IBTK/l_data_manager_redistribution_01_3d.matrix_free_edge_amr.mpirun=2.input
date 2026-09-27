@@ -1,0 +1,23 @@
+component_centering = "EDGE"
+custom = TRUE
+kernel = "COMPOSITE_BSPLINE_32"
+spread_override = ""
+Main { log_file_name = "output" log_all_nodes = FALSE }
+CartesianGeometry {
+ domain_boxes = [(0,0,0),(15,15,15)]
+ x_lo = 0,0,0
+ x_up = 1,1,1
+ periodic_dimension = 1,1,1
+}
+GriddingAlgorithm {
+ max_levels = 2
+ ratio_to_coarser { level_1 = 2,2,2 }
+ largest_patch_size { level_0 = 8,16,16 }
+ smallest_patch_size { level_0 = 4,4,4 }
+}
+LoadBalancer { bin_pack_method = "SPATIAL" max_workload_factor = 1 }
+two_levels = TRUE
+StandardTagAndInitialize {
+ tagging_method = "REFINE_BOXES"
+ RefineBoxes { level_0 = [(4,4,4),(11,11,11)] }
+}

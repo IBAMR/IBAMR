@@ -20,6 +20,7 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBOperator.h>
 #include <ibtk/LInitStrategy.h>
 #include <ibtk/LNodeSet.h>
 #include <ibtk/LNodeSetVariable.h>
@@ -50,6 +51,7 @@
 #include <VisItDataWriter.h>
 
 #include <map>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -207,12 +209,38 @@ public:
      * \return A pointer to the data manager instance.
      *
      * \note By default, the ghost cell width is set according to the
-     * interpolation and spreading kernel functions.
+     * interpolation and spreading kernel functions. With use_matrix_free enabled,
+     * supported cell-, node-, side-, and 3D edge-centered kernels use IBOperator; other
+     * legacy kernels retain LEInteractor. This choice must be made on first access, before geometry setup.
+     * Matrix-free coupling requires a single-box physical domain.
      */
     static LDataManager*
     getManager(const std::string& name,
                const std::string& default_interp_kernel_fcn,
                const std::string& default_spread_kernel_fcn,
+               bool error_if_points_leave_domain = false,
+               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               bool register_for_restart = true,
+               bool use_matrix_free = false);
+
+    /*!
+     * \brief Create a cell-, node-, side-, or 3D edge-centered matrix-free manager sharing the supplied evaluators.
+     *
+     * Call before variable registration and grid geometry setup. Custom handles
+     * have no legacy centering fallback. Callers must supply the same handles when
+     * recreating a manager for restart; evaluator state is not serialized.
+     * Cell/node fields and marker values require equal positive depths; kernel
+     * orientation is zero for every component. Side and edge fields require depth one and
+     * NDIM marker components. Edge coupling is restricted to 3D and uses the edge
+     * tangent as the kernel orientation. Positions always have depth NDIM.
+     * No edge physical-boundary fill or specialized coarse/fine interpolation
+     * is provided by this manager.
+     * The grid geometry must have a single-box physical domain.
+     */
+    static LDataManager*
+    getManager(const std::string& name,
+               const IBOperator& interpolation,
+               const IBOperator& spreading,
                bool error_if_points_leave_domain = false,
                const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
                bool register_for_restart = true);
@@ -1018,7 +1046,10 @@ protected:
                  std::string default_spread_kernel_fcn,
                  bool error_if_points_leave_domain,
                  SAMRAI::hier::IntVector<NDIM> ghost_width,
-                 bool register_for_restart = true);
+                 bool register_for_restart = true,
+                 std::optional<IBOperator> interpolation = std::nullopt,
+                 std::optional<IBOperator> spreading = std::nullopt,
+                 bool use_matrix_free = false);
 
     /*!
      * \brief The LDataManager destructor cleans up any remaining PETSc AO
@@ -1215,6 +1246,8 @@ private:
      */
     const std::string d_default_interp_kernel_fcn;
     const std::string d_default_spread_kernel_fcn;
+    const std::optional<IBOperator> d_interpolation_operator, d_spreading_operator;
+    const bool d_use_matrix_free;
 
     /*
      * Whether to emit an error message if IB points "escape" from the computational

@@ -11,37 +11,59 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBTK_Experimental_CartesianCoupling_inl
-#define included_IBTK_Experimental_CartesianCoupling_inl
+#ifndef included_IBTK_detail_CartesianCoupling_inl
+#define included_IBTK_detail_CartesianCoupling_inl
 
 #include <ibtk/config.h>
 
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/private/CartesianCoupling.h>
+#include <ibtk/private/IBStencilUtilities.h>
+
 #include <tbox/Utilities.h>
 
-#include <CartesianCoupling.h>
 #include <CartesianPatchGeometry.h>
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <tuple>
+#include <utility>
 
-namespace IBTK::Experimental
+namespace IBTK::detail
 {
 template <DataCentering C>
 inline CartesianCoupling<C>::CartesianCoupling(const SAMRAI::hier::Patch<NDIM>& patch,
-                                               const typename CartesianCentering<C>::template Data<double>& field)
+                                               const typename CartesianCentering<C>::template Data<double>& field,
+                                               const SAMRAI::geom::CartesianGridGeometry<NDIM>* const grid_geometry)
 {
     if (field.getDepth() < 1 || field.getBox() != patch.getBox())
     {
         TBOX_ERROR("CartesianCoupling requires a positive-depth field on the patch box.\n");
     }
     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM>> geometry = patch.getPatchGeometry();
+    SAMRAI::hier::Box<NDIM> domain = patch.getBox();
+    if (grid_geometry)
+    {
+        if (grid_geometry->getPhysicalDomain().size() != 1)
+        {
+            TBOX_ERROR("CartesianCoupling: grid geometry must have a single-box physical domain.\n");
+        }
+        domain = SAMRAI::hier::Box<NDIM>::refine(grid_geometry->getPhysicalDomain()[0], geometry->getRatio());
+    }
+    d_domain_lower = domain.lower();
+    d_domain_upper = domain.upper();
     for (int d = 0; d < NDIM; ++d)
     {
         d_dx[d] = geometry->getDx()[d];
-        d_x_lower[d] = geometry->getXLower()[d];
-        d_patch_lower[d] = patch.getBox().lower()(d);
+        if (grid_geometry)
+        {
+            // SAMRAI uses negative ratios for patches coarser than the reference grid.
+            const double ratio = static_cast<double>(geometry->getRatio()(d));
+            d_dx[d] = ratio < 0.0 ? grid_geometry->getDx()[d] * (-ratio) : grid_geometry->getDx()[d] / ratio;
+        }
+        d_x_lower[d] = grid_geometry ? grid_geometry->getXLower()[d] : geometry->getXLower()[d];
+        d_x_upper[d] = grid_geometry ? grid_geometry->getXUpper()[d] : geometry->getXUpper()[d];
         d_inverse_volume /= d_dx[d];
     }
     for (int axis = 0; axis < s_n_arrays; ++axis)
@@ -138,7 +160,7 @@ CartesianCoupling<C>::applyAxis(const Evaluator& evaluator,
                               widths.end(),
                               [](std::size_t n)
                               { return n <= static_cast<std::size_t>(std::numeric_limits<int>::max()); }));
-    using Weights = IBKernelEvaluators::Weights<Coefficient, detail::ib_kernel_stencil_size<Evaluator, KernelAxis>()>;
+    using Weights = IBKernelEvaluators::Weights<Coefficient, ib_kernel_stencil_size<Evaluator, KernelAxis>()>;
     using Factors = std::tuple<IBKernelEvaluators::Weights<Coefficient, widths[0]>,
                                IBKernelEvaluators::Weights<Coefficient, widths[1]>
 #if (NDIM == 3)
@@ -170,21 +192,24 @@ CartesianCoupling<C>::applyAxis(const Evaluator& evaluator,
     {
         const int marker = indices[point];
 #if !defined(NDEBUG)
-        TBOX_ASSERT(marker >= 0 && NDIM * static_cast<std::size_t>(marker + 1) <= positions.size());
+        TBOX_ASSERT(marker >= 0 && NDIM * (static_cast<std::size_t>(marker) + 1) <= positions.size());
 #endif
-        std::array<double, NDIM> r;
+        std::array<double, NDIM> X, r;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            X[d] = positions[NDIM * static_cast<std::size_t>(marker) + d] +
+                   (shifts.empty() ? 0.0 : shifts[NDIM * point + d]);
+        }
+        const SAMRAI::hier::Index<NDIM> cell = IndexUtilities::getCellIndex(
+            X, d_x_lower.data(), d_x_upper.data(), d_dx.data(), d_domain_lower, d_domain_upper);
         std::array<int, NDIM> lower, first, last;
         bool full_stencil = true;
         for (int d = 0; d < NDIM; ++d)
         {
-            const double x = positions[NDIM * marker + d] + (shifts.empty() ? 0.0 : shifts[NDIM * point + d]);
-            const double grid_position = (x - d_x_lower[d]) / d_dx[d] - d_offset[Axis][d];
             const int width = static_cast<int>(widths[d]);
-            // Odd stencils center on the nearest grid point; even stencils straddle it.
-            const int local_lower =
-                static_cast<int>(std::floor(grid_position + (width % 2 ? 0.5 : 0.0))) - width / 2 + (width % 2 ? 0 : 1);
-            lower[d] = d_patch_lower[d] + local_lower;
-            r[d] = grid_position - local_lower;
+            lower[d] =
+                ib_stencil_lower(X[d], d_x_lower[d], d_dx[d], d_domain_lower(d), cell(d), width, d_offset[Axis][d]);
+            r[d] = ib_stencil_coordinate(X[d], d_x_lower[d], d_dx[d], d_domain_lower(d), lower[d], d_offset[Axis][d]);
             first[d] = std::max(0, d_lower[Axis][d] - lower[d]);
             last[d] = std::min(width, d_upper[Axis][d] - lower[d] + 1);
             full_stencil = full_stencil && first[d] == 0 && last[d] == width;
@@ -193,11 +218,11 @@ CartesianCoupling<C>::applyAxis(const Evaluator& evaluator,
         {
             if constexpr (factorized)
             {
-                return evaluator.template evaluateFactors<KernelAxis, Coefficient>(r);
+                return evaluator.template evaluateFactors<KernelAxis, Coefficient>(std::as_const(r));
             }
             else
             {
-                return evaluator.template evaluate<KernelAxis, Weights>(r);
+                return evaluator.template evaluate<KernelAxis, Weights>(std::as_const(r));
             }
         }();
         double value = 0.0;
@@ -307,5 +332,5 @@ CartesianCoupling<C>::applyAxis(const Evaluator& evaluator,
         }
     }
 }
-} // namespace IBTK::Experimental
+} // namespace IBTK::detail
 #endif

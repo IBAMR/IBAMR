@@ -16,6 +16,7 @@
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/IBKernelEvaluatorTensorProduct.h>
+#include <ibtk/IBOperator.h>
 #include <ibtk/IBOperatorBuilder.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
@@ -44,6 +45,7 @@
 #include <iomanip>
 #include <limits>
 #include <map>
+#include <numeric>
 #include <string>
 #include <utility>
 
@@ -420,6 +422,216 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
     }
     return 0;
 }
+// Endpoint coefficients remain nonzero so differing tie windows cannot cancel.
+struct EndpointCartesianEvaluator
+{
+    template <int Axis>
+    static constexpr std::array<std::size_t, NDIM> get_stencil_widths()
+    {
+        std::array<std::size_t, NDIM> widths;
+        widths.fill(2);
+        return widths;
+    }
+    template <int Axis, class Output, class Input>
+    Output evaluate(const std::array<Input, NDIM>&) const
+    {
+        Output weights{};
+        for (std::size_t k = 0; k < weights.size(); ++k)
+        {
+            weights[k] = k + 1;
+        }
+        return weights;
+    }
+    template <int Axis, class Output, class Input>
+    Output evaluate(std::array<Input, NDIM>&) const = delete;
+};
+
+// Use actual distributed DOF indices, including periodic aliases and missing physical-boundary DOFs.
+int
+check_direct_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<Database> input_db)
+{
+    // The zero extension below deliberately drops physical-boundary columns.
+    Logger::getInstance()->setWarning(false);
+    VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, int>> index_variable = new SideVariable<NDIM, int>("direct_matrix_indices");
+    const int dof = variables->registerVariableAndContext(index_variable, variables->getContext("direct_matrix"), 4);
+    level->allocatePatchData(dof);
+    std::vector<int> counts;
+    PETScVecUtilities::constructPatchLevelDOFIndices(counts, dof, level);
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geometry = level->getGridGeometry();
+    const int total = std::accumulate(counts.begin(), counts.end(), 0);
+    PatchLevel<NDIM>::Iterator first(level);
+    TBOX_ASSERT(first);
+    Pointer<Patch<NDIM>> patch = level->getPatch(first());
+    Pointer<CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
+    Pointer<SideData<NDIM, int>> dofs = patch->getPatchData(dof);
+    SideData<NDIM, double> field(patch->getBox(), 1, IntVector<NDIM>(4));
+    SideData<NDIM, double> spread(patch->getBox(), 1, IntVector<NDIM>(4));
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        for (SideIterator<NDIM> side(field.getGhostBox(), axis); side; side++)
+        {
+            const int column = (*dofs)(side());
+            field(side()) = column < 0 ? 0.0 : std::sin(0.17 * column) + 0.003 * column;
+        }
+    }
+    constexpr int markers = 4;
+    std::array<double, markers * NDIM> positions;
+    const std::array<int, markers> selection{ 0, 1, 2, 3 };
+    for (int d = 0; d < NDIM; ++d)
+    {
+        const double tie = input_db->keyExists("direct_position") ?
+                               input_db->getDoubleArray("direct_position")[d] :
+                               geometry->getXLower()[d] + (1.0 + (d == 0 ? 0.0 : 0.5)) * geometry->getDx()[d];
+        positions[d] = std::nextafter(tie, -INFINITY);
+        positions[NDIM + d] = tie;
+        positions[2 * NDIM + d] = std::nextafter(tie, INFINITY);
+        positions[3 * NDIM + d] = geometry->getXLower()[d] + 0.125 * geometry->getDx()[d];
+    }
+    Vec X = nullptr;
+    PetscErrorCode ierr = VecCreateMPI(PETSC_COMM_WORLD, positions.size(), PETSC_DECIDE, &X);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* coordinates;
+    ierr = VecGetArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    std::copy(positions.begin(), positions.end(), coordinates);
+    ierr = VecRestoreArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    const auto compare = [&](const std::string& name, const IBOperator& op, const IBOperatorBuilder& builder)
+    {
+        Mat matrix = nullptr;
+        builder.constructInterpolationMatrixSide(matrix, X, counts, dof, level);
+        Vec grid = nullptr, marker = nullptr, transpose = nullptr;
+        ierr = MatCreateVecs(matrix, &grid, &marker);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDuplicate(grid, &transpose);
+        IBTK_CHKERRQ(ierr);
+        PetscInt begin, end;
+        ierr = VecGetOwnershipRange(grid, &begin, &end);
+        IBTK_CHKERRQ(ierr);
+        PetscScalar* data;
+        ierr = VecGetArray(grid, &data);
+        IBTK_CHKERRQ(ierr);
+        for (int column = begin; column < end; ++column)
+        {
+            data[column - begin] = std::sin(0.17 * column) + 0.003 * column;
+        }
+        ierr = VecRestoreArray(grid, &data);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMult(matrix, grid, marker);
+        IBTK_CHKERRQ(ierr);
+        std::array<double, markers * NDIM> gathered, force;
+        for (std::size_t k = 0; k < force.size(); ++k)
+        {
+            force[k] = 0.1 * (k + 1);
+        }
+        spread.fillAll(0.125);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            op.interpolate<DataCentering::SIDE>(*patch,
+                                                field,
+                                                axis,
+                                                0,
+                                                axis,
+                                                positions,
+                                                selection,
+                                                {},
+                                                gathered.data() + axis,
+                                                NDIM,
+                                                grid_geometry.getPointer());
+            op.spread<DataCentering::SIDE>(*patch,
+                                           spread,
+                                           axis,
+                                           0,
+                                           axis,
+                                           positions,
+                                           selection,
+                                           {},
+                                           force.data() + axis,
+                                           NDIM,
+                                           grid_geometry.getPointer());
+        }
+        const PetscScalar* actual;
+        ierr = VecGetArrayRead(marker, &actual);
+        IBTK_CHKERRQ(ierr);
+        double gather_error = 0.0, spread_error = 0.0;
+        for (std::size_t k = 0; k < gathered.size(); ++k)
+        {
+            accumulate_error(gather_error, std::abs(gathered[k] - actual[k]));
+        }
+        ierr = VecRestoreArrayRead(marker, &actual);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetArray(marker, &data);
+        IBTK_CHKERRQ(ierr);
+        std::copy(force.begin(), force.end(), data);
+        ierr = VecRestoreArray(marker, &data);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatMultTranspose(matrix, marker, transpose);
+        IBTK_CHKERRQ(ierr);
+        double volume = 1.0;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            volume *= geometry->getDx()[d];
+        }
+        std::vector<double> deposited(total, 0.0), global(total);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (SideIterator<NDIM> side(spread.getGhostBox(), axis); side; side++)
+            {
+                const int column = (*dofs)(side());
+                if (column >= 0)
+                {
+                    deposited[column] += volume * (spread(side()) - 0.125);
+                }
+            }
+        }
+        MPI_Allreduce(deposited.data(), global.data(), total, MPI_DOUBLE, MPI_SUM, PETSC_COMM_WORLD);
+        ierr = VecGetArrayRead(transpose, &actual);
+        IBTK_CHKERRQ(ierr);
+        for (int column = begin; column < end; ++column)
+        {
+            accumulate_error(spread_error, std::abs(global[column] - actual[column - begin]));
+        }
+        ierr = VecRestoreArrayRead(transpose, &actual);
+        IBTK_CHKERRQ(ierr);
+        gather_error = IBTK_MPI::maxReduction(gather_error);
+        spread_error = IBTK_MPI::maxReduction(spread_error);
+        plog << name << " direct_matrix_errors " << gather_error << ' ' << spread_error << '\n';
+        TBOX_ASSERT(gather_error < 1.0e-11 && spread_error < 1.0e-11);
+        ierr = VecDestroy(&transpose);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&marker);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&grid);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&matrix);
+        IBTK_CHKERRQ(ierr);
+    };
+    plog << std::scientific << std::setprecision(12);
+    std::vector<std::string> names{ "IB_4", "IB_5" };
+    for (int order = 2; order <= 6; ++order)
+    {
+        names.push_back("BSPLINE_" + std::to_string(order));
+    }
+    for (int order = 1; order <= 5; ++order)
+    {
+        names.push_back("COMPOSITE_BSPLINE_" + std::to_string(order) + std::to_string(order + 1));
+        names.push_back("COMPOSITE_BSPLINE_" + std::to_string(order + 1) + std::to_string(order));
+    }
+    for (const std::string& name : names)
+    {
+        const IBKernelTensorProduct kernel(name);
+        compare(name, IBOperator(kernel), IBOperatorBuilder(kernel));
+    }
+    const EndpointCartesianEvaluator endpoint;
+    compare("CUSTOM", IBOperator(endpoint), IBOperatorBuilder(endpoint));
+    ierr = VecDestroy(&X);
+    IBTK_CHKERRQ(ierr);
+    level->deallocatePatchData(dof);
+    variables->removePatchDataIndex(dof);
+    return 0;
+}
+
 // Build the matrix with the DOF index ghost width that the builder requires,
 // so that a stencil the builder under-reports fails inside the construction.
 template <class Evaluator>
@@ -679,6 +891,10 @@ main(int argc, char* argv[])
             ++level_number;
         }
 
+        if (input_db->getBoolWithDefault("direct_assembly", false))
+        {
+            return check_direct_assembly(patch_hierarchy->getPatchLevel(0), input_db);
+        }
         if (input_db->getBoolWithDefault("operator_builder", false))
         {
             if (input_db->keyExists("unsupported_kernel"))

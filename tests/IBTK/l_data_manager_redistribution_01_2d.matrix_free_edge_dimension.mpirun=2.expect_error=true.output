@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    LDataManager: matrix-free edge coupling requires NDIM == 3.
+

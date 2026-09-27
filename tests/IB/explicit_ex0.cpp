@@ -442,6 +442,35 @@ main(int argc, char* argv[])
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+        if (input_db->getBoolWithDefault("verify_coarse_fine", false))
+        {
+            TBOX_ASSERT(patch_hierarchy->getFinestLevelNumber() == 1);
+            Pointer<PatchLevel<NDIM>> fine_level = patch_hierarchy->getPatchLevel(1);
+            const auto count_cells = [](const BoxArray<NDIM>& boxes)
+            {
+                int cells = 0;
+                for (int b = 0; b < boxes.size(); ++b)
+                {
+                    int box_cells = 1;
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        box_cells *= boxes[b].numberCells(d);
+                    }
+                    cells += box_cells;
+                }
+                return cells;
+            };
+            const int fine_cells = count_cells(fine_level->getBoxes());
+            const int domain_cells = count_cells(fine_level->getPhysicalDomain());
+            TBOX_ASSERT(fine_cells > 0 && fine_cells < domain_cells);
+            plog << "fine cells = " << fine_cells << " of " << domain_cells << '\n';
+            if (input_db->getBoolWithDefault("verify_fine_markers", false))
+            {
+                const LDataManager* const manager = ib_method_ops->getLDataManager();
+                TBOX_ASSERT(manager->getNumberOfNodes(0) == 0 && manager->getNumberOfNodes(1) > 0);
+                plog << "fine markers = " << manager->getNumberOfNodes(1) << '\n';
+            }
+        }
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();

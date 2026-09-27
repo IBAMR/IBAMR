@@ -1,0 +1,5 @@
+New: IBTK::IBOperator supports evaluator-owned matrix-free interpolation and
+spreading. LDataManager provides opt-in cell, node, side, and three-dimensional
+edge coupling; IBMethod exposes the named-kernel opt-in.
+<br>
+(Boyce Griffith, 2026/09/26)

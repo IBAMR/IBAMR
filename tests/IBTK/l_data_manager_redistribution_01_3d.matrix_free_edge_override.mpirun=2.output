@@ -1,0 +1,4 @@
+step 0 level 0 shared_edges 3100 copy_error 2.273736754432e-13
+step 0 level 0 depth 3 errors 7.993605777301e-15 7.105427357601e-16 mass 3.540000000000e+00 pairing_difference 2.134642980780e-02
+step 1 level 0 shared_edges 3100 copy_error 1.364242052659e-12
+step 1 level 0 depth 3 errors 6.217248937901e-15 1.193711796077e-15 mass 3.540000000000e+00 pairing_difference 2.481249817241e-02

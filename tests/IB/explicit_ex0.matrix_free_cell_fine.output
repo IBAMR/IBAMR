@@ -1,0 +1,23 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSCollocatedHierarchyIntegrator::regridProjection(): projection solve residual norm        = 0
+fine cells = 7632 of 16384
+fine markers = 152
+IBRedundantInitializer:  Deallocating initialization data.
+At beginning of timestep # 0
+INSCollocatedHierarchyIntegrator::regridProjection(): projection solve residual norm        = 0
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 2.52099e-10
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 8.85556e-06
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 9.57663e-10
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 6.93691e-07
+Error in u at time 0.000125:
+  L1-norm:  0.0001310367917
+  L2-norm:  0.0004950080474
+  max-norm: 0.003884068695
+Error in p at time 6.25e-05:
+  L1-norm:  0.02784977876
+  L2-norm:  0.1788979185
+  max-norm: 1.971701376
+

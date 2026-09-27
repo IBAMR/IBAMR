@@ -1,0 +1,20 @@
+component_centering = "EDGE"
+component_depth = 1
+custom = TRUE
+kernel = "COMPOSITE_BSPLINE_23"
+spread_override = "BSPLINE_4"
+Main { log_file_name = "output" log_all_nodes = FALSE }
+CartesianGeometry {
+ domain_boxes = [(0,0),(19,19)]
+ x_lo = 0,0
+ x_up = 1,1
+ periodic_dimension = 1,1
+}
+GriddingAlgorithm {
+ max_levels = 1
+ largest_patch_size { level_0 = 10,20 }
+ smallest_patch_size { level_0 = 10,20 }
+}
+LoadBalancer { bin_pack_method = "SPATIAL" max_workload_factor = 1 }
+
+dimension_error = TRUE

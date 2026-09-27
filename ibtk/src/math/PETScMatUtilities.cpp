@@ -20,6 +20,7 @@
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/IBStencilUtilities.h>
 
 #include <tbox/Array.h>
 #include <tbox/MathUtilities.h>
@@ -1086,17 +1087,6 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
         const double* const X = &d_positions[NDIM * k];
         const hier::Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
 
-#if (NDIM == 2)
-        const double X_cell[NDIM] = { (static_cast<double>(X_idx(0) - d_domain_lower(0)) + 0.5) * d_dx[0] + x_lower[0],
-                                      (static_cast<double>(X_idx(1) - d_domain_lower(1)) + 0.5) * d_dx[1] +
-                                          x_lower[1] };
-#endif
-#if (NDIM == 3)
-        const double X_cell[NDIM] = { (static_cast<double>(X_idx(0) - d_domain_lower(0)) + 0.5) * d_dx[0] + x_lower[0],
-                                      (static_cast<double>(X_idx(1) - d_domain_lower(1)) + 0.5) * d_dx[1] + x_lower[1],
-                                      (static_cast<double>(X_idx(2) - d_domain_lower(2)) + 0.5) * d_dx[2] +
-                                          x_lower[2] };
-#endif
         // Find a local patch that contains the IB point in either its patch
         // interior or ghost cell region.
         bool found_local_patch = false;
@@ -1139,30 +1129,9 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
             hier::Index<NDIM>& stencil_box_upper = stencil_box_axis.upper();
             for (int d = 0; d < NDIM; ++d)
             {
-                if (interp_stencil[d] % 2 != 0)
-                {
-                    const double centering_offset = d == axis ? 0.0 : 0.5;
-                    const double grid_position =
-                        (X[d] - x_lower[d]) / d_dx[d] + static_cast<double>(d_domain_lower(d)) - centering_offset;
-                    const int stencil_center = static_cast<int>(std::floor(grid_position + 0.5));
-                    stencil_box_lower(d) = stencil_center - interp_stencil[d] / 2;
-                    stencil_box_upper(d) = stencil_center + interp_stencil[d] / 2;
-                }
-                else if (d == axis)
-                {
-                    stencil_box_lower(d) = X_idx(d) - interp_stencil[d] / 2 + 1;
-                    stencil_box_upper(d) = X_idx(d) + interp_stencil[d] / 2;
-                }
-                else if (X[d] <= X_cell[d])
-                {
-                    stencil_box_lower(d) = X_idx(d) - interp_stencil[d] / 2;
-                    stencil_box_upper(d) = X_idx(d) + interp_stencil[d] / 2 - 1;
-                }
-                else
-                {
-                    stencil_box_lower(d) = X_idx(d) - interp_stencil[d] / 2 + 1;
-                    stencil_box_upper(d) = X_idx(d) + interp_stencil[d] / 2;
-                }
+                stencil_box_lower(d) = detail::ib_stencil_lower(
+                    X[d], x_lower[d], d_dx[d], d_domain_lower(d), X_idx(d), interp_stencil[d], d == axis ? 0.0 : 0.5);
+                stencil_box_upper(d) = stencil_box_lower(d) + interp_stencil[d] - 1;
             }
             const int local_idx = NDIM * k + axis;
             if (!SideGeometry<NDIM>::toSideBox(dof_index_data->getGhostBox(), axis).contains(stencil_box_axis))

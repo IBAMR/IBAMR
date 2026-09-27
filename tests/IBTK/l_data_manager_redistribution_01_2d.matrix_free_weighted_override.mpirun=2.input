@@ -1,0 +1,17 @@
+matrix_free_coupling = TRUE
+physical_boundary = FALSE
+Main { log_file_name = "output" log_all_nodes = FALSE }
+CartesianGeometry {
+ domain_boxes = [(0,0),(15,15)]
+ x_lo = 0.0,0.0
+ x_up = 1.0,1.0
+ periodic_dimension = 1,1
+}
+GriddingAlgorithm {
+ max_levels = 1
+ largest_patch_size { level_0 = 8,16 }
+ smallest_patch_size { level_0 = 8,16 }
+}
+LoadBalancer { bin_pack_method = "SPATIAL" max_workload_factor = 1 }
+weighted = TRUE
+spread_override = "COMPOSITE_BSPLINE_12"

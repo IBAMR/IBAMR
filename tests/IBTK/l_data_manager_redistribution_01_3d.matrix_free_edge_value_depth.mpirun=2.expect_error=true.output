@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    LDataManager: edge coupling requires a depth-one field and NDIM marker components and positions.
+

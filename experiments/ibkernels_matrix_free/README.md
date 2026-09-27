@@ -26,11 +26,11 @@ the initial three-kernel comparison.
 
 ## Source
 
-- `ibtk/src/lagrangian/experimental/CartesianCoupling.h` and its inline header
-  provide component gather/scatter operations for cell, node, side, face, and
-  edge data using `CartesianCentering<C>` from #1985. `SideCoupling.h` retains
-  the side specialization as an alias. These headers are source-private and
-  are not installed.
+- `ibtk/IBOperator.h` provides an immutable, evaluator-owning public handle
+  for patch interpolation and spreading on all five Cartesian centerings.
+  Its installed private implementation in `ibtk/private/CartesianCoupling*.h`
+  uses `CartesianCentering<C>` from #1985. The source-private experimental
+  `CartesianCoupling.h` and `SideCoupling.h` headers alias this shared core.
 - `tests/matrix_free/side_coupling.cpp` is the shared native 2D/3D regression.
 - `tests/matrix_free/cartesian_coupling.cpp` supplies the all-centering cases
   in the same test executable.
@@ -76,6 +76,31 @@ Complete stencils use fixed loop bounds and invariant row offsets; clipped
 stencils retain their bounded loops. There are no marker-coordinate copies,
 matrices, per-weight callbacks or heap allocations in the component loops.
 The nonoverlap contract is documented at the entry point; there are no `restrict` promises inferred from concepts.
+
+## Opt-in manager integration
+
+`LDataManager` can use `IBOperator` for cell-, node-, side-, and 3D edge-centered
+coupling. Its named factory accepts a trailing `use_matrix_free` flag; a second
+factory owns copies of supplied interpolation and spreading handles, including
+application-defined evaluators. `IBMethod` selects the named path with
+`use_matrix_free_ib_operator = TRUE` in its input database. The default remains
+`FALSE`, and unsupported legacy kernel names retain `LEInteractor` dispatch.
+Applications recreating a custom manager for restart must supply its handles
+again.
+
+CELL/NODE calls accept matching positive Eulerian and marker depths. SIDE/EDGE
+calls require field depth one and NDIM marker components; EDGE is restricted to
+3D. The manager forwards its cached selections, periodic shifts, and hierarchy
+geometry. Existing ghost fills, physical-boundary handling, hierarchy transfers,
+quadrature weights, and synchronization remain with their current owners.
+FACE manager integration and FE consumers are not included. EDGE coverage is
+periodic; no new EDGE physical-boundary or specialized coarse/fine interpolation
+algorithm is supplied. See the installed `IBOperator.h` and `LDataManager.h`
+documentation for the complete calling requirements.
+
+The current implementation has focused 2D/3D Debug coverage, including actual
+assembled-matrix comparisons and manager lifecycle tests. The historical Release
+measurements below and in the linked reports do not qualify this integration.
 
 ## Correctness
 

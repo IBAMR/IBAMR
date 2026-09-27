@@ -19,6 +19,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/IBStencilUtilities.h>
 
 #include <tbox/Utilities.h>
 
@@ -100,10 +101,8 @@ PETScMatUtilities::constructSCInterpOpAxis(SCInterpOpData& data, const Evaluator
         std::array<double, NDIM> r;
         for (int d = 0; d < NDIM; ++d)
         {
-            const double x_lower =
-                (static_cast<double>(lower(d) - data.d_domain_lower(d)) + (d == Axis ? 0.0 : 0.5)) * data.d_dx[d] +
-                data.d_x_lower[d];
-            r[d] = (X[d] - x_lower) / data.d_dx[d];
+            r[d] = detail::ib_stencil_coordinate(
+                X[d], data.d_x_lower[d], data.d_dx[d], data.d_domain_lower(d), lower(d), d == Axis ? 0.0 : 0.5);
         }
         const Weights values = evaluator.template evaluate<Axis, Weights>(std::as_const(r));
 

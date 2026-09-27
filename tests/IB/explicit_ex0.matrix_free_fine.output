@@ -1,0 +1,23 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+fine cells = 7632 of 16384
+fine markers = 152
+IBRedundantInitializer:  Deallocating initialization data.
+At beginning of timestep # 0
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.48033e-14
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.91701e-13
+Error in u at time 0.000125:
+  L1-norm:  1.754104843e-05
+  L2-norm:  6.229220877e-05
+  max-norm: 0.000516913146
+Error in p at time 6.25e-05:
+  L1-norm:  0.02994818226
+  L2-norm:  0.1826549358
+  max-norm: 1.969391239
+
