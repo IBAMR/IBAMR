@@ -2,8 +2,8 @@ N = 8
 MAX_LEVELS = 2
 VERIFY_REGRID = TRUE
 IB_RULE = "BACKWARD_EULER"
-JAC_KERNEL = "IB_4"
-custom_kernel = FALSE
+JAC_KERNEL = "APP_CUSTOM"
+custom_kernel = TRUE
 IBHierarchyIntegrator {
    start_time = 0.0
    end_time = 0.0025
