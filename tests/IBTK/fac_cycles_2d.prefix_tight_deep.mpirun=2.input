@@ -1,0 +1,46 @@
+range_test = TRUE
+// Exercise nonzero FAC vector ranges and their backing allocation.
+levels = 5
+N = 16
+
+fac_db {
+   data_coarsen_type = "CONSERVATIVE_COARSEN"
+   check_prefix = TRUE
+   cycle_type = "V_CYCLE"
+   smoother_type = "PATCH_GAUSS_SEIDEL"
+   prolongation_method = "LINEAR_REFINE"
+   restriction_method = "CONSERVATIVE_COARSEN"
+   coarse_solver_type = "PATCH_GAUSS_SEIDEL"
+   coarse_solver_max_iterations = 3
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+CartesianGeometry {
+   domain_boxes = [(0,0),(N - 1,N - 1)]
+   x_lo = 0, 0
+   x_up = 1, 1
+   periodic_dimension = 0, 0
+}
+GriddingAlgorithm {
+   max_levels = levels
+   ratio_to_coarser { level_1 = 2, 2 level_2 = 2, 2 level_3 = 2, 2 level_4 = 2, 2 }
+   largest_patch_size { level_0 = 512, 512 }
+   smallest_patch_size { level_0 = 4, 4 }
+   efficiency_tolerance = 0.70
+   combine_efficiency = 0.85
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(2,2),(13,13)]
+      level_1 = [(5,5),(26,26)]
+      level_2 = [(11,11),(52,52)]
+      level_3 = [(23,23),(104,104)]
+   }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
