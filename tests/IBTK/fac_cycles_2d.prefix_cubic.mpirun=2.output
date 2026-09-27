@@ -1,0 +1,8 @@
+range 1 3 level 0 response 0 discarded 0 boundary 0 actual_sync 7 zero_sync 7 synchronized_difference 3.01877e-05
+range 1 3 level 1 response 0.0160717 discarded 3276.8 boundary 3276.8 actual_sync 1.6 zero_sync 1.6 synchronized_difference 2.60738e-05
+range 1 3 level 2 response 0.354915 discarded 0.354915 boundary 0 actual_sync 2.32658e-05 zero_sync 0 synchronized_difference 2.32658e-05
+range 1 3 level 3 response 2.33019 discarded 2.33019 boundary 0 actual_sync 1.01328e-05 zero_sync 2.3212e-05 synchronized_difference 2.3212e-05
+child prefix discrepancy 0
+range 1 2 level 0 response 0 discarded 0 boundary 0 actual_sync 0.000303108 zero_sync 3.01877e-05 synchronized_difference 0.000333296
+range 1 2 level 1 response 0.173398 discarded 3276.8 boundary 3276.8 actual_sync 1.6 zero_sync 1.6 synchronized_difference 0.000338006
+range 1 2 level 2 response 1.05759 discarded 1.05759 boundary 0 actual_sync 7.09766e-05 zero_sync 0.000353095 synchronized_difference 0.000353095

@@ -378,6 +378,9 @@ private:
                         const std::string& name,
                         int finest_ln) const;
 
+    /*! \brief Check cycle range and caller backing allocation before strategy setup or solving. */
+    void validateCycleInputs(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution) const;
+
     /*! \brief Allocate any missing workspace required by the current cycle options. */
     void allocateCycleScratchData(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
@@ -395,6 +398,11 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_rhs_vectors;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_correction_vectors;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_evaluation_vector;
+
+    // Isolate the affine boundary term for nonzero-coarsest lower prefixes.
+    // Both vectors are reusable after the prefix is formed, before recursion.
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_boundary_solution;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_boundary_residual;
 };
 } // namespace IBTK
 

@@ -118,6 +118,7 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     TBOX_ASSERT(x.getCoarsestLevelNumber() == d_coarsest_ln && b.getCoarsestLevelNumber() == d_coarsest_ln);
     TBOX_ASSERT(x.getFinestLevelNumber() == d_finest_ln && b.getFinestLevelNumber() == d_finest_ln);
 #endif
+    validateCycleInputs(x);
     // Parameters may have changed since initialization. Previously allocated
     // workspaces remain reusable; allocate only any newly required storage.
     allocateCycleScratchData(x, b);
@@ -163,6 +164,7 @@ FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& s
     TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == rhs.getFinestLevelNumber());
 #endif
+    validateCycleInputs(solution);
     d_fac_strategy->initializeOperatorState(solution, rhs);
 
     // Allocate scratch data.
@@ -195,11 +197,15 @@ FACPreconditioner::deallocateSolverState()
         }
         vectors->clear();
     }
-    if (d_evaluation_vector)
+    for (Pointer<SAMRAIVectorReal<NDIM, double>>* vector :
+         { &d_evaluation_vector, &d_boundary_solution, &d_boundary_residual })
     {
-        free_vector_components(*d_evaluation_vector);
+        if (*vector)
+        {
+            free_vector_components(**vector);
+        }
+        vector->setNull();
     }
-    d_evaluation_vector.setNull();
     d_vector_data_ops.clear();
     d_fac_strategy->deallocateScratchData();
 
@@ -339,19 +345,34 @@ FACPreconditioner::zeroStartCycle(SAMRAIVectorReal<NDIM, double>& u,
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
 
+            const bool has_lower_prefix = d_coarsest_ln > 0 && level_num > d_coarsest_ln + 1;
+            if (has_lower_prefix)
+            {
+                // Evaluate the affine boundary contribution from the same
+                // initial backing as u. Synchronization must not change u's
+                // backing before its own residual evaluation.
+                d_boundary_solution->setToScalar(0.0, /*interior_only*/ false);
+                getRangeVector(*d_boundary_solution, 0, d_coarsest_ln - 1)
+                    ->copyVector(getRangeVector(u, 0, d_coarsest_ln - 1), /*interior_only*/ false);
+                d_fac_strategy->computeResidual(
+                    *d_boundary_residual, *d_boundary_solution, f, d_coarsest_ln, level_num);
+            }
+
             // Only the top level has been smoothed. This invocation owns u, so
             // residual evaluation can synchronize its covered coarse values.
-            // The child equation needs the residual over the whole parent range.
             d_fac_strategy->computeResidual(*residual, u, f, d_coarsest_ln, level_num);
-            if (d_coarsest_ln > 0 && level_num > d_coarsest_ln + 1)
+            if (has_lower_prefix)
             {
-                // Preserve the legacy V-cycle's lower equations. Below-range
-                // solution data can impose nonzero coarse-fine boundary values:
-                // including their residual here would count them again when
-                // forming the child's residual after presmoothing.
+                // These levels are evaluated again in the child. Carry their
+                // correction response, r(u;g) - r(0;g), but defer the affine
+                // boundary term to that evaluation. Copying f alone would lose
+                // responses propagated through tightly nested coarse levels.
                 Pointer<SAMRAIVectorReal<NDIM, double>> prefix =
                     getRangeVector(*residual, d_coarsest_ln, level_num - 2);
-                prefix->copyVector(getRangeVector(f, d_coarsest_ln, level_num - 2), /*interior_only*/ false);
+                prefix->subtract(prefix,
+                                 getRangeVector(*d_boundary_residual, d_coarsest_ln, level_num - 2),
+                                 /*interior_only*/ false);
+                prefix->add(prefix, getRangeVector(f, d_coarsest_ln, level_num - 2), /*interior_only*/ false);
             }
             d_fac_strategy->restrictResidual(*residual, *residual, level_num - 1);
         }
@@ -523,8 +544,7 @@ FACPreconditioner::allocateRangeVector(const SAMRAIVectorReal<NDIM, double>& vec
 } // allocateRangeVector
 
 void
-FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAIVectorReal<NDIM, double>& rhs)
+FACPreconditioner::validateCycleInputs(const SAMRAIVectorReal<NDIM, double>& solution) const
 {
     // Single-level cycles never evaluate a composite residual. Preserve the
     // default V path, including its in-place restriction of covered RHS data.
@@ -535,7 +555,7 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
     const bool repeated = d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE;
     if (d_coarsest_ln != 0 && repeated)
     {
-        TBOX_ERROR(d_object_name << "::allocateCycleScratchData():\n"
+        TBOX_ERROR(d_object_name << "::validateCycleInputs():\n"
                                  << "  multilevel repeated FAC visits require coarsest level zero: private residual\n"
                                  << "  evaluation storage is not allocated below the vector range." << std::endl);
     }
@@ -551,7 +571,7 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
             {
                 if (!level->checkAllocated(solution.getComponentDescriptorIndex(comp)))
                 {
-                    TBOX_ERROR(d_object_name << "::allocateCycleScratchData():\n"
+                    TBOX_ERROR(d_object_name << "::validateCycleInputs():\n"
                                              << "  multilevel FAC residual evaluation requires caller solution data\n"
                                              << "  allocated and initialized on all levels below the vector range;\n"
                                              << "  ghost filling may overwrite data on the preceding level."
@@ -560,6 +580,18 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
             }
         }
     }
+} // validateCycleInputs
+
+void
+FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>& solution,
+                                            const SAMRAIVectorReal<NDIM, double>& rhs)
+{
+    // The default V path and single-level cycles need no cycle workspace.
+    if (d_coarsest_ln == d_finest_ln || (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0))
+    {
+        return;
+    }
+    const bool repeated = d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE;
     // The retained FMG implementation uses scoped RHS and residual workspace.
     if (d_cycle_type == FMG_CYCLE)
     {
@@ -576,6 +608,12 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
             d_vector_data_ops.push_back(
                 manager->getOperationsDouble(solution.getComponentVariable(comp), d_hierarchy, /*get_unique*/ true));
         }
+    }
+    if (d_coarsest_ln > 0 && d_num_pre_sweeps > 0 && d_finest_ln > d_coarsest_ln + 1 && !d_boundary_solution)
+    {
+        d_boundary_solution = allocateRangeVector(
+            *getRangeVector(solution, 0, d_finest_ln), d_object_name + "::boundary_solution", d_finest_ln);
+        d_boundary_residual = allocateRangeVector(rhs, d_object_name + "::boundary_residual", d_finest_ln);
     }
     const int finest_warm_ln = d_finest_ln - 1;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

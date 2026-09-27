@@ -18,6 +18,7 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PoissonFACPreconditioner.h>
+#include <ibtk/SAMRAIScopedVectorCopy.h>
 
 #include <petscsys.h>
 
@@ -51,7 +52,9 @@ class CountingFACOperator : public CCPoissonPointRelaxationFACOperator
 {
 public:
     CountingFACOperator(Pointer<Database> db, int levels)
-        : CCPoissonPointRelaxationFACOperator("fac_operator", db, ""), d_visits(levels, 0)
+        : CCPoissonPointRelaxationFACOperator("fac_operator", db, ""),
+          d_visits(levels, 0),
+          d_check_prefix(db->getBoolWithDefault("check_prefix", false))
     {
     }
 
@@ -73,6 +76,147 @@ public:
         return CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(error, residual, level);
     }
 
+    // Compare real residuals starting from identical, independently owned
+    // below-range backing. Retain the expected child prefix until restriction.
+    void computeResidual(HierarchyVector& residual,
+                         const HierarchyVector& solution,
+                         const HierarchyVector& rhs,
+                         int lower,
+                         int upper) override
+    {
+        if (!d_check_prefix || lower == 0 || solution.getCoarsestLevelNumber() == 0)
+        {
+            CCPoissonPointRelaxationFACOperator::computeResidual(residual, solution, rhs, lower, upper);
+            return;
+        }
+        Pointer<PatchHierarchy<NDIM>> hierarchy = solution.getPatchHierarchy();
+        HierarchyVector full("prefix_full", hierarchy, 0, hierarchy->getFinestLevelNumber());
+        Pointer<HierarchyCellDataOpsReal<NDIM, double>> full_ops =
+            new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, 0, hierarchy->getFinestLevelNumber());
+        full.addComponent(solution.getComponentVariable(0),
+                          solution.getComponentDescriptorIndex(0),
+                          solution.getControlVolumeIndex(0),
+                          full_ops);
+        SAMRAIScopedVectorCopy<double> actual_storage(full), zero_storage(full);
+        SAMRAIScopedVectorDuplicate<double> actual_residual_storage(full), zero_residual_storage(full);
+        HierarchyVector& actual = actual_storage;
+        HierarchyVector& zero = zero_storage;
+        HierarchyVector& actual_residual = actual_residual_storage;
+        HierarchyVector& zero_residual = zero_residual_storage;
+        HierarchyCellDataOpsReal<NDIM, double> range_ops(hierarchy, lower, upper);
+        range_ops.setToScalar(zero.getComponentDescriptorIndex(0), 0.0, false);
+        CCPoissonPointRelaxationFACOperator::computeResidual(actual_residual, actual, rhs, lower, upper);
+        CCPoissonPointRelaxationFACOperator::computeResidual(zero_residual, zero, rhs, lower, upper);
+        d_expected_prefix = std::make_unique<SAMRAIScopedVectorCopy<double>>(actual_residual);
+        HierarchyVector& expected = *d_expected_prefix;
+        d_prefix_lower = lower;
+        d_prefix_upper = upper - 2;
+        for (int ln = 0; ln <= upper; ++ln)
+        {
+            double response = 0.0, discarded = 0.0, boundary = 0.0, actual_change = 0.0, zero_change = 0.0,
+                   backing_difference = 0.0;
+            int nonfinite = 0;
+            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> u = patch->getPatchData(solution.getComponentDescriptorIndex(0)),
+                                                a = patch->getPatchData(actual.getComponentDescriptorIndex(0)),
+                                                z = patch->getPatchData(zero.getComponentDescriptorIndex(0)),
+                                                w = patch->getPatchData(solution.getControlVolumeIndex(0));
+                for (CellIterator<NDIM> c(u->getGhostBox()); c; c++)
+                {
+                    nonfinite += !std::isfinite((*a)(c())) || !std::isfinite((*z)(c())) || !std::isfinite((*u)(c()));
+                    backing_difference = std::max(backing_difference, std::abs((*a)(c()) - (*z)(c())));
+                    actual_change = std::max(actual_change, std::abs((*a)(c()) - (*u)(c())));
+                    zero_change = std::max(zero_change, std::abs((*z)(c()) - (*u)(c())));
+                }
+                if (ln >= lower)
+                {
+                    Pointer<CellData<NDIM, double>> ra = patch->getPatchData(
+                                                        actual_residual.getComponentDescriptorIndex(0)),
+                                                    rz = patch->getPatchData(
+                                                        zero_residual.getComponentDescriptorIndex(0)),
+                                                    f = patch->getPatchData(rhs.getComponentDescriptorIndex(0)),
+                                                    e = patch->getPatchData(expected.getComponentDescriptorIndex(0));
+                    for (CellIterator<NDIM> c(patch->getBox()); c; c++)
+                    {
+                        (*e)(c()) = (*f)(c()) + ((*ra)(c()) - (*rz)(c()));
+                        if ((*w)(c()) == 0.0)
+                        {
+                            continue;
+                        }
+                        nonfinite +=
+                            !std::isfinite((*ra)(c())) || !std::isfinite((*rz)(c())) || !std::isfinite((*f)(c()));
+                        response = std::max(response, std::abs((*ra)(c()) - (*rz)(c())));
+                        discarded = std::max(discarded, std::abs((*ra)(c()) - (*f)(c())));
+                        boundary = std::max(boundary, std::abs((*rz)(c()) - (*f)(c())));
+                    }
+                }
+            }
+            if (IBTK_MPI::sumReduction(nonfinite) != 0)
+            {
+                TBOX_ERROR("FAC prefix test: nonfinite evaluation data\n");
+            }
+            plog << "range " << lower << " " << upper << " level " << ln << " response "
+                 << IBTK_MPI::maxReduction(response) << " discarded " << IBTK_MPI::maxReduction(discarded)
+                 << " boundary " << IBTK_MPI::maxReduction(boundary) << " actual_sync "
+                 << IBTK_MPI::maxReduction(actual_change) << " zero_sync " << IBTK_MPI::maxReduction(zero_change)
+                 << " synchronized_difference " << IBTK_MPI::maxReduction(backing_difference) << '\n';
+        }
+        CCPoissonPointRelaxationFACOperator::computeResidual(residual, solution, rhs, lower, upper);
+        HierarchyCellDataOpsReal<NDIM, double> check_ops(hierarchy, lower, upper);
+        check_ops.subtract(actual_residual.getComponentDescriptorIndex(0),
+                           actual_residual.getComponentDescriptorIndex(0),
+                           residual.getComponentDescriptorIndex(0),
+                           true);
+        if (check_ops.maxNorm(actual_residual.getComponentDescriptorIndex(0)) != 0.0)
+        {
+            TBOX_ERROR("FAC prefix test: paired evaluations changed the actual residual\n");
+        }
+    }
+
+    void restrictResidual(const HierarchyVector& source, HierarchyVector& destination, int level) override
+    {
+        if (d_expected_prefix && d_prefix_upper >= d_prefix_lower)
+        {
+            HierarchyVector& expected = *d_expected_prefix;
+            Pointer<PatchHierarchy<NDIM>> hierarchy = source.getPatchHierarchy();
+            double maximum = 0.0;
+            int nonfinite = 0;
+            for (int ln = d_prefix_lower; ln <= d_prefix_upper; ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> patches = hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(patches); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = patches->getPatch(p());
+                    Pointer<CellData<NDIM, double>> actual = patch->getPatchData(source.getComponentDescriptorIndex(0)),
+                                                    reference =
+                                                        patch->getPatchData(expected.getComponentDescriptorIndex(0)),
+                                                    weight = patch->getPatchData(source.getControlVolumeIndex(0));
+                    for (CellIterator<NDIM> c(patch->getBox()); c; c++)
+                    {
+                        if ((*weight)(c()) == 0.0)
+                        {
+                            continue;
+                        }
+                        const double difference = std::abs((*actual)(c()) - (*reference)(c()));
+                        nonfinite += !std::isfinite(difference);
+                        maximum = std::max(maximum, difference);
+                    }
+                }
+            }
+            maximum = IBTK_MPI::maxReduction(maximum);
+            if (IBTK_MPI::sumReduction(nonfinite) != 0 || maximum > 1.0e-10)
+            {
+                TBOX_ERROR("FAC prefix test: child RHS lost the live correction response\n");
+            }
+            plog << "child prefix discrepancy " << maximum << '\n';
+        }
+        d_expected_prefix.reset();
+        CCPoissonPointRelaxationFACOperator::restrictResidual(source, destination, level);
+    }
+
     void resetVisits()
     {
         std::fill(d_visits.begin(), d_visits.end(), 0);
@@ -85,6 +229,9 @@ public:
 
 private:
     std::vector<int> d_visits;
+    bool d_check_prefix;
+    int d_prefix_lower = 0, d_prefix_upper = -1;
+    std::unique_ptr<SAMRAIScopedVectorCopy<double>> d_expected_prefix;
 };
 
 double
@@ -173,26 +320,45 @@ check_ranges(Pointer<PatchHierarchy<NDIM>> hierarchy,
     fac.setPhysicalBcCoef(boundary);
     fac.setHomogeneousBc(true);
     fac.setNumPostSmoothingSweeps(2);
-    if (input->keyExists("reject_cycle"))
+    if (input->getDatabase("fac_db")->getBoolWithDefault("check_prefix", false))
+    {
+        reset();
+        fac.setMGCycleType(V_CYCLE);
+        fac.setNumPreSmoothingSweeps(2);
+        Pointer<HierarchyVector> x = view(indices[0], 1, finest), b = view(indices[1], 1, finest);
+        fac.solveSystem(*x, *b);
+    }
+    else if (input->keyExists("reject_cycle"))
     {
         reset();
         fac.setMGCycleType(string_to_enum<MGCycleType>(input->getString("reject_cycle")));
         fac.setNumPreSmoothingSweeps(input->getIntegerWithDefault("pre_sweeps", 2));
-        Pointer<HierarchyVector> x = view(indices[0], 1, finest), b = view(indices[1], 1, finest);
-        // Initialize through the supported default, then change configuration
-        // and component allocation before solveSystem() rechecks its inputs.
-        const MGCycleType cycle = fac.getMGCycleType();
-        const int pre = fac.getNumPreSmoothingSweeps();
-        fac.setMGCycleType(V_CYCLE);
-        fac.setNumPreSmoothingSweeps(0);
-        fac.initializeSolverState(*x, *b);
-        fac.setMGCycleType(cycle);
-        fac.setNumPreSmoothingSweeps(pre);
+        const int lower = input->getIntegerWithDefault("range_lower", 1);
+        Pointer<HierarchyVector> x = view(indices[0], lower, finest), b = view(indices[1], lower, finest);
+        const bool initial_setup = input->getBoolWithDefault("initial_setup", false);
+        if (!initial_setup)
+        {
+            // Recheck inputs after a supported initialization and configuration change.
+            const MGCycleType cycle = fac.getMGCycleType();
+            const int pre = fac.getNumPreSmoothingSweeps();
+            fac.setMGCycleType(V_CYCLE);
+            fac.setNumPreSmoothingSweeps(0);
+            fac.initializeSolverState(*x, *b);
+            fac.setMGCycleType(cycle);
+            fac.setNumPreSmoothingSweeps(pre);
+        }
         if (input->getBoolWithDefault("missing_backing", false))
         {
             hierarchy->getPatchLevel(0)->deallocatePatchData(indices[0]);
         }
-        fac.solveSystem(*x, *b);
+        if (initial_setup)
+        {
+            fac.initializeSolverState(*x, *b);
+        }
+        else
+        {
+            fac.solveSystem(*x, *b);
+        }
         fac.deallocateSolverState();
     }
     else
