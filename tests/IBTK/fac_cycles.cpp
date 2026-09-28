@@ -317,7 +317,7 @@ check_ranges(Pointer<PatchHierarchy<NDIM>> hierarchy,
              Pointer<CellVariable<NDIM, double>> variable,
              int weight,
              Pointer<Database> input,
-             PoissonSpecifications specification,
+             const PoissonSpecifications& specification,
              RobinBcCoefStrategy<NDIM>* boundary)
 {
     const int finest = hierarchy->getFinestLevelNumber();
