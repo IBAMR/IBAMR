@@ -1,5 +1,5 @@
 // One patch of the 16 cells, so that DOFs are in no patch, which the coverage check reports.
-petsc_settings_shell_ {
+petsc_settings_shell {
    sub_pc_type = "svd"
 }
 
