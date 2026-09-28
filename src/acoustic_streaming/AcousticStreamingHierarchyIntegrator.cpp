@@ -217,6 +217,7 @@ static const int SIDEG = 1;
 static const int NODEG = 1;
 static const int EDGEG = 1;
 static const int MUCELLG = 2;
+static const int GAMMACELLG = 2;
 static const int WIDEG = 2;
 
 // Real and imaginary component naming
@@ -446,6 +447,8 @@ AcousticStreamingHierarchyIntegrator::AcousticStreamingHierarchyIntegrator(std::
     d_U2_plot_var = new CellVariable<NDIM, double>(object_name + "::U2_plot", /*depth*/ NDIM);
 
     d_rho_plot_var = new CellVariable<NDIM, double>(object_name + "::rho_plot", /*depth*/ NDIM);
+
+    d_masking_indicator_var = new CellVariable<NDIM, double>(object_name + "::masking_indicator", /*depth*/ 1);
 
 #if (NDIM == 2)
     d_Omega2_var = new CellVariable<NDIM, double>(d_object_name + "::Omega2");
@@ -784,6 +787,40 @@ AcousticStreamingHierarchyIntegrator::getBulkViscosityVariable() const
 } // getBulkViscosityVariable
 
 void
+AcousticStreamingHierarchyIntegrator::registerElasticShearModulusVariable(Pointer<Variable<NDIM> > gamma_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_gamma_var);
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_gamma_var = gamma_var;
+    return;
+} // registerElasticShearModulusVariable
+
+Pointer<Variable<NDIM> >
+AcousticStreamingHierarchyIntegrator::getElasticShearModulusVariable() const
+{
+    return d_gamma_var;
+} // getElasticShearModulusVariable
+
+void
+AcousticStreamingHierarchyIntegrator::registerElasticDilationalModulusVariable(Pointer<Variable<NDIM> > zeta_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_zeta_var);
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_zeta_var = zeta_var;
+    return;
+} // registerElasticDilationalModulusVariable
+
+Pointer<Variable<NDIM> >
+AcousticStreamingHierarchyIntegrator::getElasticDilationalModulusVariable() const
+{
+    return d_zeta_var;
+} // getElasticDilationalModulusVariable
+
+void
 AcousticStreamingHierarchyIntegrator::setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
 {
     d_rho_vc_interp_type = vc_interp_type;
@@ -798,7 +835,14 @@ AcousticStreamingHierarchyIntegrator::setShearViscosityVCInterpolationType(const
 } // setShearViscosityVCInterpolationType
 
 void
-AcousticStreamingHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+AcousticStreamingHierarchyIntegrator::setElasticShearModulusVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
+{
+    d_gamma_vc_interp_type = vc_interp_type;
+    return;
+} // setElasticShearModulusVCInterpolationType
+
+void
+AcousticStreamingHierarchyIntegrator::registerResetFluidDensityFcn(ResetMaterialPropertiesFcnPtr callback, void* ctx)
 {
     d_reset_rho_fcns.push_back(callback);
     d_reset_rho_fcns_ctx.push_back(ctx);
@@ -806,7 +850,7 @@ AcousticStreamingHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidPro
 } // registerResetFluidDensityFcn
 
 void
-AcousticStreamingHierarchyIntegrator::registerResetFluidShearViscosityFcn(ResetFluidPropertiesFcnPtr callback,
+AcousticStreamingHierarchyIntegrator::registerResetFluidShearViscosityFcn(ResetMaterialPropertiesFcnPtr callback,
                                                                           void* ctx)
 {
     d_reset_mu_fcns.push_back(callback);
@@ -815,7 +859,26 @@ AcousticStreamingHierarchyIntegrator::registerResetFluidShearViscosityFcn(ResetF
 } // registerResetFluidShearViscosityFcn
 
 void
-AcousticStreamingHierarchyIntegrator::registerResetFluidBulkViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+AcousticStreamingHierarchyIntegrator::registerResetFluidBulkViscosityFcn(ResetMaterialPropertiesFcnPtr callback,
+                                                                         void* ctx)
+{
+    d_reset_lambda_fcns.push_back(callback);
+    d_reset_lambda_fcns_ctx.push_back(ctx);
+    return;
+} // registerResetFluidBulkViscosityFcn
+
+void
+AcousticStreamingHierarchyIntegrator::registerResetElasticShearModulusFcn(ResetMaterialPropertiesFcnPtr callback,
+                                                                          void* ctx)
+{
+    d_reset_gamma_fcns.push_back(callback);
+    d_reset_gamma_fcns_ctx.push_back(ctx);
+    return;
+} // registerResetElasticShearModulusFcn
+
+void
+AcousticStreamingHierarchyIntegrator::registerResetElasticDilatationalModulusFcn(ResetMaterialPropertiesFcnPtr callback,
+                                                                                 void* ctx)
 {
     d_reset_lambda_fcns.push_back(callback);
     d_reset_lambda_fcns_ctx.push_back(ctx);
@@ -855,6 +918,28 @@ AcousticStreamingHierarchyIntegrator::registerBulkViscosityInitialConditions(
 } // registerBulkViscosityInitialConditions
 
 void
+AcousticStreamingHierarchyIntegrator::registerElasticShearModulusInitialConditions(
+    const Pointer<CartGridFunction> gamma_init_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_gamma_init_fcn = gamma_init_fcn;
+    return;
+} // registerElasticShearModulusInitialConditions
+
+void
+AcousticStreamingHierarchyIntegrator::registerElasticDilatationalModulusInitialConditions(
+    const Pointer<CartGridFunction> zeta_init_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_zeta_init_fcn = zeta_init_fcn;
+    return;
+} // registerElasticDilatationalModulusInitialConditions
+
+void
 AcousticStreamingHierarchyIntegrator::registerMassDensityBoundaryConditions(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_bc_coefs)
 {
@@ -886,6 +971,28 @@ AcousticStreamingHierarchyIntegrator::registerBulkViscosityBoundaryConditions(
     d_lambda_bc_coef = lambda_bc_coef;
     return;
 } // registerBulkViscosityBoundaryConditions
+
+void
+AcousticStreamingHierarchyIntegrator::registerElasticShearModulusBoundaryConditions(
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* gamma_bc_coef)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(gamma_bc_coef);
+#endif
+    d_gamma_bc_coef = gamma_bc_coef;
+    return;
+} // registerElasticShearModulusBoundaryConditions
+
+void
+AcousticStreamingHierarchyIntegrator::registerElasticDilatationalModulusBoundaryConditions(
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* zeta_bc_coef)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(zeta_bc_coef);
+#endif
+    d_zeta_bc_coef = zeta_bc_coef;
+    return;
+} // registerElasticDilatationalModulusBoundaryConditions
 
 void
 AcousticStreamingHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
@@ -929,6 +1036,31 @@ AcousticStreamingHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
 
     return;
 } // registerBrinkmanPenalizationStrategy
+
+void
+AcousticStreamingHierarchyIntegrator::registerElasticBody(Pointer<CellVariable<NDIM, double> > indicator_var,
+                                                          ResetMaterialPropertiesFcnPtr reset_chi_e_fcn,
+                                                          double gamma,
+                                                          double zeta)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(indicator_var);
+    TBOX_ASSERT(gamma >= 0.0);
+    TBOX_ASSERT(zeta >= 0.0);
+#endif
+
+    ElasticBodyData body;
+    body.indicator_var = indicator_var;
+    body.indicator_idx = IBTK::invalid_index;
+    body.reset_chi_e_fcn = reset_chi_e_fcn;
+    body.gamma = gamma;
+    body.zeta = zeta;
+
+    d_elastic_bodies.push_back(body);
+
+    return;
+} // registerElasticBody
 
 void
 AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -1023,6 +1155,8 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     const IntVector<NDIM> no_ghosts = 0;
     const IntVector<NDIM> mu_cell_ghosts = MUCELLG;
     const IntVector<NDIM> lambda_cell_ghosts = CELLG;
+    const IntVector<NDIM> gamma_cell_ghosts = GAMMACELLG;
+    const IntVector<NDIM> zeta_cell_ghosts = CELLG;
 
     registerVariable(d_U1_current_idx,
                      d_U1_new_idx,
@@ -1181,6 +1315,69 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
                      d_rho_refine_type,
                      d_rho_init_fcn);
 
+    d_acoustic_indicator_idx = var_db->registerVariableAndContext(
+        d_masking_indicator_var, var_db->getContext(d_object_name + "::acoustic_indicator"), cell_ghosts);
+
+    if (d_gamma_var)
+    {
+#if !defined(NDEBUG)
+        // AcousticStreamingHierarchyIntegrator should initialize the elastic shear modulus
+        // variable.
+        TBOX_ASSERT(d_gamma_init_fcn || d_reset_gamma_fcns.size() > 0);
+#endif
+        registerVariable(d_gamma_current_idx,
+                         d_gamma_new_idx,
+                         d_gamma_scratch_idx,
+                         d_gamma_var,
+                         gamma_cell_ghosts,
+                         d_gamma_coarsen_type,
+                         d_gamma_refine_type,
+                         d_gamma_init_fcn);
+    }
+    else
+    {
+        d_gamma_current_idx = invalid_index;
+        d_gamma_new_idx = invalid_index;
+        d_gamma_scratch_idx = invalid_index;
+    }
+
+    if (d_zeta_var)
+    {
+#if !defined(NDEBUG)
+        // AcousticStreamingHierarchyIntegrator should initialize the elastic dilatational viscosity
+        // variable.
+        TBOX_ASSERT(d_zeta_init_fcn || d_reset_zeta_fcns.size() > 0);
+#endif
+        registerVariable(d_zeta_current_idx,
+                         d_zeta_new_idx,
+                         d_zeta_scratch_idx,
+                         d_zeta_var,
+                         zeta_cell_ghosts,
+                         d_zeta_coarsen_type,
+                         d_zeta_refine_type,
+                         d_zeta_init_fcn);
+    }
+    else
+    {
+        d_zeta_current_idx = invalid_index;
+        d_zeta_new_idx = invalid_index;
+        d_zeta_scratch_idx = invalid_index;
+    }
+
+    bool has_elastic_bodies = !d_elastic_bodies.empty();
+    if (has_elastic_bodies)
+    {
+        // Register elastic body variables for individual elastic bodies
+        for (auto& body : d_elastic_bodies)
+        {
+            registerVariable(body.indicator_idx, body.indicator_var, cell_ghosts, getCurrentContext());
+        }
+
+        // Register a persistent aggregate field for elastic bodies.
+        d_elastic_indicator_idx = var_db->registerVariableAndContext(
+            d_masking_indicator_var, var_db->getContext(d_object_name + "::elastic_indicator"), cell_ghosts);
+    }
+
     // Register plot variables that are maintained by the
     // AcousticStreamingHierarchyIntegrator.
     registerVariable(d_U1_plot_idx, d_U1_plot_var, no_ghosts, getCurrentContext());
@@ -1189,8 +1386,8 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     registerVariable(d_Omega2_idx, d_Omega2_var, no_ghosts, getCurrentContext());
 
     // Register Brinkman variables that are maintained by the AcousticStreamingHierarchyIntegrator.
-    unsigned int num_bodies = d_fo_brinkman_force.size();
-    for (unsigned k = 0; k < num_bodies; ++k)
+    unsigned int num_rigid_bodies = d_fo_brinkman_force.size();
+    for (unsigned k = 0; k < num_rigid_bodies; ++k)
     {
         auto& current_idx = d_brinkman_current_idx[k];
         auto& new_idx = d_brinkman_new_idx[k];
@@ -1216,12 +1413,12 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
         Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
         so_brinkman_force->registerSolidLevelSet(current_idx, new_idx, scratch_idx, brinkman_bc);
     }
-    d_fo_real_hydro_force.resize(num_bodies);
-    d_fo_imag_hydro_force.resize(num_bodies);
-    d_fo_real_hydro_torque.resize(num_bodies);
-    d_fo_imag_hydro_torque.resize(num_bodies);
-    d_acoustic_radiation_force.resize(num_bodies);
-    d_acoustic_radiation_torque.resize(num_bodies);
+    d_fo_real_hydro_force.resize(num_rigid_bodies);
+    d_fo_imag_hydro_force.resize(num_rigid_bodies);
+    d_fo_real_hydro_torque.resize(num_rigid_bodies);
+    d_fo_imag_hydro_torque.resize(num_rigid_bodies);
+    d_acoustic_radiation_force.resize(num_rigid_bodies);
+    d_acoustic_radiation_torque.resize(num_rigid_bodies);
 
     // Register scratch variables that are maintained by the
     // AcousticStreamingHierarchyIntegrator.
@@ -1323,14 +1520,14 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
 #endif
         }
 
-        for (unsigned k = 0; k < num_bodies; ++k)
+        for (unsigned k = 0; k < num_rigid_bodies; ++k)
         {
             auto& var = d_brinkman_vars[k];
             auto& idx = d_brinkman_current_idx[k];
             d_visit_writer->registerPlotQuantity(var->getName(), "SCALAR", idx, 0);
         }
 
-        for (unsigned k = 0; k < num_bodies; ++k)
+        for (unsigned k = 0; k < num_rigid_bodies; ++k)
         {
             auto& var = d_contour_vars[k];
             auto& idx = d_contour_idx[k];
@@ -1384,8 +1581,19 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     d_mu_interp_idx =
         var_db->registerVariableAndContext(d_mu_interp_var, getCurrentContext(), NDIM == 2 ? node_ghosts : edge_ghosts);
 
+    if (has_elastic_bodies)
+    {
+#if (NDIM == 2)
+        d_gamma_interp_var = new NodeVariable<NDIM, double>(d_object_name + "::gamma_interp");
+#elif (NDIM == 3)
+        d_gamma_interp_var = new EdgeVariable<NDIM, double>(d_object_name + "::gamma_interp");
+#endif
+        d_gamma_interp_idx = var_db->registerVariableAndContext(
+            d_gamma_interp_var, getCurrentContext(), NDIM == 2 ? node_ghosts : edge_ghosts);
+    }
+
     // Register persistent variables to be used for boundary conditions and other
-    // applications.
+    // applications. The viscosity variables are used in the boundary condition objects.
     // Note: these will not be deallocated.
     Pointer<CellVariable<NDIM, double> > mu_cc_linear_op_var =
         new CellVariable<NDIM, double>(d_object_name + "_mu_cc_linear_op_var",
@@ -1469,7 +1677,7 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     }
 
     // Configure the second order Brinkman penalization objects
-    for (unsigned k = 0; k < num_bodies; ++k)
+    for (unsigned k = 0; k < num_rigid_bodies; ++k)
     {
         Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
         so_brinkman_force->setAcousticAngularFrequency(d_acoustic_freq);
@@ -1528,14 +1736,22 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         if (!level->checkAllocated(d_U1_imag_idx)) level->allocatePatchData(d_U1_imag_idx, current_time);
         if (!level->checkAllocated(d_p1_real_idx)) level->allocatePatchData(d_p1_real_idx, current_time);
         if (!level->checkAllocated(d_p1_imag_idx)) level->allocatePatchData(d_p1_imag_idx, current_time);
+        if (!level->checkAllocated(d_acoustic_indicator_idx))
+            level->allocatePatchData(d_acoustic_indicator_idx, current_time);
+
+        if (hasElasticBodies())
+        {
+            if (!level->checkAllocated(d_elastic_indicator_idx))
+                level->allocatePatchData(d_elastic_indicator_idx, current_time);
+        }
     }
 
     // Preprocess the operators and solvers
     preprocessOperatorsAndSolvers(current_time, new_time);
 
     // Preprocess Brinkman penalization objects.
-    const unsigned int num_bodies = d_fo_brinkman_force.size();
-    for (unsigned k = 0; k < num_bodies; ++k)
+    const unsigned int num_rigid_bodies = d_fo_brinkman_force.size();
+    for (unsigned k = 0; k < num_rigid_bodies; ++k)
     {
         Pointer<BrinkmanPenalizationMethod> fo_brinkman_force = d_fo_brinkman_force[k];
         fo_brinkman_force->setTimeInterval(current_time, new_time);
@@ -1556,7 +1772,7 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     d_hier_sc_data_ops->copyData(d_U2_new_idx, d_U2_current_idx);
     d_hier_cc_data_ops->copyData(d_P1_new_idx, d_P1_current_idx);
     d_hier_cc_data_ops->copyData(d_P2_new_idx, d_P2_current_idx);
-    for (unsigned k = 0; k < num_bodies; ++k)
+    for (unsigned k = 0; k < num_rigid_bodies; ++k)
     {
         d_hier_cc_data_ops->copyData(d_brinkman_new_idx[k], d_brinkman_current_idx[k]);
     }
@@ -1660,8 +1876,8 @@ AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double curre
     }
 
     // Postprocess Brinkman penalization objects.
-    const unsigned num_bodies = d_so_brinkman_force.size();
-    for (unsigned k = 0; k < num_bodies; ++k)
+    const unsigned num_rigid_bodies = d_so_brinkman_force.size();
+    for (unsigned k = 0; k < num_rigid_bodies; ++k)
     {
         Pointer<BrinkmanPenalizationMethod> fo_brinkman_force = d_fo_brinkman_force[k];
         fo_brinkman_force->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
@@ -1680,6 +1896,7 @@ AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double curre
 void
 AcousticStreamingHierarchyIntegrator::removeSecondOrderNullSpace(
     const Pointer<SAMRAIVectorReal<NDIM, double> >& sol2_vec)
+
 {
     if (d_null2_vecs.empty()) return;
     for (const auto& null2_vec : d_null2_vecs)
@@ -1733,7 +1950,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
                                  /*interior_only*/ true);
     d_mu_bdry_bc_fill_op->fillData(new_time);
 
-    // Interpolate onto node or edge centers
+    // Interpolate shear viscosity onto node or edge centers
     if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
     {
         d_hier_math_ops->interp_ghosted(
@@ -1749,7 +1966,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         TBOX_ERROR("this statement should not be reached");
     }
 
-    // Store viscosity for later use
+    // Store viscosity for later use in the Stokes boundary condition (velocity and pressure) objects.
     d_hier_cc_data_ops->copyData(d_mu_linear_op_idx,
                                  d_mu_scratch_idx,
                                  /*interior_only*/ false);
@@ -1783,6 +2000,57 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         d_lambda_bdry_bc_fill_op->fillData(new_time);
     }
 
+    if (hasElasticBodies())
+    {
+        for (unsigned k = 0; k < d_reset_gamma_fcns.size(); ++k)
+        {
+            d_reset_gamma_fcns[k](d_gamma_new_idx,
+                                  d_gamma_var,
+                                  d_hier_math_ops,
+                                  cycle_num,
+                                  apply_time,
+                                  current_time,
+                                  new_time,
+                                  d_reset_gamma_fcns_ctx[k]);
+        }
+        d_hier_cc_data_ops->copyData(d_gamma_scratch_idx,
+                                     d_gamma_new_idx,
+                                     /*interior_only*/ true);
+        d_gamma_bdry_bc_fill_op->fillData(new_time);
+
+        // Interpolate elastic shear modulus onto node or edge centers
+        if (d_gamma_vc_interp_type == VC_AVERAGE_INTERP)
+        {
+            d_hier_math_ops->interp_ghosted(
+                d_gamma_interp_idx, d_gamma_interp_var, d_gamma_scratch_idx, d_gamma_var, d_no_fill_op, new_time);
+        }
+        else if (d_gamma_vc_interp_type == VC_HARMONIC_INTERP)
+        {
+            d_hier_math_ops->harmonic_interp_ghosted(
+                d_gamma_interp_idx, d_gamma_interp_var, d_gamma_scratch_idx, d_gamma_var, d_no_fill_op, new_time);
+        }
+        else
+        {
+            TBOX_ERROR("this statement should not be reached");
+        }
+
+        for (unsigned k = 0; k < d_reset_zeta_fcns.size(); ++k)
+        {
+            d_reset_zeta_fcns[k](d_zeta_new_idx,
+                                 d_zeta_var,
+                                 d_hier_math_ops,
+                                 cycle_num,
+                                 apply_time,
+                                 current_time,
+                                 new_time,
+                                 d_reset_zeta_fcns_ctx[k]);
+        }
+        d_hier_cc_data_ops->copyData(d_zeta_scratch_idx,
+                                     d_zeta_new_idx,
+                                     /*interior_only*/ true);
+        d_zeta_bdry_bc_fill_op->fillData(new_time);
+    }
+
     // Synchronize the newest density
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent rho_scratch_synch_transaction =
@@ -1809,8 +2077,8 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
 
     // Setup the solution and right-hand-side vector for the 1st order system.
     int fo_jacobian_size = 0;
-    const unsigned num_bodies = d_fo_brinkman_force.size();
-    for (int b = 0; b < num_bodies; ++b)
+    const unsigned num_rigid_bodies = d_fo_brinkman_force.size();
+    for (int b = 0; b < num_rigid_bodies; ++b)
     {
         fo_jacobian_size += 2 * getFreeDOFs(b);
     }
@@ -1836,7 +2104,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         Eigen::MatrixXd Jac(fo_jacobian_size, fo_jacobian_size);
         Jac.setIdentity();
         int p = -1;
-        for (int b = 0; b < num_bodies; ++b)
+        for (int b = 0; b < num_rigid_bodies; ++b)
         {
             for (int d = 0; d < s_max_free_dofs; ++d)
             {
@@ -1869,7 +2137,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         Eigen::FullPivLU<Eigen::MatrixXd> lu(Jac);
         Eigen::VectorXd delta_v = lu.solve(-R_current);
         p = -1;
-        for (int b = 0; b < num_bodies; ++b)
+        for (int b = 0; b < num_rigid_bodies; ++b)
         {
             for (int d = 0; d < s_max_free_dofs; ++d)
             {
@@ -1905,7 +2173,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
 
         // Compute and add the Brinkman term to the RHS vector.
         d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
-        for (int k = 0; k < num_bodies; ++k)
+        for (int k = 0; k < num_rigid_bodies; ++k)
         {
             Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
             so_brinkman_force->setRigidVelocity(
@@ -1954,7 +2222,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         Eigen::MatrixXd Jac(so_jacobian_size, so_jacobian_size);
         Jac.setIdentity();
         int p = -1;
-        for (int b = 0; b < num_bodies; ++b)
+        for (int b = 0; b < num_rigid_bodies; ++b)
         {
             for (int d = 0; d < s_max_free_dofs; ++d)
             {
@@ -1967,7 +2235,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
                     vcomp += incr;
 
                     d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
-                    for (int k = 0; k < num_bodies; ++k)
+                    for (int k = 0; k < num_rigid_bodies; ++k)
                     {
                         Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
                         so_brinkman_force->setRigidVelocity(d_brinkman_fo_real_vel[k],
@@ -2008,7 +2276,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         Eigen::FullPivLU<Eigen::MatrixXd> lu(Jac);
         Eigen::VectorXd delta_v = lu.solve(-R_current);
         p = -1;
-        for (int b = 0; b < num_bodies; ++b)
+        for (int b = 0; b < num_rigid_bodies; ++b)
         {
             for (int d = 0; d < s_max_free_dofs; ++d)
             {
@@ -2340,6 +2608,46 @@ AcousticStreamingHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
 
+    std::vector<InterpolationTransactionComponent> indicator_transactions;
+    indicator_transactions.emplace_back(
+        d_acoustic_indicator_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, nullptr);
+    if (hasElasticBodies())
+    {
+        indicator_transactions.emplace_back(d_elastic_indicator_idx,
+                                            "CONSERVATIVE_LINEAR_REFINE",
+                                            true,
+                                            "CONSERVATIVE_COARSEN",
+                                            "LINEAR",
+                                            false,
+                                            nullptr);
+    }
+    d_indicator_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_indicator_bc_fill_op->initializeOperatorState(indicator_transactions, d_hierarchy);
+
+    if (hasElasticBodies())
+    {
+        InterpolationTransactionComponent gamma_bc_component(d_gamma_scratch_idx,
+                                                             d_gamma_refine_type,
+                                                             true,
+                                                             d_gamma_coarsen_type,
+                                                             d_gamma_bdry_extrap_type,
+                                                             false,
+                                                             d_gamma_bc_coef);
+        d_gamma_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+        d_gamma_bdry_bc_fill_op->initializeOperatorState(gamma_bc_component, d_hierarchy);
+
+        InterpolationTransactionComponent zeta_bc_component(d_zeta_scratch_idx,
+                                                            d_zeta_refine_type,
+                                                            true,
+                                                            d_zeta_coarsen_type,
+                                                            d_zeta_bdry_extrap_type,
+                                                            false,
+                                                            d_zeta_bc_coef);
+
+        d_zeta_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+        d_zeta_bdry_bc_fill_op->initializeOperatorState(zeta_bc_component, d_hierarchy);
+    }
+
     // Setup the patch boundary synchronization objects.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
 
@@ -2582,6 +2890,151 @@ AcousticStreamingHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database>
     db->putBool("write_contour_integrals", d_write_contour_integrals);
     return;
 } // putToDatabaseSpecialized
+
+void
+AcousticStreamingHierarchyIntegrator::maskMaterialCoefficients(const double data_time)
+{
+    //     if (!hasElasticBodies()) return;
+
+    //     /*
+    //      * Update every individual elastic-body indicator.
+    //      */
+    //     for (auto& body : d_elastic_bodies)
+    //     {
+    //         body.indicator_fcn->setDataOnPatchHierarchy(body.indicator_idx, body.indicator_var, d_hierarchy,
+    //         data_time);
+    //     }
+
+    //     /*
+    //      * Construct
+    //      *
+    //      *     chi_e   = sum_k chi_e,k,
+    //      *     chi_a   = 1 - chi_e,
+    //      *
+    //      *     Gamma_e = sum_k chi_e,k Gamma_k,
+    //      *     zeta_e  = sum_k chi_e,k zeta_k,
+    //      *
+    //      *     mu_a     = chi_a mu,
+    //      *     lambda_a = chi_a lambda.
+    //      */
+    //     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    //     static const double indicator_tol = 1.0e-10;
+
+    //     for (int ln = 0; ln <= finest_ln; ++ln)
+    //     {
+    //         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+    //         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    //         {
+    //             Pointer<Patch<NDIM> > patch = level->getPatch(p());
+    //             const Box<NDIM>& patch_box = patch->getBox();
+
+    //             Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(d_mu_scratch_idx);
+    //             Pointer<CellData<NDIM, double> > lambda_data;
+
+    //             if (d_lambda_scratch_idx != IBTK::invalid_index)
+    //             {
+    //                 lambda_data = patch->getPatchData(d_lambda_scratch_idx);
+    //             }
+
+    //             Pointer<CellData<NDIM, double> > chi_e_data = patch->getPatchData(d_elastic_indicator_idx);
+    //             Pointer<CellData<NDIM, double> > chi_a_data = patch->getPatchData(d_acoustic_indicator_idx);
+
+    //             Pointer<CellData<NDIM, double> > mu_a_data = patch->getPatchData(d_mu_acoustic_idx);
+    //             Pointer<CellData<NDIM, double> > lambda_a_data = patch->getPatchData(d_lambda_acoustic_idx);
+
+    //             Pointer<CellData<NDIM, double> > gamma_e_data = patch->getPatchData(d_gamma_elastic_idx);
+    //             Pointer<CellData<NDIM, double> > zeta_e_data = patch->getPatchData(d_zeta_elastic_idx);
+
+    // #if !defined(NDEBUG)
+    //             TBOX_ASSERT(!mu_data.isNull());
+    //             TBOX_ASSERT(!chi_e_data.isNull());
+    //             TBOX_ASSERT(!chi_a_data.isNull());
+    //             TBOX_ASSERT(!mu_a_data.isNull());
+    //             TBOX_ASSERT(!lambda_a_data.isNull());
+    //             TBOX_ASSERT(!gamma_e_data.isNull());
+    //             TBOX_ASSERT(!zeta_e_data.isNull());
+    // #endif
+
+    //             for (CellIterator<NDIM> ci(patch_box); ci; ci++)
+    //             {
+    //                 const CellIndex<NDIM>& i = ci();
+
+    //                 double chi_e = 0.0;
+    //                 double gamma_e = 0.0;
+    //                 double zeta_e = 0.0;
+
+    //                 for (const auto& body : d_elastic_bodies)
+    //                 {
+    //                     Pointer<CellData<NDIM, double> > body_indicator_data =
+    //                     patch->getPatchData(body.indicator_idx);
+
+    // #if !defined(NDEBUG)
+    //                     TBOX_ASSERT(!body_indicator_data.isNull());
+    // #endif
+
+    //                     double chi_k = (*body_indicator_data)(i);
+
+    //                     if (chi_k < -indicator_tol || chi_k > 1.0 + indicator_tol)
+    //                     {
+    //                         TBOX_ERROR(d_object_name << "::updateElasticMaterialCoefficients():\n"
+    //                                                  << "Elastic indicator is outside [0,1]. chi = " << chi_k <<
+    //                                                  "\n");
+    //                     }
+
+    //                     chi_k = std::max(0.0, std::min(1.0, chi_k));
+
+    //                     chi_e += chi_k;
+    //                     gamma_e += chi_k * body.gamma;
+    //                     zeta_e += chi_k * body.zeta;
+    //                 }
+
+    //                 /*
+    //                  * Elastic bodies are assumed to be mutually non-overlapping.
+    //                  */
+    //                 if (chi_e > 1.0 + indicator_tol)
+    //                 {
+    //                     TBOX_ERROR(d_object_name << "::updateElasticMaterialCoefficients():\n"
+    //                                              << "Elastic bodies overlap: sum_k chi_e,k = " << chi_e << "
+    //                                              > 1.\n");
+    //                 }
+
+    //                 chi_e = std::max(0.0, std::min(1.0, chi_e));
+
+    //                 const double chi_a = 1.0 - chi_e;
+
+    //                 (*chi_e_data)(i) = chi_e;
+    //                 (*chi_a_data)(i) = chi_a;
+
+    //                 /*
+    //                  * These coefficients already contain the elastic mask, so the
+    //                  * PETSc matrix constructs div(chi_e sigma_e).
+    //                  */
+    //                 (*gamma_e_data)(i) = gamma_e;
+    //                 (*zeta_e_data)(i) = zeta_e;
+
+    //                 /*
+    //                  * Rigid VP regions remain part of the acoustic extension.
+    //                  * Hence chi_a = 1 - chi_e, rather than a pure-fluid indicator.
+    //                  */
+    //                 (*mu_a_data)(i) = chi_a * (*mu_data)(i);
+
+    //                 if (!lambda_data.isNull())
+    //                     (*lambda_a_data)(i) = chi_a * (*lambda_data)(i);
+    //                 else
+    //                     (*lambda_a_data)(i) = 0.0;
+    //             }
+    //         }
+    //     }
+
+    //     /*
+    //      * Fill patch, coarse-fine, and physical-boundary ghost values.
+    //      */
+    //     if (d_elastic_coeff_bdry_fill_op)
+    //     {
+    //         d_elastic_coeff_bdry_fill_op->fillData(data_time);
+    //     }
+} // maskElasticMaterialCoefficients
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -4010,12 +4463,12 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
 void
 AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForceBP(double time)
 {
-    int num_bodies = d_so_brinkman_force.size();
-    std::vector<IBTK::Vector3d> radiation_forces(num_bodies, IBTK::Vector3d::Zero());
+    int num_rigid_bodies = d_so_brinkman_force.size();
+    std::vector<IBTK::Vector3d> radiation_forces(num_rigid_bodies, IBTK::Vector3d::Zero());
     int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
 
     // Compute the contribution to the radiation force from chi/kappa *U_b term of the Brinkman penalization force.
-    for (int k = 0; k < num_bodies; ++k)
+    for (int k = 0; k < num_rigid_bodies; ++k)
     {
         Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
         so_brinkman_force->setRigidVelocity(
@@ -4052,7 +4505,7 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForceBP(double tim
     }
 
     // Compute the contribution to the radiation force from chi/kappa *U2 term of the Brinkman penalization force.
-    for (int k = 0; k < num_bodies; ++k)
+    for (int k = 0; k < num_rigid_bodies; ++k)
     {
         auto& so_brinkman_force = d_so_brinkman_force[k];
         d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
@@ -4086,7 +4539,7 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForceBP(double tim
         }
     }
 
-    for (int k = 0; k < num_bodies; ++k)
+    for (int k = 0; k < num_rigid_bodies; ++k)
     {
         IBTK_MPI::sumReduction(radiation_forces[k].data(), radiation_forces[k].size());
         std::copy(radiation_forces[k].data(), radiation_forces[k].data() + NDIM, d_acoustic_radiation_force[k].begin());
@@ -4099,8 +4552,8 @@ void
 AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForce(Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
                                                                  double time)
 {
-    unsigned num_bodies = d_brinkman_scratch_idx.size();
-    if (num_bodies == 0) return;
+    unsigned num_rigid_bodies = d_brinkman_scratch_idx.size();
+    if (num_rigid_bodies == 0) return;
 
     const int U1_sol_idx = sol1_vec->getComponentDescriptorIndex(0);
     const int p1_sol_idx = sol1_vec->getComponentDescriptorIndex(1);
@@ -4138,7 +4591,7 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForce(Pointer<SAMRAIV
     comp_fill_op->fillData(time);
 
     // Perform surface integration to determine hydrodynamic force due to the first-order solution.
-    for (unsigned k = 0; k < num_bodies; ++k)
+    for (unsigned k = 0; k < num_rigid_bodies; ++k)
     {
         auto& phi_scratch_idx = d_brinkman_scratch_idx[k];
         auto& phi_new_idx = d_brinkman_new_idx[k];
@@ -4330,8 +4783,8 @@ AcousticStreamingHierarchyIntegrator::computeSmoothedFOHydrodynamicForce(
     Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
     double time)
 {
-    const unsigned num_bodies = d_brinkman_scratch_idx.size();
-    if (num_bodies == 0) return;
+    const unsigned num_rigid_bodies = d_brinkman_scratch_idx.size();
+    if (num_rigid_bodies == 0) return;
 
     const int U1_sol_idx = sol1_vec->getComponentDescriptorIndex(0);
     const int p1_sol_idx = sol1_vec->getComponentDescriptorIndex(1);
@@ -4369,7 +4822,7 @@ AcousticStreamingHierarchyIntegrator::computeSmoothedFOHydrodynamicForce(
     comp_fill_op->initializeOperatorState(comp_transactions, d_hierarchy);
     comp_fill_op->fillData(time);
 
-    for (unsigned k = 0; k < num_bodies; ++k)
+    for (unsigned k = 0; k < num_rigid_bodies; ++k)
     {
         auto& phi_scratch_idx = d_brinkman_scratch_idx[k];
         auto& phi_new_idx = d_brinkman_new_idx[k];
@@ -4565,8 +5018,8 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
     Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
     double time)
 {
-    unsigned num_bodies = d_brinkman_scratch_idx.size();
-    if (num_bodies == 0) return;
+    unsigned num_rigid_bodies = d_brinkman_scratch_idx.size();
+    if (num_rigid_bodies == 0) return;
 
     const int U1_sol_idx = sol1_vec->getComponentDescriptorIndex(0);
     const int p1_sol_idx = sol1_vec->getComponentDescriptorIndex(1);
@@ -4607,7 +5060,7 @@ AcousticStreamingHierarchyIntegrator::computeFOHydrodynamicForceViaContourIntegr
     int sc_wgt_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
 
     // Perform surface integration to determine hydrodynamic force due to the first-order solution.
-    for (unsigned k = 0; k < num_bodies; ++k)
+    for (unsigned k = 0; k < num_rigid_bodies; ++k)
     {
         auto& phi_scratch_idx = d_brinkman_scratch_idx[k];
         auto& phi_new_idx = d_brinkman_new_idx[k];
@@ -4884,8 +5337,8 @@ AcousticStreamingHierarchyIntegrator::computeFOResidual(Pointer<SAMRAIVectorReal
     computeFOHydrodynamicForceViaContourIntegral(sol1_vec, time);
 
     int k = -1;
-    int num_bodies = d_fo_brinkman_force.size();
-    for (int b = 0; b < num_bodies; ++b)
+    int num_rigid_bodies = d_fo_brinkman_force.size();
+    for (int b = 0; b < num_rigid_bodies; ++b)
     {
         const double& mass = d_brinkman_mass[b];
         const auto& inertia_tensor = d_brinkman_inertia_tensor_initial[b];
@@ -4940,8 +5393,8 @@ AcousticStreamingHierarchyIntegrator::computeSOResidual(Eigen::VectorXd& R, doub
     computeAcousticRadiationForce(time);
 
     int k = -1;
-    int num_bodies = d_so_brinkman_force.size();
-    for (int b = 0; b < num_bodies; ++b)
+    int num_rigid_bodies = d_so_brinkman_force.size();
+    for (int b = 0; b < num_rigid_bodies; ++b)
     {
         for (int i = 0; i < NDIM; ++i)
         {

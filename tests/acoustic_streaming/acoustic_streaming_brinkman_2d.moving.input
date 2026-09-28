@@ -242,7 +242,7 @@ BulkViscosityBcCoefs {
 START_TIME                          =  0.0e0     // initial simulation time
 END_TIME                            =  1.5e2     // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS                =  3 //100000    // max number of simulation timesteps
+MAX_INTEGRATOR_STEPS                =  1 //100000    // max number of simulation timesteps
 REGRID_INTERVAL                     =  50000000
 CFL_MAX                             =  1.0
 NUM_INS_CYCLES                      =  1
@@ -301,17 +301,17 @@ AcousticStreamingHierarchyIntegrator {
    write_contour_integrals = TRUE
 
    first_order_solver_db {
-      ksp_type          = "fgmres"
+      ksp_type          = "gmres"
       pc_type           = "lu"
-      rel_residual_tol  = 1.0e-12
-      abs_residual_tol  = 1.0e-15
+      rel_residual_tol  = 1.0e-16
+      abs_residual_tol  = 1.0e-16
       initial_guess_nonzero = FALSE
    }
 
    stokes_solver_db {
-      ksp_type       = "fgmres"
+      ksp_type       = "gmres"
       max_iterations = 2500
-      rel_residual_tol = 1e-9
+      rel_residual_tol = 1e-16
    }
 
    stokes_precond_db {

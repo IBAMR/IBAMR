@@ -277,6 +277,16 @@ public:
     void registerBulkViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > lambda_var);
 
     /*!
+     * Register elastic shear modulus variable with the hierarchy integrator.
+     */
+    void registerElasticShearModulusVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > gamma_var);
+
+    /*!
+     * Register elastic dilational modulus variable with the hierarchy integrator.
+     */
+    void registerElasticDilationalModulusVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > zeta_var);
+
+    /*!
      * Get the shear viscosity variable registered with the hierarchy integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getShearViscosityVariable() const;
@@ -285,6 +295,16 @@ public:
      * Get the bulk viscosity variable registered with the hierarchy integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getBulkViscosityVariable() const;
+
+    /*!
+     * Get the elastic shear modulus variable registered with the hierarchy integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getElasticShearModulusVariable() const;
+
+    /*!
+     * Get the elastic dilational modulus variable registered with the hierarchy integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getElasticDilationalModulusVariable() const;
 
     /*!
      * Set the interpolation type used for material properties rho
@@ -297,32 +317,47 @@ public:
     void setShearViscosityVCInterpolationType(const IBTK::VCInterpType vc_interp_type);
 
     /*!
-     * \brief Function to reset fluid density or viscosity if they are
+     * Set the interpolation type used for material properties gamma (Elastic shear modulus).
+     */
+    void setElasticShearModulusVCInterpolationType(const IBTK::VCInterpType vc_interp_type);
+
+    /*!
+     * \brief Function to reset material properties, e.g., density, viscosity or elasticity if they are
      * maintained by this integrator.
      */
-    using ResetFluidPropertiesFcnPtr = void (*)(int property_idx,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > property_var,
-                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                                int cycle_num,
-                                                double time,
-                                                double current_time,
-                                                double new_time,
-                                                void* ctx);
+    using ResetMaterialPropertiesFcnPtr = void (*)(int property_idx,
+                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > property_var,
+                                                   SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                   int cycle_num,
+                                                   double time,
+                                                   double current_time,
+                                                   double new_time,
+                                                   void* ctx);
 
     /*!
      * \brief Register function to reset fluid density.
      */
-    void registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+    void registerResetFluidDensityFcn(ResetMaterialPropertiesFcnPtr callback, void* ctx);
 
     /*!
      * \brief Register function to reset fluid shear viscosity.
      */
-    void registerResetFluidShearViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+    void registerResetFluidShearViscosityFcn(ResetMaterialPropertiesFcnPtr callback, void* ctx);
 
     /*!
      * \brief Register function to reset fluid bulk viscosity.
      */
-    void registerResetFluidBulkViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+    void registerResetFluidBulkViscosityFcn(ResetMaterialPropertiesFcnPtr callback, void* ctx);
+
+    /*!
+     * \brief Register function to reset elastic shear modulus.
+     */
+    void registerResetElasticShearModulusFcn(ResetMaterialPropertiesFcnPtr callback, void* ctx);
+
+    /*!
+     * \brief Register function to reset elastic dilatational modulus.
+     */
+    void registerResetElasticDilatationalModulusFcn(ResetMaterialPropertiesFcnPtr callback, void* ctx);
 
     /*!
      * \brief Supply initial conditions for the (zeroth order) density field.
@@ -339,6 +374,17 @@ public:
      */
     void registerBulkViscosityInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> lambda_init_fcn);
 
+    /*!
+     * \brief Supply initial conditions for the elastic shear modulus.
+     */
+    void registerElasticShearModulusInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> gamma_init_fcn);
+
+    /*!
+     * \brief Supply initial conditions for the elastic dilatational modulus.
+     */
+    void
+    registerElasticDilatationalModulusInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> zeta_init_fcn);
+
     /*
      * \brief Supply boundary conditions for the density field, if maintained by the fluid
      * integrator.
@@ -347,14 +393,24 @@ public:
     registerMassDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_bc_coefs);
 
     /*
-     * \brief Supply boundary conditions for the shear viscosity field, if maintained by the fluid integrator.
+     * \brief Supply boundary conditions for the shear viscosity field.
      */
     void registerShearViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef);
 
     /*
-     * \brief Supply boundary conditions for the bulk viscosity field, if maintained by the fluid integrator.
+     * \brief Supply boundary conditions for the bulk viscosity field.
      */
     void registerBulkViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lambda_bc_coef);
+
+    /*
+     * \brief Supply boundary conditions for the elastic shear modulus.
+     */
+    void registerElasticShearModulusBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* gamma_bc_coef);
+
+    /*
+     * \brief Supply boundary conditions for the elastic dilatational modulus.
+     */
+    void registerElasticDilatationalModulusBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* zeta_bc_coef);
 
     /*
      * \brief Get the first-order velocity variable
@@ -576,6 +632,69 @@ public:
         return d_brinkman_vars;
     } // getBrinkmanPenalizationVars
 
+    /*
+     * \brief Register an elastic body with the hierarchy integrator.
+     *
+     * @param indicator_var The level set function representing the elastic body.
+     * The level set function should be negative inside the body and positive outside.
+     *
+     * @param gamma The shear modulus of the elastic body.
+     *
+     * @param zeta The bulk modulus of the elastic body.
+     */
+    void registerElasticBody(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > indicator_var,
+                             ResetMaterialPropertiesFcnPtr reset_chi_e_fcn,
+                             double gamma,
+                             double zeta);
+
+    /*
+    \brief Get the number of elastic bodies registered with the hierarchy integrator.
+    */
+    unsigned int getNumberOfElasticBodies() const
+    {
+        return static_cast<unsigned int>(d_elastic_bodies.size());
+    } // getNumberOfElasticBodies
+
+    /*!
+     * \brief Return true if at least one elastic body has been registered.
+     */
+    bool hasElasticBodies() const
+    {
+        return !d_elastic_bodies.empty();
+    } // hasElasticBodies
+
+    /*!
+     * \brief Return the aggregate elastic indicator patch-data index.
+     */
+    int getElasticIndicatorPatchDataIndex() const
+    {
+        return d_elastic_indicator_idx;
+    } // getElasticIndicatorPatchDataIndex
+
+    /*!
+     * \brief Return the acoustic indicator chi_a = 1 - chi_e.
+     */
+    int getAcousticIndicatorPatchDataIndex() const
+    {
+        return d_acoustic_indicator_idx;
+    } // getAcousticIndicatorPatchDataIndex
+
+    /*!
+     * \brief Return Gamma_e = sum_k chi_e,k Gamma_k.
+     */
+    int getElasticShearModulusPatchDataIndex() const
+    {
+        return d_gamma_idx;
+    } // getElasticShearModulusPatchDataIndex
+
+    /*!
+     * \brief Return zeta_e = sum_k chi_e,k zeta_k.
+     */
+    int getElasticDilationalModulusPatchDataIndex() const
+    {
+        return d_zeta_idx;
+    } // getElasticDilationalModulusPatchDataIndex
+
 protected:
     /*!
      * Whether we need to perform a regrid projection when (re-)initializing composite hierarchy data.
@@ -649,6 +768,53 @@ protected:
      * Write out specialized object state to the given database.
      */
     virtual void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
+     * \brief Mask the material coefficients (e.g., viscosity, elasticity)
+     */
+    void maskMaterialCoefficients(double data_time);
+
+    /*!
+     * \brief Data associated with one elastic body.
+     *
+     * Individual body data are combined into aggregate coefficient fields before
+     * constructing the differential operators required for linear solvers.
+     */
+    struct ElasticBodyData
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > indicator_var;
+        int indicator_idx = IBTK::invalid_index;
+        ResetMaterialPropertiesFcnPtr reset_chi_e_fcn;
+        double gamma = 0.0;
+        double zeta = 0.0;
+    };
+    std::vector<ElasticBodyData> d_elastic_bodies;
+
+    /*!
+     * \brief Aggregate coefficient fields.
+     *
+     *   chi_e   = sum_k chi_e,k,
+     *   chi_a   = 1 - chi_e,
+     *
+     *   mu_a     = chi_a mu,
+     *   lambda_a = chi_a lambda,
+     *
+     *   Gamma_e = sum_k chi_e,k Gamma_k,
+     *   zeta_e  = sum_k chi_e,k zeta_k.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_masking_indicator_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_gamma_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_zeta_var;
+
+    int d_elastic_indicator_idx = IBTK::invalid_index;
+    int d_acoustic_indicator_idx = IBTK::invalid_index;
+
+    int d_gamma_idx = IBTK::invalid_index;
+    int d_zeta_idx = IBTK::invalid_index;
+
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_indicator_bc_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_gamma_bdry_bc_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_zeta_bdry_bc_fill_op;
 
     /*!
      * \name Parameters specific to the first order acoustic streaming system.
@@ -776,11 +942,25 @@ protected:
     std::string d_lambda_refine_type = "CONSERVATIVE_LINEAR_REFINE";
     std::string d_lambda_bdry_extrap_type = "CONSTANT";
 
+    std::string d_gamma_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_gamma_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+    std::string d_gamma_bdry_extrap_type = "CONSTANT";
+
+    std::string d_zeta_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_zeta_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+    std::string d_zeta_bdry_extrap_type = "CONSTANT";
+
     /*!
      * Functions resetting rho, mu and lambda maintained by this integrator.
      */
-    std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_mu_fcns, d_reset_lambda_fcns;
+    std::vector<ResetMaterialPropertiesFcnPtr> d_reset_rho_fcns, d_reset_mu_fcns, d_reset_lambda_fcns;
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx, d_reset_lambda_fcns_ctx;
+
+    /*!
+     * Functions resetting gamma and zeta maintained by this integrator.
+     */
+    std::vector<ResetMaterialPropertiesFcnPtr> d_reset_gamma_fcns, d_reset_zeta_fcns;
+    std::vector<void*> d_reset_gamma_fcns_ctx, d_reset_zeta_fcns_ctx;
 
     /*!
      * Whether to couple first and second order systems.
@@ -854,6 +1034,9 @@ protected:
     int d_lambda_current_idx, d_lambda_new_idx, d_lambda_scratch_idx;
     int d_rho_current_idx, d_rho_new_idx, d_rho_scratch_idx;
 
+    int d_gamma_current_idx, d_gamma_new_idx, d_gamma_scratch_idx;
+    int d_zeta_current_idx, d_zeta_new_idx, d_zeta_scratch_idx;
+
     /*
      * Components of U1 and P1 stored as scratch indices.
      * These are used to compute coupling terms for the first- and
@@ -897,16 +1080,18 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_velocity_D_cc_var;
 #if (NDIM == 2)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_mu_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_gamma_interp_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_velocity_D_var;
 #elif (NDIM == 3)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_mu_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_gamma_interp_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_velocity_D_var;
 #endif
 
     int d_U2_regrid_idx, d_U2_src_idx, d_indicator2_idx;
     int d_Omega2_Norm_idx;
     int d_velocity_C_idx, d_velocity_L_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx, d_projection_D_idx;
-    int d_mu_interp_idx;
+    int d_mu_interp_idx, d_gamma_interp_idx;
 
     /*
      * Persistent patch data indices for the density and viscosity used in the linear operators
@@ -921,9 +1106,9 @@ protected:
     int d_theta_cc_idx;
 
     /*
-     * Variable to indicate the type of interpolation to be done for rho and mu.
+     * Variable to indicate the type of interpolation to be done for rho, mu, and gamma.
      */
-    IBTK::VCInterpType d_rho_vc_interp_type, d_mu_vc_interp_type;
+    IBTK::VCInterpType d_rho_vc_interp_type, d_mu_vc_interp_type, d_gamma_vc_interp_type;
 
     /*!
      * Brinkman force strategy objects registered with this integrator.
@@ -973,14 +1158,16 @@ protected:
     int d_precond_reinit_interval = 1;
 
     /*
-     * Objects to set initial condition for density and viscosity when they are maintained by the fluid integrator.
+     * Objects to set initial condition for material properties.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_init_fcn, d_mu_init_fcn, d_lambda_init_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_init_fcn, d_mu_init_fcn, d_lambda_init_fcn, d_gamma_init_fcn,
+        d_zeta_init_fcn;
 
     /*
-     * Boundary condition objects for viscosity and density.
+     * Boundary condition objects for material properties.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*d_mu_bc_coef = nullptr, *d_lambda_bc_coef = nullptr;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*d_mu_bc_coef = nullptr, *d_lambda_bc_coef = nullptr,
+    *d_gamma_bc_coef = nullptr, *d_zeta_bc_coef = nullptr;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_bc_coefs;
 
     /*
