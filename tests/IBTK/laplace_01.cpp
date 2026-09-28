@@ -14,10 +14,14 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/SAMRAIScopedVectorCopy.h>
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/muParserCartGridFunction.h>
+
+#include <petscvec.h>
 
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
@@ -26,9 +30,118 @@
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
+#include <algorithm>
+#include <array>
+#include <string>
+#include <utility>
+
 #include "../tests.h"
 
 #include <ibtk/app_namespaces.h>
+
+namespace
+{
+// Compare PETSc vector operations applied to wrapped SAMRAI vectors to the
+// corresponding SAMRAI vector operations. Coefficients that differ from +/-1 by
+// less than sqrt(machine epsilon) must be applied exactly, not as +/-1.
+void
+check_petsc_vector_ops(SAMRAIVectorReal<NDIM, double>& u_vec, SAMRAIVectorReal<NDIM, double>& f_vec)
+{
+    SAMRAIScopedVectorDuplicate<double> x_vec(u_vec);
+    SAMRAIScopedVectorDuplicate<double> z_vec(f_vec);
+    SAMRAIScopedVectorDuplicate<double> y_vec(f_vec);
+    SAMRAIScopedVectorDuplicate<double> w_vec(f_vec);
+    SAMRAIScopedVectorDuplicate<double> r_vec(f_vec);
+    SAMRAIScopedVectorDuplicate<double> e_vec(f_vec);
+    Pointer<SAMRAIVectorReal<NDIM, double>> x = x_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> z = z_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> y = y_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> w = w_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> r = r_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> e = e_vec;
+    x->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&u_vec, false), false);
+    z->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false), false);
+    const double x_norm = x->maxNorm();
+    const double z_norm = z->maxNorm();
+
+    Vec x_petsc = PETScSAMRAIVectorReal::createPETScVector(x);
+    Vec z_petsc = PETScSAMRAIVectorReal::createPETScVector(z);
+    Vec y_petsc = PETScSAMRAIVectorReal::createPETScVector(y);
+    Vec w_petsc = PETScSAMRAIVectorReal::createPETScVector(w);
+    std::array<Vec, 2> maxpy_vecs = { x_petsc, z_petsc };
+
+    // Report the error in the PETSc result relative to the operand that is
+    // multiplied by the coefficient under test.
+    const auto report = [&](const std::string& op,
+                            const std::string& coef_name,
+                            const Pointer<SAMRAIVectorReal<NDIM, double>>& result,
+                            const double operand_norm)
+    {
+        e->subtract(result, r);
+        plog << op << " with coefficient " << coef_name << ": relative error = " << e->maxNorm() / operand_norm << "\n";
+    };
+
+    const double delta = 1.0e-8;
+    const std::array<std::pair<std::string, double>, 4> coefs = {
+        { { "1", 1.0 }, { "-1", -1.0 }, { "1 + delta", 1.0 + delta }, { "-(1 - delta)", -(1.0 - delta) } }
+    };
+    PetscErrorCode ierr;
+    for (const auto& coef : coefs)
+    {
+        const std::string& name = coef.first;
+        const double c = coef.second;
+        const std::array<double, 2> maxpy_coefs = { c, c };
+
+        // y = y + c*x
+        y->copyVector(z, false);
+        r->linearSum(c, x, 1.0, z);
+        ierr = VecAXPY(y_petsc, c, x_petsc);
+        IBTK_CHKERRQ(ierr);
+        report("VecAXPY", name, y, x_norm);
+
+        // y = c*x + 2*y
+        y->copyVector(z, false);
+        r->linearSum(c, x, 2.0, z);
+        ierr = VecAXPBY(y_petsc, c, 2.0, x_petsc);
+        IBTK_CHKERRQ(ierr);
+        report("VecAXPBY (alpha)", name, y, x_norm);
+
+        // y = 2*x + c*y
+        y->copyVector(z, false);
+        r->linearSum(2.0, x, c, z);
+        ierr = VecAXPBY(y_petsc, 2.0, c, x_petsc);
+        IBTK_CHKERRQ(ierr);
+        report("VecAXPBY (beta)", name, y, z_norm);
+
+        // y = y + c*x + c*z
+        y->copyVector(z, false);
+        r->linearSum(c, x, 1.0, z);
+        r->axpy(c, z, r);
+        ierr = VecMAXPY(y_petsc, 2, maxpy_coefs.data(), maxpy_vecs.data());
+        IBTK_CHKERRQ(ierr);
+        report("VecMAXPY", name, y, std::max(x_norm, z_norm));
+
+        // y = x + c*y
+        y->copyVector(z, false);
+        r->linearSum(1.0, x, c, z);
+        ierr = VecAYPX(y_petsc, c, x_petsc);
+        IBTK_CHKERRQ(ierr);
+        report("VecAYPX", name, y, z_norm);
+
+        // w = c*x + y
+        y->copyVector(z, false);
+        r->linearSum(c, x, 1.0, z);
+        ierr = VecWAXPY(w_petsc, c, x_petsc, y_petsc);
+        IBTK_CHKERRQ(ierr);
+        report("VecWAXPY", name, w, x_norm);
+    }
+
+    PETScSAMRAIVectorReal::destroyPETScVector(x_petsc);
+    PETScSAMRAIVectorReal::destroyPETScVector(z_petsc);
+    PETScSAMRAIVectorReal::destroyPETScVector(y_petsc);
+    PETScSAMRAIVectorReal::destroyPETScVector(w_petsc);
+}
+} // namespace
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -53,6 +166,7 @@ main(int argc, char* argv[])
         const bool test_copied_vector = input_db->getBoolWithDefault("test_copied_vector", false);
         const bool test_duplicated_vector = input_db->getBoolWithDefault("test_duplicated_vector", false);
         const bool test_standard_vector = !test_copied_vector && !test_duplicated_vector;
+        const bool test_petsc_vector_ops = input_db->getBoolWithDefault("test_petsc_vector_ops", false);
 
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input
@@ -185,6 +299,8 @@ main(int argc, char* argv[])
             u_fcn.setDataOnPatchHierarchy(u_cc_idx, u_cc_var, patch_hierarchy, 0.0);
             f_fcn.setDataOnPatchHierarchy(f_cc_idx, f_cc_var, patch_hierarchy, 0.0);
         }
+
+        if (test_petsc_vector_ops) check_petsc_vector_ops(u_vec, f_vec);
 
         // Compute -L*u = f.
         PoissonSpecifications poisson_spec("poisson_spec");
