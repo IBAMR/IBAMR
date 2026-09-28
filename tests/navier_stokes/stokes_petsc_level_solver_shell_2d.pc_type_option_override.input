@@ -1,8 +1,6 @@
-petsc_settings_shell_ {
-   sub_pc_type = "svd"
-}
 petsc_settings_shell {
    pc_type = "shell"
+   sub_pc_type = "svd"
 }
 
 test {

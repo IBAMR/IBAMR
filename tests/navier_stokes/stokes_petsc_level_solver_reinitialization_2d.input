@@ -1,6 +1,3 @@
-petsc_settings_shell_ {
-   sub_pc_type = "svd"
-}
 petsc_settings_shell {
    sub_ksp_type = "preonly"
    sub_pc_type = "svd"
