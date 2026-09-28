@@ -1,5 +1,5 @@
 // An unknown composition of the shell preconditioner is reported at construction.
-petsc_settings_shell_ {
+petsc_settings_shell {
    sub_pc_type = "svd"
 }
 
