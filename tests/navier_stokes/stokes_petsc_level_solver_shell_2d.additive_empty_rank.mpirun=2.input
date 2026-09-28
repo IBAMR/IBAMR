@@ -1,5 +1,5 @@
 // The level has one patch, so the second rank has no subdomain and still takes part in every communication.
-petsc_settings_shell_ {
+petsc_settings_shell {
    sub_pc_type = "svd"
 }
 
