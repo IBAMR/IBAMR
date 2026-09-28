@@ -1,0 +1,3 @@
+Fixed: Stop rounding near-unit coefficients in PETScSAMRAIVectorReal.
+<br>
+(Boyce Griffith, 2026/09/28)

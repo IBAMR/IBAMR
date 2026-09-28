@@ -1,0 +1,81 @@
+VecAXPY with coefficient 1: relative error = -0
+VecAXPBY (alpha) with coefficient 1: relative error = -0
+VecAXPBY (beta) with coefficient 1: relative error = -0
+VecMAXPY with coefficient 1: relative error = -0
+VecAYPX with coefficient 1: relative error = -0
+VecWAXPY with coefficient 1: relative error = -0
+VecAXPY with coefficient -1: relative error = -0
+VecAXPBY (alpha) with coefficient -1: relative error = -0
+VecAXPBY (beta) with coefficient -1: relative error = -0
+VecMAXPY with coefficient -1: relative error = -0
+VecAYPX with coefficient -1: relative error = -0
+VecWAXPY with coefficient -1: relative error = -0
+VecAXPY with coefficient 1 + delta: relative error = -0
+VecAXPBY (alpha) with coefficient 1 + delta: relative error = -0
+VecAXPBY (beta) with coefficient 1 + delta: relative error = -0
+VecMAXPY with coefficient 1 + delta: relative error = -0
+VecAYPX with coefficient 1 + delta: relative error = -0
+VecWAXPY with coefficient 1 + delta: relative error = -0
+VecAXPY with coefficient -(1 - delta): relative error = -0
+VecAXPBY (alpha) with coefficient -(1 - delta): relative error = -0
+VecAXPBY (beta) with coefficient -(1 - delta): relative error = -0
+VecMAXPY with coefficient -(1 - delta): relative error = -0
+VecAYPX with coefficient -(1 - delta): relative error = -0
+VecWAXPY with coefficient -(1 - delta): relative error = -0
+|e|_oo = 9.51867
+|e|_2  = 1.92446
+|e|_1  = 1.48766
+rank: 0 level: 0 boxes:
+  [(0,0),(3,7)]
+  x_lo = 0, 0
+  x_up = 0.5, 1
+  dx   = 0.125, 0.125
+
+rank: 0 level: 1 boxes:
+  [(8,8),(15,19)]
+  x_lo = 0.25, 0.25
+  x_up = 0.5, 0.625
+  dx   = 0.03125, 0.03125
+
+rank: 0 level: 2 boxes:
+  [(40,40),(47,59)]
+  x_lo = 0.3125, 0.3125
+  x_up = 0.375, 0.46875
+  dx   = 0.0078125, 0.0078125
+
+rank: 0 level: 3 boxes:
+  [(168,168),(179,195)]
+  x_lo = 0.328125, 0.328125
+  x_up = 0.3515625, 0.3828125
+  dx   = 0.001953125, 0.001953125
+rank: 1 level: 0 boxes:
+  [(4,0),(7,7)]
+  x_lo = 0.5, 0
+  x_up = 1, 1
+  dx   = 0.125, 0.125
+
+rank: 1 level: 1 boxes:
+  [(16,8),(23,19)]
+  x_lo = 0.5, 0.25
+  x_up = 0.75, 0.625
+  dx   = 0.03125, 0.03125
+
+rank: 1 level: 2 boxes:
+  [(48,40),(55,59)]
+  x_lo = 0.375, 0.3125
+  x_up = 0.4375, 0.46875
+  dx   = 0.0078125, 0.0078125
+  [(56,40),(59,59)]
+  x_lo = 0.4375, 0.3125
+  x_up = 0.46875, 0.46875
+  dx   = 0.0078125, 0.0078125
+
+rank: 1 level: 3 boxes:
+  [(180,168),(187,195)]
+  x_lo = 0.3515625, 0.328125
+  x_up = 0.3671875, 0.3828125
+  dx   = 0.001953125, 0.001953125
+  [(188,168),(195,195)]
+  x_lo = 0.3671875, 0.328125
+  x_up = 0.3828125, 0.3828125
+  dx   = 0.001953125, 0.001953125

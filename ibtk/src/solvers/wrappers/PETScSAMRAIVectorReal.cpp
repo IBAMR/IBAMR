@@ -452,18 +452,7 @@ PETScSAMRAIVectorReal::VecAXPY_SAMRAI(Vec y, PetscScalar alpha, Vec x)
     PetscFunctionBeginUser;
     PSVR_CHECK2(x, y);
     static const bool interior_only = false;
-    if (IBTK::rel_equal_eps(alpha, 1.0))
-    {
-        PSVR_CAST2(y)->add(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
-    }
-    else if (IBTK::rel_equal_eps(alpha, -1.0))
-    {
-        PSVR_CAST2(y)->subtract(PSVR_CAST2(y), PSVR_CAST2(x), interior_only);
-    }
-    else
-    {
-        PSVR_CAST2(y)->axpy(alpha, PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
-    }
+    PSVR_CAST2(y)->axpy(alpha, PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_axpy);
@@ -477,22 +466,7 @@ PETScSAMRAIVectorReal::VecAXPBY_SAMRAI(Vec y, PetscScalar alpha, PetscScalar bet
     PetscFunctionBeginUser;
     PSVR_CHECK2(x, y);
     static const bool interior_only = false;
-    if (IBTK::rel_equal_eps(alpha, 1.0) && IBTK::rel_equal_eps(beta, 1.0))
-    {
-        PSVR_CAST2(y)->add(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
-    }
-    else if (IBTK::rel_equal_eps(beta, 1.0))
-    {
-        PSVR_CAST2(y)->axpy(alpha, PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
-    }
-    else if (IBTK::rel_equal_eps(alpha, 1.0))
-    {
-        PSVR_CAST2(y)->axpy(beta, PSVR_CAST2(y), PSVR_CAST2(x), interior_only);
-    }
-    else
-    {
-        PSVR_CAST2(y)->linearSum(alpha, PSVR_CAST2(x), beta, PSVR_CAST2(y), interior_only);
-    }
+    PSVR_CAST2(y)->linearSum(alpha, PSVR_CAST2(x), beta, PSVR_CAST2(y), interior_only);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_axpby);
@@ -509,18 +483,7 @@ PETScSAMRAIVectorReal::VecMAXPY_SAMRAI(Vec y, PetscInt nv, const PetscScalar* al
     static const bool interior_only = false;
     for (PetscInt i = 0; i < nv; ++i)
     {
-        if (IBTK::rel_equal_eps(alpha[i], 1.0))
-        {
-            PSVR_CAST2(y)->add(PSVR_CAST2(x[i]), PSVR_CAST2(y), interior_only);
-        }
-        else if (IBTK::rel_equal_eps(alpha[i], -1.0))
-        {
-            PSVR_CAST2(y)->subtract(PSVR_CAST2(y), PSVR_CAST2(x[i]), interior_only);
-        }
-        else
-        {
-            PSVR_CAST2(y)->axpy(alpha[i], PSVR_CAST2(x[i]), PSVR_CAST2(y), interior_only);
-        }
+        PSVR_CAST2(y)->axpy(alpha[i], PSVR_CAST2(x[i]), PSVR_CAST2(y), interior_only);
     }
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     CHKERRQ(ierr);
@@ -535,18 +498,7 @@ PETScSAMRAIVectorReal::VecAYPX_SAMRAI(Vec y, const PetscScalar alpha, Vec x)
     PetscFunctionBeginUser;
     PSVR_CHECK2(x, y);
     static const bool interior_only = false;
-    if (IBTK::rel_equal_eps(alpha, 1.0))
-    {
-        PSVR_CAST2(y)->add(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
-    }
-    else if (IBTK::rel_equal_eps(alpha, -1.0))
-    {
-        PSVR_CAST2(y)->subtract(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
-    }
-    else
-    {
-        PSVR_CAST2(y)->axpy(alpha, PSVR_CAST2(y), PSVR_CAST2(x), interior_only);
-    }
+    PSVR_CAST2(y)->axpy(alpha, PSVR_CAST2(y), PSVR_CAST2(x), interior_only);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_aypx);
@@ -560,18 +512,7 @@ PETScSAMRAIVectorReal::VecWAXPY_SAMRAI(Vec w, PetscScalar alpha, Vec x, Vec y)
     PetscFunctionBeginUser;
     PSVR_CHECK3(w, x, y);
     static const bool interior_only = false;
-    if (IBTK::rel_equal_eps(alpha, 1.0))
-    {
-        PSVR_CAST2(w)->add(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
-    }
-    else if (IBTK::rel_equal_eps(alpha, -1.0))
-    {
-        PSVR_CAST2(w)->subtract(PSVR_CAST2(y), PSVR_CAST2(x), interior_only);
-    }
-    else
-    {
-        PSVR_CAST2(w)->axpy(alpha, PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
-    }
+    PSVR_CAST2(w)->axpy(alpha, PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w));
     CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_waxpy);
