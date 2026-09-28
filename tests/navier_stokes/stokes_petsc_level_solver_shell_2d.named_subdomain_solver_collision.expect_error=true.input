@@ -1,7 +1,3 @@
-petsc_settings_shell_ {
-   sub_pc_type = "svd"
-}
-
 test {
  f_data_type = "CELL"
  n_components = 1
