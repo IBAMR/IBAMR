@@ -64,10 +64,10 @@ read_setting(Pointer<Database> db, const std::string& key, const std::string& va
 // The action of subdomain relaxation, computed independently of the solver from the level operator and direct
 // solves of the subdomain matrices. Every rank gathers the whole input r. ADDITIVE composition solves each
 // subdomain of this rank with r(P_i). MULTIPLICATIVE composition, with one group for each rank, keeps the
-// correction z of this rank's group as a vector of all of the DOFs and solves each subdomain in turn with
-// r(P_i) - A(P_i, :) z before adding its scaled solution to z. FULL output adds every entry of the scaled
-// solutions (ADDITIVE) or of z on the subdomains of this rank (MULTIPLICATIVE) to the result, and OWNED output
-// only the entries of the nonoverlapping sets.
+// correction z of this rank's group as a vector of all of the DOFs and visits the subdomains in the order of the
+// traversal, solving each with r(P_i) - A(P_i, :) z before adding its scaled solution to z. FULL output adds every
+// entry of the scaled solutions (ADDITIVE) or of z on the subdomains of this rank (MULTIPLICATIVE) to the result, and
+// OWNED output only the entries of the nonoverlapping sets.
 void
 reference_action(Mat mat,
                  Vec rhs,
@@ -76,7 +76,8 @@ reference_action(Mat mat,
                  const std::vector<IS>& partition,
                  const bool multiplicative,
                  const bool owned_output,
-                 const double scale)
+                 const double scale,
+                 const std::string& traversal)
 {
     Vec gathered = nullptr, correction = nullptr;
     VecScatter gather = nullptr;
@@ -106,8 +107,20 @@ reference_action(Mat mat,
     ierr = MatCreateSubMatrices(
         mat, n_subdomains, overlap.data(), all_columns_of_subdomains.data(), MAT_INITIAL_MATRIX, &rows);
     IBTK_CHKERRQ(ierr);
-    std::set<PetscInt> solved_dofs, owned_dofs;
+    std::vector<PetscInt> visits;
     for (PetscInt i = 0; i < n_subdomains; ++i)
+    {
+        visits.push_back(traversal == "REVERSE" && multiplicative ? n_subdomains - 1 - i : i);
+    }
+    if (traversal == "SYMMETRIC" && multiplicative)
+    {
+        for (PetscInt i = n_subdomains - 2; i >= 0; --i)
+        {
+            visits.push_back(i);
+        }
+    }
+    std::set<PetscInt> solved_dofs, owned_dofs;
+    for (const PetscInt i : visits)
     {
         PetscInt n = 0;
         const PetscInt* indices = nullptr;
@@ -515,6 +528,7 @@ main(int argc, char* argv[])
                                       Pointer<Database>();
     const bool multiplicative = read_setting(relaxation_db, "composition", "") == "MULTIPLICATIVE";
     const bool owned_output = read_setting(relaxation_db, "output", "") == "OWNED";
+    const std::string traversal = read_setting(relaxation_db, "traversal", "FORWARD");
     const std::string subdomain_solver_type = read_setting(solver_db, "type", "petsc");
     // A named application subdomain solver, which the type of the subdomain_solver database selects. The factory
     // reads the scale of its solutions from that database, and each call creates an independent solver with
@@ -775,7 +789,8 @@ main(int argc, char* argv[])
                 }
                 // The supplied subdomain solver, not the built-in one, determines the action.
                 const double scale = counts ? application_scale : 1.0;
-                reference_action(mat, rhs, expected, *overlap, *partition, multiplicative, owned_output, scale);
+                reference_action(
+                    mat, rhs, expected, *overlap, *partition, multiplicative, owned_output, scale, traversal);
                 if (cycle == 0 && solver_type == solver_types.front())
                 {
                     // The other compositions and outputs give different actions, except that with one rank both
@@ -795,7 +810,8 @@ main(int argc, char* argv[])
                                              *partition,
                                              other_multiplicative,
                                              other_owned_output,
-                                             scale);
+                                             scale,
+                                             traversal);
                             ierr = VecAXPY(actual, -1.0, expected);
                             IBTK_CHKERRQ(ierr);
                             plog << "distance from the " << (other_multiplicative ? "MULTIPLICATIVE " : "ADDITIVE ")
