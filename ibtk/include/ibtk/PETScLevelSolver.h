@@ -81,7 +81,7 @@ namespace IBTK
  check_subdomain_coverage = FALSE          // whether to check that the subdomains cover the DOFs; TRUE in debug builds
  subdomain_relaxation {                    // see "Subdomain relaxation" below
     composition = "MULTIPLICATIVE"         // no default: "ADDITIVE" or "MULTIPLICATIVE"
-    grouping = "RANK"                      // no default; only for MULTIPLICATIVE composition
+    grouping = "RANK"                      // no default: "RANK" or "SAMRAI_PATCH"; only for MULTIPLICATIVE
     output = "FULL"                        // no default: "FULL" or "OWNED"
     traversal = "FORWARD"                  // "FORWARD" (default), "REVERSE", or "SYMMETRIC"
     subdomain_solver {                     // optional; see "Subdomain solvers" below
@@ -101,7 +101,10 @@ namespace IBTK
  * - composition = "MULTIPLICATIVE": the subdomains of each group are solved one after another. The
  *   correction z of the group starts at zero, and each solve uses the residual that the previous solves of
  *   the group leave, q_i = r(P_i) - A(P_i, :) z, and then adds its correction, z(P_i) += d_i. A group does
- *   not use the corrections of other groups. grouping = "RANK" makes the subdomains of each rank one group.
+ *   not use the corrections of other groups. grouping = "RANK" makes the subdomains of each rank one group,
+ *   and grouping = "SAMRAI_PATCH" forms one group for each SAMRAI patch (a patch of the grid) with
+ *   generateSubdomainGroups(), which only some derived classes provide. A subdomain may be in several
+ *   groups.
  *   traversal sets the order in which a group visits its subdomains: FORWARD (default), REVERSE, or
  *   SYMMETRIC, which visits them forward and then backward without repeating the last one. ADDITIVE
  *   composition accepts only FORWARD.
@@ -111,7 +114,9 @@ namespace IBTK
  * - output = "FULL": the result is the sum of the corrections of the subdomains (ADDITIVE) or of the groups
  *   (MULTIPLICATIVE), including their overlapping entries and the entries of other ranks.
  * - output = "OWNED": each DOF takes its value from the one correction that owns it. A subdomain owns the
- *   nonoverlapping set that generateASMSubdomains() gives it, and a group owns those of its subdomains. The
+ *   nonoverlapping set that generateASMSubdomains() gives it, and a group owns those of the subdomains that
+ *   it owns: all of its subdomains with RANK grouping, or those that generateSubdomainGroups() assigns to
+ *   it with SAMRAI_PATCH grouping. The
  *   owned DOFs must partition the DOFs of each rank, which is always checked. ADDITIVE composition with
  *   OWNED output is restricted additive Schwarz.
  *
@@ -355,6 +360,17 @@ protected:
     }
 
     /*!
+     * \brief Generate the groups of multiplicative subdomain relaxation with SAMRAI_PATCH grouping.
+     *
+     * group_subdomains[g] lists the subdomains of this rank that group g solves, in the order of a FORWARD
+     * traversal; a subdomain may be in several groups. owning_groups[i] is the group that owns subdomain i and
+     * writes its nonoverlapping DOFs with OWNED output, which must be one of the groups that solve it.
+     * Initialization reports a violation. The default reports that SAMRAI_PATCH grouping is not supported.
+     */
+    virtual void generateSubdomainGroups(std::vector<std::vector<int>>& group_subdomains,
+                                         std::vector<int>& owning_groups);
+
+    /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
      */
     virtual void generateFieldSplitSubdomains(std::vector<std::string>& field_names,
@@ -427,7 +443,8 @@ protected:
     //! How multiplicative subdomain relaxation groups the subdomains.
     enum class SubdomainGrouping
     {
-        RANK
+        RANK,
+        SAMRAI_PATCH
     };
     //! The order in which multiplicative subdomain relaxation visits the subdomains of a group.
     enum class SubdomainTraversal

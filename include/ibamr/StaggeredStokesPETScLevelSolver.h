@@ -83,8 +83,13 @@ namespace IBAMR
  *   StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(). That
  *   matrix only determines the shape of the patches: the level operator supplies the systems that are
  *   solved. Each CAV patch owns the DOFs of its seed cell, the pressure DOF and the velocity DOF on the
- *   lower face in each direction. CAV patches require pc_type = "shell", and OWNED output also requires
- *   seed_stride = 1 and a level that covers a physical domain that is periodic in every direction.
+ *   lower face in each direction. CAV patches require pc_type = "shell", and OWNED output and
+ *   SAMRAI_PATCH grouping also require seed_stride = 1 and a level that covers a physical domain that is
+ *   periodic in every direction. With SAMRAI_PATCH grouping, the group of a SAMRAI patch owns the CAV
+ *   patches seeded in its cells, and it solves the CAV patches seeded within
+ *   group_standard_seed_ghost_width cells of the SAMRAI patch and the larger, IB-expanded ones seeded
+ *   within group_ib_seed_ghost_width cells, with periodic distances; a CAV patch may be solved by several
+ *   groups.
  * - VELOCITY_COMPONENT: a subdomain starts from a velocity DOF of seed_axis and adds the velocity DOFs
  *   coupled to it in the level operator, those with matrix entries above the relative_zero_tol threshold.
  *   It then joins the standard Vanka patches of the cells that the closure policy selects; see
@@ -102,6 +107,8 @@ namespace IBAMR
  *   seeds, slowest coordinate first.
  * - closure_policy (default RELAXED): RELAXED or STRICT.
  * - relative_zero_tol (default 1.0e-14): the relative threshold below which couplings are ignored.
+ * - group_standard_seed_ghost_width (default 0) and group_ib_seed_ghost_width (default 2, and at least
+ *   the standard width): the widths of the groups of SAMRAI_PATCH grouping, which accepts only these.
  *
  * <b>Subdomain solver "eigen-schur-complement"</b>
  *
@@ -221,6 +228,12 @@ protected:
                                std::vector<std::set<int>>& nonoverlap_is) override;
 
     /*!
+     * \brief Generate one group of pressure-cell CAV patches for each SAMRAI patch; see "Subdomains" above.
+     */
+    void generateSubdomainGroups(std::vector<std::vector<int>>& group_subdomains,
+                                 std::vector<int>& owning_groups) override;
+
+    /*!
      * \brief Generate IS/subdomains for fieldsplit type preconditioners.
      */
     void generateFieldSplitSubdomains(std::vector<std::string>& field_names,
@@ -323,6 +336,7 @@ private:
 #endif
     CouplingAwareASMClosurePolicy d_ca_policy = CouplingAwareASMClosurePolicy::RELAXED;
     double d_ca_relative_zero_tol = 1.0e-14;
+    int d_ca_group_standard_seed_ghost_width = 0, d_ca_group_ib_seed_ghost_width = 2;
     //\}
 
     /*!
@@ -331,6 +345,8 @@ private:
     //\{
     //! The matrix supplied through setCouplingAwareASMConstructionMat(), which is borrowed.
     Mat d_ca_construction_mat = nullptr;
+    //! The pressure DOF of the seed cell of each pressure-cell CAV patch.
+    std::vector<int> d_ca_pressure_seeds;
     //\}
 
     /*!

@@ -969,11 +969,19 @@ PETScLevelSolver::init(Pointer<Database> input_db,
             if (relaxation_db->keyExists("grouping"))
             {
                 const std::string grouping = relaxation_db->getString("grouping");
-                if (!equals_ignore_case(grouping, "RANK"))
+                if (equals_ignore_case(grouping, "RANK"))
+                {
+                    d_subdomain_grouping = SubdomainGrouping::RANK;
+                }
+                else if (equals_ignore_case(grouping, "SAMRAI_PATCH"))
+                {
+                    d_subdomain_grouping = SubdomainGrouping::SAMRAI_PATCH;
+                }
+                else
                 {
                     TBOX_ERROR(d_object_name << "::init():\n"
                                              << "  unsupported subdomain_relaxation grouping = " << grouping
-                                             << "; the supported value is \"RANK\".\n");
+                                             << "; supported values are \"RANK\" and \"SAMRAI_PATCH\".\n");
                 }
                 if (d_subdomain_composition == SubdomainComposition::ADDITIVE)
                 {
@@ -981,7 +989,6 @@ PETScLevelSolver::init(Pointer<Database> input_db,
                                              << "  subdomain_relaxation grouping applies only to MULTIPLICATIVE "
                                                 "composition.\n");
                 }
-                d_subdomain_grouping = SubdomainGrouping::RANK;
             }
             if (relaxation_db->keyExists("output"))
             {
@@ -1087,6 +1094,14 @@ PETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*overlap_is
 
     return;
 } // generateASMSubdomains
+
+void
+PETScLevelSolver::generateSubdomainGroups(std::vector<std::vector<int>>& /*group_subdomains*/,
+                                          std::vector<int>& /*owning_groups*/)
+{
+    TBOX_ERROR(d_object_name << "::generateSubdomainGroups():\n"
+                             << "  subdomain_relaxation grouping = SAMRAI_PATCH is not supported by this solver.\n");
+} // generateSubdomainGroups
 
 void
 PETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::string>& /*field_names*/,
@@ -1273,11 +1288,51 @@ PETScLevelSolver::initializeSubdomainGroups(const std::vector<PetscInt>& gathere
         }
     }
 
-    // Each rank forms one group of its subdomains.
-    std::vector<std::vector<int>> group_subdomains(1);
+    // With RANK grouping, each rank forms one group of its subdomains, which owns them.
+    std::vector<std::vector<int>> group_subdomains;
+    std::vector<int> owning_groups;
+    switch (*d_subdomain_grouping)
+    {
+    case SubdomainGrouping::RANK:
+        group_subdomains.resize(1);
+        for (int i = 0; i < d_n_local_subdomains; ++i)
+        {
+            group_subdomains[0].push_back(i);
+        }
+        owning_groups.assign(d_n_local_subdomains, 0);
+        break;
+    case SubdomainGrouping::SAMRAI_PATCH:
+        generateSubdomainGroups(group_subdomains, owning_groups);
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                 << "  unsupported subdomain_relaxation grouping.\n");
+    }
+    if (static_cast<int>(owning_groups.size()) != d_n_local_subdomains)
+    {
+        TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                 << "  every subdomain needs an owning group.\n");
+    }
+    for (std::size_t g = 0; g < group_subdomains.size(); ++g)
+    {
+        std::vector<int> members = group_subdomains[g];
+        std::sort(members.begin(), members.end());
+        if (std::adjacent_find(members.begin(), members.end()) != members.end() ||
+            (!members.empty() && (members.front() < 0 || members.back() >= d_n_local_subdomains)))
+        {
+            TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                     << "  group " << g << " lists an invalid or repeated subdomain.\n");
+        }
+    }
     for (int i = 0; i < d_n_local_subdomains; ++i)
     {
-        group_subdomains[0].push_back(i);
+        const int g = owning_groups[i];
+        if (g < 0 || g >= static_cast<int>(group_subdomains.size()) ||
+            std::find(group_subdomains[g].begin(), group_subdomains[g].end(), i) == group_subdomains[g].end())
+        {
+            TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                     << "  subdomain " << i << " is not solved by its owning group.\n");
+        }
     }
 
     const bool owned_output = d_subdomain_output == SubdomainOutput::OWNED;
@@ -1316,11 +1371,15 @@ PETScLevelSolver::initializeSubdomainGroups(const std::vector<PetscInt>& gathere
         d_group_visit_offsets.push_back(static_cast<int>(d_group_visits.size()));
         d_group_support_offsets.push_back(static_cast<PetscInt>(d_group_support.size()));
 
-        // A group owns the nonoverlapping DOFs of its subdomains, which must be DOFs of this rank in its support.
+        // A group writes the nonoverlapping DOFs of the subdomains that it owns, which must be DOFs of this rank.
         if (owned_output)
         {
             for (const int i : group_subdomains[g])
             {
+                if (owning_groups[i] != static_cast<int>(g))
+                {
+                    continue;
+                }
                 PetscInt nonoverlap_size = 0;
                 const PetscInt* nonoverlap_indices = nullptr;
                 int ierr = ISGetLocalSize(d_nonoverlap_is[i], &nonoverlap_size);

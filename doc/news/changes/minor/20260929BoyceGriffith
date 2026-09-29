@@ -1,0 +1,3 @@
+New: PETScLevelSolver's multiplicative subdomain relaxation accepts grouping = SAMRAI_PATCH, which StaggeredStokesPETScLevelSolver provides for pressure-cell CAV patches.
+<br>
+(Boyce Griffith, 2026/09/29)
