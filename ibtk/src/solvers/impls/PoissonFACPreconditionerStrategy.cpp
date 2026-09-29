@@ -318,7 +318,19 @@ PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<
         d_level_data_ops[dst_ln - 1]->add(dst_idx, dst_idx, src_idx, /*interior_only*/ false);
     }
     xeqScheduleProlongation(d_scratch_idx, src_idx, dst_ln);
-    d_level_data_ops[dst_ln]->add(dst_idx, dst_idx, d_scratch_idx, /*interior_only*/ false);
+
+    // Add the prolonged correction into dst's interior only; the fine level's ghost cells are replaced by the
+    // prolonged ghost values below, not added to whatever they held before this call, since
+    // CartCellDoubleQuadraticCFInterpolation::computeNormalExtension() (et al.) treats a ghost's current value
+    // as the coarse-side contribution to its quadratic extrapolation, and a stale extrapolated value plus this
+    // correction is not a valid fresh coarse-side value.
+    d_level_data_ops[dst_ln]->add(dst_idx, dst_idx, d_scratch_idx, /*interior_only*/ true);
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
+    copy_ghost_region(*level, dst_idx, d_scratch_idx);
+
+    // Refill the physical-boundary and same-level ghost cells from the corrected interior; the coarse-fine ghost
+    // cells keep the (coarse-only) prolonged values set above.
+    xeqScheduleGhostFillNoCoarse(dst_idx, dst_ln);
 
     IBTK_TIMER_STOP(t_prolong_error_and_correct);
     return;

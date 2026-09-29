@@ -1,0 +1,5 @@
+Fixed: IBTK::PoissonFACPreconditionerStrategy and
+IBAMR::StaggeredStokesFACPreconditionerStrategy no longer corrupt coarse-fine
+ghost values when applying a prolonged FAC correction.
+<br>
+(Boyce Griffith, 2026/09/22)
