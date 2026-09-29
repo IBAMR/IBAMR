@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::initializeSolverState():
+  subdomain_relaxation needs composition and output, and grouping for MULTIPLICATIVE composition, when the preconditioner is a shell.
+

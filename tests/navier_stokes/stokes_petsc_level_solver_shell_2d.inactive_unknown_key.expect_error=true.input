@@ -2,10 +2,12 @@ petsc_settings_shell {
    sub_pc_type = "svd"
 }
 
+// The subdomain_relaxation settings are checked even when the preconditioner does not use them.
 level_solver {
+   pc_type = "asm"
    subdomain_relaxation {
       composition = "ADDITIVE"
-      output = "OWNED"
+      outputs = "OWNED"
    }
 }
 
@@ -13,8 +15,6 @@ test {
  f_data_type = "CELL"
  n_components = 1
  ghost_width = 1
- application_subdomain_solver = TRUE
- lifetime = TRUE
 }
 Main {
    log_file_name = "output"

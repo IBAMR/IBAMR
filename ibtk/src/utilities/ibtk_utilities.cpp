@@ -16,6 +16,9 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
 
+#include <tbox/Array.h>
+#include <tbox/Database.h>
+
 #include <BoxGeometry.h>
 #include <BoxOverlap.h>
 #include <CartesianPatchGeometry.h>
@@ -27,6 +30,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <string>
+#include <vector>
 
 #include <ibtk/app_namespaces.h>
 
@@ -80,4 +85,24 @@ copy_ghost_region(const PatchLevel<NDIM>& patch_level, const int dst_idx, const 
     }
     return;
 } // copy_ghost_region
+
+void
+check_database_keys(const std::string& context, Pointer<Database> input_db, const std::vector<std::string>& keys)
+{
+    if (!input_db)
+    {
+        return;
+    }
+    const SAMRAI::tbox::Array<std::string> input_keys = input_db->getAllKeys();
+    for (int k = 0; k < input_keys.size(); ++k)
+    {
+        const std::string& key = input_keys[k];
+        const bool petsc_settings = key == "petsc_settings" || key.rfind("petsc_settings_", 0) == 0;
+        if (!petsc_settings && std::find(keys.begin(), keys.end(), key) == keys.end())
+        {
+            TBOX_ERROR(context << ":\n"
+                               << "  unknown key " << key << " in database " << input_db->getName() << ".\n");
+        }
+    }
+} // check_database_keys
 } // namespace IBTK

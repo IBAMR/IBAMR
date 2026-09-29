@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::init():
+  shell_pc_type has been removed; the subdomain_relaxation database sets the composition and output of the shell preconditioner.
+

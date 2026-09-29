@@ -70,13 +70,23 @@ public:
     }
     bool shellStorageEmpty() const
     {
-        return !this->d_subdomain_rhs && !this->d_subdomain_solution && !this->d_restriction &&
-               this->d_subdomain_rhs_views.empty() && this->d_subdomain_offsets.empty() && this->d_sub_mat == nullptr;
+        return !this->d_subdomain_rhs && !this->d_subdomain_solution && !this->d_subdomain_residual &&
+               !this->d_restriction && this->d_subdomain_rhs_views.empty() &&
+               this->d_subdomain_residual_views.empty() && this->d_residual_matrices.empty() &&
+               this->d_halo_vectors.empty() && this->d_subdomain_offsets.empty() && this->d_sub_mat == nullptr;
     }
     std::vector<Vec> retainShellVectors()
     {
         std::vector<Vec> result = { this->d_subdomain_rhs, this->d_subdomain_solution };
-        result.insert(result.end(), this->d_subdomain_rhs_views.begin(), this->d_subdomain_rhs_views.end());
+        if (this->d_subdomain_residual)
+        {
+            result.push_back(this->d_subdomain_residual);
+        }
+        for (const std::vector<Vec>* vectors :
+             { &this->d_subdomain_rhs_views, &this->d_subdomain_residual_views, &this->d_halo_vectors })
+        {
+            result.insert(result.end(), vectors->begin(), vectors->end());
+        }
         for (Vec v : result)
         {
             PetscErrorCode ierr = PetscObjectReference(reinterpret_cast<PetscObject>(v));
@@ -241,7 +251,9 @@ level_solver_database(const std::string& pc = "none", int overlap = 0)
     db->putString("ksp_type", "gmres");
     db->putString("options_prefix", "level_");
     db->putString("pc_type", pc);
-    db->putString("shell_pc_type", "additive");
+    Pointer<Database> relaxation_db = db->putDatabase("subdomain_relaxation");
+    relaxation_db->putString("composition", "ADDITIVE");
+    relaxation_db->putString("output", "OWNED");
     db->putBool("initial_guess_nonzero", false);
     db->putDouble("rel_residual_tol", 1.0e-12);
     db->putInteger("max_iterations", 100);

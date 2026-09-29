@@ -125,9 +125,10 @@ check_shell_state(LevelSolverProbe<Solver>& solver,
             TBOX_ERROR(name << ": the level solve did not converge to the exact solution.\n");
         }
         std::vector<Vec> retained = solver.retainShellVectors();
-        // The packed right-hand sides and solutions, and for the multiplicative shell a view of the right-hand
-        // side of each subdomain.
-        const size_t expected_vectors = 2 + (multiplicative ? overlap->size() : 0);
+        // The packed right-hand sides and solutions, and for multiplicative composition the packed residuals, a
+        // view of the right-hand side and of the residual of each subdomain, and the correction at the columns of
+        // its residual matrix.
+        const size_t expected_vectors = multiplicative ? 3 + 3 * overlap->size() : 2;
         if (retained.size() != expected_vectors)
         {
             TBOX_ERROR(name << ": expected " << expected_vectors << " shell work vectors, found " << retained.size()
@@ -178,8 +179,13 @@ main(int argc, char* argv[])
     for (const int width : { 0, 2 })
     {
         Pointer<Database> db = level_solver_database("shell", width);
-        // Exercise both shell compositions across these lifetimes.
-        db->putString("shell_pc_type", width == 0 ? "multiplicative" : "additive");
+        // Exercise both compositions across these lifetimes.
+        if (width == 0)
+        {
+            Pointer<Database> relaxation_db = db->getDatabase("subdomain_relaxation");
+            relaxation_db->putString("composition", "MULTIPLICATIVE");
+            relaxation_db->putString("grouping", "RANK");
+        }
         LevelSolverProbe<CCPoissonPETScLevelSolver> cc("state_cc", db);
         LevelSolverProbe<SCPoissonPETScLevelSolver> sc("state_sc", db);
         LevelSolverProbe<StaggeredStokesPETScLevelSolver> stokes("state_stokes", db);
