@@ -532,10 +532,16 @@ private:
     static std::vector<int> subdomainVisitOrder(ShellTraversal traversal, int n);
 
     /*!
-     * \brief Set up the stages of the multiplicative shell from the rows of the operator on each
-     * overlapping subdomain, with every column.
+     * \brief Set up the residual of each subdomain from the rows of the operator on the overlapping
+     * subdomain, with every column: the vectors that view the packed right-hand sides, residuals and
+     * solutions, and the residual matrices. Return the columns of each residual matrix in halos.
      */
-    void initializeMultiplicativeShell(Mat* rows);
+    void initializeSubdomainResiduals(Mat* rows, std::vector<std::vector<PetscInt>>& halos);
+
+    /*!
+     * \brief Set up the stages of the multiplicative shell, with the columns of the residual matrices.
+     */
+    void initializeMultiplicativeShell(const std::vector<std::vector<PetscInt>>& halos);
 
     /*!
      * \brief Write the nonoverlapping parts of the packed solutions of subdomains first, ..., last - 1

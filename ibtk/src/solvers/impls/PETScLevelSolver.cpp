@@ -771,9 +771,11 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
         if (multiplicative)
         {
-            initializeMultiplicativeShell(subdomain_rows);
+            std::vector<std::vector<PetscInt>> halos;
+            initializeSubdomainResiduals(subdomain_rows, halos);
             ierr = MatDestroySubMatrices(d_n_local_subdomains, &subdomain_rows);
             IBTK_CHKERRQ(ierr);
+            initializeMultiplicativeShell(halos);
         }
 
         // Set up the subdomain solvers.
@@ -1111,11 +1113,8 @@ PETScLevelSolver::subdomainVisitOrder(const ShellTraversal traversal, const int 
 }
 
 void
-PETScLevelSolver::initializeMultiplicativeShell(Mat* rows)
+PETScLevelSolver::initializeSubdomainResiduals(Mat* rows, std::vector<std::vector<PetscInt>>& halos)
 {
-    d_stage_subdomains = subdomainVisitOrder(d_shell_traversal, d_n_local_subdomains);
-    d_n_stages = IBTK_MPI::maxReduction(static_cast<int>(d_stage_subdomains.size()));
-
     // The packed right-hand sides, residuals and solutions hold the subdomains one after another, so a
     // view of each subdomain shares their storage. The residual of a subdomain is computed from its
     // right-hand side at each visit, so that a subdomain may be visited more than once.
@@ -1141,15 +1140,13 @@ PETScLevelSolver::initializeMultiplicativeShell(Mat* rows)
         ierr = VecRestoreArray(packed[k], &storage);
         IBTK_CHKERRQ(ierr);
     }
-    ierr = VecCreateSeq(PETSC_COMM_SELF, 0, &d_empty_vector);
-    IBTK_CHKERRQ(ierr);
 
     // The rows of the operator for each subdomain contain the columns that the residual on the subdomain
     // depends on. The columns are numbered globally, so that the rows of subdomains that include DOFs of
     // other ranks are available. The matrix of each subdomain keeps only these columns, and is negated so
     // that the residual is a sum.
     d_residual_matrices.assign(d_n_local_subdomains, nullptr);
-    std::vector<std::vector<PetscInt>> halos(d_n_local_subdomains);
+    halos.assign(d_n_local_subdomains, {});
     for (int i = 0; i < d_n_local_subdomains; ++i)
     {
         PetscInt n_rows = 0;
@@ -1170,6 +1167,15 @@ PETScLevelSolver::initializeMultiplicativeShell(Mat* rows)
         d_residual_matrices[i] =
             extract_columns(rows[i], halos[i].data(), static_cast<PetscInt>(halos[i].size()), -1.0);
     }
+} // initializeSubdomainResiduals
+
+void
+PETScLevelSolver::initializeMultiplicativeShell(const std::vector<std::vector<PetscInt>>& halos)
+{
+    d_stage_subdomains = subdomainVisitOrder(d_shell_traversal, d_n_local_subdomains);
+    d_n_stages = IBTK_MPI::maxReduction(static_cast<int>(d_stage_subdomains.size()));
+    int ierr = VecCreateSeq(PETSC_COMM_SELF, 0, &d_empty_vector);
+    IBTK_CHKERRQ(ierr);
 
     // A stage needs communication to gather the halo, or to add the correction, only if some rank visits a
     // subdomain at that stage with a DOF that another rank owns. Every rank learns this from one reduction at
