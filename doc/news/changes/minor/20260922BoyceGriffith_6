@@ -1,0 +1,5 @@
+Fixed: IBTK::VCSCViscousOpPointRelaxationFACOperator::restrictResidual() could
+read past the end of a too-short operator scaling array on a multi-level
+hierarchy.
+<br>
+(Boyce Griffith, 2026/09/22)
