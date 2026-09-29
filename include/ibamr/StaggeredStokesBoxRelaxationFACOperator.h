@@ -59,6 +59,10 @@ namespace IBAMR
  * \brief Class StaggeredStokesBoxRelaxationFACOperator is a concrete
  * StaggeredStokesFACPreconditionerStrategy implementing a box relaxation
  * (Vanka-type) smoother for use as a multigrid preconditioner.
+ *
+ * Hierarchies with physical boundaries require setPhysicalBoundaryHelper() before
+ * initialization. The helper must have cached boundary data for the hierarchy.
+ * A helper is not required when the hierarchy has no physical boundaries.
  */
 class StaggeredStokesBoxRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
