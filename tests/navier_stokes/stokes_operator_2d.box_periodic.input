@@ -1,0 +1,54 @@
+// Exercise one box-smoother sweep with nonzero forcing and initially zero error.
+test_box_smoother = TRUE
+D = -1.0
+C = 1.0
+
+u {
+   function_0 = "0.0"
+   function_1 = "0.0"
+}
+
+f_u {
+   function_0 = "1.0"
+   function_1 = "1.0"
+}
+
+p { function = "0.0" }
+f_p { function = "0.0" }
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 8
+CartesianGeometry {
+   domain_boxes = [(0,0),(N - 1,N - 1)]
+   x_lo = 0,0
+   x_up = 1,1
+   periodic_dimension = 1,1
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size { level_0 = 4,4 }
+   smallest_patch_size { level_0 = 4,4 }
+   efficiency_tolerance = 0.85
+   combine_efficiency = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {}
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager {
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+}

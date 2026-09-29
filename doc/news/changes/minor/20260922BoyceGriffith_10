@@ -1,0 +1,4 @@
+Fixed: Correct the Vanka smoother sign and normal-velocity boundary
+condition in IBAMR::StaggeredStokesBoxRelaxationFACOperator.
+<br>
+(Boyce Griffith, 2026/09/22)
