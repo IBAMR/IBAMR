@@ -137,7 +137,9 @@ public:
      * These allocation requirements also apply to initializeSolverState().
      *
      * \note V-cycles without presmoothing restrict covered coarse RHS data in
-     * place. Other cycle configurations preserve the RHS.
+     * place. Other cycle configurations preserve the RHS when the strategy
+     * preserves its residual inputs. CCPoissonBoxRelaxationFACOperator
+     * currently overwrites RHS ghost cells during smoothing.
      *
      * \param x solution vector
      * \param b right-hand-side vector
