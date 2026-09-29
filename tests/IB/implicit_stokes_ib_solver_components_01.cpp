@@ -1883,6 +1883,18 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             done = !patch_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
+        if (input_db->keyExists("FINEST_LEVEL_PATCHES"))
+        {
+            const Pointer<PatchLevel<NDIM>> finest_level =
+                patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+            const int finest_level_patches = finest_level->getNumberOfPatches();
+            if (finest_level_patches != input_db->getInteger("FINEST_LEVEL_PATCHES"))
+            {
+                TBOX_ERROR("The finest level has " << finest_level_patches << " patches, not FINEST_LEVEL_PATCHES = "
+                                                   << input_db->getInteger("FINEST_LEVEL_PATCHES") << ".\n");
+            }
+            pout << "finest_level_patches = " << finest_level_patches << std::endl;
+        }
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> current_ctx = var_db->getContext("current_ctx");
