@@ -1,0 +1,7 @@
+finest_level_patches = 4
+IBRedundantInitializer:  Deallocating initialization data.
+fac_operator_valid = true, residual_composition_valid = true, absolute_inf_bound = 1e-09, elastic_action_norm = 37.7871
+fac_operator_valid = true, residual_composition_valid = true, absolute_inf_bound = 1e-09, elastic_action_norm = 37.7871
+initialized_jacobian_action_valid = true, L2_bound = 2.03407e-07
+physical_K 25 momentum_L2 9.25582e-14 divergence_L2 8.08435e-13 original_relative 4.00044e-15
+fac_residual_repeat_error = 0, reinitialized_repeat_error = 0
