@@ -305,7 +305,8 @@ protected:
 
     /*!
      * \brief Apply a cycle to an owned correction that is zero, including ghosts,
-     * on the complete truncated hierarchy. The RHS is borrowed and preserved.
+     * on the complete truncated hierarchy. The RHS is borrowed; see
+     * solveSystem() for its preservation requirements.
      */
     void zeroStartCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                         SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
