@@ -22,6 +22,7 @@
 
 #include <ibtk/IBTK_MPI.h>
 
+#include <tbox/Database.h>
 #include <tbox/MathUtilities.h>
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
@@ -41,6 +42,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
@@ -174,6 +176,16 @@ double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
  * type with such a geometry, including cell-, side-, node-, and edge-centered data.
  */
 void copy_ghost_region(const SAMRAI::hier::PatchLevel<NDIM>& patch_level, int dst_idx, int src_idx);
+
+/*!
+ * \brief Report an error, which starts with context, for a key of input_db that is not in keys.
+ *
+ * The petsc_settings and petsc_settings_* databases that AppInitializer reads may appear in any database, so
+ * they are always accepted. A null input_db has no keys.
+ */
+void check_database_keys(const std::string& context,
+                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                         const std::vector<std::string>& keys);
 
 template <class T, unsigned N>
 inline std::array<T, N>

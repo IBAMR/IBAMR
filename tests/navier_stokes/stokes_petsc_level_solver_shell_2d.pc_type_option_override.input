@@ -3,12 +3,19 @@ petsc_settings_shell {
    sub_pc_type = "svd"
 }
 
+level_solver {
+   pc_type = "asm"
+   subdomain_relaxation {
+      composition = "MULTIPLICATIVE"
+      grouping = "RANK"
+      output = "OWNED"
+   }
+}
+
 test {
  f_data_type = "CELL"
  n_components = 1
  ghost_width = 1
- shell_pc_type = "additive"
- pc_type = "asm"
 }
 Main {
    log_file_name = "output"

@@ -1,0 +1,3 @@
+Changed: PETScLevelSolver's shell_pc_type input is replaced by the subdomain_relaxation database, which sets the composition, grouping, and output of the shell preconditioner; shell_pc_type = "additive" becomes ADDITIVE composition with OWNED output. Multiplicative composition now solves each subdomain with the full residual of its group, which changes its action.
+<br>
+(Boyce Griffith, 2026/09/29)

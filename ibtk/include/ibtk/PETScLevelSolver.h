@@ -66,7 +66,7 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- options_prefix = ""                       // see setOptionsPrefix()
+ options_prefix = "..."                    // the default is chosen by the derived class; see setOptionsPrefix()
  ksp_type = "gmres"                        // see setKSPType()
  pc_type = "ilu"                           // the PETSc preconditioner type
  initial_guess_nonzero = TRUE              // see setInitialGuessNonzero()
@@ -76,25 +76,53 @@ namespace IBTK
  enable_logging = FALSE                    // see setLoggingEnabled()
  subdomain_box_size = 2, 2                 // the size of the ASM subdomains, one entry per direction
  subdomain_overlap_size = 1, 1             // the overlap of the ASM subdomains, one entry per direction
- shell_pc_type = "additive"                // no default; see "Shell preconditioners" below
- check_subdomain_coverage = FALSE          // TRUE by default in debug builds
+ check_subdomain_coverage = FALSE          // whether to check that the subdomains cover the DOFs; TRUE in debug builds
+ subdomain_relaxation {                    // see "Subdomain relaxation" below
+    composition = "MULTIPLICATIVE"         // no default: "ADDITIVE" or "MULTIPLICATIVE"
+    grouping = "RANK"                      // no default; only for MULTIPLICATIVE composition
+    output = "FULL"                        // no default: "FULL" or "OWNED"
+    subdomain_solver {                     // optional; see "Subdomain solvers" below
+       type = "petsc"
+    }
+ }
  \endverbatim
  *
- * <b>Shell preconditioners</b>
+ * <b>Subdomain relaxation</b>
  *
- * With pc_type = "shell", this class applies a Schwarz preconditioner itself, on the subdomains from
- * generateASMSubdomains(). shell_pc_type chooses the method and must be set, even when pc_type =
- * "shell" comes from the PETSc options:
+ * With pc_type = "shell", IBAMR configures subdomain relaxation using the subdomain_relaxation database.
+ * A subdomain is a set of DOFs on which a local problem is solved; generateASMSubdomains() forms the
+ * subdomains of each rank. With A the level operator, r the input of the preconditioner, and P_i the DOFs of
+ * subdomain i, a solve computes the correction d_i = A(P_i, P_i)^{-1} q_i:
  *
- * - "additive": restricted additive Schwarz. Every subdomain is solved with the same right-hand side,
- *   and each keeps its solution only on its nonoverlapping subset, so those subsets must partition the
- *   DOFs (checked when check_subdomain_coverage is TRUE).
- * - "multiplicative": multiplicative Schwarz within each rank. Its subdomains are solved one after
- *   another, each with the residual left by the previous solves.
+ * - composition = "ADDITIVE": each subdomain is solved independently, with q_i = r(P_i).
+ * - composition = "MULTIPLICATIVE": the subdomains of each group are solved one after another. The
+ *   correction z of the group starts at zero, and each solve uses the residual that the previous solves of
+ *   the group leave, q_i = r(P_i) - A(P_i, :) z, and then adds its correction, z(P_i) += d_i. A group does
+ *   not use the corrections of other groups. grouping = "RANK" makes the subdomains of each rank one group.
+ *
+ * output chooses how the corrections make up the result:
+ *
+ * - output = "FULL": the result is the sum of the corrections of the subdomains (ADDITIVE) or of the groups
+ *   (MULTIPLICATIVE), including their overlapping entries and the entries of other ranks.
+ * - output = "OWNED": each DOF takes its value from the one correction that owns it. A subdomain owns the
+ *   nonoverlapping set that generateASMSubdomains() gives it, and a group owns those of its subdomains. The
+ *   owned DOFs must partition the DOFs of each rank, which is always checked. ADDITIVE composition with
+ *   OWNED output is restricted additive Schwarz.
+ *
+ * composition and output must be set, and grouping as well for MULTIPLICATIVE composition, whenever the
+ * preconditioner is a shell, including when pc_type = "shell" comes from the PETSc options. For example,
+ * \verbatim
+ subdomain_relaxation {
+    composition = "MULTIPLICATIVE"
+    grouping = "RANK"
+    output = "FULL"
+ }
+ \endverbatim
  *
  * <b>Subdomain solvers</b>
  *
- * The subdomain problems are solved with PETSc (see make_petsc_subdomain_solver()), unless
+ * The optional database subdomain_relaxation.subdomain_solver selects the subdomain solver by its type
+ * and holds its settings. The only type is "petsc", the default; see make_petsc_subdomain_solver().
  * setSubdomainSolver() supplies another subdomain solver.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
@@ -125,8 +153,8 @@ public:
     void setOptionsPrefix(const std::string& options_prefix);
 
     /*!
-     * \brief Use subdomain_solver for the local problems of the shell preconditioners,
-     * in place of the built-in subdomain solver that uses PETSc.
+     * \brief Use subdomain_solver for the local problems of subdomain relaxation, in place
+     * of the one that the subdomain_solver database selects.
      *
      * The solver takes ownership of subdomain_solver, which must not be empty, and
      * retains it across reinitialization of the solver state. It is initialized
@@ -271,7 +299,7 @@ protected:
      * The subdomains of this rank are listed in order, and overlap_is[i] and nonoverlap_is[i]
      * describe the same subdomain with global DOF indices. Each overlapping set contains the
      * DOFs of its subdomain, and each nonoverlapping set is a subset of the overlapping set of
-     * the same subdomain. The additive shell preconditioner and the restricted ASM
+     * the same subdomain. Subdomain relaxation with OWNED output and the restricted ASM
      * preconditioner also need the nonoverlapping sets of this rank to partition the DOFs that it
      * owns. Initialization reports a violation of these requirements. A rank may have no
      * subdomains.
@@ -343,16 +371,31 @@ protected:
      * \name Solver settings.
      */
     //\{
-    //! How a shell preconditioner composes the corrections of its subdomains.
-    enum class ShellComposition
+    //! How subdomain relaxation composes the solves of its subdomains.
+    enum class SubdomainComposition
     {
         ADDITIVE,
         MULTIPLICATIVE
     };
+    //! How multiplicative subdomain relaxation groups the subdomains.
+    enum class SubdomainGrouping
+    {
+        RANK
+    };
+    //! Which entries of the corrections subdomain relaxation adds to its result.
+    enum class SubdomainOutput
+    {
+        FULL,
+        OWNED
+    };
+    //! d_pc_type is the preconditioner type in effect, which the PETSc options may override at initialization.
     std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU;
     std::string d_options_prefix;
-    //! Set from shell_pc_type; required only when a shell preconditioner is selected, possibly through PETSc options.
-    std::optional<ShellComposition> d_shell_composition;
+    //! Set from the subdomain_relaxation database; required only when the preconditioner is a shell, possibly
+    //! selected through PETSc options.
+    std::optional<SubdomainComposition> d_subdomain_composition;
+    std::optional<SubdomainGrouping> d_subdomain_grouping;
+    std::optional<SubdomainOutput> d_subdomain_output;
     //\}
 
     /*!
@@ -366,14 +409,13 @@ protected:
     //\}
 
     /*!
-     * \name ASM subdomains and the storage of the shell preconditioners.
+     * \name ASM subdomains and the storage of subdomain relaxation.
      */
     //\{
-    Vec d_local_x, d_local_y;
     SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
     int d_n_local_subdomains = 0;
     std::vector<IS> d_overlap_is, d_nonoverlap_is;
-    Mat *d_sub_mat = nullptr, *d_sub_bc_mat = nullptr;
+    Mat* d_sub_mat = nullptr;
 
     /*!
      * The right-hand sides and solutions of the local problems of the subdomains of this rank, packed
@@ -388,14 +430,26 @@ protected:
     std::vector<PetscInt> d_subdomain_offsets;
 
     /*!
-     * The entries of the packed solutions that a subdomain writes to the output, from
-     * d_write_offsets[i] up to d_write_offsets[i + 1] in d_write_sources, the packed positions of the
-     * nonoverlapping DOFs, and d_write_targets, their local indices in the output.
+     * For ADDITIVE composition with OWNED output, the entries of the packed solutions that a subdomain
+     * writes to the output, from d_write_offsets[i] up to d_write_offsets[i + 1] in d_write_sources, the
+     * packed positions of the nonoverlapping DOFs, and d_write_targets, their local indices in the output.
      */
     std::vector<PetscInt> d_write_offsets, d_write_sources, d_write_targets;
+    //\}
 
-    //! Vectors that share the storage of each subdomain's packed right-hand side, for multiplicative shells.
-    std::vector<Vec> d_subdomain_rhs_views;
+    /*!
+     * \name Subdomain residuals of multiplicative subdomain relaxation.
+     *
+     * For subdomain i, d_residual_matrices[i] is -A(P_i, C_i), in which C_i is the sorted list of the
+     * columns that the rows of P_i couple to, and d_halo_vectors[i] holds the current correction at C_i.
+     * The residual of subdomain i is formed in its view of the packed residuals from its view of the packed
+     * right-hand sides.
+     */
+    //\{
+    Vec d_subdomain_residual = nullptr;
+    std::vector<Vec> d_subdomain_rhs_views, d_subdomain_residual_views;
+    std::vector<Mat> d_residual_matrices;
+    std::vector<Vec> d_halo_vectors;
     //\}
 
     /*!
@@ -407,15 +461,44 @@ protected:
     //\}
 
 private:
-    //! The subdomain solver of the shell preconditioners.
+    //! The preconditioner type that the input selects, which each initialization applies before the PETSc options.
+    std::string d_selected_pc_type = PCILU;
+    //! The subdomain_relaxation.subdomain_solver database, if there is one.
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_subdomain_solver_db;
+    //! The subdomain solver of subdomain relaxation.
     std::optional<PETScLevelSolverSubdomainSolver> d_subdomain_solver;
     //! Whether d_subdomain_solver is initialized for the current solver state.
     bool d_subdomain_solver_initialized = false;
     //! Whether initializeSolverState() created d_overlap_is and d_nonoverlap_is, so that deallocateSolverState()
     //! destroys them.
     bool d_generated_subdomain_is = false;
-    //! Whether initialization checks that the subdomains cover the DOFs as the preconditioner requires.
+    //! Whether initialization checks that the subdomains cover the DOFs.
     bool d_check_subdomain_coverage = default_check_dof_coverage();
+
+    /*!
+     * \name Groups of multiplicative subdomain relaxation.
+     *
+     * The corrections are stored at the positions of their DOFs in the sorted list of the distinct DOFs of the
+     * subdomains of this rank. Entry k of the packed vectors has the DOF at position d_packed_positions[k], and
+     * d_position_slots[p] is the first entry of the packed vectors with the DOF at position p. Column k of the
+     * residual matrix of subdomain i is at position d_halo_positions[d_halo_offsets[i] + k], or -1 if it is not
+     * in the list.
+     *
+     * Group g visits the subdomains d_group_visits[j] for j from d_group_visit_offsets[g] up to
+     * d_group_visit_offsets[g + 1], and its correction is zero except at the positions
+     * d_group_support[j] for j from d_group_support_offsets[g] up to d_group_support_offsets[g + 1]. With OWNED
+     * output, the group writes the entries d_group_output_sources[j] of its correction to the local entries
+     * d_group_output_targets[j] of the output, for j from d_group_output_offsets[g] up to
+     * d_group_output_offsets[g + 1]. d_group_correction is the correction of the group being applied, and
+     * d_full_correction sums the corrections of the groups for FULL output.
+     */
+    //\{
+    std::vector<PetscInt> d_packed_positions, d_position_slots, d_halo_offsets, d_halo_positions;
+    std::vector<int> d_group_visit_offsets, d_group_visits;
+    std::vector<PetscInt> d_group_support_offsets, d_group_support, d_group_output_offsets, d_group_output_sources,
+        d_group_output_targets;
+    std::vector<PetscScalar> d_group_correction, d_full_correction;
+    //\}
 
     /*!
      * \brief Copy constructor.
@@ -438,6 +521,29 @@ private:
     PETScLevelSolver& operator=(const PETScLevelSolver& that) = delete;
 
     /*!
+     * \brief Set up the output of ADDITIVE composition with OWNED output, for the DOFs of this rank from n_lo up
+     * to n_hi.
+     */
+    void initializeOwnedSubdomainOutput(PetscInt n_lo, PetscInt n_hi);
+
+    /*!
+     * \brief Set up the residuals of the subdomains of multiplicative subdomain relaxation from rows, the rows
+     * A(P_i, :) of each subdomain with all of the columns, and dofs, the sorted list of the distinct DOFs of the
+     * subdomains of this rank.
+     */
+    void initializeSubdomainResiduals(Mat* rows, const std::vector<PetscInt>& dofs);
+
+    /*!
+     * \brief Set up the groups of multiplicative subdomain relaxation from gathered_indices, the DOFs of the
+     * entries of the packed vectors, and dofs, the sorted list of the distinct DOFs of the subdomains of this rank,
+     * for the DOFs of this rank from n_lo up to n_hi.
+     */
+    void initializeSubdomainGroups(const std::vector<PetscInt>& gathered_indices,
+                                   const std::vector<PetscInt>& dofs,
+                                   PetscInt n_lo,
+                                   PetscInt n_hi);
+
+    /*!
      * \brief Gather the right-hand sides of all subdomains from x into the packed vector.
      */
     PetscErrorCode gatherSubdomainRhs(Vec x) const;
@@ -449,12 +555,17 @@ private:
     PetscErrorCode writeSubdomainSolutions(int first, int last, Vec y) const;
 
     /*!
-     * \brief Apply the additive shell preconditioner to \a x and store the result in \a y.
+     * \brief Add every entry of the packed solutions to y at its DOF, including the DOFs of other ranks.
+     */
+    PetscErrorCode addPackedSolutions(Vec y) const;
+
+    /*!
+     * \brief Apply ADDITIVE subdomain relaxation to \a x and store the result in \a y.
      */
     static PetscErrorCode PCApply_Additive(PC pc, Vec x, Vec y);
 
     /*!
-     * \brief Apply the multiplicative shell preconditioner to \a x and store the result in \a y.
+     * \brief Apply MULTIPLICATIVE subdomain relaxation to \a x and store the result in \a y.
      */
     static PetscErrorCode PCApply_Multiplicative(PC pc, Vec x, Vec y);
 };

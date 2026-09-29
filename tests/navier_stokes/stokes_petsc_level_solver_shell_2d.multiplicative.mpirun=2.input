@@ -4,8 +4,9 @@ petsc_settings_shell {
 
 level_solver {
    subdomain_relaxation {
-      composition = "ADDITIVE"
-      output = "OWNED"
+      composition = "MULTIPLICATIVE"
+      grouping = "RANK"
+      output = "FULL"
    }
 }
 
@@ -13,8 +14,7 @@ test {
  f_data_type = "CELL"
  n_components = 1
  ghost_width = 1
- application_subdomain_solver = TRUE
- lifetime = TRUE
+ report_communication = TRUE
 }
 Main {
    log_file_name = "output"
@@ -33,10 +33,10 @@ CartesianGeometry {
 GriddingAlgorithm {
    max_levels = 1
    largest_patch_size {
-      level_0 = N, N
+      level_0 = 4, 8
    }
    smallest_patch_size {
-      level_0 = N, N
+      level_0 = 4, 8
    }
 }
 StandardTagAndInitialize {

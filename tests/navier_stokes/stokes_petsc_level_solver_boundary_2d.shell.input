@@ -3,7 +3,10 @@ n_solves = 2
 solver_db {
    ksp_type = "gmres"
    pc_type = "shell"
-   shell_pc_type = "additive"
+   subdomain_relaxation {
+      composition = "ADDITIVE"
+      output = "OWNED"
+   }
    subdomain_box_size = 2, 2
    subdomain_overlap_size = 1, 1
    initial_guess_nonzero = FALSE

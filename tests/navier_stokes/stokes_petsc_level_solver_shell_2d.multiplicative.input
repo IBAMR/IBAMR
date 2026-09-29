@@ -1,12 +1,22 @@
-petsc_settings_shell {
-   sub_pc_type = "svd"
+level_solver {
+   subdomain_relaxation {
+      composition = "MULTIPLICATIVE"
+      grouping = "RANK"
+      output = "FULL"
+      subdomain_solver {
+         type = "petsc"
+         // PETSc settings may appear in any database; this one keeps its tagged prefix.
+         petsc_settings_shell {
+            sub_pc_type = "svd"
+         }
+      }
+   }
 }
 
 test {
  f_data_type = "CELL"
  n_components = 1
  ghost_width = 1
- shell_pc_type = "multiplicative"
 }
 Main {
    log_file_name = "output"

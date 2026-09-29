@@ -16,6 +16,9 @@
 
 #include <ibtk/config.h>
 
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
 #include <petscksp.h>
 
 #include <concepts>
@@ -205,9 +208,11 @@ private:
  *
  * There is one KSP for each subdomain, with the level options prefix followed by
  * "sub_". It defaults to preonly with LU, and PETSc options may override this
- * configuration.
+ * configuration. input_db, which may be null, is the subdomain_solver database of the
+ * level solver; this solver has no settings there besides type.
  */
-PETScLevelSolverSubdomainSolver make_petsc_subdomain_solver();
+PETScLevelSolverSubdomainSolver
+make_petsc_subdomain_solver(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
 } // namespace IBTK
 
 #include <ibtk/private/PETScLevelSolverSubdomainSolver-inl.h>

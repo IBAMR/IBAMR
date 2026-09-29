@@ -3,18 +3,13 @@ petsc_settings_shell {
 }
 
 level_solver {
-   subdomain_relaxation {
-      composition = "ADDITIVE"
-      output = "OWNED"
-   }
+   shell_pc_type = "additive"
 }
 
 test {
  f_data_type = "CELL"
  n_components = 1
  ghost_width = 1
- application_subdomain_solver = TRUE
- lifetime = TRUE
 }
 Main {
    log_file_name = "output"

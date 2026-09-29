@@ -18,8 +18,6 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScLevelSolverSubdomainSolver.h>
 
-#include <tbox/MemoryDatabase.h>
-
 #include <CellData.h>
 #include <CellVariable.h>
 #include <PoissonSpecifications.h>
@@ -53,9 +51,13 @@ norm_inf(Vec x)
     return value;
 }
 
-// Gather the RHS independently of the restriction/prolongation scatters of the
-// solver, solve each local matrix, scale the local solution, and write only its
-// partition subset.
+// The action of subdomain relaxation, computed independently of the solver from the level operator and direct
+// solves of the subdomain matrices. Every rank gathers the whole input r. ADDITIVE composition solves each
+// subdomain of this rank with r(P_i). MULTIPLICATIVE composition, with one group for each rank, keeps the
+// correction z of this rank's group as a vector of all of the DOFs and solves each subdomain in turn with
+// r(P_i) - A(P_i, :) z before adding its scaled solution to z. FULL output adds every entry of the scaled
+// solutions (ADDITIVE) or of z on the subdomains of this rank (MULTIPLICATIVE) to the result, and OWNED output
+// only the entries of the nonoverlapping sets.
 void
 reference_action(Mat mat,
                  Vec rhs,
@@ -63,56 +65,62 @@ reference_action(Mat mat,
                  const std::vector<IS>& overlap,
                  const std::vector<IS>& partition,
                  const bool multiplicative,
+                 const bool owned_output,
                  const double scale)
 {
-    Vec residual = nullptr, gathered = nullptr;
+    Vec gathered = nullptr, correction = nullptr;
     VecScatter gather = nullptr;
-    int ierr = VecDuplicate(rhs, &residual);
+    int ierr = VecScatterCreateToAll(rhs, &gather, &gathered);
     IBTK_CHKERRQ(ierr);
-    ierr = VecScatterCreateToAll(rhs, &gather, &gathered);
+    ierr = VecScatterBegin(gather, rhs, gathered, INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecScatterEnd(gather, rhs, gathered, INSERT_VALUES, SCATTER_FORWARD);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(gathered, &correction);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSet(correction, 0.0);
     IBTK_CHKERRQ(ierr);
     ierr = VecSet(result, 0.0);
     IBTK_CHKERRQ(ierr);
-    Mat* submat = nullptr;
-    ierr = MatCreateSubMatrices(
-        mat, static_cast<PetscInt>(overlap.size()), overlap.data(), overlap.data(), MAT_INITIAL_MATRIX, &submat);
+    const PetscInt n_subdomains = static_cast<PetscInt>(overlap.size());
+    PetscInt n_dofs = 0;
+    ierr = VecGetSize(rhs, &n_dofs);
     IBTK_CHKERRQ(ierr);
-    if (!multiplicative)
+    IS all_columns = nullptr;
+    ierr = ISCreateStride(PETSC_COMM_SELF, n_dofs, 0, 1, &all_columns);
+    IBTK_CHKERRQ(ierr);
+    const std::vector<IS> all_columns_of_subdomains(overlap.size(), all_columns);
+    Mat *submat = nullptr, *rows = nullptr;
+    ierr = MatCreateSubMatrices(mat, n_subdomains, overlap.data(), overlap.data(), MAT_INITIAL_MATRIX, &submat);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatCreateSubMatrices(
+        mat, n_subdomains, overlap.data(), all_columns_of_subdomains.data(), MAT_INITIAL_MATRIX, &rows);
+    IBTK_CHKERRQ(ierr);
+    std::set<PetscInt> solved_dofs, owned_dofs;
+    for (PetscInt i = 0; i < n_subdomains; ++i)
     {
-        ierr = VecScatterBegin(gather, rhs, gathered, INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecScatterEnd(gather, rhs, gathered, INSERT_VALUES, SCATTER_FORWARD);
-        IBTK_CHKERRQ(ierr);
-    }
-    for (std::size_t i = 0; i < overlap.size(); ++i)
-    {
-        if (multiplicative)
-        {
-            // The multiplicative test runs in serial; recompute the residual after each subdomain
-            // correction.
-            ierr = MatMult(mat, result, residual);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAYPX(residual, -1.0, rhs);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecScatterBegin(gather, residual, gathered, INSERT_VALUES, SCATTER_FORWARD);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecScatterEnd(gather, residual, gathered, INSERT_VALUES, SCATTER_FORWARD);
-            IBTK_CHKERRQ(ierr);
-        }
-        PetscInt n = 0, m = 0;
+        PetscInt n = 0;
         const PetscInt* indices = nullptr;
-        const PetscInt* owned = nullptr;
         ierr = ISGetLocalSize(overlap[i], &n);
         IBTK_CHKERRQ(ierr);
-        ierr = ISGetLocalSize(partition[i], &m);
-        IBTK_CHKERRQ(ierr);
         ierr = ISGetIndices(overlap[i], &indices);
-        IBTK_CHKERRQ(ierr);
-        ierr = ISGetIndices(partition[i], &owned);
         IBTK_CHKERRQ(ierr);
         Vec local_rhs = nullptr, local_solution = nullptr;
         ierr = MatCreateVecs(submat[i], &local_solution, &local_rhs);
         IBTK_CHKERRQ(ierr);
+        if (multiplicative)
+        {
+            // The residual that the earlier solves of the group leave.
+            ierr = MatMult(rows[i], correction, local_rhs);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecScale(local_rhs, -1.0);
+            IBTK_CHKERRQ(ierr);
+        }
+        else
+        {
+            ierr = VecSet(local_rhs, 0.0);
+            IBTK_CHKERRQ(ierr);
+        }
         const PetscScalar* global_values = nullptr;
         PetscScalar* local_values = nullptr;
         ierr = VecGetArrayRead(gathered, &global_values);
@@ -121,7 +129,7 @@ reference_action(Mat mat,
         IBTK_CHKERRQ(ierr);
         for (PetscInt j = 0; j < n; ++j)
         {
-            local_values[j] = global_values[indices[j]];
+            local_values[j] += global_values[indices[j]];
         }
         ierr = VecRestoreArray(local_rhs, &local_values);
         IBTK_CHKERRQ(ierr);
@@ -146,16 +154,45 @@ reference_action(Mat mat,
         const PetscScalar* solution_values = nullptr;
         ierr = VecGetArrayRead(local_solution, &solution_values);
         IBTK_CHKERRQ(ierr);
-        for (PetscInt j = 0; j < m; ++j)
+        if (multiplicative)
         {
-            const PetscInt position = static_cast<PetscInt>(std::lower_bound(indices, indices + n, owned[j]) - indices);
-            TBOX_ASSERT(position < n && indices[position] == owned[j]);
-            ierr = VecSetValue(result, owned[j], solution_values[position], INSERT_VALUES);
+            ierr = VecSetValues(correction, n, indices, solution_values, ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyBegin(correction);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAssemblyEnd(correction);
+            IBTK_CHKERRQ(ierr);
+            solved_dofs.insert(indices, indices + n);
+        }
+        else if (!owned_output)
+        {
+            ierr = VecSetValues(result, n, indices, solution_values, ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+        }
+        if (owned_output)
+        {
+            PetscInt m = 0;
+            const PetscInt* owned = nullptr;
+            ierr = ISGetLocalSize(partition[i], &m);
+            IBTK_CHKERRQ(ierr);
+            ierr = ISGetIndices(partition[i], &owned);
+            IBTK_CHKERRQ(ierr);
+            owned_dofs.insert(owned, owned + m);
+            if (!multiplicative)
+            {
+                for (PetscInt j = 0; j < m; ++j)
+                {
+                    const PetscInt position =
+                        static_cast<PetscInt>(std::lower_bound(indices, indices + n, owned[j]) - indices);
+                    TBOX_ASSERT(position < n && indices[position] == owned[j]);
+                    ierr = VecSetValue(result, owned[j], solution_values[position], ADD_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+            ierr = ISRestoreIndices(partition[i], &owned);
             IBTK_CHKERRQ(ierr);
         }
         ierr = VecRestoreArrayRead(local_solution, &solution_values);
-        IBTK_CHKERRQ(ierr);
-        ierr = ISRestoreIndices(partition[i], &owned);
         IBTK_CHKERRQ(ierr);
         ierr = ISRestoreIndices(overlap[i], &indices);
         IBTK_CHKERRQ(ierr);
@@ -165,32 +202,45 @@ reference_action(Mat mat,
         IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&local_solution);
         IBTK_CHKERRQ(ierr);
-        if (multiplicative)
+    }
+    if (multiplicative)
+    {
+        // Only the completed correction of the group is added to the result.
+        const std::set<PetscInt>& output_dofs = owned_output ? owned_dofs : solved_dofs;
+        const PetscScalar* correction_values = nullptr;
+        ierr = VecGetArrayRead(correction, &correction_values);
+        IBTK_CHKERRQ(ierr);
+        for (const PetscInt dof : output_dofs)
         {
-            ierr = VecAssemblyBegin(result);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAssemblyEnd(result);
+            ierr = VecSetValue(result, dof, correction_values[dof], ADD_VALUES);
             IBTK_CHKERRQ(ierr);
         }
+        ierr = VecRestoreArrayRead(correction, &correction_values);
+        IBTK_CHKERRQ(ierr);
     }
     ierr = VecAssemblyBegin(result);
     IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(result);
     IBTK_CHKERRQ(ierr);
-    ierr = MatDestroyMatrices(static_cast<PetscInt>(overlap.size()), &submat);
+    ierr = MatDestroyMatrices(n_subdomains, &submat);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroyMatrices(n_subdomains, &rows);
+    IBTK_CHKERRQ(ierr);
+    ierr = ISDestroy(&all_columns);
     IBTK_CHKERRQ(ierr);
     ierr = VecScatterDestroy(&gather);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&gathered);
     IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&residual);
+    ierr = VecDestroy(&correction);
     IBTK_CHKERRQ(ierr);
 }
 
 // The factor by which the application-supplied subdomain solver scales the solution of the built-in one.
 constexpr double SUBDOMAIN_SOLVER_SCALE = 0.5;
 
-// A value no correction of the test problem approaches, used to detect entries a subdomain solver fails to overwrite.
+// A value no correction of the test problem approaches, used to detect entries that a subdomain solver or the
+// preconditioner fails to overwrite.
 constexpr double OUTPUT_SENTINEL = 1.0e30;
 
 // Counts the use of an application-supplied subdomain solver. The test owns the counters, since the level solver
@@ -366,8 +416,6 @@ main(int argc, char* argv[])
     const bool subdomain_solver_unused = test->getBoolWithDefault("subdomain_solver_unused", false);
     const bool replace_initialized = test->getBoolWithDefault("replace_initialized", false);
     const bool uneven_subdomains = test->getBoolWithDefault("uneven_subdomains", false);
-    const std::string shell_type = test->getString("shell_pc_type");
-    const bool multiplicative = shell_type == "multiplicative";
     const auto hierarchy_data = setup_hierarchy<NDIM>(app);
     Pointer<PatchHierarchy<NDIM>> hierarchy = std::get<0>(hierarchy_data);
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
@@ -421,10 +469,13 @@ main(int argc, char* argv[])
     ierr = VecDuplicate(rhs, &actual);
     IBTK_CHKERRQ(ierr);
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(rhs, fi, udi, hi, pdi, level);
-    Pointer<MemoryDatabase> db = new MemoryDatabase("solver");
+    // The input supplies the settings of each case, and the settings that every case shares are added here.
+    Pointer<Database> db = input->getDatabase("level_solver");
     db->putString("ksp_type", "preonly");
-    db->putString("pc_type", test->getStringWithDefault("pc_type", "shell"));
-    db->putString("shell_pc_type", shell_type);
+    if (!db->keyExists("pc_type"))
+    {
+        db->putString("pc_type", "shell");
+    }
     db->putBool("initial_guess_nonzero", false);
     db->putBool("check_subdomain_coverage", true);
     db->putInteger("max_iterations", 1);
@@ -504,6 +555,9 @@ main(int argc, char* argv[])
         solver.setOperatorMat(supplied);
         solver.initializeSolverState(x, b);
     }
+    Pointer<Database> relaxation_db = db->getDatabase("subdomain_relaxation");
+    const bool multiplicative = relaxation_db->getString("composition") == "MULTIPLICATIVE";
+    const bool owned_output = relaxation_db->getString("output") == "OWNED";
     plog << std::setprecision(12);
     // An application subdomain solver is also replaced by another one after the cycles.
     const int reinitialization_cycles = lifetime ? 2 : 1;
@@ -533,9 +587,15 @@ main(int argc, char* argv[])
         PCType pc_type = nullptr;
         ierr = PCGetType(pc, &pc_type);
         IBTK_CHKERRQ(ierr);
-        if (std::string(pc_type) != "shell" || (lifetime && mat != supplied))
+        const char* shell_name = nullptr;
+        ierr = PCShellGetName(pc, &shell_name);
+        IBTK_CHKERRQ(ierr);
+        if (std::string(pc_type) != "shell" || std::string(shell_name) != "subdomain_relaxation" ||
+            (lifetime && mat != supplied))
         {
-            TBOX_ERROR("Failed check: std::string(pc_type) != 'shell' || (lifetime && mat != supplied).\n");
+            TBOX_ERROR(
+                "Failed check: the preconditioner is not the subdomain_relaxation shell, or the operator is "
+                "not the supplied one.\n");
         }
         std::vector<IS>* overlap = nullptr;
         std::vector<IS>* partition = nullptr;
@@ -553,8 +613,47 @@ main(int argc, char* argv[])
             }
         }
         // The supplied subdomain solver, not the built-in one, determines the action.
-        reference_action(
-            mat, rhs, expected, *overlap, *partition, multiplicative, counts ? SUBDOMAIN_SOLVER_SCALE : 1.0);
+        const double scale = counts ? SUBDOMAIN_SOLVER_SCALE : 1.0;
+        reference_action(mat, rhs, expected, *overlap, *partition, multiplicative, owned_output, scale);
+        if (cycle == 0)
+        {
+            // The other compositions and outputs give different actions, except that with one rank both outputs of
+            // the multiplicative composition are the correction of the one group.
+            for (const bool other_multiplicative : { false, true })
+            {
+                for (const bool other_owned_output : { false, true })
+                {
+                    if (other_multiplicative == multiplicative && other_owned_output == owned_output)
+                    {
+                        continue;
+                    }
+                    reference_action(
+                        mat, rhs, actual, *overlap, *partition, other_multiplicative, other_owned_output, scale);
+                    ierr = VecAXPY(actual, -1.0, expected);
+                    IBTK_CHKERRQ(ierr);
+                    plog << "distance from the " << (other_multiplicative ? "MULTIPLICATIVE " : "ADDITIVE ")
+                         << (other_owned_output ? "OWNED" : "FULL") << " action = " << norm_inf(actual) << '\n';
+                }
+            }
+        }
+        // Applying the preconditioner twice to an output that holds other values gives the reference action both
+        // times.
+        double apply_error = 0.0;
+        for (int application = 0; application < 2; ++application)
+        {
+            ierr = VecSet(actual, OUTPUT_SENTINEL);
+            IBTK_CHKERRQ(ierr);
+            ierr = PCApply(pc, rhs, actual);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(actual, -1.0, expected);
+            IBTK_CHKERRQ(ierr);
+            apply_error = std::max(apply_error, norm_inf(actual));
+        }
+        if (!std::isfinite(apply_error) || apply_error > 1.0e-9)
+        {
+            TBOX_ERROR("Failed check: applying the preconditioner does not give the reference action.\n");
+        }
+        plog << label << "apply_error = " << apply_error << '\n';
         // Left-preconditioned PETSc KSP removes the operator nullspace after PCApply.
         MatNullSpace nullspace = nullptr;
         ierr = MatGetNullSpace(mat, &nullspace);
