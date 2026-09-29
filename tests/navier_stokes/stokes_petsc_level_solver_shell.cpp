@@ -683,6 +683,175 @@ cav_application_patches(const CAFields& fields, const int n, const bool strict, 
     }
     return patches;
 }
+
+// Index sets of the given sets of DOFs, which the caller destroys.
+std::vector<IS>
+make_index_sets(const std::vector<std::set<int>>& sets)
+{
+    std::vector<IS> result;
+    for (const std::set<int>& dofs : sets)
+    {
+        const std::vector<PetscInt> indices(dofs.begin(), dofs.end());
+        IS is = nullptr;
+        const int ierr = ISCreateGeneral(
+            PETSC_COMM_SELF, static_cast<PetscInt>(indices.size()), indices.data(), PETSC_COPY_VALUES, &is);
+        IBTK_CHKERRQ(ierr);
+        result.push_back(is);
+    }
+    return result;
+}
+
+void
+destroy_index_sets(std::vector<IS>& sets)
+{
+    for (IS& is : sets)
+    {
+        const int ierr = ISDestroy(&is);
+        IBTK_CHKERRQ(ierr);
+    }
+    sets.clear();
+}
+
+// Apply subdomain relaxation on the CAV patches of the application problem with each composition and output, and
+// compare its action with the reference action on the independently enumerated patches, each of which owns the DOFs
+// of its seed cell. The solver is also applied again, and rebuilt with a changed construction matrix, which changes
+// the patches and the operator.
+int
+check_cav_composition(SAMRAIVectorReal<NDIM, double>& x,
+                      SAMRAIVectorReal<NDIM, double>& b,
+                      Vec rhs,
+                      const CAFields& fields,
+                      const int n)
+{
+    PetscInt n_dofs = 0;
+    int ierr = VecGetSize(rhs, &n_dofs);
+    IBTK_CHKERRQ(ierr);
+    std::vector<std::set<int>> owned;
+    for (const auto& field : fields)
+    {
+        owned.emplace_back(field.second.begin(), field.second.end());
+    }
+    Vec action = nullptr, expected = nullptr, repeated = nullptr;
+    for (Vec* v : { &action, &expected, &repeated })
+    {
+        ierr = VecDuplicate(rhs, v);
+        IBTK_CHKERRQ(ierr);
+    }
+    std::map<std::string, Vec> actions;
+    for (const bool multiplicative : { false, true })
+    {
+        for (const bool owned_output : { false, true })
+        {
+            const std::string name =
+                std::string(multiplicative ? "MULTIPLICATIVE" : "ADDITIVE") + (owned_output ? " OWNED" : " FULL");
+            Mat elasticity = nullptr;
+            ierr = MatCreateSeqDense(PETSC_COMM_WORLD, n_dofs, n_dofs, nullptr, &elasticity);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyBegin(elasticity, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            ierr = MatAssemblyEnd(elasticity, MAT_FINAL_ASSEMBLY);
+            IBTK_CHKERRQ(ierr);
+            Pointer<MemoryDatabase> db = new MemoryDatabase("composition_solver");
+            db->putString("ksp_type", "preonly");
+            db->putString("pc_type", "shell");
+            db->putBool("initial_guess_nonzero", false);
+            db->putBool("check_subdomain_coverage", true);
+            db->putString("subdomain_construction", "COUPLING_AWARE");
+            Pointer<Database> relaxation_db = db->putDatabase("subdomain_relaxation");
+            relaxation_db->putString("composition", multiplicative ? "MULTIPLICATIVE" : "ADDITIVE");
+            if (multiplicative)
+            {
+                relaxation_db->putString("grouping", "RANK");
+            }
+            relaxation_db->putString("output", owned_output ? "OWNED" : "FULL");
+            StaggeredStokesPETScLevelSolver solver("composition_solver", db, "shell_");
+            PoissonSpecifications coefficients("coefficients");
+            coefficients.setCConstant(1.0);
+            coefficients.setDConstant(-1.0);
+            solver.setVelocityPoissonSpecifications(coefficients);
+            solver.setComponentsHaveNullSpace(false, true);
+            for (int cycle = 0; cycle < 2; ++cycle)
+            {
+                const std::vector<std::set<int>> patches = cav_application_patches(fields, n, false, cycle, elasticity);
+                solver.setCouplingAwareASMConstructionMat(elasticity);
+                solver.setAugmentedOperatorMat(elasticity);
+                solver.initializeSolverState(x, b);
+                std::vector<IS>* overlap = nullptr;
+                std::vector<IS>* partition = nullptr;
+                solver.getASMSubdomains(&partition, &overlap);
+                if (ca_read_sets(*overlap) != patches || ca_read_sets(*partition) != owned)
+                {
+                    TBOX_ERROR(
+                        "Failed check: the solver's CAV patches or their owned DOFs differ from the expected "
+                        "ones.\n");
+                }
+                Mat level_mat = nullptr;
+                PC pc = nullptr;
+                ierr = KSPGetOperators(solver.getPETScKSP(), &level_mat, nullptr);
+                IBTK_CHKERRQ(ierr);
+                ierr = KSPGetPC(solver.getPETScKSP(), &pc);
+                IBTK_CHKERRQ(ierr);
+                std::vector<IS> patch_sets = make_index_sets(patches), owned_sets = make_index_sets(owned);
+                reference_action(
+                    level_mat, rhs, expected, patch_sets, owned_sets, multiplicative, owned_output, 1.0, "FORWARD");
+                destroy_index_sets(patch_sets);
+                destroy_index_sets(owned_sets);
+                // The output holds other values before each application.
+                for (Vec v : { action, repeated })
+                {
+                    ierr = VecSet(v, OUTPUT_SENTINEL);
+                    IBTK_CHKERRQ(ierr);
+                    ierr = PCApply(pc, rhs, v);
+                    IBTK_CHKERRQ(ierr);
+                }
+                ierr = VecAXPY(repeated, -1.0, action);
+                IBTK_CHKERRQ(ierr);
+                const double repeated_difference = norm_inf(repeated);
+                ierr = VecAXPY(action, -1.0, expected);
+                IBTK_CHKERRQ(ierr);
+                const double error = norm_inf(action) / norm_inf(expected);
+                if (!(error <= 1.0e-9) || repeated_difference != 0.0)
+                {
+                    TBOX_ERROR("Failed check: " << name << " error = " << error
+                                                << ", repeated difference = " << repeated_difference << ".\n");
+                }
+                plog << name << (cycle == 0 ? "" : " rebuilt") << " error = " << error << '\n';
+                if (cycle == 0)
+                {
+                    ierr = VecDuplicate(expected, &actions[name]);
+                    IBTK_CHKERRQ(ierr);
+                    ierr = VecCopy(expected, actions[name]);
+                    IBTK_CHKERRQ(ierr);
+                }
+                solver.deallocateSolverState();
+                solver.setAugmentedOperatorMat(nullptr);
+            }
+            ierr = MatDestroy(&elasticity);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    // With one rank the two outputs of the multiplicative composition are the correction of its one group, and the
+    // other actions differ.
+    for (const auto& pair : { std::make_pair("ADDITIVE FULL", "ADDITIVE OWNED"),
+                              std::make_pair("MULTIPLICATIVE FULL", "MULTIPLICATIVE OWNED"),
+                              std::make_pair("ADDITIVE OWNED", "MULTIPLICATIVE OWNED") })
+    {
+        ierr = VecWAXPY(action, -1.0, actions[pair.second], actions[pair.first]);
+        IBTK_CHKERRQ(ierr);
+        plog << pair.first << " - " << pair.second << " = " << norm_inf(action) << '\n';
+    }
+    for (auto& entry : actions)
+    {
+        ierr = VecDestroy(&entry.second);
+        IBTK_CHKERRQ(ierr);
+    }
+    for (Vec* v : { &action, &expected, &repeated })
+    {
+        ierr = VecDestroy(v);
+        IBTK_CHKERRQ(ierr);
+    }
+    return 0;
+}
 } // namespace
 
 int
@@ -818,6 +987,17 @@ main(int argc, char* argv[])
     int box_size[NDIM];
     std::fill_n(box_size, NDIM, 4);
     db->putIntegerArray("subdomain_box_size", box_size, NDIM);
+    if (cav_scenario == "composition")
+    {
+        plog << std::setprecision(12);
+        const int status = check_cav_composition(x, b, rhs, cav_fields, input->getInteger("N"));
+        for (Vec* vector : { &rhs, &expected, &actual })
+        {
+            ierr = VecDestroy(vector);
+            IBTK_CHKERRQ(ierr);
+        }
+        return status;
+    }
     // The settings of the reference action. The cases that stop with an error before the reference is used need not
     // supply them.
     Pointer<Database> relaxation_db =
@@ -1140,12 +1320,19 @@ main(int argc, char* argv[])
                 }
                 if (cav)
                 {
+                    // Each patch owns the DOFs of its seed cell.
+                    std::vector<std::set<int>> seed_cell_dofs;
+                    for (const auto& field : cav_fields)
+                    {
+                        seed_cell_dofs.emplace_back(field.second.begin(), field.second.end());
+                    }
                     const std::vector<std::set<int>> patches = ca_read_sets(*overlap);
-                    if (!partition->empty() || patches != cav_expected || (cycle == 1 && patches == previous_patches))
+                    if (ca_read_sets(*partition) != seed_cell_dofs || patches != cav_expected ||
+                        (cycle == 1 && patches == previous_patches))
                     {
                         TBOX_ERROR(
-                            "Failed check: !partition->empty() || patches != cav_expected || (cycle == 1 && "
-                            "patches == previous_patches).\n");
+                            "Failed check: the owned DOFs are not those of the seed cells, patches != cav_expected, "
+                            "or (cycle == 1 && patches == previous_patches).\n");
                     }
                     previous_patches = patches;
                     plog << "pressure_patches = " << patches.size() << "\npartition_size = " << partition->size()

@@ -2310,7 +2310,25 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                     {
                         max_patch_dofs = std::max(max_patch_dofs, static_cast<int>(patch.size()));
                     }
-                    if (installed_patches != expected_patches || !nonoverlap->empty())
+                    // Each patch owns the pressure DOF and the lower-face velocity DOFs of its seed cell.
+                    bool owned_valid = nonoverlap->size() == installed_patches.size();
+                    for (std::size_t k = 0; owned_valid && k < nonoverlap->size(); ++k)
+                    {
+                        PetscInt count = 0;
+                        const PetscInt* dofs = nullptr;
+                        ierr = ISGetLocalSize((*nonoverlap)[k], &count);
+                        IBTK_CHKERRQ(ierr);
+                        ierr = ISGetIndices((*nonoverlap)[k], &dofs);
+                        IBTK_CHKERRQ(ierr);
+                        const std::set<int> owned(dofs, dofs + count);
+                        ierr = ISRestoreIndices((*nonoverlap)[k], &dofs);
+                        IBTK_CHKERRQ(ierr);
+                        owned_valid =
+                            owned.size() == NDIM + 1 && owned.count(expected_seeds[k]) &&
+                            std::includes(
+                                installed_patches[k].begin(), installed_patches[k].end(), owned.begin(), owned.end());
+                    }
+                    if (installed_patches != expected_patches || !owned_valid)
                     {
                         TBOX_ERROR(
                             "The CAV patches installed by the FAC operator differ from the public construction "

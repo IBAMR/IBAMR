@@ -1,13 +1,15 @@
 pressure_patches = 16
-partition_size = 0
+partition_size = 16
 distance from the ADDITIVE FULL action = 0.659121753787
+distance from the ADDITIVE OWNED action = 0.193730699733
+distance from the MULTIPLICATIVE OWNED action = 0
 apply_error = 2.13474502169e-15
 pressure_mean = 0
 action_norm = 0.254534600232
 error = 2.90330744854e-15
 repeated_error = 7.38992200766e-16
 pressure_patches = 16
-partition_size = 0
+partition_size = 16
 apply_error = 1.02414668674e-14
 pressure_mean = -6.93889390391e-18
 action_norm = 0.493241332266
