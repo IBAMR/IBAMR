@@ -134,9 +134,19 @@ public:
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
      *
-     * \param src source residual
-     * \param dst destination residual
-     * \param dst_ln destination level number
+     * On level \p dst_ln, \p dst is set to \p src, except where that level is
+     * covered by level \p dst_ln + 1. There, \p dst is set to the restriction
+     * of the level \p dst_ln + 1 values of \p src, each first multiplied by
+     * the ratio of the level \p dst_ln and level \p dst_ln + 1 factors set by
+     * setOperatorScaling() (or by 1 if no scaling has been set).
+     *
+     * The rescaled level \p dst_ln + 1 values are staged in this object's
+     * scratch data on level \p dst_ln + 1, which is overwritten. Neither
+     * \p src nor \p dst is modified on level \p dst_ln + 1.
+     *
+     * \param src source residual, read on levels \p dst_ln and \p dst_ln + 1
+     * \param dst destination residual, written on level \p dst_ln
+     * \param dst_ln destination (coarser) level number
      */
     void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
                           SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
