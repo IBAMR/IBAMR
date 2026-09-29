@@ -1,20 +1,16 @@
+// The CAV patches are applied with each composition and output, whose settings the test supplies.
 petsc_settings_shell {
    sub_pc_type = "svd"
 }
 
 level_solver {
-   subdomain_construction = "COUPLING_AWARE"
-   subdomain_relaxation {
-      composition = "ADDITIVE"
-      output = "OWNED"
-   }
 }
 
 test {
  f_data_type = "CELL"
  n_components = 1
  ghost_width = 1
- cav_application = "additive"
+ cav_application = "composition"
 }
 Main {
    log_file_name = "output"

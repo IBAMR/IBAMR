@@ -59,6 +59,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -374,24 +375,11 @@ StaggeredStokesPETScLevelSolver::validatePreconditionerType()
     if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE &&
         d_ca_seed_type == CouplingAwareASMPatchSeedType::PRESSURE_CELL)
     {
-        // Pressure-cell CAV patches have no nonoverlapping sets, so they support only subdomain relaxation with
-        // multiplicative composition and FULL output. Missing settings are reported with the other requirements of
-        // subdomain relaxation.
+        // Pressure-cell CAV patches are applied only by subdomain relaxation.
         if (d_pc_type != "shell")
         {
             TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
                                      << "  pressure-cell CAV requires pc_type = shell.\n");
-        }
-        if (d_subdomain_composition && *d_subdomain_composition != SubdomainComposition::MULTIPLICATIVE)
-        {
-            TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
-                                     << "  pressure-cell CAV requires subdomain_relaxation composition = "
-                                        "MULTIPLICATIVE.\n");
-        }
-        if (d_subdomain_output && *d_subdomain_output != SubdomainOutput::FULL)
-        {
-            TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
-                                     << "  pressure-cell CAV requires subdomain_relaxation output = FULL.\n");
         }
     }
     if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE && d_pc_type != "asm" && d_pc_type != "shell")
@@ -428,7 +416,40 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
                 d_ca_order,
                 d_ca_policy,
                 d_ca_relative_zero_tol);
+            // Each patch owns the DOFs of its seed cell: the pressure DOF and the velocity DOF on the lower face in
+            // each direction. These partition the DOFs, as OWNED output requires, only if every cell is a seed and the
+            // upper faces of the level are the lower faces of other cells.
+            const IntVector<NDIM> period = d_level->getGridGeometry()->getPeriodicShift(d_level->getRatio());
+            if (d_subdomain_output == SubdomainOutput::OWNED &&
+                (d_ca_seed_stride != 1 || period.min() <= 0 || !level_covers_entire_physical_domain(d_level)))
+            {
+                TBOX_ERROR(
+                    d_object_name << "::generateASMSubdomains():\n"
+                                  << "  OWNED output of pressure-cell CAV patches requires seed_stride = 1 and a "
+                                     "level that covers a physical domain that is periodic in every "
+                                     "direction.\n");
+            }
+            std::map<int, std::set<int>> seed_cell_dofs;
+            for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+                Pointer<SideData<NDIM, int>> u_dofs = patch->getPatchData(d_u_dof_index_idx);
+                Pointer<CellData<NDIM, int>> p_dofs = patch->getPatchData(d_p_dof_index_idx);
+                for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+                {
+                    std::set<int>& dofs = seed_cell_dofs[(*p_dofs)(b())];
+                    dofs.insert((*p_dofs)(b()));
+                    for (int axis = 0; axis < NDIM; ++axis)
+                    {
+                        dofs.insert((*u_dofs)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)));
+                    }
+                }
+            }
             nonoverlap_is.clear();
+            for (const int seed : pressure_seeds)
+            {
+                nonoverlap_is.push_back(seed_cell_dofs.at(seed));
+            }
             // Vanka smoothing needs every DOF to be in a patch, which a seed stride above one gives up.
             if (d_check_subdomain_coverage)
             {
