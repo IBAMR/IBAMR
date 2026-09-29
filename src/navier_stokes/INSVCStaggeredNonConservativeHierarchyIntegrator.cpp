@@ -1003,10 +1003,17 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(const bool in
     {
         scratch_idxs.setFlag(d_Q_scratch_idx);
     }
+    std::vector<bool> allocated_div_u(finest_ln + 1, false);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_integrator_time);
+        // Regridding releases this buffer; initial hierarchy setup may retain it.
+        if (!level->checkAllocated(d_Div_U_idx))
+        {
+            level->allocatePatchData(d_Div_U_idx, d_integrator_time);
+            allocated_div_u[ln] = true;
+        }
     }
 
     // Setup the regrid Poisson solver.
@@ -1201,6 +1208,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(const bool in
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
+        if (allocated_div_u[ln])
+        {
+            level->deallocatePatchData(d_Div_U_idx);
+        }
     }
 
     // Synchronize data on the patch hierarchy.
