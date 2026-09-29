@@ -221,7 +221,9 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
                                         "seed_stride",
                                         "seed_traversal_order",
                                         "closure_policy",
-                                        "relative_zero_tol" });
+                                        "relative_zero_tol",
+                                        "group_standard_seed_ghost_width",
+                                        "group_ib_seed_ghost_width" });
             d_ca_seed_type = string_to_enum<CouplingAwareASMPatchSeedType>(
                 ca_db->getStringWithDefault("seed_type", enum_to_string(d_ca_seed_type)));
             d_ca_seed_axis = ca_db->getIntegerWithDefault("seed_axis", d_ca_seed_axis);
@@ -231,6 +233,18 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
             d_ca_policy = string_to_enum<CouplingAwareASMClosurePolicy>(
                 ca_db->getStringWithDefault("closure_policy", enum_to_string(d_ca_policy)));
             d_ca_relative_zero_tol = ca_db->getDoubleWithDefault("relative_zero_tol", d_ca_relative_zero_tol);
+            if ((ca_db->keyExists("group_standard_seed_ghost_width") ||
+                 ca_db->keyExists("group_ib_seed_ghost_width")) &&
+                d_subdomain_grouping != SubdomainGrouping::SAMRAI_PATCH)
+            {
+                TBOX_ERROR(d_object_name << "::StaggeredStokesPETScLevelSolver():\n"
+                                         << "  coupling_aware_subdomains group_standard_seed_ghost_width and "
+                                            "group_ib_seed_ghost_width apply only to SAMRAI_PATCH grouping.\n");
+            }
+            d_ca_group_standard_seed_ghost_width =
+                ca_db->getIntegerWithDefault("group_standard_seed_ghost_width", d_ca_group_standard_seed_ghost_width);
+            d_ca_group_ib_seed_ghost_width =
+                ca_db->getIntegerWithDefault("group_ib_seed_ghost_width", d_ca_group_ib_seed_ghost_width);
         }
     }
 #if (NDIM == 2)
@@ -263,6 +277,14 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
         TBOX_ERROR(d_object_name << "::StaggeredStokesPETScLevelSolver():\n"
                                  << "  coupling_aware_subdomains seed_stride = " << d_ca_seed_stride
                                  << " must be positive.\n");
+    }
+    if (d_ca_group_standard_seed_ghost_width < 0 ||
+        d_ca_group_ib_seed_ghost_width < d_ca_group_standard_seed_ghost_width)
+    {
+        TBOX_ERROR(d_object_name << "::StaggeredStokesPETScLevelSolver():\n"
+                                 << "  coupling_aware_subdomains group_standard_seed_ghost_width = "
+                                 << d_ca_group_standard_seed_ghost_width << " must be nonnegative and at most "
+                                 << "group_ib_seed_ghost_width = " << d_ca_group_ib_seed_ghost_width << ".\n");
     }
     if (!std::isfinite(d_ca_relative_zero_tol) || d_ca_relative_zero_tol < 0.0)
     {
@@ -403,7 +425,7 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
                 TBOX_ERROR(d_object_name << "::generateASMSubdomains():\n"
                                          << "  pressure-cell CAV requires a live elasticity construction matrix.\n");
             }
-            std::vector<int> pressure_seeds;
+            std::vector<int>& pressure_seeds = d_ca_pressure_seeds;
             StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
                 overlap_is,
                 pressure_seeds,
@@ -495,6 +517,79 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
 
     return;
 } // generateASMSubdomains
+
+void
+StaggeredStokesPETScLevelSolver::generateSubdomainGroups(std::vector<std::vector<int>>& group_subdomains,
+                                                         std::vector<int>& owning_groups)
+{
+    const IntVector<NDIM> period = d_level->getGridGeometry()->getPeriodicShift(d_level->getRatio());
+    if (d_asm_mode != ASMSubdomainConstructionMode::COUPLING_AWARE ||
+        d_ca_seed_type != CouplingAwareASMPatchSeedType::PRESSURE_CELL || d_ca_seed_stride != 1 || period.min() <= 0 ||
+        !level_covers_entire_physical_domain(d_level))
+    {
+        TBOX_ERROR(d_object_name << "::generateSubdomainGroups():\n"
+                                 << "  SAMRAI_PATCH grouping requires pressure-cell CAV patches with seed_stride = 1 "
+                                    "on a level that covers a physical domain that is periodic in every "
+                                    "direction.\n");
+    }
+
+    // The SAMRAI patch and the cell of the seed of each CAV patch, and the size of the standard Vanka patch of the
+    // seed, the pressure DOF and the velocity DOFs on the 2 * NDIM faces of the cell.
+    std::vector<Box<NDIM>> boxes;
+    std::map<int, std::pair<int, hier::Index<NDIM>>> seed_cells;
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        const Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<CellData<NDIM, int>> p_dofs = patch->getPatchData(d_p_dof_index_idx);
+        for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+        {
+            seed_cells[(*p_dofs)(b())] = std::make_pair(static_cast<int>(boxes.size()), b());
+        }
+        boxes.push_back(patch->getBox());
+    }
+    const int n_cav_patches = static_cast<int>(d_ca_pressure_seeds.size());
+    // A CAV patch is IB-expanded if it is larger than the standard Vanka patch of its seed.
+    std::vector<char> expanded(n_cav_patches, 0);
+    for (int k = 0; k < n_cav_patches; ++k)
+    {
+        PetscInt n_dofs = 0;
+        const int ierr = ISGetLocalSize(d_overlap_is[k], &n_dofs);
+        IBTK_CHKERRQ(ierr);
+        expanded[k] = n_dofs > 2 * NDIM + 1;
+    }
+    // Whether the seed of CAV patch k is within width cells of box, with periodic distances.
+    const auto seed_near_box = [&](const int k, const Box<NDIM>& box, const int width)
+    {
+        const hier::Index<NDIM>& cell = seed_cells.at(d_ca_pressure_seeds[k]).second;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            const int extent = box.upper(d) - box.lower(d) + 1 + 2 * width;
+            const int offset = ((cell(d) - box.lower(d) + width) % period(d) + period(d)) % period(d);
+            if (extent < period(d) && offset >= extent)
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+    group_subdomains.assign(boxes.size(), {});
+    owning_groups.resize(n_cav_patches);
+    for (std::size_t g = 0; g < boxes.size(); ++g)
+    {
+        for (int k = 0; k < n_cav_patches; ++k)
+        {
+            if (seed_near_box(k, boxes[g], d_ca_group_standard_seed_ghost_width) ||
+                (expanded[k] && seed_near_box(k, boxes[g], d_ca_group_ib_seed_ghost_width)))
+            {
+                group_subdomains[g].push_back(k);
+            }
+        }
+    }
+    for (int k = 0; k < n_cav_patches; ++k)
+    {
+        owning_groups[k] = seed_cells.at(d_ca_pressure_seeds[k]).first;
+    }
+} // generateSubdomainGroups
 
 IBTK::PETScLevelSolverSubdomainSolver
 StaggeredStokesPETScLevelSolver::makeEigenSchurComplementSubdomainSolver(Pointer<Database> input_db)
@@ -753,6 +848,7 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     }
 
     d_ca_construction_mat = nullptr;
+    d_ca_pressure_seeds.clear();
 
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);
