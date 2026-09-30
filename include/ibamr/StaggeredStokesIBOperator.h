@@ -78,7 +78,8 @@ namespace IBAMR
  * time-stepping rule, then subtracts the resulting spread force from the Stokes
  * momentum action, with weight 1 for
  * backward Euler/midpoint and 1/2 for trapezoidal stepping. The Stokes divergence
- * component is unchanged. Known current-time terms and the complete time-step
+ * component and the momentum rows of velocities prescribed on the physical
+ * boundary, which impose the boundary conditions, are unchanged. Known current-time terms and the complete time-step
  * right-hand side are the caller's responsibility.
  */
 class StaggeredStokesIBOperator : public IBTK::GeneralOperator
@@ -108,7 +109,9 @@ public:
      * strategy. Supply the corresponding velocity synchronization/ghost-fill
      * and force-prolongation schedules. The optional u_phys_bdry_op is borrowed
      * and must remain valid during use; omit it only if the boundary setup needs
-     * no such strategy, e.g. a periodic domain.
+     * no such strategy, e.g. a periodic domain. Its homogeneous boundary filling
+     * also identifies the prescribed boundary velocities, whose rows receive no
+     * spread force.
      *
      * Supplied-matrix-only Jacobian use requires just stokes_op and coupled velocity/pressure
      * DOF fields u_dof_index_idx/p_dof_index_idx on the input vector's single level; this

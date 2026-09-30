@@ -1,0 +1,3 @@
+New: Implicit IB coupling matrices and the Stokes-IB FAC preconditioner support prescribed-velocity physical boundaries in two dimensions.
+<br>
+(Boyce Griffith, 2026/09/29)

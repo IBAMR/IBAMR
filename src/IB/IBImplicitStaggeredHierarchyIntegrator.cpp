@@ -621,9 +621,12 @@ IBImplicitStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const do
     d_ib_implicit_ops->constructLagrangianForceJacobian(d_ib_force_jac, MATAIJ, schedule.evaluation_time);
 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    // The velocity ghost filling of the interpolation uses the physical velocity boundary conditions.
     getJacobianOperatorBuilder().constructInterpolationMatrixSide(
         d_ib_interp_op,
         d_ib_implicit_ops->getFinestLevelLECouplingPositions(schedule.evaluation_time),
+        ins_hier_integrator->getVelocityBoundaryConditions(),
+        schedule.evaluation_time,
         d_num_dofs_per_proc,
         d_u_dof_index_idx,
         d_hierarchy->getPatchLevel(finest_ln));

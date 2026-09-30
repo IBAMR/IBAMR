@@ -116,6 +116,15 @@ StaggeredStokesIBOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     }
     d_ctx.ib_implicit_ops->spreadForce(
         d_ctx.f_idx, d_ctx.u_phys_bdry_op, d_ctx.f_prolongation_scheds, step_parameters.evaluation_time);
+    if (d_ctx.u_phys_bdry_op)
+    {
+        detail::zero_force_at_prescribed_boundary_velocity(*d_ctx.u_phys_bdry_op,
+                                                           d_ctx.f_idx,
+                                                           y.getPatchHierarchy(),
+                                                           y.getCoarsestLevelNumber(),
+                                                           y.getFinestLevelNumber(),
+                                                           step_parameters.evaluation_time);
+    }
     d_ctx.hier_velocity_data_ops->axpy(f_u_idx, -step_parameters.nonlinear_force_scale, d_ctx.f_idx, f_u_idx);
 
     return;

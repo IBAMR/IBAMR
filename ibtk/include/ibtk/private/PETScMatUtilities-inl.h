@@ -41,6 +41,8 @@ inline void
 PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                                                  const Evaluator& evaluator,
                                                  Vec X_vec,
+                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                 const double data_time,
                                                  const std::vector<int>& num_dofs_per_proc,
                                                  int dof_index_idx,
                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level)
@@ -75,7 +77,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             index_widths[axis][d] = static_cast<int>(widths[axis][d]);
         }
     }
-    SCInterpOpData data(mat, X_vec, index_widths, num_dofs_per_proc, dof_index_idx, patch_level);
+    SCInterpOpData data(mat, X_vec, index_widths, bc_coefs, data_time, num_dofs_per_proc, dof_index_idx, patch_level);
     constructSCInterpOpAxis<0>(data, evaluator);
     constructSCInterpOpAxis<1>(data, evaluator);
 #if (NDIM == 3)
@@ -111,27 +113,30 @@ PETScMatUtilities::constructSCInterpOpAxis(SCInterpOpData& data, const Evaluator
 
         const tbox::Pointer<pdat::SideData<NDIM, int>>& indices = data.d_dof_index_data[point];
         int entry = 0;
-        bool stencil_outside_domain = false;
         for (typename hier::Box<NDIM>::Iterator b(box); b; b++, ++entry)
         {
             columns[entry] = (*indices)(pdat::SideIndex<NDIM>(b(), Axis, pdat::SideIndex<NDIM>::Lower));
-            stencil_outside_domain = stencil_outside_domain || columns[entry] < 0;
         }
-        if (stencil_outside_domain)
+        // An entry at a physical boundary contributes its weight to the interior columns of its boundary
+        // terms instead of its own column. MatSetValues() ignores the negative column.
+        const std::vector<SCInterpOpData::BoundaryTerm>& boundary_terms = data.d_boundary_terms[point][Axis];
+        for (const SCInterpOpData::BoundaryTerm& term : boundary_terms)
         {
-            // A negative column is outside the domain (e.g. at a non-periodic physical boundary) and has no
-            // DOF; MatSetValues() below silently drops that entry instead of adding it, so the row's weights
-            // sum to less than one. No folding or renormalization is attempted.
-            IBTK_DO_ONCE(TBOX_WARNING("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
-                                      << "  an interpolation stencil extends past a non-periodic physical "
-                                         "boundary; the weights of the stencil points outside the domain are "
-                                         "dropped, not folded or renormalized.\n"););
+            columns[term.entry] = -1;
         }
         const PetscInt row = data.d_row_lower + NDIM * point + Axis;
-        // Periodic stencil points can share a column; sum their contributions.
-        const int ierr = MatSetValues(
+        // Periodic stencil points and boundary terms can share a column; sum their contributions.
+        int ierr = MatSetValues(
             data.d_mat, 1, &row, static_cast<PetscInt>(nvalues), columns.data(), values.data(), ADD_VALUES);
         IBTK_CHKERRQ(ierr);
+        for (const SCInterpOpData::BoundaryTerm& term : boundary_terms)
+        {
+            if (term.column >= 0)
+            {
+                ierr = MatSetValue(data.d_mat, row, term.column, term.factor * values[term.entry], ADD_VALUES);
+                IBTK_CHKERRQ(ierr);
+            }
+        }
     }
 }
 

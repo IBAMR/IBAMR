@@ -17,6 +17,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/PETScMatUtilities.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
@@ -34,6 +35,7 @@
 #include <petscsys.h>
 #include <petscvec.h>
 
+#include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
 #include <BoxTree.h>
@@ -50,6 +52,7 @@
 #include <PatchLevel.h>
 #include <PoissonSpecifications.h>
 #include <ProcessorMapping.h>
+#include <RobinBcCoefStrategy.h>
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideIndex.h>
@@ -57,7 +60,9 @@
 #include <Variable.h>
 #include <VariableDatabase.h>
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <iterator>
 #include <limits>
 #include <map>
@@ -70,14 +75,6 @@
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
-namespace SAMRAI
-{
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
-} // namespace SAMRAI
 // IWYU pragma: no_include "petsc-private/vecimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -265,6 +262,170 @@ compute_linear_cell_prolongation_row_entries(const CellIndex<NDIM>& i_fine,
     PetscErrorCode ierr = AOApplicationToPetsc(coarse_level_ao, row.count, row.cols.data());
     IBTK_CHKERRQ(ierr);
     return row;
+}
+
+/*!
+ * Append to terms the representation of the side-centered value of component axis at index in terms of values
+ * inside the physical domain, for the extension that CartSideRobinPhysBdryOp's "LINEAR" ghost filling produces
+ * from homogeneous prescribed-velocity data on the non-periodic boundaries of domain_box, and record the location
+ * index of each boundary whose condition the extension uses. The value times coefficient equals the sum of the
+ * appended coefficients times the values at the appended indices; no terms are appended for a zero value.
+ */
+void
+append_homogeneous_extension(std::vector<std::pair<hier::Index<NDIM>, double>>& terms,
+                             std::set<int>& boundary_locations,
+                             const hier::Index<NDIM>& index,
+                             const int axis,
+                             const double coefficient,
+                             const Box<NDIM>& domain_box,
+                             const IntVector<NDIM>& periodic_shift)
+{
+    std::vector<int> outside_directions;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        const int upper = domain_box.upper(d) + (d == axis ? 1 : 0);
+        if (periodic_shift(d) == 0 && (index(d) < domain_box.lower(d) || index(d) > upper))
+        {
+            outside_directions.push_back(d);
+        }
+    }
+    if (outside_directions.empty())
+    {
+        // Normal components on the boundary are prescribed, so their homogeneous values are zero.
+        if (periodic_shift(axis) == 0 &&
+            (index(axis) == domain_box.lower(axis) || index(axis) == domain_box.upper(axis) + 1))
+        {
+            boundary_locations.insert(2 * axis + (index(axis) == domain_box.lower(axis) ? 0 : 1));
+        }
+        else
+        {
+            terms.emplace_back(index, coefficient);
+        }
+    }
+    else if (outside_directions.size() == 1)
+    {
+        // Outside one boundary, the value is the negated value at the mirror image across it: across the
+        // boundary face for the normal component, and across the boundary between cells for other components.
+        const int d = outside_directions[0];
+        const bool lower = index(d) < domain_box.lower(d);
+        boundary_locations.insert(2 * d + (lower ? 0 : 1));
+        hier::Index<NDIM> mirror = index;
+        if (d == axis)
+        {
+            mirror(d) = lower ? 2 * domain_box.lower(d) - index(d) : 2 * (domain_box.upper(d) + 1) - index(d);
+        }
+        else
+        {
+            mirror(d) = lower ? 2 * domain_box.lower(d) - 1 - index(d) : 2 * domain_box.upper(d) + 1 - index(d);
+        }
+        append_homogeneous_extension(terms, boundary_locations, mirror, axis, -coefficient, domain_box, periodic_shift);
+    }
+    else
+    {
+#if (NDIM == 2)
+        // Outside two boundaries, the value is extrapolated linearly along the tangential direction from the two
+        // nearest values outside only the boundary normal to this component.
+        const int d = 1 - axis;
+        const bool lower = index(d) < domain_box.lower(d);
+        const int boundary_index = lower ? domain_box.lower(d) : domain_box.upper(d);
+        const double distance = std::abs(index(d) - boundary_index);
+        hier::Index<NDIM> first = index, second = index;
+        first(d) = boundary_index;
+        second(d) = boundary_index + (lower ? 1 : -1);
+        append_homogeneous_extension(
+            terms, boundary_locations, first, axis, (1.0 + distance) * coefficient, domain_box, periodic_shift);
+        append_homogeneous_extension(
+            terms, boundary_locations, second, axis, -distance * coefficient, domain_box, periodic_shift);
+#else
+        TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                   << "  physical boundary extensions are implemented only in two dimensions.\n");
+#endif
+    }
+}
+
+/*!
+ * Require bc_coef to prescribe component axis (a nonzero and b zero) at data_time where CartSideRobinPhysBdryOp
+ * fills ghost width gcw of patch outside the codimension-one boundary with location index location.
+ */
+void
+require_prescribed_velocity_bc(RobinBcCoefStrategy<NDIM>* const bc_coef,
+                               const int axis,
+                               const int location,
+                               const double data_time,
+                               Patch<NDIM>& patch,
+                               const IntVector<NDIM>& gcw)
+{
+    if (!bc_coef)
+    {
+        TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                   << "  an interpolation stencil reaches physical boundary location " << location
+                   << ", but no boundary condition object is provided for velocity component " << axis << ".\n");
+    }
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const Array<BoundaryBox<NDIM>> codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    for (int n = 0; n < codim1_boxes.size(); ++n)
+    {
+        const BoundaryBox<NDIM>& bdry_box = codim1_boxes[n];
+        if (bdry_box.getLocationIndex() != location)
+        {
+            continue;
+        }
+        const int normal_axis = location / 2;
+        const Box<NDIM> fill_box = pgeom->getBoundaryFillBox(bdry_box, patch.getBox(), gcw);
+        const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * fill_box, bdry_box.getBoundaryType(), location);
+        Box<NDIM> coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        Pointer<ArrayData<NDIM, double>> acoef_data, bcoef_data, gcoef_data;
+        if (axis == normal_axis)
+        {
+            acoef_data = new ArrayData<NDIM, double>(coef_box, 1);
+            bcoef_data = new ArrayData<NDIM, double>(coef_box, 1);
+            bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, nullptr, patch, trimmed_bdry_box, data_time);
+        }
+        else
+        {
+            // As CartSideRobinPhysBdryOp does, evaluate the coefficients of a tangential component at its side
+            // centers by temporarily shifting the patch geometry.
+            coef_box.upper(axis) += 1;
+            acoef_data = new ArrayData<NDIM, double>(coef_box, 1);
+            bcoef_data = new ArrayData<NDIM, double>(coef_box, 1);
+            Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+            for (int d = 0; d < NDIM; ++d)
+            {
+                touches_regular_bdry[d].resizeArray(2);
+                touches_periodic_bdry[d].resizeArray(2);
+                for (int upperlower = 0; upperlower < 2; ++upperlower)
+                {
+                    touches_regular_bdry[d][upperlower] = pgeom->getTouchesRegularBoundary(d, upperlower);
+                    touches_periodic_bdry[d][upperlower] = pgeom->getTouchesPeriodicBoundary(d, upperlower);
+                }
+            }
+            const double* const dx = pgeom->getDx();
+            std::array<double, NDIM> shifted_x_lower, shifted_x_upper;
+            std::copy(pgeom->getXLower(), pgeom->getXLower() + NDIM, shifted_x_lower.begin());
+            std::copy(pgeom->getXUpper(), pgeom->getXUpper() + NDIM, shifted_x_upper.begin());
+            shifted_x_lower[axis] -= 0.5 * dx[axis];
+            shifted_x_upper[axis] -= 0.5 * dx[axis];
+            patch.setPatchGeometry(new CartesianPatchGeometry<NDIM>(pgeom->getRatio(),
+                                                                    touches_regular_bdry,
+                                                                    touches_periodic_bdry,
+                                                                    dx,
+                                                                    shifted_x_lower.data(),
+                                                                    shifted_x_upper.data()));
+            bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, nullptr, patch, trimmed_bdry_box, data_time);
+            patch.setPatchGeometry(pgeom);
+        }
+        for (Box<NDIM>::Iterator b(coef_box); b; b++)
+        {
+            // CartSideRobinPhysBdryOp treats |b| < 1e-12 as a Dirichlet condition.
+            if ((*acoef_data)(b(), 0) == 0.0 || std::abs((*bcoef_data)(b(), 0)) >= 1.0e-12)
+            {
+                TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                           << "  an interpolation stencil reaches physical boundary location " << location
+                           << ", where velocity component " << axis
+                           << " does not have a prescribed-velocity boundary condition.\n");
+            }
+        }
+    }
 }
 
 } // namespace
@@ -939,6 +1100,8 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
 PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                                                   Vec X_vec,
                                                   const std::array<std::array<int, NDIM>, NDIM>& stencil_widths,
+                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  const double data_time,
                                                   const std::vector<int>& num_dofs_per_proc,
                                                   const int dof_index_idx,
                                                   Pointer<PatchLevel<NDIM>> patch_level)
@@ -966,7 +1129,22 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
         TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
                    << "  the physical domain must be a single box.");
     }
-    d_domain_lower = domain_boxes[0].lower();
+    const Box<NDIM>& domain_box = domain_boxes[0];
+    d_domain_lower = domain_box.lower();
+    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(ratio);
+    // A side index needs the boundary extension if it lies on or outside a non-periodic boundary of the domain.
+    const auto needs_extension = [&domain_box, &periodic_shift](const hier::Index<NDIM>& index, const int axis)
+    {
+        for (int d = 0; d < NDIM; ++d)
+        {
+            const int lower = domain_box.lower(d) + (d == axis ? 1 : 0);
+            if (periodic_shift(d) == 0 && (index(d) < lower || index(d) > domain_box.upper(d)))
+            {
+                return true;
+            }
+        }
+        return false;
+    };
 
     const ProcessorMapping& proc_mapping = patch_level->getProcessorMapping();
 
@@ -989,7 +1167,13 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
     IBTK_CHKERRQ(ierr);
     d_stencil_boxes.resize(d_n_local_points);
     d_dof_index_data.resize(d_n_local_points);
+    d_boundary_terms.resize(d_n_local_points);
     std::vector<int> diag_nnz(m_local, 0), offdiag_nnz(m_local, 0);
+    // Patch number, component, and boundary location index of each boundary condition that the boundary extension
+    // uses.
+    std::set<std::array<int, 3>> required_bcs;
+    std::vector<std::pair<hier::Index<NDIM>, double>> extension_terms;
+    std::set<int> extension_locations;
     for (int k = 0; k < d_n_local_points; ++k)
     {
         const double* const X = &d_positions[NDIM * k];
@@ -1080,9 +1264,8 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                            << "  interpolation stencil exceeds the DOF ghost box.\n"
                            << "  Increase the ghost width of the DOF index data.");
             }
-            for (Box<NDIM>::Iterator b(stencil_box_axis); b; b++)
+            const auto count_column = [&](const int dof_index)
             {
-                const int dof_index = (*dof_index_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower));
                 if (dof_index >= j_lower && dof_index < j_upper)
                 {
                     diag_nnz[local_idx] += 1;
@@ -1091,10 +1274,63 @@ PETScMatUtilities::SCInterpOpData::SCInterpOpData(Mat& mat,
                 {
                     offdiag_nnz[local_idx] += 1;
                 }
+            };
+            std::vector<BoundaryTerm>& boundary_terms = d_boundary_terms[k][axis];
+            int entry = 0;
+            for (Box<NDIM>::Iterator b(stencil_box_axis); b; b++, ++entry)
+            {
+                if (!needs_extension(b(), axis))
+                {
+                    count_column((*dof_index_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)));
+                    continue;
+                }
+                if (NDIM != 2)
+                {
+                    TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                               << "  IB point " << k << " has an interpolation stencil that reaches a non-periodic "
+                               << "physical boundary, which is supported only in two dimensions.\n");
+                }
+                extension_terms.clear();
+                extension_locations.clear();
+                append_homogeneous_extension(
+                    extension_terms, extension_locations, b(), axis, 1.0, domain_box, periodic_shift);
+                for (const int location : extension_locations)
+                {
+                    required_bcs.insert({ patch_num, axis, location });
+                }
+                if (extension_terms.empty())
+                {
+                    boundary_terms.push_back({ entry, -1, 0.0 });
+                }
+                for (const std::pair<hier::Index<NDIM>, double>& term : extension_terms)
+                {
+                    if (!SideGeometry<NDIM>::toSideBox(dof_index_data->getGhostBox(), axis).contains(term.first))
+                    {
+                        TBOX_ERROR("PETScMatUtilities::constructPatchLevelSCInterpOp():\n"
+                                   << "  a physical boundary extension exceeds the DOF ghost box.\n"
+                                   << "  Increase the ghost width of the DOF index data.");
+                    }
+                    const int dof_index = (*dof_index_data)(SideIndex<NDIM>(term.first, axis, SideIndex<NDIM>::Lower));
+                    boundary_terms.push_back({ entry, dof_index, term.second });
+                    count_column(dof_index);
+                }
             }
             diag_nnz[local_idx] = std::min(n_local, diag_nnz[local_idx]);
             offdiag_nnz[local_idx] = std::min(n_total - n_local, offdiag_nnz[local_idx]);
         }
+    }
+
+    for (const std::array<int, 3>& required_bc : required_bcs)
+    {
+        const int axis = required_bc[1];
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(required_bc[0]);
+        const Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
+        require_prescribed_velocity_bc(axis < static_cast<int>(bc_coefs.size()) ? bc_coefs[axis] : nullptr,
+                                       axis,
+                                       required_bc[2],
+                                       data_time,
+                                       *patch,
+                                       dof_index_data->getGhostCellWidth());
     }
 
     ierr = MatCreateAIJ(PETSC_COMM_WORLD,

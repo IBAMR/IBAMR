@@ -201,7 +201,7 @@ check_worst_case_ghost_width(Pointer<PatchLevel<NDIM>> level, const bool remove_
         SAMRAI::tbox::Logger::getInstance()->setAbortAppender(abort_appender);
     }
     Mat matrix = nullptr;
-    PETScMatUtilities::constructPatchLevelSCInterpOp(matrix, kernel, X, counts, dof, level);
+    PETScMatUtilities::constructPatchLevelSCInterpOp(matrix, kernel, X, {}, 0.0, counts, dof, level);
     Vec field = nullptr, result = nullptr;
     ierr = MatCreateVecs(matrix, &field, &result);
     IBTK_CHKERRQ(ierr);
@@ -278,7 +278,7 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
         double error = 0.0;
         for (int cycle = 0; cycle < 2; ++cycle)
         {
-            PETScMatUtilities::constructPatchLevelSCInterpOp(matrix, kernel, X, counts, dof, level);
+            PETScMatUtilities::constructPatchLevelSCInterpOp(matrix, kernel, X, {}, 0.0, counts, dof, level);
             Vec field = nullptr, result = nullptr;
             ierr = MatCreateVecs(matrix, &field, &result);
             IBTK_CHKERRQ(ierr);
@@ -314,6 +314,8 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
         matrix,
         IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::BSpline<3>{}, LinearIBKernel{} },
         X,
+        {},
+        0.0,
         counts,
         dof,
         level);
@@ -445,8 +447,8 @@ compare_operator_builder(const IBOperatorBuilder& builder,
     PETScVecUtilities::constructPatchLevelDOFIndices(counts, dof, level);
     const IBOperatorBuilder copy = builder;
     Mat from_builder = nullptr, direct = nullptr;
-    copy.constructInterpolationMatrixSide(from_builder, X, counts, dof, level);
-    PETScMatUtilities::constructPatchLevelSCInterpOp(direct, evaluator, X, counts, dof, level);
+    copy.constructInterpolationMatrixSide(from_builder, X, {}, 0.0, counts, dof, level);
+    PETScMatUtilities::constructPatchLevelSCInterpOp(direct, evaluator, X, {}, 0.0, counts, dof, level);
     PetscBool equal;
     PetscErrorCode ierr = MatEqual(from_builder, direct, &equal);
     IBTK_CHKERRQ(ierr);
@@ -657,6 +659,47 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
  *    executable <input file name>                                             *
  *                                                                             *
  *******************************************************************************/
+// Assemble the interpolation matrix for a point next to a non-periodic wall, with boundary_condition "none" (no
+// boundary condition objects) or "traction" (a traction condition on the wall). Both must be rejected.
+int
+check_unsupported_boundary(Pointer<PatchLevel<NDIM>> level, const std::string& boundary_condition)
+{
+    VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, int>> indices = new SideVariable<NDIM, int>("boundary_indices");
+    const int dof = variables->registerVariableAndContext(indices, variables->getContext("boundary"), 3);
+    level->allocatePatchData(dof);
+    std::vector<int> counts;
+    PETScVecUtilities::constructPatchLevelDOFIndices(counts, dof, level);
+    Vec X = nullptr;
+    PetscErrorCode ierr = VecCreateMPI(PETSC_COMM_WORLD, NDIM, PETSC_DECIDE, &X);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* coordinates;
+    ierr = VecGetArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        coordinates[d] = d == 0 ? 0.02 : 0.5;
+    }
+    ierr = VecRestoreArray(X, &coordinates);
+    IBTK_CHKERRQ(ierr);
+    LocationIndexRobinBcCoefs<NDIM> traction_bc("traction_bc", nullptr);
+    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs;
+    if (boundary_condition == "traction")
+    {
+        for (int location = 0; location < 2 * NDIM; ++location)
+        {
+            traction_bc.setBoundarySlope(location, 0.0);
+        }
+        bc_coefs.assign(NDIM, &traction_bc);
+    }
+    Pointer<SAMRAI::tbox::Logger::Appender> abort_appender = new TestAppender();
+    SAMRAI::tbox::Logger::getInstance()->setAbortAppender(abort_appender);
+    Mat matrix = nullptr;
+    PETScMatUtilities::constructPatchLevelSCInterpOp(
+        matrix, IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB4{} }, X, bc_coefs, 0.0, counts, dof, level);
+    return 0;
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -736,6 +779,12 @@ main(int argc, char* argv[])
             }
             return check_worst_case_ghost_width<IBKernelEvaluators::BSpline<4>>(patch_hierarchy->getPatchLevel(0),
                                                                                 remove_layer);
+        }
+
+        if (input_db->keyExists("unsupported_boundary_condition"))
+        {
+            return check_unsupported_boundary(patch_hierarchy->getPatchLevel(0),
+                                              input_db->getString("unsupported_boundary_condition"));
         }
 
         if (input_db->getBoolWithDefault("matrix_assembly", false))

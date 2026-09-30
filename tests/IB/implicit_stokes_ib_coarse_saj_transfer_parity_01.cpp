@@ -467,6 +467,8 @@ main(int argc, char* argv[])
     Mat J = nullptr;
     interpolation_builder.constructInterpolationMatrixSide(J,
                                                            ib_method_ops->getFinestLevelLECouplingPositions(data_time),
+                                                           {},
+                                                           data_time,
                                                            full_num_dofs_fine,
                                                            u_full_dof_index_idx,
                                                            fine_level);

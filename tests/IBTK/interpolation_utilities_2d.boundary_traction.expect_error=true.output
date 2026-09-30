@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    PETScMatUtilities::constructPatchLevelSCInterpOp():
+  an interpolation stencil reaches physical boundary location 0, where velocity component 0 does not have a prescribed-velocity boundary condition.
+
