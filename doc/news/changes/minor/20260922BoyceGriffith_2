@@ -1,0 +1,4 @@
+New: IBAMR::StaggeredStokesBoxRelaxationFACOperator is now registered with
+StaggeredStokesSolverManager as BOX_RELAXATION_FAC_PRECONDITIONER.
+<br>
+(Boyce Griffith, 2026/09/22)
