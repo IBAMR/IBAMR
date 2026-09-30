@@ -973,7 +973,13 @@ protected:
      * Register a "child" integrator object with this integrator object.
      *
      * \note Multiple child integrator objects may be registered with a single
-     * parent integrator object.
+     * parent integrator object. Child integrators are processed in the order in
+     * which they are registered, and registering the same child integrator
+     * again has no further effect.
+     *
+     * \note This method is collective (i.e., must be called by all MPI
+     * processes), so every process registers the same child integrators in the
+     * same order.
      */
     void registerChildHierarchyIntegrator(HierarchyIntegrator* child_integrator);
 
@@ -981,7 +987,8 @@ protected:
      * Register a "parent" integrator object with this integrator object.
      *
      * \note Only a single parent integrator object may be registered with a
-     * particular child integrator object.
+     * particular child integrator object. Like
+     * registerChildHierarchyIntegrator(), this method is collective.
      */
     void registerParentHierarchyIntegrator(HierarchyIntegrator* parent_integrator);
 
@@ -1063,10 +1070,11 @@ protected:
     bool d_may_need_to_reset_hierarchy_configuration = false;
 
     /*
-     * Collection of child integrator objects.
+     * The parent integrator object and the child integrator objects. Child
+     * integrators are stored in the order in which they are registered.
      */
     HierarchyIntegrator* d_parent_integrator = nullptr;
-    std::set<HierarchyIntegrator*> d_child_integrators;
+    std::vector<HierarchyIntegrator*> d_child_integrators;
 
     /*
      * The object used to write out data for postprocessing by the VisIt
