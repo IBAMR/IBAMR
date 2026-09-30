@@ -1,0 +1,4 @@
+Fixed: IBAMR::StaggeredStokesPETScLevelSolver incorrectly handled physical
+and coarse-fine boundary conditions.
+<br>
+(Boyce Griffith, 2026/09/22)

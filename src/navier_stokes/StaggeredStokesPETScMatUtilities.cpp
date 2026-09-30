@@ -416,6 +416,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     }
                     else if (traction_bc)
                     {
+                        // A Robin-type ghost value folds into the diagonal with the same sign on both the lower
+                        // and upper boundary, as in PoissonUtilities::computeMatrixCoefficients().
                         if (is_lower)
                         {
                             uu_matrix_coefs(i_s, 0) += uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
@@ -423,7 +425,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                         }
                         else
                         {
-                            uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
+                            uu_matrix_coefs(i_s, 0) += uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
                             uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
                         }
                     }
