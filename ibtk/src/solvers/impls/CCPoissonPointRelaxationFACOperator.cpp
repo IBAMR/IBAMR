@@ -549,7 +549,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             // Copy updated values from neighboring local patches.
             if (update_local_data)
             {
-                const std::map<int, Box<NDIM>> neighbor_overlap = d_patch_neighbor_overlap[level_num][patch_counter];
+                const std::map<int, Box<NDIM>>& neighbor_overlap = d_patch_neighbor_overlap[level_num][patch_counter];
                 for (const auto& pair : neighbor_overlap)
                 {
                     const int src_patch_num = pair.first;
