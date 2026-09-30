@@ -1,0 +1,3 @@
+Fixed: Use the boundary-normal grid spacing in 3D Robin ghost filling.
+<br>
+(Boyce Griffith, 2026/09/30)

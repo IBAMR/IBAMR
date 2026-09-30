@@ -132,7 +132,7 @@ c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -233,7 +233,7 @@ c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -334,7 +334,7 @@ c
       if ( (location_index .eq. 4) .or.
      &     (location_index .eq. 5) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 4) then
             sgn = -1
@@ -842,7 +842,7 @@ c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -966,7 +966,7 @@ c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -1090,7 +1090,7 @@ c
       if ( (location_index .eq. 4) .or.
      &     (location_index .eq. 5) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 4) then
             sgn = -1
@@ -1731,7 +1731,7 @@ c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -1830,7 +1830,7 @@ c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -1929,7 +1929,7 @@ c
       if ( (location_index .eq. 4) .or.
      &     (location_index .eq. 5) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 4) then
             sgn = -1
@@ -2029,7 +2029,7 @@ c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 0) then
             sgn = -1
@@ -2141,7 +2141,7 @@ c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 2) then
             sgn = -1
@@ -2253,7 +2253,7 @@ c
       if ( (location_index .eq. 4) .or.
      &     (location_index .eq. 5) ) then
 
-         h = dx(location_index/NDIM)
+         h = dx(location_index/2)
 
          if (location_index .eq. 4) then
             sgn = -1
