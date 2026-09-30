@@ -68,7 +68,6 @@
 #include <map>
 #include <memory>
 #include <ostream>
-#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -1630,18 +1629,18 @@ HierarchyIntegrator::registerChildHierarchyIntegrator(HierarchyIntegrator* child
     TBOX_ASSERT(child_integrator != this);
 #endif
     child_integrator->d_parent_integrator = this;
-    d_child_integrators.insert(child_integrator);
+    if (std::find(d_child_integrators.begin(), d_child_integrators.end(), child_integrator) ==
+        d_child_integrators.end())
+    {
+        d_child_integrators.push_back(child_integrator);
+    }
     return;
 } // registerChildHierarchyIntegrator
 
 void
 HierarchyIntegrator::registerParentHierarchyIntegrator(HierarchyIntegrator* parent_integrator)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(parent_integrator != this);
-#endif
-    d_parent_integrator = parent_integrator;
-    parent_integrator->d_child_integrators.insert(this);
+    parent_integrator->registerChildHierarchyIntegrator(this);
     d_manage_hier_math_ops = false;
     return;
 } // registerParentHierarchyIntegrator
