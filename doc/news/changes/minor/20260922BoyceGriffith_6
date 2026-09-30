@@ -1,0 +1,4 @@
+Fixed: IBTK::VCSCViscousOpPointRelaxationFACOperator now treats unset
+operator scaling as unity instead of reading past the scaling array.
+<br>
+(Boyce Griffith, 2026/09/22)
