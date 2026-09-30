@@ -117,7 +117,15 @@ namespace IBAMR
  * Initialization constructs the finest-level Eulerian contribution
  * \f$-\beta^2\Delta t\,J^T A J/\Delta V\f$, where \f$\Delta V\f$ is the cell
  * volume and \f$\beta=1\f$ for backward Euler or \f$1/2\f$ for trapezoidal and
- * midpoint stepping. Do not include these factors in A.
+ * midpoint stepping. Do not include these factors in A. Each coarser
+ * contribution is the restriction \f$L P^T C P\f$ of the next finer
+ * contribution C by the elasticity prolongation P (see getProlongationOp()).
+ * The rows and columns of every level's contribution at velocities that the
+ * physical boundary helper identifies as prescribed on the physical boundary
+ * are zero, so the Stokes rows that impose those boundary conditions are not
+ * changed. On a nonperiodic domain, J must therefore interpolate the velocity
+ * extended with homogeneous boundary data, as
+ * IBTK::PETScMatUtilities::constructPatchLevelSCInterpOp() constructs it.
  *
  * A and J must be nonnull, assembled PETSc matrices compatible with this product
  * on PETSC_COMM_WORLD. Both setters retain a PETSc reference, so the caller may
@@ -320,6 +328,13 @@ private:
      */
     StaggeredStokesIBLevelRelaxationFACOperator&
     operator=(const StaggeredStokesIBLevelRelaxationFACOperator& that) = delete;
+
+    /*!
+     * \brief Zero the rows and columns of the elasticity contribution on level
+     * \em ln at the velocities that the physical boundary helper identifies as
+     * prescribed on the physical boundary.
+     */
+    void zeroPrescribedBoundaryVelocityCoupling(int ln);
 
     /*
      * Whether we re-discretize the Stokes operator on coarser level or are

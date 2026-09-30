@@ -26,17 +26,24 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/ib_kernel_evaluators.h>
 #include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/muParserRobinBcCoefs.h>
 
+#include <tbox/Array.h>
 #include <tbox/Logger.h>
 
+#include <ArrayData.h>
 #include <BergerRigoutsos.h>
+#include <BoundaryBox.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchySideDataOpsReal.h>
 #include <LoadBalancer.h>
+#include <SideData.h>
+#include <SideIndex.h>
 #include <StandardTagAndInitialize.h>
 #include <VariableDatabase.h>
 
@@ -45,6 +52,7 @@
 #include <iomanip>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "../tests.h"
@@ -173,6 +181,13 @@ count_regrids(Pointer<BasePatchHierarchy<NDIM>> hierarchy, double /*data_time*/,
     ++state->count;
 }
 
+// The level and the center and radii of the elliptical structure.
+struct StructureSpec
+{
+    int finest_level = 0;
+    std::array<double, 2> center = { 0.5, 0.5 }, radii = { 0.18, 0.25 };
+};
+
 void
 generate_structure(const unsigned int& structure,
                    const int& level,
@@ -180,14 +195,14 @@ generate_structure(const unsigned int& structure,
                    std::vector<IBTK::Point>& positions,
                    void* ctx)
 {
-    const int finest_level = *static_cast<const int*>(ctx);
-    num_vertices = (structure == 0 && level == finest_level) ? NUM_POINTS : 0;
+    const StructureSpec& spec = *static_cast<const StructureSpec*>(ctx);
+    num_vertices = (structure == 0 && level == spec.finest_level) ? NUM_POINTS : 0;
     positions.resize(num_vertices);
     for (int k = 0; k < num_vertices; ++k)
     {
         const double theta = 2.0 * M_PI * k / NUM_POINTS;
-        positions[k](0) = 0.5 + 0.18 * std::cos(theta);
-        positions[k](1) = 0.5 + 0.25 * std::sin(theta);
+        positions[k](0) = spec.center[0] + spec.radii[0] * std::cos(theta);
+        positions[k](1) = spec.center[1] + spec.radii[1] * std::sin(theta);
     }
 }
 
@@ -199,8 +214,7 @@ generate_springs(
     std::map<IBRedundantInitializer::Edge, IBRedundantInitializer::SpringSpec, IBRedundantInitializer::EdgeComp>& specs,
     void* ctx)
 {
-    const int finest_level = *static_cast<const int*>(ctx);
-    if (structure != 0 || level != finest_level)
+    if (structure != 0 || level != static_cast<const StructureSpec*>(ctx)->finest_level)
     {
         return;
     }
@@ -217,6 +231,50 @@ generate_springs(
         spec.parameters = { 5.0, 0.05 };
         specs.emplace(edge, spec);
     }
+}
+
+// Return the largest magnitude of the velocity components on the physical boundary normal to it, after requiring that
+// they equal the values that bc_coefs prescribe at data_time.
+double
+check_boundary_normal_velocity(const int u_idx,
+                               Pointer<PatchHierarchy<NDIM>> hierarchy,
+                               const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                               const double data_time)
+{
+    double max_velocity = 0.0, max_error = 0.0;
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            const SAMRAI::tbox::Array<BoundaryBox<NDIM>> boundary_boxes =
+                PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+            for (int n = 0; n < boundary_boxes.size(); ++n)
+            {
+                const int axis = boundary_boxes[n].getLocationIndex() / 2;
+                const BoundaryBox<NDIM> trimmed_box =
+                    PhysicalBoundaryUtilities::trimBoundaryCodim1Box(boundary_boxes[n], *patch);
+                const Box<NDIM> coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_box);
+                Pointer<ArrayData<NDIM, double>> acoef = new ArrayData<NDIM, double>(coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> bcoef = new ArrayData<NDIM, double>(coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> gcoef = new ArrayData<NDIM, double>(coef_box, 1);
+                bc_coefs[axis]->setBcCoefs(acoef, bcoef, gcoef, nullptr, *patch, trimmed_box, data_time);
+                for (Box<NDIM>::Iterator b(coef_box); b; b++)
+                {
+                    const double velocity = (*u_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower));
+                    max_velocity = std::max(max_velocity, std::abs(velocity));
+                    max_error = std::max(max_error, std::abs(velocity - (*gcoef)(b(), 0) / (*acoef)(b(), 0)));
+                }
+            }
+        }
+    }
+    if (!std::isfinite(max_error) || max_error > 1.0e-12 * std::max(1.0, max_velocity))
+    {
+        TBOX_ERROR("The boundary normal velocity differs from its prescribed value by " << max_error << ".\n");
+    }
+    return max_velocity;
 }
 } // namespace
 
@@ -246,6 +304,12 @@ main(int argc, char* argv[])
                     IBKernelEvaluatorTensorProduct{ CustomKernel{ 1.0, lifetime }, CustomKernel{ 1.0, lifetime } }));
         }
         int finest_level = input->getIntegerWithDefault("MAX_LEVELS", 1) - 1;
+        StructureSpec structure_spec;
+        structure_spec.finest_level = finest_level;
+        if (input->keyExists("STRUCTURE_CENTER"))
+        {
+            input->getDoubleArray("STRUCTURE_CENTER", structure_spec.center.data(), 2);
+        }
         const bool verify_regrid = input->getBoolWithDefault("VERIFY_REGRID", false);
         RegridState regrid_state;
         regrid_state.expected_levels = finest_level + 1;
@@ -268,12 +332,28 @@ main(int argc, char* argv[])
         Pointer<IBRedundantInitializer> initializer =
             new IBRedundantInitializer("IBRedundantInitializer", app->getComponentDatabase("IBRedundantInitializer"));
         initializer->setStructureNamesOnLevel(finest_level, { "ellipse" });
-        initializer->registerInitStructureFunction(generate_structure, &finest_level);
-        initializer->registerInitSpringDataFunction(generate_springs, &finest_level);
+        initializer->registerInitStructureFunction(generate_structure, &structure_spec);
+        initializer->registerInitSpringDataFunction(generate_springs, &structure_spec);
         method->registerLInitStrategy(initializer);
         method->registerIBLagrangianForceFunction(new IBStandardForceGen());
         ins->registerVelocityInitialConditions(new muParserCartGridFunction(
             "initial_velocity", app->getComponentDatabase("VelocityInitialConditions"), geometry));
+        // A nonperiodic domain prescribes the velocity on its physical boundary.
+        const bool physical_boundary = geometry->getPeriodicShift().min() == 0;
+        std::vector<std::unique_ptr<muParserRobinBcCoefs>> u_bc_coef_objects;
+        std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, nullptr);
+        if (physical_boundary)
+        {
+            for (int d = 0; d < NDIM; ++d)
+            {
+                u_bc_coef_objects.push_back(std::make_unique<muParserRobinBcCoefs>(
+                    "u_bc_coefs_" + std::to_string(d),
+                    app->getComponentDatabase("VelocityBcCoefs_" + std::to_string(d)),
+                    geometry));
+                u_bc_coefs[d] = u_bc_coef_objects.back().get();
+            }
+            ins->registerPhysicalBoundaryConditions(u_bc_coefs);
+        }
         integrator->initializePatchHierarchy(hierarchy, gridding);
         if (input->getBoolWithDefault("late_kernel", false))
         {
@@ -338,6 +418,11 @@ main(int argc, char* argv[])
             {
                 TBOX_ERROR("The integrator did not retain the application evaluator.\n");
             }
+        }
+        if (physical_boundary)
+        {
+            plog << "max_boundary_normal_velocity "
+                 << check_boundary_normal_velocity(u, hierarchy, u_bc_coefs, integrator->getIntegratorTime()) << '\n';
         }
         if (verify_regrid)
         {

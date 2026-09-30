@@ -50,6 +50,7 @@
 #include <SAMRAIVectorReal.h>
 #include <SideData.h>
 #include <SideGeometry.h>
+#include <SideIndex.h>
 #include <SideVariable.h>
 #include <Variable.h>
 #include <VariableContext.h>
@@ -594,6 +595,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
             ierr = MatDiagonalScale(d_SAJ_mat[ln], d_scale_SAJ_restriction_mat[ln], nullptr);
             IBTK_CHKERRQ(ierr);
         }
+        zeroPrescribedBoundaryVelocityCoupling(ln);
     }
 
     d_level_solvers.resize(d_finest_ln + 1);
@@ -821,6 +823,46 @@ StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(
 } // deallocateOperatorStateSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+StaggeredStokesIBLevelRelaxationFACOperator::zeroPrescribedBoundaryVelocityCoupling(const int ln)
+{
+    // The Stokes rows of prescribed boundary velocities impose the boundary condition. On the finest level,
+    // interpolation of the homogeneous extension already leaves these rows and columns empty; on coarser levels,
+    // the prolongation of a boundary velocity also reaches interior fine velocities, and the coarse correction
+    // space excludes the prescribed velocities.
+    std::vector<PetscInt> rows;
+    if (d_bc_helper)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            if (!d_bc_helper->patchTouchesDirichletBoundary(patch))
+            {
+                continue;
+            }
+            Pointer<SideData<NDIM, int>> mask_data = new SideData<NDIM, int>(patch->getBox(), 1, IntVector<NDIM>(0));
+            d_bc_helper->setupMaskingFunction(mask_data, patch);
+            Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(d_u_dof_index_idx);
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis)); b; b++)
+                {
+                    const SideIndex<NDIM> i_s(b(), axis, SideIndex<NDIM>::Lower);
+                    if ((*mask_data)(i_s))
+                    {
+                        rows.push_back((*dof_index_data)(i_s));
+                    }
+                }
+            }
+        }
+    }
+    const int ierr =
+        MatZeroRowsColumns(d_SAJ_mat[ln], static_cast<PetscInt>(rows.size()), rows.data(), 0.0, nullptr, nullptr);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // zeroPrescribedBoundaryVelocityCoupling
 
 StaggeredStokesIBLevelRelaxationFACOperator::LevelResidualWorkspace::~LevelResidualWorkspace()
 {

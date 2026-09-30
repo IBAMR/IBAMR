@@ -56,12 +56,14 @@ public:
     void
     constructInterpolationMatrixSide(Mat& mat,
                                      Vec X_vec,
+                                     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                     const double data_time,
                                      const std::vector<int>& num_dofs_per_proc,
                                      int dof_index_idx,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level) const override
     {
         PETScMatUtilities::constructPatchLevelSCInterpOp(
-            mat, d_evaluator, X_vec, num_dofs_per_proc, dof_index_idx, patch_level);
+            mat, d_evaluator, X_vec, bc_coefs, data_time, num_dofs_per_proc, dof_index_idx, patch_level);
     }
 
 private:
@@ -86,11 +88,14 @@ inline void
 IBOperatorBuilder::constructInterpolationMatrixSide(
     Mat& mat,
     Vec X_vec,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const double data_time,
     const std::vector<int>& num_dofs_per_proc,
     int dof_index_idx,
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level) const
 {
-    d_operations->constructInterpolationMatrixSide(mat, X_vec, num_dofs_per_proc, dof_index_idx, patch_level);
+    d_operations->constructInterpolationMatrixSide(
+        mat, X_vec, bc_coefs, data_time, num_dofs_per_proc, dof_index_idx, patch_level);
 }
 } // namespace IBTK
 #endif

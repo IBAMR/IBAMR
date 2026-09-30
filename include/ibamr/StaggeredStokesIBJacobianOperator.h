@@ -84,7 +84,8 @@ public:
      * It must use the full coupled global numbering, communicator, and local
      * ownership of the single patch level and DOF fields in the Context (see
      * StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices()).
-     * Only velocity entries may be nonzero. Multilevel supplied-matrix application
+     * Only velocity entries may be nonzero, and the rows of velocities prescribed
+     * on the physical boundary must be zero. Multilevel supplied-matrix application
      * is unsupported. Passing nullptr selects the strategy action instead, which
      * requires a formJacobian() with the strategy action since the state was
      * initialized; formJacobian() with a supplied matrix does not count. formJacobian()
@@ -129,8 +130,9 @@ public:
      * Requires initialized state and, for the strategy action, a current
      * formJacobian(). Both the Stokes action and increment interpolation use
      * homogeneous boundary data, independently of the wrapper's boundary flag.
-     * The strategy action uses and updates shared IB strategy state; see
-     * StaggeredStokesIBOperator::Context.
+     * As in StaggeredStokesIBOperator, the rows of velocities prescribed on the
+     * physical boundary have no IB contribution. The strategy action uses and
+     * updates shared IB strategy state; see StaggeredStokesIBOperator::Context.
      */
     void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;

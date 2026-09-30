@@ -462,7 +462,7 @@ run_fixture(Pointer<AppInitializer> app,
         for (const auto& [kernel, builder] : jacobian_kernels)
         {
             Mat J = nullptr;
-            builder.constructInterpolationMatrixSide(J, new_vec, counts, dof, level);
+            builder.constructInterpolationMatrixSide(J, new_vec, {}, 0.0, counts, dof, level);
             int mismatches = 0;
             double weight_error = 0.0;
             check_interp_matrix(J, new_vec, dofs, level, kernel, mismatches, weight_error);

@@ -157,15 +157,29 @@ public:
      *
      * An existing mat is destroyed and replaced; the caller owns the new matrix.
      *
-     * \warning Physical boundary conditions are not handled: a stencil point outside the domain at a
-     * non-periodic boundary has no DOF, so its weight is dropped from the row instead of being folded or
-     * renormalized, and a row whose stencil crosses such a boundary sums to less than one. A one-time warning
-     * is logged when this happens.
+     * At a non-periodic physical boundary, the matrix interpolates the velocity
+     * extended as CartSideRobinPhysBdryOp's "LINEAR" ghost filling extends it
+     * with homogeneous prescribed-velocity (Dirichlet) data: normal components
+     * on the boundary are zero, a value outside one boundary is the negated
+     * value at its mirror image across that boundary, and a value outside two
+     * boundaries is extrapolated linearly along the boundary from those mirrored
+     * values. The matrix is therefore the derivative of interpolation with
+     * respect to the velocity unknowns; the contribution of inhomogeneous
+     * boundary data is not included, and the columns of boundary normal
+     * components are zero. bc_coefs contains one velocity boundary condition
+     * object per component, evaluated at data_time. It is needed only where a
+     * stencil reaches a non-periodic boundary, where it must prescribe that
+     * component (a nonzero and b zero in a*u + b*du/dn = g) on each boundary the
+     * extension crosses. A missing or different boundary condition there, or a
+     * stencil reaching a non-periodic boundary in three dimensions, is a fatal
+     * error.
      */
     template <IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
     static void constructPatchLevelSCInterpOp(Mat& mat,
                                               const Evaluator& evaluator,
                                               Vec X_vec,
+                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                              double data_time,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
@@ -231,10 +245,15 @@ private:
     /*! \brief Interpolation stencil geometry and borrowed IB positions. */
     struct SCInterpOpData
     {
-        /*! \brief Allocate the matrix and determine stencil boxes and local patches. */
+        /*!
+         * \brief Allocate the matrix and determine stencil boxes, local patches,
+         * and the physical boundary terms of each stencil.
+         */
         SCInterpOpData(Mat& mat,
                        Vec X,
                        const std::array<std::array<int, NDIM>, NDIM>& stencil_widths,
+                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                       double data_time,
                        const std::vector<int>& num_dofs_per_proc,
                        int dof_index_idx,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
@@ -264,6 +283,19 @@ private:
         //! Shared DOF index data for each local IB point's patch, used to
         //! read global column indices without repeating the patch lookup.
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, int>>> d_dof_index_data;
+
+        /*! \brief An interior column that receives part of the weight of a stencil entry at a physical boundary. */
+        struct BoundaryTerm
+        {
+            //! Position of the replaced entry in the stencil box ordering.
+            int entry;
+            //! Global index of the interior velocity DOF, or -1 if the entry's boundary value is zero.
+            PetscInt column;
+            //! Factor multiplying the weight of the replaced entry.
+            double factor;
+        };
+        //! Boundary terms for each local IB point and component; empty when the stencil stays inside the domain.
+        std::vector<std::array<std::vector<BoundaryTerm>, NDIM>> d_boundary_terms;
     };
 
     /*! \brief Assemble matrix rows for one velocity component. */

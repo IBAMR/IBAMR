@@ -36,6 +36,11 @@ namespace hier
 template <int DIM>
 class PatchLevel;
 } // namespace hier
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
 } // namespace SAMRAI
 
 namespace IBTK
@@ -53,7 +58,7 @@ namespace IBTK
  * define:
  * \code
  * const IBTK::IBOperatorBuilder builder(IBTK::IBKernelEvaluatorTensorProduct{ MyKernel{} });
- * builder.constructInterpolationMatrixSide(J, X, num_dofs_per_proc, dof_index_idx, level);
+ * builder.constructInterpolationMatrixSide(J, X, bc_coefs, data_time, num_dofs_per_proc, dof_index_idx, level);
  * \endcode
  */
 class IBOperatorBuilder
@@ -99,10 +104,14 @@ public:
      * \brief Construct the matrix that maps side-centered velocity on patch_level
      * to the IB points in X_vec, replacing any existing mat.
      *
-     * \see PETScMatUtilities::constructPatchLevelSCInterpOp()
+     * bc_coefs describe the velocity boundary conditions at data_time; see
+     * PETScMatUtilities::constructPatchLevelSCInterpOp() for the treatment of
+     * physical boundaries.
      */
     void constructInterpolationMatrixSide(Mat& mat,
                                           Vec X_vec,
+                                          const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                          double data_time,
                                           const std::vector<int>& num_dofs_per_proc,
                                           int dof_index_idx,
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level) const;
@@ -116,6 +125,8 @@ private:
         virtual void
         constructInterpolationMatrixSide(Mat& mat,
                                          Vec X_vec,
+                                         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                         double data_time,
                                          const std::vector<int>& num_dofs_per_proc,
                                          int dof_index_idx,
                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level) const = 0;
