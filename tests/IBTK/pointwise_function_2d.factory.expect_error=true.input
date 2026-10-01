@@ -1,4 +1,4 @@
-error_case = "fixed_shape"
+error_case = "factory"
 N = 8*2
 
 Main {
