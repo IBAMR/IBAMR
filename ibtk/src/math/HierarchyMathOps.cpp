@@ -4157,7 +4157,7 @@ HierarchyMathOps::resetFaceWeights(const int coarsest_ln, const int finest_ln)
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        if (d_using_wgt_fc && !level->checkAllocated(d_wgt_fc_idx))
+        if (!level->checkAllocated(d_wgt_fc_idx))
         {
             level->allocatePatchData(d_wgt_fc_idx);
         }

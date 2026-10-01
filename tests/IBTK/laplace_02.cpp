@@ -21,16 +21,20 @@
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <FaceData.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/muParserCartGridFunction.h>
+
+#include <array>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
@@ -188,6 +192,41 @@ main(int argc, char* argv[])
             out << "|e|_oo = " << max_norm << "\n";
             out << "|e|_2  = " << l2_norm << "\n";
             out << "|e|_1  = " << l1_norm << "\n";
+        }
+
+        // Optionally check that the face weights sum to the volume of the
+        // physical domain in each coordinate direction.
+        if (input_db->getBoolWithDefault("test_face_weights", false))
+        {
+            const int h_fc_idx = hier_math_ops.getFaceWeightPatchDescriptorIndex();
+            std::array<double, NDIM> h_fc_sum{};
+            for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<FaceData<NDIM, double>> h_fc_data = patch->getPatchData(h_fc_idx);
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        for (FaceIterator<NDIM> fi(patch->getBox(), axis); fi; fi++)
+                        {
+                            h_fc_sum[axis] += (*h_fc_data)(fi());
+                        }
+                    }
+                }
+            }
+            IBTK_MPI::sumReduction(h_fc_sum.data(), NDIM);
+
+            if (IBTK_MPI::getRank() == 0)
+            {
+                std::ofstream out("output", std::ios_base::app);
+                out << "volume = " << hier_math_ops.getVolumeOfPhysicalDomain() << "\n";
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    out << "sum(h_fc[" << axis << "]) = " << h_fc_sum[axis] << "\n";
+                }
+            }
         }
 
         // Interpolate the side-centered data to cell centers for output.
