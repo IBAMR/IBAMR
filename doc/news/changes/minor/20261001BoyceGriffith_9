@@ -1,0 +1,3 @@
+Fixed: CIBStaggeredStokesOperator interpolates with the IB velocity boundary conditions that its force spreading uses.
+<br>
+(Boyce Griffith, 2026/10/01)
