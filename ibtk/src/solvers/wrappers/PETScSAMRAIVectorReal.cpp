@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/CartesianCentering.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/NormOps.h>
@@ -26,15 +27,25 @@
 #include <petscis.h>
 #include <petscvec.h>
 
+#include <ArrayData.h>
+#include <Box.h>
+#include <Index.h>
 #include <IntVector.h>
+#include <Patch.h>
+#include <PatchDataFactory.h>
+#include <PatchDescriptor.h>
 #include <PatchHierarchy.h>
+#include <PatchLevel.h>
 #include <SAMRAIVectorReal.h>
+#include <VariableDatabase.h>
 #include <mpi.h>
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -78,6 +89,437 @@ static Timer* t_vec_m_dot_local;
 static Timer* t_vec_m_t_dot_local;
 static Timer* t_vec_max_pointwise_divide;
 static Timer* t_vec_dot_norm2;
+
+// Fused multi-vector operations for Krylov orthogonalization. Each follows the loop and accumulation order of the
+// equivalent sequence of single-vector SAMRAI operations, so its results are bitwise identical to that sequence, but
+// it reads the shared vector once per group of vectors instead of once per vector.
+
+// Number of vectors combined in one traversal of the data; wider groups stream too many arrays at once.
+constexpr int FUSED_GROUP_SIZE = 8;
+
+// Number of vectors combined in registers while traversing one row; more independent accumulators cost more
+// instructions without a benefit in cycles.
+constexpr int FUSED_BLOCK = 4;
+
+// Return the centering of the double-valued patch data allocated at the patch data index, if fused operations support
+// it.
+std::optional<DataCentering>
+find_component_centering(const int idx)
+{
+    return find_data_centering<double>(
+        *VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor()->getPatchDataFactory(idx));
+}
+
+// Call fn(offset in data_box, offset in other_box, row length) for each row of ibox, in the order of SAMRAI's
+// ArrayData loops: rows in lexicographic order with the lowest remaining index fastest.
+template <class RowFn>
+void
+for_each_row(const Box<NDIM>& ibox, const Box<NDIM>& data_box, const Box<NDIM>& other_box, RowFn&& fn)
+{
+    const int n0 = ibox.numberCells(0);
+    Index<NDIM> idx = ibox.lower();
+    while (true)
+    {
+        fn(data_box.offset(idx), other_box.offset(idx), n0);
+        int j = 1;
+        for (; j < NDIM; ++j)
+        {
+            if (idx(j) < ibox.upper(j))
+            {
+                ++idx(j);
+                break;
+            }
+            idx(j) = ibox.lower(j);
+        }
+        if (j == NDIM)
+        {
+            break;
+        }
+    }
+}
+
+// Add the dot products of one row of x with the rows y[0], ..., y[N - 1], weighted by the control volume cv if WITH_CV,
+// to acc[0], ..., acc[N - 1], holding the sums in registers. Each acc[i] receives its terms in the same order, and
+// with the same expression, as ArrayDataNormOpsReal::dot() or ArrayDataNormOpsReal::dotWithControlVolume().
+template <int N, bool WITH_CV>
+void
+mdot_row(const double* const x, const double* const* const y, const double* const cv, const int n, double* const acc)
+{
+    const double* yp[N];
+    double a[N];
+    for (int i = 0; i < N; ++i)
+    {
+        yp[i] = y[i];
+        a[i] = acc[i];
+    }
+    for (int k = 0; k < n; ++k)
+    {
+        const double x_val = x[k];
+        if (WITH_CV)
+        {
+            const double cv_val = cv[k];
+            for (int i = 0; i < N; ++i)
+            {
+                a[i] += x_val * yp[i][k] * cv_val;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < N; ++i)
+            {
+                a[i] += x_val * yp[i][k];
+            }
+        }
+    }
+    for (int i = 0; i < N; ++i)
+    {
+        acc[i] = a[i];
+    }
+}
+
+// Call mdot_row() with the block size ny, which is at most N.
+template <bool WITH_CV, int N>
+void
+mdot_row_tail(const double* const x,
+              const double* const* const y,
+              const int ny,
+              const double* const cv,
+              const int n,
+              double* const acc)
+{
+    if constexpr (N > 0)
+    {
+        if (ny == N)
+        {
+            mdot_row<N, WITH_CV>(x, y, cv, n, acc);
+        }
+        else
+        {
+            mdot_row_tail<WITH_CV, N - 1>(x, y, ny, cv, n, acc);
+        }
+    }
+}
+
+// Add the dot products of one row of x with the rows y[0], ..., y[ny - 1] to acc, FUSED_BLOCK vectors at a time.
+template <bool WITH_CV>
+void
+mdot_row_blocks(const double* const x,
+                const double* const* const y,
+                const int ny,
+                const double* const cv,
+                const int n,
+                double* const acc)
+{
+    int i = 0;
+    for (; i + FUSED_BLOCK <= ny; i += FUSED_BLOCK)
+    {
+        mdot_row<FUSED_BLOCK, WITH_CV>(x, y + i, cv, n, acc + i);
+    }
+    mdot_row_tail<WITH_CV, FUSED_BLOCK - 1>(x, y + i, ny - i, cv, n, acc + i);
+}
+
+// Compute dprod[i] = sum over box of x * y[i] (* cv), accumulated as in ArrayDataNormOpsReal::dot() and
+// ArrayDataNormOpsReal::dotWithControlVolume(). All y arrays must share x's box and depth.
+void
+mdot_arrays(const ArrayData<NDIM, double>& x,
+            const std::vector<const ArrayData<NDIM, double>*>& y,
+            const ArrayData<NDIM, double>* cv,
+            const Box<NDIM>& box,
+            double* dprod)
+{
+    const int ny = static_cast<int>(y.size());
+    for (int i = 0; i < ny; ++i)
+    {
+        dprod[i] = 0.0;
+    }
+    const Box<NDIM>& x_box = x.getBox();
+    const Box<NDIM> ibox = cv ? box * x_box * x_box * cv->getBox() : box * x_box * x_box;
+    if (ibox.empty())
+    {
+        return;
+    }
+    const Box<NDIM>& cv_box = cv ? cv->getBox() : x_box;
+    const int cv_depth = cv ? cv->getDepth() : 1;
+    std::vector<const double*> y_row(ny);
+    for (int d = 0; d < x.getDepth(); ++d)
+    {
+        const int x_depth_offset = d * x.getOffset();
+        const int cv_depth_offset = (cv && cv_depth != 1) ? d * cv->getOffset() : 0;
+        for_each_row(ibox,
+                     x_box,
+                     cv_box,
+                     [&](const int x_offset, const int cv_offset, const int n)
+                     {
+                         const double* const x_row = x.getPointer() + x_depth_offset + x_offset;
+                         for (int i = 0; i < ny; ++i)
+                         {
+                             y_row[i] = y[i]->getPointer() + x_depth_offset + x_offset;
+                         }
+                         if (cv)
+                         {
+                             mdot_row_blocks<true>(
+                                 x_row, y_row.data(), ny, cv->getPointer() + cv_depth_offset + cv_offset, n, dprod);
+                         }
+                         else
+                         {
+                             mdot_row_blocks<false>(x_row, y_row.data(), ny, nullptr, n, dprod);
+                         }
+                     });
+    }
+}
+
+// Return whether the data of component c of each vector in vecs have the same ghost box and depth as those of ref on
+// every patch, where the data are of centering C. The control volume of ref, if any, must be of centering C with depth
+// one or the depth of the data, and must allocate every direction that the data allocate.
+template <DataCentering C>
+bool
+component_conforms(const SAMRAIVectorReal<NDIM, double>& ref,
+                   const std::vector<SAMRAIVectorReal<NDIM, double>*>& vecs,
+                   const int c)
+{
+    using Traits = CartesianCentering<C>;
+    using Data = typename Traits::template Data<double>;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = ref.getPatchHierarchy();
+    const int ref_idx = ref.getComponentDescriptorIndex(c);
+    const int cv_idx = ref.getControlVolumeIndex(c);
+    for (int ln = ref.getCoarsestLevelNumber(); ln <= ref.getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<Data> ref_data = patch->getPatchData(ref_idx);
+            if (!ref_data)
+            {
+                return false;
+            }
+            if (cv_idx >= 0)
+            {
+                Pointer<Data> cv_data = patch->getPatchData(cv_idx);
+                if (!cv_data || (cv_data->getDepth() != 1 && cv_data->getDepth() != ref_data->getDepth()))
+                {
+                    return false;
+                }
+                for (int axis = 0; axis < Traits::num_axes(); ++axis)
+                {
+                    if (Traits::template has_axis<double>(*ref_data, axis) &&
+                        !Traits::template has_axis<double>(*cv_data, axis))
+                    {
+                        return false;
+                    }
+                }
+            }
+            for (const auto* v : vecs)
+            {
+                Pointer<Data> data = patch->getPatchData(v->getComponentDescriptorIndex(c));
+                if (!data || data->getGhostBox() != ref_data->getGhostBox() || data->getDepth() != ref_data->getDepth())
+                {
+                    return false;
+                }
+                for (int axis = 0; axis < Traits::num_axes(); ++axis)
+                {
+                    if (Traits::template has_axis<double>(*data, axis) !=
+                        Traits::template has_axis<double>(*ref_data, axis))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
+
+// Return whether every component of each vector in vecs has double-valued data of the same supported centering as the
+// corresponding component of ref, with the same ghost box and depth on every patch.
+bool
+can_fuse(const SAMRAIVectorReal<NDIM, double>& ref, const std::vector<SAMRAIVectorReal<NDIM, double>*>& vecs)
+{
+    Pointer<PatchHierarchy<NDIM>> hierarchy = ref.getPatchHierarchy();
+    const int ncomp = ref.getNumberOfComponents();
+    for (const auto* v : vecs)
+    {
+        if (v->getNumberOfComponents() != ncomp || v->getPatchHierarchy() != hierarchy ||
+            v->getCoarsestLevelNumber() != ref.getCoarsestLevelNumber() ||
+            v->getFinestLevelNumber() != ref.getFinestLevelNumber())
+        {
+            return false;
+        }
+    }
+    for (int c = 0; c < ncomp; ++c)
+    {
+        const std::optional<DataCentering> centering = find_component_centering(ref.getComponentDescriptorIndex(c));
+        if (!centering)
+        {
+            return false;
+        }
+        for (const auto* v : vecs)
+        {
+            if (find_component_centering(v->getComponentDescriptorIndex(c)) != centering)
+            {
+                return false;
+            }
+        }
+        const int cv_idx = ref.getControlVolumeIndex(c);
+        if (cv_idx >= 0 && find_component_centering(cv_idx) != centering)
+        {
+            return false;
+        }
+        if (!dispatch_data_centering(*centering,
+                                     [&]<DataCentering C>() { return component_conforms<C>(ref, vecs, c); }))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Set comp_sum[i] to the local dot product of component c of x with component c of y[begin + i] for each i < ny, where
+// the data are of centering C. The terms are accumulated as in SAMRAI's hierarchy, patch, and array operations: over
+// levels and patches, and on each patch over the coordinate directions that the data of x allocate.
+template <DataCentering C>
+void
+mdot_component(const SAMRAIVectorReal<NDIM, double>& x,
+               const std::vector<SAMRAIVectorReal<NDIM, double>*>& y,
+               const int begin,
+               const int ny,
+               const int c,
+               double* const comp_sum)
+{
+    using Traits = CartesianCentering<C>;
+    using Data = typename Traits::template Data<double>;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = x.getPatchHierarchy();
+    const int x_idx = x.getComponentDescriptorIndex(c);
+    const int cv_idx = x.getControlVolumeIndex(c);
+    std::vector<double> patch_sum(ny), array_sum(ny);
+    std::vector<const ArrayData<NDIM, double>*> y_arrays(ny);
+    std::fill(comp_sum, comp_sum + ny, 0.0);
+    for (int ln = x.getCoarsestLevelNumber(); ln <= x.getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<Data> x_data = patch->getPatchData(x_idx);
+            Pointer<Data> cv_data = cv_idx >= 0 ? patch->getPatchData(cv_idx) : Pointer<PatchData<NDIM>>();
+            const Box<NDIM> box = cv_data ? x_data->getGhostBox() : patch->getBox();
+            std::fill(patch_sum.begin(), patch_sum.end(), 0.0);
+            for (int axis = 0; axis < Traits::num_axes(); ++axis)
+            {
+                if (!Traits::template has_axis<double>(*x_data, axis))
+                {
+                    continue;
+                }
+                for (int i = 0; i < ny; ++i)
+                {
+                    Pointer<Data> y_data = patch->getPatchData(y[begin + i]->getComponentDescriptorIndex(c));
+                    y_arrays[i] = &Traits::template array_data<double>(*y_data, axis);
+                }
+                mdot_arrays(Traits::template array_data<double>(*x_data, axis),
+                            y_arrays,
+                            cv_data ? &Traits::template array_data<double>(*cv_data, axis) : nullptr,
+                            Traits::index_box(box, axis),
+                            array_sum.data());
+                for (int i = 0; i < ny; ++i)
+                {
+                    patch_sum[i] += array_sum[i];
+                }
+            }
+            for (int i = 0; i < ny; ++i)
+            {
+                comp_sum[i] += patch_sum[i];
+            }
+        }
+    }
+}
+
+// Compute val[i] = x.dot(y[i]) over the local data for all i, bitwise identical to calling SAMRAIVectorReal::dot() with
+// local_only = true for each i. The data must satisfy can_fuse().
+void
+fused_local_mdot(const SAMRAIVectorReal<NDIM, double>& x,
+                 const std::vector<SAMRAIVectorReal<NDIM, double>*>& y,
+                 PetscScalar* val)
+{
+    const int nv = static_cast<int>(y.size());
+    std::vector<double> comp_sum;
+    for (int begin = 0; begin < nv; begin += FUSED_GROUP_SIZE)
+    {
+        const int ny = std::min(FUSED_GROUP_SIZE, nv - begin);
+        comp_sum.resize(ny);
+        for (int i = 0; i < ny; ++i)
+        {
+            val[begin + i] = 0.0;
+        }
+        for (int c = 0; c < x.getNumberOfComponents(); ++c)
+        {
+            dispatch_data_centering(*find_component_centering(x.getComponentDescriptorIndex(c)),
+                                    [&]<DataCentering C>() { mdot_component<C>(x, y, begin, ny, c, comp_sum.data()); });
+            for (int i = 0; i < ny; ++i)
+            {
+                val[begin + i] += comp_sum[i];
+            }
+        }
+    }
+}
+
+// The way multi-vector operations are carried out, selected by the option -ibtk_vec_fusion.
+enum class FusionMode
+{
+    EXACT,
+    NONE
+};
+
+// Return the fusion mode selected by -ibtk_vec_fusion {exact,none}, reading the option on first use. The default is
+// exact.
+FusionMode
+get_fusion_mode()
+{
+    static const FusionMode mode = []
+    {
+        char value[64] = "exact";
+        PetscBool set = PETSC_FALSE;
+        int ierr = PetscOptionsGetString(nullptr, nullptr, "-ibtk_vec_fusion", value, sizeof(value), &set);
+        IBTK_CHKERRQ(ierr);
+        const std::string mode_name(value);
+        if (mode_name == "exact")
+        {
+            return FusionMode::EXACT;
+        }
+        if (mode_name == "none")
+        {
+            return FusionMode::NONE;
+        }
+        TBOX_ERROR("PETScSAMRAIVectorReal::get_fusion_mode():\n"
+                   << "  unknown value " << mode_name << " of the option -ibtk_vec_fusion; expected exact or none\n");
+        return FusionMode::EXACT;
+    }();
+    return mode;
+}
+
+// Compute val[i] = x_vec.dot(y_vecs[i]) over the local data for all i, with the fused kernel unless fusion is disabled
+// or the data do not allow it, in which case SAMRAIVectorReal::dot() is used for each i.
+void
+compute_local_mdot(const Pointer<SAMRAIVectorReal<NDIM, double>>& x_vec,
+                   const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& y_vecs,
+                   PetscScalar* val)
+{
+    static const bool local_only = true;
+    const PetscInt nv = static_cast<PetscInt>(y_vecs.size());
+    std::vector<SAMRAIVectorReal<NDIM, double>*> y_ptrs(nv);
+    for (PetscInt i = 0; i < nv; ++i)
+    {
+        y_ptrs[i] = y_vecs[i].getPointer();
+    }
+    if (get_fusion_mode() == FusionMode::NONE || !can_fuse(*x_vec, y_ptrs))
+    {
+        for (PetscInt i = 0; i < nv; ++i)
+        {
+            val[i] = x_vec->dot(y_vecs[i], local_only);
+        }
+        return;
+    }
+    fused_local_mdot(*x_vec, y_ptrs, val);
+}
 
 #define PSVR_CAST1(v) (static_cast<PETScSAMRAIVectorReal*>(v->data))
 #define PSVR_CAST2(v) (static_cast<PETScSAMRAIVectorReal*>(v->data)->d_samrai_vector)
@@ -313,11 +755,12 @@ PETScSAMRAIVectorReal::VecMDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscSca
     PetscFunctionBeginUser;
     PSVR_CHECK1(x);
     PSVR_CHECKN(y, nv);
-    static const bool local_only = true;
+    std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> y_vecs(nv);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
+        y_vecs[i] = PSVR_CAST2(y[i]);
     }
+    compute_local_mdot(PSVR_CAST2(x), y_vecs, val);
     IBTK_MPI::sumReduction(val, nv);
     IBTK_TIMER_STOP(t_vec_m_dot);
     PetscFunctionReturn(0);
@@ -377,11 +820,12 @@ PETScSAMRAIVectorReal::VecMTDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscSc
     PetscFunctionBeginUser;
     PSVR_CHECK1(x);
     PSVR_CHECKN(y, nv);
-    static const bool local_only = true;
+    std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> y_vecs(nv);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
+        y_vecs[i] = PSVR_CAST2(y[i]);
     }
+    compute_local_mdot(PSVR_CAST2(x), y_vecs, val);
     IBTK_MPI::sumReduction(val, nv);
     IBTK_TIMER_STOP(t_vec_m_t_dot);
     PetscFunctionReturn(0);
@@ -689,11 +1133,12 @@ PETScSAMRAIVectorReal::VecMDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, Pe
     PetscFunctionBeginUser;
     PSVR_CHECK1(x);
     PSVR_CHECKN(y, nv);
-    static const bool local_only = true;
+    std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> y_vecs(nv);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
+        y_vecs[i] = PSVR_CAST2(y[i]);
     }
+    compute_local_mdot(PSVR_CAST2(x), y_vecs, val);
     IBTK_TIMER_STOP(t_vec_m_dot_local);
     PetscFunctionReturn(0);
 }
@@ -705,11 +1150,12 @@ PETScSAMRAIVectorReal::VecMTDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, P
     PetscFunctionBeginUser;
     PSVR_CHECK1(x);
     PSVR_CHECKN(y, nv);
-    static const bool local_only = true;
+    std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> y_vecs(nv);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
+        y_vecs[i] = PSVR_CAST2(y[i]);
     }
+    compute_local_mdot(PSVR_CAST2(x), y_vecs, val);
     IBTK_TIMER_STOP(t_vec_m_t_dot_local);
     PetscFunctionReturn(0);
 }
