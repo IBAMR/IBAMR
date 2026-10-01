@@ -24,6 +24,7 @@
 #include <BergerRigoutsos.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
+#include <OutersideVariable.h>
 #include <StandardTagAndInitialize.h>
 
 #include <algorithm>
@@ -33,6 +34,7 @@
 #include <iomanip>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -416,6 +418,126 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy,
     var_db->removePatchDataIndex(reference_idx);
 }
 
+// Reference geometry box for a centering, computed directly with SAMRAI.
+template <DataCentering C>
+Box<NDIM>
+geometry_box(const Box<NDIM>& cell_box, const int axis)
+{
+    if constexpr (C == DataCentering::CELL)
+    {
+        return cell_box;
+    }
+    else if constexpr (C == DataCentering::NODE)
+    {
+        return NodeGeometry<NDIM>::toNodeBox(cell_box);
+    }
+    else if constexpr (C == DataCentering::SIDE)
+    {
+        return SideGeometry<NDIM>::toSideBox(cell_box, axis);
+    }
+    else if constexpr (C == DataCentering::FACE)
+    {
+        return FaceGeometry<NDIM>::toFaceBox(cell_box, axis);
+    }
+    else
+    {
+        return EdgeGeometry<NDIM>::toEdgeBox(cell_box, axis);
+    }
+}
+
+// Reference storage array for a centering, taken directly from the SAMRAI accessor.
+template <DataCentering C>
+const ArrayData<NDIM, double>&
+direct_array_data(const typename CartesianCentering<C>::template Data<double>& data, const int axis)
+{
+    if constexpr (CartesianCentering<C>::is_staggered())
+    {
+        return data.getArrayData(axis);
+    }
+    else
+    {
+        return data.getArrayData();
+    }
+}
+
+void
+print_box(const Box<NDIM>& box)
+{
+    plog << "lower " << box.lower() << " upper " << box.upper();
+}
+
+template <DataCentering C>
+void
+report_centering(const Box<NDIM>& cell_box, const int depth)
+{
+    using Layout = CartesianCentering<C>;
+    using Data = typename Layout::template Data<double>;
+    Data data(cell_box, depth, IntVector<NDIM>(0));
+    const Data& const_data = data;
+    plog << enum_to_string(C) << ": staggered " << Layout::is_staggered() << ", num_axes " << Layout::num_axes()
+         << '\n';
+    for (int axis = 0; axis < Layout::num_axes(); ++axis)
+    {
+        const Box<NDIM> box = Layout::index_box(cell_box, axis);
+        const ArrayData<NDIM, double>& array = Layout::template array_data<double>(data, axis);
+        const ArrayData<NDIM, double>& const_array = Layout::template array_data<double>(const_data, axis);
+        const ArrayData<NDIM, double>& direct = direct_array_data<C>(const_data, axis);
+        plog << "  axis " << axis << ": index_box ";
+        print_box(box);
+        plog << "; equals SAMRAI geometry box " << (box == geometry_box<C>(cell_box, axis)) << "; array_data box ";
+        print_box(array.getBox());
+        plog << " depth " << array.getDepth() << ", equals index_box " << (array.getBox() == box)
+             << "; same array as SAMRAI accessor (non-const, const) " << (&array == &direct) << ' '
+             << (&const_array == &direct) << '\n';
+    }
+}
+
+template <typename T>
+void
+report_factory(const std::string& label, const int depth, Pointer<Variable<NDIM>> var)
+{
+    const SAMRAI::hier::PatchDataFactory<NDIM>& factory = *var->getPatchDataFactory();
+    const std::optional<DataCentering> centering = find_data_centering<T>(factory);
+    plog << label << " (depth " << depth << "): find_data_centering has value " << centering.has_value();
+    if (centering)
+    {
+        plog << ", centering " << enum_to_string(*centering) << " (" << static_cast<int>(*centering)
+             << "), get_data_centering " << enum_to_string(get_data_centering<T>(factory));
+    }
+    plog << '\n';
+}
+
+void
+run_centering_helpers()
+{
+    // A small cell box that is not a cube, so that every axis gives a distinct box.
+    SAMRAI::hier::Index<NDIM> lower;
+    SAMRAI::hier::Index<NDIM> upper;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        lower(d) = d + 1;
+        upper(d) = 2 * d + 3;
+    }
+    const Box<NDIM> cell_box(lower, upper);
+    const int depth = 2;
+    plog << "cell box ";
+    print_box(cell_box);
+    plog << '\n';
+    for (const DataCentering centering :
+         { DataCentering::CELL, DataCentering::NODE, DataCentering::SIDE, DataCentering::FACE, DataCentering::EDGE })
+    {
+        dispatch_data_centering(centering, [&]<DataCentering C>() { report_centering<C>(cell_box, depth); });
+    }
+    report_factory<double>("cell double", depth, new CellVariable<NDIM, double>("cell", depth));
+    report_factory<double>("node double", depth, new NodeVariable<NDIM, double>("node", depth));
+    report_factory<double>("side double", depth, new SideVariable<NDIM, double>("side", depth));
+    report_factory<double>("face double", depth, new FaceVariable<NDIM, double>("face", depth));
+    report_factory<double>("edge double", depth, new EdgeVariable<NDIM, double>("edge", depth));
+    report_factory<double>("outerside double", depth, new OutersideVariable<NDIM, double>("outerside", depth));
+    report_factory<double>("cell int queried as double", depth, new CellVariable<NDIM, int>("cell int", depth));
+    report_factory<int>("cell int queried as int", depth, new CellVariable<NDIM, int>("cell int", depth));
+}
+
 // Preserve the actual abort diagnostic while omitting source paths and line numbers.
 class ErrorAppender : public Logger::Appender
 {
@@ -513,6 +635,11 @@ main(int argc, char* argv[])
     if (!error.empty())
     {
         run_error_case(hierarchy, error);
+        return 0;
+    }
+    if (app->getInputDatabase()->getBoolWithDefault("centering_helpers", false))
+    {
+        run_centering_helpers();
         return 0;
     }
     if (hierarchy->getFinestLevelNumber() != 1)
