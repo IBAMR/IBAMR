@@ -21,8 +21,12 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/SAMRAIScopedVectorCopy.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <tbox/Timer.h>
+#include <tbox/TimerManager.h>
 
 #include <petscsys.h>
 
@@ -193,6 +197,8 @@ main(int argc, char* argv[])
         const double C = input_db->getDouble("C");
         poisson_spec.setDConstant(D);
         poisson_spec.setCConstant(C);
+        const Pointer<Timer> apply_timer =
+            TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesOperator::apply()");
         if (input_db->getBoolWithDefault("test_box_smoother", false))
         {
             // A zero error has valid initial ghost and Dirichlet data. The nonzero
@@ -298,6 +304,31 @@ main(int argc, char* argv[])
             pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
             pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
         }
+
+        // Fully periodic domains need no RHS correction even with homogeneous BCs disabled.
+        StaggeredStokesOperator bc_op("bc_op", false, input_db);
+        bc_op.setVelocityPoissonSpecifications(poisson_spec);
+        bc_op.setPhysicalBcCoefs(u_bc_coefs, nullptr);
+        bc_op.setSolutionTime(0.0);
+        bc_op.setTimeInterval(0.0, 1.0);
+        if (periodic_shift.min() == 0)
+        {
+            Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+            bc_helper->cacheBcCoefData(u_bc_coefs, 0.0, patch_hierarchy);
+            bc_op.setPhysicalBoundaryHelper(bc_helper);
+        }
+        bc_op.initializeOperatorState(u_vec, f_vec);
+        SAMRAIScopedVectorCopy<double> rhs_change(f_vec);
+        const int previous_applications = apply_timer->getNumberAccesses();
+        bc_op.modifyRhsForBcs(f_vec);
+        SAMRAIVectorReal<NDIM, double>& difference = rhs_change;
+        difference.subtract(rhs_change, Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false));
+        const double rhs_change_norm = difference.maxNorm();
+        TBOX_ASSERT(std::isfinite(rhs_change_norm));
+        plog << "Boundary RHS operator applications = " << apply_timer->getNumberAccesses() - previous_applications
+             << '\n';
+        plog << "Boundary RHS change = " << rhs_change_norm << '\n';
+        bc_op.deallocateOperatorState();
 
         // Deallocate level data
         // Allocate data on each level of the patch hierarchy.
