@@ -1084,6 +1084,10 @@ public:
      * damping factor C and diffusivity D be spatially constant and
      * scalar-valued.
      *
+     * If dst_cf_bdry_synch is true, dst is synchronized across coarse-fine
+     * interfaces. Otherwise, the caller is responsible for synchronizing dst,
+     * for example by synchronizeCoarseFineBoundary().
+     *
      * \see setPatchHierarchy
      * \see resetLevels
      */
@@ -1096,7 +1100,8 @@ public:
                  double src1_ghost_fill_time,
                  double gamma = 0.0,
                  int src2_idx = invalid_index,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src2_var = nullptr);
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src2_var = nullptr,
+                 bool dst_cf_bdry_synch = true);
 
     /*!
      * \brief Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2

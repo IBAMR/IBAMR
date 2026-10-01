@@ -1,0 +1,4 @@
+New: The side-centered IBTK::HierarchyMathOps::laplace() can skip its
+coarse-fine synchronization.
+<br>
+(Boyce Griffith, 2026/10/01)

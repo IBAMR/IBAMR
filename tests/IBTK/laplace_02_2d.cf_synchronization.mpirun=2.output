@@ -5,3 +5,7 @@ field 0 max norm of difference from synchronized alone = 0
 field 1 synchronized together: max norm = 2.25
 field 1 synchronized together: L2 norm = 74.3585656868
 field 1 max norm of difference from synchronized alone = 0
+Laplacian with synchronization: max norm = 155.088536308
+Laplacian with synchronization: L2 norm = 1749.01271252
+Laplacian without synchronization: max norm of difference from synchronized = 30.7075587467
+Laplacian: max norm of difference between synchronized-in-place and synchronized-afterwards = 0

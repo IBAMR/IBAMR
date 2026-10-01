@@ -29,6 +29,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
@@ -50,14 +51,18 @@
 //
 // If the input database sets synchronization_test = TRUE, the program instead
 // checks that HierarchyMathOps::synchronizeCoarseFineBoundary() gives the same
-// result as synchronizing each side-centered field alone.
+// result as synchronizing each side-centered field alone. It also checks that
+// the side-centered HierarchyMathOps::laplace() without synchronization of its
+// result differs from laplace() with synchronization, and that
+// synchronizeCoarseFineBoundary() applied to the former gives the latter.
 
 namespace
 {
 // Synchronize two side-centered fields together with
 // synchronizeCoarseFineBoundary(), and separately one at a time as the source of
 // div() with synchronization; print norms of the results and of their
-// differences.
+// differences. Then compare the side-centered laplace() with and without
+// synchronization of its result.
 void
 run_synchronization_test(Pointer<AppInitializer> app_initializer,
                          Pointer<CartesianGridGeometry<NDIM>> grid_geometry,
@@ -79,6 +84,15 @@ run_synchronization_test(Pointer<AppInitializer> app_initializer,
     Pointer<CellVariable<NDIM, double>> div_var = new CellVariable<NDIM, double>("div");
     const int div_idx = var_db->registerVariableAndContext(div_var, ctx, IntVector<NDIM>(0));
 
+    Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("u");
+    const int u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVector<NDIM>(1));
+    Pointer<SideVariable<NDIM, double>> synch_var = new SideVariable<NDIM, double>("laplace_synch");
+    const int synch_idx = var_db->registerVariableAndContext(synch_var, ctx, IntVector<NDIM>(1));
+    Pointer<SideVariable<NDIM, double>> no_synch_var = new SideVariable<NDIM, double>("laplace_no_synch");
+    const int no_synch_idx = var_db->registerVariableAndContext(no_synch_var, ctx, IntVector<NDIM>(1));
+    Pointer<SideVariable<NDIM, double>> diff_var = new SideVariable<NDIM, double>("laplace_diff");
+    const int diff_idx = var_db->registerVariableAndContext(diff_var, ctx, IntVector<NDIM>(1));
+
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
@@ -88,6 +102,10 @@ run_synchronization_test(Pointer<AppInitializer> app_initializer,
             level->allocatePatchData(alone_idxs[k], 0.0);
         }
         level->allocatePatchData(div_idx, 0.0);
+        level->allocatePatchData(u_idx, 0.0);
+        level->allocatePatchData(synch_idx, 0.0);
+        level->allocatePatchData(no_synch_idx, 0.0);
+        level->allocatePatchData(diff_idx, 0.0);
     }
 
     // Fill the fields with different smooth data on every level.
@@ -123,6 +141,32 @@ run_synchronization_test(Pointer<AppInitializer> app_initializer,
         plog << "field " << k << " max norm of difference from synchronized alone = "
              << std::abs(hier_sc_data_ops->maxNorm(alone_idxs[k], -1)) << "\n";
     }
+
+    // Compare the Laplacian that synchronizes its result with the Laplacian
+    // that does not, before and after synchronizeCoarseFineBoundary().
+    muParserCartGridFunction u_fcn("field_0", app_initializer->getComponentDatabase("field_0"), grid_geometry);
+    u_fcn.setDataOnPatchHierarchy(u_idx, u_var, patch_hierarchy, 0.0);
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    HierarchyGhostCellInterpolation u_ghost_fill;
+    u_ghost_fill.initializeOperatorState(
+        InterpolationTransactionComponent(u_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR"),
+        patch_hierarchy);
+    u_ghost_fill.fillData(0.0);
+    PoissonSpecifications poisson_spec("poisson_spec");
+    poisson_spec.setCConstant(0.5);
+    poisson_spec.setDConstant(2.0);
+    hier_math_ops.laplace(synch_idx, synch_var, poisson_spec, u_idx, u_var, nullptr, 0.0);
+    hier_math_ops.laplace(
+        no_synch_idx, no_synch_var, poisson_spec, u_idx, u_var, nullptr, 0.0, 0.0, invalid_index, nullptr, false);
+    plog << "Laplacian with synchronization: max norm = " << hier_sc_data_ops->maxNorm(synch_idx, -1) << "\n";
+    plog << "Laplacian with synchronization: L2 norm = " << hier_sc_data_ops->L2Norm(synch_idx, -1) << "\n";
+    hier_sc_data_ops->subtract(diff_idx, no_synch_idx, synch_idx);
+    plog << "Laplacian without synchronization: max norm of difference from synchronized = "
+         << std::abs(hier_sc_data_ops->maxNorm(diff_idx, -1)) << "\n";
+    hier_math_ops.synchronizeCoarseFineBoundary({ no_synch_idx });
+    hier_sc_data_ops->subtract(diff_idx, no_synch_idx, synch_idx);
+    plog << "Laplacian: max norm of difference between synchronized-in-place and synchronized-afterwards = "
+         << std::abs(hier_sc_data_ops->maxNorm(diff_idx, -1)) << "\n";
 }
 } // namespace
 

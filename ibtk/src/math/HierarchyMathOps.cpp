@@ -2762,7 +2762,8 @@ HierarchyMathOps::laplace(const int dst_idx,
                           const double src1_ghost_fill_time,
                           const double gamma,
                           const int src2_idx,
-                          const Pointer<SideVariable<NDIM, double>> src2_var)
+                          const Pointer<SideVariable<NDIM, double>> src2_var,
+                          const bool dst_cf_bdry_synch)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
@@ -2829,37 +2830,9 @@ HierarchyMathOps::laplace(const int dst_idx,
         }
     }
 
-    // Allocate temporary data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    if (dst_cf_bdry_synch)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_os_idx);
-    }
-
-    // Synchronize data along the coarse-fine interface.
-    for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-
-        // Extract data on the coarse-fine interface.
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-
-            Pointer<SideData<NDIM, double>> dst_data = patch->getPatchData(dst_idx);
-            Pointer<OutersideData<NDIM, double>> os_data = patch->getPatchData(d_os_idx);
-            os_data->copy(*dst_data);
-        }
-
-        // Synchronize the coarse-fine interface of dst.
-        xeqScheduleOutersideRestriction(dst_idx, d_os_idx, ln - 1);
-    }
-
-    // Deallocate temporary data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_os_idx);
+        synchronizeCoarseFineBoundary({ dst_idx });
     }
     return;
 } // laplace
