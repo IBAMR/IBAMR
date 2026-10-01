@@ -385,10 +385,62 @@ max_abs_difference(const double* const a, const double* const b, const int n)
     return max_diff;
 }
 
-// Compare VecMDot and VecMTDot on wrapped SAMRAI vectors with the sequences of VecDot and VecTDot calls that they fuse;
-// the results must be identical. The first vector is a copy of base_vec and the others are copies of operand_vec, which
-// differs from base_vec only when the data prevent fusion. The numbers of vectors are below, at, and above the block
-// size of four and the group size of eight. Return whether all comparisons are exact.
+// Return the maximum absolute difference between component c of a and b over all of the data, including ghost cells.
+template <DataCentering C>
+double
+max_difference_component(const SAMRAIVectorReal<NDIM, double>& a, const SAMRAIVectorReal<NDIM, double>& b, const int c)
+{
+    using Traits = CartesianCentering<C>;
+    using Data = typename Traits::template Data<double>;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = a.getPatchHierarchy();
+    double max_diff = 0.0;
+    for (int ln = a.getCoarsestLevelNumber(); ln <= a.getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Data> a_data = level->getPatch(p())->getPatchData(a.getComponentDescriptorIndex(c));
+            Pointer<Data> b_data = level->getPatch(p())->getPatchData(b.getComponentDescriptorIndex(c));
+            for (int axis = 0; axis < Traits::num_axes(); ++axis)
+            {
+                if (!Traits::template has_axis<double>(*a_data, axis))
+                {
+                    continue;
+                }
+                const ArrayData<NDIM, double>& a_array = Traits::template array_data<double>(*a_data, axis);
+                const ArrayData<NDIM, double>& b_array = Traits::template array_data<double>(*b_data, axis);
+                for (int depth = 0; depth < a_array.getDepth(); ++depth)
+                {
+                    max_diff =
+                        std::max(max_diff,
+                                 max_abs_difference(
+                                     a_array.getPointer(depth), b_array.getPointer(depth), a_array.getBox().size()));
+                }
+            }
+        }
+    }
+    return max_diff;
+}
+
+double
+max_difference(const SAMRAIVectorReal<NDIM, double>& a, const SAMRAIVectorReal<NDIM, double>& b)
+{
+    double max_diff = 0.0;
+    for (int c = 0; c < a.getNumberOfComponents(); ++c)
+    {
+        max_diff = std::max(
+            max_diff,
+            dispatch_data_centering(get_data_centering<double>(*a.getComponentVariable(c)->getPatchDataFactory()),
+                                    [&]<DataCentering C>() { return max_difference_component<C>(a, b, c); }));
+    }
+    return IBTK_MPI::maxReduction(max_diff);
+}
+
+// Compare VecMDot, VecMTDot, and VecMAXPY on wrapped SAMRAI vectors with the sequences of VecDot, VecTDot, and VecAXPY
+// calls that they fuse; the results must be identical. The first vector, and the vectors that VecMAXPY updates, are
+// copies of base_vec and the others are copies of operand_vec, which differs from base_vec only when the data prevent
+// fusion. The numbers of vectors are below, at, and above the block size of four and the group size of eight. Return
+// whether all comparisons are exact.
 bool
 check_fused_vector_ops(const std::string& label,
                        SAMRAIVectorReal<NDIM, double>& base_vec,
@@ -399,9 +451,10 @@ check_fused_vector_ops(const std::string& label,
     std::vector<std::unique_ptr<SAMRAIScopedVectorDuplicate<double>>> duplicates;
     std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> vecs;
     std::vector<Vec> petsc_vecs;
-    for (int k = 0; k <= MAX_COUNT; ++k)
+    for (int k = 0; k < MAX_COUNT + 3; ++k)
     {
-        // Vector 0 is x and vectors 1, ..., MAX_COUNT are the other operands.
+        // Vector 0 is x, vectors 1, ..., MAX_COUNT are the other operands, and the last two vectors are the target of
+        // VecMAXPY and the result that it must reproduce.
         const bool is_operand = k >= 1 && k <= MAX_COUNT;
         duplicates.push_back(std::make_unique<SAMRAIScopedVectorDuplicate<double>>(is_operand ? operand_vec : base_vec,
                                                                                    "fused_" + std::to_string(k)));
@@ -468,6 +521,35 @@ check_fused_vector_ops(const std::string& label,
             out << '\n';
         }
         report(transpose ? "max |VecMTDot - separate dots|" : "max |VecMDot - separate dots|", max_diffs);
+    }
+
+    // The coefficients of the first set include 0, 1, and -1, which SAMRAI treats as special cases; those of the second
+    // all require the general update.
+    const std::array<std::array<double, MAX_COUNT>, 2> coefficients = {
+        { { 0.0, 1.0, -1.0, 0.73, -1.61, 1.0, 0.0, 2.19, -1.0 },
+          { 0.37, -1.21, 1.73, 0.58, -0.89, 2.31, 0.14, -0.66, 1.11 } }
+    };
+    constexpr int TARGET = MAX_COUNT + 1;
+    constexpr int EXPECTED = MAX_COUNT + 2;
+    for (int set = 0; set < 2; ++set)
+    {
+        std::vector<double> max_diffs;
+        for (const auto n : COUNTS)
+        {
+            vecs[TARGET]->copyVector(vecs[0], false);
+            vecs[EXPECTED]->copyVector(vecs[0], false);
+            ierr = VecMAXPY(petsc_vecs[TARGET], n, coefficients[set].data(), &petsc_vecs[1]);
+            IBTK_CHKERRQ(ierr);
+            for (int i = 0; i < n; ++i)
+            {
+                ierr = VecAXPY(petsc_vecs[EXPECTED], coefficients[set][i], petsc_vecs[1 + i]);
+                IBTK_CHKERRQ(ierr);
+            }
+            max_diffs.push_back(max_difference(*vecs[TARGET], *vecs[EXPECTED]));
+        }
+        report(set == 0 ? "max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ..." :
+                          "max |VecMAXPY - VecAXPY|, general coefficients",
+               max_diffs);
     }
 
     plog << out.str();

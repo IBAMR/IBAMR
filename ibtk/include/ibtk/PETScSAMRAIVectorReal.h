@@ -59,6 +59,8 @@ namespace IBTK
  * per-vector loops, which are used otherwise. The option <code>-ibtk_vec_fusion none</code> always selects the
  * per-vector loops, for example to compare with the fused kernels. The default, <code>-ibtk_vec_fusion exact</code>,
  * uses the fused kernels where the data allow. The option is read from the PETSc options database once.
+ * VecMAXPY() is fused in the same way and under the same conditions, provided that the target is not one of the
+ * vectors that are added.
  *
  * Finally, we remark that PETSc allows vectors with complex-valued entries.
  * This class and the class SAMRAI::solv::SAMRAIVectorReal assume real-values
