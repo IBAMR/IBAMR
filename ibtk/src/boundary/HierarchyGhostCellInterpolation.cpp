@@ -323,7 +323,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         if (!null_bc_coefs && sc_var)
         {
 #if !defined(NDEBUG)
-            TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
+            TBOX_ASSERT(robin_bc_coefs.size() % NDIM == 0);
 #endif
             d_sc_robin_bc_ops[comp_idx] =
                 new CartSideRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc, phys_bdry_type);
@@ -512,7 +512,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 #if !defined(NDEBUG)
             TBOX_ASSERT(!null_bc_coefs);
             TBOX_ASSERT(sc_var);
-            TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
+            TBOX_ASSERT(robin_bc_coefs.size() % NDIM == 0);
 #endif
             d_sc_robin_bc_ops[comp_idx]->setPhysicalBcCoefs(robin_bc_coefs);
             d_sc_robin_bc_ops[comp_idx]->setPatchDataIndex(dst_data_idx);

@@ -58,6 +58,11 @@ namespace IBTK
  * \note This class is intended to be used to specify boundary conditions for
  * MAC vector fields and may not work correctly for other types of data.
  *
+ * \note Patch data with depth greater than one is treated as a collection of
+ * MAC vector fields.  Such data requires NDIM boundary condition objects per
+ * field, with the object for component \p axis of field \p k stored at index
+ * NDIM * k + axis.
+ *
  * \warning Presently, this class only supports pure Dirichlet or pure Neumann
  * boundary conditions for the normal component of the vector field.  Mixed
  * (Robin) boundary conditions are \em not supported in the normal direction.
