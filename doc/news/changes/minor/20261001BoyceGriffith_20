@@ -1,0 +1,4 @@
+Improved: The IBTK::NormOps L1 and L2 norms now include node-, face-, and
+edge-centered components of SAMRAI vectors, which they previously ignored.
+<br>
+(Boyce Griffith, 2026/10/01)
