@@ -31,6 +31,9 @@ alongside [CONTRIBUTING.md](CONTRIBUTING.md) and the surrounding code.
 - Run `git diff --check`; inspect the intended staged diff and complete change,
   including comments, fixtures, copyright, and attribution. Stage only intended
   paths or hunks. Keep logs and generated artifacts out of commits.
+- Run `scripts/maintenance/check_pull_request.py` on the branch and the intended
+  title and description, and resolve or be ready to explain what it reports. It
+  is a screen for common problems, not a substitute for reading the change.
 - Before any publication, verify that an explicit user request covers the action
   and destination. Use concise, accurate commit and PR text and the applicable
   complete [.github/pull_request_template.md](.github/pull_request_template.md).
