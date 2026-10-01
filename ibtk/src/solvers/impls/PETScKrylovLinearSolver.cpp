@@ -503,7 +503,11 @@ PETScKrylovLinearSolver::resetKSPOptions()
     std::string ksp_type_name(ksp_type);
     if (ksp_type_name.find("gmres") != std::string::npos)
     {
+#if PETSC_VERSION_LT(3, 26, 0)
         ierr = KSPGMRESSetCGSRefinementType(d_petsc_ksp, KSP_GMRES_CGS_REFINE_IFNEEDED);
+#else
+        ierr = KSPOrthogonalizationSetCGSRefinementType(d_petsc_ksp, KSP_ORTHOGONALIZATION_CGS_REFINE_IFNEEDED);
+#endif
         IBTK_CHKERRQ(ierr);
     }
     PetscBool initial_guess_nonzero = (d_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE);

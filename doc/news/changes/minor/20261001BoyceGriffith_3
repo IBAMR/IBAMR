@@ -1,0 +1,3 @@
+Fixed: Support PETSc 3.26, which renamed the GMRES orthogonalization functions.
+<br>
+(Boyce Griffith, 2026/10/01)
