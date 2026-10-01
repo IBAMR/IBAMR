@@ -28,6 +28,7 @@
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
 
+#include <CartesianGridGeometry.h>
 #include <CellVariable.h>
 #include <IntVector.h>
 #include <LocationIndexRobinBcCoefs.h>
@@ -333,7 +334,8 @@ StaggeredStokesOperator::deallocateOperatorState()
 void
 StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
 {
-    if (!d_homogeneous_bc)
+    const bool fully_periodic = y.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() > 0;
+    if (!d_homogeneous_bc && !fully_periodic)
     {
         // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
         // inhomogeneous boundary conditions.

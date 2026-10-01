@@ -1,2 +1,4 @@
 correction L2 norm = 0.0305285515343
 normal velocity boundary error = 0
+Boundary RHS operator applications = 1
+Boundary RHS change = -0
