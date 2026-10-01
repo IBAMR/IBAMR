@@ -242,6 +242,11 @@ public:
     void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) override;
 
     /*!
+     * \brief Fill the physical-boundary and same-level ghost values of \a error on level \a level_num.
+     */
+    void fillGhostCellsNoCoarse(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) override;
+
+    /*!
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
      *

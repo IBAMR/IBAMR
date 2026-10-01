@@ -243,6 +243,14 @@ public:
     void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) override;
 
     /*!
+     * \brief Fill the physical-boundary and same-level ghost values of \a error on level \a level_num.
+     *
+     * Normal velocity values on Dirichlet boundaries are reset to zero.
+     * Velocity values on sides shared by patches must be consistent on entry.
+     */
+    void fillGhostCellsNoCoarse(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) override;
+
+    /*!
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
      *

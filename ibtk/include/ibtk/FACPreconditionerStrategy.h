@@ -142,6 +142,16 @@ public:
     virtual void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) = 0;
 
     /*!
+     * \brief Fill the physical-boundary and same-level ghost values on the
+     * specified level without interpolating from coarser levels.
+     *
+     * Ghost values that receive neither kind of data, including those set by
+     * coarse-fine interpolation, are preserved, as are data on other levels.
+     * Ghost values that the strategy's stencils do not use need not be filled.
+     */
+    virtual void fillGhostCellsNoCoarse(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) = 0;
+
+    /*!
      * \brief Restrict the residual from the source vector to the destination
      * vector on the specified level of the patch hierarchy.
      *
