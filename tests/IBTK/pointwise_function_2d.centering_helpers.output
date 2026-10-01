@@ -1,0 +1,22 @@
+cell box lower (1,2) upper (3,5)
+CELL: staggered 0, num_axes 1
+  axis 0: index_box lower (1,2) upper (3,5); equals SAMRAI geometry box 1; array_data box lower (1,2) upper (3,5) depth 2, equals index_box 1; same array as SAMRAI accessor (non-const, const) 1 1
+NODE: staggered 0, num_axes 1
+  axis 0: index_box lower (1,2) upper (4,6); equals SAMRAI geometry box 1; array_data box lower (1,2) upper (4,6) depth 2, equals index_box 1; same array as SAMRAI accessor (non-const, const) 1 1
+SIDE: staggered 1, num_axes 2
+  axis 0: index_box lower (1,2) upper (4,5); equals SAMRAI geometry box 1; array_data box lower (1,2) upper (4,5) depth 2, equals index_box 1; same array as SAMRAI accessor (non-const, const) 1 1
+  axis 1: index_box lower (1,2) upper (3,6); equals SAMRAI geometry box 1; array_data box lower (1,2) upper (3,6) depth 2, equals index_box 1; same array as SAMRAI accessor (non-const, const) 1 1
+FACE: staggered 1, num_axes 2
+  axis 0: index_box lower (1,2) upper (4,5); equals SAMRAI geometry box 1; array_data box lower (1,2) upper (4,5) depth 2, equals index_box 1; same array as SAMRAI accessor (non-const, const) 1 1
+  axis 1: index_box lower (2,1) upper (6,3); equals SAMRAI geometry box 1; array_data box lower (2,1) upper (6,3) depth 2, equals index_box 1; same array as SAMRAI accessor (non-const, const) 1 1
+EDGE: staggered 1, num_axes 2
+  axis 0: index_box lower (1,2) upper (3,6); equals SAMRAI geometry box 1; array_data box lower (1,2) upper (3,6) depth 2, equals index_box 1; same array as SAMRAI accessor (non-const, const) 1 1
+  axis 1: index_box lower (1,2) upper (4,5); equals SAMRAI geometry box 1; array_data box lower (1,2) upper (4,5) depth 2, equals index_box 1; same array as SAMRAI accessor (non-const, const) 1 1
+cell double (depth 2): find_data_centering has value 1, centering CELL (0), get_data_centering CELL
+node double (depth 2): find_data_centering has value 1, centering NODE (1), get_data_centering NODE
+side double (depth 2): find_data_centering has value 1, centering SIDE (2), get_data_centering SIDE
+face double (depth 2): find_data_centering has value 1, centering FACE (3), get_data_centering FACE
+edge double (depth 2): find_data_centering has value 1, centering EDGE (4), get_data_centering EDGE
+outerside double (depth 2): find_data_centering has value 0
+cell int queried as double (depth 2): find_data_centering has value 0
+cell int queried as int (depth 2): find_data_centering has value 1, centering CELL (0), get_data_centering CELL

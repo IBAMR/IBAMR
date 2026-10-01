@@ -90,6 +90,13 @@ CartesianCentering<C>::is_staggered()
 }
 
 template <DataCentering C>
+constexpr int
+CartesianCentering<C>::num_axes()
+{
+    return is_staggered() ? NDIM : 1;
+}
+
+template <DataCentering C>
 template <typename T>
 bool
 CartesianCentering<C>::has_axis(const Data<T>& data, const int axis)
@@ -115,6 +122,63 @@ CartesianCentering<C>::begin(const SAMRAI::hier::Box<NDIM>& box, const int axis)
     else
     {
         return typename Data<double>::Iterator(box);
+    }
+}
+
+template <DataCentering C>
+SAMRAI::hier::Box<NDIM>
+CartesianCentering<C>::index_box(const SAMRAI::hier::Box<NDIM>& cell_box, const int axis)
+{
+    if constexpr (C == DataCentering::CELL)
+    {
+        return cell_box;
+    }
+    else if constexpr (C == DataCentering::NODE)
+    {
+        return SAMRAI::pdat::NodeGeometry<NDIM>::toNodeBox(cell_box);
+    }
+    else if constexpr (C == DataCentering::SIDE)
+    {
+        return SAMRAI::pdat::SideGeometry<NDIM>::toSideBox(cell_box, axis);
+    }
+    else if constexpr (C == DataCentering::FACE)
+    {
+        return SAMRAI::pdat::FaceGeometry<NDIM>::toFaceBox(cell_box, axis);
+    }
+    else
+    {
+        static_assert(C == DataCentering::EDGE, "Unsupported Cartesian centering.");
+        return SAMRAI::pdat::EdgeGeometry<NDIM>::toEdgeBox(cell_box, axis);
+    }
+}
+
+template <DataCentering C>
+template <typename T>
+SAMRAI::pdat::ArrayData<NDIM, T>&
+CartesianCentering<C>::array_data(Data<T>& data, const int axis)
+{
+    if constexpr (is_staggered())
+    {
+        return data.getArrayData(axis);
+    }
+    else
+    {
+        return data.getArrayData();
+    }
+}
+
+template <DataCentering C>
+template <typename T>
+const SAMRAI::pdat::ArrayData<NDIM, T>&
+CartesianCentering<C>::array_data(const Data<T>& data, const int axis)
+{
+    if constexpr (is_staggered())
+    {
+        return data.getArrayData(axis);
+    }
+    else
+    {
+        return data.getArrayData();
     }
 }
 
@@ -161,8 +225,8 @@ CartesianCentering<C>::cartesian_index(const Index& index)
 }
 
 template <typename T>
-DataCentering
-get_data_centering(const SAMRAI::hier::PatchDataFactory<NDIM>& factory)
+std::optional<DataCentering>
+find_data_centering(const SAMRAI::hier::PatchDataFactory<NDIM>& factory)
 {
     if (dynamic_cast<const typename CartesianCentering<DataCentering::CELL>::template Factory<T>*>(&factory))
     {
@@ -184,8 +248,19 @@ get_data_centering(const SAMRAI::hier::PatchDataFactory<NDIM>& factory)
     {
         return DataCentering::EDGE;
     }
-    TBOX_ERROR("get_data_centering: unsupported patch data factory for the requested scalar type\n");
-    std::abort();
+    return std::nullopt;
+}
+
+template <typename T>
+DataCentering
+get_data_centering(const SAMRAI::hier::PatchDataFactory<NDIM>& factory)
+{
+    const std::optional<DataCentering> centering = find_data_centering<T>(factory);
+    if (!centering)
+    {
+        TBOX_ERROR("get_data_centering: unsupported patch data factory for the requested scalar type\n");
+    }
+    return *centering;
 }
 
 template <typename Function>
