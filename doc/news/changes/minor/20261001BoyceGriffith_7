@@ -1,0 +1,3 @@
+New: IBHierarchyIntegrator fills velocity ghost values with INSStaggeredDivergenceFreePhysBdryOp and spreads forces with its transpose when divergence_free_velocity_extension = TRUE.
+<br>
+(Boyce Griffith, 2026/10/01)

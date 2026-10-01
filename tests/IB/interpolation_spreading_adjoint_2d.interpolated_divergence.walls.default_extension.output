@@ -1,0 +1,8 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+IBRedundantInitializer:  Deallocating initialization data.
+max |div u| of the velocity in the domain = 0
+patches on the level = 16
+probe points = 36
+max |div| of the interpolated velocity = 0.629
