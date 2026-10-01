@@ -49,6 +49,16 @@ ExtendedRobinBcCoefStrategy::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
+void
+ExtendedRobinBcCoefStrategy::accumulateGcoefTranspose(const ArrayData<NDIM, double>& /*gcoef_transpose_data*/,
+                                                      const Patch<NDIM>& /*patch*/,
+                                                      const BoundaryBox<NDIM>& /*bdry_box*/,
+                                                      const double /*fill_time*/) const
+{
+    // intentionally blank
+    return;
+} // accumulateGcoefTranspose
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

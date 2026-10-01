@@ -1,0 +1,3 @@
+Fixed: Transpose TRACTION velocity conditions when spreading IB forces.
+<br>
+(Boyce Griffith, 2026/10/01)
