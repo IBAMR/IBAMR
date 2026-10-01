@@ -23,6 +23,7 @@
 #include <CartesianGridGeometry.h>
 #include <FaceData.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchyDataOpsManager.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
@@ -35,12 +36,95 @@
 #include <ibtk/muParserCartGridFunction.h>
 
 #include <array>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <string>
+#include <vector>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
 // A test program to check that the side-centered Laplace operator
 // discretization yields the expected order of accuracy.
+//
+// If the input database sets synchronization_test = TRUE, the program instead
+// checks that HierarchyMathOps::synchronizeCoarseFineBoundary() gives the same
+// result as synchronizing each side-centered field alone.
+
+namespace
+{
+// Synchronize two side-centered fields together with
+// synchronizeCoarseFineBoundary(), and separately one at a time as the source of
+// div() with synchronization; print norms of the results and of their
+// differences.
+void
+run_synchronization_test(Pointer<AppInitializer> app_initializer,
+                         Pointer<CartesianGridGeometry<NDIM>> grid_geometry,
+                         Pointer<PatchHierarchy<NDIM>> patch_hierarchy)
+{
+    constexpr int NUM_FIELDS = 2;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> ctx = var_db->getContext("synchronization_context");
+
+    std::vector<Pointer<SideVariable<NDIM, double>>> together_vars, alone_vars;
+    std::vector<int> together_idxs, alone_idxs;
+    for (int k = 0; k < NUM_FIELDS; ++k)
+    {
+        together_vars.push_back(new SideVariable<NDIM, double>("together_" + std::to_string(k)));
+        together_idxs.push_back(var_db->registerVariableAndContext(together_vars.back(), ctx, IntVector<NDIM>(1)));
+        alone_vars.push_back(new SideVariable<NDIM, double>("alone_" + std::to_string(k)));
+        alone_idxs.push_back(var_db->registerVariableAndContext(alone_vars.back(), ctx, IntVector<NDIM>(1)));
+    }
+    Pointer<CellVariable<NDIM, double>> div_var = new CellVariable<NDIM, double>("div");
+    const int div_idx = var_db->registerVariableAndContext(div_var, ctx, IntVector<NDIM>(0));
+
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        for (int k = 0; k < NUM_FIELDS; ++k)
+        {
+            level->allocatePatchData(together_idxs[k], 0.0);
+            level->allocatePatchData(alone_idxs[k], 0.0);
+        }
+        level->allocatePatchData(div_idx, 0.0);
+    }
+
+    // Fill the fields with different smooth data on every level.
+    Pointer<HierarchyDataOpsReal<NDIM, double>> hier_sc_data_ops =
+        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(together_vars[0], patch_hierarchy, true);
+    for (int k = 0; k < NUM_FIELDS; ++k)
+    {
+        muParserCartGridFunction fcn("field_" + std::to_string(k),
+                                     app_initializer->getComponentDatabase("field_" + std::to_string(k)),
+                                     grid_geometry);
+        fcn.setDataOnPatchHierarchy(together_idxs[k], together_vars[k], patch_hierarchy, 0.0);
+        hier_sc_data_ops->copyData(alone_idxs[k], together_idxs[k]);
+    }
+
+    HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
+    hier_math_ops.synchronizeCoarseFineBoundary(together_idxs);
+    for (int k = 0; k < NUM_FIELDS; ++k)
+    {
+        hier_math_ops.div(div_idx, div_var, 1.0, alone_idxs[k], alone_vars[k], nullptr, 0.0, true);
+    }
+
+    // The norms are not weighted by control volume, so that they include the
+    // coarse-grid data that is covered by finer levels.
+    plog << std::setprecision(12);
+    plog << "number of levels = " << patch_hierarchy->getNumberOfLevels() << "\n";
+    for (int k = 0; k < NUM_FIELDS; ++k)
+    {
+        plog << "field " << k
+             << " synchronized together: max norm = " << hier_sc_data_ops->maxNorm(together_idxs[k], -1) << "\n";
+        plog << "field " << k << " synchronized together: L2 norm = " << hier_sc_data_ops->L2Norm(together_idxs[k], -1)
+             << "\n";
+        hier_sc_data_ops->subtract(alone_idxs[k], together_idxs[k], alone_idxs[k]);
+        plog << "field " << k << " max norm of difference from synchronized alone = "
+             << std::abs(hier_sc_data_ops->maxNorm(alone_idxs[k], -1)) << "\n";
+    }
+}
+} // namespace
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -78,6 +162,24 @@ main(int argc, char* argv[])
                                         error_detector,
                                         box_generator,
                                         load_balancer);
+
+        // Initialize the AMR patch hierarchy.
+        gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
+        int tag_buffer = 1;
+        int level_number = 0;
+        bool done = false;
+        while (!done && (gridding_algorithm->levelCanBeRefined(level_number)))
+        {
+            gridding_algorithm->makeFinerLevel(patch_hierarchy, 0.0, 0.0, tag_buffer);
+            done = !patch_hierarchy->finerLevelExists(level_number);
+            ++level_number;
+        }
+
+        if (input_db->getBoolWithDefault("synchronization_test", false))
+        {
+            run_synchronization_test(app_initializer, grid_geometry, patch_hierarchy);
+            return EXIT_SUCCESS;
+        }
 
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -119,18 +221,6 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             visit_data_writer->registerPlotQuantity(e_cc_var->getName() + std::to_string(d), "SCALAR", e_cc_idx, d);
-        }
-
-        // Initialize the AMR patch hierarchy.
-        gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
-        int tag_buffer = 1;
-        int level_number = 0;
-        bool done = false;
-        while (!done && (gridding_algorithm->levelCanBeRefined(level_number)))
-        {
-            gridding_algorithm->makeFinerLevel(patch_hierarchy, 0.0, 0.0, tag_buffer);
-            done = !patch_hierarchy->finerLevelExists(level_number);
-            ++level_number;
         }
 
         // Allocate data on each level of the patch hierarchy.

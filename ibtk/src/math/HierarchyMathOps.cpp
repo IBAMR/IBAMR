@@ -74,7 +74,10 @@
 #include <VariableContext.h>
 #include <VariableDatabase.h>
 
+#include <cstddef>
+#include <iterator>
 #include <ostream>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -265,6 +268,7 @@ HierarchyMathOps::HierarchyMathOps(std::string name,
     {
         d_os_idx = var_db->registerVariableAndContext(d_os_var, d_context);
     }
+    d_os_idxs.push_back(d_os_idx);
 
     if (var_db->checkVariableExists(d_oe_var->getName()))
     {
@@ -377,6 +381,8 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     d_on_v_coarsen_scheds.resize(d_finest_ln);
     d_os_coarsen_scheds.resize(d_finest_ln);
     d_oe_coarsen_scheds.resize(d_finest_ln);
+    d_os_multi_coarsen_algs.clear();
+    d_os_multi_coarsen_scheds.clear();
     for (int dst_ln = d_coarsest_ln; dst_ln < d_finest_ln; ++dst_ln)
     {
         Pointer<PatchLevel<NDIM>> src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
@@ -3909,6 +3915,66 @@ HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, Pointer<NodeV
     }
 }
 
+void
+HierarchyMathOps::synchronizeCoarseFineBoundary(const std::vector<int>& sc_data_idxs)
+{
+    const std::size_t num_idxs = sc_data_idxs.size();
+    if (num_idxs == 0)
+    {
+        return;
+    }
+
+    // Restricting data of depth other than one would silently synchronize only its first component.
+    Pointer<PatchDescriptor<NDIM>> patch_descriptor = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
+    for (const auto idx : sc_data_idxs)
+    {
+        TBOX_ASSERT(idx >= 0 && idx < patch_descriptor->getMaxNumberRegisteredComponents());
+        Pointer<SideDataFactory<NDIM, double>> factory = patch_descriptor->getPatchDataFactory(idx);
+        if (!factory || factory->getDefaultDepth() != 1)
+        {
+            TBOX_ERROR("HierarchyMathOps::synchronizeCoarseFineBoundary():\n"
+                       << "  patch data index " << idx
+                       << " does not refer to depth-one side-centered double-valued data\n");
+        }
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            TBOX_ASSERT(level->checkAllocated(idx));
+        }
+    }
+
+    registerOutersideScratch(num_idxs);
+    const std::vector<int> os_idxs(d_os_idxs.begin(), std::next(d_os_idxs.begin(), num_idxs));
+    for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+
+        // Extract data on the coarse-fine interface.
+        for (const auto os_idx : os_idxs)
+        {
+            level->allocatePatchData(os_idx);
+        }
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            for (std::size_t k = 0; k < num_idxs; ++k)
+            {
+                Pointer<SideData<NDIM, double>> sc_data = patch->getPatchData(sc_data_idxs[k]);
+                Pointer<OutersideData<NDIM, double>> os_data = patch->getPatchData(os_idxs[k]);
+                os_data->copy(*sc_data);
+            }
+        }
+
+        // Synchronize the coarse-fine interface and deallocate temporary data.
+        xeqScheduleOutersideRestriction(sc_data_idxs, os_idxs, ln - 1);
+        for (const auto os_idx : os_idxs)
+        {
+            level->deallocatePatchData(os_idx);
+        }
+    }
+    return;
+} // synchronizeCoarseFineBoundary
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -3946,6 +4012,9 @@ HierarchyMathOps::resetCoarsenOperators()
     d_oe_coarsen_alg->registerCoarsen(d_ec_idx, // destination
                                       d_oe_idx, // source
                                       d_oe_coarsen_op);
+
+    d_os_multi_coarsen_algs.clear();
+    d_os_multi_coarsen_scheds.clear();
     return;
 } // resetCoarsenOperators
 
@@ -4036,6 +4105,81 @@ HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const int s
     }
     return;
 } // xeqScheduleOutersideRestriction
+
+void
+HierarchyMathOps::xeqScheduleOutersideRestriction(const std::vector<int>& dst_idxs,
+                                                  const std::vector<int>& src_idxs,
+                                                  const int dst_ln)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(dst_idxs.size() == src_idxs.size());
+    TBOX_ASSERT(dst_ln >= d_coarsest_ln);
+    TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
+#endif
+    const std::size_t num_idxs = dst_idxs.size();
+    if (d_os_multi_coarsen_scheds.find(num_idxs) == d_os_multi_coarsen_scheds.end())
+    {
+        // Create the schedules with placeholder indices (d_sc_idx as destination,
+        // d_os_idxs as sources); they are reset to the caller's indices before
+        // each use.
+        Pointer<CoarsenAlgorithm<NDIM>> scratch_alg = new CoarsenAlgorithm<NDIM>();
+        for (std::size_t k = 0; k < num_idxs; ++k)
+        {
+            scratch_alg->registerCoarsen(d_sc_idx, d_os_idxs[k], d_os_coarsen_op);
+        }
+        std::vector<Pointer<CoarsenSchedule<NDIM>>>& scheds = d_os_multi_coarsen_scheds[num_idxs];
+        scheds.resize(d_finest_ln);
+        for (int ln = d_coarsest_ln; ln < d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> src_level = d_hierarchy->getPatchLevel(ln + 1);
+            Pointer<PatchLevel<NDIM>> dst_level = d_hierarchy->getPatchLevel(ln);
+            scheds[ln] = scratch_alg->createSchedule(dst_level, src_level);
+        }
+        d_os_multi_coarsen_algs[num_idxs] = scratch_alg;
+    }
+
+    Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    for (std::size_t k = 0; k < num_idxs; ++k)
+    {
+        coarsen_alg->registerCoarsen(dst_idxs[k], src_idxs[k], d_os_coarsen_op);
+    }
+    Pointer<CoarsenSchedule<NDIM>> sched = d_os_multi_coarsen_scheds[num_idxs][dst_ln];
+    if (coarsen_alg->checkConsistency(sched))
+    {
+        coarsen_alg->resetSchedule(sched);
+        sched->coarsenData();
+        d_os_multi_coarsen_algs[num_idxs]->resetSchedule(sched);
+    }
+    else
+    {
+        Pointer<PatchLevel<NDIM>> src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
+        Pointer<PatchLevel<NDIM>> dst_level = d_hierarchy->getPatchLevel(dst_ln);
+        coarsen_alg->createSchedule(dst_level, src_level)->coarsenData();
+    }
+    return;
+} // xeqScheduleOutersideRestriction
+
+void
+HierarchyMathOps::registerOutersideScratch(const std::size_t num_idxs)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    while (d_os_idxs.size() < num_idxs)
+    {
+        const std::string name = d_object_name + "::scratch_os_" + std::to_string(d_os_idxs.size());
+        Pointer<OutersideVariable<NDIM, double>> os_var = new OutersideVariable<NDIM, double>(name);
+        os_var->setPatchDataFactory(new OutersideDataFactory<NDIM, double>(1));
+        if (var_db->checkVariableExists(name))
+        {
+            os_var = var_db->getVariable(name);
+            d_os_idxs.push_back(var_db->mapVariableAndContextToIndex(os_var, d_context));
+        }
+        else
+        {
+            d_os_idxs.push_back(var_db->registerVariableAndContext(os_var, d_context));
+        }
+    }
+    return;
+} // registerOutersideScratch
 
 void
 HierarchyMathOps::xeqScheduleOuteredgeRestriction(const int dst_idx, const int src_idx, const int dst_ln)
