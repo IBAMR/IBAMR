@@ -110,8 +110,8 @@ find_component_centering(const int idx)
         *VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor()->getPatchDataFactory(idx));
 }
 
-// Call fn(offset in data_box, offset in other_box, row length) for each row of ibox, in the order of SAMRAI's
-// ArrayData loops: rows in lexicographic order with the lowest remaining index fastest.
+// Call fn(index of the row start, offset in data_box, offset in other_box, row length) for each row of ibox, in the
+// order of SAMRAI's ArrayData loops: rows in lexicographic order with the lowest remaining index fastest.
 template <class RowFn>
 void
 for_each_row(const Box<NDIM>& ibox, const Box<NDIM>& data_box, const Box<NDIM>& other_box, RowFn&& fn)
@@ -120,7 +120,7 @@ for_each_row(const Box<NDIM>& ibox, const Box<NDIM>& data_box, const Box<NDIM>& 
     Index<NDIM> idx = ibox.lower();
     while (true)
     {
-        fn(data_box.offset(idx), other_box.offset(idx), n0);
+        fn(idx, data_box.offset(idx), other_box.offset(idx), n0);
         int j = 1;
         for (; j < NDIM; ++j)
         {
@@ -248,7 +248,7 @@ mdot_arrays(const ArrayData<NDIM, double>& x,
         for_each_row(ibox,
                      x_box,
                      cv_box,
-                     [&](const int x_offset, const int cv_offset, const int n)
+                     [&](const Index<NDIM>& /*idx*/, const int x_offset, const int cv_offset, const int n)
                      {
                          const double* const x_row = x.getPointer() + x_depth_offset + x_offset;
                          for (int i = 0; i < ny; ++i)
@@ -341,13 +341,22 @@ axpy_row(double* __restrict__ const y, const double a, const double* __restrict_
 }
 
 // Compute y += sum_i alpha[i] * x[i] over box, applying the terms to each value in order as ArrayDataBasicOps::axpy()
-// would. All x arrays must share y's box and depth.
+// would. All x arrays must share y's box and depth. If norm_box and norm_sum are not null, also set *norm_sum to the
+// sum of y * y (* cv) over norm_box, accumulated as in ArrayDataNormOpsReal::dot() or
+// ArrayDataNormOpsReal::dotWithControlVolume() once each row holds its final values; box must contain norm_box.
 void
 maxpy_arrays(ArrayData<NDIM, double>& y,
              const std::vector<double>& alpha,
              const std::vector<const ArrayData<NDIM, double>*>& x,
-             const Box<NDIM>& box)
+             const Box<NDIM>& box,
+             const ArrayData<NDIM, double>* const cv,
+             const Box<NDIM>* const norm_box,
+             double* const norm_sum)
 {
+    if (norm_sum)
+    {
+        *norm_sum = 0.0;
+    }
     const int nx = static_cast<int>(x.size());
     const Box<NDIM>& y_box = y.getBox();
     const Box<NDIM> ibox = box * y_box * y_box * y_box;
@@ -355,14 +364,18 @@ maxpy_arrays(ArrayData<NDIM, double>& y,
     {
         return;
     }
+    const Box<NDIM> norm_ibox = norm_box ? (cv ? *norm_box * y_box * cv->getBox() : *norm_box * y_box) : Box<NDIM>();
+    const bool accumulate_norm = norm_sum && !norm_ibox.empty();
+    const int cv_depth = cv ? cv->getDepth() : 1;
     std::vector<const double*> x_row(nx);
     for (int d = 0; d < y.getDepth(); ++d)
     {
         const int depth_offset = d * y.getOffset();
+        const int cv_depth_offset = (cv && cv_depth != 1) ? d * cv->getOffset() : 0;
         for_each_row(ibox,
                      y_box,
                      y_box,
-                     [&](const int offset, const int /*other_offset*/, const int n)
+                     [&](const Index<NDIM>& idx, const int offset, const int /*other_offset*/, const int n)
                      {
                          double* const y_row = y.getPointer() + depth_offset + offset;
                          for (int i = 0; i < nx; ++i)
@@ -391,6 +404,39 @@ maxpy_arrays(ArrayData<NDIM, double>& y,
                              }
                              i += block;
                          }
+                         if (!accumulate_norm)
+                         {
+                             return;
+                         }
+                         for (int j = 1; j < NDIM; ++j)
+                         {
+                             if (idx(j) < norm_ibox.lower(j) || idx(j) > norm_ibox.upper(j))
+                             {
+                                 return;
+                             }
+                         }
+                         const int k_begin = norm_ibox.lower(0) - idx(0);
+                         const int k_end = norm_ibox.upper(0) - idx(0) + 1;
+                         double sum = *norm_sum;
+                         if (cv)
+                         {
+                             Index<NDIM> cv_idx = idx;
+                             cv_idx(0) = norm_ibox.lower(0);
+                             const double* const cv_row =
+                                 cv->getPointer() + cv_depth_offset + cv->getBox().offset(cv_idx);
+                             for (int k = k_begin; k < k_end; ++k)
+                             {
+                                 sum += y_row[k] * y_row[k] * cv_row[k - k_begin];
+                             }
+                         }
+                         else
+                         {
+                             for (int k = k_begin; k < k_end; ++k)
+                             {
+                                 sum += y_row[k] * y_row[k];
+                             }
+                         }
+                         *norm_sum = sum;
                      });
     }
 }
@@ -590,20 +636,25 @@ fused_local_mdot(const SAMRAIVectorReal<NDIM, double>& x,
 }
 
 // Apply y.axpy(alpha_group[i], x[begin + i], y) for each i in order to component c of y over its ghost boxes, where the
-// data are of centering C: on each patch, for each coordinate direction that the data of y allocate.
+// data are of centering C: on each patch, for each coordinate direction that the data of y allocate. If sum_of_squares
+// is not null, also add to *sum_of_squares the local dot product of component c of the result with itself, accumulated
+// as in the SAMRAI operations: over levels and patches, and on each patch over the coordinate directions that the data
+// allocate, in the interior of the patch.
 template <DataCentering C>
 void
 maxpy_component(SAMRAIVectorReal<NDIM, double>& y,
                 const std::vector<double>& alpha_group,
                 const std::vector<SAMRAIVectorReal<NDIM, double>*>& x,
                 const int begin,
-                const int c)
+                const int c,
+                double* const sum_of_squares)
 {
     using Traits = CartesianCentering<C>;
     using Data = typename Traits::template Data<double>;
     Pointer<PatchHierarchy<NDIM>> hierarchy = y.getPatchHierarchy();
     const int nx = static_cast<int>(alpha_group.size());
     const int y_idx = y.getComponentDescriptorIndex(c);
+    const int cv_idx = y.getControlVolumeIndex(c);
     std::vector<const ArrayData<NDIM, double>*> x_arrays(nx);
     for (int ln = y.getCoarsestLevelNumber(); ln <= y.getFinestLevelNumber(); ++ln)
     {
@@ -612,7 +663,10 @@ maxpy_component(SAMRAIVectorReal<NDIM, double>& y,
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<Data> y_data = patch->getPatchData(y_idx);
+            Pointer<Data> cv_data =
+                (sum_of_squares && cv_idx >= 0) ? patch->getPatchData(cv_idx) : Pointer<PatchData<NDIM>>();
             const Box<NDIM> box = y_data->getGhostBox();
+            double patch_sum = 0.0;
             for (int axis = 0; axis < Traits::num_axes(); ++axis)
             {
                 if (!Traits::template has_axis<double>(*y_data, axis))
@@ -624,31 +678,50 @@ maxpy_component(SAMRAIVectorReal<NDIM, double>& y,
                     Pointer<Data> x_data = patch->getPatchData(x[begin + i]->getComponentDescriptorIndex(c));
                     x_arrays[i] = &Traits::template array_data<double>(*x_data, axis);
                 }
+                const Box<NDIM> interior_box = Traits::index_box(patch->getBox(), axis);
+                double array_sum = 0.0;
                 maxpy_arrays(Traits::template array_data<double>(*y_data, axis),
                              alpha_group,
                              x_arrays,
-                             Traits::index_box(box, axis));
+                             Traits::index_box(box, axis),
+                             cv_data ? &Traits::template array_data<double>(*cv_data, axis) : nullptr,
+                             sum_of_squares ? &interior_box : nullptr,
+                             sum_of_squares ? &array_sum : nullptr);
+                patch_sum += array_sum;
+            }
+            if (sum_of_squares)
+            {
+                *sum_of_squares += patch_sum;
             }
         }
     }
 }
 
 // Compute y.axpy(alpha[i], x[i], y) for each i in order over ghost boxes, bitwise identical to the sequence of calls.
-// The data must satisfy can_fuse().
+// The data must satisfy can_fuse(). If sum_of_squares is not null, also set *sum_of_squares in the pass that applies
+// the last group of vectors to the local sum of squares of the result, accumulated as NormOps::L2Norm() does with plain
+// summation.
 void
 fused_maxpy(SAMRAIVectorReal<NDIM, double>& y,
             const PetscScalar* alpha,
-            const std::vector<SAMRAIVectorReal<NDIM, double>*>& x)
+            const std::vector<SAMRAIVectorReal<NDIM, double>*>& x,
+            double* const sum_of_squares)
 {
     const int nv = static_cast<int>(x.size());
+    if (sum_of_squares)
+    {
+        *sum_of_squares = 0.0;
+    }
     for (int begin = 0; begin < nv; begin += FUSED_GROUP_SIZE)
     {
         const int nx = std::min(FUSED_GROUP_SIZE, nv - begin);
+        double* const group_sum_of_squares = begin + nx == nv ? sum_of_squares : nullptr;
         const std::vector<double> alpha_group(alpha + begin, alpha + begin + nx);
         for (int c = 0; c < y.getNumberOfComponents(); ++c)
         {
             dispatch_data_centering(*find_component_centering(y.getComponentDescriptorIndex(c)),
-                                    [&]<DataCentering C>() { maxpy_component<C>(y, alpha_group, x, begin, c); });
+                                    [&]<DataCentering C>()
+                                    { maxpy_component<C>(y, alpha_group, x, begin, c, group_sum_of_squares); });
         }
     }
 }
@@ -714,7 +787,9 @@ compute_local_mdot(const Pointer<SAMRAIVectorReal<NDIM, double>>& x_vec,
 
 // Compute y_vec.axpy(alpha[i], x_vecs[i], y_vec) for each i in order, with the fused kernel unless fusion is disabled,
 // y_vec is one of the x_vecs, or the data do not allow it, in which case SAMRAIVectorReal::axpy() is used for each i.
-void
+// If the fused kernel was used, at least one vector was added, and NormOps uses plain summation, also return the local
+// sum of squares of the result that NormOps::L2Norm() computes.
+std::optional<double>
 compute_maxpy(const Pointer<SAMRAIVectorReal<NDIM, double>>& y_vec,
               const PetscScalar* alpha,
               const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& x_vecs)
@@ -733,9 +808,13 @@ compute_maxpy(const Pointer<SAMRAIVectorReal<NDIM, double>>& y_vec,
         {
             y_vec->axpy(alpha[i], x_vecs[i], y_vec, interior_only);
         }
-        return;
+        return std::nullopt;
     }
-    fused_maxpy(*y_vec, alpha, x_ptrs);
+    // Without vectors to add, no pass of the data computes the sum of squares.
+    const bool compute_norm = nv > 0 && !NormOps::getSortedSummation();
+    double sum_of_squares = 0.0;
+    fused_maxpy(*y_vec, alpha, x_ptrs, compute_norm ? &sum_of_squares : nullptr);
+    return compute_norm ? std::optional<double>(sum_of_squares) : std::nullopt;
 }
 
 #define PSVR_CAST1(v) (static_cast<PETScSAMRAIVectorReal*>(v->data))
@@ -995,7 +1074,9 @@ PETScSAMRAIVectorReal::VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
     }
     else if (type == NORM_2)
     {
-        *val = NormOps::L2Norm(PSVR_CAST2(x));
+        const bool local_only = false;
+        PetscErrorCode ierr = L2Norm_SAMRAI(x, local_only, val);
+        CHKERRQ(ierr);
     }
     else if (type == NORM_INFINITY)
     {
@@ -1016,6 +1097,31 @@ PETScSAMRAIVectorReal::VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
                    << "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
     }
     IBTK_TIMER_STOP(t_vec_norm);
+    PetscFunctionReturn(0);
+}
+
+PetscErrorCode
+PETScSAMRAIVectorReal::L2Norm_SAMRAI(Vec x, const bool local_only, PetscScalar* val)
+{
+    PetscFunctionBeginUser;
+    PetscObjectState state;
+    int ierr = PetscObjectStateGet(reinterpret_cast<PetscObject>(x), &state);
+    CHKERRQ(ierr);
+    const PETScSAMRAIVectorReal* const x_wrapper = PSVR_CAST1(x);
+    if (x_wrapper->d_norm_cache_state == state && !NormOps::getSortedSummation())
+    {
+        *val = NormOps::L2NormFromSumOfSquares(x_wrapper->d_norm_cache_sum_of_squares, local_only);
+#if !defined(NDEBUG)
+        // The comparison is local so that every process performs the same reductions.
+        static const bool check_local_only = true;
+        TBOX_ASSERT(NormOps::L2NormFromSumOfSquares(x_wrapper->d_norm_cache_sum_of_squares, check_local_only) ==
+                    NormOps::L2Norm(PSVR_CAST2(x), check_local_only));
+#endif
+    }
+    else
+    {
+        *val = NormOps::L2Norm(PSVR_CAST2(x), local_only);
+    }
     PetscFunctionReturn(0);
 }
 
@@ -1146,9 +1252,20 @@ PETScSAMRAIVectorReal::VecMAXPY_SAMRAI(Vec y, PetscInt nv, const PetscScalar* al
     {
         x_vecs[i] = PSVR_CAST2(x[i]);
     }
-    compute_maxpy(PSVR_CAST2(y), alpha, x_vecs);
+    const std::optional<double> sum_of_squares = compute_maxpy(PSVR_CAST2(y), alpha, x_vecs);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     CHKERRQ(ierr);
+    PETScSAMRAIVectorReal* const y_wrapper = PSVR_CAST1(y);
+    y_wrapper->d_norm_cache_state = -1;
+    if (sum_of_squares)
+    {
+        // PETSc's VecMAXPY() increments the object state once more after this operation returns, so the cached sum
+        // of squares corresponds to the next state.
+        ierr = PetscObjectStateGet(reinterpret_cast<PetscObject>(y), &y_wrapper->d_norm_cache_state);
+        CHKERRQ(ierr);
+        ++y_wrapper->d_norm_cache_state;
+        y_wrapper->d_norm_cache_sum_of_squares = *sum_of_squares;
+    }
     IBTK_TIMER_STOP(t_vec_maxpy);
     PetscFunctionReturn(0);
 }
@@ -1324,7 +1441,8 @@ PETScSAMRAIVectorReal::VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* v
     }
     else if (type == NORM_2)
     {
-        *val = NormOps::L2Norm(PSVR_CAST2(x), local_only);
+        PetscErrorCode ierr = L2Norm_SAMRAI(x, local_only, val);
+        CHKERRQ(ierr);
     }
     else if (type == NORM_INFINITY)
     {
