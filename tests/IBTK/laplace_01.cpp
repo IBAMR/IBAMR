@@ -44,6 +44,7 @@
 #include <array>
 #include <cmath>
 #include <iomanip>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -370,6 +371,150 @@ check_all_norm_ops(Pointer<PatchHierarchy<NDIM>> hierarchy,
         TBOX_ERROR("NormOps norms differ from the norms of SAMRAIVectorReal\n");
     }
 }
+
+// Return the maximum of |a[i] - b[i]| for i = 0, ..., n - 1, or infinity if any difference is not a number.
+double
+max_abs_difference(const double* const a, const double* const b, const int n)
+{
+    double max_diff = 0.0;
+    for (int i = 0; i < n; ++i)
+    {
+        const double diff = std::abs(a[i] - b[i]);
+        max_diff = std::max(max_diff, std::isnan(diff) ? std::numeric_limits<double>::infinity() : diff);
+    }
+    return max_diff;
+}
+
+// Compare VecMDot and VecMTDot on wrapped SAMRAI vectors with the sequences of VecDot and VecTDot calls that they fuse;
+// the results must be identical. The first vector is a copy of base_vec and the others are copies of operand_vec, which
+// differs from base_vec only when the data prevent fusion. The numbers of vectors are below, at, and above the block
+// size of four and the group size of eight. Return whether all comparisons are exact.
+bool
+check_fused_vector_ops(const std::string& label,
+                       SAMRAIVectorReal<NDIM, double>& base_vec,
+                       SAMRAIVectorReal<NDIM, double>& operand_vec)
+{
+    constexpr std::array<int, 5> COUNTS = { 1, 3, 4, 5, 9 };
+    constexpr int MAX_COUNT = 9;
+    std::vector<std::unique_ptr<SAMRAIScopedVectorDuplicate<double>>> duplicates;
+    std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> vecs;
+    std::vector<Vec> petsc_vecs;
+    for (int k = 0; k <= MAX_COUNT; ++k)
+    {
+        // Vector 0 is x and vectors 1, ..., MAX_COUNT are the other operands.
+        const bool is_operand = k >= 1 && k <= MAX_COUNT;
+        duplicates.push_back(std::make_unique<SAMRAIScopedVectorDuplicate<double>>(is_operand ? operand_vec : base_vec,
+                                                                                   "fused_" + std::to_string(k)));
+        Pointer<SAMRAIVectorReal<NDIM, double>> vec = *duplicates.back();
+        fill_vector(*vec, 0.9 * k);
+        vecs.push_back(vec);
+        petsc_vecs.push_back(PETScSAMRAIVectorReal::createPETScVector(vec));
+    }
+
+    std::ostringstream out;
+    out << std::setprecision(15) << label << ":\n";
+    bool exact = true;
+    const auto report = [&](const std::string& name, const std::vector<double>& max_diffs)
+    {
+        out << "  " << name << " for n = 1, 3, 4, 5, 9:";
+        for (const auto max_diff : max_diffs)
+        {
+            out << ' ' << max_diff;
+            exact = exact && max_diff == 0.0;
+        }
+        out << '\n';
+    };
+
+    // VecDot reduces the dot product of each component over the processes before adding the components, which differs
+    // in rounding from reducing the sum over the components, as VecMDot does. For a vector with several components, the
+    // expected values are therefore the sums of the local dot products of SAMRAI, reduced once.
+    const bool single_component = base_vec.getNumberOfComponents() == 1;
+    PetscErrorCode ierr;
+    std::array<double, MAX_COUNT> dots, expected_dots;
+    for (const auto transpose : { false, true })
+    {
+        std::vector<double> max_diffs;
+        for (const auto n : COUNTS)
+        {
+            ierr = transpose ? VecMTDot(petsc_vecs[0], n, &petsc_vecs[1], dots.data()) :
+                               VecMDot(petsc_vecs[0], n, &petsc_vecs[1], dots.data());
+            IBTK_CHKERRQ(ierr);
+            for (int i = 0; i < n; ++i)
+            {
+                if (single_component)
+                {
+                    ierr = transpose ? VecTDot(petsc_vecs[0], petsc_vecs[1 + i], &expected_dots[i]) :
+                                       VecDot(petsc_vecs[0], petsc_vecs[1 + i], &expected_dots[i]);
+                    IBTK_CHKERRQ(ierr);
+                }
+                else
+                {
+                    expected_dots[i] = vecs[0]->dot(vecs[1 + i], /*local_only*/ true);
+                }
+            }
+            if (!single_component)
+            {
+                IBTK_MPI::sumReduction(expected_dots.data(), n);
+            }
+            max_diffs.push_back(max_abs_difference(dots.data(), expected_dots.data(), n));
+        }
+        if (!transpose)
+        {
+            out << "  VecMDot values for n = 9:";
+            for (const auto dot : dots)
+            {
+                out << ' ' << dot;
+            }
+            out << '\n';
+        }
+        report(transpose ? "max |VecMTDot - separate dots|" : "max |VecMDot - separate dots|", max_diffs);
+    }
+
+    plog << out.str();
+    for (auto& petsc_vec : petsc_vecs)
+    {
+        PETScSAMRAIVectorReal::destroyPETScVector(petsc_vec);
+    }
+    return exact;
+}
+
+// Run check_fused_vector_ops() for each variable, for a vector with a component of each centering, and for operands
+// whose ghost region is wider than that of x, which prevents fusion. Report a failure only after all comparisons have
+// been printed.
+void
+check_all_fused_vector_ops(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                           HierarchyMathOps& hier_math_ops,
+                           const std::vector<TestVariable>& variables)
+{
+    allocate_test_variables(hierarchy, variables);
+
+    // The first variable is cell-centered with depth one, and the last is cell-centered with the wider ghost region.
+    const TestVariable& wide_variable = variables.back();
+    const auto cell_vec = make_test_vector(hierarchy, hier_math_ops, variables.front());
+    const auto wide_vec = make_test_vector(hierarchy, hier_math_ops, wide_variable);
+    SAMRAIVectorReal<NDIM, double> mixed_vec("fused all centerings", hierarchy, 0, hierarchy->getFinestLevelNumber());
+    bool exact = true;
+    for (const auto& variable : variables)
+    {
+        if (&variable == &wide_variable)
+        {
+            continue;
+        }
+        const auto vec = make_test_vector(hierarchy, hier_math_ops, variable);
+        exact = check_fused_vector_ops(variable.label, *vec, *vec) && exact;
+        if (variable.depth == 1)
+        {
+            mixed_vec.addComponent(variable.var, variable.idx, vec->getControlVolumeIndex(0));
+        }
+    }
+    exact = check_fused_vector_ops("all centerings, depth 1", mixed_vec, mixed_vec) && exact;
+    exact = check_fused_vector_ops("cell depth 1 with operands of wider ghost region", *cell_vec, *wide_vec) && exact;
+    plog << std::flush;
+    if (!exact)
+    {
+        TBOX_ERROR("fused vector operations differ from the sequences of single-vector operations\n");
+    }
+}
 } // namespace
 
 /*******************************************************************************
@@ -397,6 +542,7 @@ main(int argc, char* argv[])
         const bool test_standard_vector = !test_copied_vector && !test_duplicated_vector;
         const bool test_petsc_vector_ops = input_db->getBoolWithDefault("test_petsc_vector_ops", false);
         const bool test_norm_ops = input_db->getBoolWithDefault("test_norm_ops", false);
+        const bool test_fused_vector_ops = input_db->getBoolWithDefault("test_fused_vector_ops", false);
 
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input
@@ -439,9 +585,18 @@ main(int argc, char* argv[])
         const int f_approx_cc_idx = var_db->registerVariableAndContext(f_approx_cc_var, ctx, IntVector<NDIM>(1));
 
         std::vector<TestVariable> test_variables;
-        if (test_norm_ops)
+        if (test_norm_ops || test_fused_vector_ops)
         {
             test_variables = register_test_variables(ctx);
+        }
+        if (test_fused_vector_ops)
+        {
+            test_variables.push_back(register_test_variable(ctx,
+                                                            "wide cell",
+                                                            new CellVariable<NDIM, double>("test_wide_cell"),
+                                                            1,
+                                                            2,
+                                                            &HierarchyMathOps::getCellWeightPatchDescriptorIndex));
         }
 
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -483,6 +638,11 @@ main(int argc, char* argv[])
         if (test_norm_ops)
         {
             check_all_norm_ops(patch_hierarchy, hier_math_ops, test_variables);
+            return EXIT_SUCCESS;
+        }
+        if (test_fused_vector_ops)
+        {
+            check_all_fused_vector_ops(patch_hierarchy, hier_math_ops, test_variables);
             return EXIT_SUCCESS;
         }
 
