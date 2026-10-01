@@ -25,6 +25,9 @@
   an option that the changed code does not read. An expected output identical to
   a sibling's is evidence that a case is redundant. Each expected-error case
   should reach a different check.
+- Add an expected-error case when the error path contains logic that could
+  plausibly be wrong, such as detecting a nonfinite or unconverged result. A
+  precondition or argument check that is evident by inspection does not need one.
 - For numerical results, normally write the values to `output` through `plog` and
   supply the matching expected output. `attest` uses `numdiff` to compare numbers
   with tolerances that allow small differences between processors, compilers,
