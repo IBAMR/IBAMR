@@ -126,9 +126,14 @@ AdvDiffCUIConvectiveOperator::interpolateToFaceOnPatch(FaceData<NDIM, double>& q
     TBOX_ASSERT(q_interp_data_gcw.min() == q_interp_data_gcw.max());
 #endif
     const CellData<NDIM, double>& Q0_data = Q_cell_data;
-    CellData<NDIM, double> Q1_data(patch_box, 1, Q_cell_data_gcw);
+    // The Fortran kernel packs each transpose into its normal reconstruction slab.
+    IntVector<NDIM> Q1_gcw(0);
+    Q1_gcw(1) = 2;
+    CellData<NDIM, double> Q1_data(patch_box, 1, Q1_gcw);
 #if (NDIM == 3)
-    CellData<NDIM, double> Q2_data(patch_box, 1, Q_cell_data_gcw);
+    IntVector<NDIM> Q2_gcw(0);
+    Q2_gcw(2) = 2;
+    CellData<NDIM, double> Q2_data(patch_box, 1, Q2_gcw);
 #endif
 
     // Interpolate from cell centers to cell faces.

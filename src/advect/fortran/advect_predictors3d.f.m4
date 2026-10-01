@@ -2317,12 +2317,19 @@ c     Local variables.
 c
       INTEGER ic0,ic1,ic2
 c
-c     Make permuted copies of Q.
+c     Copy only the normal slabs read by xsPPM7. Its transverse
+c     indices stay inside the passed box in every direction.
 c
-      do ic2 = ifirst2-nQgc2,ilast2+nQgc2
-         do ic1 = ifirst1-nQgc1,ilast1+nQgc1
-            do ic0 = ifirst0-nQgc0,ilast0+nQgc0
+      do ic2 = ifirst2,ilast2
+         do ic1 = ifirst1-4,ilast1+4
+            do ic0 = ifirst0,ilast0
                Q1(ic1,ic2,ic0) = Q0(ic0,ic1,ic2)
+            enddo
+         enddo
+      enddo
+      do ic2 = ifirst2-4,ilast2+4
+         do ic1 = ifirst1,ilast1
+            do ic0 = ifirst0,ilast0
                Q2(ic2,ic0,ic1) = Q0(ic0,ic1,ic2)
             enddo
          enddo
@@ -2551,12 +2558,10 @@ c
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
 
       REAL Q0(CELL3dVECG(ifirst,ilast,nQgc))
-      REAL Q1(ifirst1-nQgc1:ilast1+nQgc1,
-     &        ifirst2-nQgc2:ilast2+nQgc2,
-     &        ifirst0-nQgc0:ilast0+nQgc0)
-      REAL Q2(ifirst2-nQgc2:ilast2+nQgc2,
-     &        ifirst0-nQgc0:ilast0+nQgc0,
-     &        ifirst1-nQgc1:ilast1+nQgc1)
+      REAL Q1(ifirst1-2:ilast1+2,
+     &        ifirst2:ilast2,ifirst0:ilast0)
+      REAL Q2(ifirst2-2:ilast2+2,
+     &        ifirst0:ilast0,ifirst1:ilast1)
 
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
@@ -2574,12 +2579,19 @@ c
       REAL QC,QU,QD
       REAL Qf_HR
 c
-c     Make permuted copies of Q.
+c     Copy only the normal slabs read by CUI. Its transverse
+c     indices stay inside the passed box in every direction.
 c
-      do ic2 = ifirst2-nQgc2,ilast2+nQgc2
-         do ic1 = ifirst1-nQgc1,ilast1+nQgc1
-            do ic0 = ifirst0-nQgc0,ilast0+nQgc0
+      do ic2 = ifirst2,ilast2
+         do ic1 = ifirst1-2,ilast1+2
+            do ic0 = ifirst0,ilast0
                Q1(ic1,ic2,ic0) = Q0(ic0,ic1,ic2)
+            enddo
+         enddo
+      enddo
+      do ic2 = ifirst2-2,ilast2+2
+         do ic1 = ifirst1,ilast1
+            do ic0 = ifirst0,ilast0
                Q2(ic2,ic0,ic1) = Q0(ic0,ic1,ic2)
             enddo
          enddo
