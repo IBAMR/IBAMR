@@ -1,0 +1,5 @@
+Changed: IBTK::NormOps now sums norm contributions in plain order by default;
+the option -ibtk_sorted_norm_summation restores the sorted, order-independent
+summation.
+<br>
+(Boyce Griffith, 2026/10/01)
