@@ -173,6 +173,11 @@ FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& s
     TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == rhs.getFinestLevelNumber());
 #endif
+    if (d_coarsest_ln > 0 && d_finest_ln > d_coarsest_ln)
+    {
+        TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                 << "  vectors that span more than one level must start at level zero." << std::endl);
+    }
     d_fac_strategy->initializeOperatorState(solution, rhs);
 
     // Allocate scratch data.
