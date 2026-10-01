@@ -1,0 +1,4 @@
+Improved: VecMAXPY on IBTK::PETScSAMRAIVectorReal vectors also computes the
+2-norm that a following VecNorm returns.
+<br>
+(Boyce Griffith, 2026/10/01)

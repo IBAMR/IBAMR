@@ -437,10 +437,10 @@ max_difference(const SAMRAIVectorReal<NDIM, double>& a, const SAMRAIVectorReal<N
 }
 
 // Compare VecMDot, VecMTDot, and VecMAXPY on wrapped SAMRAI vectors with the sequences of VecDot, VecTDot, and VecAXPY
-// calls that they fuse; the results must be identical. The first vector, and the vectors that VecMAXPY updates, are
-// copies of base_vec and the others are copies of operand_vec, which differs from base_vec only when the data prevent
-// fusion. The numbers of vectors are below, at, and above the block size of four and the group size of eight. Return
-// whether all comparisons are exact.
+// calls that they fuse, and the 2-norm after VecMAXPY with that after the VecAXPY calls; the results must be identical.
+// The first vector, and the vectors that VecMAXPY updates, are copies of base_vec and the others are copies of
+// operand_vec, which differs from base_vec only when the data prevent fusion. The numbers of vectors are below, at, and
+// above the block size of four and the group size of eight. Return whether all comparisons are exact.
 bool
 check_fused_vector_ops(const std::string& label,
                        SAMRAIVectorReal<NDIM, double>& base_vec,
@@ -533,7 +533,7 @@ check_fused_vector_ops(const std::string& label,
     constexpr int EXPECTED = MAX_COUNT + 2;
     for (int set = 0; set < 2; ++set)
     {
-        std::vector<double> max_diffs;
+        std::vector<double> max_diffs, norm_diffs;
         for (const auto n : COUNTS)
         {
             vecs[TARGET]->copyVector(vecs[0], false);
@@ -546,10 +546,22 @@ check_fused_vector_ops(const std::string& label,
                 IBTK_CHKERRQ(ierr);
             }
             max_diffs.push_back(max_difference(*vecs[TARGET], *vecs[EXPECTED]));
+
+            // The target may return the norm that VecMAXPY computed, whereas the norm of the expected result is
+            // computed from its data.
+            double target_norm, expected_norm;
+            ierr = VecNorm(petsc_vecs[TARGET], NORM_2, &target_norm);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecNorm(petsc_vecs[EXPECTED], NORM_2, &expected_norm);
+            IBTK_CHKERRQ(ierr);
+            norm_diffs.push_back(max_abs_difference(&target_norm, &expected_norm, 1));
         }
         report(set == 0 ? "max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ..." :
                           "max |VecMAXPY - VecAXPY|, general coefficients",
                max_diffs);
+        report(set == 0 ? "max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, coefficients 0, 1, -1, ..." :
+                          "max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients",
+               norm_diffs);
     }
 
     plog << out.str();

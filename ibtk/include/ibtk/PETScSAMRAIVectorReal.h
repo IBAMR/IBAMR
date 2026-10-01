@@ -61,6 +61,9 @@ namespace IBTK
  * uses the fused kernels where the data allow. The option is read from the PETSc options database once.
  * VecMAXPY() is fused in the same way and under the same conditions, provided that the target is not one of the
  * vectors that are added.
+ * In the same pass, VecMAXPY() computes the 2-norm of its result, which a following VecNorm() of type NORM_2 returns
+ * without traversing the data again. The norm is computed only with plain summation (see NormOps) and is bitwise
+ * identical to NormOps::L2Norm().
  *
  * Finally, we remark that PETSc allows vectors with complex-valued entries.
  * This class and the class SAMRAI::solv::SAMRAIVectorReal assume real-values
@@ -256,6 +259,8 @@ private:
 
     static PetscErrorCode VecDotNorm2_SAMRAI(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm);
 
+    static PetscErrorCode L2Norm_SAMRAI(Vec x, bool local_only, PetscScalar* val);
+
     /*
      * Vector data is maintained in the SAMRAI vector structure.
      */
@@ -266,6 +271,13 @@ private:
      */
     Vec d_petsc_vector;
     bool d_vector_created_via_duplicate, d_vector_checked_out_read_write = false, d_vector_checked_out_read = false;
+
+    /*
+     * The local sum of squares of the vector computed by VecMAXPY(), valid while the PETSc object state equals
+     * d_norm_cache_state.
+     */
+    PetscObjectState d_norm_cache_state = -1;
+    double d_norm_cache_sum_of_squares = 0.0;
 };
 } // namespace IBTK
 
