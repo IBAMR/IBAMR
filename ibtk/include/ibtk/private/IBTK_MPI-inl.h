@@ -22,6 +22,11 @@
 
 #include <tbox/Utilities.h>
 
+#include <algorithm>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
 namespace IBTK
 {
 template <typename T>
@@ -43,7 +48,7 @@ IBTK_MPI::minReduction(T* x, const int n, int* rank_of_min)
     }
     else
     {
-        minMaxReduction(x, n, rank_of_min, MPI_MINLOC);
+        minMaxLocReduction(x, n, rank_of_min, MPI_MINLOC);
     }
 } // minReduction
 
@@ -66,9 +71,30 @@ IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max)
     }
     else
     {
-        minMaxReduction(x, n, rank_of_max, MPI_MAXLOC);
+        minMaxLocReduction(x, n, rank_of_max, MPI_MAXLOC);
     }
 } // maxReduction
+
+template <typename T>
+inline void
+IBTK_MPI::minMaxReduction(T* x_min, T* x_max, const int n)
+{
+    static_assert(std::is_signed<T>::value, "This function requires a signed type.");
+    // The maximum of x is minus the minimum of -x, so reduce the minima
+    // together with the negated maxima.
+    std::vector<T> buffer(2 * n);
+    for (int i = 0; i < n; ++i)
+    {
+        buffer[i] = x_min[i];
+        buffer[n + i] = -x_max[i];
+    }
+    minReduction(buffer.data(), 2 * n);
+    for (int i = 0; i < n; ++i)
+    {
+        x_min[i] = buffer[i];
+        x_max[i] = -buffer[n + i];
+    }
+} // minMaxReduction
 
 template <typename T>
 inline T
@@ -89,6 +115,24 @@ IBTK_MPI::sumReduction(T* x, const int n)
 {
     const int ierr = MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_SUM, IBTK_MPI::getCommunicator());
     TBOX_ASSERT(ierr == MPI_SUCCESS);
+} // sumReduction
+
+template <typename T>
+inline void
+IBTK_MPI::sumReduction(const std::vector<std::pair<T*, int>>& arrays)
+{
+    std::vector<T> buffer;
+    for (const auto& array : arrays)
+    {
+        buffer.insert(buffer.end(), array.first, array.first + array.second);
+    }
+    sumReduction(buffer.data(), static_cast<int>(buffer.size()));
+    auto it = buffer.cbegin();
+    for (const auto& array : arrays)
+    {
+        std::copy(it, it + array.second, array.first);
+        it += array.second;
+    }
 } // sumReduction
 
 template <typename T>
@@ -169,7 +213,7 @@ IBTK_MPI::allGather(T x_in, T* x_out)
 //////////////////////////////////////  PRIVATE  ///////////////////////////////////////////////////
 template <typename T>
 inline void
-IBTK_MPI::minMaxReduction(T* x, const int n, int* rank, MPI_Op op)
+IBTK_MPI::minMaxLocReduction(T* x, const int n, int* rank, MPI_Op op)
 {
     std::vector<std::pair<T, int>> recv(n);
     std::vector<std::pair<T, int>> send(n);
@@ -186,7 +230,7 @@ IBTK_MPI::minMaxReduction(T* x, const int n, int* rank, MPI_Op op)
         x[i] = recv[i].first;
         rank[i] = recv[i].second;
     }
-} // minMaxReduction
+} // minMaxLocReduction
 } // namespace IBTK
 
 #endif

@@ -354,10 +354,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
         }
     }
     // Sum the net force and torque across processors.
-    IBTK_MPI::sumReduction(pressure_force.data(), pressure_force.size());
-    IBTK_MPI::sumReduction(viscous_force.data(), viscous_force.size());
-    IBTK_MPI::sumReduction(pressure_torque.data(), pressure_torque.size());
-    IBTK_MPI::sumReduction(viscous_torque.data(), viscous_force.size());
+    IBTK_MPI::sumReduction<double>({ { pressure_force.data(), 3 },
+                                     { viscous_force.data(), 3 },
+                                     { pressure_torque.data(), 3 },
+                                     { viscous_torque.data(), 3 } });
 
     // Deallocate patch data
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

@@ -1,0 +1,3 @@
+New: IBTK::IBTK_MPI::minMaxReduction() and a multi-array overload of IBTK::IBTK_MPI::sumReduction() do several reductions with one MPI call.
+<br>
+(Boyce Griffith, 2026/10/02)

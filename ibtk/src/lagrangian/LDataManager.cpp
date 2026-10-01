@@ -927,11 +927,11 @@ LDataManager::computeLagrangianStructureCenterOfMass(const int structure_id, con
     }
     d_lag_mesh_data[level_number][POSN_DATA_NAME]->restoreArrays();
 
-    IBTK_MPI::sumReduction(X_com.data(), X_com.size());
-    node_counter = IBTK_MPI::sumReduction(node_counter);
+    double node_count = node_counter;
+    IBTK_MPI::sumReduction<double>({ { X_com.data(), NDIM }, { &node_count, 1 } });
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        X_com[d] /= static_cast<double>(node_counter);
+        X_com[d] /= node_count;
     }
     return X_com;
 } // computeLagrangianStructureCenterOfMass
@@ -966,8 +966,7 @@ LDataManager::computeLagrangianStructureBoundingBox(const int structure_id, cons
     }
     d_lag_mesh_data[level_number][POSN_DATA_NAME]->restoreArrays();
 
-    IBTK_MPI::minReduction(&X_lower[0], NDIM);
-    IBTK_MPI::maxReduction(&X_upper[0], NDIM);
+    IBTK_MPI::minMaxReduction(&X_lower[0], &X_upper[0], NDIM);
     return std::make_pair(X_lower, X_upper);
 } // computeLagrangianStructureBoundingBox
 
@@ -1002,8 +1001,7 @@ LDataManager::reinitLagrangianStructure(const Point& X_center, const int structu
             }
         }
     }
-    IBTK_MPI::minReduction(&X_lower[0], NDIM);
-    IBTK_MPI::maxReduction(&X_upper[0], NDIM);
+    IBTK_MPI::minMaxReduction(&X_lower[0], &X_upper[0], NDIM);
     std::pair<Point, Point> bounding_box = std::make_pair(X_lower, X_upper);
 
     // Compute the displacement.

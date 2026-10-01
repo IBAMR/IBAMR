@@ -1155,15 +1155,17 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         ptr_x_lag_data_new->restoreArrays();
     } // all levels
 
+    std::vector<std::pair<double*, int>> moment_of_inertia_data;
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         if (struct_param.getStructureIsSelfRotating())
         {
-            IBTK_MPI::sumReduction(&d_moment_of_inertia_current[struct_no](0, 0), 9);
-            IBTK_MPI::sumReduction(&d_moment_of_inertia_new[struct_no](0, 0), 9);
+            moment_of_inertia_data.push_back({ d_moment_of_inertia_current[struct_no].data(), 9 });
+            moment_of_inertia_data.push_back({ d_moment_of_inertia_new[struct_no].data(), 9 });
         }
     }
+    IBTK_MPI::sumReduction(moment_of_inertia_data);
 
     // Fill-in symmetric part of inertia tensor.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -2537,10 +2539,15 @@ ConstraintIBMethod::calculateDrag()
         d_l_data_U_correction[ln]->restoreArrays();
     }
 
+    std::vector<std::pair<double*, int>> force_data;
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        IBTK_MPI::sumReduction(&inertia_force[struct_no][0], 3);
-        IBTK_MPI::sumReduction(&constraint_force[struct_no][0], 3);
+        force_data.push_back({ inertia_force[struct_no].data(), 3 });
+        force_data.push_back({ constraint_force[struct_no].data(), 3 });
+    }
+    IBTK_MPI::sumReduction(force_data);
+    for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
+    {
         for (int d = 0; d < NDIM; ++d)
         {
             inertia_force[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
@@ -2648,10 +2655,15 @@ ConstraintIBMethod::calculateTorque()
         d_l_data_U_correction[ln]->restoreArrays();
         d_X_new_data[ln]->restoreArrays();
     }
+    std::vector<std::pair<double*, int>> torque_data;
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        IBTK_MPI::sumReduction(&inertia_torque[struct_no][0], 3);
-        IBTK_MPI::sumReduction(&constraint_torque[struct_no][0], 3);
+        torque_data.push_back({ inertia_torque[struct_no].data(), 3 });
+        torque_data.push_back({ constraint_torque[struct_no].data(), 3 });
+    }
+    IBTK_MPI::sumReduction(torque_data);
+    for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
+    {
         for (int d = 0; d < 3; ++d)
         {
             inertia_torque[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
@@ -2730,10 +2742,15 @@ ConstraintIBMethod::calculatePower()
         d_l_data_U_correction[ln]->restoreArrays();
     }
 
+    std::vector<std::pair<double*, int>> power_data;
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        IBTK_MPI::sumReduction(&inertia_power[struct_no][0], 3);
-        IBTK_MPI::sumReduction(&constraint_power[struct_no][0], 3);
+        power_data.push_back({ inertia_power[struct_no].data(), 3 });
+        power_data.push_back({ constraint_power[struct_no].data(), 3 });
+    }
+    IBTK_MPI::sumReduction(power_data);
+    for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
+    {
         for (int d = 0; d < NDIM; ++d)
         {
             inertia_power[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];

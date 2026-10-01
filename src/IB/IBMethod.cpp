@@ -1278,9 +1278,9 @@ IBMethod::interpolatePressure(int p_data_idx,
                 }
             }
         }
-        IBTK_MPI::sumReduction(&p_norm, 1);
-        IBTK_MPI::sumReduction(&vol, 1);
-        p_norm /= vol;
+        double sums[2] = { p_norm, vol };
+        IBTK_MPI::sumReduction(sums, 2);
+        p_norm = sums[0] / sums[1];
     }
 
     // Reset the values of P_src.

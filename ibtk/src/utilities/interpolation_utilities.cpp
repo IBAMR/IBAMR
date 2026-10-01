@@ -48,9 +48,7 @@ bool
 check_consistent_across_ranks(std::vector<T> data)
 {
     std::vector<T> copied = data;
-    // Do a max reduction
-    IBTK_MPI::maxReduction(data.data(), data.size());
-    IBTK_MPI::minReduction(copied.data(), copied.size());
+    IBTK_MPI::minMaxReduction(copied.data(), data.data(), data.size());
     return std::equal(
         data.begin(), data.begin() + data.size(), copied.data(), [](T v1, T v2) -> bool { return v1 == v2; });
 }

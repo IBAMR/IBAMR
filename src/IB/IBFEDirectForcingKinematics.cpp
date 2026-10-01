@@ -600,8 +600,7 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
             vol_part += JxW[qp];
         }
     }
-    IBTK_MPI::sumReduction(X0.data(), X0.size());
-    vol_part = IBTK_MPI::sumReduction(vol_part);
+    IBTK_MPI::sumReduction<double>({ { X0.data(), 3 }, { &vol_part, 1 } });
     X0 /= vol_part;
 
     VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
@@ -870,9 +869,7 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
 #endif
         }
     }
-    IBTK_MPI::sumReduction(&F[0], 3);
-    IBTK_MPI::sumReduction(&L[0], 3);
-    vol_mesh = IBTK_MPI::sumReduction(vol_mesh);
+    IBTK_MPI::sumReduction<double>({ { F.data(), 3 }, { L.data(), 3 }, { &vol_mesh, 1 } });
 
     ierr = VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
     IBTK_CHKERRQ(ierr);

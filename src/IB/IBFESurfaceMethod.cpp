@@ -938,7 +938,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             }
         }
 
-        IBTK_MPI::sumReduction(&F_integral(0), LIBMESH_DIM);
+        IBTK_MPI::sumReduction<double>(
+            { { &F_integral(0), LIBMESH_DIM }, { &DP_rhs_integral, 1 }, { &surface_area, 1 } });
 
         // Solve for F.
         d_fe_data_managers[part]->computeL2Projection(
@@ -947,8 +948,6 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         {
             d_fe_data_managers[part]->computeL2Projection(
                 *DP_vec, *DP_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
-            DP_rhs_integral = IBTK_MPI::sumReduction(DP_rhs_integral);
-            surface_area = IBTK_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump) DP_vec->add(-DP_rhs_integral / surface_area);
             DP_vec->close();
         }
@@ -1946,8 +1945,10 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }
-        mesh_has_first_order_elems = IBTK_MPI::maxReduction(static_cast<int>(mesh_has_first_order_elems));
-        mesh_has_second_order_elems = IBTK_MPI::maxReduction(static_cast<int>(mesh_has_second_order_elems));
+        int mesh_has_elems[2] = { mesh_has_first_order_elems ? 1 : 0, mesh_has_second_order_elems ? 1 : 0 };
+        IBTK_MPI::maxReduction(mesh_has_elems, 2);
+        mesh_has_first_order_elems = mesh_has_elems[0] != 0;
+        mesh_has_second_order_elems = mesh_has_elems[1] != 0;
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {

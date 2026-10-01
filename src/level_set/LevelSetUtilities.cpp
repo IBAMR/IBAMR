@@ -332,8 +332,7 @@ LevelSetMassLossFixer::correctVolume(const double new_time, const bool three_pha
                               static_cast<double>(three_phase) };
     double controls_max[6];
     std::copy(std::begin(controls_min), std::end(controls_min), controls_max);
-    IBTK_MPI::minReduction(controls_min, 6);
-    IBTK_MPI::maxReduction(controls_max, 6);
+    IBTK_MPI::minMaxReduction(controls_min, controls_max, 6);
     if (!std::equal(std::begin(controls_min), std::end(controls_min), controls_max))
     {
         fail("inconsistent correction controls across ranks");
@@ -428,8 +427,9 @@ LevelSetMassLossFixer::correctVolume(const double new_time, const bool three_pha
     double q = 0.0;
     if (std::abs(residual) > tolerance)
     {
-        lower = std::nextafter(IBTK_MPI::minReduction(lower), -std::numeric_limits<double>::infinity());
-        upper = std::nextafter(IBTK_MPI::maxReduction(upper), std::numeric_limits<double>::infinity());
+        IBTK_MPI::minMaxReduction(&lower, &upper);
+        lower = std::nextafter(lower, -std::numeric_limits<double>::infinity());
+        upper = std::nextafter(upper, std::numeric_limits<double>::infinity());
         if (!std::isfinite(lower) || !std::isfinite(upper) || !(lower < upper))
         {
             fail("cannot form a finite correction bracket");

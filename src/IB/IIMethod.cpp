@@ -20,6 +20,7 @@
 #include <ibtk/FEDataInterpolation.h>
 #include <ibtk/FEDataManager.h>
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/SAMRAIDataCache.h>
@@ -2994,7 +2995,7 @@ IIMethod::computeLagrangianForce(const double data_time)
             }
         }
 
-        SAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
+        IBTK_MPI::sumReduction<double>({ { &F_integral(0), NDIM }, { &P_jump_rhs_integral, 1 }, { &surface_area, 1 } });
 
         // Solve for F.
         F_rhs_vec->close();
@@ -3008,8 +3009,6 @@ IIMethod::computeLagrangianForce(const double data_time)
                                                           *P_jump_rhs_vec,
                                                           PRESSURE_JUMP_SYSTEM_NAME,
                                                           d_default_interp_spec.use_consistent_mass_matrix);
-            P_jump_rhs_integral = SAMRAI_MPI::sumReduction(P_jump_rhs_integral);
-            surface_area = SAMRAI_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump[part]) P_jump_vec->add(-P_jump_rhs_integral / surface_area);
             P_jump_vec->close();
         }
@@ -4445,8 +4444,10 @@ IIMethod::commonConstructor(const std::string& object_name,
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }
-        mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
-        mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+        int mesh_has_elems[2] = { mesh_has_first_order_elems ? 1 : 0, mesh_has_second_order_elems ? 1 : 0 };
+        IBTK_MPI::maxReduction(mesh_has_elems, 2);
+        mesh_has_first_order_elems = mesh_has_elems[0] != 0;
+        mesh_has_second_order_elems = mesh_has_elems[1] != 0;
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {

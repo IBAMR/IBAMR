@@ -1,0 +1,3 @@
+Fixed: IBAMR::CFINSForcing reduces the largest and smallest norms of the stress divergence across processes.
+<br>
+(Boyce Griffith, 2026/10/02)

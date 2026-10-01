@@ -1613,8 +1613,10 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }
-        mesh_has_first_order_elems = IBTK_MPI::maxReduction(mesh_has_first_order_elems ? 1 : 0);
-        mesh_has_second_order_elems = IBTK_MPI::maxReduction(mesh_has_second_order_elems ? 1 : 0);
+        int mesh_has_elems[2] = { mesh_has_first_order_elems ? 1 : 0, mesh_has_second_order_elems ? 1 : 0 };
+        IBTK_MPI::maxReduction(mesh_has_elems, 2);
+        mesh_has_first_order_elems = mesh_has_elems[0] != 0;
+        mesh_has_second_order_elems = mesh_has_elems[1] != 0;
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {

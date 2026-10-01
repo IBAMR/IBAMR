@@ -158,6 +158,13 @@ struct IBTK_MPI
     static void maxReduction(T* x, const int n = 1, int* rank_of_min = nullptr);
     //@}
 
+    /**
+     * Perform a min reduction on the array \p x_min and a max reduction on the array \p x_max, each of
+     * length \p n, with one MPI call. The type must be double, int, or float.
+     */
+    template <typename T>
+    static void minMaxReduction(T* x_min, T* x_max, const int n = 1);
+
     //@{
     /**
      * Perform a sum reduction on a data structure of type double, int, or float. Each processor
@@ -168,6 +175,13 @@ struct IBTK_MPI
     template <typename T>
     static void sumReduction(T* x, const int n = 1);
     //@}
+
+    /**
+     * Perform a sum reduction on several arrays with one MPI call. Each entry of \p arrays is a pointer to
+     * an array and its length. The element-wise sums are returned in the same arrays.
+     */
+    template <typename T>
+    static void sumReduction(const std::vector<std::pair<T*, int>>& arrays);
 
     /**
      * Perform an all-to-one sum reduction on an integer array.
@@ -284,7 +298,7 @@ private:
     static void allGatherSetup(int size_in, int size_out, std::vector<int>& rcounts, std::vector<int>& disps);
 
     template <typename T>
-    static void minMaxReduction(T* x, const int n, int* rank, MPI_Op op);
+    static void minMaxLocReduction(T* x, const int n, int* rank, MPI_Op op);
 
     static MPI_Comm s_communicator;
 };

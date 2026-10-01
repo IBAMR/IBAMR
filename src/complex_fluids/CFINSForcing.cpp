@@ -417,8 +417,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         d_max_det = 0.0;
         d_min_det = std::numeric_limits<double>::max();
         findDeterminant(d_C_scratch_idx, d_C_cc_var, data_time, initial_time);
-        d_max_det = IBTK_MPI::maxReduction(d_max_det);
-        d_min_det = IBTK_MPI::minReduction(d_min_det);
+        IBTK_MPI::minMaxReduction(&d_min_det, &d_max_det);
         plog << d_object_name << ": Largest det:  " << d_max_det << "\n";
         plog << d_object_name << ": Smallest det: " << d_min_det << "\n";
     }
@@ -439,8 +438,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     // Output largest and smallest max norm of Div W
     if (d_log_div_sig || d_div_sig_rel_tag)
     {
-        IBTK_MPI::maxReduction(d_max_norm);
-        IBTK_MPI::minReduction(d_min_norm);
+        IBTK_MPI::minMaxReduction(&d_min_norm, &d_max_norm);
         plog << d_object_name << ": Largest max norm of Div W:  " << d_max_norm << "\n";
         plog << d_object_name << ": Smallest max norm of Div W: " << d_min_norm << "\n";
     }

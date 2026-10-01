@@ -1052,10 +1052,11 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     }
 
     // Synchronize the values across all processes.
-    IBTK_MPI::sumReduction(&d_flow_values[0], d_num_meters);
-    IBTK_MPI::sumReduction(&d_mean_pres_values[0], d_num_meters);
-    IBTK_MPI::sumReduction(&d_point_pres_values[0], d_num_meters);
-    IBTK_MPI::sumReduction(&A[0], d_num_meters);
+    const int num_meters = static_cast<int>(d_num_meters);
+    IBTK_MPI::sumReduction<double>({ { d_flow_values.data(), num_meters },
+                                     { d_mean_pres_values.data(), num_meters },
+                                     { d_point_pres_values.data(), num_meters },
+                                     { A.data(), num_meters } });
 
     // Normalize the mean pressure.
     for (unsigned int m = 0; m < d_num_meters; ++m)
