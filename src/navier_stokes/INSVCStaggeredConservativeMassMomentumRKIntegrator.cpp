@@ -2117,17 +2117,19 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
     case PPM:
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Pointer<SideData<NDIM, double>> dQ_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double>> Q_L_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double>> Q_R_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            Pointer<SideData<NDIM, double>> Q_scratch1_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            IntVector<NDIM> directions(0);
+            directions(axis) = 1;
+            SideData<NDIM, double> dQ_data(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth(), directions);
+            SideData<NDIM, double> Q_L_data(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth(), directions);
+            SideData<NDIM, double> Q_R_data(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth(), directions);
+            SideData<NDIM, double> Q_scratch1_data(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth(), directions);
 #if (NDIM == 3)
-            Pointer<SideData<NDIM, double>> Q_scratch2_data =
-                new SideData<NDIM, double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SideData<NDIM, double> Q_scratch2_data(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth(), directions);
 #endif
 #if (NDIM == 2)
             GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
@@ -2137,10 +2139,10 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
                                    Q_data->getGhostCellWidth()(0),
                                    Q_data->getGhostCellWidth()(1),
                                    Q_data->getPointer(axis),
-                                   Q_scratch1_data->getPointer(axis),
-                                   dQ_data->getPointer(axis),
-                                   Q_L_data->getPointer(axis),
-                                   Q_R_data->getPointer(axis),
+                                   Q_scratch1_data.getPointer(axis),
+                                   dQ_data.getPointer(axis),
+                                   Q_L_data.getPointer(axis),
+                                   Q_R_data.getPointer(axis),
                                    U_adv_data[axis]->getGhostCellWidth()(0),
                                    U_adv_data[axis]->getGhostCellWidth()(1),
                                    Q_half_data[axis]->getGhostCellWidth()(0),
@@ -2161,11 +2163,11 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
                                    Q_data->getGhostCellWidth()(1),
                                    Q_data->getGhostCellWidth()(2),
                                    Q_data->getPointer(axis),
-                                   Q_scratch1_data->getPointer(axis),
-                                   Q_scratch2_data->getPointer(axis),
-                                   dQ_data->getPointer(axis),
-                                   Q_L_data->getPointer(axis),
-                                   Q_R_data->getPointer(axis),
+                                   Q_scratch1_data.getPointer(axis),
+                                   Q_scratch2_data.getPointer(axis),
+                                   dQ_data.getPointer(axis),
+                                   Q_L_data.getPointer(axis),
+                                   Q_R_data.getPointer(axis),
                                    U_adv_data[axis]->getGhostCellWidth()(0),
                                    U_adv_data[axis]->getGhostCellWidth()(1),
                                    U_adv_data[axis]->getGhostCellWidth()(2),

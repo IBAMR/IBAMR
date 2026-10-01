@@ -1354,17 +1354,17 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::interpolateCellQuantity(
     const IntVector<NDIM>& Q_half_data_gcw = Q_half_data->getGhostCellWidth();
 
     CellData<NDIM, double>& Q0_data = *Q_data;
-    CellData<NDIM, double> Q1_data(patch_box, 1, Q_data_gcw);
-#if (NDIM == 3)
-    CellData<NDIM, double> Q2_data(patch_box, 1, Q_data_gcw);
-#endif
-    CellData<NDIM, double> dQ_data(patch_box, 1, Q_data_gcw);
-    CellData<NDIM, double> Q_L_data(patch_box, 1, Q_data_gcw);
-    CellData<NDIM, double> Q_R_data(patch_box, 1, Q_data_gcw);
-
     switch (convective_limiter)
     {
     case PPM:
+    {
+        CellData<NDIM, double> Q1_data(patch_box, 1, Q_data_gcw);
+#if (NDIM == 3)
+        CellData<NDIM, double> Q2_data(patch_box, 1, Q_data_gcw);
+#endif
+        CellData<NDIM, double> dQ_data(patch_box, 1, Q_data_gcw);
+        CellData<NDIM, double> Q_L_data(patch_box, 1, Q_data_gcw);
+        CellData<NDIM, double> Q_R_data(patch_box, 1, Q_data_gcw);
         // Upwind cell-centered densities onto faces.
         GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
@@ -1419,8 +1419,19 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::interpolateCellQuantity(
 #endif
         );
         break;
-
+    }
     case CUI:
+    {
+        // CUI_EXTRAPOLATE_FC uses these as scratch storage for permuted copies of Q, each on the patch box grown
+        // by the two cells that CUI reads in its reconstruction direction.
+        IntVector<NDIM> Q1_gcw(0);
+        Q1_gcw(1) = 2;
+        CellData<NDIM, double> Q1_data(patch_box, 1, Q1_gcw);
+#if (NDIM == 3)
+        IntVector<NDIM> Q2_gcw(0);
+        Q2_gcw(2) = 2;
+        CellData<NDIM, double> Q2_data(patch_box, 1, Q2_gcw);
+#endif
         // Upwind cell-centered densities onto faces.
         CUI_EXTRAPOLATE_FC(
 #if (NDIM == 2)
@@ -1470,7 +1481,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::interpolateCellQuantity(
         );
 
         break;
-
+    }
     default:
         TBOX_ERROR(
             "AdvDiffConservativeMassScalarTransportRKIntegrator::"

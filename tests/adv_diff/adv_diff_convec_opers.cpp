@@ -74,6 +74,9 @@ check_mass_transport(AdvDiffConservativeMassScalarTransportRKIntegrator& scalar,
             for (CellIterator<NDIM> i(level->getPatch(p())->getBox()); i; i++)
             {
                 (*rho)(i()) = 1.0 + 0.01 * (i()(0) * i()(0) + 2 * i()(1));
+#if (NDIM == 3)
+                (*rho)(i()) += 0.03 * i()(2) * i()(2);
+#endif
             }
         }
     }
