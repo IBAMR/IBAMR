@@ -601,6 +601,13 @@ protected:
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type = TRACTION;
+
+    /*!
+     * The treatment of the tangential derivative of the normal velocity at corners with TRACTION boundary conditions,
+     * read from the input key traction_bc_corner_type.
+     */
+    TractionBcCornerType d_traction_bc_corner_type = TractionBcCornerType::ZERO_DIFFERENCE;
+
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM>> d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
