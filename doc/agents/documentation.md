@@ -20,6 +20,13 @@
   without repeating the base class. Explain requirements spanning several methods
   once at class or group level. Keep shared configuration requirements in the
   relevant configuration documentation rather than repeating them in constructors.
+- Keep each class's documentation about that class. A base class does not
+  describe what particular derived classes or callers do, a derived class does
+  not re-explain its base, and a class does not describe the internals of a
+  sibling or collaborator. State a base contract in terms that every
+  implementation satisfies. If a base class cannot be documented without
+  describing a derived class, the interface is probably wrong: raise that instead
+  of working around it in a comment.
 - If shared documentation is missing or unclear, consider improving the base class.
   This normally belongs in a separate focused PR unless the clarification is needed
   to document the current change correctly. Do not silently broaden the change or

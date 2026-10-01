@@ -20,6 +20,11 @@
   less than a minute in Release; verify this budget during the deferred Release
   phase in [build-and-verification.md](build-and-verification.md). Cover distinct
   contracts and meaningful edge cases, not every imaginable internal state.
+- Each case should cover a contract that no other case in the change covers. Do
+  not repeat a case across dimension, process count, periodicity, grid size, or
+  an option that the changed code does not read. An expected output identical to
+  a sibling's is evidence that a case is redundant. Each expected-error case
+  should reach a different check.
 - For numerical results, normally write the values to `output` through `plog` and
   supply the matching expected output. `attest` uses `numdiff` to compare numbers
   with tolerances that allow small differences between processors, compilers,
@@ -106,6 +111,19 @@ appropriate to the change. Use joined job syntax such as `-j2` if needed.
 
 For hierarchy setup and norm comparisons, follow the ghost-width registration
 and composite-norm masking guidance in [Errors and numerics](errors-and-numerics.md).
+
+## Input file comments
+
+- Begin a new input file with at most one or two comment lines that say what the
+  case sets up, and comment the setting that distinguishes it from its siblings.
+  Many existing input files have few comments; add only what a reader of that
+  file needs.
+- Do not name library functions, describe library internals, narrate the defect
+  or the change, or explain at length what the executable checks. Explain the
+  checks in the test source.
+- When copying an input file, update or remove its comments, and remove keys the
+  new case does not read and settings that are commented out. Use the same
+  wording for the same thing in sibling input files.
 
 ## Expected-output changes
 
