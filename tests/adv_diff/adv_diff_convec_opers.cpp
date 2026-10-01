@@ -25,6 +25,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h>
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 
@@ -32,7 +33,12 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 
+#include <CellData.h>
+#include <CellIterator.h>
 #include <LocationIndexRobinBcCoefs.h>
+
+#include <iomanip>
+#include <memory>
 
 // Set up application namespace declarations
 #include <ibamr/AdvDiffConvectiveOperatorManager.h>
@@ -43,6 +49,89 @@
 #include <SAMRAIVectorReal.h>
 
 #include <ibamr/app_namespaces.h>
+
+namespace
+{
+// Exercise conservative scalar transport with a nonuniform density field.
+void
+check_mass_transport(AdvDiffConservativeMassScalarTransportRKIntegrator& scalar,
+                     Pointer<PatchHierarchy<NDIM>> hierarchy,
+                     const int q_idx,
+                     const int u_idx,
+                     const int n_idx,
+                     RobinBcCoefStrategy<NDIM>* q_bc_coef)
+{
+    VariableDatabase<NDIM>* const var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> context = var_db->getContext("mass_transport");
+    Pointer<CellVariable<NDIM, double>> rho_cc = new CellVariable<NDIM, double>("rho_cc");
+    const int rho_cc_idx = var_db->registerVariableAndContext(rho_cc, context);
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(rho_cc_idx, 0.0);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<CellData<NDIM, double>> rho = level->getPatch(p())->getPatchData(rho_cc_idx);
+            for (CellIterator<NDIM> i(level->getPatch(p())->getBox()); i; i++)
+            {
+                (*rho)(i()) = 1.0 + 0.01 * (i()(0) * i()(0) + 2 * i()(1));
+#if (NDIM == 3)
+                (*rho)(i()) += 0.03 * i()(2) * i()(2);
+#endif
+            }
+        }
+    }
+    const double dt = 0.001;
+    LocationIndexRobinBcCoefs<NDIM> constant_bc("constant_transport_bc", nullptr);
+    for (int face = 0; face < 2 * NDIM; ++face)
+    {
+        constant_bc.setBoundaryValue(face, 1.0);
+    }
+    RobinBcCoefStrategy<NDIM>* constant_bc_coef =
+        hierarchy->getGridGeometry()->getPeriodicShift().min() > 0 ? nullptr : &constant_bc;
+    scalar.setCellCenteredDensityBoundaryConditions(constant_bc_coef);
+    scalar.setCellCenteredMaterialPropertyBoundaryConditions(constant_bc_coef);
+    scalar.setCellCenteredTransportQuantityBoundaryConditions(q_bc_coef);
+    scalar.setDensityPatchDataIndex(rho_cc_idx);
+    scalar.setTransportQuantityPatchDataIndices(q_idx, q_idx);
+    scalar.setFluidVelocityPatchDataIndices(u_idx, u_idx, u_idx);
+    scalar.setConvectiveDerivativePatchDataIndex(n_idx);
+    scalar.setSolutionTime(0.0);
+    scalar.setTimeInterval(0.0, dt);
+    scalar.setCycleNumber(0);
+    scalar.initializeSTSIntegrator(hierarchy);
+    scalar.integrate(dt);
+
+    HierarchyCellDataOpsReal<NDIM, double> cc_ops(hierarchy, 0, hierarchy->getFinestLevelNumber());
+    const int rho_new_idx = scalar.getUpdatedCellCenteredDensityPatchDataIndex();
+    plog << "Maximum convective derivative: " << cc_ops.maxNorm(n_idx) << "\n";
+    plog << "Maximum density: " << cc_ops.maxNorm(rho_new_idx) << "\n";
+    double local_sum = 0.0;
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<CellData<NDIM, double>> rho = level->getPatch(p())->getPatchData(rho_new_idx);
+            for (CellIterator<NDIM> i(level->getPatch(p())->getBox()); i; i++)
+            {
+                double weight = 1 + i()(0) + 11 * i()(1);
+#if (NDIM == 3)
+                weight += 17 * i()(2);
+#endif
+                local_sum += (*rho)(i()) * weight;
+            }
+        }
+    }
+    plog << "Weighted density sum: " << std::setprecision(17) << IBTK_MPI::sumReduction(local_sum) << "\n";
+    scalar.deallocateSTSIntegrator();
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(rho_cc_idx);
+    }
+    var_db->removePatchDataIndex(rho_cc_idx);
+}
+} // namespace
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -71,7 +160,7 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        const bool test_mass_transport = input_db->keyExists("MassTransport");
 
         // Create major algorithm and data objects that comprise the
         // application.
@@ -114,8 +203,12 @@ main(int argc, char* argv[])
             new muParserCartGridFunction("U", app_initializer->getComponentDatabase("U"), grid_geometry);
         Pointer<muParserCartGridFunction> q_fcn =
             new muParserCartGridFunction("Q", app_initializer->getComponentDatabase("Q"), grid_geometry);
-        Pointer<muParserCartGridFunction> exact_fcn =
-            new muParserCartGridFunction("Exact", app_initializer->getComponentDatabase("Exact"), grid_geometry);
+        Pointer<muParserCartGridFunction> exact_fcn;
+        if (!test_mass_transport)
+        {
+            exact_fcn =
+                new muParserCartGridFunction("Exact", app_initializer->getComponentDatabase("Exact"), grid_geometry);
+        }
 
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         std::vector<RobinBcCoefStrategy<NDIM>*> q_bc_coefs(1);
@@ -125,7 +218,18 @@ main(int argc, char* argv[])
             q_bc_coefs[0] =
                 new muParserRobinBcCoefs("Q_bcs", app_initializer->getComponentDatabase("Q_bcs"), grid_geometry);
 
-        std::vector<std::string> convec_oper_types = { "CENTERED", "CUI", "PPM", "WAVE_PROP" };
+        std::unique_ptr<AdvDiffConservativeMassScalarTransportRKIntegrator> scalar;
+        std::vector<std::string> convec_oper_types;
+        if (test_mass_transport)
+        {
+            // Register the limiter's scratch widths before constructing the hierarchy levels.
+            scalar = std::make_unique<AdvDiffConservativeMassScalarTransportRKIntegrator>(
+                "scalar_transport", app_initializer->getComponentDatabase("MassTransport"));
+        }
+        else
+        {
+            convec_oper_types = { "CENTERED", "CUI", "PPM", "WAVE_PROP" };
+        }
         std::vector<Pointer<ConvectiveOperator>> convec_opers(convec_oper_types.size());
         auto oper_manager = AdvDiffConvectiveOperatorManager::getManager();
         int i = 0;
@@ -192,7 +296,14 @@ main(int argc, char* argv[])
 #endif
         };
 
-        for (const auto& convec_oper : convec_opers) do_test(convec_oper);
+        for (const auto& convec_oper : convec_opers)
+        {
+            do_test(convec_oper);
+        }
+        if (test_mass_transport)
+        {
+            check_mass_transport(*scalar, patch_hierarchy, q_idx, u_idx, convec_idx, q_bc_coefs[0]);
+        }
 
         for (int ln = 0; ln <= finest_level; ++ln)
         {

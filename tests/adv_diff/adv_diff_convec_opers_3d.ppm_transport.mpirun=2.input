@@ -1,0 +1,46 @@
+MassTransport {
+    convective_limiter = "PPM"
+    density_time_stepping_type = "FORWARD_EULER"
+}
+
+Q {
+    function = "(X_0 < 0.43 ? 2.0 : -0.75) + 0.2*cos(6*PI*X_1) + 0.3*sin(4*PI*X_2)"
+}
+
+U {
+    function_0 = "sin(2*PI*X_1)"
+    function_1 = "cos(2*PI*X_0)"
+    function_2 = "sin(2*PI*(X_0+X_1))"
+}
+
+Main {
+    log_file_name = "output"
+    log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+    domain_boxes = [ (-3,5,-2),(4,10,3) ]
+    x_lo = 0,0,0
+    x_up = 1,1,1
+    periodic_dimension = 1,1,1
+}
+
+GriddingAlgorithm {
+    max_levels = 1
+    largest_patch_size {
+        level_0 = 512,512,512
+    }
+    smallest_patch_size {
+        level_0 = 2,2,2
+    }
+}
+
+StandardTagAndInitialize {
+    tagging_method = "REFINE_BOXES"
+    RefineBoxes {}
+}
+
+LoadBalancer {
+    bin_pack_method = "SPATIAL"
+    max_workload_factor = 1
+}
