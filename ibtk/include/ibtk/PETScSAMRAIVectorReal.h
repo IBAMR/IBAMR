@@ -53,6 +53,13 @@ namespace IBTK
  * through the static member functions that create and destroy PETSc vector
  * objects.
  *
+ * VecMDot() and VecMTDot() traverse the data once for each group of vectors, rather than once for each vector,
+ * when every component is cell-, node-, side-, face- or edge-centered double-valued data with the same ghost box and
+ * depth as the corresponding component of the first vector; their results are bitwise identical to those of the
+ * per-vector loops, which are used otherwise. The option <code>-ibtk_vec_fusion none</code> always selects the
+ * per-vector loops, for example to compare with the fused kernels. The default, <code>-ibtk_vec_fusion exact</code>,
+ * uses the fused kernels where the data allow. The option is read from the PETSc options database once.
+ *
  * Finally, we remark that PETSc allows vectors with complex-valued entries.
  * This class and the class SAMRAI::solv::SAMRAIVectorReal assume real-values
  * vectors, i.e., data of type \p double or \p float.  The (currently
