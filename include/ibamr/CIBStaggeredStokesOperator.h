@@ -154,6 +154,14 @@ protected:
 
 private:
     /*!
+     * \brief Interpolate the velocity component of \p u_p to the Lagrangian
+     * points, scaled by \p scale, into \p V.
+     *
+     * The ghost values of \p u_p must already be filled.
+     */
+    void interpolateVelocity(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u_p, Vec V, double data_time, double scale);
+
+    /*!
      * \brief Copy constructor.
      *
      * \note This constructor is not implemented and should not be used.

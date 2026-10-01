@@ -192,6 +192,41 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     Pointer<SideVariable<NDIM, double>> A_U_sc_var = y.getComponentVariable(0);
     Pointer<CellVariable<NDIM, double>> A_P_cc_var = y.getComponentVariable(1);
 
+    fillGhostCellValues(x);
+
+    // Compute the action of the operator:
+    //
+    // A*[U;P] := [A_U;A_P] = [(C*I+D*L)*U + Grad P; -Div U]
+    d_hier_math_ops->grad(A_U_idx,
+                          A_U_sc_var,
+                          /*cf_bdry_synch*/ false,
+                          1.0,
+                          P_idx,
+                          P_cc_var,
+                          d_no_fill,
+                          d_new_time);
+    d_hier_math_ops->laplace(
+        A_U_idx, A_U_sc_var, d_U_problem_coefs, U_idx, U_sc_var, d_no_fill, d_new_time, 1.0, A_U_idx, A_U_sc_var);
+    d_hier_math_ops->div(A_P_idx,
+                         A_P_cc_var,
+                         -1.0,
+                         U_idx,
+                         U_sc_var,
+                         d_no_fill,
+                         d_new_time,
+                         /*cf_bdry_synch*/ true);
+    if (d_bc_helper) d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
+
+    IBAMR_TIMER_STOP(t_apply);
+    return;
+} // apply
+
+void
+StaggeredStokesOperator::fillGhostCellValues(SAMRAIVectorReal<NDIM, double>& x)
+{
+    const int U_idx = x.getComponentDescriptorIndex(0);
+    const int P_idx = x.getComponentDescriptorIndex(1);
+
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
@@ -227,33 +262,8 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
         d_bc_helper->setNormalTractionGhostValues(
             U_idx, d_U_bc_coefs, x.getCoarsestLevelNumber(), x.getFinestLevelNumber());
     }
-
-    // Compute the action of the operator:
-    //
-    // A*[U;P] := [A_U;A_P] = [(C*I+D*L)*U + Grad P; -Div U]
-    d_hier_math_ops->grad(A_U_idx,
-                          A_U_sc_var,
-                          /*cf_bdry_synch*/ false,
-                          1.0,
-                          P_idx,
-                          P_cc_var,
-                          d_no_fill,
-                          d_new_time);
-    d_hier_math_ops->laplace(
-        A_U_idx, A_U_sc_var, d_U_problem_coefs, U_idx, U_sc_var, d_no_fill, d_new_time, 1.0, A_U_idx, A_U_sc_var);
-    d_hier_math_ops->div(A_P_idx,
-                         A_P_cc_var,
-                         -1.0,
-                         U_idx,
-                         U_sc_var,
-                         d_no_fill,
-                         d_new_time,
-                         /*cf_bdry_synch*/ true);
-    if (d_bc_helper) d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
-
-    IBAMR_TIMER_STOP(t_apply);
     return;
-} // apply
+} // fillGhostCellValues
 
 void
 StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
