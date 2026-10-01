@@ -297,12 +297,16 @@ agree(const double a, const double b, const double tolerance)
     return scale == 0.0 || std::abs(a - b) / scale < tolerance;
 }
 
-// Print the L1, L2, and max norms of NormOps for the vector and compare them with those of SAMRAIVectorReal. Return
-// whether they agree.
+// Print the L1, L2, and max norms of NormOps for the vector with sorted or plain summation, each line starting with
+// prefix, and compare them with those of SAMRAIVectorReal. Return whether they agree.
 bool
-check_norm_ops(const std::string& label, const SAMRAIVectorReal<NDIM, double>& vec)
+print_norm_ops(std::ostream& out,
+               const std::string& prefix,
+               const bool sorted_summation,
+               const SAMRAIVectorReal<NDIM, double>& vec)
 {
     constexpr double TOLERANCE = 1.0e-12;
+    NormOps::setSortedSummation(sorted_summation);
     const double l1_norm = NormOps::L1Norm(&vec);
     const double l2_norm = NormOps::L2Norm(&vec);
     const double max_norm = NormOps::maxNorm(&vec);
@@ -312,19 +316,30 @@ check_norm_ops(const std::string& label, const SAMRAIVectorReal<NDIM, double>& v
     const bool agrees = agree(l1_norm, expected_l1_norm, TOLERANCE) && agree(l2_norm, expected_l2_norm, TOLERANCE) &&
                         agree(max_norm, expected_max_norm, TOLERANCE);
 
-    std::ostringstream out;
-    out << std::setprecision(12) << label << ":\n";
-    out << "  L1 norm = " << l1_norm << "\n";
-    out << "  L2 norm = " << l2_norm << "\n";
-    out << "  max norm = " << max_norm << "\n";
-    out << "  agree with SAMRAIVectorReal to a relative difference below 1e-12: " << (agrees ? "yes" : "no") << "\n";
+    out << "  " << prefix << "L1 norm = " << l1_norm << "\n";
+    out << "  " << prefix << "L2 norm = " << l2_norm << "\n";
+    out << "  " << prefix << "max norm = " << max_norm << "\n";
+    out << "  " << prefix
+        << "agree with SAMRAIVectorReal to a relative difference below 1e-12: " << (agrees ? "yes" : "no") << "\n";
     if (!agrees)
     {
-        out << "  SAMRAIVectorReal: L1 norm = " << expected_l1_norm << ", L2 norm = " << expected_l2_norm
-            << ", max norm = " << expected_max_norm << "\n";
+        out << "  " << prefix << "SAMRAIVectorReal: L1 norm = " << expected_l1_norm
+            << ", L2 norm = " << expected_l2_norm << ", max norm = " << expected_max_norm << "\n";
     }
-    plog << out.str();
     return agrees;
+}
+
+// Print the norms of NormOps for the vector with sorted summation and then with plain summation, and compare each with
+// the norms of SAMRAIVectorReal. Return whether they agree.
+bool
+check_norm_ops(const std::string& label, const SAMRAIVectorReal<NDIM, double>& vec)
+{
+    std::ostringstream out;
+    out << std::setprecision(12) << label << ":\n";
+    const bool sorted_agrees = print_norm_ops(out, "", true, vec);
+    const bool plain_agrees = print_norm_ops(out, "plain summation, ", false, vec);
+    plog << out.str();
+    return sorted_agrees && plain_agrees;
 }
 
 // Run check_norm_ops() for a vector of each variable and for a vector with a component of every centering. Report a
