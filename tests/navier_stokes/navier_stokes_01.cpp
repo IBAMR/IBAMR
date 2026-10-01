@@ -20,8 +20,12 @@
 
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
+#include <BoxArray.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
 #include <LoadBalancer.h>
+#include <SideData.h>
+#include <SideGeometry.h>
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -33,12 +37,20 @@
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/RestartCleaner.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <muParser.h>
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <iomanip>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -47,6 +59,10 @@
 void check_open_boundary_ghost_values(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                       Pointer<INSHierarchyIntegrator> ins_integrator,
                                       const vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+void check_traction_corner_accuracy(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                                    Pointer<INSHierarchyIntegrator> ins_integrator,
+                                    Pointer<Database> exact_velocity_db);
+
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> ins_integrator,
                  const int iteration_num,
@@ -195,6 +211,23 @@ main(int argc, char* argv[])
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+
+        const bool check_accuracy = input_db->keyExists("check_traction_corner_accuracy") &&
+                                    input_db->getBool("check_traction_corner_accuracy");
+        if (check_accuracy)
+        {
+            // preprocessIntegrateHierarchy() sets up the velocity boundary condition objects.
+            const double current_time = time_integrator->getIntegratorTime();
+            time_integrator->preprocessIntegrateHierarchy(
+                current_time, current_time + time_integrator->getMaximumTimeStepSize(), 1);
+            check_traction_corner_accuracy(
+                patch_hierarchy, time_integrator, app_initializer->getComponentDatabase("ExactVelocity"));
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                delete u_bc_coefs[d];
+            }
+            return 0;
+        }
 
         // Deallocate initialization objects.
         app_initializer.setNull();
@@ -564,3 +597,128 @@ output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     hier_db->close();
     return;
 } // output_data
+
+void
+check_traction_corner_accuracy(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                               Pointer<INSHierarchyIntegrator> ins_integrator,
+                               Pointer<Database> exact_velocity_db)
+{
+    // Fill the ghost values of a velocity field that satisfies the boundary conditions and report the
+    // error in the tangential ghost values outside the x boundaries: at the lower corners, at the upper corners,
+    // and elsewhere.
+    std::array<double, NDIM> X;
+    std::vector<mu::Parser> parsers(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        parsers[d].SetExpr(exact_velocity_db->getString("function_" + std::to_string(d)));
+        for (unsigned int k = 0; k < NDIM; ++k)
+        {
+            parsers[d].DefineVar("X_" + std::to_string(k), &X[k]);
+        }
+    }
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const Pointer<Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
+    const IntVector<NDIM> ghost_width(3);
+    const int u_idx =
+        var_db->registerVariableAndContext(u_var, var_db->getContext("traction_corner_accuracy"), ghost_width);
+    CartSideRobinPhysBdryOp bdry_op(u_idx, ins_integrator->getVelocityBoundaryConditions(), /*homogeneous_bc*/ false);
+    const double fill_time = ins_integrator->getIntegratorTime();
+
+    double lower_end_error = 0.0;
+    double upper_end_error = 0.0;
+    double other_error = 0.0;
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(u_idx, fill_time);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+            const double* const x_lower = pgeom->getXLower();
+            const double* const dx = pgeom->getDx();
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            BoxArray<NDIM> domain = patch_hierarchy->getGridGeometry()->getPhysicalDomain();
+            domain.refine(pgeom->getRatio());
+            const auto exact = [&](const unsigned int axis, const hier::Index<NDIM>& i)
+            {
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X[d] = x_lower[d] + dx[d] * (i(d) - patch_box.lower(d) + (d == axis ? 0.0 : 0.5));
+                }
+                return parsers[axis].Eval();
+            };
+
+            // Set the values at the faces of cells in the physical domain,
+            // including in the ghost cells, as a ghost cell fill from the other
+            // patches would.
+            u_data->fillAll(0.0);
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(u_data->getGhostBox(), axis)); b; b++)
+                {
+                    hier::Index<NDIM> i_lower = b();
+                    i_lower(axis) -= 1;
+                    if (domain.contains(b()) || domain.contains(i_lower))
+                    {
+                        u_data->getArrayData(axis)(b(), 0) = exact(axis, b());
+                    }
+                }
+            }
+            bdry_op.setPatchDataIndex(u_idx);
+            bdry_op.setPhysicalBoundaryConditions(*patch, fill_time, ghost_width);
+
+            // Tangential ghost values outside the x boundaries, within the
+            // extent of the patch in the other directions.
+            for (unsigned int axis = 1; axis < NDIM; ++axis)
+            {
+                const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(u_data->getGhostBox(), axis)); b; b++)
+                {
+                    const hier::Index<NDIM>& i = b();
+                    bool beyond_x_boundary = i(0) < patch_box.lower(0) || i(0) > patch_box.upper(0);
+                    for (unsigned int d = 1; d < NDIM; ++d)
+                    {
+                        beyond_x_boundary = beyond_x_boundary && side_box.lower(d) <= i(d) && i(d) <= side_box.upper(d);
+                    }
+                    if (!beyond_x_boundary)
+                    {
+                        continue;
+                    }
+                    // The ghost value is set using the normal velocity at the
+                    // boundary faces in the rows i(axis) - 1 and i(axis). It is
+                    // at a lower or upper corner of the boundary if the lower or
+                    // upper row is outside the physical domain.
+                    hier::Index<NDIM> i_boundary = i;
+                    i_boundary(0) = i(0) < patch_box.lower(0) ? patch_box.lower(0) : patch_box.upper(0);
+                    hier::Index<NDIM> i_boundary_lower = i_boundary;
+                    i_boundary_lower(axis) -= 1;
+                    const double error = std::abs(u_data->getArrayData(axis)(i, 0) - exact(axis, i));
+                    if (!domain.contains(i_boundary_lower))
+                    {
+                        lower_end_error = std::max(lower_end_error, error);
+                    }
+                    else if (!domain.contains(i_boundary))
+                    {
+                        upper_end_error = std::max(upper_end_error, error);
+                    }
+                    else
+                    {
+                        other_error = std::max(other_error, error);
+                    }
+                }
+            }
+        }
+        level->deallocatePatchData(u_idx);
+    }
+    pout << std::setprecision(6) << std::scientific
+         << "max tangential ghost error at the lower corners of the x boundaries = "
+         << IBTK_MPI::maxReduction(lower_end_error) << '\n'
+         << "max tangential ghost error at the upper corners of the x boundaries = "
+         << IBTK_MPI::maxReduction(upper_end_error) << '\n'
+         << "max tangential ghost error elsewhere on the x boundaries            = "
+         << IBTK_MPI::maxReduction(other_error) << '\n';
+    return;
+} // check_traction_corner_accuracy
