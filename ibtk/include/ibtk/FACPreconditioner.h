@@ -129,6 +129,7 @@ public:
      * <b>Conditions on Parameters:</b>
      * - vectors \a x and \a b must have same patch hierarchy
      * - vectors \a x and \a b must have same structure, depth, etc.
+     * - vectors that span more than one level must start at level zero
      *
      * \note The vector arguments for solveSystem() need not match those for
      * initializeSolverState().  However, there must be a certain degree of
@@ -178,6 +179,7 @@ public:
      * <b>Conditions on Parameters:</b>
      * - vectors \a x and \a b must have same patch hierarchy
      * - vectors \a x and \a b must have same structure, depth, etc.
+     * - vectors that span more than one level must start at level zero
      *
      * \note The vector arguments for solveSystem() need not match those for
      * initializeSolverState().  However, there must be a certain degree of
