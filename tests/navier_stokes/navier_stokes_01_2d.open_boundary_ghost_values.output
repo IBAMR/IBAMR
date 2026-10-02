@@ -1,0 +1,8 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 6
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 1.68724e-20
+Largest difference between normal velocity ghost values: 3.641909591
+Largest magnitude of the velocity component of the result: 72.19422506
+Largest difference between the two results: 1.421085472e-14

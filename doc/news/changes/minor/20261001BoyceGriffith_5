@@ -1,0 +1,3 @@
+Fixed: Open boundary conditions in the staggered-grid Stokes solver: TRACTION conditions did not converge where the normal velocity varies across the boundary, and with BDF2 the conditions were first-order accurate in time.
+<br>
+(Boyce Griffith, 2026/10/01)

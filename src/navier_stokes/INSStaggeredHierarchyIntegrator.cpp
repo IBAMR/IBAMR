@@ -1187,6 +1187,9 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         d_U_bdry_bc_fill_op->fillData(current_time);
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                                   /*P_bc_coef*/ nullptr);
+        // Set the normal velocity ghost values that impose TRACTION conditions where the normal velocity is not
+        // prescribed.
+        d_bc_helper->setNormalTractionGhostValues(d_U_scratch_idx, d_U_bc_coefs);
         d_hier_math_ops->laplace(
             U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
     }
@@ -1484,15 +1487,7 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
     // Account for body forcing terms.
     if (d_F_fcn)
     {
-        double data_time;
-        if (is_bdf_time_stepping_type(d_viscous_time_stepping_type))
-        {
-            data_time = new_time;
-        }
-        else
-        {
-            data_time = half_time;
-        }
+        const double data_time = getPressureTime(current_time, new_time);
         d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, data_time);
         d_hier_sc_data_ops->add(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
@@ -2523,7 +2518,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
     auto P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
     P_bc_coef->setStokesSpecifications(&d_problem_coefs);
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
-    P_bc_coef->setSolutionTime(new_time);
+    P_bc_coef->setSolutionTime(getPressureTime(current_time, new_time));
     P_bc_coef->setTimeInterval(current_time, new_time);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -2879,6 +2874,13 @@ INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_n
     }
     return convective_time_stepping_type;
 } // getConvectiveTimeSteppingType
+
+double
+INSStaggeredHierarchyIntegrator::getPressureTime(const double current_time, const double new_time) const
+{
+    return is_bdf_time_stepping_type(d_viscous_time_stepping_type) ? new_time :
+                                                                     current_time + 0.5 * (new_time - current_time);
+} // getPressureTime
 
 double
 INSStaggeredHierarchyIntegrator::getTimeStepSizeRatio() const
