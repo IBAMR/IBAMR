@@ -218,11 +218,6 @@ c     NOTE: We require the boundary box to be a "side centered" box.
       REAL w,w_fac
 
 c
-c     Prevent compiler warning about unused variables.
-c
-      coarse_box_lower(0) = coarse_box_lower(0)
-      coarse_box_upper(0) = coarse_box_upper(0)
-c
 c     Setup boundary box extents.
 c
       coarsen_index(bbox_ilowerf0, bbox_ilowerc(0), ratio_to_coarser(0))
@@ -263,7 +258,8 @@ c
          enddo
          w_fac = 1.d0/w_fac
 
-         do j_c = bbox_ilowerc(1),bbox_iupperc(1)
+         do j_c = max(bbox_ilowerc(1),coarse_box_lower(1)),
+     &             min(bbox_iupperc(1),coarse_box_upper(1))
             i_c = ibdryc(0)
             i_f = i_c*ratio_to_coarser(0)
             j_f = j_c*ratio_to_coarser(1)
@@ -291,7 +287,8 @@ c
          w_fac = 1.d0/w_fac
 
          j_c = ibdryc(1)
-         do i_c = bbox_ilowerc(0),bbox_iupperc(0)
+         do i_c = max(bbox_ilowerc(0),coarse_box_lower(0)),
+     &             min(bbox_iupperc(0),coarse_box_upper(0))
             i_f = i_c*ratio_to_coarser(0)
             j_f = j_c*ratio_to_coarser(1)
             U_crse1(i_c,j_c) = 0.d0

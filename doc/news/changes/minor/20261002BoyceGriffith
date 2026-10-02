@@ -1,0 +1,3 @@
+Fixed: CartSideDoubleRT0Coarsen stays within the coarse patch data at physical boundaries.
+<br>
+(Boyce Griffith, 2026/10/02)
