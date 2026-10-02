@@ -95,20 +95,6 @@ static const int DEFAULT_DATA_DEPTH = 1;
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 
-// Types of refining and coarsening to perform prior to setting coarse-fine
-// boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE = "NONE";
-static const bool USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Type of extrapolation to use at physical boundaries; used only to evaluate
-// composite grid residuals.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells; used only to evaluate composite grid residuals.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
-
 struct IndexComp
 {
     inline bool operator()(const hier::Index<NDIM>& lhs, const hier::Index<NDIM>& rhs) const
@@ -481,11 +467,11 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
     InterpolationTransactionComponent transaction_comp(sol_idx,
-                                                       DATA_REFINE_TYPE,
-                                                       USE_CF_INTERPOLATION,
-                                                       DATA_COARSEN_TYPE,
-                                                       BDRY_EXTRAP_TYPE,
-                                                       CONSISTENT_TYPE_2_BDRY,
+                                                       d_data_refine_type,
+                                                       d_use_cf_interpolation,
+                                                       d_data_coarsen_type,
+                                                       d_bdry_extrap_type,
+                                                       d_use_consistent_type_2_bdry,
                                                        d_bc_coefs,
                                                        fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num])
@@ -501,11 +487,11 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
     InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0),
-                                                               DATA_REFINE_TYPE,
-                                                               USE_CF_INTERPOLATION,
-                                                               DATA_COARSEN_TYPE,
-                                                               BDRY_EXTRAP_TYPE,
-                                                               CONSISTENT_TYPE_2_BDRY,
+                                                               d_data_refine_type,
+                                                               d_use_cf_interpolation,
+                                                               d_data_coarsen_type,
+                                                               d_bdry_extrap_type,
+                                                               d_use_consistent_type_2_bdry,
                                                                d_bc_coefs,
                                                                fill_pattern);
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);

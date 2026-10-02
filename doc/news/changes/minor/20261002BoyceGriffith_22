@@ -1,0 +1,3 @@
+Fixed: The Level, Box, and variable-coefficient viscous FAC operators read the ghost-cell-filling input keys instead of using fixed values.
+<br>
+(Boyce Griffith, 2026/10/02)

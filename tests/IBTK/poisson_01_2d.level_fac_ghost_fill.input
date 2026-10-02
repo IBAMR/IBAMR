@@ -1,0 +1,56 @@
+// Two Krylov iterations preconditioned by LEVEL_RELAXATION_FAC_PRECONDITIONER on a two-level hierarchy.
+
+u {
+   function = "sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+f {
+   function = "(2*(2*PI)^2)*sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+solver_type = "PETSC_KRYLOV_SOLVER"
+solver_db {
+   max_iterations = 2
+}
+
+precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   num_pre_sweeps = 2
+   use_cf_interpolation = FALSE // differs from the default so that the result depends on this key
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (15,15)]
+   x_lo = 0, 0
+   x_up = 1, 1
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 4, 4
+   }
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(4,4),(7,7)], [(8,4),(11,7)], [(4,8),(7,11)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+}
