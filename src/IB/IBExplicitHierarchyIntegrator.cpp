@@ -387,26 +387,6 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
 {
     auto ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(d_u_var, d_hierarchy, true);
 
-    auto velocity_ghost_update = [&](const std::vector<int>& indices)
-    {
-        using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<ITC> ghostfills;
-        ghostfills.reserve(indices.size());
-        for (const int& idx : indices)
-        {
-            ghostfills.emplace_back(idx,
-                                    "CONSERVATIVE_LINEAR_REFINE",
-                                    /*use_cf_bdry_interpolation*/ true,
-                                    "CONSERVATIVE_COARSEN",
-                                    "LINEAR",
-                                    false,
-                                    d_ins_hier_integrator->getVelocityBoundaryConditions());
-        }
-        HierarchyGhostCellInterpolation ghost_fill_op;
-        ghost_fill_op.initializeOperatorState(ghostfills, d_hierarchy);
-        ghost_fill_op.fillData(current_time);
-    };
-
     // Update the marker points, should they exist:
     if (d_markers && !d_marker_velocities_set)
     {
@@ -418,7 +398,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
         ops->setToScalar(d_u_idx, std::numeric_limits<double>::quiet_NaN(), false);
 #endif
         ops->copyData(d_u_idx, u_current_idx);
-        velocity_ghost_update({ d_u_idx });
+        fillMarkerVelocityGhostCells(/*include_half_time*/ false, current_time);
         d_markers->setVelocities(d_u_idx, d_marker_kernel);
         d_marker_velocities_set = true;
     }
@@ -452,8 +432,12 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
         ops->setToScalar(d_u_idx, std::numeric_limits<double>::quiet_NaN(), false);
 #endif
         ops->copyData(d_u_idx, u_new_idx);
-        d_hier_velocity_data_ops->linearSum(d_u_half_idx, 0.5, u_current_idx, 0.5, u_new_idx);
-        velocity_ghost_update({ d_u_idx, d_u_half_idx });
+        const bool use_half_time = d_time_stepping_type == MIDPOINT_RULE;
+        if (use_half_time)
+        {
+            d_hier_velocity_data_ops->linearSum(d_u_half_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+        }
+        fillMarkerVelocityGhostCells(use_half_time, current_time);
 
         const double dt = new_time - current_time;
         switch (d_time_stepping_type)
@@ -648,6 +632,16 @@ IBExplicitHierarchyIntegrator::regridHierarchyEndSpecialized()
 } // regridHierarchyEndSpecialized
 
 void
+IBExplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+                                                                      const int coarsest_level,
+                                                                      const int finest_level)
+{
+    IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(hierarchy, coarsest_level, finest_level);
+    d_marker_u_fill_ops = {};
+    return;
+} // resetHierarchyConfigurationSpecialized
+
+void
 IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
@@ -678,6 +672,36 @@ IBExplicitHierarchyIntegrator::getFromRestart()
     }
     return;
 } // getFromRestart
+
+void
+IBExplicitHierarchyIntegrator::fillMarkerVelocityGhostCells(const bool include_half_time, const double fill_time)
+{
+    Pointer<HierarchyGhostCellInterpolation>& fill_op = d_marker_u_fill_ops[include_half_time ? 1 : 0];
+    if (!fill_op)
+    {
+        using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        std::vector<int> indices = { d_u_idx };
+        if (include_half_time)
+        {
+            indices.push_back(d_u_half_idx);
+        }
+        std::vector<ITC> ghostfills;
+        for (const int idx : indices)
+        {
+            ghostfills.emplace_back(idx,
+                                    "CONSERVATIVE_LINEAR_REFINE",
+                                    /*use_cf_bdry_interpolation*/ true,
+                                    "CONSERVATIVE_COARSEN",
+                                    "LINEAR",
+                                    false,
+                                    d_ins_hier_integrator->getVelocityBoundaryConditions());
+        }
+        fill_op = new HierarchyGhostCellInterpolation();
+        fill_op->initializeOperatorState(ghostfills, d_hierarchy);
+    }
+    fill_op->fillData(fill_time);
+    return;
+} // fillMarkerVelocityGhostCells
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
