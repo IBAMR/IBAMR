@@ -637,7 +637,6 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, d
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
                                      *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
-        xeqScheduleDataSynch(error.getComponentDescriptorIndex(0), coarsest_ln);
     }
     else
     {
