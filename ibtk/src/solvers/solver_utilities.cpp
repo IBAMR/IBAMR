@@ -16,7 +16,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/solver_utilities.h>
 
-#include <memory>
+#include <SideGeometry.h>
 
 namespace IBTK
 {
@@ -192,23 +192,23 @@ copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
               const std::vector<HYPRE_StructVector>& vectors,
               const SAMRAI::hier::Box<NDIM>& box)
 {
-    const bool copy_data = dst_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAI::pdat::CellData<NDIM, double>> dst_data_box =
-        copy_data ? std::make_unique<SAMRAI::pdat::CellData<NDIM, double>>(box, dst_data.getDepth(), 0) : nullptr;
-    SAMRAI::pdat::CellData<NDIM, double>& hypre_data = copy_data ? *dst_data_box : dst_data;
-    unsigned int depth = dst_data.getDepth();
+    const unsigned int depth = dst_data.getDepth();
 #ifndef NDEBUG
     TBOX_ASSERT(depth == vectors.size());
 #endif
-    auto lower = hypre_array(box.lower());
-    auto upper = hypre_array(box.upper());
+    const SAMRAI::hier::Box<NDIM> transfer_box = box * dst_data.getGhostBox();
+    if (transfer_box.empty())
+    {
+        return;
+    }
+    std::array<HYPRE_Int, NDIM> lower = hypre_array(transfer_box.lower());
+    std::array<HYPRE_Int, NDIM> upper = hypre_array(transfer_box.upper());
+    std::array<HYPRE_Int, NDIM> value_lower = hypre_array(dst_data.getGhostBox().lower());
+    std::array<HYPRE_Int, NDIM> value_upper = hypre_array(dst_data.getGhostBox().upper());
     for (unsigned int k = 0; k < depth; ++k)
     {
-        HYPRE_StructVectorGetBoxValues(vectors[k], lower.data(), upper.data(), hypre_data.getPointer(k));
-    }
-    if (copy_data)
-    {
-        dst_data.copyOnBox(hypre_data, box);
+        HYPRE_StructVectorGetBoxValues2(
+            vectors[k], lower.data(), upper.data(), value_lower.data(), value_upper.data(), dst_data.getPointer(k));
     }
     return;
 } // copyFromHypre
@@ -218,21 +218,36 @@ copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
               HYPRE_SStructVector vector,
               const SAMRAI::hier::Box<NDIM>& box)
 {
-    const bool copy_data = dst_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAI::pdat::SideData<NDIM, double>> dst_data_box =
-        copy_data ? std::make_unique<SAMRAI::pdat::SideData<NDIM, double>>(box, 1, 0) : nullptr;
-    SAMRAI::pdat::SideData<NDIM, double>& hypre_data = copy_data ? *dst_data_box : dst_data;
+    // SAMRAI gives a side the index of the cell above it, and hypre gives it
+    // the index of the cell below it, so subtract one from each index in the
+    // direction normal to the side.
     for (int var = 0; var < NDIM; ++var)
     {
         const unsigned int axis = var;
-        auto lower = hypre_array(box.lower());
-        lower[axis] -= 1;
-        auto upper = hypre_array(box.upper());
-        HYPRE_SStructVectorGetBoxValues(vector, 0, lower.data(), upper.data(), var, hypre_data.getPointer(axis));
-    }
-    if (copy_data)
-    {
-        dst_data.copyOnBox(hypre_data, box);
+        // Intersect the boxes in side index space, because two boxes of cells
+        // that do not overlap can still share sides.
+        const SAMRAI::hier::Box<NDIM>& value_box = dst_data.getArrayData(axis).getBox();
+        const SAMRAI::hier::Box<NDIM> transfer_box = SAMRAI::pdat::SideGeometry<NDIM>::toSideBox(box, axis) * value_box;
+        if (transfer_box.empty())
+        {
+            continue;
+        }
+        std::array<HYPRE_Int, NDIM> lower = hypre_array(transfer_box.lower());
+        std::array<HYPRE_Int, NDIM> upper = hypre_array(transfer_box.upper());
+        std::array<HYPRE_Int, NDIM> value_lower = hypre_array(value_box.lower());
+        std::array<HYPRE_Int, NDIM> value_upper = hypre_array(value_box.upper());
+        --lower[axis];
+        --upper[axis];
+        --value_lower[axis];
+        --value_upper[axis];
+        HYPRE_SStructVectorGetBoxValues2(vector,
+                                         0,
+                                         lower.data(),
+                                         upper.data(),
+                                         var,
+                                         value_lower.data(),
+                                         value_upper.data(),
+                                         dst_data.getPointer(axis));
     }
     return;
 } // copyFromHypre
@@ -242,20 +257,23 @@ copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
             SAMRAI::pdat::CellData<NDIM, double>& src_data,
             const SAMRAI::hier::Box<NDIM>& box)
 {
-    const bool copy_data = src_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAI::pdat::CellData<NDIM, double>> src_data_box =
-        copy_data ? std::make_unique<SAMRAI::pdat::CellData<NDIM, double>>(box, src_data.getDepth(), 0) : nullptr;
-    SAMRAI::pdat::CellData<NDIM, double>& hypre_data = copy_data ? *src_data_box : src_data;
-    if (copy_data) hypre_data.copyOnBox(src_data, box);
-    unsigned int depth = src_data.getDepth();
+    const unsigned int depth = src_data.getDepth();
 #ifndef NDEBUG
     TBOX_ASSERT(depth == vectors.size());
 #endif
-    auto lower = hypre_array(box.lower());
-    auto upper = hypre_array(box.upper());
+    const SAMRAI::hier::Box<NDIM> transfer_box = box * src_data.getGhostBox();
+    if (transfer_box.empty())
+    {
+        return;
+    }
+    std::array<HYPRE_Int, NDIM> lower = hypre_array(transfer_box.lower());
+    std::array<HYPRE_Int, NDIM> upper = hypre_array(transfer_box.upper());
+    std::array<HYPRE_Int, NDIM> value_lower = hypre_array(src_data.getGhostBox().lower());
+    std::array<HYPRE_Int, NDIM> value_upper = hypre_array(src_data.getGhostBox().upper());
     for (unsigned int k = 0; k < depth; ++k)
     {
-        HYPRE_StructVectorSetBoxValues(vectors[k], lower.data(), upper.data(), hypre_data.getPointer(k));
+        HYPRE_StructVectorSetBoxValues2(
+            vectors[k], lower.data(), upper.data(), value_lower.data(), value_upper.data(), src_data.getPointer(k));
     }
     return;
 } // copyToHypre
@@ -265,18 +283,36 @@ copyToHypre(HYPRE_SStructVector& vector,
             SAMRAI::pdat::SideData<NDIM, double>& src_data,
             const SAMRAI::hier::Box<NDIM>& box)
 {
-    const bool copy_data = src_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAI::pdat::SideData<NDIM, double>> src_data_box =
-        copy_data ? std::make_unique<SAMRAI::pdat::SideData<NDIM, double>>(box, 1, 0) : nullptr;
-    SAMRAI::pdat::SideData<NDIM, double>& hypre_data = copy_data ? *src_data_box : src_data;
-    if (copy_data) hypre_data.copyOnBox(src_data, box);
+    // SAMRAI gives a side the index of the cell above it, and hypre gives it
+    // the index of the cell below it, so subtract one from each index in the
+    // direction normal to the side.
     for (int var = 0; var < NDIM; ++var)
     {
         const unsigned int axis = var;
-        auto lower = hypre_array(box.lower());
-        lower[axis] -= 1;
-        auto upper = hypre_array(box.upper());
-        HYPRE_SStructVectorSetBoxValues(vector, 0, lower.data(), upper.data(), var, hypre_data.getPointer(axis));
+        // Intersect the boxes in side index space, because two boxes of cells
+        // that do not overlap can still share sides.
+        const SAMRAI::hier::Box<NDIM>& value_box = src_data.getArrayData(axis).getBox();
+        const SAMRAI::hier::Box<NDIM> transfer_box = SAMRAI::pdat::SideGeometry<NDIM>::toSideBox(box, axis) * value_box;
+        if (transfer_box.empty())
+        {
+            continue;
+        }
+        std::array<HYPRE_Int, NDIM> lower = hypre_array(transfer_box.lower());
+        std::array<HYPRE_Int, NDIM> upper = hypre_array(transfer_box.upper());
+        std::array<HYPRE_Int, NDIM> value_lower = hypre_array(value_box.lower());
+        std::array<HYPRE_Int, NDIM> value_upper = hypre_array(value_box.upper());
+        --lower[axis];
+        --upper[axis];
+        --value_lower[axis];
+        --value_upper[axis];
+        HYPRE_SStructVectorSetBoxValues2(vector,
+                                         0,
+                                         lower.data(),
+                                         upper.data(),
+                                         var,
+                                         value_lower.data(),
+                                         value_upper.data(),
+                                         src_data.getPointer(axis));
     }
     return;
 } // copyToHypre

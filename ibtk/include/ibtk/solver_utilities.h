@@ -70,7 +70,7 @@ std::array<HYPRE_Int, NDIM> hypre_array(const SAMRAI::hier::Index<NDIM>& index);
  *
  * \param[out] dst_data Reference to destination for data to be copied.
  * \param[in] vectors Vector of Hypre data to copy.
- * \param[in] box Box over which to copy.
+ * \param[in] box Box of cells to copy. Cells that \p dst_data does not store are skipped.
  */
 void copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
                    const std::vector<HYPRE_StructVector>& vectors,
@@ -84,7 +84,8 @@ void copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
  *
  * \param[out] dst_data Reference to destination for data to be copied.
  * \param[in] vector Vector of Hypre data to copy
- * \param[in] box Box over which to copy.
+ * \param[in] box Box of cells to copy. All sides of these cells are copied, including the sides on the boundary
+ * of the box. Sides that \p dst_data does not store are skipped.
  */
 void copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
                    HYPRE_SStructVector vector,
@@ -95,7 +96,7 @@ void copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
  *
  * \param[out] vectors Reference to vector of Hypre vectors to be copied to.
  * \param[in] src_data Reference to cell centered data to be copied.
- * \param[in] box Box over which to copy.
+ * \param[in] box Box of cells to copy. Cells that \p src_data does not store are skipped.
  */
 void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
                  SAMRAI::pdat::CellData<NDIM, double>& src_data,
@@ -109,7 +110,8 @@ void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
  *
  * \param[out] vectors Reference to Hypre vector to be copied to.
  * \param[in] src_data Reference to side centered data to be copied.
- * \param[in] box Box over which to copy.
+ * \param[in] box Box of cells to copy. All sides of these cells are copied, including the sides on the boundary
+ * of the box. Sides that \p src_data does not store are skipped.
  */
 void copyToHypre(HYPRE_SStructVector& vector,
                  SAMRAI::pdat::SideData<NDIM, double>& src_data,
