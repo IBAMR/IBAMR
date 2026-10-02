@@ -1,0 +1,62 @@
+// Gauss-Seidel point smoothing of a single-level hierarchy of patches 3 or 4 cells wide and 3 rows high:
+// patches narrower than four cells and patches with fewer than four rows take the row-by-row paths of the
+// smoother's traversal.
+
+u {
+   function = "sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+f {
+   function = "(2*(2*PI)^2)*sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+solver_type = "PETSC_KRYLOV_SOLVER"
+solver_db {
+   // intentionally blank
+}
+
+precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   coarse_solver_type           = "PATCH_GAUSS_SEIDEL"  // smooth the only level
+   coarse_solver_max_iterations = 2                     // number of sweeps
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (6,5)]   // 7 x 6 cells
+   x_lo               = 0, 0      // lower end of computational domain.
+   x_up               = 1, 1      // upper end of computational domain.
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // Maximum number of levels in hierarchy.
+
+   largest_patch_size {
+      level_0 = 4, 3              // splits the domain into patches 4 and 3 cells wide, 3 rows high
+   }
+
+   smallest_patch_size {
+      level_0 = 2, 2              // smallest patch allowed in hierarchy
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0),(0,0)]     // required entry; unused on a single level
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

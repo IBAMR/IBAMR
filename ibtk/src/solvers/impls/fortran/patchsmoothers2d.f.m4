@@ -18,6 +18,66 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Wavefront traversal of a box.
+c
+c     WAVEFRONT_2D(lower0,upper0,lower1,upper1,body) executes body for
+c     every cell (i0,i1) of the box, with i0 and i1 set to the cell
+c     before each execution.  The result is the same as that of a
+c     lexicographic sweep (rows in order of increasing i1, each row in
+c     order of increasing i0).
+c
+c     The caller declares the integers i0, i1, s0, b1, r and i1end.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+define(WAVEFRONT_2D,`if (($2)-($1)+1 .ge. 4) then
+         i1end = ($3) + 4*((($4)-($3)+1)/4) - 1
+      else
+         i1end = ($3) - 1
+      endif
+
+      do b1 = $3,i1end,4
+c        Ramp up.
+         do s0 = $1,($1)+2
+            do r = 0,s0-($1)
+               i0 = s0 - r
+               i1 = b1 + r
+               $5
+            enddo
+         enddo
+c        All four rows active.
+         do s0 = ($1)+3,$2
+            i0 = s0
+            i1 = b1
+            $5
+            i0 = s0 - 1
+            i1 = b1 + 1
+            $5
+            i0 = s0 - 2
+            i1 = b1 + 2
+            $5
+            i0 = s0 - 3
+            i1 = b1 + 3
+            $5
+         enddo
+c        Ramp down.
+         do s0 = ($2)+1,($2)+3
+            do r = s0-($2),3
+               i0 = s0 - r
+               i1 = b1 + r
+               $5
+            enddo
+         enddo
+      enddo
+
+      do i1 = i1end+1,$4
+         do i0 = $1,$2
+            $5
+         enddo
+      enddo')dnl
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Perform a single Gauss-Seidel sweep for F = D div grad U +
 c     C U. Both D and C coefficients are constant.
 c
@@ -54,6 +114,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
+      INTEGER s0,b1,r,i1end
       REAL    fac0,fac1,fac
 c
 c     Perform a single Gauss-Seidel sweep.
@@ -62,14 +123,12 @@ c
       fac1 = D/(dx(1)*dx(1))
       fac = 0.5d0/(fac0+fac1-0.5d0*C)
 
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
+      WAVEFRONT_2D(ilower0,iupper0,ilower1,iupper1,`
             U(i0,i1) = fac*(
      &           fac0*(U(i0-1,i1)+U(i0+1,i1)) +
      &           fac1*(U(i0,i1-1)+U(i0,i1+1)) -
      &           F(i0,i1))
-         enddo
-      enddo
+')
 c
       return
       end
@@ -183,6 +242,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
+      INTEGER s0,b1,r,i1end
       REAL    fac0,fac1,fac
 c
 c     Perform a single Gauss-Seidel sweep.
@@ -191,16 +251,14 @@ c
       fac1 = alpha/(dx(1)*dx(1))
       fac = 0.5d0/(fac0+fac1-0.5d0*beta)
 
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
+      WAVEFRONT_2D(ilower0,iupper0,ilower1,iupper1,`
             if (mask(i0,i1) .eq. 0) then
                U(i0,i1) = fac*(
      &              fac0*(U(i0-1,i1)+U(i0+1,i1)) +
      &              fac1*(U(i0,i1-1)+U(i0,i1+1)) -
      &              F(i0,i1))
             endif
-         enddo
-      enddo
+')
 c
       return
       end
@@ -323,6 +381,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
+      INTEGER s0,b1,r,i1end
       REAL    fac0,fac1,fac
 c
 c     Perform a single Gauss-Seidel sweep.
@@ -331,15 +390,13 @@ c
       fac1 = D/(dx(1)*dx(1))
 
 
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
+      WAVEFRONT_2D(ilower0,iupper0,ilower1,iupper1,`
             fac = 0.5d0/(fac0+fac1-0.5d0*C(i0,i1))
             U(i0,i1) = fac*(
      &           fac0*(U(i0-1,i1)+U(i0+1,i1)) +
      &           fac1*(U(i0,i1-1)+U(i0,i1+1)) -
      &           F(i0,i1))
-         enddo
-      enddo
+')
 c
       return
       end
@@ -456,6 +513,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
+      INTEGER s0,b1,r,i1end
       REAL    hx,hy
       REAL    facu0,facl0
       REAL    facu1,facl1
@@ -466,8 +524,7 @@ c
       hx = dx(0)
       hy = dx(1)
 
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
+      WAVEFRONT_2D(ilower0,iupper0,ilower1,iupper1,`
             facu0 = D0(i0+1,i1)/(hx*hx)
             facl0 = D0(i0,i1)/(hx*hx)
             facu1 = D1(i0,i1+1)/(hy*hy)
@@ -479,8 +536,7 @@ c
      &           facu1*U(i0,i1+1) +
      &           facl1*U(i0,i1-1) -
      &           F(i0,i1))
-         enddo
-      enddo
+')
 c
       return
       end
@@ -610,6 +666,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
+      INTEGER s0,b1,r,i1end
       REAL    hx,hy
       REAL    facu0,facl0
       REAL    facu1,facl1
@@ -620,8 +677,7 @@ c
       hx = dx(0)
       hy = dx(1)
 
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
+      WAVEFRONT_2D(ilower0,iupper0,ilower1,iupper1,`
             facu0 = D0(i0+1,i1)/(hx*hx)
             facl0 = D0(i0,i1)/(hx*hx)
             facu1 = D1(i0,i1+1)/(hy*hy)
@@ -633,8 +689,7 @@ c
      &           facu1*U(i0,i1+1) +
      &           facl1*U(i0,i1-1) -
      &           F(i0,i1))
-         enddo
-      enddo
+')
 c
       return
       end
@@ -775,6 +830,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
+      INTEGER s0,b1,r,i1end
       REAL fac0,fac1,fac,nmr,dnr,mu_lower,mu_upper,c
 c
 c     Perform a single Gauss-Seidel sweep.
@@ -783,8 +839,7 @@ c
       fac1 = 1.d0/(dx(1))
 
       fac = 2.d0*fac0**2.d0
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0+1
+      WAVEFRONT_2D(ilower0,iupper0+1,ilower1,iupper1,`
 
          c = beta
          if (var_c .eq. 1) then
@@ -813,12 +868,10 @@ c
      &        mu(i0,i1)*(u1(i0,i1)-u1(i0-1,i1))))
 
          u0(i0,i1) = nmr/dnr
-         enddo
-      enddo
+')
 
       fac = 2.d0*fac1**2.d0
-      do i1 = ilower1,iupper1+1
-         do i0 = ilower0,iupper0
+      WAVEFRONT_2D(ilower0,iupper0,ilower1,iupper1+1,`
 
          c = beta
          if (var_c .eq. 1) then
@@ -848,8 +901,7 @@ c
 
          u1(i0,i1) = nmr/dnr
 
-         enddo
-      enddo
+')
 
 c
       return
@@ -1069,6 +1121,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
+      INTEGER s0,b1,r,i1end
       REAL fac0,fac1,fac,nmr,dnr,mu_lower,mu_upper,c
 c
 c     Perform a single Gauss-Seidel sweep.
@@ -1077,8 +1130,7 @@ c
       fac1 = 1.d0/(dx(1))
 
       fac = 2.d0*fac0**2.d0
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0+1
+      WAVEFRONT_2D(ilower0,iupper0+1,ilower1,iupper1,`
             if (mask0(i0,i1) .eq. 0) then
 
             c = beta
@@ -1112,12 +1164,10 @@ c
             u0(i0,i1) = nmr/dnr
 
             endif
-         enddo
-      enddo
+')
 
       fac = 2.d0*fac1**2.d0
-      do i1 = ilower1,iupper1+1
-         do i0 = ilower0,iupper0
+      WAVEFRONT_2D(ilower0,iupper0,ilower1,iupper1+1,`
             if (mask1(i0,i1) .eq. 0) then
 
             c = beta
@@ -1151,8 +1201,7 @@ c
             u1(i0,i1) = nmr/dnr
 
             endif
-         enddo
-      enddo
+')
 
 c
       return
