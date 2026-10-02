@@ -1,0 +1,3 @@
+Changed: IBTK::VCSCViscousOpPointRelaxationFACOperator rejects the red-black smoother types.
+<br>
+(Boyce Griffith, 2026/10/02)

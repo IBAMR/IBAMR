@@ -80,6 +80,11 @@ c     Perform a single "red" or "black" Gauss-Seidel sweep for F = D
 c     div grad U + C U. Both D and C coefficients
 c     are constant.
 c
+c     A point is "red" if the sum of its indices is even and "black" if
+c     it is odd.  The argument red_or_black selects the color to update:
+c     "red" = 0, "black" = 1.  This rule applies to all of the red-black
+c     kernels below.
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine smooth_gs_rb_const_dc_2d(
@@ -114,25 +119,23 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1
+      INTEGER i0,i1,istart
       REAL    fac0,fac1,fac
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       fac0 = D/(dx(0)*dx(0))
       fac1 = D/(dx(1)*dx(1))
       fac = 0.5d0/(fac0+fac1-0.5d0*C)
 
       do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
-            if ( mod(i0+i1,2) .eq. red_or_black ) then
-               U(i0,i1) = fac*(
-     &              fac0*(U(i0-1,i1)+U(i0+1,i1)) +
-     &              fac1*(U(i0,i1-1)+U(i0,i1+1)) -
-     &              F(i0,i1))
-            endif
+c        First point of the requested color in this row.
+         istart = ilower0 + abs(mod(ilower0+i1+red_or_black,2))
+         do i0 = istart,iupper0,2
+            U(i0,i1) = fac*(
+     &           fac0*(U(i0-1,i1)+U(i0+1,i1)) +
+     &           fac1*(U(i0,i1-1)+U(i0,i1+1)) -
+     &           F(i0,i1))
          enddo
       enddo
 c
@@ -251,21 +254,20 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1
+      INTEGER i0,i1,istart
       REAL    fac0,fac1,fac
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
       fac = 0.5d0/(fac0+fac1-0.5d0*beta)
 
       do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
-            if ( (mod(i0+i1,2) .eq. red_or_black) .and.
-     &           (mask(i0,i1) .eq. 0) ) then
+c        First point of the requested color in this row.
+         istart = ilower0 + abs(mod(ilower0+i1+red_or_black,2))
+         do i0 = istart,iupper0,2
+            if (mask(i0,i1) .eq. 0) then
                U(i0,i1) = fac*(
      &              fac0*(U(i0-1,i1)+U(i0+1,i1)) +
      &              fac1*(U(i0,i1-1)+U(i0,i1+1)) -
@@ -386,25 +388,23 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1
+      INTEGER i0,i1,istart
       REAL    fac0,fac1,fac
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       fac0 = D/(dx(0)*dx(0))
       fac1 = D/(dx(1)*dx(1))
 
       do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
-            if ( mod(i0+i1,2) .eq. red_or_black ) then
-              fac = 0.5d0/(fac0+fac1-0.5d0*C(i0,i1))
-               U(i0,i1) = fac*(
-     &              fac0*(U(i0-1,i1)+U(i0+1,i1)) +
-     &              fac1*(U(i0,i1-1)+U(i0,i1+1)) -
-     &              F(i0,i1))
-            endif
+c        First point of the requested color in this row.
+         istart = ilower0 + abs(mod(ilower0+i1+red_or_black,2))
+         do i0 = istart,iupper0,2
+           fac = 0.5d0/(fac0+fac1-0.5d0*C(i0,i1))
+            U(i0,i1) = fac*(
+     &           fac0*(U(i0-1,i1)+U(i0+1,i1)) +
+     &           fac1*(U(i0,i1-1)+U(i0,i1+1)) -
+     &           F(i0,i1))
          enddo
       enddo
 c
@@ -531,7 +531,7 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1
+      INTEGER i0,i1,istart
       REAL    hx,hy
       REAL    facu0,facl0
       REAL    facu1,facl1
@@ -539,26 +539,24 @@ c
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       hx = dx(0)
       hy = dx(1)
 
       do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
-            if ( mod(i0+i1,2) .eq. red_or_black ) then
-               facu0 = D0(i0+1,i1)/(hx*hx)
-               facl0 = D0(i0,i1)/(hx*hx)
-               facu1 = D1(i0,i1+1)/(hy*hy)
-               facl1 = D1(i0,i1)/(hy*hy)
-               fac   = 1.d0/(facu0+facl0+facu1+facl1-C)
-               U(i0,i1) = fac*(
-     &             facu0*U(i0+1,i1) +
-     &             facl0*U(i0-1,i1) +
-     &             facu1*U(i0,i1+1) +
-     &             facl1*U(i0,i1-1) -
-     &             F(i0,i1))
-            endif
+c        First point of the requested color in this row.
+         istart = ilower0 + abs(mod(ilower0+i1+red_or_black,2))
+         do i0 = istart,iupper0,2
+            facu0 = D0(i0+1,i1)/(hx*hx)
+            facl0 = D0(i0,i1)/(hx*hx)
+            facu1 = D1(i0,i1+1)/(hy*hy)
+            facl1 = D1(i0,i1)/(hy*hy)
+            fac   = 1.d0/(facu0+facl0+facu1+facl1-C)
+            U(i0,i1) = fac*(
+     &          facu0*U(i0+1,i1) +
+     &          facl0*U(i0-1,i1) +
+     &          facu1*U(i0,i1+1) +
+     &          facl1*U(i0,i1-1) -
+     &          F(i0,i1))
          enddo
       enddo
 c
@@ -685,7 +683,7 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1
+      INTEGER i0,i1,istart
       REAL    hx,hy
       REAL    facu0,facl0
       REAL    facu1,facl1
@@ -693,26 +691,24 @@ c
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       hx = dx(0)
       hy = dx(1)
 
       do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0
-            if ( mod(i0+i1,2) .eq. red_or_black ) then
-               facu0 = D0(i0+1,i1)/(hx*hx)
-               facl0 = D0(i0,i1)/(hx*hx)
-               facu1 = D1(i0,i1+1)/(hy*hy)
-               facl1 = D1(i0,i1)/(hy*hy)
-               fac   = 1.d0/(facu0+facl0+facu1+facl1-C(i0,i1))
-               U(i0,i1) = fac*(
-     &             facu0*U(i0+1,i1) +
-     &             facl0*U(i0-1,i1) +
-     &             facu1*U(i0,i1+1) +
-     &             facl1*U(i0,i1-1) -
-     &             F(i0,i1))
-            endif
+c        First point of the requested color in this row.
+         istart = ilower0 + abs(mod(ilower0+i1+red_or_black,2))
+         do i0 = istart,iupper0,2
+            facu0 = D0(i0+1,i1)/(hx*hx)
+            facl0 = D0(i0,i1)/(hx*hx)
+            facu1 = D1(i0,i1+1)/(hy*hy)
+            facl1 = D1(i0,i1)/(hy*hy)
+            fac   = 1.d0/(facu0+facl0+facu1+facl1-C(i0,i1))
+            U(i0,i1) = fac*(
+     &          facu0*U(i0+1,i1) +
+     &          facl0*U(i0-1,i1) +
+     &          facu1*U(i0,i1+1) +
+     &          facl1*U(i0,i1-1) -
+     &          F(i0,i1))
          enddo
       enddo
 c
@@ -854,157 +850,6 @@ c
 c
       return
       end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c  Perform a single "red" or "black" Gauss-Seidel sweep for
-c     (f0,f1) = alpha div mu (grad (u0,u1) + grad (u0, u1)^T) + beta c (u0,u1).
-c
-c  The smoother is written for side-centered vector fields (u0, u1) and (f0, f1)
-c  with node-centered coefficient mu and side-centered coefficient (c0,c1)
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine vcrbgssmooth2d(
-     &     u0,u1,u_gcw,
-     &     f0,f1,f_gcw,
-     &     c0,c1,c_gcw,
-     &     mu,mu_gcw,
-     &     alpha,beta,
-     &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     dx,
-     &     var_c,
-     &     use_harmonic_interp,
-     &     red_or_black)
-c
-      implicit none
-c
-c     Functions.
-c
-      REAL a_avg4, h_avg4
-c
-c     Input.
-c
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-      INTEGER u_gcw,f_gcw,c_gcw,mu_gcw
-      INTEGER var_c,use_harmonic_interp
-      INTEGER red_or_black
-
-      REAL alpha,beta
-
-      REAL mu(NODE2d(ilower,iupper,mu_gcw))
-
-      REAL f0(SIDE2d0(ilower,iupper,f_gcw))
-      REAL f1(SIDE2d1(ilower,iupper,f_gcw))
-
-      REAL c0(SIDE2d0(ilower,iupper,c_gcw))
-      REAL c1(SIDE2d1(ilower,iupper,c_gcw))
-
-      REAL dx(0:NDIM-1)
-
-c
-c     Input/Output.
-c
-
-      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
-      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
-c
-c     Local variables.
-c
-      INTEGER i0,i1
-      REAL fac0,fac1,fac,nmr,dnr,mu_lower,mu_upper,c
-c
-c     Perform a single "red" or "black"  Gauss-Seidel sweep.
-c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
-      fac0 = 1.d0/(dx(0))
-      fac1 = 1.d0/(dx(1))
-
-      fac = 2.d0*fac0**2.d0
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0+1
-            if (mod(i0+i1,2) .eq. red_or_black) then
-
-            c = beta
-            if (var_c .eq. 1) then
-               c = c0(i0,i1)*beta
-            endif
-
-            if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg4(mu(i0,i1),mu(i0-1,i1),
-     &                       mu(i0,i1+1),mu(i0-1,i1+1))
-            else
-                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg4(mu(i0,i1),mu(i0-1,i1),
-     &                       mu(i0,i1+1),mu(i0-1,i1+1))
-            endif
-
-            dnr =  alpha*(fac*(mu_upper + mu_lower) +
-     &         fac1**2.d0*(mu(i0,i1+1) + mu(i0,i1))) - c
-
-            nmr = -f0(i0,i1) + alpha*(fac*(
-     &         mu_upper*u0(i0+1,i1) + mu_lower*u0(i0-1,i1))+
-     &         fac1**2.d0*(mu(i0,i1+1)*u0(i0,i1+1)+
-     &            mu(i0,i1)*u0(i0,i1-1))+
-     &         fac0*fac1*(mu(i0,i1+1)*(u1(i0,i1+1)-
-     &            u1(i0-1,i1+1))-
-     &            mu(i0,i1)*(u1(i0,i1)-u1(i0-1,i1))))
-
-            u0(i0,i1) = nmr/dnr
-
-          endif
-         enddo
-      enddo
-
-      fac = 2.d0*fac1**2.d0
-      do i1 = ilower1,iupper1+1
-         do i0 = ilower0,iupper0
-            if (mod(i0+i1,2) .eq. red_or_black) then
-
-            c = beta
-            if (var_c .eq. 1) then
-               c = c1(i0,i1)*beta
-            endif
-
-            if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1-1),mu(i0+1,i1-1))
-            else
-                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1-1),mu(i0+1,i1-1))
-            endif
-
-            dnr = alpha*(fac*(mu_upper+ mu_lower)+
-     &         fac0**2.d0*(mu(i0+1,i1) + mu(i0,i1))) - c
-
-            nmr = -f1(i0,i1) + alpha*(fac*(
-     &         mu_upper*u1(i0,i1+1) + mu_lower*u1(i0,i1-1))+
-     &         fac0**2.d0*(mu(i0+1,i1)*u1(i0+1,i1)+
-     &            mu(i0,i1)*u1(i0-1,i1))+
-     &         fac0*fac1*(mu(i0+1,i1)*(u0(i0+1,i1)
-     &            -u0(i0+1,i1-1))-
-     &         mu(i0,i1)*(u0(i0,i1)-u0(i0,i1-1))))
-
-            u1(i0,i1) = nmr/dnr
-
-           endif
-         enddo
-      enddo
-
-c
-      return
-      end
-c
-
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -1151,164 +996,6 @@ c
             u1(i0,i1) = nmr/dnr
 
             endif
-         enddo
-      enddo
-
-c
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c  Perform a single "red" or "black" Gauss-Seidel sweep for
-c     (f0,f1) = alpha div mu (grad (u0,u1) + grad (u0, u1)^T) + beta c (u0,u1),
-c  with masking of certain degrees of freedom.
-c
-c     NOTE: The solution (u0,u1) is unmodified at masked degrees of freedom.
-c
-c  The smoother is written for side-centered vector fields (u0, u1) and (f0, f1)
-c  with node-centered coefficient mu and side-centered coefficient (c0,c1)
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine vcrbgssmoothmask2d(
-     &     u0,u1,u_gcw,
-     &     f0,f1,f_gcw,
-     &     mask0,mask1,mask_gcw,
-     &     c0,c1,c_gcw,
-     &     mu,mu_gcw,
-     &     alpha,beta,
-     &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     dx,
-     &     var_c,
-     &     use_harmonic_interp,
-     &     red_or_black)
-c
-      implicit none
-c
-c     Functions.
-c
-      REAL a_avg4, h_avg4
-c
-c     Input.
-c
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-      INTEGER u_gcw,f_gcw,c_gcw,mu_gcw,mask_gcw
-      INTEGER var_c,use_harmonic_interp
-      INTEGER red_or_black
-
-      REAL alpha,beta
-
-      REAL mu(NODE2d(ilower,iupper,mu_gcw))
-
-      REAL f0(SIDE2d0(ilower,iupper,f_gcw))
-      REAL f1(SIDE2d1(ilower,iupper,f_gcw))
-
-      INTEGER mask0(SIDE2d0(ilower,iupper,mask_gcw))
-      INTEGER mask1(SIDE2d1(ilower,iupper,mask_gcw))
-
-      REAL c0(SIDE2d0(ilower,iupper,c_gcw))
-      REAL c1(SIDE2d1(ilower,iupper,c_gcw))
-
-      REAL dx(0:NDIM-1)
-
-c
-c     Input/Output.
-c
-
-      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
-      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
-c
-c     Local variables.
-c
-      INTEGER i0,i1
-      REAL fac0,fac1,fac,nmr,dnr,mu_lower,mu_upper,c
-c
-c     Perform a single "red" or "black"  Gauss-Seidel sweep.
-c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
-      fac0 = 1.d0/(dx(0))
-      fac1 = 1.d0/(dx(1))
-
-      fac = 2.d0*fac0**2.d0
-      do i1 = ilower1,iupper1
-         do i0 = ilower0,iupper0+1
-            if ( (mod(i0+i1,2) .eq. red_or_black) .and.
-     &           (mask0(i0,i1) .eq. 0) ) then
-
-            c = beta
-            if (var_c .eq. 1) then
-               c = c0(i0,i1)*beta
-            endif
-
-            if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg4(mu(i0,i1),mu(i0-1,i1),
-     &                           mu(i0,i1+1),mu(i0-1,i1+1))
-            else
-                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg4(mu(i0,i1),mu(i0-1,i1),
-     &                       mu(i0,i1+1),mu(i0-1,i1+1))
-            endif
-
-            dnr =  alpha*(fac*(mu_upper + mu_lower) +
-     &         fac1**2.d0*(mu(i0,i1+1) + mu(i0,i1))) - c
-
-            nmr = -f0(i0,i1) + alpha*(fac*(
-     &         mu_upper*u0(i0+1,i1) + mu_lower*u0(i0-1,i1))+
-     &         fac1**2.d0*(mu(i0,i1+1)*u0(i0,i1+1)+
-     &            mu(i0,i1)*u0(i0,i1-1))+
-     &         fac0*fac1*(mu(i0,i1+1)*(u1(i0,i1+1)-
-     &            u1(i0-1,i1+1))-
-     &            mu(i0,i1)*(u1(i0,i1)-u1(i0-1,i1))))
-
-            u0(i0,i1) = nmr/dnr
-
-          endif
-         enddo
-      enddo
-
-      fac = 2.d0*fac1**2.d0
-      do i1 = ilower1,iupper1+1
-         do i0 = ilower0,iupper0
-            if ( (mod(i0+i1,2) .eq. red_or_black) .and.
-     &           (mask1(i0,i1) .eq. 0) ) then
-
-            c = beta
-            if (var_c .eq. 1) then
-               c = c1(i0,i1)*beta
-            endif
-
-            if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1-1),mu(i0+1,i1-1))
-            else
-                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg4(mu(i0,i1),mu(i0+1,i1),
-     &                           mu(i0,i1-1),mu(i0+1,i1-1))
-            endif
-
-            dnr = alpha*(fac*(mu_upper+ mu_lower)+
-     &         fac0**2.d0*(mu(i0+1,i1) + mu(i0,i1))) - c
-
-            nmr = -f1(i0,i1) + alpha*(fac*(
-     &         mu_upper*u1(i0,i1+1) + mu_lower*u1(i0,i1-1))+
-     &         fac0**2.d0*(mu(i0+1,i1)*u1(i0+1,i1)+
-     &            mu(i0,i1)*u1(i0-1,i1))+
-     &         fac0*fac1*(mu(i0+1,i1)*(u0(i0+1,i1)
-     &            -u0(i0+1,i1-1))-
-     &         mu(i0,i1)*(u0(i0,i1)-u0(i0,i1-1))))
-
-            u1(i0,i1) = nmr/dnr
-
-           endif
          enddo
       enddo
 

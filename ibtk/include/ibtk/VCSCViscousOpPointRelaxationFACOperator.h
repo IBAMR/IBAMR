@@ -90,6 +90,33 @@ public:
     } // allocate
 
     /*!
+     * \name Functions for configuring the solver.
+     */
+    //\{
+
+    /*!
+     * \brief Specify the smoother type.
+     *
+     * Select from:
+     * - \c "PATCH_GAUSS_SEIDEL"
+     * - \c "PROCESSOR_GAUSS_SEIDEL"
+     *
+     * It is an error to specify \c "RED_BLACK_GAUSS_SEIDEL" or \c "PATCH_RED_BLACK_GAUSS_SEIDEL": the update of one
+     * velocity component reads the other components at points of the same color, so a color pass is not independent
+     * of the patch layout.
+     */
+    void setSmootherType(const std::string& smoother_type) override;
+
+    /*!
+     * \brief Specify the coarse level solver.
+     *
+     * It is an error to specify a red-black smoother type; see setSmootherType().
+     */
+    void setCoarseSolverType(const std::string& coarse_solver_type) override;
+
+    //\}
+
+    /*!
      * \name Implementation of FACPreconditionerStrategy interface.
      */
     //\{

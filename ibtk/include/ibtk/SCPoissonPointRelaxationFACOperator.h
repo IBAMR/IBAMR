@@ -126,14 +126,22 @@ public:
      * \brief Specify the smoother type.
      *
      * Select from:
-     * - \c "PATCH_GAUSS_SEIDEL"
-     * - \c "PROCESSOR_GAUSS_SEIDEL"
-     * - \c "RED_BLACK_GAUSS_SEIDEL"
+     * - \c "PATCH_GAUSS_SEIDEL": lexicographic ordering within each patch; ghost values are refreshed before each sweep
+     *   after the first; results depend on the patch layout.
+     * - \c "PROCESSOR_GAUSS_SEIDEL": as \c "PATCH_GAUSS_SEIDEL", except that each patch first copies the updated
+     *   values of neighboring patches on the same processor; results depend on the patch and processor layout.
+     * - \c "RED_BLACK_GAUSS_SEIDEL": red-black ordering over the whole level; ghost values are refreshed before each
+     *   sweep after the first and between the red and black passes; results do not depend on the patch layout.
+     * - \c "PATCH_RED_BLACK_GAUSS_SEIDEL": red-black ordering within each patch; ghost values are refreshed before each
+     *   sweep after the first, not between the two colors; results depend on the patch layout.
      */
     void setSmootherType(const std::string& smoother_type) override;
 
     /*!
      * \brief Specify the coarse level solver.
+     *
+     * Besides the smoother types accepted by setSmootherType(), any solver type known to
+     * SCPoissonSolverManager may be specified.
      */
     void setCoarseSolverType(const std::string& coarse_solver_type) override;
 
