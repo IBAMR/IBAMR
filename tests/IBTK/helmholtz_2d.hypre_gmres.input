@@ -1,0 +1,90 @@
+// Solve the Helmholtz equation with constant coefficients on one level using hypre's GMRES solver.
+
+PI = 3.14159265358979
+
+C_IS_VAR = FALSE     // specify whether the C coefficient is spatially varying
+D_IS_CONST = TRUE    // specify whether the diffusion coefficient is constant
+
+U = "sin(2*PI*X_0)*sin(2*PI*X_1)"
+u {
+   function = U
+}
+
+f {
+   function = "(2*(2*PI)^2)*sin(2*PI*X_0)*sin(2*PI*X_1) + sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+D_COEFFICIENT  = 1.0
+C_COEFFICIENT  = 1.0
+
+UBcCoefs
+{
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = U
+   gcoef_function_1 = U
+   gcoef_function_2 = U
+   gcoef_function_3 = U
+}
+
+solver_type = "HYPRE_LEVEL_SOLVER"
+solver_db {
+   solver_type      = "GMRES"
+   precond_type     = "PFMG"
+   rel_residual_tol = 1.0e-12
+   max_iterations   = 100
+}
+
+// A level solver takes no preconditioner.
+precond_type = ""
+precond_db {
+}
+
+Main {
+// log file parameters
+   log_file_name = "Helmholtz2d.log"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+}
+
+N = 32
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0      // lower end of computational domain.
+   x_up               = 1, 1      // upper end of computational domain.
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // Maximum number of levels in hierarchy.
+
+   largest_patch_size {
+      level_0 = 16, 16            // largest patch allowed in hierarchy
+   }
+
+   smallest_patch_size {
+      level_0 =  4,  4            // smallest patch allowed in hierarchy
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {}
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

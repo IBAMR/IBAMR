@@ -449,19 +449,11 @@ CCPoissonHypreLevelSolver::allocateHypreData()
         }
     }
 
-// Allocate the hypre matrices.
-#if (NDIM == 2)
-    HYPRE_Int full_ghosts[2 * 3] = { 1, 1, 1, 1, 0, 0 };
-#endif
-#if (NDIM == 3)
-    HYPRE_Int full_ghosts[2 * 3] = { 1, 1, 1, 1, 1, 1 };
-#endif
-    HYPRE_Int no_ghosts[2 * 3] = { 0, 0, 0, 0, 0, 0 };
+    // Allocate the hypre matrices.
     d_matrices.resize(d_depth);
     for (unsigned int k = 0; k < d_depth; ++k)
     {
         HYPRE_StructMatrixCreate(communicator, d_grid, d_stencil, &d_matrices[k]);
-        HYPRE_StructMatrixSetNumGhost(d_matrices[k], full_ghosts);
         HYPRE_StructMatrixSetSymmetric(d_matrices[k], 0);
         HYPRE_StructMatrixInitialize(d_matrices[k]);
     }
@@ -472,11 +464,9 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     for (unsigned int k = 0; k < d_depth; ++k)
     {
         HYPRE_StructVectorCreate(communicator, d_grid, &d_sol_vecs[k]);
-        HYPRE_StructVectorSetNumGhost(d_sol_vecs[k], full_ghosts);
         HYPRE_StructVectorInitialize(d_sol_vecs[k]);
 
         HYPRE_StructVectorCreate(communicator, d_grid, &d_rhs_vecs[k]);
-        HYPRE_StructVectorSetNumGhost(d_rhs_vecs[k], no_ghosts);
         HYPRE_StructVectorInitialize(d_rhs_vecs[k]);
     }
     return;
