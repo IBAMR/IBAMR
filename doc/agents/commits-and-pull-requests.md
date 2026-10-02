@@ -77,7 +77,9 @@ State the change itself, not the history of the defect or of the branch. Do not
 list or describe the tests in the body, because the checklist covers them; the
 exception is a sentence giving the reason for a new test executable. For a
 stacked PR, end the opening text with `Stacked on #N.`, naming the PR it is based
-on, and omit notes about stack position that a restack would invalidate.
+on, and omit notes about stack position that a restack would invalidate. When a
+PR adds something that is first used by a later PR in the stack, say in one clause
+why it exists and name that PR, so that it can be reviewed on its own.
 
 Use [.github/pull_request_template.md](../../.github/pull_request_template.md), which
 links to the canonical template in `doc/`. Preserve the entire template, including
