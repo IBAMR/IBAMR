@@ -1,0 +1,6 @@
+New: RestartCleaner can now mark restart directories as important with
+markImportant(), which protects them from deletion during cleanup()
+regardless of the "keep most recent N" policy. The marker is a file inside
+the restore directory, so it survives crashes, job restarts and new runs.
+<br>
+(Meihan Chen, David Wells, 2026/09/16)
