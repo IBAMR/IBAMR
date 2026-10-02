@@ -880,17 +880,19 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             // Compute the xsPPM7 discretization.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Pointer<SideData<NDIM, double>> dU_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double>> U_L_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double>> U_R_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double>> U_scratch1_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                IntVector<NDIM> directions(0);
+                directions(axis) = 1;
+                SideData<NDIM, double> dU_data(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth(), directions);
+                SideData<NDIM, double> U_L_data(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth(), directions);
+                SideData<NDIM, double> U_R_data(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth(), directions);
+                SideData<NDIM, double> U_scratch1_data(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth(), directions);
 #if (NDIM == 3)
-                Pointer<SideData<NDIM, double>> U_scratch2_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<NDIM, double> U_scratch2_data(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth(), directions);
 #endif
 #if (NDIM == 2)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
@@ -900,10 +902,10 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                                        U_data->getGhostCellWidth()(0),
                                        U_data->getGhostCellWidth()(1),
                                        U_data->getPointer(axis),
-                                       U_scratch1_data->getPointer(axis),
-                                       dU_data->getPointer(axis),
-                                       U_L_data->getPointer(axis),
-                                       U_R_data->getPointer(axis),
+                                       U_scratch1_data.getPointer(axis),
+                                       dU_data.getPointer(axis),
+                                       U_L_data.getPointer(axis),
+                                       U_R_data.getPointer(axis),
                                        U_adv_data[axis]->getGhostCellWidth()(0),
                                        U_adv_data[axis]->getGhostCellWidth()(1),
                                        U_half_data[axis]->getGhostCellWidth()(0),
@@ -924,11 +926,11 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                                        U_data->getGhostCellWidth()(1),
                                        U_data->getGhostCellWidth()(2),
                                        U_data->getPointer(axis),
-                                       U_scratch1_data->getPointer(axis),
-                                       U_scratch2_data->getPointer(axis),
-                                       dU_data->getPointer(axis),
-                                       U_L_data->getPointer(axis),
-                                       U_R_data->getPointer(axis),
+                                       U_scratch1_data.getPointer(axis),
+                                       U_scratch2_data.getPointer(axis),
+                                       dU_data.getPointer(axis),
+                                       U_L_data.getPointer(axis),
+                                       U_R_data.getPointer(axis),
                                        U_adv_data[axis]->getGhostCellWidth()(0),
                                        U_adv_data[axis]->getGhostCellWidth()(1),
                                        U_adv_data[axis]->getGhostCellWidth()(2),

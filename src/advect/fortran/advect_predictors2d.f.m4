@@ -1788,10 +1788,13 @@ c     Local variables.
 c
       INTEGER ic0,ic1
 c
-c     Make a permuted copy of Q.
+c     Make a permuted copy of Q on the cells read by the y-direction
+c     reconstruction. xsPPM7 applies its 7-point stencil in cells
+c     ifirst1-1,...,ilast1+1, so it reads 4 cells beyond the patch in
+c     that direction and none in the other.
 c
-      do ic1 = ifirst1-nQgc1,ilast1+nQgc1
-         do ic0 = ifirst0-nQgc0,ilast0+nQgc0
+      do ic1 = ifirst1-4,ilast1+4
+         do ic0 = ifirst0,ilast0
             Q1(ic1,ic0) = Q0(ic0,ic1)
          enddo
       enddo
@@ -2001,8 +2004,7 @@ c
       INTEGER nqhalfgc0,nqhalfgc1
 
       REAL Q0(CELL2dVECG(ifirst,ilast,nQgc))
-      REAL Q1(ifirst1-nQgc1:ilast1+nQgc1,
-     &        ifirst0-nQgc0:ilast0+nQgc0)
+      REAL Q1(ifirst1-2:ilast1+2,ifirst0:ilast0)
 
       REAL u0(FACE2d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE2d1VECG(ifirst,ilast,nugc))
@@ -2018,10 +2020,13 @@ c
       REAL QC,QU,QD
       REAL Qf_HR
 c
-c     Make a permuted copy of Q.
+c     Make a permuted copy of Q on the cells read by the y-direction
+c     reconstruction. CUI reads the two cells upwind of each face, so
+c     it reads 2 cells beyond the patch in that direction and none in
+c     the other.
 c
-      do ic1 = ifirst1-nQgc1,ilast1+nQgc1
-         do ic0 = ifirst0-nQgc0,ilast0+nQgc0
+      do ic1 = ifirst1-2,ilast1+2
+         do ic0 = ifirst0,ilast0
             Q1(ic1,ic0) = Q0(ic0,ic1)
          enddo
       enddo
