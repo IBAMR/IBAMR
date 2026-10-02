@@ -1,0 +1,3 @@
+Fixed: Red-black Gauss-Seidel smoothing in IBTK::CCPoissonPointRelaxationFACOperator and IBTK::SCPoissonPointRelaxationFACOperator updates every cell on patches with negative cell indices.
+<br>
+(Boyce Griffith, 2026/10/02)

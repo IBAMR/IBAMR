@@ -1,0 +1,54 @@
+// One-level Poisson problem on a periodic grid whose cell indices are negative, solved by GMRES with a
+// point-relaxation FAC preconditioner that relaxes the level with red-black Gauss-Seidel sweeps.
+
+u {
+   function = "sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+f {
+   function = "(2*(2*PI)^2)*sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+solver_type = "PETSC_KRYLOV_SOLVER"
+solver_db {
+   max_iterations = 1   // a second iteration converges to roundoff level
+}
+
+precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   coarse_solver_type = "RED_BLACK_GAUSS_SEIDEL"   // on a single level, the coarse solver relaxes the level
+   coarse_solver_max_iterations = 2                // sweeps per application of the preconditioner
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(-8,-8), (7,7)]   // negative cell indices
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 8, 8   // four patches
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(-8,-8), (-8,-8)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+}
