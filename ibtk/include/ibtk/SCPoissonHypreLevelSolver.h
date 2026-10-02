@@ -91,23 +91,15 @@ namespace IBTK
  * values): \verbatim
 
  enable_logging = FALSE         // see setLoggingEnabled()
- solver_type = "Split"          // choices are: "Split", "SysPFMG", "PCG", "GMRES", "FlexGMRES"
- ,
- "LGMRES", "BiCGSTAB"
- precond_type = "none"          // choices are: "Split", "SysPFMG"
+ solver_type = "Split"          // choices are: "Split", "PCG", "GMRES", "FlexGMRES", "LGMRES", "BiCGSTAB"
+ precond_type = "none"          // choices are: "none", "Split"
  split_solver_type = "PFMG"     // choices are: "PFMG", "SMG", "Jacobi"
  max_iterations = 25            // see setMaxIterations()
  abs_residual_tol = 1.e-50      // see setAbsoluteTolerance() (only used by hypre Krylov
  solvers)
  rel_residual_tol = 1.0e-5      // see setRelativeTolerance()
  initial_guess_nonzero = FALSE  // see setInitialGuessNonzero()
- rel_change = 0                 // see hypre User's Manual (only used by SysPFMG or PCG solver)
- num_pre_relax_steps = 1        // number of pre-sweeps (only used by SysPFMG solver)
- num_post_relax_steps = 1       // number of post-sweeps (only used by SysPFMG solver)
- relax_type = 1                 // see hypre User's Manual (only used by SysPFMG solver or
- preconditioner)
- skip_relax = 1                 // see hypre User's Manual (only used by SysPFMG solver or
- preconditioner)
+ rel_change = 0                 // see hypre User's Manual (only used by PCG solver)
  two_norm = 1                   // see hypre User's Manual (only used by PCG solver)
  \endverbatim
  *
@@ -312,9 +304,6 @@ private:
 
     std::string d_solver_type = "Split", d_precond_type = "none", d_split_solver_type = "PFMG";
     int d_rel_change = 0;
-    int d_num_pre_relax_steps = 1, d_num_post_relax_steps = 1;
-    int d_relax_type;
-    int d_skip_relax = 1;
     int d_two_norm = 1;
     //\}
 };

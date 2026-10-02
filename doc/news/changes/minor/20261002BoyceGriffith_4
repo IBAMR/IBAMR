@@ -1,0 +1,3 @@
+Fixed: IBTK::CCPoissonHypreLevelSolver reports the residual norm and convergence of its PFMG and SMG solvers.
+<br>
+(Boyce Griffith, 2026/10/02)
