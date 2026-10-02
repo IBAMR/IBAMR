@@ -103,7 +103,7 @@ jobs:
         id: test
         run: |
           cd build
-          runuser -u build -- ./attest --verbose --test-timeout=120 -j4 -E 'mpirun=[3-9]|explicit_ex2_3d|explicit_ex5_3d|explicit_ex8_2d|nwt_cylinder|cib_double_shell.in|cib_double_shell.cholesky.in|poiseuille_flow'
+          runuser -u build -- ./attest --malloc-perturb --verbose --test-timeout=120 -j4 -E 'mpirun=[3-9]|explicit_ex2_3d|explicit_ex5_3d|explicit_ex8_2d|nwt_cylinder|cib_double_shell.in|cib_double_shell.cholesky.in|poiseuille_flow'
           ccache --show-stats
       - name: Install IBAMR
         id: install
