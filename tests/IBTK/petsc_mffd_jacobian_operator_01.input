@@ -1,0 +1,36 @@
+D = 1.0
+C = 1.0
+
+u {
+   function_0 = "1 - 2*(cos(2*PI*X_0)*sin(2*PI*X_1))"
+   function_1 = "1 + 2*(sin(2*PI*X_0)*cos(2*PI*X_1))"
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 8
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size { level_0 = N, N }
+   smallest_patch_size { level_0 = N, N }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {}
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+}
