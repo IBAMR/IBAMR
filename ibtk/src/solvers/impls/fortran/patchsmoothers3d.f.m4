@@ -88,6 +88,11 @@ c     Perform a single "red" or "black" Gauss-Seidel sweep for F = D
 c     div grad U + C U. Both D and C coefficients
 c     are constant.
 c
+c     A point is "red" if the sum of its indices is even and "black" if
+c     it is odd.  The argument red_or_black selects the color to update:
+c     "red" = 0, "black" = 1.  This rule applies to all of the red-black
+c     kernels below.
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine smooth_gs_rb_const_dc_3d(
@@ -126,13 +131,11 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1,i2
+      INTEGER i0,i1,i2,istart
       REAL    fac0,fac1,fac2,fac
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       fac0 = D/(dx(0)*dx(0))
       fac1 = D/(dx(1)*dx(1))
       fac2 = D/(dx(2)*dx(2))
@@ -140,14 +143,14 @@ c
 
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
-               if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
-                  U(i0,i1,i2) = fac*(
-     &                 fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
-     &                 fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
-     &                 fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
-     &                 F(i0,i1,i2))
-               endif
+c           First point of the requested color in this row.
+            istart = ilower0 + abs(mod(ilower0+i1+i2+red_or_black,2))
+            do i0 = istart,iupper0,2
+               U(i0,i1,i2) = fac*(
+     &              fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
+     &              fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
+     &              fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
+     &              F(i0,i1,i2))
             enddo
          enddo
       enddo
@@ -280,13 +283,11 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1,i2
+      INTEGER i0,i1,i2,istart
       REAL    fac0,fac1,fac2,fac
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
       fac2 = alpha/(dx(2)*dx(2))
@@ -294,9 +295,10 @@ c
 
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
-               if ( (mod(i0+i1+i2,2) .eq. red_or_black) .and.
-     &              (mask(i0,i1,i2) .eq. 0) ) then
+c           First point of the requested color in this row.
+            istart = ilower0 + abs(mod(ilower0+i1+i2+red_or_black,2))
+            do i0 = istart,iupper0,2
+               if (mask(i0,i1,i2) .eq. 0) then
                   U(i0,i1,i2) = fac*(
      &                 fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
      &                 fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
@@ -430,28 +432,26 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1,i2
+      INTEGER i0,i1,i2,istart
       REAL    fac0,fac1,fac2,fac
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       fac0 = D/(dx(0)*dx(0))
       fac1 = D/(dx(1)*dx(1))
       fac2 = D/(dx(2)*dx(2))
 
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
-               if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
-                  fac = 0.5d0/(fac0+fac1+fac2-0.5d0*C(i0,i1,i2))
-                  U(i0,i1,i2) = fac*(
-     &                 fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
-     &                 fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
-     &                 fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
-     &                 F(i0,i1,i2))
-               endif
+c           First point of the requested color in this row.
+            istart = ilower0 + abs(mod(ilower0+i1+i2+red_or_black,2))
+            do i0 = istart,iupper0,2
+               fac = 0.5d0/(fac0+fac1+fac2-0.5d0*C(i0,i1,i2))
+               U(i0,i1,i2) = fac*(
+     &              fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
+     &              fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
+     &              fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
+     &              F(i0,i1,i2))
             enddo
          enddo
       enddo
@@ -598,7 +598,7 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1,i2
+      INTEGER i0,i1,i2,istart
       REAL    hx,hy,hz
       REAL    facu0,facl0
       REAL    facu1,facl1
@@ -607,32 +607,30 @@ c
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       hx = dx(0)
       hy = dx(1)
       hz = dx(2)
 
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
-               if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
-                  facu0 = D0(i0+1,i1,i2)/(hx*hx)
-                  facl0 = D0(i0,i1,i2)/(hx*hx)
-                  facu1 = D1(i0,i1+1,i2)/(hy*hy)
-                  facl1 = D1(i0,i1,i2)/(hy*hy)
-                  facu2 = D2(i0,i1,i2+1)/(hz*hz)
-                  facl2 = D2(i0,i1,i2)/(hz*hz)
-                  fac  = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2-C)
-                  U(i0,i1,i2) = fac*(
-     &                facu0*U(i0+1,i1,i2) +
-     &                facl0*U(i0-1,i1,i2) +
-     &                facu1*U(i0,i1+1,i2) +
-     &                facl1*U(i0,i1-1,i2) +
-     &                facu2*U(i0,i1,i2+1) +
-     &                facl2*U(i0,i1,i2-1) -
-     &                F(i0,i1,i2))
-               endif
+c           First point of the requested color in this row.
+            istart = ilower0 + abs(mod(ilower0+i1+i2+red_or_black,2))
+            do i0 = istart,iupper0,2
+               facu0 = D0(i0+1,i1,i2)/(hx*hx)
+               facl0 = D0(i0,i1,i2)/(hx*hx)
+               facu1 = D1(i0,i1+1,i2)/(hy*hy)
+               facl1 = D1(i0,i1,i2)/(hy*hy)
+               facu2 = D2(i0,i1,i2+1)/(hz*hz)
+               facl2 = D2(i0,i1,i2)/(hz*hz)
+               fac  = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2-C)
+               U(i0,i1,i2) = fac*(
+     &             facu0*U(i0+1,i1,i2) +
+     &             facl0*U(i0-1,i1,i2) +
+     &             facu1*U(i0,i1+1,i2) +
+     &             facl1*U(i0,i1-1,i2) +
+     &             facu2*U(i0,i1,i2+1) +
+     &             facl2*U(i0,i1,i2-1) -
+     &             F(i0,i1,i2))
             enddo
          enddo
       enddo
@@ -780,7 +778,7 @@ c
 c
 c     Local variables.
 c
-      INTEGER i0,i1,i2
+      INTEGER i0,i1,i2,istart
       REAL    hx,hy,hz
       REAL    facu0,facl0
       REAL    facu1,facl1
@@ -789,33 +787,31 @@ c
 c
 c     Perform a single "red" or "black" Gauss-Seidel sweep.
 c
-      red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
-
       hx = dx(0)
       hy = dx(1)
       hz = dx(2)
 
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
-               if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
-                  facu0 = D0(i0+1,i1,i2)/(hx*hx)
-                  facl0 = D0(i0,i1,i2)/(hx*hx)
-                  facu1 = D1(i0,i1+1,i2)/(hy*hy)
-                  facl1 = D1(i0,i1,i2)/(hy*hy)
-                  facu2 = D2(i0,i1,i2+1)/(hz*hz)
-                  facl2 = D2(i0,i1,i2)/(hz*hz)
-                  fac  = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2
-     &                   -C(i0,i1,i2))
-                  U(i0,i1,i2) = fac*(
-     &                facu0*U(i0+1,i1,i2) +
-     &                facl0*U(i0-1,i1,i2) +
-     &                facu1*U(i0,i1+1,i2) +
-     &                facl1*U(i0,i1-1,i2) +
-     &                facu2*U(i0,i1,i2+1) +
-     &                facl2*U(i0,i1,i2-1) -
-     &                F(i0,i1,i2))
-               endif
+c           First point of the requested color in this row.
+            istart = ilower0 + abs(mod(ilower0+i1+i2+red_or_black,2))
+            do i0 = istart,iupper0,2
+               facu0 = D0(i0+1,i1,i2)/(hx*hx)
+               facl0 = D0(i0,i1,i2)/(hx*hx)
+               facu1 = D1(i0,i1+1,i2)/(hy*hy)
+               facl1 = D1(i0,i1,i2)/(hy*hy)
+               facu2 = D2(i0,i1,i2+1)/(hz*hz)
+               facl2 = D2(i0,i1,i2)/(hz*hz)
+               fac  = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2
+     &                -C(i0,i1,i2))
+               U(i0,i1,i2) = fac*(
+     &             facu0*U(i0+1,i1,i2) +
+     &             facl0*U(i0-1,i1,i2) +
+     &             facu1*U(i0,i1+1,i2) +
+     &             facl1*U(i0,i1-1,i2) +
+     &             facu2*U(i0,i1,i2+1) +
+     &             facl2*U(i0,i1,i2-1) -
+     &             F(i0,i1,i2))
             enddo
          enddo
       enddo
