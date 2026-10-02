@@ -96,6 +96,7 @@
 #include <Box.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
+#include <CellData.h>
 #include <CellIndex.h>
 #include <CellVariable.h>
 #include <GriddingAlgorithm.h>
@@ -1387,12 +1388,29 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
                                      const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*u_synch_scheds*/,
                                      const std::vector<Pointer<RefineSchedule<NDIM>>>& /*u_ghost_fill_scheds*/,
                                      int /*integrator_step*/,
-                                     double /*init_data_time*/,
+                                     const double init_data_time,
                                      bool /*initial_time*/)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+
+    // The workload data are not stored in restart files, so allocate them
+    // here when they are missing.
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            if (!patch->checkAllocated(d_lagrangian_workload_current_idx))
+            {
+                patch->allocatePatchData(d_lagrangian_workload_current_idx, init_data_time);
+                Pointer<CellData<NDIM, double>> data = patch->getPatchData(d_lagrangian_workload_current_idx);
+                data->fillAll(0.0);
+            }
+        }
+    }
 
     // At this point we have not yet regridded, so we have not repartitioned:
     // make the scratch hierarchy a copy of the primary one so that it is not
