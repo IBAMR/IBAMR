@@ -76,6 +76,12 @@ copy_ghost_region(const PatchLevel<NDIM>& patch_level, const int dst_idx, const 
         // that lies outside dst's interior, in the data's own centering.
         Pointer<BoxOverlap<NDIM>> overlap = dst_geometry->calculateOverlap(
             *src_geometry, src_data->getGhostBox(), /*overwrite_interior*/ false, IntVector<NDIM>(0));
+        if (!overlap)
+        {
+            TBOX_ERROR("copy_ghost_region():\n"
+                       << "  patch data indices " << dst_idx << " and " << src_idx
+                       << " have geometries that do not support an overlap" << std::endl);
+        }
         dst_data->copy(*src_data, *overlap);
     }
     return;

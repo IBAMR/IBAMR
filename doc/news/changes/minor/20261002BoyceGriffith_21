@@ -1,0 +1,3 @@
+Improved: IBTK::copy_ghost_region() reports an error when the patch data geometries do not support an overlap.
+<br>
+(Boyce Griffith, 2026/10/02)
