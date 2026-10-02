@@ -1716,16 +1716,6 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
-    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx,
-                                                     DATA_REFINE_TYPE,
-                                                     USE_CF_INTERPOLATION,
-                                                     DATA_COARSEN_TYPE,
-                                                     d_bdry_extrap_type, // TODO: update variable name
-                                                     CONSISTENT_TYPE_2_BDRY,
-                                                     d_P_bc_coef);
-    d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
-
     if (d_Q_fcn)
     {
         InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
