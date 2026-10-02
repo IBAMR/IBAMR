@@ -1,0 +1,3 @@
+Improved: IBTK::SCPoissonPointRelaxationFACOperator no longer synchronizes side-centered data after the coarse solve.
+<br>
+(Boyce Griffith, 2026/10/02)
