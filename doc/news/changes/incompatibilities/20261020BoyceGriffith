@@ -1,0 +1,3 @@
+Changed: IBTK::CCPoissonPointRelaxationFACOperator and IBTK::SCPoissonPointRelaxationFACOperator no longer read the input key use_consistent_type_2_bdry, which had no effect.
+<br>
+(Boyce Griffith, 2026/10/20)

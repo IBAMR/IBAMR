@@ -289,14 +289,6 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
                           "SCPoissonPointRelaxationFACOperator.\n"
                        << "         use ``coarse_solver_db'' input entry instead.\n";
         }
-
-        if (input_db->isString("data_refine_type")) d_data_refine_type = input_db->getString("data_refine_type");
-        if (input_db->isBool("use_cf_interpolation"))
-            d_use_cf_interpolation = input_db->getBool("use_cf_interpolation");
-        if (input_db->isString("data_coarsen_type")) d_data_coarsen_type = input_db->getString("data_coarsen_type");
-        if (input_db->isString("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
-        if (input_db->isBool("use_consistent_type_2_bdry"))
-            d_use_consistent_type_2_bdry = input_db->getBool("use_consistent_type_2_bdry");
     }
 
     // Configure the coarse level solver.
@@ -674,7 +666,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
                                                        d_use_cf_interpolation,
                                                        d_data_coarsen_type,
                                                        d_bdry_extrap_type,
-                                                       d_use_consistent_type_2_bdry,
+                                                       /*consistent_type_2_bdry*/ false,
                                                        d_bc_coefs,
                                                        fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num])
@@ -694,7 +686,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
                                                                d_use_cf_interpolation,
                                                                d_data_coarsen_type,
                                                                d_bdry_extrap_type,
-                                                               d_use_consistent_type_2_bdry,
+                                                               /*consistent_type_2_bdry*/ false,
                                                                d_bc_coefs,
                                                                fill_pattern);
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
