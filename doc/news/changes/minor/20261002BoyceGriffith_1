@@ -1,0 +1,3 @@
+Fixed: IBTK's HYPRE level solvers initialize HYPRE before first using it and do not leave HYPRE's nonconvergence error set.
+<br>
+(Boyce Griffith, 2026/10/02)

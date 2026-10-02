@@ -299,6 +299,8 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
 void
 SCPoissonHypreLevelSolver::allocateHypreData()
 {
+    initialize_hypre();
+
     // Get the MPI communicator.
     MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
@@ -799,6 +801,10 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
     d_current_iterations = current_iterations;
     IBTK_TIMER_STOP(t_solve_system_hypre);
+
+    // This function reports convergence itself, so do not leave hypre's
+    // nonconvergence error set.
+    HYPRE_ClearError(HYPRE_ERROR_CONV);
 
     // Pull the solution vector out of the hypre structures.
     HYPRE_SStructVectorGather(d_sol_vec);

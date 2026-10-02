@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/solver_utilities.h>
 
 #include <memory>
@@ -133,6 +134,50 @@ reportPETScSNESConvergedReason(const std::string& object_name, const SNESConverg
         break;
     }
 } // reportPETScSNESConvergedReason
+
+// hypre defines HYPRE_RELEASE_NUMBER in version 2.21 and newer.
+#if HYPRE_RELEASE_NUMBER >= 22100
+namespace
+{
+#if HYPRE_RELEASE_NUMBER < 22900
+// These versions of hypre cannot report whether hypre is initialized.
+bool s_hypre_initialized = false;
+#endif
+
+PetscErrorCode
+finalize_hypre()
+{
+    PetscFunctionBeginUser;
+    HYPRE_Finalize();
+#if HYPRE_RELEASE_NUMBER < 22900
+    s_hypre_initialized = false;
+#endif
+    PetscFunctionReturn(0);
+}
+} // namespace
+#endif
+
+void
+initialize_hypre()
+{
+#if HYPRE_RELEASE_NUMBER >= 22900
+    if (!HYPRE_Initialized())
+    {
+        HYPRE_Initialize();
+        const int ierr = PetscRegisterFinalize(finalize_hypre);
+        IBTK_CHKERRQ(ierr);
+    }
+#elif HYPRE_RELEASE_NUMBER >= 22100
+    if (!s_hypre_initialized)
+    {
+        HYPRE_Init();
+        const int ierr = PetscRegisterFinalize(finalize_hypre);
+        IBTK_CHKERRQ(ierr);
+        s_hypre_initialized = true;
+    }
+#endif
+    return;
+} // initialize_hypre
 
 std::array<HYPRE_Int, NDIM>
 hypre_array(const SAMRAI::hier::Index<NDIM>& index)
