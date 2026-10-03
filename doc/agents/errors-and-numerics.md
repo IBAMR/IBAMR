@@ -66,12 +66,15 @@
   rather than inferring capabilities from its name. Correct a misreported contract
   at its source. Validate supported-mode restrictions at the earliest valid
   lifecycle point.
-- Do not test whether an object is a particular concrete class, with `typeid` or
-  `dynamic_cast`, to select a code path, for example to take a faster path only
-  for the base class or to keep work that a derived class might use. Casting a
-  SAMRAI or IBAMR base pointer to an interface in order to use what that
-  interface declares is established practice. Remove work that nothing uses; when
-  implementations differ in what they support, express that in the interface.
+- Avoid `dynamic_cast` where an interface gives another way. SAMRAI's design
+  often leaves none: determining the centering or data type of a variable or of
+  patch data held through a base pointer, or whether an object implements an
+  optional interface, requires a cast, and that is established practice. Do not
+  use `typeid` or `dynamic_cast` to take a different code path for one particular
+  implementation of an IBAMR interface, for example a faster path only for the
+  base class or work kept because a derived class might use it. Remove work that
+  nothing uses; when implementations differ in what they support, express that in
+  the interface.
   Before adding a virtual function or a capability query so that callers can skip
   work, check whether every existing implementation already supports the cheaper
   path; if so, use it directly.
