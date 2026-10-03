@@ -702,6 +702,8 @@ main(int argc, char* argv[])
             J,
             IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernelEvaluators::IB4{} },
             X_LE_vec,
+            navier_stokes_integrator->getVelocityBoundaryConditions(),
+            new_time,
             num_dofs_per_proc[finest_ln],
             u_dof_index_idx,
             patch_hierarchy->getPatchLevel(finest_ln));

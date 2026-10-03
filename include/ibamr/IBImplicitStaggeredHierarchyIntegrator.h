@@ -93,7 +93,10 @@ namespace IBAMR
  * spreading. A name selects a built-in kernel only if
  * IBTK::IBOperatorBuilder::is_built_in() accepts it (see its documentation for
  * the built-in set). registerJacobianOperatorBuilder() or setJacobianOperatorBuilder()
- * selects any other kernel.
+ * selects any other kernel. On a nonperiodic domain, the interpolation matrix
+ * extends the velocity with the INS integrator's physical velocity boundary
+ * conditions; IBTK::PETScMatUtilities::constructPatchLevelSCInterpOp() states
+ * the supported conditions.
  * The velocity DOF index
  * data has ghost width equal to the larger of the strategy's minimum ghost
  * width and the kernel's; the pressure DOF index data has no ghost cells.

@@ -19,14 +19,21 @@
 #include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/ibamr_enums.h>
 
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
+
+#include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
+
+#include <IntVector.h>
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
 
 #include <limits>
 #include <string>
 
 namespace IBAMR
 {
-// Time-stepping parameters shared by the nonlinear and Jacobian operators.
+// Time-stepping parameters and helpers shared by the nonlinear and Jacobian operators.
 namespace detail
 {
 struct StaggeredStokesIBTimeStepParameters
@@ -109,6 +116,37 @@ advance_staggered_stokes_ib_strategy(IBImplicitStrategy& ib_implicit_ops,
         break;
     default:
         TBOX_ERROR(caller << ":\n  unsupported time stepping type.\n");
+    }
+    return;
+}
+
+/*!
+ * \brief Zero the spread force at f_idx where the velocity on the physical
+ * boundary is prescribed, on levels coarsest_ln through finest_ln.
+ *
+ * The Stokes rows of those velocities impose the boundary condition, so the
+ * IB force does not enter them. Homogeneous boundary filling with
+ * f_phys_bdry_op, the strategy used for velocity interpolation and force
+ * spreading, sets exactly those values to zero.
+ */
+inline void
+zero_force_at_prescribed_boundary_velocity(IBTK::RobinPhysBdryPatchStrategy& f_phys_bdry_op,
+                                           const int f_idx,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                           const int coarsest_ln,
+                                           const int finest_ln,
+                                           const double data_time)
+{
+    f_phys_bdry_op.setPatchDataIndex(f_idx);
+    f_phys_bdry_op.setHomogeneousBc(true);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            f_phys_bdry_op.setPhysicalBoundaryConditions(
+                *level->getPatch(p()), data_time, SAMRAI::hier::IntVector<NDIM>(1));
+        }
     }
     return;
 }

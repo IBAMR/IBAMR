@@ -1,0 +1,8 @@
+IBRedundantInitializer:  Deallocating initialization data.
+boundary_position_change = 0.00978313
+nonzero_ib_action = 0.91663
+boundary_interpolation_norm = 0.191509
+interpolated_boundary_data_norm = 0.0782651
+boundary_spread_norm = 71.2219
+discarded_constrained_spread_norm = 0.380054
+boundary matrix checks passed = 20

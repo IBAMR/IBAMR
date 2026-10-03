@@ -38,6 +38,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScMFFDJacobianOperator.h>
 #include <ibtk/PETScMatUtilities.h>
@@ -117,6 +118,35 @@ accumulate_error(const double error, const double value)
     return std::isfinite(value) ? std::max(error, value) : std::numeric_limits<double>::infinity();
 }
 
+// Global DOFs of the velocity components normal to, and located on, a non-periodic physical boundary of level.
+std::set<int>
+boundary_normal_velocity_dofs(Pointer<PatchLevel<NDIM>> level, const int u_dof_index_idx)
+{
+    const Box<NDIM>& domain = level->getPhysicalDomain()[0];
+    const IntVector<NDIM>& periodic_shift = level->getGridGeometry()->getPeriodicShift(level->getRatio());
+    std::set<int> dofs;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, int>> dof_data = patch->getPatchData(u_dof_index_idx);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            if (periodic_shift(axis) != 0)
+            {
+                continue;
+            }
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis)); b; b++)
+            {
+                if (b()(axis) == domain.lower(axis) || b()(axis) == domain.upper(axis) + 1)
+                {
+                    dofs.insert((*dof_data)(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)));
+                }
+            }
+        }
+    }
+    return dofs;
+}
+
 class BoundaryCheckedStokesOperator : public StaggeredStokesOperator
 {
 public:
@@ -174,16 +204,22 @@ public:
     int evaluations = 0, rhs_calls = 0, sol_calls = 0;
 };
 
+// Center and radii of the elliptical ring of the operator fixture.
+struct OperatorStructureSpec
+{
+    std::array<double, 2> center, radii;
+};
+
 void
 generate_operator_structure(const unsigned int&, const int&, int& n, std::vector<IBTK::Point>& X, void* ctx)
 {
+    const OperatorStructureSpec& spec = *static_cast<OperatorStructureSpec*>(ctx);
     n = 16;
     X.resize(n);
     for (int k = 0; k < n; ++k)
     {
-        const bool physical_boundary = ctx && *static_cast<bool*>(ctx);
-        X[k](0) = (physical_boundary ? 0.1 : 0.5) + (physical_boundary ? 0.06 : 0.16) * std::cos(2.0 * M_PI * k / n);
-        X[k](1) = 0.5 + 0.12 * std::sin(2.0 * M_PI * k / n);
+        X[k](0) = spec.center[0] + spec.radii[0] * std::cos(2.0 * M_PI * k / n);
+        X[k](1) = spec.center[1] + spec.radii[1] * std::sin(2.0 * M_PI * k / n);
 #if (NDIM == 3)
         // The ring lies in a fixed z-plane; not otherwise exercised in 3D (see set_operator_velocity below).
         X[k](2) = 0.5;
@@ -244,7 +280,7 @@ run_operators(Pointer<AppInitializer> app)
 {
     PetscErrorCode ierr;
     const int level_num = app->getInputDatabase()->getIntegerWithDefault("operator_level", 0);
-    bool physical_boundary = app->getInputDatabase()->getBoolWithDefault("physical_boundary", false);
+    const bool physical_boundary = app->getInputDatabase()->getBoolWithDefault("physical_boundary", false);
     const TimeSteppingType type =
         IBAMR::string_to_enum<TimeSteppingType>(app->getInputDatabase()->getString("time_stepping"));
     const double current = 0.25, dt = 0.125, next = current + dt;
@@ -274,7 +310,16 @@ run_operators(Pointer<AppInitializer> app)
     Pointer<IBRedundantInitializer> initializer =
         new IBRedundantInitializer("IBRedundantInitializer", app->getComponentDatabase("IBRedundantInitializer"));
     initializer->setStructureNamesOnLevel(level_num, { "curve" });
-    initializer->registerInitStructureFunction(generate_operator_structure, &physical_boundary);
+    // The physical boundary fixtures place the ring near a wall, so its stencils cross the boundary.
+    OperatorStructureSpec structure_spec{ { physical_boundary ? 0.1 : 0.5, 0.5 },
+                                          { physical_boundary ? 0.06 : 0.16, 0.12 } };
+    Pointer<Database> input_db = app->getInputDatabase();
+    if (input_db->keyExists("structure_center"))
+    {
+        input_db->getDoubleArray("structure_center", structure_spec.center.data(), 2);
+        input_db->getDoubleArray("structure_radii", structure_spec.radii.data(), 2);
+    }
+    initializer->registerInitStructureFunction(generate_operator_structure, &structure_spec);
     initializer->registerInitSpringDataFunction(generate_operator_springs);
     method->registerLInitStrategy(initializer);
     gridding->makeCoarsestLevel(hierarchy, current);
@@ -316,6 +361,22 @@ run_operators(Pointer<AppInitializer> app)
     std::vector<Pointer<LocationIndexRobinBcCoefs<NDIM>>> physical_coefs(NDIM);
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, nullptr);
     Pointer<CartSideRobinPhysBdryOp> physical_bc;
+    // The walls prescribe zero velocity, except for a tangential velocity on the faces listed in wall_velocity_faces.
+    std::vector<int> wall_velocity_faces = { 0, 1 };
+    if (input_db->keyExists("wall_velocity_faces"))
+    {
+        wall_velocity_faces.resize(input_db->getArraySize("wall_velocity_faces"));
+        input_db->getIntegerArray(
+            "wall_velocity_faces", wall_velocity_faces.data(), static_cast<int>(wall_velocity_faces.size()));
+    }
+    const auto set_wall_velocity = [&](const double value)
+    {
+        for (const int face : wall_velocity_faces)
+        {
+            physical_coefs[(face / 2 + 1) % NDIM]->setBoundaryValue(face, value);
+        }
+    };
+    constexpr double WALL_VELOCITY = 0.3;
     if (physical_boundary)
     {
         for (int axis = 0; axis < NDIM; ++axis)
@@ -323,10 +384,11 @@ run_operators(Pointer<AppInitializer> app)
             physical_coefs[axis] = new LocationIndexRobinBcCoefs<NDIM>("velocity_bc", nullptr);
             for (int face = 0; face < 2 * NDIM; ++face)
             {
-                physical_coefs[axis]->setBoundaryValue(face, axis == 1 && face < 2 ? 0.3 : 0.0);
+                physical_coefs[axis]->setBoundaryValue(face, 0.0);
             }
             bc_coefs[axis] = physical_coefs[axis];
         }
+        set_wall_velocity(WALL_VELOCITY);
         physical_bc = new CartSideRobinPhysBdryOp(u_current, bc_coefs, false);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -477,6 +539,8 @@ run_operators(Pointer<AppInitializer> app)
         ctx.u_idx = scratch;
         ctx.f_idx = f_scratch;
         ctx.u_current_idx = u_current;
+        ctx.u_dof_index_idx = u_dof;
+        ctx.p_dof_index_idx = p_dof;
         ctx.time_stepping_type = BACKWARD_EULER;
         StaggeredStokesIBOperator nonlinear("nonlinear");
         StaggeredStokesIBJacobianOperator jacobian("boundary_jacobian");
@@ -493,6 +557,245 @@ run_operators(Pointer<AppInitializer> app)
         ierr = VecDuplicate(X0, &physical_position);
         IBTK_CHKERRQ(ierr);
         double boundary_position_change = 0.0, coupling_norm = 0.0;
+
+        // Compare the assembled coupling with the live operations at the operators' fixed coupling positions: the
+        // interpolation of a velocity perturbation (homogeneous boundary data), the interpolation of a physical
+        // velocity (inhomogeneous data), the force spreading, and the linearized IB action.
+        std::vector<int> counts;
+        StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(counts, u_dof, p_dof, level);
+        const std::set<int> constrained_dofs = boundary_normal_velocity_dofs(level, u_dof);
+        const auto copy_to_petsc = [&](Vec v, Pointer<HierarchyVector> x)
+        {
+            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
+                v, x->getComponentDescriptorIndex(0), u_dof, x->getComponentDescriptorIndex(1), p_dof, level);
+        };
+        LDataManager* const l_data_manager = method->getLDataManager();
+        std::vector<Pointer<LData>> X_coupling(level_num + 1), U_probe(level_num + 1), F_probe(level_num + 1);
+        X_coupling[level_num] = l_data_manager->createLData("X_coupling", level_num, NDIM);
+        U_probe[level_num] = l_data_manager->createLData("U_probe", level_num, NDIM);
+        F_probe[level_num] = l_data_manager->createLData("F_probe", level_num, NDIM);
+        const IBKernelEvaluatorTensorProduct evaluator{ IBKernelEvaluators::IB4{} };
+        Pointer<CartesianPatchGeometry<NDIM>> patch_geometry = level->getPatch(0)->getPatchGeometry();
+        double cell_volume = 1.0;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            cell_volume *= patch_geometry->getDx()[d];
+        }
+        // Where two walls meet, probe points near the corners exercise the extension outside both walls.
+        std::vector<double> corner_probes;
+        if (geometry->getPeriodicShift(level->getRatio()).max() == 0)
+        {
+            corner_probes = { 0.04, 0.03, 0.97, 0.955 };
+        }
+        Mat force_jacobian = nullptr;
+        method->constructLagrangianForceJacobian(force_jacobian, MATAIJ, next);
+        constexpr double MATRIX_TOL = 1.0e-12;
+        int matrix_checks = 0;
+        double interpolation_norm = 0.0, affine_norm = 0.0, spread_norm = 0.0, constrained_spread = 0.0,
+               corner_norm = 0.0;
+        const auto require_close = [&](const double error, const double scale, const std::string& label)
+        {
+            if (!std::isfinite(error) || !std::isfinite(scale) || error > MATRIX_TOL * std::max(1.0, scale))
+            {
+                TBOX_ERROR("Failed boundary matrix check: " << label << " error = " << error << ", scale = " << scale
+                                                            << ".\n");
+            }
+            ++matrix_checks;
+        };
+        const auto vec_max_norm = [&](Vec v)
+        {
+            PetscReal norm = 0.0;
+            const PetscErrorCode norm_ierr = VecNorm(v, NORM_INFINITY, &norm);
+            IBTK_CHKERRQ(norm_ierr);
+            return static_cast<double>(norm);
+        };
+        // Maximum magnitudes of v over the unconstrained and the constrained velocity rows.
+        const auto split_max_norm = [&](Vec v)
+        {
+            std::pair<double, double> norms(0.0, 0.0);
+            const PetscScalar* values = nullptr;
+            PetscInt lower = 0, upper = 0;
+            PetscErrorCode split_ierr = VecGetOwnershipRange(v, &lower, &upper);
+            IBTK_CHKERRQ(split_ierr);
+            split_ierr = VecGetArrayRead(v, &values);
+            IBTK_CHKERRQ(split_ierr);
+            for (PetscInt k = lower; k < upper; ++k)
+            {
+                double& norm = constrained_dofs.count(static_cast<int>(k)) ? norms.second : norms.first;
+                norm = accumulate_error(norm, std::abs(values[k - lower]));
+            }
+            split_ierr = VecRestoreArrayRead(v, &values);
+            IBTK_CHKERRQ(split_ierr);
+            return norms;
+        };
+        const auto check_boundary_matrices = [&]()
+        {
+            Vec X_LE = method->getFinestLevelLECouplingPositions(next);
+            PetscErrorCode check_ierr = VecCopy(X_LE, X_coupling[level_num]->getVec());
+            IBTK_CHKERRQ(check_ierr);
+            Mat J = nullptr;
+            PETScMatUtilities::constructPatchLevelSCInterpOp(J, evaluator, X_LE, bc_coefs, next, counts, u_dof, level);
+            Vec eulerian = nullptr, interpolated = nullptr, expected_values = nullptr;
+            check_ierr = MatCreateVecs(J, &eulerian, &interpolated);
+            IBTK_CHKERRQ(check_ierr);
+            check_ierr = VecDuplicate(interpolated, &expected_values);
+            IBTK_CHKERRQ(check_ierr);
+
+            // The velocity field has nonzero boundary normal components, which the boundary filling replaces.
+            const auto set_probe_velocity = [&]()
+            {
+                set_operator_velocity(scratch, level, 0.2, 0.8);
+                side_ops->copyData(work->getComponentDescriptorIndex(0), scratch);
+                cell_ops->setToScalar(work->getComponentDescriptorIndex(1), 0.0);
+            };
+            set_probe_velocity();
+            copy_to_petsc(eulerian, work);
+            check_ierr = MatMult(J, eulerian, interpolated);
+            IBTK_CHKERRQ(check_ierr);
+            physical_bc->setPatchDataIndex(scratch);
+            physical_bc->setHomogeneousBc(true);
+            l_data_manager->interp(scratch, U_probe, X_coupling, synch, fill, next);
+            check_ierr = VecWAXPY(expected_values, -1.0, U_probe[level_num]->getVec(), interpolated);
+            IBTK_CHKERRQ(check_ierr);
+            interpolation_norm = std::max(interpolation_norm, vec_max_norm(interpolated));
+            require_close(vec_max_norm(expected_values), vec_max_norm(interpolated), "homogeneous interpolation");
+
+            if (!corner_probes.empty())
+            {
+                Vec probe_positions = nullptr, probe_values = nullptr;
+                check_ierr = VecCreateMPI(
+                    PETSC_COMM_WORLD, static_cast<PetscInt>(corner_probes.size()), PETSC_DETERMINE, &probe_positions);
+                IBTK_CHKERRQ(check_ierr);
+                PetscScalar* positions = nullptr;
+                check_ierr = VecGetArray(probe_positions, &positions);
+                IBTK_CHKERRQ(check_ierr);
+                std::copy(corner_probes.begin(), corner_probes.end(), positions);
+                check_ierr = VecRestoreArray(probe_positions, &positions);
+                IBTK_CHKERRQ(check_ierr);
+                Mat J_probe = nullptr;
+                PETScMatUtilities::constructPatchLevelSCInterpOp(
+                    J_probe, evaluator, probe_positions, bc_coefs, next, counts, u_dof, level);
+                check_ierr = MatCreateVecs(J_probe, nullptr, &probe_values);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = MatMult(J_probe, eulerian, probe_values);
+                IBTK_CHKERRQ(check_ierr);
+                set_probe_velocity();
+                fill[level_num]->fillData(next);
+                std::vector<double> live_values(corner_probes.size(), 0.0);
+                Pointer<Patch<NDIM>> patch = level->getPatch(0);
+                const Pointer<SideData<NDIM, double>> probe_velocity = patch->getPatchData(scratch);
+                LEInteractor::interpolate(
+                    live_values, NDIM, corner_probes, NDIM, probe_velocity, patch, patch->getBox());
+                const PetscScalar* values = nullptr;
+                check_ierr = VecGetArrayRead(probe_values, &values);
+                IBTK_CHKERRQ(check_ierr);
+                double probe_error = 0.0, probe_norm = 0.0;
+                for (std::size_t k = 0; k < live_values.size(); ++k)
+                {
+                    probe_error = accumulate_error(probe_error, std::abs(values[k] - live_values[k]));
+                    probe_norm = accumulate_error(probe_norm, std::abs(values[k]));
+                }
+                check_ierr = VecRestoreArrayRead(probe_values, &values);
+                IBTK_CHKERRQ(check_ierr);
+                corner_norm = std::max(corner_norm, probe_norm);
+                require_close(probe_error, probe_norm, "corner interpolation");
+                check_ierr = MatDestroy(&J_probe);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = VecDestroy(&probe_values);
+                IBTK_CHKERRQ(check_ierr);
+                check_ierr = VecDestroy(&probe_positions);
+                IBTK_CHKERRQ(check_ierr);
+            }
+
+            // Interpolation of a physical velocity is the matrix action plus the interpolated boundary data, which
+            // is linear in the wall velocity and reflects its current value.
+            set_probe_velocity();
+            physical_bc->setHomogeneousBc(false);
+            l_data_manager->interp(scratch, U_probe, X_coupling, synch, fill, next);
+            side_ops->setToScalar(scratch, 0.0, /*interior_only*/ false);
+            l_data_manager->interp(scratch, F_probe, X_coupling, synch, fill, next);
+            check_ierr = VecWAXPY(expected_values, -1.0, F_probe[level_num]->getVec(), U_probe[level_num]->getVec());
+            IBTK_CHKERRQ(check_ierr);
+            check_ierr = VecAXPY(expected_values, -1.0, interpolated);
+            IBTK_CHKERRQ(check_ierr);
+            require_close(vec_max_norm(expected_values), vec_max_norm(interpolated), "physical interpolation");
+            const double boundary_contribution = vec_max_norm(F_probe[level_num]->getVec());
+            if (!(boundary_contribution > 1.0e-3))
+            {
+                TBOX_ERROR("The interpolated boundary data are trivial: " << boundary_contribution << ".\n");
+            }
+            affine_norm = std::max(affine_norm, boundary_contribution);
+            set_wall_velocity(2.0 * WALL_VELOCITY);
+            side_ops->setToScalar(scratch, 0.0, /*interior_only*/ false);
+            l_data_manager->interp(scratch, U_probe, X_coupling, synch, fill, next);
+            set_wall_velocity(WALL_VELOCITY);
+            check_ierr = VecWAXPY(expected_values, -2.0, F_probe[level_num]->getVec(), U_probe[level_num]->getVec());
+            IBTK_CHKERRQ(check_ierr);
+            require_close(vec_max_norm(expected_values), boundary_contribution, "changed boundary data");
+
+            // Live spreading also accumulates force on the constrained boundary normal velocities, which the
+            // operators discard; the unconstrained rows are the scaled transpose of the matrix.
+            check_ierr = VecCopy(interpolated, F_probe[level_num]->getVec());
+            IBTK_CHKERRQ(check_ierr);
+            side_ops->setToScalar(f_scratch, 0.0, /*interior_only*/ false);
+            physical_bc->setPatchDataIndex(f_scratch);
+            physical_bc->setHomogeneousBc(true);
+            l_data_manager->spread(f_scratch, F_probe, X_coupling, physical_bc.getPointer(), prolong, next);
+            side_ops->copyData(work->getComponentDescriptorIndex(0), f_scratch);
+            cell_ops->setToScalar(work->getComponentDescriptorIndex(1), 0.0);
+            copy_to_petsc(eulerian, work);
+            const std::pair<double, double> live_spread = split_max_norm(eulerian);
+            Vec transposed = nullptr;
+            check_ierr = VecDuplicate(eulerian, &transposed);
+            IBTK_CHKERRQ(check_ierr);
+            check_ierr = MatMultTranspose(J, F_probe[level_num]->getVec(), transposed);
+            IBTK_CHKERRQ(check_ierr);
+            check_ierr = VecAXPBY(transposed, -1.0, 1.0 / cell_volume, eulerian);
+            IBTK_CHKERRQ(check_ierr);
+            const std::pair<double, double> spread_error = split_max_norm(transposed);
+            require_close(spread_error.first, live_spread.first, "force spreading");
+            spread_norm = std::max(spread_norm, live_spread.first);
+            constrained_spread = std::max(constrained_spread, live_spread.second);
+            check_ierr = VecDestroy(&transposed);
+            IBTK_CHKERRQ(check_ierr);
+
+            // The assembled IB contribution -dt/dV J^T A J reproduces the live linearized action on every row.
+            std::vector<Pointer<LData>>* X_data = nullptr;
+            bool* X_ghost = nullptr;
+            method->getPositionData(&X_data, &X_ghost, TimePoint::NEW_TIME);
+            check_ierr = MatZeroEntries(force_jacobian);
+            IBTK_CHKERRQ(check_ierr);
+            force->computeLagrangianForceJacobian(force_jacobian,
+                                                  MAT_FINAL_ASSEMBLY,
+                                                  1.0,
+                                                  (*X_data)[level_num],
+                                                  0.0,
+                                                  nullptr,
+                                                  hierarchy,
+                                                  level_num,
+                                                  next,
+                                                  l_data_manager);
+            Mat coupling = nullptr;
+            check_ierr = MatPtAP(force_jacobian, J, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &coupling);
+            IBTK_CHKERRQ(check_ierr);
+            check_ierr = MatScale(coupling, -dt / cell_volume);
+            IBTK_CHKERRQ(check_ierr);
+            jacobian.setIBCouplingJacobian(coupling);
+            jacobian.apply(*direction, *work);
+            jacobian.setIBCouplingJacobian(nullptr);
+            difference->subtract(action, work);
+            require_close(difference->maxNorm(), action->maxNorm(), "linearized IB action");
+            check_ierr = MatDestroy(&coupling);
+            IBTK_CHKERRQ(check_ierr);
+
+            check_ierr = MatDestroy(&J);
+            IBTK_CHKERRQ(check_ierr);
+            for (Vec* v : { &eulerian, &interpolated, &expected_values })
+            {
+                check_ierr = VecDestroy(v);
+                IBTK_CHKERRQ(check_ierr);
+            }
+        };
         for (int cycle = 0; cycle < 2; ++cycle)
         {
             method->setUpdatedPosition(X0);
@@ -511,10 +814,7 @@ run_operators(Pointer<AppInitializer> app)
                 ierr = VecCopy((*positions)[level_num]->getVec(), physical_position);
                 IBTK_CHKERRQ(ierr);
                 // A zero-boundary control proves the marker interpolation sees the wall data.
-                for (int face = 0; face < 2; ++face)
-                {
-                    physical_coefs[1]->setBoundaryValue(face, 0.0);
-                }
+                set_wall_velocity(0.0);
                 nonlinear.apply(*base, *expected);
                 ierr = VecAXPY(physical_position, -1.0, (*positions)[level_num]->getVec());
                 IBTK_CHKERRQ(ierr);
@@ -522,10 +822,7 @@ run_operators(Pointer<AppInitializer> app)
                 ierr = VecNorm(physical_position, NORM_INFINITY, &position_change);
                 IBTK_CHKERRQ(ierr);
                 boundary_position_change = std::max(boundary_position_change, position_change);
-                for (int face = 0; face < 2; ++face)
-                {
-                    physical_coefs[1]->setBoundaryValue(face, 0.3);
-                }
+                set_wall_velocity(WALL_VELOCITY);
                 nonlinear.apply(*base, *residual);
                 jacobian.formJacobian(*base);
                 jacobian.apply(*direction, *action);
@@ -533,6 +830,7 @@ run_operators(Pointer<AppInitializer> app)
                 difference->subtract(action, expected);
                 const double ib_norm = difference->maxNorm();
                 coupling_norm = std::max(coupling_norm, ib_norm);
+                check_boundary_matrices();
                 const double h = 1.0e-5;
                 work->linearSum(1.0, base, h, direction);
                 nonlinear.apply(*work, *plus);
@@ -552,7 +850,18 @@ run_operators(Pointer<AppInitializer> app)
             stokes->deallocateOperatorState();
         }
         pout << "boundary_position_change = " << boundary_position_change << '\n'
-             << "nonzero_ib_action = " << coupling_norm << '\n';
+             << "nonzero_ib_action = " << coupling_norm << '\n'
+             << "boundary_interpolation_norm = " << interpolation_norm << '\n'
+             << "interpolated_boundary_data_norm = " << affine_norm << '\n'
+             << "boundary_spread_norm = " << spread_norm << '\n'
+             << "discarded_constrained_spread_norm = " << constrained_spread << '\n';
+        if (!corner_probes.empty())
+        {
+            pout << "corner_probe_norm = " << corner_norm << '\n';
+        }
+        pout << "boundary matrix checks passed = " << matrix_checks << '\n';
+        ierr = MatDestroy(&force_jacobian);
+        IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&physical_position);
         IBTK_CHKERRQ(ierr);
         method->postprocessIntegrateData(current, next, 1);
@@ -573,7 +882,7 @@ run_operators(Pointer<AppInitializer> app)
     Mat J = nullptr, A = nullptr;
     Vec X0 = method->getLDataManager()->getLData("X", level_num)->getVec();
     const auto evaluator = IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB4{} };
-    PETScMatUtilities::constructPatchLevelSCInterpOp(J, evaluator, X0, counts, u_dof, level);
+    PETScMatUtilities::constructPatchLevelSCInterpOp(J, evaluator, X0, {}, force_time, counts, u_dof, level);
     method->constructLagrangianForceJacobian(A, MATAIJ, force_time);
     Vec eulerian = nullptr, spread = nullptr, interpolated = nullptr, position = nullptr, expected_position = nullptr;
     ierr = MatCreateVecs(J, &eulerian, &interpolated);
@@ -774,7 +1083,8 @@ run_operators(Pointer<AppInitializer> app)
             ierr = VecAXPBY(expected_position, 0.5, 0.5, X0);
             IBTK_CHKERRQ(ierr);
         }
-        PETScMatUtilities::constructPatchLevelSCInterpOp(J, evaluator, expected_position, counts, u_dof, level);
+        PETScMatUtilities::constructPatchLevelSCInterpOp(
+            J, evaluator, expected_position, {}, force_time, counts, u_dof, level);
         for (int state = 0; state < 2; ++state)
         {
             base->setToScalar(0.0);
@@ -1804,6 +2114,99 @@ set_divergence_free_probe_velocity(const int u_idx, Pointer<PatchHierarchy<NDIM>
     }
 }
 
+// The pressure-cell coupling-aware Vanka patch of the seed cell on a single-patch level, derived from the documented
+// relaxed construction: the seed's pressure DOF and face velocities, the velocities coupled to those faces by entries
+// of elasticity above the relative threshold in either direction, and the pressure DOFs and face velocities of every
+// cell incident to one of these velocities.
+std::set<int>
+expected_cav_patch(Pointer<PatchLevel<NDIM>> level,
+                   const int u_dof_index_idx,
+                   const int p_dof_index_idx,
+                   Mat elasticity,
+                   const hier::Index<NDIM>& seed,
+                   const double relative_zero_tol)
+{
+    TBOX_ASSERT(level->getNumberOfPatches() == 1);
+    Pointer<Patch<NDIM>> patch = level->getPatch(0);
+    Pointer<SideData<NDIM, int>> u_dofs = patch->getPatchData(u_dof_index_idx);
+    Pointer<CellData<NDIM, int>> p_dofs = patch->getPatchData(p_dof_index_idx);
+    const auto cell_dofs = [&](const hier::Index<NDIM>& cell)
+    {
+        std::set<int> dofs = { (*p_dofs)(cell) };
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (int face = 0; face < 2; ++face)
+            {
+                dofs.insert((*u_dofs)(SideIndex<NDIM>(cell, axis, face)));
+            }
+        }
+        return dofs;
+    };
+    std::map<int, std::vector<hier::Index<NDIM>>> incident_cells;
+    for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+    {
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (int face = 0; face < 2; ++face)
+            {
+                incident_cells[(*u_dofs)(SideIndex<NDIM>(b(), axis, face))].push_back(b());
+            }
+        }
+    }
+    std::set<int> faces = cell_dofs(seed);
+    faces.erase((*p_dofs)(seed));
+    std::set<int> expanded = faces;
+    PetscInt rows = 0;
+    PetscErrorCode ierr = MatGetSize(elasticity, &rows, nullptr);
+    IBTK_CHKERRQ(ierr);
+    for (PetscInt row = 0; row < rows; ++row)
+    {
+        PetscInt count = 0;
+        const PetscInt* columns = nullptr;
+        const PetscScalar* values = nullptr;
+        ierr = MatGetRow(elasticity, row, &count, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+        double row_max = 0.0;
+        for (PetscInt k = 0; k < count; ++k)
+        {
+            row_max = std::max(row_max, static_cast<double>(std::abs(values[k])));
+        }
+        const double threshold = std::max(count * std::numeric_limits<double>::epsilon(), relative_zero_tol) * row_max;
+        for (PetscInt k = 0; k < count; ++k)
+        {
+            if (std::abs(values[k]) <= threshold)
+            {
+                continue;
+            }
+            if (faces.count(static_cast<int>(row)))
+            {
+                expanded.insert(static_cast<int>(columns[k]));
+            }
+            if (faces.count(static_cast<int>(columns[k])))
+            {
+                expanded.insert(static_cast<int>(row));
+            }
+        }
+        ierr = MatRestoreRow(elasticity, row, &count, &columns, &values);
+        IBTK_CHKERRQ(ierr);
+    }
+    std::set<int> patch_dofs = cell_dofs(seed);
+    if (expanded == faces)
+    {
+        return patch_dofs;
+    }
+    for (const int velocity : expanded)
+    {
+        patch_dofs.insert(velocity);
+        for (const hier::Index<NDIM>& cell : incident_cells[velocity])
+        {
+            const std::set<int> dofs = cell_dofs(cell);
+            patch_dofs.insert(dofs.begin(), dofs.end());
+        }
+    }
+    return patch_dofs;
+}
+
 int
 run_foundation(Pointer<AppInitializer> app_initializer)
 {
@@ -1952,6 +2355,26 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         hier_velocity_data_ops->setToScalar(u_scratch_idx, 0.0, false);
         hier_velocity_data_ops->setToScalar(f_scratch_idx, 0.0, false);
 
+        // On a nonperiodic domain, the velocity is prescribed on the physical boundary. The velocity ghost filling,
+        // force spreading, interpolation matrix, and Stokes operators all use these boundary conditions.
+        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
+        const bool physical_boundary = periodic_shift.min() <= 0;
+        std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, nullptr);
+        Pointer<CartSideRobinPhysBdryOp> u_phys_bdry_op;
+        Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+        if (physical_boundary)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
+                u_bc_coefs[d] = new muParserRobinBcCoefs(
+                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+            }
+            u_phys_bdry_op = new CartSideRobinPhysBdryOp(u_scratch_idx, u_bc_coefs, /*homogeneous_bc*/ false);
+        }
+        bc_helper->cacheBcCoefData(u_bc_coefs, new_time, patch_hierarchy);
+
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         std::vector<Pointer<CoarsenSchedule<NDIM>>> u_synch_scheds(finest_ln + 1);
         std::vector<Pointer<RefineSchedule<NDIM>>> u_ghost_fill_scheds(finest_ln + 1);
@@ -1960,7 +2383,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         velocity_ghost_fill.registerRefine(u_scratch_idx, u_scratch_idx, u_scratch_idx, nullptr);
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            u_ghost_fill_scheds[ln] = velocity_ghost_fill.createSchedule(patch_hierarchy->getPatchLevel(ln));
+            u_ghost_fill_scheds[ln] =
+                velocity_ghost_fill.createSchedule(patch_hierarchy->getPatchLevel(ln), u_phys_bdry_op.getPointer());
         }
 
         // Populate the Lagrangian ghost-node/periodic-image distribution before spreading.
@@ -1996,6 +2420,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         PETScMatUtilities::constructPatchLevelSCInterpOp(J,
                                                          IBKernelEvaluatorTensorProduct{ IBKernelEvaluators::IB4{} },
                                                          initial_position,
+                                                         u_bc_coefs,
+                                                         new_time,
                                                          num_dofs_per_proc[finest_ln],
                                                          u_dof_index_idx,
                                                          patch_hierarchy->getPatchLevel(finest_ln));
@@ -2035,30 +2461,18 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         U_problem_coefs.setCConstant(rho / dt + lambda);
         U_problem_coefs.setDConstant(-mu);
 
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, nullptr);
-        if (periodic_shift.min() <= 0)
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
-                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
-                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
-            }
-        }
-
         Pointer<StaggeredStokesOperator> stokes_op =
             new StaggeredStokesOperator("stokes_ib_solver_components::stokes_op", false);
         stokes_op->setVelocityPoissonSpecifications(U_problem_coefs);
         stokes_op->setPhysicalBcCoefs(u_bc_coefs, nullptr);
+        stokes_op->setPhysicalBoundaryHelper(bc_helper);
         stokes_op->setTimeInterval(current_time, new_time);
         stokes_op->setSolutionTime(new_time);
 
         StaggeredStokesIBOperator::Context ctx;
         ctx.ib_implicit_ops = ib_method_ops;
         ctx.stokes_op = stokes_op;
-        ctx.u_phys_bdry_op = nullptr;
+        ctx.u_phys_bdry_op = u_phys_bdry_op.getPointer();
         ctx.hier_velocity_data_ops = hier_velocity_data_ops;
         ctx.u_synch_scheds = u_synch_scheds;
         ctx.u_ghost_fill_scheds = u_ghost_fill_scheds;
@@ -2161,7 +2575,6 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             "stokes_ib_solver_components::fac_op", stokes_ib_precond_db, "stokes_ib_pc_");
         Pointer<StaggeredStokesIBJacobianFACPreconditioner> fac_pc = new StaggeredStokesIBJacobianFACPreconditioner(
             "stokes_ib_solver_components::fac_pc", fac_op, stokes_ib_precond_db, "stokes_ib_pc_");
-        Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
 
         fac_pc->setVelocityPoissonSpecifications(U_problem_coefs);
         fac_pc->setPhysicalBcCoefs(u_bc_coefs, nullptr);
@@ -2169,6 +2582,7 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         fac_pc->setTimeInterval(current_time, new_time);
         fac_pc->setSolutionTime(new_time);
         fac_pc->setHomogeneousBc(true);
+        // Prescribed or periodic velocities on every boundary determine the pressure only up to a constant.
         fac_pc->setComponentsHaveNullSpace(false, true);
         fac_pc->setIBTimeSteppingType(ctx.time_stepping_type);
         PetscInt A_references_before = 0, J_references_before = 0, A_references = 0, J_references = 0;
@@ -2477,6 +2891,18 @@ run_foundation(Pointer<AppInitializer> app_initializer)
                 ierr = MatDiagonalScale(coupling_reference[ln], fac_op->getRestrictionScalingOp(ln), nullptr);
                 IBTK_CHKERRQ(ierr);
             }
+            // Every boundary of these fixtures prescribes the velocity, so the coupling has no rows or columns at the
+            // boundary normal velocities, whose Stokes rows impose the boundary conditions.
+            const std::set<int> boundary_dofs =
+                boundary_normal_velocity_dofs(patch_hierarchy->getPatchLevel(ln), u_dof_index_idx);
+            const std::vector<PetscInt> boundary_rows(boundary_dofs.begin(), boundary_dofs.end());
+            ierr = MatZeroRowsColumns(coupling_reference[ln],
+                                      static_cast<PetscInt>(boundary_rows.size()),
+                                      boundary_rows.data(),
+                                      0.0,
+                                      nullptr,
+                                      nullptr);
+            IBTK_CHKERRQ(ierr);
             StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(rediscretized_reference[ln],
                                                                              U_problem_coefs,
                                                                              u_bc_coefs,
@@ -2771,6 +3197,111 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             TBOX_ERROR("Failed check: !fac_residual_repeat_reinitialize_valid || !fac_reinitialization_valid.\n");
         }
 
+        if (physical_boundary)
+        {
+            // The finest elasticity contribution reproduces the live linearized IB action of the Jacobian operator.
+            Pointer<SAMRAIVectorReal<NDIM, double>> live_ib_action = eul_rhs_vec->cloneVector("live_ib_action");
+            live_ib_action->allocateVectorData();
+            stokes_op->apply(*v, *live_ib_action);
+            live_ib_action->subtract(jv, live_ib_action);
+            const Pointer<PatchLevel<NDIM>> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+            const Mat elasticity = fac_op->getEulerianElasticityLevelOp(finest_ln);
+            Vec input = nullptr, expected = nullptr, actual = nullptr;
+            PetscErrorCode ierr = MatCreateVecs(elasticity, &input, &expected);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecDuplicate(expected, &actual);
+            IBTK_CHKERRQ(ierr);
+            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(input,
+                                                                  v->getComponentDescriptorIndex(0),
+                                                                  u_dof_index_idx,
+                                                                  v->getComponentDescriptorIndex(1),
+                                                                  p_dof_index_idx,
+                                                                  finest_level);
+            ierr = MatMult(elasticity, input, expected);
+            IBTK_CHKERRQ(ierr);
+            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual,
+                                                                  live_ib_action->getComponentDescriptorIndex(0),
+                                                                  u_dof_index_idx,
+                                                                  live_ib_action->getComponentDescriptorIndex(1),
+                                                                  p_dof_index_idx,
+                                                                  finest_level);
+            PetscReal live_norm = 0.0, action_error = 0.0;
+            ierr = VecNorm(actual, NORM_INFINITY, &live_norm);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(actual, -1.0, expected);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecNorm(actual, NORM_INFINITY, &action_error);
+            IBTK_CHKERRQ(ierr);
+            constexpr double LIVE_ACTION_TOL = 1.0e-10;
+            if (!std::isfinite(action_error) || !(live_norm > 1.0e-6) ||
+                action_error > LIVE_ACTION_TOL * std::max(1.0, static_cast<double>(live_norm)))
+            {
+                TBOX_ERROR("The finest elasticity contribution differs from the live IB action: error = "
+                           << action_error << ", live action = " << live_norm << ".\n");
+            }
+            pout << "finest_elasticity_matches_live_ib_action = true, live_ib_action_inf_norm = " << live_norm
+                 << std::endl;
+            for (Vec* vec : { &input, &expected, &actual })
+            {
+                ierr = VecDestroy(vec);
+                IBTK_CHKERRQ(ierr);
+            }
+            free_vector_components(*live_ib_action);
+
+            // A corner cell away from the structure keeps its standard Vanka patch, including its constrained boundary
+            // velocities; a wall cell beside the structure is enlarged through the elasticity graph.
+            std::vector<IS>* nonoverlap = nullptr;
+            std::vector<IS>* overlap = nullptr;
+            fac_op->getStaggeredStokesPETScLevelSolver(finest_ln)->getASMSubdomains(&nonoverlap, &overlap);
+            const Box<NDIM>& domain = finest_level->getPhysicalDomain()[0];
+            const double h = 1.0 / static_cast<double>(domain.numberCells(0));
+            hier::Index<NDIM> corner_cell = domain.lower(), wall_cell = domain.upper();
+            wall_cell(0) = static_cast<int>(std::floor(structure_spec.x_center / h));
+            const std::set<int> constrained_dofs = boundary_normal_velocity_dofs(finest_level, u_dof_index_idx);
+            Pointer<CellData<NDIM, int>> p_dofs = finest_level->getPatch(0)->getPatchData(p_dof_index_idx);
+            std::array<int, 2> patch_sizes{};
+            for (int k = 0; k < 2; ++k)
+            {
+                const hier::Index<NDIM>& cell = k == 0 ? corner_cell : wall_cell;
+                const int seed = (*p_dofs)(cell);
+                std::set<int> installed;
+                for (std::size_t n = 0; n < nonoverlap->size(); ++n)
+                {
+                    PetscInt location = -1;
+                    ierr = ISLocate((*nonoverlap)[n], seed, &location);
+                    IBTK_CHKERRQ(ierr);
+                    if (location >= 0)
+                    {
+                        PetscInt count = 0;
+                        const PetscInt* dofs = nullptr;
+                        ierr = ISGetLocalSize((*overlap)[n], &count);
+                        IBTK_CHKERRQ(ierr);
+                        ierr = ISGetIndices((*overlap)[n], &dofs);
+                        IBTK_CHKERRQ(ierr);
+                        installed.insert(dofs, dofs + count);
+                        ierr = ISRestoreIndices((*overlap)[n], &dofs);
+                        IBTK_CHKERRQ(ierr);
+                    }
+                }
+                const std::set<int> expected_patch = expected_cav_patch(
+                    finest_level, u_dof_index_idx, p_dof_index_idx, elasticity, cell, /*relative_zero_tol*/ 1.0e-14);
+                const bool has_constrained_velocity =
+                    std::any_of(expected_patch.begin(),
+                                expected_patch.end(),
+                                [&](const int dof) { return constrained_dofs.count(dof) > 0; });
+                const bool standard = expected_patch.size() == 2 * NDIM + 1;
+                if (installed != expected_patch || !has_constrained_velocity || standard != (k == 0))
+                {
+                    TBOX_ERROR("The CAV patch of boundary cell " << cell << " has " << installed.size()
+                                                                 << " DOFs, not the expected " << expected_patch.size()
+                                                                 << ".\n");
+                }
+                patch_sizes[k] = static_cast<int>(installed.size());
+            }
+            pout << "corner_cell_patch_dofs = " << patch_sizes[0] << ", wall_cell_patch_dofs = " << patch_sizes[1]
+                 << std::endl;
+        }
+
         Pointer<PETScKrylovLinearSolver> linear_solver =
             new PETScKrylovLinearSolver("stokes_ib_solver_components::linear_solver", nullptr, "ib_");
         linear_solver->setOperator(jac_op);
@@ -2778,6 +3309,8 @@ run_foundation(Pointer<AppInitializer> app_initializer)
         linear_solver->setTimeInterval(current_time, new_time);
         linear_solver->setSolutionTime(new_time);
         linear_solver->setInitialGuessNonzero(false);
+        // The Jacobian correction has homogeneous boundary conditions.
+        linear_solver->setHomogeneousBc(true);
         // Richardson self-scaling makes the FAC action nonlinear. Flexible GMRES
         // uses a right preconditioner and measures the unpreconditioned residual.
         linear_solver->setKSPType("fgmres");
@@ -2920,6 +3453,48 @@ run_foundation(Pointer<AppInitializer> app_initializer)
             {
                 free_vector_components(*vector);
             }
+        }
+        if (physical_boundary)
+        {
+            // The correction has homogeneous boundary conditions: its prescribed boundary velocities remain zero.
+            double boundary_defect = 0.0;
+            for (int ln = 0; ln <= finest_ln; ++ln)
+            {
+                const Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+                const std::set<int> constrained_dofs = boundary_normal_velocity_dofs(level, u_dof_index_idx);
+                Vec correction = nullptr;
+                PetscErrorCode ierr = VecCreateMPI(
+                    PETSC_COMM_WORLD, num_dofs_per_proc[ln][IBTK_MPI::getRank()], PETSC_DETERMINE, &correction);
+                IBTK_CHKERRQ(ierr);
+                StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(correction,
+                                                                      linear_sol->getComponentDescriptorIndex(0),
+                                                                      u_dof_index_idx,
+                                                                      linear_sol->getComponentDescriptorIndex(1),
+                                                                      p_dof_index_idx,
+                                                                      level);
+                const PetscScalar* values = nullptr;
+                PetscInt lower = 0, upper = 0;
+                ierr = VecGetOwnershipRange(correction, &lower, &upper);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecGetArrayRead(correction, &values);
+                IBTK_CHKERRQ(ierr);
+                for (const int dof : constrained_dofs)
+                {
+                    if (dof >= lower && dof < upper)
+                    {
+                        boundary_defect = accumulate_error(boundary_defect, std::abs(values[dof - lower]));
+                    }
+                }
+                ierr = VecRestoreArrayRead(correction, &values);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecDestroy(&correction);
+                IBTK_CHKERRQ(ierr);
+            }
+            if (!(boundary_defect <= 1.0e-12))
+            {
+                TBOX_ERROR("The correction violates its homogeneous boundary conditions: " << boundary_defect << ".\n");
+            }
+            pout << "correction_boundary_defect = " << boundary_defect << std::endl;
         }
         linear_solver->deallocateSolverState();
         fac_pc->deallocateSolverState();
