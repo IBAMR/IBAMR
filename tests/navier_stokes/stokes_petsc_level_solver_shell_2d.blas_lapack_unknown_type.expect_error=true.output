@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    PETScLevelSolverBlasLapackSubdomainSolver::PETScLevelSolverBlasLapackSubdomainSolver():
+  unsupported blas_lapack_subdomain_solver_type = cholesky; supported values are "svd", "lu", "symmetric-indefinite", and "qr".
+

@@ -1,8 +1,7 @@
-restriction communicates = 1
 local subdomains: min = 2, max = 2
 distance from the ADDITIVE FULL action = 0.373631963834
 distance from the ADDITIVE OWNED action = 0.353690374438
 distance from the MULTIPLICATIVE OWNED action = 0.302740787016
-apply_error = 2.11685235924e-16
+apply_error = 8.23455567743e-14
 action_norm = 0.524468803779
-error = 1.85224581433e-16
+error = 7.74767963481e-14

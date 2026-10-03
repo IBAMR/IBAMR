@@ -1,0 +1,3 @@
+New: The subdomain_solver database of PETScLevelSolver's subdomain relaxation accepts type = "blas-lapack", and a derived class or its user can supply PETScLevelSolver::SubdomainSolverFactories so that the type also selects an application-defined subdomain solver by name.
+<br>
+(Boyce Griffith, 2026/09/10)

@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::init():
+  the subdomain solver factory Blas-Lapack has the name of a built-in subdomain solver.
+
