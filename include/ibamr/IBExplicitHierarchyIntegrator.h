@@ -22,11 +22,13 @@
 
 #include <ibamr/IBHierarchyIntegrator.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/MarkerPatchHierarchy.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
 
+#include <array>
 #include <string>
 
 namespace IBAMR
@@ -156,6 +158,13 @@ protected:
     void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
 
     /*!
+     * Reset cached hierarchy dependent data.
+     */
+    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
+
+    /*!
      * Perform necessary data movement, workload estimation, and logging prior
      * to regridding.
      */
@@ -233,6 +242,20 @@ private:
      * members.
      */
     void getFromRestart();
+
+    /*!
+     * Fill the ghost cells of the velocity that advects the marker points, and
+     * also of the velocity at the halfway point if \p include_half_time is
+     * true.
+     */
+    void fillMarkerVelocityGhostCells(bool include_half_time, double fill_time);
+
+    /*!
+     * Ghost cell filling operators for marker point advection. The first fills
+     * d_u_idx and the second fills d_u_idx and d_u_half_idx. They are set up on
+     * first use after the patch hierarchy changes.
+     */
+    std::array<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>, 2> d_marker_u_fill_ops;
 
     /*!
      * Structure describing data temporarily stored by this class during a regrid.
