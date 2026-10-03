@@ -140,10 +140,6 @@ public:
      * the ratio of the level \p dst_ln and level \p dst_ln + 1 factors set by
      * setOperatorScaling() (or by 1 if no scaling has been set).
      *
-     * The rescaled level \p dst_ln + 1 values are staged in this object's
-     * scratch data on level \p dst_ln + 1, which is overwritten. Neither
-     * \p src nor \p dst is modified on level \p dst_ln + 1.
-     *
      * \param src source residual, read on levels \p dst_ln and \p dst_ln + 1
      * \param dst destination residual, written on level \p dst_ln
      * \param dst_ln destination (coarser) level number
