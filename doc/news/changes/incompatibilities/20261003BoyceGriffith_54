@@ -1,0 +1,3 @@
+Removed: The protected member IBTK::FACPreconditioner::FACVCycleNoPreSmoothing().
+<br>
+(Boyce Griffith, 2026/10/03)
