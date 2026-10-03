@@ -540,6 +540,7 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
 
     const Pointer<SideVariable<NDIM, double>> U_res_sc_var = residual.getComponentVariable(0);
     const Pointer<SideVariable<NDIM, double>> U_sol_sc_var = solution.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM, double>> U_rhs_sc_var = rhs.getComponentVariable(0);
 
     const int P_res_idx = residual.getComponentDescriptorIndex(1);
     const int P_sol_idx = solution.getComponentDescriptorIndex(1);
@@ -547,6 +548,7 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
 
     const Pointer<CellVariable<NDIM, double>> P_res_cc_var = residual.getComponentVariable(1);
     const Pointer<CellVariable<NDIM, double>> P_sol_cc_var = solution.getComponentVariable(1);
+    const Pointer<CellVariable<NDIM, double>> P_rhs_cc_var = rhs.getComponentVariable(1);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -617,17 +619,33 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                  coarsest_level_num,
                                  finest_level_num);
     }
+
+    // Negating the coefficients and passing f as the additive source gives r_U = f_U - (C*I+D*L)*U - Grad P and
+    // r_P = f_P + Div U without a separate subtraction.
+    PoissonSpecifications negated_U_problem_coefs(d_object_name + "::negated_U_problem_coefs");
+    negated_U_problem_coefs.setDConstant(-d_U_problem_coefs.getDConstant());
+    if (d_U_problem_coefs.cIsZero())
+    {
+        negated_U_problem_coefs.setCZero();
+    }
+    else
+    {
+        negated_U_problem_coefs.setCConstant(-d_U_problem_coefs.getCConstant());
+    }
     d_level_math_ops[finest_level_num]->grad(U_res_idx,
                                              U_res_sc_var,
                                              /*cf_bdry_synch*/ true,
-                                             1.0,
+                                             -1.0,
                                              P_sol_idx,
                                              P_sol_cc_var,
                                              nullptr,
-                                             d_new_time);
+                                             d_new_time,
+                                             1.0,
+                                             U_rhs_idx,
+                                             U_rhs_sc_var);
     d_level_math_ops[finest_level_num]->laplace(U_res_idx,
                                                 U_res_sc_var,
-                                                d_U_problem_coefs,
+                                                negated_U_problem_coefs,
                                                 U_sol_idx,
                                                 U_sol_sc_var,
                                                 nullptr,
@@ -635,18 +653,17 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                                 1.0,
                                                 U_res_idx,
                                                 U_res_sc_var);
-    HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
-    level_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
     d_level_math_ops[finest_level_num]->div(P_res_idx,
                                             P_res_cc_var,
-                                            -1.0,
+                                            1.0,
                                             U_sol_idx,
                                             U_sol_sc_var,
                                             nullptr,
                                             d_new_time,
-                                            /*cf_bdry_synch*/ true);
-    HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
-    level_cc_data_ops.axpy(P_res_idx, -1.0, P_res_idx, P_rhs_idx, false);
+                                            /*cf_bdry_synch*/ true,
+                                            1.0,
+                                            P_rhs_idx,
+                                            P_rhs_cc_var);
     return;
 } // computeResidual
 

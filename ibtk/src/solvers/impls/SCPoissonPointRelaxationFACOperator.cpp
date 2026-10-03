@@ -45,7 +45,6 @@
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CoarsenOperator.h>
-#include <HierarchySideDataOpsReal.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
 #include <PatchDescriptor.h>
@@ -664,6 +663,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
 
     const Pointer<SideVariable<NDIM, double>> res_var = residual.getComponentVariable(0);
     const Pointer<SideVariable<NDIM, double>> sol_var = solution.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM, double>> rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -708,10 +708,12 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
                                  coarsest_level_num,
                                  finest_level_num);
     }
+
+    // Negating the coefficients and passing f as the additive source gives f - A*u in one pass.
+    PoissonSpecifications negated_spec(d_object_name + "::negated_spec");
+    negatePoissonSpecifications(negated_spec);
     d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
-    HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
-    hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
+        res_idx, res_var, negated_spec, sol_idx, sol_var, nullptr, d_solution_time, 1.0, rhs_idx, rhs_var);
 
     IBTK_TIMER_STOP(t_compute_residual);
     return;
