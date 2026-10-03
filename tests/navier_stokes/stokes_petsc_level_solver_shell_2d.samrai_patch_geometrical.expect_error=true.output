@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::generateSubdomainGroups():
+  SAMRAI_PATCH grouping requires pressure-cell CAV patches with seed_stride = 1 on a level that covers a physical domain that is periodic in every direction.
+

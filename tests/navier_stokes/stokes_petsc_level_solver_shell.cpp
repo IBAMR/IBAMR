@@ -712,12 +712,223 @@ destroy_index_sets(std::vector<IS>& sets)
     sets.clear();
 }
 
+// Solve the CAV patch with the given DOFs of mat for the entries of residual at those DOFs with an SVD, as the
+// subdomain solvers of the CAV cases do, and add the solution to correction at the same DOFs.
+void
+add_cav_patch_solution(Mat mat, const std::set<int>& dofs, Vec residual, Vec correction)
+{
+    const std::vector<PetscInt> indices(dofs.begin(), dofs.end());
+    const PetscInt n = static_cast<PetscInt>(indices.size());
+    IS is = nullptr;
+    int ierr = ISCreateGeneral(PETSC_COMM_SELF, n, indices.data(), PETSC_COPY_VALUES, &is);
+    IBTK_CHKERRQ(ierr);
+    Mat* submat = nullptr;
+    ierr = MatCreateSubMatrices(mat, 1, &is, &is, MAT_INITIAL_MATRIX, &submat);
+    IBTK_CHKERRQ(ierr);
+    Vec local_rhs = nullptr, local_solution = nullptr;
+    ierr = MatCreateVecs(submat[0], &local_solution, &local_rhs);
+    IBTK_CHKERRQ(ierr);
+    PetscScalar* local_values = nullptr;
+    ierr = VecGetArray(local_rhs, &local_values);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGetValues(residual, n, indices.data(), local_values);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArray(local_rhs, &local_values);
+    IBTK_CHKERRQ(ierr);
+    KSP ksp = nullptr;
+    PC pc = nullptr;
+    ierr = KSPCreate(PETSC_COMM_SELF, &ksp);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPSetOperators(ksp, submat[0], submat[0]);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPSetType(ksp, KSPPREONLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp, &pc);
+    IBTK_CHKERRQ(ierr);
+    ierr = PCSetType(pc, PCSVD);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPSolve(ksp, local_rhs, local_solution);
+    IBTK_CHKERRQ(ierr);
+    const PetscScalar* solution_values = nullptr;
+    ierr = VecGetArrayRead(local_solution, &solution_values);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSetValues(correction, n, indices.data(), solution_values, ADD_VALUES);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(local_solution, &solution_values);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(correction);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(correction);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPDestroy(&ksp);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&local_rhs);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&local_solution);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatDestroySubMatrices(1, &submat);
+    IBTK_CHKERRQ(ierr);
+    ierr = ISDestroy(&is);
+    IBTK_CHKERRQ(ierr);
+}
+
+// The SAMRAI_PATCH groups, built from logical cells, the boxes of the SAMRAI patches, and the independently
+// enumerated CAV patches, whose seeds are the cells in order. Each box makes one group, which owns the DOFs of its
+// cells and solves the CAV patches whose seeds are within standard_width cells of a periodic image of the box, and
+// the CAV patches that are larger than the standard Vanka patch of their seed whose seeds are within ib_width cells.
+// Each group visits its CAV patches in the order of the traversal.
+void
+reference_patch_groups(const std::string& traversal,
+                       const int standard_width,
+                       const int ib_width,
+                       const std::vector<Box<NDIM>>& boxes,
+                       const CAFields& fields,
+                       const std::vector<std::set<int>>& patches,
+                       const int n,
+                       std::vector<std::vector<int>>& visits,
+                       std::vector<std::set<int>>& owned)
+{
+    std::vector<CACell> seeds;
+    for (const auto& field : fields)
+    {
+        seeds.push_back(field.first);
+    }
+    const auto near = [&](const CACell& cell, const Box<NDIM>& box, const int width)
+    {
+        for (int d = 0; d < NDIM; ++d)
+        {
+            bool image_near = false;
+            for (const int shift : { -n, 0, n })
+            {
+                image_near =
+                    image_near || (box.lower(d) - width <= cell[d] + shift && cell[d] + shift <= box.upper(d) + width);
+            }
+            if (!image_near)
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+    visits.clear();
+    owned.clear();
+    for (const Box<NDIM>& box : boxes)
+    {
+        std::vector<int> members;
+        for (std::size_t k = 0; k < seeds.size(); ++k)
+        {
+            const bool expanded = patches[k] != ca_cell_stencil(fields, seeds[k], n);
+            if (near(seeds[k], box, standard_width) || (expanded && near(seeds[k], box, ib_width)))
+            {
+                members.push_back(static_cast<int>(k));
+            }
+        }
+        owned.emplace_back();
+        for (Box<NDIM>::Iterator b(box); b; b++)
+        {
+            CACell cell{};
+            for (int d = 0; d < NDIM; ++d)
+            {
+                cell[d] = b()(d);
+            }
+            owned.back().insert(fields.at(cell).begin(), fields.at(cell).end());
+        }
+        visits.push_back(members);
+        if (traversal == "REVERSE")
+        {
+            std::reverse(visits.back().begin(), visits.back().end());
+        }
+        else if (traversal == "SYMMETRIC")
+        {
+            visits.back().insert(visits.back().end(), members.rbegin() + 1, members.rend());
+        }
+    }
+}
+
+// The action of groups computed independently of the solver: each group starts from a zero correction, visits its
+// CAV patches in order, solves each for the residual of the original system with the correction, and adds the whole
+// solution to the correction. With FULL output the completed correction is added to the result on the CAV patches of
+// the group, and with OWNED output it is written at the DOFs that the group owns, which must partition the DOFs. The
+// groups are applied in the given order.
+void
+reference_group_action(Mat mat,
+                       Vec rhs,
+                       Vec result,
+                       const std::vector<std::set<int>>& patches,
+                       const std::vector<std::vector<int>>& visits,
+                       const std::vector<std::set<int>>& owned,
+                       const bool owned_output,
+                       const std::vector<std::size_t>& group_order)
+{
+    Vec correction = nullptr, residual = nullptr;
+    int ierr = VecDuplicate(rhs, &correction);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDuplicate(rhs, &residual);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecSet(result, 0.0);
+    IBTK_CHKERRQ(ierr);
+    PetscInt n_dofs = 0;
+    ierr = VecGetSize(rhs, &n_dofs);
+    IBTK_CHKERRQ(ierr);
+    std::vector<int> owners(n_dofs, 0);
+    for (const std::size_t g : group_order)
+    {
+        ierr = VecSet(correction, 0.0);
+        IBTK_CHKERRQ(ierr);
+        for (const int k : visits[g])
+        {
+            ierr = MatMult(mat, correction, residual);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAYPX(residual, -1.0, rhs);
+            IBTK_CHKERRQ(ierr);
+            add_cav_patch_solution(mat, patches[k], residual, correction);
+        }
+        std::set<int> output_dofs;
+        if (owned_output)
+        {
+            output_dofs = owned[g];
+            for (const int dof : output_dofs)
+            {
+                ++owners[dof];
+            }
+        }
+        else
+        {
+            for (const int k : visits[g])
+            {
+                output_dofs.insert(patches[k].begin(), patches[k].end());
+            }
+        }
+        for (const int dof : output_dofs)
+        {
+            PetscScalar value = 0.0;
+            ierr = VecGetValues(correction, 1, &dof, &value);
+            IBTK_CHKERRQ(ierr);
+            ierr = VecSetValue(result, dof, value, ADD_VALUES);
+            IBTK_CHKERRQ(ierr);
+        }
+        ierr = VecAssemblyBegin(result);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAssemblyEnd(result);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (owned_output && std::any_of(owners.begin(), owners.end(), [](const int count) { return count != 1; }))
+    {
+        TBOX_ERROR("Failed check: the reference groups do not partition the DOFs.\n");
+    }
+    ierr = VecDestroy(&correction);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&residual);
+    IBTK_CHKERRQ(ierr);
+}
+
 // Apply subdomain relaxation on the CAV patches of the application problem with each composition and output, and
 // compare its action with the reference action on the independently enumerated patches, each of which owns the DOFs
 // of its seed cell. The solver is also applied again, and rebuilt with a changed construction matrix, which changes
 // the patches and the operator.
 int
-check_cav_composition(SAMRAIVectorReal<NDIM, double>& x,
+check_cav_composition(Pointer<PatchLevel<NDIM>> level,
+                      SAMRAIVectorReal<NDIM, double>& x,
                       SAMRAIVectorReal<NDIM, double>& b,
                       Vec rhs,
                       const CAFields& fields,
@@ -830,11 +1041,198 @@ check_cav_composition(SAMRAIVectorReal<NDIM, double>& x,
             IBTK_CHKERRQ(ierr);
         }
     }
+    // SAMRAI_PATCH grouping makes one group for each of the four SAMRAI patches of the level, and the spring of the CAV
+    // patches couples DOFs of two of them. Each case is compared with the independent reference of its groups.
+    std::vector<Box<NDIM>> boxes;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        boxes.push_back(level->getPatch(p())->getBox());
+    }
+    CACell remote{};
+    remote.fill(2);
+    const auto box_of = [&](const CACell& cell)
+    {
+        hier::Index<NDIM> index;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            index(d) = cell[d];
+        }
+        return std::find_if(boxes.begin(), boxes.end(), [&](const Box<NDIM>& box) { return box.contains(index); }) -
+               boxes.begin();
+    };
+    if (boxes.size() != 4 || box_of(CACell{}) == box_of(remote))
+    {
+        TBOX_ERROR("Failed check: the level needs four SAMRAI patches, and the spring must couple two of them.\n");
+    }
+    const auto group_order = [](const std::size_t n_groups, const bool reverse)
+    {
+        std::vector<std::size_t> order(n_groups);
+        for (std::size_t g = 0; g < n_groups; ++g)
+        {
+            order[g] = reverse ? n_groups - 1 - g : g;
+        }
+        return order;
+    };
+    struct PatchCase
+    {
+        std::string traversal;
+        int ib_width;
+        bool owned_output;
+    };
+    for (const PatchCase& patch_case : std::vector<PatchCase>{ { "FORWARD", 0, true },
+                                                               { "REVERSE", 0, true },
+                                                               { "SYMMETRIC", 0, true },
+                                                               { "FORWARD", 0, false },
+                                                               { "SYMMETRIC", 1, true },
+                                                               { "SYMMETRIC", 1, false } })
+    {
+        const std::string name = std::string("SAMRAI_PATCH ") + (patch_case.owned_output ? "OWNED " : "FULL ") +
+                                 patch_case.traversal + " width " + std::to_string(patch_case.ib_width);
+        Mat elasticity = nullptr;
+        ierr = MatCreateSeqDense(PETSC_COMM_WORLD, n_dofs, n_dofs, nullptr, &elasticity);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyBegin(elasticity, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(elasticity, MAT_FINAL_ASSEMBLY);
+        IBTK_CHKERRQ(ierr);
+        Pointer<MemoryDatabase> db = new MemoryDatabase("patch_solver");
+        db->putString("ksp_type", "preonly");
+        db->putString("pc_type", "shell");
+        db->putBool("initial_guess_nonzero", false);
+        db->putBool("check_subdomain_coverage", true);
+        db->putString("subdomain_construction", "COUPLING_AWARE");
+        Pointer<Database> ca_db = db->putDatabase("coupling_aware_subdomains");
+        ca_db->putInteger("group_standard_seed_ghost_width", 0);
+        ca_db->putInteger("group_ib_seed_ghost_width", patch_case.ib_width);
+        Pointer<Database> relaxation_db = db->putDatabase("subdomain_relaxation");
+        relaxation_db->putString("composition", "MULTIPLICATIVE");
+        relaxation_db->putString("grouping", "SAMRAI_PATCH");
+        relaxation_db->putString("output", patch_case.owned_output ? "OWNED" : "FULL");
+        relaxation_db->putString("traversal", patch_case.traversal);
+        StaggeredStokesPETScLevelSolver solver("patch_solver", db, "shell_");
+        PoissonSpecifications coefficients("coefficients");
+        coefficients.setCConstant(1.0);
+        coefficients.setDConstant(-1.0);
+        solver.setVelocityPoissonSpecifications(coefficients);
+        solver.setComponentsHaveNullSpace(false, true);
+        for (int cycle = 0; cycle < 2; ++cycle)
+        {
+            const std::vector<std::set<int>> patches = cav_application_patches(fields, n, false, cycle, elasticity);
+            solver.setCouplingAwareASMConstructionMat(elasticity);
+            solver.setAugmentedOperatorMat(elasticity);
+            solver.initializeSolverState(x, b);
+            std::vector<IS>* overlap = nullptr;
+            std::vector<IS>* partition = nullptr;
+            solver.getASMSubdomains(&partition, &overlap);
+            if (ca_read_sets(*overlap) != patches)
+            {
+                TBOX_ERROR("Failed check: the solver's CAV patches differ from the expected ones.\n");
+            }
+            Mat level_mat = nullptr;
+            PC pc = nullptr;
+            ierr = KSPGetOperators(solver.getPETScKSP(), &level_mat, nullptr);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPGetPC(solver.getPETScKSP(), &pc);
+            IBTK_CHKERRQ(ierr);
+            std::vector<std::vector<int>> visits;
+            std::vector<std::set<int>> group_owned;
+            reference_patch_groups(
+                patch_case.traversal, 0, patch_case.ib_width, boxes, fields, patches, n, visits, group_owned);
+            reference_group_action(level_mat,
+                                   rhs,
+                                   expected,
+                                   patches,
+                                   visits,
+                                   group_owned,
+                                   patch_case.owned_output,
+                                   group_order(visits.size(), false));
+            for (Vec v : { action, repeated })
+            {
+                ierr = VecSet(v, OUTPUT_SENTINEL);
+                IBTK_CHKERRQ(ierr);
+                ierr = PCApply(pc, rhs, v);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = VecAXPY(repeated, -1.0, action);
+            IBTK_CHKERRQ(ierr);
+            const double repeated_difference = norm_inf(repeated);
+            ierr = VecAXPY(action, -1.0, expected);
+            IBTK_CHKERRQ(ierr);
+            const double error = norm_inf(action) / norm_inf(expected);
+            if (!(error <= 1.0e-9) || repeated_difference != 0.0)
+            {
+                TBOX_ERROR("Failed check: " << name << " error = " << error
+                                            << ", repeated difference = " << repeated_difference << ".\n");
+            }
+            plog << name << (cycle == 0 ? "" : " rebuilt") << " error = " << error << '\n';
+            if (cycle == 0)
+            {
+                ierr = VecDuplicate(expected, &actions[name]);
+                IBTK_CHKERRQ(ierr);
+                ierr = VecCopy(expected, actions[name]);
+                IBTK_CHKERRQ(ierr);
+                if (patch_case.traversal == "FORWARD" && patch_case.ib_width == 0 && patch_case.owned_output)
+                {
+                    // The groups are independent, so a reference that applies them in the reverse order agrees; the
+                    // solver itself is not reordered. Some CAV patch of a group also contains the pressure DOF of a
+                    // cell that the group does not own, so the group's correction has entries outside its owned DOFs.
+                    reference_group_action(level_mat,
+                                           rhs,
+                                           action,
+                                           patches,
+                                           visits,
+                                           group_owned,
+                                           patch_case.owned_output,
+                                           group_order(visits.size(), true));
+                    ierr = VecAXPY(action, -1.0, expected);
+                    IBTK_CHKERRQ(ierr);
+                    plog << "reordered reference difference = " << norm_inf(action) / norm_inf(expected) << '\n';
+                    bool reaches_beyond = false;
+                    for (std::size_t g = 0; g < visits.size(); ++g)
+                    {
+                        for (const int k : visits[g])
+                        {
+                            for (const auto& field : fields)
+                            {
+                                reaches_beyond = reaches_beyond || (patches[k].count(field.second[NDIM]) &&
+                                                                    !group_owned[g].count(field.second[NDIM]));
+                            }
+                        }
+                    }
+                    if (!reaches_beyond)
+                    {
+                        TBOX_ERROR("Failed check: no CAV patch of a group reaches beyond the cells of the group.\n");
+                    }
+                }
+                if (patch_case.ib_width > 0 && patch_case.owned_output)
+                {
+                    // With a positive IB width, IB-expanded CAV patches are solved by several groups.
+                    std::size_t occurrences = 0;
+                    for (const std::vector<int>& group : visits)
+                    {
+                        occurrences += (group.size() + 1) / 2;
+                    }
+                    if (!(occurrences > patches.size()))
+                    {
+                        TBOX_ERROR("Failed check: no CAV patch is solved by several groups.\n");
+                    }
+                    plog << "group memberships = " << occurrences << " of " << patches.size() << " CAV patches\n";
+                }
+            }
+            solver.deallocateSolverState();
+            solver.setAugmentedOperatorMat(nullptr);
+        }
+        ierr = MatDestroy(&elasticity);
+        IBTK_CHKERRQ(ierr);
+    }
     // With one rank the two outputs of the multiplicative composition are the correction of its one group, and the
     // other actions differ.
     for (const auto& pair : { std::make_pair("ADDITIVE FULL", "ADDITIVE OWNED"),
                               std::make_pair("MULTIPLICATIVE FULL", "MULTIPLICATIVE OWNED"),
-                              std::make_pair("ADDITIVE OWNED", "MULTIPLICATIVE OWNED") })
+                              std::make_pair("ADDITIVE OWNED", "MULTIPLICATIVE OWNED"),
+                              std::make_pair("SAMRAI_PATCH FULL FORWARD width 0", "SAMRAI_PATCH OWNED FORWARD width 0"),
+                              std::make_pair("SAMRAI_PATCH OWNED FORWARD width 0", "MULTIPLICATIVE OWNED"),
+                              std::make_pair("SAMRAI_PATCH OWNED FORWARD width 0", "ADDITIVE OWNED") })
     {
         ierr = VecWAXPY(action, -1.0, actions[pair.second], actions[pair.first]);
         IBTK_CHKERRQ(ierr);
@@ -990,7 +1388,7 @@ main(int argc, char* argv[])
     if (cav_scenario == "composition")
     {
         plog << std::setprecision(12);
-        const int status = check_cav_composition(x, b, rhs, cav_fields, input->getInteger("N"));
+        const int status = check_cav_composition(level, x, b, rhs, cav_fields, input->getInteger("N"));
         for (Vec* vector : { &rhs, &expected, &actual })
         {
             ierr = VecDestroy(vector);
