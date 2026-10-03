@@ -24,12 +24,15 @@
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <LoadBalancer.h>
+#include <RefineAlgorithm.h>
+#include <RefineSchedule.h>
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredDivergenceFreePhysBdryOp.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
@@ -51,9 +54,43 @@
 #include <array>
 #include <cmath>
 #include <iomanip>
+#include <limits>
+#include <map>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
+
+// A velocity given by muParser expressions function_0, function_1, ... of the
+// position X_0, X_1, ....
+class ParsedVelocity
+{
+public:
+    explicit ParsedVelocity(Pointer<Database> db) : d_parsers(NDIM)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            d_parsers[d].SetExpr(db->getString("function_" + std::to_string(d)));
+            for (unsigned int k = 0; k < NDIM; ++k)
+            {
+                d_parsers[d].DefineVar("X_" + std::to_string(k), &d_X[k]);
+            }
+        }
+    }
+
+    ParsedVelocity(const ParsedVelocity&) = delete;
+    ParsedVelocity& operator=(const ParsedVelocity&) = delete;
+
+    // Evaluate component axis at the position x.
+    double operator()(const unsigned int axis, const std::array<double, NDIM>& x)
+    {
+        d_X = x;
+        return d_parsers[axis].Eval();
+    }
+
+private:
+    std::array<double, NDIM> d_X;
+    std::vector<mu::Parser> d_parsers;
+};
 
 // Function prototypes
 void check_open_boundary_ghost_values(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -62,6 +99,11 @@ void check_open_boundary_ghost_values(Pointer<PatchHierarchy<NDIM>> patch_hierar
 void check_traction_corner_accuracy(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                     Pointer<INSHierarchyIntegrator> ins_integrator,
                                     Pointer<Database> exact_velocity_db);
+
+void check_divergence_free_extension(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                                     Pointer<INSStaggeredHierarchyIntegrator> ins_integrator,
+                                     Pointer<Database> exact_velocity_db,
+                                     int extension_ghost_width);
 
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> ins_integrator,
@@ -214,14 +256,31 @@ main(int argc, char* argv[])
 
         const bool check_accuracy = input_db->keyExists("check_traction_corner_accuracy") &&
                                     input_db->getBool("check_traction_corner_accuracy");
-        if (check_accuracy)
+        const bool check_divergence_free = input_db->keyExists("check_divergence_free_extension") &&
+                                           input_db->getBool("check_divergence_free_extension");
+        if (check_accuracy || check_divergence_free)
         {
             // preprocessIntegrateHierarchy() sets up the velocity boundary condition objects.
             const double current_time = time_integrator->getIntegratorTime();
             time_integrator->preprocessIntegrateHierarchy(
                 current_time, current_time + time_integrator->getMaximumTimeStepSize(), 1);
-            check_traction_corner_accuracy(
-                patch_hierarchy, time_integrator, app_initializer->getComponentDatabase("ExactVelocity"));
+            if (check_accuracy)
+            {
+                check_traction_corner_accuracy(
+                    patch_hierarchy, time_integrator, app_initializer->getComponentDatabase("ExactVelocity"));
+            }
+            if (check_divergence_free)
+            {
+                Pointer<INSStaggeredHierarchyIntegrator> staggered_integrator = time_integrator;
+                if (!staggered_integrator)
+                {
+                    TBOX_ERROR("check_divergence_free_extension requires the STAGGERED solver.\n");
+                }
+                check_divergence_free_extension(patch_hierarchy,
+                                                staggered_integrator,
+                                                app_initializer->getComponentDatabase("ExactVelocity"),
+                                                input_db->getInteger("extension_ghost_width"));
+            }
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 delete u_bc_coefs[d];
@@ -606,16 +665,7 @@ check_traction_corner_accuracy(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     // Fill the ghost values of a velocity field that satisfies the boundary conditions and report the
     // error in the tangential ghost values outside the x boundaries: at the lower corners, at the upper corners,
     // and elsewhere.
-    std::array<double, NDIM> X;
-    std::vector<mu::Parser> parsers(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        parsers[d].SetExpr(exact_velocity_db->getString("function_" + std::to_string(d)));
-        for (unsigned int k = 0; k < NDIM; ++k)
-        {
-            parsers[d].DefineVar("X_" + std::to_string(k), &X[k]);
-        }
-    }
+    ParsedVelocity exact_velocity(exact_velocity_db);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const Pointer<Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
@@ -644,11 +694,12 @@ check_traction_corner_accuracy(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
             domain.refine(pgeom->getRatio());
             const auto exact = [&](const unsigned int axis, const hier::Index<NDIM>& i)
             {
+                std::array<double, NDIM> X;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X[d] = x_lower[d] + dx[d] * (i(d) - patch_box.lower(d) + (d == axis ? 0.0 : 0.5));
                 }
-                return parsers[axis].Eval();
+                return exact_velocity(axis, X);
             };
 
             // Set the values at the faces of cells in the physical domain,
@@ -722,3 +773,332 @@ check_traction_corner_accuracy(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
          << IBTK_MPI::maxReduction(other_error) << '\n';
     return;
 } // check_traction_corner_accuracy
+
+void
+check_divergence_free_extension(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                                Pointer<INSStaggeredHierarchyIntegrator> ins_integrator,
+                                Pointer<Database> exact_velocity_db,
+                                const int extension_ghost_width)
+{
+    // Fill the ghost values outside the physical boundaries of a level of
+    // several patches with the divergence-free extension, using a ghost cell
+    // fill that copies the values at the other patches first, and check, within
+    // the width G = extension_ghost_width of each patch, that
+    //  (a) the divergence in the ghost cells outside the domain vanishes for a
+    //      smooth velocity and for a velocity that is not smooth,
+    //  (b) every patch that stores a ghost face outside the domain stores the
+    //      same value for it. The comparison is among the patches on one rank
+    //      and does not distinguish levels, so it requires one rank and one
+    //      level,
+    //  (c) the accumulation of values outside the domain is the adjoint of the
+    //      extension with homogeneous boundary conditions: for values u in the
+    //      domain and y outside it, (y, E u) = (E^T y, u), where the values in
+    //      the domain include those in the ghost cells inside the domain that
+    //      the patches store, and it sets to zero every value outside the
+    //      domain that the extension fills,
+    //  (d) the extension of a smooth divergence-free velocity whose boundary
+    //      data match it approximates the velocity, by the number of boundaries
+    //      that the ghost face lies beyond, and
+    //  (e) all ghost values are computable.
+    // The velocity has ghost width G + 1 so that all ghost values within the
+    // width G are computable. A direction in which the domain is periodic has
+    // no boundary: ghost values there are copies, not extensions.
+    if (IBTK_MPI::getNodes() > 1 || patch_hierarchy->getFinestLevelNumber() > 0)
+    {
+        TBOX_ERROR(
+            "check_divergence_free_extension: the comparison of the values stored by different patches "
+            "requires one rank and one level, but there are "
+            << IBTK_MPI::getNodes() << " ranks and " << patch_hierarchy->getFinestLevelNumber() + 1 << " levels.\n");
+    }
+    const int G = extension_ghost_width;
+    ParsedVelocity exact_velocity(exact_velocity_db);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const Pointer<Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
+    const IntVector<NDIM> ghost_width(G + 1);
+    const int u_idx =
+        var_db->registerVariableAndContext(u_var, var_db->getContext("divergence_free_extension"), ghost_width);
+    const int y_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
+    INSStaggeredDivergenceFreePhysBdryOp bdry_op(u_idx, ins_integrator, /*homogeneous_bc*/ false);
+    INSStaggeredDivergenceFreePhysBdryOp homogeneous_bdry_op(u_idx, ins_integrator, /*homogeneous_bc*/ true);
+    const double fill_time = ins_integrator->getIntegratorTime();
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+
+    // A deterministic function of the face that is not smooth.
+    const auto rough = [](const unsigned int axis, const hier::Index<NDIM>& i, const double scale)
+    {
+        static const std::array<double, 3> coefficients = { 12.9898, 78.233, 37.719 };
+        double phase = 4.1 * axis;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            phase += coefficients[d] * i(d);
+        }
+        return std::sin(scale * phase);
+    };
+
+    double smooth_divergence = 0.0;
+    double rough_divergence = 0.0;
+    double patch_difference = 0.0;
+    double y_dot_Eu = 0.0;
+    double ETy_dot_u = 0.0;
+    double max_filled_after_adjoint = 0.0;
+    double num_nonfinite_divergence = 0.0;
+    std::array<double, NDIM> error_by_region_size;
+    error_by_region_size.fill(0.0);
+    double num_nan = 0.0;
+    double num_nan_outermost = 0.0;
+    std::map<std::array<int, NDIM + 1>, double> face_values;
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(u_idx, fill_time);
+        level->allocatePatchData(y_idx, fill_time);
+        BoxArray<NDIM> domain = patch_hierarchy->getGridGeometry()->getPhysicalDomain();
+        domain.refine(level->getRatio());
+        const Box<NDIM> domain_box = domain[0];
+        const IntVector<NDIM> periodic_shift = patch_hierarchy->getGridGeometry()->getPeriodicShift(level->getRatio());
+
+        // Whether the face i of component axis lies beyond a boundary of the
+        // domain. Taking axis = NDIM gives the cell i.
+        const auto is_beyond_boundary = [&](const unsigned int axis, const hier::Index<NDIM>& i)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (periodic_shift(d) == 0 &&
+                    (i(d) < domain_box.lower(d) || i(d) > domain_box.upper(d) + (d == axis ? 1 : 0)))
+                {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        Pointer<RefineAlgorithm<NDIM>> ghost_fill_alg = new RefineAlgorithm<NDIM>();
+        ghost_fill_alg->registerRefine(u_idx, u_idx, u_idx, nullptr);
+        Pointer<RefineSchedule<NDIM>> ghost_fill_sched = ghost_fill_alg->createSchedule(level, &bdry_op);
+        Pointer<RefineSchedule<NDIM>> homogeneous_ghost_fill_sched =
+            ghost_fill_alg->createSchedule(level, &homogeneous_bdry_op);
+
+        // Call fcn(patch, axis, i) for each side index i of the patch data
+        // within width of the patch that is outside the domain.
+        const auto for_each_exterior_face = [&](Pointer<Patch<NDIM>> patch, const int width, const auto& fcn)
+        {
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                const Box<NDIM> box = SideGeometry<NDIM>::toSideBox(Box<NDIM>::grow(patch->getBox(), width), axis);
+                for (Box<NDIM>::Iterator b(box); b; b++)
+                {
+                    if (is_beyond_boundary(axis, b()))
+                    {
+                        fcn(axis, b());
+                    }
+                }
+            }
+        };
+
+        // Set the values in the patch interiors, and NaN elsewhere so that
+        // any dependence on unset values appears in the results.
+        const auto fill_ghosts = [&](const auto& value, const Pointer<RefineSchedule<NDIM>>& sched)
+        {
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+                u_data->fillAll(nan);
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis)); b; b++)
+                    {
+                        u_data->getArrayData(axis)(b(), 0) = value(*patch, axis, b());
+                    }
+                }
+            }
+            sched->fillData(fill_time);
+        };
+
+        // The maximum divergence in the ghost cells outside the domain.
+        const auto max_exterior_divergence = [&]()
+        {
+            double max_divergence = 0.0;
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+                for (Box<NDIM>::Iterator b(Box<NDIM>::grow(patch->getBox(), G)); b; b++)
+                {
+                    if (!is_beyond_boundary(NDIM, b()))
+                    {
+                        continue;
+                    }
+                    double divergence = 0.0;
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        hier::Index<NDIM> i_upper = b();
+                        i_upper(axis) += 1;
+                        divergence += (u_data->getArrayData(axis)(i_upper, 0) - u_data->getArrayData(axis)(b(), 0)) /
+                                      pgeom->getDx()[axis];
+                    }
+                    if (std::isfinite(divergence))
+                    {
+                        max_divergence = std::max(max_divergence, std::abs(divergence));
+                    }
+                    else
+                    {
+                        num_nonfinite_divergence += 1.0;
+                    }
+                }
+            }
+            return max_divergence;
+        };
+
+        const auto rough_value = [&](const Patch<NDIM>&, const unsigned int axis, const hier::Index<NDIM>& i)
+        { return rough(axis, i, 1.0); };
+
+        // Smooth velocity and boundary data: (a), (b), (d), (e).
+        const auto exact = [&](const Patch<NDIM>& patch, const unsigned int axis, const hier::Index<NDIM>& i)
+        {
+            Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+            std::array<double, NDIM> X;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X[d] = pgeom->getXLower()[d] +
+                       pgeom->getDx()[d] * (i(d) - patch.getBox().lower(d) + (d == axis ? 0.0 : 0.5));
+            }
+            return exact_velocity(axis, X);
+        };
+        bdry_op.setPatchDataIndex(u_idx);
+        fill_ghosts(exact, ghost_fill_sched);
+        smooth_divergence = std::max(smooth_divergence, max_exterior_divergence());
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            for_each_exterior_face(
+                patch,
+                G + 1,
+                [&](const unsigned int axis, const hier::Index<NDIM>& i)
+                {
+                    const double value = u_data->getArrayData(axis)(i, 0);
+                    if (std::isnan(value))
+                    {
+                        const Box<NDIM> inner =
+                            SideGeometry<NDIM>::toSideBox(Box<NDIM>::grow(patch->getBox(), G), axis);
+                        if (inner.contains(i))
+                        {
+                            num_nan += 1.0;
+                        }
+                        else
+                        {
+                            num_nan_outermost += 1.0;
+                        }
+                        return;
+                    }
+                    const Box<NDIM> inner = SideGeometry<NDIM>::toSideBox(Box<NDIM>::grow(patch->getBox(), G), axis);
+                    if (!inner.contains(i))
+                    {
+                        return;
+                    }
+                    std::array<int, NDIM + 1> key;
+                    key[0] = static_cast<int>(axis);
+                    int region_size = 0;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        key[d + 1] = i(d);
+                        if (periodic_shift(d) == 0 &&
+                            (i(d) < domain_box.lower(d) || i(d) > domain_box.upper(d) + (d == axis ? 1 : 0)))
+                        {
+                            ++region_size;
+                        }
+                    }
+                    const auto it = face_values.find(key);
+                    if (it == face_values.end())
+                    {
+                        face_values[key] = value;
+                    }
+                    else
+                    {
+                        patch_difference = std::max(patch_difference, std::abs(value - it->second));
+                    }
+                    error_by_region_size[region_size - 1] =
+                        std::max(error_by_region_size[region_size - 1], std::abs(value - exact(*patch, axis, i)));
+                });
+        }
+
+        // Velocity that is not smooth: (a).
+        fill_ghosts(rough_value, ghost_fill_sched);
+        rough_divergence = std::max(rough_divergence, max_exterior_divergence());
+
+        // Adjoint: (c). The values y outside the domain within width G are
+        // arbitrary, and the values u in the domain are not smooth.
+        homogeneous_bdry_op.setPatchDataIndex(u_idx);
+        fill_ghosts(rough_value, homogeneous_ghost_fill_sched);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            Pointer<SideData<NDIM, double>> y_data = patch->getPatchData(y_idx);
+            y_data->fillAll(0.0);
+            for_each_exterior_face(patch,
+                                   G,
+                                   [&](const unsigned int axis, const hier::Index<NDIM>& i)
+                                   {
+                                       y_data->getArrayData(axis)(i, 0) = rough(axis, i, 1.3) + 0.2;
+                                       y_dot_Eu += y_data->getArrayData(axis)(i, 0) * u_data->getArrayData(axis)(i, 0);
+                                   });
+            homogeneous_bdry_op.setPatchDataIndex(y_idx);
+            homogeneous_bdry_op.accumulateFromPhysicalBoundaryData(*patch, fill_time, ghost_width);
+            homogeneous_bdry_op.setPatchDataIndex(u_idx);
+
+            // The accumulation sets to zero every value outside the domain that
+            // the extension fills, which here is every computable value within
+            // the ghost width of the patch data.
+            for_each_exterior_face(
+                patch,
+                G + 1,
+                [&](const unsigned int axis, const hier::Index<NDIM>& i)
+                {
+                    const double value = y_data->getArrayData(axis)(i, 0);
+                    if (!std::isfinite(value))
+                    {
+                        TBOX_ERROR("check_divergence_free_extension: the value after the accumulation of component "
+                                   << axis << " at the face " << i << " outside the domain is not finite.\n");
+                    }
+                    max_filled_after_adjoint = std::max(max_filled_after_adjoint, std::abs(value));
+                });
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(u_data->getGhostBox(), axis)); b; b++)
+                {
+                    if (!is_beyond_boundary(axis, b()))
+                    {
+                        ETy_dot_u += y_data->getArrayData(axis)(b(), 0) * u_data->getArrayData(axis)(b(), 0);
+                    }
+                }
+            }
+        }
+        level->deallocatePatchData(u_idx);
+        level->deallocatePatchData(y_idx);
+    }
+
+    pout << std::setprecision(12)
+         << "max |Div_h u| outside the domain, smooth velocity     = " << IBTK_MPI::maxReduction(smooth_divergence)
+         << '\n'
+         << "max |Div_h u| outside the domain, non-smooth velocity = " << IBTK_MPI::maxReduction(rough_divergence)
+         << '\n'
+         << "max difference between patches in a ghost value        = " << IBTK_MPI::maxReduction(patch_difference)
+         << '\n'
+         << "(y, E u)   = " << IBTK_MPI::sumReduction(y_dot_Eu) << '\n'
+         << "(E^T y, u) = " << IBTK_MPI::sumReduction(ETy_dot_u) << '\n'
+         << "max |value| outside the domain after the accumulation  = "
+         << IBTK_MPI::maxReduction(max_filled_after_adjoint) << '\n';
+    for (unsigned int n = 0; n < NDIM; ++n)
+    {
+        pout << "max error in a ghost value beyond " << n + 1 << (n == 0 ? " boundary   = " : " boundaries = ")
+             << IBTK_MPI::maxReduction(error_by_region_size[n]) << '\n';
+    }
+    pout << "number of non-finite ghost-cell divergences within width G = "
+         << IBTK_MPI::sumReduction(num_nonfinite_divergence) << '\n'
+         << "number of NaN ghost values within width G        = " << IBTK_MPI::sumReduction(num_nan) << '\n'
+         << "number of NaN ghost values in the outermost layer = " << IBTK_MPI::sumReduction(num_nan_outermost) << '\n';
+    return;
+} // check_divergence_free_extension

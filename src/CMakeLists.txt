@@ -97,6 +97,7 @@ SET(CXX_SRC
   navier_stokes/INSCollocatedVelocityBcCoef.cpp
   navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp
   navier_stokes/StaggeredStokesPhysicalBoundaryHelper.cpp
+  navier_stokes/INSStaggeredDivergenceFreePhysBdryOp.cpp
   navier_stokes/INSStaggeredVelocityBcCoef.cpp
   navier_stokes/ins_staggered_traction_stencil.cpp
   navier_stokes/INSStaggeredCUIConvectiveOperator.cpp

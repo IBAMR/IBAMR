@@ -1,0 +1,14 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+max |Div_h u| outside the domain, smooth velocity     = 2.84217094304e-14
+max |Div_h u| outside the domain, non-smooth velocity = 5.68434188608e-14
+max difference between patches in a ghost value        = 0
+(y, E u)   = 143.343276721
+(E^T y, u) = 143.343276721
+max |value| outside the domain after the accumulation  = 0
+max error in a ghost value beyond 1 boundary   = 0.126470947266
+max error in a ghost value beyond 2 boundaries = 0.140670776367
+number of non-finite ghost-cell divergences within width G = 0
+number of NaN ghost values within width G        = 0
+number of NaN ghost values in the outermost layer = 184
