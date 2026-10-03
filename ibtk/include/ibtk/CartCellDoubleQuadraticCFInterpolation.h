@@ -189,14 +189,8 @@ public:
     //\{
 
     /*!
-     * \brief This class does not support a consistent interpolation scheme at higher-co-dimension
-     * (corner/edge) coarse-fine interface ghost cells.
-     *
-     * postprocessRefine() and computeNormalExtension() always use the hand-coded Fortran routines, which handle
-     * only co-dimension 1 coarse-fine interface ghost cells, regardless of the value passed here.
-     * \p consistent_type_2_bdry is accepted only for interface compatibility with
-     * CoarseFineBoundaryRefinePatchStrategy, which explicitly permits a subclass to decline to support this
-     * feature.
+     * \brief Not supported: this class fills only co-dimension 1 coarse-fine interface ghost cells, and the
+     * setting has no effect.
      */
     void setConsistentInterpolationScheme(bool consistent_type_2_bdry) override;
 
@@ -262,16 +256,14 @@ private:
     CartCellDoubleQuadraticCFInterpolation& operator=(const CartCellDoubleQuadraticCFInterpolation& that) = delete;
 
     /*!
-     * \brief Implementation of postprocessRefine(). Handles co-dimension 1 coarse-fine interface ghost cells
-     * only, via hand-coded Fortran routines.
+     * \brief Implementation of postprocessRefine().
      */
     void postprocessRefine_optimized(SAMRAI::hier::Patch<NDIM>& fine,
                                      const SAMRAI::hier::Patch<NDIM>& coarse,
                                      const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
-     * \brief Implementation of computeNormalExtension(). Handles co-dimension 1 coarse-fine interface ghost
-     * cells only, via hand-coded Fortran routines.
+     * \brief Implementation of computeNormalExtension().
      */
     void computeNormalExtension_optimized(SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::hier::IntVector<NDIM>& ratio);
 
@@ -282,12 +274,7 @@ private:
     std::set<int> d_patch_data_indices;
 
     /*!
-     * Boolean value indicating whether we are enforcing a consistent interpolation scheme at higher-co-dimension
-     * (corner/edge) coarse-fine interface ghost cells.
-     *
-     * \note This class does not actually implement such a scheme; see setConsistentInterpolationScheme(). This
-     * flag is stored only for interface compatibility and has no effect on postprocessRefine() or
-     * computeNormalExtension().
+     * Stored but unused; see setConsistentInterpolationScheme().
      */
     bool d_consistent_type_2_bdry = false;
 

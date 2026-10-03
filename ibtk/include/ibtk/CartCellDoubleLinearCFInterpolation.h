@@ -156,8 +156,9 @@ public:
     //\{
 
     /*!
-     * Whether or not to employ a consistent interpolation scheme at "Type 2"
-     * coarse-fine interface ghost cells.
+     * Whether or not to employ a consistent interpolation scheme at coarse-fine
+     * interface ghost cells of co-dimension greater than 1. This class does not
+     * support such a scheme, so the value must be false.
      */
     void setConsistentInterpolationScheme(bool consistent_type_2_bdry) override;
 
@@ -226,8 +227,9 @@ private:
     std::set<int> d_patch_data_indices;
 
     /*!
-     * Boolean value indicating whether we are enforcing a consistent
-     * interpolation scheme at "Type 2" coarse-fine interface ghost cells.
+     * Boolean value indicating whether a consistent interpolation scheme is
+     * requested at coarse-fine interface ghost cells of co-dimension greater
+     * than 1.
      */
     bool d_consistent_type_2_bdry = false;
 
