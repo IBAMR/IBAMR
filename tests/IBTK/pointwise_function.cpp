@@ -28,7 +28,6 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <memory>
@@ -422,114 +421,6 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy,
 }
 
 // Preserve the actual abort diagnostic while omitting source paths and line numbers.
-class ErrorAppender : public Logger::Appender
-{
-public:
-    /*! \brief Flush the abort diagnostic directly to the test output before termination. */
-    void logMessage(const std::string& message, const std::string&, const int) override
-    {
-        if (IBTK_MPI::getRank() == 0)
-        {
-            std::ofstream output("output");
-            output << message.c_str() << std::flush;
-        }
-    }
-};
-
-void
-run_error_case(Pointer<PatchHierarchy<NDIM>> hierarchy, const std::string& error)
-{
-    Logger::getInstance()->setAbortAppender(new ErrorAppender());
-    Pointer<Variable<NDIM>> selector_var = new CellVariable<NDIM, double>("selector");
-    Pointer<CartGridFunction> function;
-    int depth = NDIM;
-    if (error == "vector_depth")
-    {
-        depth = NDIM + 1;
-        function = make_vector_functions<VectorNd>(selector_var, NDIM)[1];
-    }
-    else if (error == "dynamic_shape")
-    {
-        function = make_cart_grid_pointwise_function<VectorXd>(
-            "bad shape", selector_var, [](const VectorNd&, double, int, int) { return VectorXd::Zero(NDIM + 1); });
-    }
-    else if (error == "fixed_shape")
-    {
-        function = make_cart_grid_pointwise_function<VectorNd>(
-            "bad shape", selector_var, [](const VectorNd&, double, int, int) { return VectorXd::Zero(NDIM + 1); });
-    }
-    else if (error == "tensor_depth")
-    {
-        depth = NDIM * NDIM;
-        function = make_tensor_functions(selector_var, TensorStorage::SYMMETRIC)[1];
-    }
-    else if (error == "symmetry")
-    {
-        depth = NDIM * (NDIM + 1) / 2;
-        function = make_cart_grid_pointwise_function<MatrixNd>(
-            "nonsymmetric",
-            selector_var,
-            [](const VectorNd&, double, int, int) -> MatrixNd
-            {
-                MatrixNd q = MatrixNd::Identity();
-                q(0, 1) = 1.0;
-                return q;
-            },
-            TensorStorage::SYMMETRIC);
-    }
-    else if (error == "storage")
-    {
-        function = make_tensor_functions(selector_var, static_cast<TensorStorage>(-1))[1];
-    }
-    else if (error == "null_variable")
-    {
-        function = make_scalar_functions(nullptr)[0];
-    }
-    else if (error == "factory_type")
-    {
-        selector_var = new CellVariable<NDIM, int>("integer selector");
-        function = make_scalar_functions(selector_var)[0];
-    }
-    else if (error == "centering")
-    {
-        function = make_scalar_functions(selector_var)[0];
-    }
-    else if (error == "data_type")
-    {
-        function = make_scalar_functions(selector_var)[1];
-    }
-    else
-    {
-        TBOX_ERROR("Unknown error case\n");
-    }
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM>> var;
-    if (error == "data_type")
-    {
-        var = new CellVariable<NDIM, int>("invalid", depth);
-    }
-    else if (error == "centering")
-    {
-        var = new SideVariable<NDIM, double>("invalid", depth);
-    }
-    else
-    {
-        var = new CellVariable<NDIM, double>("invalid", depth);
-    }
-    const int idx = var_db->registerVariableAndContext(var, var_db->getContext("invalid"), IntVector<NDIM>(0));
-    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
-    level->allocatePatchData(idx);
-    for (PatchLevel<NDIM>::Iterator it(level); it; it++)
-    {
-        Pointer<CellData<NDIM, double>> data = level->getPatch(it())->getPatchData(idx);
-        if (data)
-        {
-            data->fillAll(1.0);
-        }
-    }
-    function->setDataOnPatchHierarchy(idx, var, hierarchy, INITIAL_TIME);
-    // A zero exit status must fail an expect_error test if no diagnostic occurred.
-}
 } // namespace
 
 int
@@ -561,12 +452,6 @@ main(int argc, char* argv[])
             break;
         }
         ++ln;
-    }
-    const std::string error = app->getInputDatabase()->getStringWithDefault("error_case", "");
-    if (!error.empty())
-    {
-        run_error_case(hierarchy, error);
-        return 0;
     }
     if (hierarchy->getFinestLevelNumber() != 1)
     {

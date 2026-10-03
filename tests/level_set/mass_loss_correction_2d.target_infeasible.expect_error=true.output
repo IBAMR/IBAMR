@@ -1,0 +1,6 @@
+AdvDiff::initializePatchHierarchy(): tag_buffer = 0
+Program abort called with error message
+
+    Fixer::correctVolume(): target volume is outside the fluid capacity
+  phase = two-phase gas, target = 2, capacity = 1, residual = nan, trials = 0
+

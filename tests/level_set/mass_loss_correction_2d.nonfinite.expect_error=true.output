@@ -1,0 +1,6 @@
+AdvDiff::initializePatchHierarchy(): tag_buffer = 0
+Program abort called with error message
+
+    Fixer::correctVolume(): nonfinite level-set data or invalid composite weight
+  phase = two-phase gas, target = 1, capacity = nan, residual = nan, trials = 0
+
