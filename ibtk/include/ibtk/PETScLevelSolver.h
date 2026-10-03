@@ -83,6 +83,7 @@ namespace IBTK
     composition = "MULTIPLICATIVE"         // no default: "ADDITIVE" or "MULTIPLICATIVE"
     grouping = "RANK"                      // no default; only for MULTIPLICATIVE composition
     output = "FULL"                        // no default: "FULL" or "OWNED"
+    traversal = "FORWARD"                  // "FORWARD" (default), "REVERSE", or "SYMMETRIC"
     subdomain_solver {                     // optional; see "Subdomain solvers" below
        type = "petsc"                      // the default
     }
@@ -101,6 +102,9 @@ namespace IBTK
  *   correction z of the group starts at zero, and each solve uses the residual that the previous solves of
  *   the group leave, q_i = r(P_i) - A(P_i, :) z, and then adds its correction, z(P_i) += d_i. A group does
  *   not use the corrections of other groups. grouping = "RANK" makes the subdomains of each rank one group.
+ *   traversal sets the order in which a group visits its subdomains: FORWARD (default), REVERSE, or
+ *   SYMMETRIC, which visits them forward and then backward without repeating the last one. ADDITIVE
+ *   composition accepts only FORWARD.
  *
  * output chooses how the corrections make up the result:
  *
@@ -411,6 +415,13 @@ protected:
     {
         RANK
     };
+    //! The order in which multiplicative subdomain relaxation visits the subdomains of a group.
+    enum class SubdomainTraversal
+    {
+        FORWARD,
+        REVERSE,
+        SYMMETRIC
+    };
     //! Which entries of the corrections subdomain relaxation adds to its result.
     enum class SubdomainOutput
     {
@@ -425,6 +436,7 @@ protected:
     std::optional<SubdomainComposition> d_subdomain_composition;
     std::optional<SubdomainGrouping> d_subdomain_grouping;
     std::optional<SubdomainOutput> d_subdomain_output;
+    SubdomainTraversal d_subdomain_traversal = SubdomainTraversal::FORWARD;
     //\}
 
     /*!
@@ -574,6 +586,13 @@ private:
                                    const std::vector<PetscInt>& dofs,
                                    PetscInt n_lo,
                                    PetscInt n_hi);
+
+    /*!
+     * \brief Return the positions, in the order in which a group visits them, for a traversal of its n
+     * subdomains: FORWARD visits 0, ..., n - 1, REVERSE visits n - 1, ..., 0, and SYMMETRIC visits
+     * 0, ..., n - 1, n - 2, ..., 0, the last subdomain once.
+     */
+    static std::vector<int> subdomainVisitOrder(SubdomainTraversal traversal, int n);
 
     /*!
      * \brief Gather the right-hand sides of all subdomains from x into the packed vector.

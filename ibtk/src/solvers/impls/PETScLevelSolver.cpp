@@ -954,8 +954,9 @@ PETScLevelSolver::init(Pointer<Database> input_db,
         if (input_db->keyExists("subdomain_relaxation"))
         {
             Pointer<Database> relaxation_db = input_db->getDatabase("subdomain_relaxation");
-            check_database_keys(
-                d_object_name + "::init()", relaxation_db, { "composition", "grouping", "output", "subdomain_solver" });
+            check_database_keys(d_object_name + "::init()",
+                                relaxation_db,
+                                { "composition", "grouping", "output", "traversal", "subdomain_solver" });
             if (relaxation_db->keyExists("composition"))
             {
                 const std::string composition = relaxation_db->getString("composition");
@@ -1007,6 +1008,36 @@ PETScLevelSolver::init(Pointer<Database> input_db,
                     TBOX_ERROR(d_object_name << "::init():\n"
                                              << "  unsupported subdomain_relaxation output = " << output
                                              << "; supported values are \"FULL\" and \"OWNED\".\n");
+                }
+            }
+            if (relaxation_db->keyExists("traversal"))
+            {
+                const std::string traversal = relaxation_db->getString("traversal");
+                if (equals_ignore_case(traversal, "FORWARD"))
+                {
+                    d_subdomain_traversal = SubdomainTraversal::FORWARD;
+                }
+                else if (equals_ignore_case(traversal, "REVERSE"))
+                {
+                    d_subdomain_traversal = SubdomainTraversal::REVERSE;
+                }
+                else if (equals_ignore_case(traversal, "SYMMETRIC"))
+                {
+                    d_subdomain_traversal = SubdomainTraversal::SYMMETRIC;
+                }
+                else
+                {
+                    TBOX_ERROR(d_object_name
+                               << "::init():\n"
+                               << "  unsupported subdomain_relaxation traversal = " << traversal
+                               << "; supported values are \"FORWARD\", \"REVERSE\", and \"SYMMETRIC\".\n");
+                }
+                if (d_subdomain_composition == SubdomainComposition::ADDITIVE &&
+                    d_subdomain_traversal != SubdomainTraversal::FORWARD)
+                {
+                    TBOX_ERROR(d_object_name << "::init():\n"
+                                             << "  subdomain_relaxation traversal = " << traversal
+                                             << " applies only to MULTIPLICATIVE composition.\n");
                 }
             }
             if (relaxation_db->keyExists("subdomain_solver"))
@@ -1251,7 +1282,7 @@ PETScLevelSolver::initializeSubdomainGroups(const std::vector<PetscInt>& gathere
         }
     }
 
-    // Each rank forms one group of its subdomains, which it visits in order.
+    // Each rank forms one group of its subdomains.
     std::vector<std::vector<int>> group_subdomains(1);
     for (int i = 0; i < d_n_local_subdomains; ++i)
     {
@@ -1275,9 +1306,12 @@ PETScLevelSolver::initializeSubdomainGroups(const std::vector<PetscInt>& gathere
     std::vector<std::size_t> support_group(dofs.size(), 0);
     for (std::size_t g = 0; g < group_subdomains.size(); ++g)
     {
+        for (const int visit : subdomainVisitOrder(d_subdomain_traversal, static_cast<int>(group_subdomains[g].size())))
+        {
+            d_group_visits.push_back(group_subdomains[g][visit]);
+        }
         for (const int i : group_subdomains[g])
         {
-            d_group_visits.push_back(i);
             for (PetscInt k = d_subdomain_offsets[i]; k < d_subdomain_offsets[i + 1]; ++k)
             {
                 const PetscInt position = d_packed_positions[k];
@@ -1329,6 +1363,41 @@ PETScLevelSolver::initializeSubdomainGroups(const std::vector<PetscInt>& gathere
     d_group_correction.assign(dofs.size(), 0.0);
     d_full_correction.assign(owned_output ? 0 : dofs.size(), 0.0);
 } // initializeSubdomainGroups
+
+std::vector<int>
+PETScLevelSolver::subdomainVisitOrder(const SubdomainTraversal traversal, const int n)
+{
+    std::vector<int> order;
+    switch (traversal)
+    {
+    case SubdomainTraversal::FORWARD:
+        for (int i = 0; i < n; ++i)
+        {
+            order.push_back(i);
+        }
+        break;
+    case SubdomainTraversal::REVERSE:
+        for (int i = n - 1; i >= 0; --i)
+        {
+            order.push_back(i);
+        }
+        break;
+    case SubdomainTraversal::SYMMETRIC:
+        for (int i = 0; i < n; ++i)
+        {
+            order.push_back(i);
+        }
+        for (int i = n - 2; i >= 0; --i)
+        {
+            order.push_back(i);
+        }
+        break;
+    default:
+        TBOX_ERROR("PETScLevelSolver::subdomainVisitOrder():\n"
+                   << "  unsupported traversal.\n");
+    }
+    return order;
+} // subdomainVisitOrder
 
 PetscErrorCode
 PETScLevelSolver::gatherSubdomainRhs(Vec x) const
