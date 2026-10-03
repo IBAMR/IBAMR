@@ -74,14 +74,7 @@ ParallelMap::communicateData()
     {
         StreamableManager* streamable_manager = StreamableManager::getManager();
 
-        // Determine how many keys have been registered for addition on each
-        // process.
-        std::vector<int> num_additions(size, 0);
-        num_additions[rank] = static_cast<int>(d_pending_additions.size());
-        IBTK_MPI::sumReduction(&num_additions[0], size);
-
-        // Get the local values to send and determine the amount of data to be
-        // broadcast by each process.
+        // Get the local values to send.
         std::vector<int> keys_to_send;
         std::vector<tbox::Pointer<Streamable>> data_items_to_send;
         for (const auto& pending_addition : d_pending_additions)
@@ -89,10 +82,15 @@ ParallelMap::communicateData()
             keys_to_send.push_back(pending_addition.first);
             data_items_to_send.push_back(pending_addition.second);
         }
+
+        // Determine how many keys have been registered for addition on each
+        // process and the amount of data to be broadcast by each process.
+        std::vector<int> num_additions(size, 0);
+        num_additions[rank] = static_cast<int>(d_pending_additions.size());
         std::vector<int> data_sz(size, 0);
         data_sz[rank] = static_cast<int>(tbox::AbstractStream::sizeofInt() * keys_to_send.size() +
                                          streamable_manager->getDataStreamSize(data_items_to_send));
-        IBTK_MPI::sumReduction(&data_sz[0], size);
+        IBTK_MPI::sumReduction<int>({ { num_additions.data(), size }, { data_sz.data(), size } });
 
         // Broadcast data from each process.
         for (int sending_proc = 0; sending_proc < size; ++sending_proc)

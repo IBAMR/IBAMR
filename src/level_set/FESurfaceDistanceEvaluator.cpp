@@ -221,8 +221,7 @@ FESurfaceDistanceEvaluator::mapIntersections()
 #endif
         }
     }
-    IBTK_MPI::minReduction(elem_bl.data(), 3);
-    IBTK_MPI::maxReduction(elem_tr.data(), 3);
+    IBTK_MPI::minMaxReduction(elem_bl.data(), elem_tr.data(), 3);
 
     // Structure bounding box, taking into account ghost cell width.
     Pointer<CartesianGridGeometry<NDIM>> grid_geom = level->getGridGeometry();

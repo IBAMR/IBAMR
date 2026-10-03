@@ -448,8 +448,7 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(
             }
         }
 
-        IBTK_MPI::sumReduction(fobj.P_box_current.data(), 3);
-        IBTK_MPI::sumReduction(fobj.L_box_current.data(), 3);
+        IBTK_MPI::sumReduction<double>({ { fobj.P_box_current.data(), 3 }, { fobj.L_box_current.data(), 3 } });
     }
 
     return;
@@ -615,9 +614,6 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
             }
         }
 
-        IBTK_MPI::sumReduction(fobj.P_box_new.data(), 3);
-        IBTK_MPI::sumReduction(fobj.L_box_new.data(), 3);
-
         // Compute surface integral term.
         IBTK::Vector3d trac, torque_trac;
         trac.setZero();
@@ -773,8 +769,10 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 }
             }
         }
-        IBTK_MPI::sumReduction(trac.data(), 3);
-        IBTK_MPI::sumReduction(torque_trac.data(), 3);
+        IBTK_MPI::sumReduction<double>({ { fobj.P_box_new.data(), 3 },
+                                         { fobj.L_box_new.data(), 3 },
+                                         { trac.data(), 3 },
+                                         { torque_trac.data(), 3 } });
 
         // Compute hydrodynamic force on the body : -integral_{box_new} (rho du/dt) + d/dt(rho u)_body + trac
         fobj.F_new = -(fobj.P_box_new - fobj.P_box_current) / dt + (fobj.P_new - fobj.P_current) / dt + trac;

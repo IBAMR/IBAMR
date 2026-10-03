@@ -284,12 +284,13 @@ BoxPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
     }
 
     // step 2: communicate the partitioning across all processors:
-    int ierr = MPI_Allreduce(
-        MPI_IN_PLACE, elem_ids.data(), elem_ids.size(), pid_integral_type, MPI_SUM, IBTK_MPI::getCommunicator());
+    std::vector<processor_id_type> ids(elem_ids);
+    ids.insert(ids.end(), node_ids.begin(), node_ids.end());
+    const int ierr =
+        MPI_Allreduce(MPI_IN_PLACE, ids.data(), ids.size(), pid_integral_type, MPI_SUM, IBTK_MPI::getCommunicator());
     TBOX_ASSERT(ierr == 0);
-    ierr = MPI_Allreduce(
-        MPI_IN_PLACE, node_ids.data(), node_ids.size(), pid_integral_type, MPI_SUM, IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(ierr == 0);
+    std::copy(ids.begin(), ids.begin() + elem_ids.size(), elem_ids.begin());
+    std::copy(ids.begin() + elem_ids.size(), ids.end(), node_ids.begin());
 
     // step 3: verify that we partitioned each elem and node exactly once:
     for (const dof_id_type id : local_elem_ids)

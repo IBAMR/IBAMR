@@ -477,9 +477,10 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     }
 
     // Synchronize accumulated data.
-    IBTK_MPI::sumReduction(d_flow_rate_values.data(), d_num_meters);
-    IBTK_MPI::sumReduction(d_mean_pressure_values.data(), d_num_meters);
-    IBTK_MPI::sumReduction(A.data(), d_num_meters);
+    const int num_meters = static_cast<int>(d_num_meters);
+    IBTK_MPI::sumReduction<double>({ { d_flow_rate_values.data(), num_meters },
+                                     { d_mean_pressure_values.data(), num_meters },
+                                     { A.data(), num_meters } });
 
     // Normalize the mean pressure.
     for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
@@ -625,8 +626,8 @@ IBFEInstrumentPanel::resetMeterConfiguration(IBFEMethod* const ib_method_ops, co
     }
 
     // Broadcast the local data.
-    IBTK_MPI::sumReduction(x_meter_dofs.data(), n_dofs);
-    IBTK_MPI::sumReduction(u_meter_dofs.data(), n_dofs);
+    IBTK_MPI::sumReduction<double>(
+        { { x_meter_dofs.data(), static_cast<int>(n_dofs) }, { u_meter_dofs.data(), static_cast<int>(n_dofs) } });
 
     // Compute the mean values and store them in the vector of DOFs.
     std::vector<double> x_mean(NDIM, 0.0), u_mean(NDIM, 0.0);

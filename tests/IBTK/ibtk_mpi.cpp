@@ -98,6 +98,14 @@ main(int argc, char* argv[])
     passed = IBTK::IBTK_MPI::maxReduction(passed ? 1 : 0);
     if (!rank) output_file << "all gather test " << (passed ? "passed" : "failed") << ".\n";
 
+    double x_min = rank, x_max = rank;
+    IBTK::IBTK_MPI::minMaxReduction(&x_min, &x_max);
+    if (!rank) output_file << "minMaxReduction: " << x_min << " " << x_max << "\n";
+
+    int a[2] = { rank, 1 }, b = 2 * rank;
+    IBTK::IBTK_MPI::sumReduction<int>({ { a, 2 }, { &b, 1 } });
+    if (!rank) output_file << "sumReduction of several arrays: " << a[0] << " " << a[1] << " " << b << "\n";
+
     if (!rank) output_file.close();
 } // main
 

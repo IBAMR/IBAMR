@@ -968,8 +968,10 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
             }
         }
     }
-    const double S = IBTK_MPI::sumReduction(source_integral);
-    const double W = IBTK_MPI::sumReduction(weight_integral);
+    double integrals[2] = { source_integral, weight_integral };
+    IBTK_MPI::sumReduction(integrals, 2);
+    const double S = integrals[0];
+    const double W = integrals[1];
 
     if (!std::isfinite(S) || !std::isfinite(W))
     {

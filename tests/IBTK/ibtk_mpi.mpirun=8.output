@@ -5,3 +5,5 @@ allToOneSum test passed.
 bcast test passed.
 send and recv test passed.
 all gather test passed.
+minMaxReduction: 0 7
+sumReduction of several arrays: 28 8 56
