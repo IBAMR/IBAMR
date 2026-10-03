@@ -82,8 +82,9 @@ namespace IBAMR
  *   matrix supplied through setCouplingAwareASMConstructionMat(); see
  *   StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(). That
  *   matrix only determines the shape of the patches: the level operator supplies the systems that are
- *   solved. CAV patches have no nonoverlapping sets, so they require pc_type = "shell" with
- *   subdomain_relaxation composition = "MULTIPLICATIVE" and output = "FULL".
+ *   solved. Each CAV patch owns the DOFs of its seed cell, the pressure DOF and the velocity DOF on the
+ *   lower face in each direction. CAV patches require pc_type = "shell", and OWNED output also requires
+ *   seed_stride = 1 and a level that covers a physical domain that is periodic in every direction.
  * - VELOCITY_COMPONENT: a subdomain starts from a velocity DOF of seed_axis and adds the velocity DOFs
  *   coupled to it in the level operator, those with matrix entries above the relative_zero_tol threshold.
  *   It then joins the standard Vanka patches of the cells that the closure policy selects; see
@@ -208,8 +209,8 @@ public:
 
 protected:
     /*!
-     * \brief Require pc_type = asm or shell when the ASM subdomains are coupling-aware, and for pressure-cell seeds
-     * a shell with multiplicative composition and FULL output.
+     * \brief Require pc_type = asm or shell when the ASM subdomains are coupling-aware, and pc_type = shell for
+     * pressure-cell seeds.
      */
     void validatePreconditionerType() override;
 
