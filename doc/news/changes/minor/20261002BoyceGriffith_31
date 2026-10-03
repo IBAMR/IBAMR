@@ -1,0 +1,3 @@
+Fixed: Use the current velocity for the BDF2 sink drag term of INSStaggeredHierarchyIntegrator in the first time step.
+<br>
+(Boyce Griffith, 2026/10/02)
