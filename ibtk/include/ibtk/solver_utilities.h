@@ -50,6 +50,14 @@ void
 reportPETScSNESConvergedReason(const std::string& object_name, const SNESConvergedReason& reason, std::ostream& os);
 
 /*!
+ * \brief Initialize Hypre if it is not already initialized, and then finalize it when PETSc is finalized.
+ *
+ * Call this function before creating Hypre objects. It calls HYPRE_Initialize() with Hypre 2.29 and newer and
+ * HYPRE_Init() with Hypre 2.21 through 2.28. It does nothing with older versions of Hypre.
+ */
+void initialize_hypre();
+
+/*!
  * \brief Helper function to convert SAMRAI indices to Hypre integers.
  *
  * \note Hypre can use 64 bit indices, but SAMRAI IntVectors are always 32.
