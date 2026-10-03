@@ -1,0 +1,3 @@
+Fixed: IBTK::FACPreconditioner V-cycles with presmoothing solve each coarse-level correction equation with the composite-grid residual.
+<br>
+(Boyce Griffith, 2026/09/25)
