@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    check_sets:
+  the subdomains do not cover the DOFs as required: 3 DOFs are in no subdomain; the lowest DOF that fails is 3.
+

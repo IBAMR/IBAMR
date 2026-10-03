@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    check_index_sets:
+  the subdomains do not cover the DOFs as required: 2 DOFs are in more than one subdomain; the lowest DOF that fails is 2.
+
