@@ -18,6 +18,7 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 
+#include <tbox/Database.h>
 #include <tbox/MemoryDatabase.h>
 
 #include <CellData.h>
@@ -115,11 +116,16 @@ main(int argc, char* argv[])
     IBTK_CHKERRQ(ierr);
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(expected, fi, udi, hi, pdi, level);
 
-    Pointer<MemoryDatabase> db = new MemoryDatabase("solver");
+    // The input may replace the default direct solve.
+    Pointer<Database> db = new MemoryDatabase("solver");
     db->putString("ksp_type", "preonly");
     db->putString("pc_type", "svd");
     db->putBool("initial_guess_nonzero", false);
     db->putInteger("max_iterations", 1);
+    if (app->getInputDatabase()->isDatabase("solver_db"))
+    {
+        db = app->getInputDatabase()->getDatabase("solver_db");
+    }
     StaggeredStokesPETScLevelSolver solver("boundary_rhs_solver", db, "boundary_rhs_");
     PoissonSpecifications coefficients("coefficients");
     coefficients.setCConstant(1.0);
@@ -143,18 +149,26 @@ main(int argc, char* argv[])
     solver.setPhysicalBoundaryHelper(helper);
     solver.setHomogeneousBc(false);
 
-    solver.initializeSolverState(x, b);
-    const bool solved = solver.solveSystem(x, b);
-    solver.deallocateSolverState();
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
-    const double solution_norm = norm_inf(actual);
-    ierr = VecAXPY(actual, -1.0, expected);
-    IBTK_CHKERRQ(ierr);
-    const double error = norm_inf(actual);
-    plog << std::setprecision(12) << "solution_norm = " << solution_norm << "\nerror = " << error << '\n';
+    // Each solve initializes and deallocates the solver state again.
+    bool passed = true;
+    const int n_solves = app->getInputDatabase()->getIntegerWithDefault("n_solves", 1);
+    for (int solve = 0; solve < n_solves; ++solve)
+    {
+        x.setToScalar(0.0);
+        solver.initializeSolverState(x, b);
+        const bool solved = solver.solveSystem(x, b);
+        solver.deallocateSolverState();
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
+        const double solution_norm = norm_inf(actual);
+        ierr = VecAXPY(actual, -1.0, expected);
+        IBTK_CHKERRQ(ierr);
+        const double error = norm_inf(actual);
+        plog << std::setprecision(12) << "solution_norm = " << solution_norm << "\nerror = " << error << '\n';
+        passed = passed && solved && std::isfinite(error) && error < 1.0e-9 && solution_norm > 0.0;
+    }
     ierr = VecDestroy(&expected);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&actual);
     IBTK_CHKERRQ(ierr);
-    return solved && std::isfinite(error) && error < 1.0e-9 && solution_norm > 0.0 ? 0 : 1;
+    return passed ? 0 : 1;
 }
