@@ -1533,7 +1533,14 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
             }
             else
             {
-                d_hier_sc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
+                if (cycle_num == 0)
+                {
+                    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+                }
+                else
+                {
+                    d_hier_sc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
+                }
             }
             computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, d_U_scratch_idx);
             d_hier_sc_data_ops->scale(d_F_div_idx, rho, d_F_div_idx);
