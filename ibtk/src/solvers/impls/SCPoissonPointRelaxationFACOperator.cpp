@@ -40,10 +40,12 @@
 #include <tbox/Utilities.h>
 
 #include <ArrayData.h>
+#include <BoundaryBox.h>
 #include <Box.h>
 #include <BoxList.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
+#include <CoarseFineBoundary.h>
 #include <CoarsenOperator.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
@@ -403,7 +405,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 scratch_data->getArrayData(axis).copy(error_data->getArrayData(axis),
-                                                      d_patch_bc_box_overlap[level_num][patch_counter][axis],
+                                                      d_patch_cf_bdry_ghost_boxes[level_num][patch_counter][axis],
                                                       IntVector<NDIM>(0));
             }
         }
@@ -434,7 +436,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         error_data->getArrayData(axis).copy(scratch_data->getArrayData(axis),
-                                                            d_patch_bc_box_overlap[level_num][patch_counter][axis],
+                                                            d_patch_cf_bdry_ghost_boxes[level_num][patch_counter][axis],
                                                             IntVector<NDIM>(0));
                     }
                 }
@@ -800,24 +802,42 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     }
     d_synch_fill_pattern = new SideSynchCopyFillPattern();
 
-    // Get overlap information for setting patch boundary conditions.
-    d_patch_bc_box_overlap.resize(d_finest_ln + 1);
-    for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
+    // Find the ghost sides along the coarse-fine interface of each patch.
+    d_patch_cf_bdry_ghost_boxes.resize(d_finest_ln + 1);
+    for (int ln = std::max(coarsest_reset_ln, d_coarsest_ln + 1); ln <= finest_reset_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
-        d_patch_bc_box_overlap[ln].resize(num_local_patches);
+        d_patch_cf_bdry_ghost_boxes[ln].assign(num_local_patches, std::array<BoxList<NDIM>, NDIM>());
+        const CoarseFineBoundary<NDIM> cf_boundary(*d_hierarchy, ln, IntVector<NDIM>(1));
         int patch_counter = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            const Array<BoundaryBox<NDIM>>& cf_bdry_codim1_boxes =
+                cf_boundary.getBoundaries(patch->getPatchNumber(), /*boundary type*/ 1);
+            for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
             {
-                const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                const Box<NDIM> side_ghost_box = Box<NDIM>::grow(side_box, 1);
-                d_patch_bc_box_overlap[ln][patch_counter][axis] = BoxList<NDIM>(side_ghost_box);
-                d_patch_bc_box_overlap[ln][patch_counter][axis].removeIntersections(side_box);
+                const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
+
+                // Keep the cells of the boundary box that lie along the patch face; the corner cells are not part
+                // of the interface. The location index is 2 * (axis normal to the face) + side.
+                const int bdry_axis = bdry_box.getLocationIndex() / 2;
+                Box<NDIM> face_box = patch_box;
+                face_box.grow(bdry_axis, 1);
+                const Box<NDIM> cf_box = bdry_box.getBox() * face_box;
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    // The sides on the patch boundary belong to the patch; only the sides outside the patch box are
+                    // ghost values.
+                    BoxList<NDIM> ghost_sides(SideGeometry<NDIM>::toSideBox(cf_box, axis));
+                    ghost_sides.removeIntersections(SideGeometry<NDIM>::toSideBox(patch_box, axis));
+                    for (BoxList<NDIM>::Iterator b(ghost_sides); b; b++)
+                    {
+                        d_patch_cf_bdry_ghost_boxes[ln][patch_counter][axis].addItem(b());
+                    }
+                }
             }
         }
     }
@@ -868,7 +888,7 @@ SCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const in
 
     if (!d_in_initialize_operator_state)
     {
-        d_patch_bc_box_overlap.clear();
+        d_patch_cf_bdry_ghost_boxes.clear();
         d_patch_neighbor_overlap.clear();
         if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
     }
