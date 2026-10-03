@@ -31,6 +31,7 @@
 #include <SAMRAIVectorReal.h>
 
 #include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -123,6 +124,12 @@ public:
      * patch data in these vectors must be allocated prior to calling this
      * method.
      *
+     * Ghost values of \a x are unspecified on return. Ghost values of \a b may
+     * be overwritten.
+     *
+     * \note With V_CYCLE and no presmoothing, interior values of \a b on coarse
+     * cells covered by finer levels are overwritten.
+     *
      * \param x solution vector
      * \param b right-hand-side vector
      *
@@ -130,6 +137,7 @@ public:
      * - vectors \a x and \a b must have same patch hierarchy
      * - vectors \a x and \a b must have same structure, depth, etc.
      * - vectors that span more than one level must start at level zero
+     * - vectors \a x and \a b must not share component patch-data indices
      *
      * \note The vector arguments for solveSystem() need not match those for
      * initializeSolverState().  However, there must be a certain degree of
@@ -232,6 +240,8 @@ public:
 
     /*!
      * \brief Set the multigrid algorithm cycle type.
+     *
+     * V_CYCLE visits each coarser level once.
      */
     void setMGCycleType(MGCycleType cycle_type);
 
@@ -327,7 +337,43 @@ private:
      */
     FACPreconditioner& operator=(const FACPreconditioner& that) = delete;
 
+    /*!
+     * \brief Apply one cycle on the levels from the coarsest level of the solver
+     * through \a level_num.
+     *
+     * On entry \a u must be zero, including ghost values, on those levels.
+     * Interior values of \a f are not modified; its ghost values may be
+     * overwritten.
+     */
+    void zeroStartCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                        SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                        int level_num);
+
+    /*!
+     * \brief Return a vector on levels \a coarsest_ln through \a finest_ln that
+     * refers to the patch data of \a vector.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>
+    getRangeVector(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vector, int coarsest_ln, int finest_ln) const;
+
+    /*!
+     * \brief Allocate a zero vector with the components of \a vector on levels
+     * up to \a finest_ln.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>
+    allocateRangeVector(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vector,
+                        const std::string& name,
+                        int finest_ln) const;
+
+    /*! \brief Allocate any missing scratch data required by the current cycle options. */
+    void allocateCycleScratchData(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    // Residual vector for each level ln, spanning the levels from the coarsest
+    // level through ln; its restriction is the right-hand side of the cycle on
+    // the next coarser level.
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_residual_vectors;
 };
 } // namespace IBTK
 

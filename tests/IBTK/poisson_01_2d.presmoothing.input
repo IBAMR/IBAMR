@@ -1,7 +1,5 @@
-// Like poisson_01_2d.mpirun=4.input, but with presmoothing enabled (num_pre_sweeps = 2), single rank, on
-// the same partially refined, coarse-fine-interface-containing hierarchy. Exercises
-// PoissonFACPreconditionerStrategy::prolongErrorAndCorrect()'s coarse-fine interface ghost cell handling
-// after a prolonged coarse-grid correction is added.
+// Three-level hierarchy on a single rank, with V-cycle preconditioning and presmoothing (num_pre_sweeps = 2).
+// The finest level lies one cell inside the coarse-fine boundary of the middle level.
 
 u {
    function = "sin(2*PI*X_0)*sin(2*PI*X_1)"
@@ -18,6 +16,7 @@ solver_db {
 
 precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
 precond_db {
+   cycle_type      = "V_CYCLE"
    num_pre_sweeps  = 2
    num_post_sweeps = 3
    prolongation_method = "LINEAR_REFINE"
@@ -49,10 +48,11 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels = 2                 // Maximum number of levels in hierarchy.
+   max_levels = 3                 // Maximum number of levels in hierarchy.
 
    ratio_to_coarser {
       level_1 = 4, 4              // vector ratio to next coarser level
+      level_2 = 4, 4
    }
 
    largest_patch_size {
@@ -74,6 +74,7 @@ StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
       level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+      level_1 = [( N + 1 , N + 1 ),( 3*N - 2 , 2*N - 2 )]
    }
 }
 
