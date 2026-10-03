@@ -1027,11 +1027,9 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
-        // Copy the solution data into the hypre vector, including ghost cell
-        // values
-        const Box<NDIM> x_ghost_box = Box<NDIM>::grow(patch_box, 1);
+        // Copy the solution data into the hypre vector.
         Pointer<CellData<NDIM, double>> x_data = patch->getPatchData(x_idx);
-        copyToHypre(d_sol_vecs, *x_data, x_ghost_box);
+        copyToHypre(d_sol_vecs, *x_data, patch_box);
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
