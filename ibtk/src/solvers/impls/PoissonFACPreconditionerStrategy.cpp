@@ -124,6 +124,26 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
             d_coarse_solver_abs_residual_tol = input_db->getDouble("coarse_solver_abs_residual_tol");
         if (input_db->keyExists("coarse_solver_max_iterations"))
             d_coarse_solver_max_iterations = input_db->getInteger("coarse_solver_max_iterations");
+        if (input_db->keyExists("data_refine_type"))
+        {
+            d_data_refine_type = input_db->getString("data_refine_type");
+        }
+        if (input_db->keyExists("use_cf_interpolation"))
+        {
+            d_use_cf_interpolation = input_db->getBool("use_cf_interpolation");
+        }
+        if (input_db->keyExists("data_coarsen_type"))
+        {
+            d_data_coarsen_type = input_db->getString("data_coarsen_type");
+        }
+        if (input_db->keyExists("bdry_extrap_type"))
+        {
+            d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        }
+        if (input_db->keyExists("use_consistent_type_2_bdry"))
+        {
+            d_use_consistent_type_2_bdry = input_db->getBool("use_consistent_type_2_bdry");
+        }
     }
 
     // Setup scratch variables.
