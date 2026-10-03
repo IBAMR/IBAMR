@@ -13,9 +13,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/CIBStrategy.h>
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredDivergenceFreePhysBdryOp.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/CartCellRobinPhysBdryOp.h>
@@ -291,15 +294,39 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     d_hier_cc_data_ops =
         hier_ops_manager->getOperationsDouble(new CellVariable<NDIM, double>("cc_var"), hierarchy, true);
 
+    Pointer<CellVariable<NDIM, double>> u_cc_var = d_u_var;
+    Pointer<SideVariable<NDIM, double>> u_sc_var = d_u_var;
+    const INSStaggeredHierarchyIntegrator* ins_staggered_hier_integrator =
+        dynamic_cast<const INSStaggeredHierarchyIntegrator*>(d_ins_hier_integrator.getPointer());
+    if (d_divergence_free_velocity_extension)
+    {
+        if (!u_sc_var || !ins_staggered_hier_integrator)
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                                     << "  divergence_free_velocity_extension = TRUE requires a side-centered "
+                                        "velocity and an INSStaggeredHierarchyIntegrator fluid solver\n");
+        }
+        if (dynamic_cast<CIBStrategy*>(d_ib_method_ops.getPointer()))
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                                     << "  divergence_free_velocity_extension = TRUE is not supported with "
+                                        "constraint IB methods\n");
+        }
+    }
+
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
+    // The divergence-free extension needs one more layer of velocity and force
+    // data than the interaction kernels read.
     const IntVector<NDIM> ib_ghosts(d_ib_method_ops->getMinimumGhostCellWidth());
+    const IntVector<NDIM> eulerian_ghosts =
+        d_divergence_free_velocity_extension ? ib_ghosts + IntVector<NDIM>(1) : ib_ghosts;
     const IntVector<NDIM> ghosts(1);
 
-    d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
+    d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, eulerian_ghosts);
     d_ib_data.setFlag(d_u_idx);
-    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, ib_ghosts);
+    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, eulerian_ghosts);
     d_ib_data.setFlag(d_f_idx);
     if (d_time_stepping_type == FORWARD_EULER || d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
@@ -340,13 +367,16 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     const int p_new_idx = var_db->mapVariableAndContextToIndex(d_p_var, getNewContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_p_var, getScratchContext());
 
-    Pointer<CellVariable<NDIM, double>> u_cc_var = d_u_var;
-    Pointer<SideVariable<NDIM, double>> u_sc_var = d_u_var;
     if (u_cc_var)
     {
         d_u_phys_bdry_op = new CartCellRobinPhysBdryOp(u_scratch_idx,
                                                        d_ins_hier_integrator->getVelocityBoundaryConditions(),
                                                        /*homogeneous_bc*/ false);
+    }
+    else if (u_sc_var && d_divergence_free_velocity_extension)
+    {
+        d_u_phys_bdry_op = new INSStaggeredDivergenceFreePhysBdryOp(
+            u_scratch_idx, ins_staggered_hier_integrator, /*homogeneous_bc*/ false);
     }
     else if (u_sc_var)
     {
@@ -672,6 +702,15 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<Base
     // Reset IB data.
     d_ib_method_ops->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
+    // Discard the descriptions of the ghost values of patches that no longer exist.
+    if (d_divergence_free_velocity_extension)
+    {
+        INSStaggeredDivergenceFreePhysBdryOp* u_phys_bdry_op =
+            dynamic_cast<INSStaggeredDivergenceFreePhysBdryOp*>(d_u_phys_bdry_op);
+        TBOX_ASSERT(u_phys_bdry_op);
+        u_phys_bdry_op->clearCache();
+    }
+
     // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_velocity_data_ops->setPatchHierarchy(hierarchy);
     d_hier_pressure_data_ops->setPatchHierarchy(hierarchy);
@@ -735,6 +774,10 @@ IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart
         d_warn_on_dt_change = db->getBool("warn_on_time_step_change");
     else if (db->keyExists("warn_on_timestep_change"))
         d_warn_on_dt_change = db->getBool("warn_on_timestep_change");
+    if (db->keyExists("divergence_free_velocity_extension"))
+    {
+        d_divergence_free_velocity_extension = db->getBool("divergence_free_velocity_extension");
+    }
     if (db->keyExists("time_stepping_type"))
         d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("time_stepping_type"));
     else if (db->keyExists("timestepping_type"))

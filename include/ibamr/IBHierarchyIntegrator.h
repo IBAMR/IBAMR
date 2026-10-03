@@ -127,6 +127,21 @@ namespace IBAMR
  * <em>If either <code>regrid_structure_cfl_interval</code> or
  * <code>regrid_fluid_cfl_interval</code> are provided in the input database
  * then <code>regrid_interval</code> is ignored.</em>
+ *
+ * <h2>Option Controlling the Velocity Ghost Values at Physical Boundaries</h2>
+ *
+ * When the input database contains <code>divergence_free_velocity_extension =
+ * TRUE</code> (the default is <code>FALSE</code>), the ghost values of the
+ * Eulerian velocity outside the physical boundaries that are used to
+ * interpolate the velocity to the structure are filled by
+ * INSStaggeredDivergenceFreePhysBdryOp, so that the discrete divergence of the
+ * extended velocity vanishes there, and the force is spread with the exact
+ * transpose of that extension. The velocity and force data then have one more
+ * layer of ghost cells than the IB method requires. This option requires a
+ * side-centered velocity and an INSStaggeredHierarchyIntegrator fluid solver,
+ * and is not supported with constraint IB methods. It is read
+ * from the input database each time the integrator is created; it is not
+ * restart data.
  */
 class IBHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
@@ -332,6 +347,12 @@ protected:
      * when time step size changes are encountered.
      */
     bool d_error_on_dt_change = true, d_warn_on_dt_change = false;
+
+    /*!
+     * Flag indicating whether to fill the velocity ghost values outside the
+     * physical boundaries with INSStaggeredDivergenceFreePhysBdryOp.
+     */
+    bool d_divergence_free_velocity_extension = false;
 
     /*
      * The (optional) INSHierarchyIntegrator is used to provide time integration
