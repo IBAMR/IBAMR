@@ -36,7 +36,7 @@ The script reports:
                output, and expected outputs identical to another added by the
                same change
   comments     added comment lines containing development history or working
-               shorthand, and added tests of an object's dynamic type
+               shorthand, and added uses of typeid
 
 This is a screen, not a review. It cannot judge whether a comment is clear or
 whether a test case is needed, and a reported line may be legitimate. The exit
@@ -64,7 +64,7 @@ SHORTHAND = re.compile(
     r"\bparity\b|\bfixtures?\b|\bpin(s|ned)?\b|\blive\b|\bprobe\b|"
     r"\bcontracts?\b|\bsmoke\b|\bgate\b"
 )
-DYNAMIC_TYPE = re.compile(r"typeid\s*\(|dynamic_cast\s*<")
+DYNAMIC_TYPE = re.compile(r"typeid\s*\(")
 
 SOURCE_SUFFIXES = (".h", ".cpp", ".m4", ".f", ".i")
 FORTRAN_SUFFIXES = (".m4", ".f", ".i")
@@ -203,7 +203,7 @@ def check_comments(files):
                             f": {excerpt}"
                         )
             elif in_library and DYNAMIC_TYPE.search(text):
-                notes.append(f"{path}:{line_number}: dynamic type test: {excerpt}")
+                notes.append(f"{path}:{line_number}: typeid: {excerpt}")
     return notes
 
 
