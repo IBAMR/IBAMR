@@ -1520,7 +1520,11 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
         {
             if (is_bdf_time_stepping_type(d_viscous_time_stepping_type))
             {
-                if (cycle_num == 0)
+                if (cycle_num == 0 && getIntegratorStep() == 0)
+                {
+                    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+                }
+                else if (cycle_num == 0)
                 {
                     const double omega = getTimeStepSizeRatio();
                     d_hier_sc_data_ops->linearSum(
