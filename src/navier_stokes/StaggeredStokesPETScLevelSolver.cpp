@@ -213,10 +213,16 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(
         if (input_db->keyExists("coupling_aware_subdomains"))
         {
             Pointer<Database> ca_db = input_db->getDatabase("coupling_aware_subdomains");
-            IBTK::check_database_keys(
-                d_object_name + "::StaggeredStokesPETScLevelSolver()",
-                ca_db,
-                { "seed_axis", "seed_stride", "seed_traversal_order", "closure_policy", "relative_zero_tol" });
+            IBTK::check_database_keys(d_object_name + "::StaggeredStokesPETScLevelSolver()",
+                                      ca_db,
+                                      { "seed_type",
+                                        "seed_axis",
+                                        "seed_stride",
+                                        "seed_traversal_order",
+                                        "closure_policy",
+                                        "relative_zero_tol" });
+            d_ca_seed_type = string_to_enum<CouplingAwareASMPatchSeedType>(
+                ca_db->getStringWithDefault("seed_type", enum_to_string(d_ca_seed_type)));
             d_ca_seed_axis = ca_db->getIntegerWithDefault("seed_axis", d_ca_seed_axis);
             d_ca_seed_stride = ca_db->getIntegerWithDefault("seed_stride", d_ca_seed_stride);
             d_ca_order = string_to_enum<CouplingAwareASMSeedTraversalOrder>(
@@ -349,11 +355,45 @@ StaggeredStokesPETScLevelSolver::setAugmentedOperatorMat(Mat augmented_operator_
     return;
 } // setAugmentedOperatorMat
 
+void
+StaggeredStokesPETScLevelSolver::setCouplingAwareASMConstructionMat(Mat construction_mat)
+{
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setCouplingAwareASMConstructionMat():\n"
+                                 << "  deallocate the solver state before changing the matrix.\n");
+    }
+    d_ca_construction_mat = construction_mat;
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
 StaggeredStokesPETScLevelSolver::validatePreconditionerType()
 {
+    if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE &&
+        d_ca_seed_type == CouplingAwareASMPatchSeedType::PRESSURE_CELL)
+    {
+        // Pressure-cell CAV patches have no nonoverlapping sets, so they support only subdomain relaxation with
+        // multiplicative composition and FULL output. Missing settings are reported with the other requirements of
+        // subdomain relaxation.
+        if (d_pc_type != "shell")
+        {
+            TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
+                                     << "  pressure-cell CAV requires pc_type = shell.\n");
+        }
+        if (d_subdomain_composition && *d_subdomain_composition != SubdomainComposition::MULTIPLICATIVE)
+        {
+            TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
+                                     << "  pressure-cell CAV requires subdomain_relaxation composition = "
+                                        "MULTIPLICATIVE.\n");
+        }
+        if (d_subdomain_output && *d_subdomain_output != SubdomainOutput::FULL)
+        {
+            TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
+                                     << "  pressure-cell CAV requires subdomain_relaxation output = FULL.\n");
+        }
+    }
     if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE && d_pc_type != "asm" && d_pc_type != "shell")
     {
         TBOX_ERROR(d_object_name << "::validatePreconditionerType():\n"
@@ -368,6 +408,37 @@ StaggeredStokesPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>
 {
     if (d_asm_mode == ASMSubdomainConstructionMode::COUPLING_AWARE)
     {
+        if (d_ca_seed_type == CouplingAwareASMPatchSeedType::PRESSURE_CELL)
+        {
+            if (!d_ca_construction_mat)
+            {
+                TBOX_ERROR(d_object_name << "::generateASMSubdomains():\n"
+                                         << "  pressure-cell CAV requires a live elasticity construction matrix.\n");
+            }
+            std::vector<int> pressure_seeds;
+            StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(
+                overlap_is,
+                pressure_seeds,
+                d_num_dofs_per_proc,
+                d_u_dof_index_idx,
+                d_p_dof_index_idx,
+                d_level,
+                d_ca_construction_mat,
+                d_ca_seed_stride,
+                d_ca_order,
+                d_ca_policy,
+                d_ca_relative_zero_tol);
+            nonoverlap_is.clear();
+            // Vanka smoothing needs every DOF to be in a patch, which a seed stride above one gives up.
+            if (d_check_subdomain_coverage)
+            {
+                check_dof_coverage(d_object_name + "::generateASMSubdomains()",
+                                   overlap_is,
+                                   d_num_dofs_per_proc[IBTK_MPI::getRank()],
+                                   DOFCoverage::AT_LEAST_ONCE);
+            }
+            return;
+        }
         StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(overlap_is,
                                                                                               nonoverlap_is,
                                                                                               d_num_dofs_per_proc,
@@ -659,6 +730,8 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
         d_petsc_mat = nullptr;
         d_petsc_pc = nullptr;
     }
+
+    d_ca_construction_mat = nullptr;
 
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);

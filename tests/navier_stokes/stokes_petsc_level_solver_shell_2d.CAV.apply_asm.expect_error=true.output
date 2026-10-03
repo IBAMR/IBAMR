@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    shell_solver::validatePreconditionerType():
+  pressure-cell CAV requires pc_type = shell.
+

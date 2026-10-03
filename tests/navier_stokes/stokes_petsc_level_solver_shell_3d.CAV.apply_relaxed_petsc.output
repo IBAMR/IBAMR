@@ -1,0 +1,15 @@
+pressure_patches = 64
+partition_size = 0
+distance from the ADDITIVE FULL action = 0.354694993506
+apply_error = 3.09351044011e-16
+pressure_mean = 4.33680868994e-18
+action_norm = 0.354849931227
+error = 3.12871139861e-16
+repeated_error = 1.11022302463e-16
+pressure_patches = 64
+partition_size = 0
+apply_error = 2.76765205234e-16
+pressure_mean = -1.08420217249e-17
+action_norm = 0.366004609991
+error = 3.03335803517e-16
+repeated_error = 1.11022302463e-16

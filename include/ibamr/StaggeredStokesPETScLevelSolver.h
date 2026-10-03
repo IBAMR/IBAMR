@@ -71,21 +71,30 @@ namespace IBAMR
  * subdomain_construction chooses the subdomains of the ASM and shell preconditioners:
  *
  * - GEOMETRICAL (default): subdomains defined by the geometry of the level.
- * - COUPLING_AWARE: subdomains grown from seed velocity DOFs along the couplings of the level operator,
- *   so that strongly coupled velocity DOFs share a subdomain. It requires pc_type = asm or shell, in
- *   effect after the PETSc options are applied, and is available on one MPI rank only.
+ * - COUPLING_AWARE: subdomains grown from seeds along the couplings of a matrix. It requires pc_type =
+ *   asm or shell, in effect after the PETSc options are applied, and is available on one MPI rank only.
  *
- * A coupling-aware subdomain starts from a seed DOF and adds the velocity DOFs coupled to it, those
- * with matrix entries above the relative_zero_tol threshold. It then joins the standard Vanka patches
- * (a cell's pressure DOF and the velocity DOFs on its faces) of the cells that the closure policy
- * selects. RELAXED takes every cell that touches an added velocity DOF (Gruninger and Griffith,
- * arXiv:2608.14310); STRICT takes only the cells whose whole velocity stencil was added. The precise
- * rules are those of StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains().
+ * The seeds of coupling-aware subdomains are pressure cells or velocity DOFs. A standard Vanka patch is a
+ * cell's pressure DOF and the velocity DOFs on its faces.
  *
- * The optional coupling_aware_subdomains database overrides these coupling-aware settings, which are read
- * at construction:
+ * - PRESSURE_CELL (default): each pressure DOF seeds a coupling-aware Vanka (CAV) patch, a union of
+ *   standard Vanka patches (Gruninger and Griffith, arXiv:2608.14310) grown along the couplings of the
+ *   matrix supplied through setCouplingAwareASMConstructionMat(); see
+ *   StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches(). That
+ *   matrix only determines the shape of the patches: the level operator supplies the systems that are
+ *   solved. CAV patches have no nonoverlapping sets, so they require pc_type = "shell" with
+ *   subdomain_relaxation composition = "MULTIPLICATIVE" and output = "FULL".
+ * - VELOCITY_COMPONENT: a subdomain starts from a velocity DOF of seed_axis and adds the velocity DOFs
+ *   coupled to it in the level operator, those with matrix entries above the relative_zero_tol threshold.
+ *   It then joins the standard Vanka patches of the cells that the closure policy selects; see
+ *   StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains().
  *
- * - seed_axis (default 0): the velocity component whose DOFs are the seeds.
+ * RELAXED closure takes every cell that touches an added velocity DOF, the construction of Gruninger and
+ * Griffith; STRICT takes only the cells whose whole velocity stencil was added. The optional
+ * coupling_aware_subdomains database overrides these settings, which are read at construction:
+ *
+ * - seed_type (default PRESSURE_CELL): PRESSURE_CELL or VELOCITY_COMPONENT.
+ * - seed_axis (default 0): the velocity component whose DOFs are the VELOCITY_COMPONENT seeds.
  * - seed_stride (default 1): use every seed_stride-th seed. A stride above 1 can leave DOFs out of
  *   every subdomain, which Vanka smoothing does not allow; check_subdomain_coverage detects this.
  * - seed_traversal_order (default I_J, or I_J_K in 3D; also J_I, J_K_I, or K_I_J): the order of the
@@ -182,9 +191,25 @@ public:
      */
     void setAugmentedOperatorMat(Mat augmented_operator_mat);
 
+    /*!
+     * \brief Set the Eulerian elasticity matrix used to construct pressure-cell patches.
+     *
+     * The matrix uses full coupled level numbering with zero pressure rows and
+     * columns, as required by
+     * StaggeredStokesPETScMatUtilities::construct_patch_level_pressure_cell_seeded_cav_patches().
+     * The solver retains PETSc references to the matrices of setOperatorMat() and setAugmentedOperatorMat(): it
+     * applies the operator whenever the solver is applied, and it adds the augmentation to the level operator
+     * when the solver is initialized. This matrix, in contrast, is read only while the patches are built during
+     * initialization, so it is borrowed without copying, modifying or retaining a reference. Keep it alive and
+     * unchanged until deallocateSolverState(), which clears the borrowed handle. Set, replace or clear it only while
+     * deallocated, and resupply it before reinitialization. Passing nullptr clears the construction matrix.
+     */
+    void setCouplingAwareASMConstructionMat(Mat construction_mat);
+
 protected:
     /*!
-     * \brief Require pc_type = asm or shell when the ASM subdomains are coupling-aware.
+     * \brief Require pc_type = asm or shell when the ASM subdomains are coupling-aware, and for pressure-cell seeds
+     * a shell with multiplicative composition and FULL output.
      */
     void validatePreconditionerType() override;
 
@@ -288,6 +313,7 @@ private:
      */
     //\{
     ASMSubdomainConstructionMode d_asm_mode = ASMSubdomainConstructionMode::GEOMETRICAL;
+    CouplingAwareASMPatchSeedType d_ca_seed_type = CouplingAwareASMPatchSeedType::PRESSURE_CELL;
     int d_ca_seed_axis = 0, d_ca_seed_stride = 1;
 #if (NDIM == 2)
     CouplingAwareASMSeedTraversalOrder d_ca_order = CouplingAwareASMSeedTraversalOrder::I_J;
@@ -296,6 +322,14 @@ private:
 #endif
     CouplingAwareASMClosurePolicy d_ca_policy = CouplingAwareASMClosurePolicy::RELAXED;
     double d_ca_relative_zero_tol = 1.0e-14;
+    //\}
+
+    /*!
+     * \name Pressure-cell patch construction, for one solver-state lifetime.
+     */
+    //\{
+    //! The matrix supplied through setCouplingAwareASMConstructionMat(), which is borrowed.
+    Mat d_ca_construction_mat = nullptr;
     //\}
 
     /*!

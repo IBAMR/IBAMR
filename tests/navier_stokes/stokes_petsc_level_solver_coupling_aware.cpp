@@ -406,7 +406,9 @@ check_ca_construction(Pointer<AppInitializer> app, Pointer<Database> test)
                 relaxation_db->putString("grouping", "RANK");
                 relaxation_db->putString("output", "FULL");
                 db->putString("subdomain_construction", "COUPLING_AWARE");
-                db->putDatabase("coupling_aware_subdomains")->putString("closure_policy", policy);
+                Pointer<Database> ca_db = db->putDatabase("coupling_aware_subdomains");
+                ca_db->putString("seed_type", "VELOCITY_COMPONENT");
+                ca_db->putString("closure_policy", policy);
                 StaggeredStokesPETScLevelSolver solver("ca_solver_" + pc_type + "_" + policy, db, "ca_");
                 std::vector<std::set<int>> expected, expected_partition;
                 StaggeredStokesPETScMatUtilities::construct_patch_level_coupling_aware_asm_subdomains(
