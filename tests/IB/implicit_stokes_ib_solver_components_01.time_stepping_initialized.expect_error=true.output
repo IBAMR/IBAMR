@@ -1,0 +1,6 @@
+IBRedundantInitializer:  Deallocating initialization data.
+Program abort called with error message
+
+    stokes_ib_solver_components::fac_op::setIBTimeSteppingType():
+  cannot be called while operator state is initialized.
+
