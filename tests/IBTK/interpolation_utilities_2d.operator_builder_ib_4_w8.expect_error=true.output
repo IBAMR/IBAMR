@@ -1,0 +1,7 @@
+Program abort called with error message
+
+    IBOperatorBuilder::IBOperatorBuilder():
+  no built-in evaluator for kernel (IB_4_W8).
+  Built-in kernels are BSPLINE_1 through BSPLINE_8, IB_3 through IB_6, and composite B-splines whose orders differ by one.
+  Construct the builder from an evaluator to use any other kernel.
+
