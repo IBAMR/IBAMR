@@ -96,6 +96,7 @@
 #define S_TO_C_CURL_FC IBTK_FC_FUNC(stoccurl2d, STOCCURL2D)
 #define S_TO_C_DIV_FC IBTK_FC_FUNC(stocdiv2d, STOCDIV2D)
 #define S_TO_C_DIV_ADD_FC IBTK_FC_FUNC(stocdivadd2d, STOCDIVADD2D)
+#define S_TO_C_DIV_ADD_ADD_FC IBTK_FC_FUNC(stocdivaddadd2d, STOCDIVADDADD2D)
 #define S_TO_C_INTERP_FC IBTK_FC_FUNC(stocinterp2nd2d, STOCINTERP2ND2D)
 
 #define S_TO_N_CURL_FC IBTK_FC_FUNC(stoncurl2d, STONCURL2D)
@@ -174,6 +175,7 @@
 #define S_TO_C_CURL_FC IBTK_FC_FUNC(stoccurl3d, STOCCURL3D)
 #define S_TO_C_DIV_FC IBTK_FC_FUNC(stocdiv3d, STOCDIV3D)
 #define S_TO_C_DIV_ADD_FC IBTK_FC_FUNC(stocdivadd3d, STOCDIVADD3D)
+#define S_TO_C_DIV_ADD_ADD_FC IBTK_FC_FUNC(stocdivaddadd3d, STOCDIVADDADD3D)
 #define S_TO_C_INTERP_FC IBTK_FC_FUNC(stocinterp2nd3d, STOCINTERP2ND3D)
 
 #define S_TO_N_CURL_FC IBTK_FC_FUNC(stoncurl3d, STONCURL3D)
@@ -1202,6 +1204,31 @@ extern "C"
                            const int& iupper2,
 #endif
                            const double* dx);
+
+    void S_TO_C_DIV_ADD_ADD_FC(double* D,
+                               const int& D_gcw,
+                               const double& alpha,
+                               const double* u0,
+                               const double* u1,
+#if (NDIM == 3)
+                               const double* u2,
+#endif
+                               const int& u_gcw,
+                               const double& beta,
+                               const double* V,
+                               const int& V_gcw,
+                               const double& gamma,
+                               const double* W,
+                               const int& W_gcw,
+                               const int& ilower0,
+                               const int& iupper0,
+                               const int& ilower1,
+                               const int& iupper1,
+#if (NDIM == 3)
+                               const int& ilower2,
+                               const int& iupper2,
+#endif
+                               const double* dx);
 
     void S_TO_C_INTERP_FC(double* U,
                           const int& U_gcw,
@@ -2981,6 +3008,128 @@ PatchMathOps::div(Pointer<CellData<NDIM, double>> dst,
 #endif
                           dx);
     }
+    return;
+} // div
+
+void
+PatchMathOps::div(Pointer<CellData<NDIM, double>> dst,
+                  const double alpha,
+                  const Pointer<SideData<NDIM, double>> src1,
+                  const double beta,
+                  const Pointer<CellData<NDIM, double>> src2,
+                  const double gamma,
+                  const Pointer<CellData<NDIM, double>> src3,
+                  const Pointer<Patch<NDIM>> patch,
+                  const int l,
+                  const int m,
+                  const int n) const
+{
+    if (!src3 || (gamma == 0.0))
+    {
+        div(dst, alpha, src1, beta, src2, patch, l, m);
+        return;
+    }
+    if (!src2 || (beta == 0.0))
+    {
+        div(dst, alpha, src1, gamma, src3, patch, l, n);
+        return;
+    }
+
+    const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    double* const D = dst->getPointer(l);
+    const int D_ghosts = (dst->getGhostCellWidth()).max();
+
+    const double* const u0 = src1->getPointer(0);
+    const double* const u1 = src1->getPointer(1);
+#if (NDIM == 3)
+    const double* const u2 = src1->getPointer(2);
+#endif
+    const int u_ghosts = (src1->getGhostCellWidth()).max();
+
+    const double* const V = src2->getPointer(m);
+    const int V_ghosts = (src2->getGhostCellWidth()).max();
+
+    const double* const W = src3->getPointer(n);
+    const int W_ghosts = (src3->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (D_ghosts != (dst->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::div():\n"
+                   << "  dst does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (u_ghosts != (src1->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::div():\n"
+                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (V_ghosts != (src2->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::div():\n"
+                   << "  src2 does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (W_ghosts != (src3->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::div():\n"
+                   << "  src3 does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (patch_box != dst->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::div():\n"
+                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+    }
+
+    if (patch_box != src1->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::div():\n"
+                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+    }
+
+    if (patch_box != src2->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::div():\n"
+                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+    }
+
+    if (patch_box != src3->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::div():\n"
+                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+    }
+#endif
+
+    S_TO_C_DIV_ADD_ADD_FC(D,
+                          D_ghosts,
+                          alpha,
+                          u0,
+                          u1,
+#if (NDIM == 3)
+                          u2,
+#endif
+                          u_ghosts,
+                          beta,
+                          V,
+                          V_ghosts,
+                          gamma,
+                          W,
+                          W_ghosts,
+                          patch_box.lower(0),
+                          patch_box.upper(0),
+                          patch_box.lower(1),
+                          patch_box.upper(1),
+#if (NDIM == 3)
+                          patch_box.lower(2),
+                          patch_box.upper(2),
+#endif
+                          dx);
     return;
 } // div
 
