@@ -39,6 +39,11 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <utility>
 #include <vector>
 
+namespace IBTK
+{
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -133,6 +138,15 @@ public:
      * \note A default implementation is provided that does nothing.
      */
     virtual void setInterpolatedVelocityVector(Vec V, const double data_time);
+
+    /*!
+     * \brief Return the operator that sets the ghost values of the velocity at
+     * physical boundaries when interpolating, which is also the boundary
+     * treatment that force spreading uses, or nullptr if there is none.
+     *
+     * \note A default implementation is provided that returns nullptr.
+     */
+    virtual IBTK::RobinPhysBdryPatchStrategy* getVelocityPhysBdryOp() const;
 
     /*!
      * \brief Get the interpolated velocity from the Eulerian grid at the specified time.

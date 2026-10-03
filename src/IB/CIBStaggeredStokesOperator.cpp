@@ -22,6 +22,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 
 #include <tbox/MathUtilities.h>
 #include <tbox/Timer.h>
@@ -32,7 +33,9 @@
 #include <CoarsenSchedule.h>
 #include <IntVector.h>
 #include <MultiblockDataTranslator.h>
+#include <Patch.h>
 #include <PatchHierarchy.h>
+#include <PatchLevel.h>
 #include <RefineSchedule.h>
 #include <SAMRAIVectorReal.h>
 #include <VariableFillPattern.h>
@@ -310,12 +313,31 @@ CIBStaggeredStokesOperator::interpolateVelocity(SAMRAIVectorReal<NDIM, double>& 
                                                 const double data_time,
                                                 const double scale)
 {
+    // Spreading uses the IB velocity boundary conditions at physical boundaries,
+    // so interpolate with the same ghost values to keep the two adjoint.
+    const int U_idx = u_p.getComponentDescriptorIndex(0);
+    RobinPhysBdryPatchStrategy* const u_phys_bdry_op = d_cib_strategy->getVelocityPhysBdryOp();
+    if (u_phys_bdry_op)
+    {
+        u_phys_bdry_op->setPatchDataIndex(U_idx);
+        u_phys_bdry_op->setHomogeneousBc(d_homogeneous_bc);
+        Pointer<PatchHierarchy<NDIM>> hierarchy = u_p.getPatchHierarchy();
+        for (int ln = u_p.getCoarsestLevelNumber(); ln <= u_p.getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                u_phys_bdry_op->setPhysicalBoundaryConditions(
+                    *patch, d_solution_time, patch->getPatchData(U_idx)->getGhostCellWidth());
+            }
+        }
+    }
+
     Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
     d_cib_strategy->setInterpolatedVelocityVector(V, data_time);
-    ib_method_ops->interpolateVelocity(u_p.getComponentDescriptorIndex(0),
-                                       std::vector<Pointer<CoarsenSchedule<NDIM>>>(),
-                                       std::vector<Pointer<RefineSchedule<NDIM>>>(),
-                                       data_time);
+    ib_method_ops->interpolateVelocity(
+        U_idx, std::vector<Pointer<CoarsenSchedule<NDIM>>>(), std::vector<Pointer<RefineSchedule<NDIM>>>(), data_time);
     d_cib_strategy->getInterpolatedVelocity(V, data_time, scale);
     return;
 } // interpolateVelocity

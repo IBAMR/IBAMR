@@ -474,6 +474,12 @@ public:
      */
     void setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op);
 
+    /*!
+     * Return the velocity physical boundary operator set by
+     * setVelocityPhysBdryOp().
+     */
+    IBTK::RobinPhysBdryPatchStrategy* getVelocityPhysBdryOp() const override;
+
     //////////////////////////////////////////////////////////////////////////////
 
 protected:

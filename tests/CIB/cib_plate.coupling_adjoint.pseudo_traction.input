@@ -1,0 +1,304 @@
+// Coupling adjoint check with PSEUDO_TRACTION open boundaries on the lower
+// faces (normal component Neumann) and walls on the upper faces: the plate is
+// next to the lower-left corner of the domain, within a kernel width of the
+// boundaries.
+
+// physical parameters
+RHO = 1.0
+MU  = 0.05
+
+// constants
+STOKES_ITER = 4
+STOKES_TOL  = 1.0e-9
+DELTA       = 0.0
+
+// Gridding
+N = 16
+MAX_LEVELS = 1
+
+// solver parameters
+MOBILITY_SOLVER_TYPE = "KRYLOV"
+DELTA_FUNCTION       = "IB_6"
+START_TIME           = 0.0
+END_TIME             = 0.01
+DT                   = 0.01
+NUM_CYCLES_INS       = 1
+
+IBHierarchyIntegrator {
+   start_time          = START_TIME
+   end_time            = END_TIME
+   num_cycles          = NUM_CYCLES_INS
+   dt_max              = DT
+   enable_logging      = FALSE
+   time_stepping_type  = "MIDPOINT_RULE"
+}
+
+num_structures = 1
+CIBMethod {
+   delta_fcn             = DELTA_FUNCTION
+   enable_logging        = FALSE
+   lambda_dirname        = "./Lambda"
+   lambda_dump_interval  = 0
+   output_eul_lambda     = FALSE
+}
+
+IBStandardInitializer {
+   posn_shift      = -9.97, -9.98
+   max_levels      = MAX_LEVELS
+   structure_names = "plate2d"
+
+   plate2d {
+      level_number = MAX_LEVELS - 1
+      uniform_spring_stiffness = 0.0
+   }
+}
+
+CIBStaggeredStokesSolver {
+   scale_interp_operator  = 1.0
+   scale_spread_operator  = 1.0
+   normalize_spread_force = FALSE
+   regularize_mob_factor  = DELTA
+
+   options_prefix        = "SP_"
+   max_iterations        = 100
+   rel_residual_tol      = 1e-11
+   abs_residual_tol      = 1e-50
+   ksp_type              = "fgmres"
+   pc_type               = "shell"
+   initial_guess_nonzero = FALSE
+   enable_logging        = FALSE
+   mobility_solver_type  = MOBILITY_SOLVER_TYPE
+
+   PCStokesSolver {
+      normalize_pressure  = TRUE
+      normalize_velocity  = FALSE
+      stokes_solver_type  = "PETSC_KRYLOV_SOLVER"
+      stokes_solver_db {
+         max_iterations   = STOKES_ITER
+         ksp_type         = "gmres"
+         rel_residual_tol = STOKES_TOL
+         abs_residual_tol = 0.0
+      }
+      stokes_precond_type = "PROJECTION_PRECONDITIONER"
+      stokes_precond_db {
+      }
+      velocity_solver_type  = "PETSC_KRYLOV_SOLVER"
+      velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+      velocity_solver_db {
+         ksp_type       = "richardson"
+         max_iterations = 1
+      }
+      velocity_precond_db {
+         ghost_cell_width    = 4
+         num_pre_sweeps      = 0
+         num_post_sweeps     = 3
+         prolongation_method = "CONSTANT_REFINE"
+         restriction_method  = "CONSERVATIVE_COARSEN"
+         coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+         coarse_solver_rel_residual_tol = 1.0e-12
+         coarse_solver_abs_residual_tol = 1.0e-50
+         coarse_solver_max_iterations   = 1
+         coarse_solver_db {
+            solver_type       = "Split"
+            split_solver_type = "PFMG"
+            enable_logging    = FALSE
+         }
+      }
+      pressure_solver_type  = "PETSC_KRYLOV_SOLVER"
+      pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+      pressure_solver_db {
+         ksp_type       = "richardson"
+         max_iterations = 1
+      }
+      pressure_precond_db {
+         num_pre_sweeps      = 0
+         num_post_sweeps     = 3
+         prolongation_method = "LINEAR_REFINE"
+         restriction_method  = "CONSERVATIVE_COARSEN"
+         coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+         coarse_solver_rel_residual_tol = 1.0e-12
+         coarse_solver_abs_residual_tol = 1.0e-50
+         coarse_solver_max_iterations   = 1
+         coarse_solver_db {
+            solver_type          = "PFMG"
+            num_pre_relax_steps  = 0
+            num_post_relax_steps = 3
+            enable_logging       = FALSE
+         }
+      }
+   }
+
+   KrylovMobilitySolver {
+      max_iterations        = 1000
+      rel_residual_tol      = 1e-12
+      abs_residual_tol      = 1e-50
+      ksp_type              = "fgmres"
+      pc_type               = "none"
+      initial_guess_nonzero = FALSE
+
+      normalize_pressure  = TRUE
+      normalize_velocity  = FALSE
+      stokes_solver_type  = "PETSC_KRYLOV_SOLVER"
+      stokes_precond_type = "PROJECTION_PRECONDITIONER"
+      stokes_solver_db {
+         max_iterations   = 1000
+         ksp_type         = "gmres"
+         rel_residual_tol = 1e-12
+         abs_residual_tol = 0.0
+      }
+      velocity_solver_type  = "PETSC_KRYLOV_SOLVER"
+      velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+      velocity_solver_db {
+         ksp_type       = "richardson"
+         max_iterations = 1
+      }
+      velocity_precond_db {
+         ghost_cell_width    = 4
+         num_pre_sweeps      = 0
+         num_post_sweeps     = 3
+         prolongation_method = "CONSTANT_REFINE"
+         restriction_method  = "CONSERVATIVE_COARSEN"
+         coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+         coarse_solver_rel_residual_tol = 1.0e-12
+         coarse_solver_abs_residual_tol = 1.0e-50
+         coarse_solver_max_iterations   = 1
+         coarse_solver_db {
+            solver_type       = "Split"
+            split_solver_type = "PFMG"
+            enable_logging    = FALSE
+         }
+      }
+      pressure_solver_type  = "PETSC_KRYLOV_SOLVER"
+      pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+      pressure_solver_db {
+         ksp_type       = "richardson"
+         max_iterations = 1
+      }
+      pressure_precond_db {
+         num_pre_sweeps      = 0
+         num_post_sweeps     = 3
+         prolongation_method = "LINEAR_REFINE"
+         restriction_method  = "CONSERVATIVE_COARSEN"
+         coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+         coarse_solver_rel_residual_tol = 1.0e-12
+         coarse_solver_abs_residual_tol = 1.0e-50
+         coarse_solver_max_iterations   = 1
+         coarse_solver_db {
+            solver_type          = "PFMG"
+            num_pre_relax_steps  = 0
+            num_post_relax_steps = 3
+            enable_logging       = FALSE
+         }
+      }
+   }
+
+   KrylovFreeBodyMobilitySolver {
+      ksp_type              = "preonly"
+      pc_type               = "shell"
+      max_iterations        = 1
+      abs_residual_tol      = 1e-50
+      rel_residual_tol      = 1e-8
+      initial_guess_nonzero = FALSE
+   }
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                            = MU
+   rho                           = RHO
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   num_cycles                    = NUM_CYCLES_INS
+   viscous_time_stepping_type    = "BACKWARD_EULER"
+   convective_time_stepping_type = "ADAMS_BASHFORTH"
+   convective_op_type            = "PPM"
+   convective_difference_form    = "ADVECTIVE"
+   dt_max                        = DT
+   creeping_flow                 = TRUE
+   traction_bc_type              = "PSEUDO_TRACTION"
+   enable_logging                = FALSE
+   init_convective_time_stepping_type = "FORWARD_EULER"
+}
+
+Main {
+   check_coupling_adjoint = TRUE
+
+// log file parameters
+   log_file_name  = "CIB2d.log"
+   log_all_nodes  = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),( N - 1, N - 1) ]
+   x_lo = 0, 0
+   x_up = 1, 1
+   periodic_dimension = 0, 0
+}
+
+VelocityInitialConditions {
+   function_0 = "0.0"
+   function_1 = "0.0"
+}
+
+// u velocity
+VelocityBcCoefs_0 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+// v velocity
+VelocityBcCoefs_1 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+PressureInitialConditions {
+   function = "0.0"
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = 4, 4
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+   efficiency_tolerance = 0.85e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}

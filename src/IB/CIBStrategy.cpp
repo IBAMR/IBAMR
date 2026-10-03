@@ -98,6 +98,12 @@ CIBStrategy::setInterpolatedVelocityVector(Vec /*V*/, const double /*data_time*/
     return;
 } // setInterpolatedVelocityVector
 
+IBTK::RobinPhysBdryPatchStrategy*
+CIBStrategy::getVelocityPhysBdryOp() const
+{
+    return nullptr;
+} // getVelocityPhysBdryOp
+
 unsigned int
 CIBStrategy::getNumberOfRigidStructures() const
 {
