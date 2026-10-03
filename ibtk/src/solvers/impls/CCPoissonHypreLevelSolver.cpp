@@ -783,6 +783,8 @@ CCPoissonHypreLevelSolver::setupHypreSolver()
             {
                 HYPRE_StructPFMGSetZeroGuess(d_solvers[k]);
             }
+            // Record residual norms so that the final one can be reported.
+            HYPRE_StructPFMGSetLogging(d_solvers[k], 1);
             HYPRE_StructPFMGSetup(d_solvers[k], d_matrices[k], d_rhs_vecs[k], d_sol_vecs[k]);
         }
         else if (d_solver_type == "SMG")
@@ -802,6 +804,8 @@ CCPoissonHypreLevelSolver::setupHypreSolver()
             {
                 HYPRE_StructSMGSetZeroGuess(d_solvers[k]);
             }
+            // Record residual norms so that the final one can be reported.
+            HYPRE_StructSMGSetLogging(d_solvers[k], 1);
             HYPRE_StructSMGSetup(d_solvers[k], d_matrices[k], d_rhs_vecs[k], d_sol_vecs[k]);
         }
         else if (d_solver_type == "PCG")
@@ -995,6 +999,7 @@ CCPoissonHypreLevelSolver::setupHypreSolver()
                                      << "  unknown solver type: " << d_solver_type << std::endl);
         }
     }
+    d_setup_max_iterations = d_max_iterations;
     return;
 } // setupHypreSolver
 
@@ -1002,6 +1007,17 @@ bool
 CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
     const bool level_zero = (d_level_num == 0);
+
+    // The PFMG and SMG solvers size their residual norm histories during
+    // setup, so set them up again if the maximum number of iterations has
+    // increased. They record norms only when they test for convergence.
+    const bool multigrid_solver = d_solver_type == "PFMG" || d_solver_type == "SMG";
+    if (multigrid_solver && d_max_iterations > d_setup_max_iterations)
+    {
+        destroyHypreSolver();
+        setupHypreSolver();
+    }
+    const bool norms_recorded = d_rel_residual_tol > 0.0 && d_max_iterations > 0;
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
@@ -1076,7 +1092,10 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             }
             HYPRE_StructPFMGSolve(d_solvers[k], d_matrices[k], d_rhs_vecs[k], d_sol_vecs[k]);
             HYPRE_StructPFMGGetNumIterations(d_solvers[k], &current_iterations);
-            HYPRE_StructPFMGGetFinalRelativeResidualNorm(d_solvers[k], &d_current_residual_norm);
+            if (norms_recorded)
+            {
+                HYPRE_StructPFMGGetFinalRelativeResidualNorm(d_solvers[k], &d_current_residual_norm);
+            }
         }
         else if (d_solver_type == "SMG")
         {
@@ -1092,7 +1111,10 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             }
             HYPRE_StructSMGSolve(d_solvers[k], d_matrices[k], d_rhs_vecs[k], d_sol_vecs[k]);
             HYPRE_StructSMGGetNumIterations(d_solvers[k], &current_iterations);
-            HYPRE_StructSMGGetFinalRelativeResidualNorm(d_solvers[k], &d_current_residual_norm);
+            if (norms_recorded)
+            {
+                HYPRE_StructSMGGetFinalRelativeResidualNorm(d_solvers[k], &d_current_residual_norm);
+            }
         }
         else if (d_solver_type == "PCG")
         {

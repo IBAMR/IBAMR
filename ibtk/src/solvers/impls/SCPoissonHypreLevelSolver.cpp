@@ -67,15 +67,6 @@ static Timer* t_solve_system;
 static Timer* t_solve_system_hypre;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-
-// hypre solver options.
-enum HypreSStructRelaxType
-{
-    RELAX_TYPE_JACOBI = 0,
-    RELAX_TYPE_WEIGHTED_JACOBI = 1,
-    RELAX_TYPE_RB_GAUSS_SEIDEL = 2,
-    RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3
-};
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -83,7 +74,6 @@ enum HypreSStructRelaxType
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_name,
                                                      Pointer<Database> input_db,
                                                      const std::string& /*default_options_prefix*/)
-    : d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI)
 {
     if (NDIM == 1 || NDIM > 3)
     {
@@ -110,16 +100,6 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_n
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
         if (input_db->keyExists("rel_change")) d_rel_change = input_db->getInteger("rel_change");
-
-        if (d_solver_type == "SysPFMG" || d_precond_type == "SysPFMG")
-        {
-            if (input_db->keyExists("num_pre_relax_steps"))
-                d_num_pre_relax_steps = input_db->getInteger("num_pre_relax_steps");
-            if (input_db->keyExists("num_post_relax_steps"))
-                d_num_post_relax_steps = input_db->getInteger("num_post_relax_steps");
-            if (input_db->keyExists("relax_type")) d_relax_type = input_db->getInteger("relax_type");
-            if (input_db->keyExists("skip_relax")) d_skip_relax = input_db->getInteger("skip_relax");
-        }
 
         if (d_solver_type == "Split" || d_precond_type == "Split")
         {
@@ -467,18 +447,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
     if (d_solver_type == "PCG" || d_solver_type == "GMRES" || d_solver_type == "FlexGMRES" ||
         d_solver_type == "LGMRES" || d_solver_type == "BiCGSTAB")
     {
-        if (d_precond_type == "SysPFMG")
-        {
-            HYPRE_SStructSysPFMGCreate(communicator, &d_precond);
-            HYPRE_SStructSysPFMGSetMaxIter(d_precond, 1);
-            HYPRE_SStructSysPFMGSetTol(d_precond, 0.0);
-            HYPRE_SStructSysPFMGSetZeroGuess(d_precond);
-            HYPRE_SStructSysPFMGSetRelaxType(d_precond, d_relax_type);
-            HYPRE_SStructSysPFMGSetNumPreRelax(d_precond, d_num_pre_relax_steps);
-            HYPRE_SStructSysPFMGSetNumPostRelax(d_precond, d_num_post_relax_steps);
-            HYPRE_SStructSysPFMGSetSkipRelax(d_precond, d_skip_relax);
-        }
-        else if (d_precond_type == "Split")
+        if (d_precond_type == "Split")
         {
             HYPRE_SStructSplitCreate(communicator, &d_precond);
             HYPRE_SStructSplitSetMaxIter(d_precond, 1);
@@ -489,27 +458,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
     }
 
     // Setup the solver.
-    if (d_solver_type == "SysPFMG")
-    {
-        HYPRE_SStructSysPFMGCreate(communicator, &d_solver);
-        HYPRE_SStructSysPFMGSetMaxIter(d_solver, d_max_iterations);
-        HYPRE_SStructSysPFMGSetTol(d_solver, d_rel_residual_tol);
-        HYPRE_SStructSysPFMGSetRelChange(d_solver, d_rel_change);
-        HYPRE_SStructSysPFMGSetRelaxType(d_solver, d_relax_type);
-        HYPRE_SStructSysPFMGSetNumPreRelax(d_solver, d_num_pre_relax_steps);
-        HYPRE_SStructSysPFMGSetNumPostRelax(d_solver, d_num_post_relax_steps);
-        HYPRE_SStructSysPFMGSetSkipRelax(d_solver, d_skip_relax);
-        if (d_initial_guess_nonzero)
-        {
-            HYPRE_SStructSysPFMGSetNonZeroGuess(d_solver);
-        }
-        else
-        {
-            HYPRE_SStructSysPFMGSetZeroGuess(d_solver);
-        }
-        HYPRE_SStructSysPFMGSetup(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-    }
-    else if (d_solver_type == "Split")
+    if (d_solver_type == "Split")
     {
         HYPRE_SStructSplitCreate(communicator, &d_solver);
         HYPRE_SStructSplitSetMaxIter(d_solver, d_max_iterations);
@@ -533,11 +482,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructPCGSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructPCGSetTwoNorm(d_solver, d_two_norm);
         HYPRE_SStructPCGSetRelChange(d_solver, d_rel_change);
-        if (d_precond_type == "SysPFMG")
-        {
-            HYPRE_SStructPCGSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
-        }
-        else if (d_precond_type == "Split")
+        if (d_precond_type == "Split")
         {
             HYPRE_SStructPCGSetPrecond(d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
         }
@@ -558,11 +503,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructGMRESSetMaxIter(d_solver, d_max_iterations);
         HYPRE_SStructGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
-        if (d_precond_type == "SysPFMG")
-        {
-            HYPRE_SStructGMRESSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
-        }
-        else if (d_precond_type == "Split")
+        if (d_precond_type == "Split")
         {
             HYPRE_SStructGMRESSetPrecond(d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
         }
@@ -583,11 +524,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructFlexGMRESSetMaxIter(d_solver, d_max_iterations);
         HYPRE_SStructFlexGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructFlexGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
-        if (d_precond_type == "SysPFMG")
-        {
-            HYPRE_SStructFlexGMRESSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
-        }
-        else if (d_precond_type == "Split")
+        if (d_precond_type == "Split")
         {
             HYPRE_SStructFlexGMRESSetPrecond(d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
         }
@@ -608,11 +545,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructLGMRESSetMaxIter(d_solver, d_max_iterations);
         HYPRE_SStructLGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructLGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
-        if (d_precond_type == "SysPFMG")
-        {
-            HYPRE_SStructLGMRESSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
-        }
-        else if (d_precond_type == "Split")
+        if (d_precond_type == "Split")
         {
             HYPRE_SStructLGMRESSetPrecond(d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
         }
@@ -633,11 +566,7 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructBiCGSTABSetMaxIter(d_solver, d_max_iterations);
         HYPRE_SStructBiCGSTABSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructBiCGSTABSetAbsoluteTol(d_solver, d_abs_residual_tol);
-        if (d_precond_type == "SysPFMG")
-        {
-            HYPRE_SStructBiCGSTABSetPrecond(d_solver, HYPRE_SStructSysPFMGSolve, HYPRE_SStructSysPFMGSetup, d_precond);
-        }
-        else if (d_precond_type == "Split")
+        if (d_precond_type == "Split")
         {
             HYPRE_SStructBiCGSTABSetPrecond(d_solver, HYPRE_SStructSplitSolve, HYPRE_SStructSplitSetup, d_precond);
         }
@@ -721,23 +650,7 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     HYPRE_Int current_iterations = d_current_iterations;
     d_current_residual_norm = 0.0;
 
-    if (d_solver_type == "SysPFMG")
-    {
-        HYPRE_SStructSysPFMGSetMaxIter(d_solver, d_max_iterations);
-        HYPRE_SStructSysPFMGSetTol(d_solver, d_rel_residual_tol);
-        if (d_initial_guess_nonzero)
-        {
-            HYPRE_SStructSysPFMGSetNonZeroGuess(d_solver);
-        }
-        else
-        {
-            HYPRE_SStructSysPFMGSetZeroGuess(d_solver);
-        }
-        HYPRE_SStructSysPFMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructSysPFMGGetNumIterations(d_solver, &current_iterations);
-        HYPRE_SStructSysPFMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
-    }
-    else if (d_solver_type == "Split")
+    if (d_solver_type == "Split")
     {
         HYPRE_SStructSplitSetMaxIter(d_solver, d_max_iterations);
         HYPRE_SStructSplitSetTol(d_solver, d_rel_residual_tol);
@@ -828,11 +741,7 @@ void
 SCPoissonHypreLevelSolver::destroyHypreSolver()
 {
     // Destroy the solver.
-    if (d_solver_type == "SysPFMG")
-    {
-        HYPRE_SStructSysPFMGDestroy(d_solver);
-    }
-    else if (d_solver_type == "Split")
+    if (d_solver_type == "Split")
     {
         HYPRE_SStructSplitDestroy(d_solver);
     }
@@ -861,11 +770,7 @@ SCPoissonHypreLevelSolver::destroyHypreSolver()
     if (d_solver_type == "PCG" || d_solver_type == "GMRES" || d_solver_type == "FlexGMRES" ||
         d_solver_type == "LGMRES" || d_solver_type == "BiCGSTAB")
     {
-        if (d_precond_type == "SysPFMG")
-        {
-            HYPRE_SStructSysPFMGDestroy(d_precond);
-        }
-        else if (d_precond_type == "Split")
+        if (d_precond_type == "Split")
         {
             HYPRE_SStructSplitDestroy(d_precond);
         }

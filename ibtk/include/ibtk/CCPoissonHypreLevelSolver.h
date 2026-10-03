@@ -91,9 +91,8 @@ namespace IBTK
  * values): \verbatim
 
  enable_logging = FALSE         // see setLoggingEnabled()
- solver_type = "PFMG"           // choices are: "PFMG", "SMG", "PCG", "GMRES", "FlexGMRES" ,
- "LGMRES", "BiCGSTAB"
- precond_type = "none"          // choices are: "PFMG", "SMG", "Jacobi", "none"
+ solver_type = "PFMG"           // choices are: "PFMG", "SMG", "PCG", "GMRES", "FlexGMRES", "LGMRES", "BiCGSTAB"
+ precond_type = "none"          // choices are: "none", "PFMG", "SMG", "Jacobi", "diagonal_scaling"
  max_iterations = 25            // see setMaxIterations()
  abs_residual_tol = 1.e-50      // see setAbsoluteTolerance() (only used by hypre Krylov
  solvers)
@@ -311,6 +310,7 @@ private:
     std::vector<HYPRE_StructMatrix> d_matrices;
     std::vector<HYPRE_StructVector> d_rhs_vecs, d_sol_vecs;
     std::vector<HYPRE_StructSolver> d_solvers, d_preconds;
+    int d_setup_max_iterations = 0; // the maximum number of iterations when the hypre solvers were set up
     std::vector<SAMRAI::hier::Index<NDIM>> d_stencil_offsets;
 
     std::string d_solver_type = "PFMG", d_precond_type = "none";
