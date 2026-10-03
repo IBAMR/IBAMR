@@ -1,5 +1,5 @@
 Program abort called with error message
 
     shell_solver::initializeSolverState():
-  the subdomains do not cover the DOFs as required: 1 DOF is in no subdomain; the lowest DOF that fails is 0.
+  the owned DOFs do not partition the DOFs of this rank: 1 DOF is not owned exactly once; the lowest is 0.
 

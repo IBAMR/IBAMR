@@ -13,6 +13,7 @@
 
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScLevelSolverSubdomainSolver.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <limits>
 
@@ -164,8 +165,9 @@ PETScLevelSolverPetscSubdomainSolver::solve(const std::size_t first, const std::
 } // namespace
 
 PETScLevelSolverSubdomainSolver
-make_petsc_subdomain_solver()
+make_petsc_subdomain_solver(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
 {
+    check_database_keys("IBTK::make_petsc_subdomain_solver()", input_db, { "type" });
     return PETScLevelSolverSubdomainSolver(std::in_place_type<PETScLevelSolverPetscSubdomainSolver>);
 }
 } // namespace IBTK

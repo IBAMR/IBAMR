@@ -1,13 +1,21 @@
+// The PETSc options replace the shell preconditioner of the input with ASM, so the valid subdomain_relaxation
+// settings and the subdomain solver are not used.
 petsc_settings_shell {
+   pc_type = "asm"
    sub_pc_type = "svd"
+}
+
+level_solver {
+   subdomain_relaxation {
+      composition = "ADDITIVE"
+      output = "OWNED"
+   }
 }
 
 test {
  f_data_type = "CELL"
  n_components = 1
  ghost_width = 1
- shell_pc_type = "additive"
- pc_type = "asm"
  subdomain_solver_unused = TRUE
  application_subdomain_solver = TRUE
 }

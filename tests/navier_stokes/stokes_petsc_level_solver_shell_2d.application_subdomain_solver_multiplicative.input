@@ -2,11 +2,18 @@ petsc_settings_shell {
    sub_pc_type = "svd"
 }
 
+level_solver {
+   subdomain_relaxation {
+      composition = "MULTIPLICATIVE"
+      grouping = "RANK"
+      output = "FULL"
+   }
+}
+
 test {
  f_data_type = "CELL"
  n_components = 1
  ghost_width = 1
- shell_pc_type = "multiplicative"
  application_subdomain_solver = TRUE
  lifetime = TRUE
 }

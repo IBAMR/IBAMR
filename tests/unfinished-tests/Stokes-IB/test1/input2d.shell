@@ -113,7 +113,11 @@ IBHierarchyIntegrator {
 	    initial_guess_nonzero = TRUE
 	    ksp_type              = "richardson"
 	    pc_type               = "fieldsplit"
-            shell_pc_type         = "multiplicative"
+            subdomain_relaxation {
+               composition = "MULTIPLICATIVE"
+               grouping    = "RANK"
+               output      = "FULL"
+            }
 
             subdomain_box_size      = N  , N
             subdomain_overlap_size  = 0, 0

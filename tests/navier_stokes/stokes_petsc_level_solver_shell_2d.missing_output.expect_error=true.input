@@ -1,11 +1,13 @@
+// The PETSc options select the shell preconditioner, which needs the output setting.
 petsc_settings_shell {
+   pc_type = "shell"
    sub_pc_type = "svd"
 }
 
 level_solver {
+   pc_type = "asm"
    subdomain_relaxation {
       composition = "ADDITIVE"
-      output = "OWNED"
    }
 }
 
@@ -13,8 +15,6 @@ test {
  f_data_type = "CELL"
  n_components = 1
  ghost_width = 1
- application_subdomain_solver = TRUE
- lifetime = TRUE
 }
 Main {
    log_file_name = "output"
