@@ -433,7 +433,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const int patch_data_index,
     : RobinPhysBdryPatchStrategy(), d_type(std::move(type))
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
+    TBOX_ASSERT(!bc_coefs.empty() && bc_coefs.size() % NDIM == 0);
     TBOX_ASSERT(d_type == "LINEAR" || d_type == "QUADRATIC");
 #endif
     setPatchDataIndex(patch_data_index);
@@ -449,7 +449,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const std::set<int>& patch_data
     : RobinPhysBdryPatchStrategy(), d_type(std::move(type))
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
+    TBOX_ASSERT(!bc_coefs.empty() && bc_coefs.size() % NDIM == 0);
     TBOX_ASSERT(d_type == "LINEAR" || d_type == "QUADRATIC");
 #endif
     setPatchDataIndices(patch_data_indices);
@@ -465,7 +465,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const ComponentSelector& patch_
     : RobinPhysBdryPatchStrategy(), d_type(std::move(type))
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
+    TBOX_ASSERT(!bc_coefs.empty() && bc_coefs.size() % NDIM == 0);
     TBOX_ASSERT(d_type == "LINEAR" || d_type == "QUADRATIC");
 #endif
     setPatchDataIndices(patch_data_indices);
@@ -927,16 +927,18 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                 }
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                patch.setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                        touches_regular_bdry,
-                                                                        touches_periodic_bdry,
-                                                                        dx,
-                                                                        shifted_patch_x_lower.data(),
-                                                                        shifted_patch_x_upper.data()));
+                Pointer<CartesianPatchGeometry<NDIM>> shifted_pgeom =
+                    new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                     touches_regular_bdry,
+                                                     touches_periodic_bdry,
+                                                     dx,
+                                                     shifted_patch_x_lower.data(),
+                                                     shifted_patch_x_upper.data());
 
                 // Set the boundary condition coefficients.
                 for (int d = 0; d < patch_data_depth; ++d)
                 {
+                    patch.setPatchGeometry(shifted_pgeom);
                     RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[NDIM * d + axis];
                     auto const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
                     if (extended_bc_coef)

@@ -114,6 +114,7 @@ main(int argc, char* argv[])
 
         std::string var_centering = input_db->getString("VAR_CENTERING");
         std::string extrap_type = input_db->getString("EXTRAP_TYPE");
+        const int depth = input_db->getIntegerWithDefault("DEPTH", 1);
         TBOX_ASSERT(var_centering == "CELL" || var_centering == "SIDE");
         TBOX_ASSERT(extrap_type == "LINEAR" || extrap_type == "QUADRATIC");
 
@@ -127,7 +128,7 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> context = var_db->getContext("CONTEXT");
         Pointer<CellVariable<NDIM, double>> c_var = new CellVariable<NDIM, double>("c_v");
-        Pointer<SideVariable<NDIM, double>> s_var = new SideVariable<NDIM, double>("s_v");
+        Pointer<SideVariable<NDIM, double>> s_var = new SideVariable<NDIM, double>("s_v", depth);
         const int gcw = 1;
         const int c_idx = var_db->registerVariableAndContext(c_var, context, gcw);
         const int s_idx = var_db->registerVariableAndContext(s_var, context, gcw);
@@ -175,7 +176,10 @@ main(int argc, char* argv[])
                                 X[d] = x_lower[d] +
                                        dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + (axis == d ? 0.0 : 0.5));
                             }
-                            (*data)(i) = fcn_map[extrap_type](X);
+                            for (int comp = 0; comp < depth; ++comp)
+                            {
+                                (*data)(i, comp) = static_cast<double>(comp + 1) * fcn_map[extrap_type](X);
+                            }
                         }
                     }
                 }
@@ -192,7 +196,9 @@ main(int argc, char* argv[])
                 }
                 else if (var_centering == "SIDE")
                 {
-                    for (int d = 0; d < NDIM; ++d)
+                    // Each depth is a separate MAC vector field with one coefficient object per
+                    // staggered component, ordered as [NDIM * depth_index + axis].
+                    for (int d = 0; d < NDIM * depth; ++d)
                     {
                         std::string bc_name = "bc_coefs_" + std::to_string(d);
                         bc_coefs.push_back(new muParserRobinBcCoefs(
@@ -285,14 +291,18 @@ main(int argc, char* argv[])
                                     X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) +
                                                                  (axis == d ? 0.0 : 0.5));
                                 }
-                                double val = fcn_map[extrap_type](X);
-
-                                if (!IBTK::rel_equal_eps(val, (*data)(i)))
+                                for (int comp = 0; comp < depth; ++comp)
                                 {
-                                    warning = true;
-                                    pout << "warning: value at location " << i << " is not correct\n";
-                                    pout << "  expected value = " << val << "   computed value = " << (*data)(i)
-                                         << "\n";
+                                    const double val = static_cast<double>(comp + 1) * fcn_map[extrap_type](X);
+
+                                    if (!IBTK::rel_equal_eps(val, (*data)(i, comp)))
+                                    {
+                                        warning = true;
+                                        pout << "warning: value at location " << i << " depth " << comp
+                                             << " is not correct\n";
+                                        pout << "  expected value = " << val
+                                             << "   computed value = " << (*data)(i, comp) << "\n";
+                                    }
                                 }
                             }
                         }
