@@ -63,6 +63,9 @@ class Parameters:
     test_directory: relative path to the directory containing tests. Defaults
                     to "/tests/".
 
+    malloc_perturb: Whether or not to perturb malloc's input to a bit pattern
+                    corresponding to large values. Defaults to False.
+
     mpiexec: program used to launch MPI applications. Defaults to "mpiexec".
 
     numdiff: program used for comparing output files. Defaults to "numdiff".
@@ -88,6 +91,7 @@ class Parameters:
     """
     def __init__(self, input_arguments):
         self.keep_work_directories = input_arguments.keep_work_directories
+        self.malloc_perturb = input_arguments.malloc_perturb
         self.mpiexec = input_arguments.mpiexec
         self.numdiff = input_arguments.numdiff
         self.n_processors = input_arguments.n_processors
@@ -465,6 +469,16 @@ def main():
                         action='store_true',
                         help=("Whether or not to keep temporary work " +
                               "directories. This is useful for debugging."))
+    parser.add_argument('--malloc-perturb',
+                        default=bool(
+                            string_to_boolean(conf['malloc_perturb'])),
+                        dest='malloc_perturb',
+                        action='store_true',
+                        help=("Whether or not to use glibc's MALLOC_PERTURB_ " +
+                              "to initialize malloc's output with a value " +
+                              "corresponding to very large floating point " +
+                              "values. This option does nothing if the " +
+                              "current system does not use glibc."))
     parser.add_argument('--mpi-executable', type=str,
                         default=conf['mpiexec'], dest='mpiexec',
                         help="Path to mpiexec.")
@@ -509,6 +523,11 @@ def main():
     parameters = Parameters(input_arguments)
     include_pattern = re.compile(parameters.include_regex)
     exclude_pattern = re.compile(parameters.exclude_regex)
+
+    # Value corresponding to large floating-point numbers: see mallinfo (3) for
+    # more information.
+    if parameters.malloc_perturb:
+        os.environ['MALLOC_PERTURB_'] = "1"
 
     # 1. set up input file list:
     unstarted_tests = []
