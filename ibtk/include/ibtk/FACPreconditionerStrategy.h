@@ -136,8 +136,8 @@ public:
     virtual double getDt() const;
 
     /*!
-     * \brief Zero-out the provided vector on the specified level of the patch
-     * hierarchy.
+     * \brief Zero all components of the provided vector on the specified
+     * level, including patch interiors and ghost cells.
      */
     virtual void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) = 0;
 
@@ -178,9 +178,11 @@ public:
     /*!
      * \brief Smooth the error by the specified number of sweeps on the
      * specified level of the patch hierarchy.
+     *
+     * Ghost values of \a residual may be overwritten.
      */
     virtual void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                              int level_num,
                              int num_sweeps,
                              bool performing_pre_sweeps,
@@ -190,18 +192,24 @@ public:
      * \brief Solve the system of equations on the coarsest level of the patch
      * hierarchy.
      *
+     * Ghost values of \a residual may be overwritten.
+     *
      * \return true if the solver converged to specified tolerance, false otherwise
      */
     virtual bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                                    const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                                    SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                                     int coarsest_level_num) = 0;
 
     /*!
      * \brief Compute the composite-grid residual on the specified range of
      * levels of the patch hierarchy.
+     *
+     * The vectors must not alias. \a rhs is not modified. Ghost values of
+     * \a solution, and its values on coarse cells covered by finer levels,
+     * may be overwritten. Ghost values of \a residual are unspecified.
      */
     virtual void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                                  int coarsest_level_num,
                                  int finest_level_num) = 0;

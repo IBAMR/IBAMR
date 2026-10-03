@@ -359,7 +359,7 @@ SCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coar
 
 void
 SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                 const SAMRAIVectorReal<NDIM, double>& residual,
+                                                 SAMRAIVectorReal<NDIM, double>& residual,
                                                  int level_num,
                                                  int num_sweeps,
                                                  bool /*performing_pre_sweeps*/,
@@ -618,7 +618,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
 
 bool
 SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                        const SAMRAIVectorReal<NDIM, double>& residual,
+                                                        SAMRAIVectorReal<NDIM, double>& residual,
                                                         int coarsest_ln)
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
@@ -651,7 +651,7 @@ SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, d
 
 void
 SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                     const SAMRAIVectorReal<NDIM, double>& solution,
+                                                     SAMRAIVectorReal<NDIM, double>& solution,
                                                      const SAMRAIVectorReal<NDIM, double>& rhs,
                                                      int coarsest_level_num,
                                                      int finest_level_num)

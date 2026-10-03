@@ -287,7 +287,7 @@ public:
      * \param coarsest_ln coarsest level number
      */
     bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                            SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                             int coarsest_ln) override;
 
     /*!
@@ -295,7 +295,7 @@ public:
      * levels of the patch hierarchy.
      */
     void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                         SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                          int coarsest_level_num,
                          int finest_level_num) override;
