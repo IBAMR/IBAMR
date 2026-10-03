@@ -41,12 +41,14 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartSideDoubleRT0Coarsen.h>
 #include <ibtk/CartSideDoubleRT0Refine.h>
+#include <ibtk/IBKernelEvaluatorTensorProduct.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/ib_kernel_evaluators.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -694,12 +696,14 @@ main(int argc, char* argv[])
 
         // Get the matrix representation of J at the finest level
         Mat J = nullptr;
-        ib_method_ops->constructInterpOp(J,
-                                         PETScMatUtilities::ib_4_interp_fcn,
-                                         PETScMatUtilities::ib_4_interp_stencil,
-                                         num_dofs_per_proc[finest_ln],
-                                         u_dof_index_idx,
-                                         new_time);
+        Vec X_LE_vec = ib_method_ops->getFinestLevelLECouplingPositions(new_time);
+        PETScMatUtilities::constructPatchLevelSCInterpOp(
+            J,
+            IBTK::IBKernelEvaluatorTensorProduct{ IBTK::IBKernelEvaluators::IB4{} },
+            X_LE_vec,
+            num_dofs_per_proc[finest_ln],
+            u_dof_index_idx,
+            patch_hierarchy->getPatchLevel(finest_ln));
 
         // Configure the fac pc/op
         fac_pc->setPhysicalBcCoefs(navier_stokes_integrator->getIntermediateVelocityBoundaryConditions(),

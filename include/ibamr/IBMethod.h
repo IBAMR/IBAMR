@@ -310,14 +310,14 @@ public:
         double data_time) override;
 
     /*!
-     * Construct the IB interpolation operator.
+     * Return the Vec of Lagrangian-Eulerian coupling positions on the finest
+     * hierarchy level at the given time. data_time must equal the current,
+     * half, or new time. The vector belongs to this object; see
+     * IBImplicitStrategy::getFinestLevelLECouplingPositions(). With fixed
+     * coupling operators enabled these are the positions maintained for those
+     * operators; otherwise they are the ordinary positions.
      */
-    void constructInterpOp(Mat& J,
-                           void (*spread_fnc)(const double, double*),
-                           int stencil_width,
-                           const std::vector<int>& num_dofs_per_proc,
-                           int dof_index_idx,
-                           double data_time) override;
+    Vec getFinestLevelLECouplingPositions(double data_time) override;
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
