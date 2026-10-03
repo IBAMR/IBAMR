@@ -1,0 +1,3 @@
+Improved: The cell-centered IBTK::HierarchyMathOps::laplace() evaluates its damping term and an additive source in one pass.
+<br>
+(Boyce Griffith, 2026/10/03)
