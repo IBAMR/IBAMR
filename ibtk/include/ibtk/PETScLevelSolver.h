@@ -318,6 +318,10 @@ protected:
     std::vector<KSP> d_sub_ksp;
     Mat *d_sub_mat, *d_sub_bc_mat;
     std::vector<Vec> d_sub_x, d_sub_y;
+
+    //! Whether initializeSolverState() created d_overlap_is and d_nonoverlap_is, so that deallocateSolverState()
+    //! destroys them.
+    bool d_generated_subdomain_is = false;
     //\}
 
     /*!

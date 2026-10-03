@@ -64,7 +64,6 @@ main(int argc, char* argv[])
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
     const auto hierarchy_data = setup_hierarchy<NDIM>(app);
     Pointer<PatchHierarchy<NDIM>> hierarchy = std::get<0>(hierarchy_data);
-    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
     VariableDatabase<NDIM>* variables = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = variables->getContext("boundary_rhs_test");
     Pointer<SideVariable<NDIM, double>> u = new SideVariable<NDIM, double>("u");
@@ -79,42 +78,6 @@ main(int argc, char* argv[])
     const int hi = variables->registerVariableAndContext(h, context, IntVector<NDIM>(1));
     const int udi = variables->registerVariableAndContext(u_dof, context, IntVector<NDIM>(1));
     const int pdi = variables->registerVariableAndContext(p_dof, context, IntVector<NDIM>(1));
-    for (int index : { ui, pi, fi, hi, udi, pdi })
-    {
-        level->allocatePatchData(index);
-    }
-    SAMRAIVectorReal<NDIM, double> x("x", hierarchy, 0, 0), b("b", hierarchy, 0, 0);
-    x.addComponent(u, ui);
-    x.addComponent(p, pi);
-    b.addComponent(f, fi);
-    b.addComponent(h, hi);
-    x.setToScalar(0.0);
-    b.setToScalar(0.0);
-
-    // The velocity component axis has the constant value axis + 1, which solves
-    // -Laplace(u) + u + grad(p) = u with p = 0, so the force equals the velocity.
-    for (PatchLevel<NDIM>::Iterator patch_number(level); patch_number; patch_number++)
-    {
-        Pointer<Patch<NDIM>> patch = level->getPatch(patch_number());
-        Pointer<SideData<NDIM, double>> force = patch->getPatchData(fi);
-        for (int axis = 0; axis < NDIM; ++axis)
-        {
-            const Box<NDIM> box = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
-            for (Box<NDIM>::Iterator it(box); it; it++)
-            {
-                (*force)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower)) = axis + 1.0;
-            }
-        }
-    }
-
-    std::vector<int> dofs;
-    StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(dofs, udi, pdi, level);
-    Vec expected = nullptr, actual = nullptr;
-    int ierr = VecCreateMPI(PETSC_COMM_WORLD, dofs[IBTK_MPI::getRank()], PETSC_DETERMINE, &expected);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(expected, &actual);
-    IBTK_CHKERRQ(ierr);
-    StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(expected, fi, udi, hi, pdi, level);
 
     // The input may replace the default direct solve.
     Pointer<Database> db = new MemoryDatabase("solver");
@@ -149,26 +112,68 @@ main(int argc, char* argv[])
     solver.setPhysicalBoundaryHelper(helper);
     solver.setHomogeneousBc(false);
 
-    // Each solve initializes and deallocates the solver state again.
+    // The solver is used on each level of the hierarchy in turn, and each solve initializes and deallocates the
+    // solver state again.
     bool passed = true;
     const int n_solves = app->getInputDatabase()->getIntegerWithDefault("n_solves", 1);
-    for (int solve = 0; solve < n_solves; ++solve)
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (int index : { ui, pi, fi, hi, udi, pdi })
+        {
+            level->allocatePatchData(index);
+        }
+        SAMRAIVectorReal<NDIM, double> x("x", hierarchy, ln, ln), b("b", hierarchy, ln, ln);
+        x.addComponent(u, ui);
+        x.addComponent(p, pi);
+        b.addComponent(f, fi);
+        b.addComponent(h, hi);
         x.setToScalar(0.0);
-        solver.initializeSolverState(x, b);
-        const bool solved = solver.solveSystem(x, b);
-        solver.deallocateSolverState();
-        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
-        const double solution_norm = norm_inf(actual);
-        ierr = VecAXPY(actual, -1.0, expected);
+        b.setToScalar(0.0);
+
+        // The velocity component axis has the constant value axis + 1, which solves
+        // -Laplace(u) + u + grad(p) = u with p = 0, so the force equals the velocity.
+        for (PatchLevel<NDIM>::Iterator patch_number(level); patch_number; patch_number++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(patch_number());
+            Pointer<SideData<NDIM, double>> force = patch->getPatchData(fi);
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                const Box<NDIM> box = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
+                for (Box<NDIM>::Iterator it(box); it; it++)
+                {
+                    (*force)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower)) = axis + 1.0;
+                }
+            }
+        }
+
+        std::vector<int> dofs;
+        StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(dofs, udi, pdi, level);
+        Vec expected = nullptr, actual = nullptr;
+        int ierr = VecCreateMPI(PETSC_COMM_WORLD, dofs[IBTK_MPI::getRank()], PETSC_DETERMINE, &expected);
         IBTK_CHKERRQ(ierr);
-        const double error = norm_inf(actual);
-        plog << std::setprecision(12) << "solution_norm = " << solution_norm << "\nerror = " << error << '\n';
-        passed = passed && solved && std::isfinite(error) && error < 1.0e-9 && solution_norm > 0.0;
+        ierr = VecDuplicate(expected, &actual);
+        IBTK_CHKERRQ(ierr);
+        StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(expected, fi, udi, hi, pdi, level);
+
+        for (int solve = 0; solve < n_solves; ++solve)
+        {
+            x.setToScalar(0.0);
+            solver.initializeSolverState(x, b);
+            const bool solved = solver.solveSystem(x, b);
+            solver.deallocateSolverState();
+            StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
+            const double solution_norm = norm_inf(actual);
+            ierr = VecAXPY(actual, -1.0, expected);
+            IBTK_CHKERRQ(ierr);
+            const double error = norm_inf(actual);
+            plog << std::setprecision(12) << "solution_norm = " << solution_norm << "\nerror = " << error << '\n';
+            passed = passed && solved && std::isfinite(error) && error < 1.0e-9 && solution_norm > 0.0;
+        }
+        ierr = VecDestroy(&expected);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&actual);
+        IBTK_CHKERRQ(ierr);
     }
-    ierr = VecDestroy(&expected);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&actual);
-    IBTK_CHKERRQ(ierr);
     return passed ? 0 : 1;
 }
