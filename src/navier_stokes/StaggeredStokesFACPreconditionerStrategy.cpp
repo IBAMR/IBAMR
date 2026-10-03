@@ -387,6 +387,23 @@ StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorRea
     const int P_dst_idx = dst.getComponentDescriptorIndex(1);
     const std::pair<int, int> dst_idxs = std::make_pair(U_dst_idx, P_dst_idx);
 
+    // Fill the fine ghosts on a copy: the fine level has no DOFs beyond its coarse-fine boundary, so those ghosts are
+    // zero, and filling physical-boundary ghosts in place would overwrite the values of src on boundary sides with
+    // prescribed normal velocity.
+    std::pair<int, int> restriction_src_idxs = src_idxs;
+    if (d_U_restriction_coarsen_operator->getStencilWidth().max() > 0 ||
+        d_P_restriction_coarsen_operator->getStencilWidth().max() > 0)
+    {
+        HierarchySideDataOpsReal<NDIM, double> fine_sc_data_ops(d_hierarchy, dst_ln + 1, dst_ln + 1);
+        fine_sc_data_ops.setToScalar(d_side_scratch_idx, 0.0, /*interior_only*/ false);
+        fine_sc_data_ops.copyData(d_side_scratch_idx, U_src_idx, /*interior_only*/ true);
+        HierarchyCellDataOpsReal<NDIM, double> fine_cc_data_ops(d_hierarchy, dst_ln + 1, dst_ln + 1);
+        fine_cc_data_ops.setToScalar(d_cell_scratch_idx, 0.0, /*interior_only*/ false);
+        fine_cc_data_ops.copyData(d_cell_scratch_idx, P_src_idx, /*interior_only*/ true);
+        restriction_src_idxs = std::make_pair(d_side_scratch_idx, d_cell_scratch_idx);
+        xeqScheduleGhostFillNoCoarse(restriction_src_idxs, dst_ln + 1);
+    }
+
     if (U_src_idx != U_dst_idx)
     {
         HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, dst_ln, dst_ln);
@@ -399,7 +416,7 @@ StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorRea
         static const bool interior_only = false;
         level_cc_data_ops.copyData(P_dst_idx, P_src_idx, interior_only);
     }
-    xeqScheduleRestriction(dst_idxs, src_idxs, dst_ln);
+    xeqScheduleRestriction(dst_idxs, restriction_src_idxs, dst_ln);
 
     IBAMR_TIMER_STOP(t_restrict_residual);
     return;
