@@ -127,8 +127,8 @@ public:
      * Ghost values of \a x are unspecified on return. Ghost values of \a b may
      * be overwritten.
      *
-     * \note With V_CYCLE and no presmoothing, interior values of \a b on coarse
-     * cells covered by finer levels are overwritten.
+     * \note With V_CYCLE or W_CYCLE and no presmoothing, interior values of \a b
+     * on coarse cells covered by finer levels are overwritten.
      *
      * \param x solution vector
      * \param b right-hand-side vector
@@ -241,7 +241,8 @@ public:
     /*!
      * \brief Set the multigrid algorithm cycle type.
      *
-     * V_CYCLE visits each coarser level once.
+     * V_CYCLE visits each coarser level once. W_CYCLE visits each coarser
+     * level twice per visit to the level above.
      */
     void setMGCycleType(MGCycleType cycle_type);
 
@@ -281,10 +282,6 @@ public:
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> getFACPreconditionerStrategy() const;
 
 protected:
-    void FACVCycleNoPreSmoothing(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                                 int level_num);
-
     void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
@@ -338,26 +335,47 @@ private:
     FACPreconditioner& operator=(const FACPreconditioner& that) = delete;
 
     /*!
-     * \brief Apply one cycle on the levels from the coarsest level of the solver
-     * through \a level_num.
+     * \brief Apply one cycle of type \a cycle_type to a zero \a u on the levels
+     * from the coarsest level of the solver through \a level_num: u = B f.
      *
      * On entry \a u must be zero, including ghost values, on those levels.
-     * Interior values of \a f are not modified; its ghost values may be
+     * Ghost values of \a f may be overwritten. Without presmoothing, interior
+     * values of \a f on coarse cells covered by finer levels are also
      * overwritten.
      */
     void zeroStartCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                         SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                        int level_num);
+                        int level_num,
+                        MGCycleType cycle_type);
+
+    /*!
+     * \brief Apply one cycle of type \a cycle_type to a nonzero \a u on the
+     * levels from the coarsest level of the solver through \a level_num:
+     * u += B (f - A u), where B is zeroStartCycle().
+     *
+     * \a f is not modified. Ghost values of \a u, and its values on coarse cells
+     * covered by finer levels, may be overwritten.
+     */
+    void improveCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
+                      const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                      int level_num,
+                      MGCycleType cycle_type);
 
     /*! \brief Allocate any missing scratch data required by the current cycle options. */
-    void allocateCycleScratchData(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+    void allocateCycleScratchData(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
 
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     // Residual vector for each level ln, spanning the levels from the coarsest
     // level through ln; its restriction is the right-hand side of the cycle on
-    // the next coarser level.
+    // the next coarser level. Used only with presmoothing.
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_residual_vectors;
+
+    // Right-hand side and correction, per level, for the visits to that level
+    // that improve an existing correction.
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_rhs_vectors;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_correction_vectors;
 };
 } // namespace IBTK
 
