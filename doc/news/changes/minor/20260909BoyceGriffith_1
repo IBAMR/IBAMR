@@ -1,0 +1,3 @@
+Fixed: The 3D linear side prolongation matrix folds a corner weight outside the physical domain into the tangential neighbor inside the domain.
+<br>
+(Boyce Griffith, 2026/09/09)
