@@ -123,7 +123,7 @@ StaggeredStokesLevelRelaxationFACOperator::setSmootherType(const std::string& le
 
 void
 StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                       const SAMRAIVectorReal<NDIM, double>& residual,
+                                                       SAMRAIVectorReal<NDIM, double>& residual,
                                                        int level_num,
                                                        int num_sweeps,
                                                        bool /*performing_pre_sweeps*/,
