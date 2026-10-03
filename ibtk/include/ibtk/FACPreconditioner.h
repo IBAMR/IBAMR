@@ -242,7 +242,8 @@ public:
      * \brief Set the multigrid algorithm cycle type.
      *
      * V_CYCLE visits each coarser level once. W_CYCLE visits each coarser
-     * level twice per visit to the level above.
+     * level twice per visit to the level above. F_CYCLE applies an F-cycle and
+     * then a V-cycle to the coarser levels.
      */
     void setMGCycleType(MGCycleType cycle_type);
 
@@ -287,11 +288,6 @@ protected:
                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
                  int level_num,
                  int mu);
-
-    void FCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                int level_num);
 
     void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
