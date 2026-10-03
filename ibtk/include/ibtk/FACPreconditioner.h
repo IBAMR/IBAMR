@@ -127,8 +127,8 @@ public:
      * Ghost values of \a x are unspecified on return. Ghost values of \a b may
      * be overwritten.
      *
-     * \note With V_CYCLE, W_CYCLE, or F_CYCLE and no presmoothing, interior
-     * values of \a b on coarse cells covered by finer levels are overwritten.
+     * \note Without presmoothing, interior values of \a b on coarse cells
+     * covered by finer levels are overwritten.
      *
      * \param x solution vector
      * \param b right-hand-side vector
@@ -283,18 +283,6 @@ public:
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> getFACPreconditionerStrategy() const;
 
 protected:
-    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                 int level_num,
-                 int mu);
-
-    void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                  int level_num,
-                  int mu);
-
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = 0;
