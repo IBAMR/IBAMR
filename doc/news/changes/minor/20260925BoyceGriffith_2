@@ -1,0 +1,3 @@
+Fixed: IBTK::FACPreconditioner W-cycles improve the correction on each coarser level with a second visit; the protected member FACVCycleNoPreSmoothing() is removed.
+<br>
+(Boyce Griffith, 2026/09/25)

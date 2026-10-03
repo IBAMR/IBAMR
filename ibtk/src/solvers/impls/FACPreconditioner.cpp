@@ -146,22 +146,15 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
 #endif
 
     // Allocate the scratch data that the current cycle options require.
-    allocateCycleScratchData(b);
+    allocateCycleScratchData(x, b);
 
     // Set the initial guess to equal zero.
     x.setToScalar(0.0, /*interior_only*/ false);
 
     // Apply a single FAC cycle.
-    if (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0)
+    if (d_cycle_type == V_CYCLE || d_cycle_type == W_CYCLE)
     {
-        // V-cycle MG without presmoothing keeps the residual equal to the
-        // initial right-hand-side vector f, so we can simply use that vector
-        // for the residual in the FAC algorithm.
-        FACVCycleNoPreSmoothing(x, b, d_finest_ln);
-    }
-    else if (d_cycle_type == V_CYCLE)
-    {
-        zeroStartCycle(x, b, d_finest_ln);
+        zeroStartCycle(x, b, d_finest_ln, d_cycle_type);
     }
     else
     {
@@ -177,9 +170,6 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
             break;
         case FMG_CYCLE:
             FMGCycle(x, f, r, d_finest_ln, 1);
-            break;
-        case W_CYCLE:
-            muCycle(x, f, r, d_finest_ln, 2);
             break;
         default:
             TBOX_ERROR(d_object_name << "::solveSystem():\n"
@@ -223,6 +213,8 @@ FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& s
     // Allocate scratch data.
     d_fac_strategy->allocateScratchData();
     d_residual_vectors.resize(d_finest_ln + 1);
+    d_rhs_vectors.resize(d_finest_ln + 1);
+    d_correction_vectors.resize(d_finest_ln + 1);
 
     // Indicate the operator is initialized.
     d_is_initialized = true;
@@ -235,14 +227,17 @@ FACPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Free the patch data and their descriptor indices.
-    for (auto& vector : d_residual_vectors)
+    for (auto* vectors : { &d_residual_vectors, &d_rhs_vectors, &d_correction_vectors })
     {
-        if (vector)
+        for (auto& vector : *vectors)
         {
-            free_vector_components(*vector);
+            if (vector)
+            {
+                free_vector_components(*vector);
+            }
         }
+        vectors->clear();
     }
-    d_residual_vectors.clear();
 
     // Deallocate scratch data.
     d_fac_strategy->deallocateScratchData();
@@ -323,38 +318,6 @@ FACPreconditioner::getFACPreconditionerStrategy() const
 } // getFACPreconditionerStrategy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
-
-void
-FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
-                                           SAMRAIVectorReal<NDIM, double>& f,
-                                           int level_num)
-{
-    if (level_num == d_coarsest_ln)
-    {
-        // Solve Au = f on the coarsest level.
-        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
-    }
-    else
-    {
-        // Restrict the residual to the next coarser level.
-        d_fac_strategy->restrictResidual(f, f, level_num - 1);
-
-        // Recursively call the FAC algorithm.
-        FACVCycleNoPreSmoothing(u, f, level_num - 1);
-
-        // Prolong the error from the next coarser level.  Because we did not
-        // perform any presmoothing, we do not need to correct the solution on
-        // the current level.
-        d_fac_strategy->prolongError(u, u, level_num);
-
-        // Smooth error on the current level.
-        if (d_num_post_sweeps > 0)
-        {
-            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
-        }
-    }
-    return;
-} // FACVCycleNoPreSmoothing
 
 void
 FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
@@ -442,7 +405,8 @@ FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u,
 void
 FACPreconditioner::zeroStartCycle(SAMRAIVectorReal<NDIM, double>& u,
                                   SAMRAIVectorReal<NDIM, double>& f,
-                                  const int level_num)
+                                  const int level_num,
+                                  const MGCycleType cycle_type)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -450,26 +414,49 @@ FACPreconditioner::zeroStartCycle(SAMRAIVectorReal<NDIM, double>& u,
     }
     else
     {
-        Pointer<SAMRAIVectorReal<NDIM, double>> residual = d_residual_vectors[level_num];
-        d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
-
-        // u is nonzero only on level_num, but the composite-grid residual differs
-        // from f on the coarser levels as well.
-        d_fac_strategy->computeResidual(*residual, u, f, d_coarsest_ln, level_num);
-        d_fac_strategy->restrictResidual(*residual, *residual, level_num - 1);
-
-        // computeResidual() overwrote u on covered coarse cells; zero the
-        // coarser levels before using them for the coarse correction.
-        for (int ln = d_coarsest_ln; ln < level_num; ++ln)
+        // Without presmoothing the residual is f.
+        SAMRAIVectorReal<NDIM, double>& residual = d_num_pre_sweeps > 0 ? *d_residual_vectors[level_num] : f;
+        if (d_num_pre_sweeps > 0)
         {
-            d_fac_strategy->setToZero(u, ln);
+            d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+
+            // u is nonzero only on level_num, but the composite-grid residual
+            // differs from f on the coarser levels as well.
+            d_fac_strategy->computeResidual(residual, u, f, d_coarsest_ln, level_num);
+            d_fac_strategy->restrictResidual(residual, residual, level_num - 1);
+
+            // computeResidual() overwrote u on covered coarse cells; zero the
+            // coarser levels before using them for the coarse correction.
+            for (int ln = d_coarsest_ln; ln < level_num; ++ln)
+            {
+                d_fac_strategy->setToZero(u, ln);
+            }
+        }
+        else
+        {
+            d_fac_strategy->restrictResidual(f, f, level_num - 1);
         }
 
-        zeroStartCycle(u, *residual, level_num - 1);
+        zeroStartCycle(u, residual, level_num - 1, cycle_type);
 
-        // u already holds the coarse correction on the coarser levels; add its
-        // prolongation on level_num.
-        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
+        // A W-cycle visits the coarser levels a second time with another W-cycle.
+        if (cycle_type == W_CYCLE)
+        {
+            improveCycle(u, residual, level_num - 1, W_CYCLE);
+        }
+
+        if (d_num_pre_sweeps > 0)
+        {
+            // Presmoothing made u nonzero on level_num; add the prolongation of the
+            // coarse correction to it.
+            d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
+        }
+        else
+        {
+            // u is zero on level_num, including its ghost values, so the prolongation
+            // of the coarse correction is the correction.
+            d_fac_strategy->prolongError(u, u, level_num);
+        }
         if (d_num_post_sweeps > 0)
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
@@ -479,20 +466,54 @@ FACPreconditioner::zeroStartCycle(SAMRAIVectorReal<NDIM, double>& u,
 } // zeroStartCycle
 
 void
-FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>& rhs)
+FACPreconditioner::improveCycle(SAMRAIVectorReal<NDIM, double>& u,
+                                const SAMRAIVectorReal<NDIM, double>& f,
+                                const int level_num,
+                                const MGCycleType cycle_type)
 {
-    // Only multilevel V-cycles with presmoothing use the per-level residual
-    // vectors.
-    if (d_coarsest_ln == d_finest_ln || d_cycle_type != V_CYCLE || d_num_pre_sweeps == 0)
+    Pointer<SAMRAIVectorReal<NDIM, double>> solution = get_range_vector(u, d_coarsest_ln, level_num);
+    Pointer<SAMRAIVectorReal<NDIM, double>> rhs = d_rhs_vectors[level_num];
+    Pointer<SAMRAIVectorReal<NDIM, double>> correction = d_correction_vectors[level_num];
+    d_fac_strategy->computeResidual(*rhs, *solution, f, d_coarsest_ln, level_num);
+    correction->setToScalar(0.0, /*interior_only*/ false);
+    zeroStartCycle(*correction, *rhs, level_num, cycle_type);
+    solution->add(solution, correction, /*interior_only*/ false);
+    return;
+} // improveCycle
+
+void
+FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>& solution,
+                                            const SAMRAIVectorReal<NDIM, double>& rhs)
+{
+    // Only V- and W-cycles on more than one level use scratch data.
+    if (d_coarsest_ln == d_finest_ln || d_cycle_type == F_CYCLE || d_cycle_type == FMG_CYCLE)
     {
         return;
     }
-    for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
+    if (d_num_pre_sweeps > 0)
     {
-        if (!d_residual_vectors[ln])
+        for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
         {
-            d_residual_vectors[ln] =
-                allocate_range_vector(rhs, d_object_name + "::residual::level_" + std::to_string(ln), ln);
+            if (!d_residual_vectors[ln])
+            {
+                d_residual_vectors[ln] =
+                    allocate_range_vector(rhs, d_object_name + "::residual::level_" + std::to_string(ln), ln);
+            }
+        }
+    }
+    if (d_cycle_type == W_CYCLE)
+    {
+        for (int ln = d_coarsest_ln; ln < d_finest_ln; ++ln)
+        {
+            const std::string suffix = "::level_" + std::to_string(ln);
+            if (!d_rhs_vectors[ln])
+            {
+                d_rhs_vectors[ln] = allocate_range_vector(rhs, d_object_name + "::rhs" + suffix, ln);
+            }
+            if (!d_correction_vectors[ln])
+            {
+                d_correction_vectors[ln] = allocate_range_vector(solution, d_object_name + "::correction" + suffix, ln);
+            }
         }
     }
     return;
