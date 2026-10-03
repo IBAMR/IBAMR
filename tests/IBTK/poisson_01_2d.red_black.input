@@ -1,7 +1,4 @@
-// Like poisson_01_2d.mpirun=4.input, but uses RED_BLACK_GAUSS_SEIDEL smoothing with a single requested
-// sweep (num_post_sweeps = 1), single rank, on the same partially refined, coarse-fine-interface-containing
-// hierarchy. Exercises CCPoissonPointRelaxationFACOperator's coarse-fine interface ghost cell caching under
-// red-black ordering, which performs two passes (red, then black) per requested sweep.
+// Red-black Gauss-Seidel smoothing with one post-smoothing sweep on a locally refined grid.
 
 u {
    function = "sin(2*PI*X_0)*sin(2*PI*X_1)"
