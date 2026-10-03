@@ -59,10 +59,10 @@ interpolate(const VectorNd& X,
             Pointer<hier::Variable<NDIM>> Q_var,
             int Q_depth,
             Pointer<PatchHierarchy<NDIM>> hierarchy,
-            std::string interp_fcn)
+            const IBKernelTensorProduct& interp_fcn)
 {
     std::vector<VectorNd> X_vec = { X };
-    return interpolate(X_vec, data_idx, Q_var, Q_depth, hierarchy, std::move(interp_fcn));
+    return interpolate(X_vec, data_idx, Q_var, Q_depth, hierarchy, interp_fcn);
 }
 
 std::vector<double>
@@ -71,7 +71,7 @@ interpolate(const std::vector<VectorNd>& X,
             Pointer<hier::Variable<NDIM>> Q_var,
             int Q_depth,
             Pointer<PatchHierarchy<NDIM>> hierarchy,
-            std::string interp_fcn)
+            const IBKernelTensorProduct& interp_fcn)
 {
     const int finest_ln = hierarchy->getFinestLevelNumber();
     const int coarsest_ln = 0;
@@ -104,6 +104,7 @@ interpolate(const std::vector<VectorNd>& X,
             Pointer<NodeData<NDIM, double>> nc_data = patch->getPatchData(data_idx);
             Pointer<EdgeData<NDIM, double>> ec_data = patch->getPatchData(data_idx);
             if (cc_data)
+            {
                 LEInteractor::interpolate(Q_data.data(),
                                           Q_data.size(),
                                           Q_depth,
@@ -113,8 +114,10 @@ interpolate(const std::vector<VectorNd>& X,
                                           cc_data,
                                           patch,
                                           box,
-                                          std::move(interp_fcn));
+                                          interp_fcn);
+            }
             else if (sc_data)
+            {
                 LEInteractor::interpolate(Q_data.data(),
                                           Q_data.size(),
                                           NDIM,
@@ -124,8 +127,10 @@ interpolate(const std::vector<VectorNd>& X,
                                           sc_data,
                                           patch,
                                           box,
-                                          std::move(interp_fcn));
+                                          interp_fcn);
+            }
             else if (nc_data)
+            {
                 LEInteractor::interpolate(Q_data.data(),
                                           Q_data.size(),
                                           Q_depth,
@@ -135,8 +140,10 @@ interpolate(const std::vector<VectorNd>& X,
                                           nc_data,
                                           patch,
                                           box,
-                                          std::move(interp_fcn));
+                                          interp_fcn);
+            }
             else if (ec_data)
+            {
                 LEInteractor::interpolate(Q_data.data(),
                                           Q_data.size(),
                                           Q_depth,
@@ -146,7 +153,8 @@ interpolate(const std::vector<VectorNd>& X,
                                           ec_data,
                                           patch,
                                           box,
-                                          std::move(interp_fcn));
+                                          interp_fcn);
+            }
         }
     }
     // Different processors may have interpolated to values on different levels. So we need to do a reduction to make
