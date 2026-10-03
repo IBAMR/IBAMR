@@ -49,6 +49,8 @@
 #include <SideVariable.h>
 #include <VariableContext.h>
 
+#include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -1082,6 +1084,11 @@ public:
      * damping factor C and diffusivity D be spatially constant and
      * scalar-valued.
      *
+     * When dst_cf_bdry_synch is true, coarse values on each coarse-fine
+     * interface are synchronized after performing the differencing. Otherwise
+     * the caller must synchronize dst, for example with
+     * synchronizeCoarseFineBoundary().
+     *
      * \see setPatchHierarchy
      * \see resetLevels
      */
@@ -1094,7 +1101,8 @@ public:
                  double src1_ghost_fill_time,
                  double gamma = 0.0,
                  int src2_idx = invalid_index,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src2_var = nullptr);
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src2_var = nullptr,
+                 bool dst_cf_bdry_synch = true);
 
     /*!
      * \brief Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2
@@ -1511,6 +1519,26 @@ public:
     void enforceHangingNodeConstraints(int dst_idx,
                                        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> dst_var);
 
+    /*!
+     * \brief Synchronize side-centered data across coarse-fine interfaces.
+     *
+     * For each coarse-fine interface, from the finest level to the coarsest,
+     * the values of each listed datum on the coarse-grid sides that coincide
+     * with the sides on the boundaries of fine-grid patches are replaced by
+     * the restriction of the fine-grid values, using the coarsen operator set
+     * by setCoarsenOperatorName(). All listed data are restricted by a single
+     * coarsen schedule execution per level. Each datum receives the same
+     * values whether it is listed alone or together with others.
+     *
+     * \note The indices must refer to side-centered, double-valued, depth-one
+     * data that is allocated on every level of this object's range of levels.
+     * An empty list does nothing.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void synchronizeCoarseFineBoundary(const std::vector<int>& sc_data_idxs);
+
 private:
     /*!
      * \brief Default constructor.
@@ -1566,6 +1594,21 @@ private:
      * level from the next finer level.
      */
     void xeqScheduleOutersideRestriction(int dst_idx, int src_idx, int dst_ln);
+
+    /*!
+     * \brief Execute schedule for restricting several Outerside data to the
+     * specified level from the next finer level.
+     *
+     * The datum src_idxs[k] is restricted into dst_idxs[k].
+     */
+    void
+    xeqScheduleOutersideRestriction(const std::vector<int>& dst_idxs, const std::vector<int>& src_idxs, int dst_ln);
+
+    /*!
+     * \brief Register Outerside scratch data so that at least num_idxs indices
+     * are available in d_os_idxs.
+     */
+    void registerOutersideScratch(std::size_t num_idxs);
 
     /*!
      * \brief Execute schedule for restricting Outeredge data to the specified
@@ -1632,6 +1675,15 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_on_v_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_os_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_oe_coarsen_scheds;
+
+    // Scratch Outerside indices; d_os_idxs[0] is d_os_idx.
+    std::vector<int> d_os_idxs;
+
+    // Coarsen algorithms and schedules for restricting several Outerside data
+    // at once, keyed by the number of data.
+    std::map<std::size_t, SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>>> d_os_multi_coarsen_algs;
+    std::map<std::size_t, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>>
+        d_os_multi_coarsen_scheds;
 
     // Hierarchy data operations.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double>> d_hier_cc_data_ops;

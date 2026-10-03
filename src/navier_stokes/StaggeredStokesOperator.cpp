@@ -232,8 +232,20 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                           P_cc_var,
                           d_no_fill,
                           d_new_time);
-    d_hier_math_ops->laplace(
-        A_U_idx, A_U_sc_var, d_U_problem_coefs, U_idx, U_sc_var, d_no_fill, d_new_time, 1.0, A_U_idx, A_U_sc_var);
+    d_hier_math_ops->laplace(A_U_idx,
+                             A_U_sc_var,
+                             d_U_problem_coefs,
+                             U_idx,
+                             U_sc_var,
+                             d_no_fill,
+                             d_new_time,
+                             1.0,
+                             A_U_idx,
+                             A_U_sc_var,
+                             /*dst_cf_bdry_synch*/ false);
+
+    // Synchronize A_U and U across coarse-fine interfaces together.
+    d_hier_math_ops->synchronizeCoarseFineBoundary({ A_U_idx, U_idx });
     d_hier_math_ops->div(A_P_idx,
                          A_P_cc_var,
                          -1.0,
@@ -241,7 +253,7 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                          U_sc_var,
                          d_no_fill,
                          d_new_time,
-                         /*cf_bdry_synch*/ true);
+                         /*cf_bdry_synch*/ false);
     if (d_bc_helper) d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
 
     IBAMR_TIMER_STOP(t_apply);

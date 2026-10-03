@@ -1,0 +1,3 @@
+New: IBTK::HierarchyMathOps::synchronizeCoarseFineBoundary() synchronizes several side-centered data across coarse-fine interfaces at once, and IBAMR::StaggeredStokesOperator uses it.
+<br>
+(Boyce Griffith, 2026/10/01)
