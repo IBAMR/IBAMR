@@ -562,7 +562,9 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
+        auto U_bc_coef = new INSStaggeredVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
+        U_bc_coef->setTractionBcCornerType(d_traction_bc_corner_type);
+        d_U_bc_coefs[d] = U_bc_coef;
     }
     d_P_bc_coef = new INSStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
     d_U_P_bdry_interp_type = input_db->getStringWithDefault("U_P_bdry_interp_type", d_U_P_bdry_interp_type);
