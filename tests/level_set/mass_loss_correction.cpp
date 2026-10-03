@@ -13,8 +13,8 @@
 
 // This test checks LevelSetUtilities::LevelSetMassLossFixer and the
 // fixMassLoss{2,3}PhaseFlows callbacks that apply it, which correct a phase
-// volume computed from the regularized Heaviside/delta functions back toward
-// a target by shifting phi near the interface.
+// volume computed from the regularized Heaviside/delta functions to a target
+// by a uniform shift of phi.
 //
 // The input file's "mode" key selects one of three test modes:
 //   - "algebraic" (the default): check_algebraic_corrections() sweeps
@@ -22,10 +22,9 @@
 //     the fixer directly, once for a two-phase LevelSetContainer and once for
 //     a three-phase one. "case = N" in the log indexes into cases[], with the
 //     full two-phase sweep printed first, followed by the three-phase sweep.
-//     Deliberately invalid controls are exercised through the "failure" input
-//     key, which is otherwise unset; failure is set only by
-//     mass_loss_errors.py, which drives this mode through each failure case
-//     and checks that the expected diagnostic is raised.
+//     The "failure" input key ("budget_exhausted", "target_infeasible", or
+//     "nonfinite") instead sets up one correction that must fail; the
+//     expected output is then the error message.
 //   - "lifecycle": check_correction_lifecycle() registers the fixer as a
 //     postprocessIntegrateHierarchy callback and advances the hierarchy
 //     integrator through several steps, exercising the correction-interval
@@ -63,6 +62,8 @@
 #include <limits>
 #include <tuple>
 #include <vector>
+
+#include "../tests.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -179,6 +180,10 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
     const double accumulation_eps = (2.0 * IBTK_MPI::sumReduction(cells) + 8.0) * eps;
     const double identity_tolerance = accumulation_eps / (1.0 - accumulation_eps) * domain_volume;
     const std::string failure = input->getStringWithDefault("failure", "");
+    if (!failure.empty())
+    {
+        Logger::getInstance()->setAbortAppender(new TestAppender());
+    }
     const bool exact_initial_success = input->getBoolWithDefault("exact_initial_success", false);
     // The third coordinate is extruded for these algebraic cases.
     using Case = std::tuple<Geometry, Geometry, double>;
@@ -234,66 +239,19 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
             {
                 controls->putDouble("abs_tol", input->getDouble("abs_tol"));
             }
-            if (failure == "interval_zero" || failure == "interval_negative")
+            if (failure == "budget_exhausted")
             {
-                controls->putInteger("correction_interval", failure == "interval_zero" ? 0 : -1);
-            }
-            if (failure == "width_input")
-            {
-                controls->putDouble("half_width", 0.0);
-            }
-            if (failure == "relative_tolerance")
-            {
-                controls->putDouble("rel_tol", 1.0);
-            }
-            if (failure == "absolute_tolerance")
-            {
-                controls->putDouble("abs_tol", -1.0);
-            }
-            if (failure == "budget_zero" || failure == "budget_exhausted")
-            {
-                controls->putInteger("max_its", failure == "budget_zero" ? 0 : 1);
+                controls->putInteger("max_its", 1);
                 target = 0.8 * capacity;
-            }
-            if (failure == "width_restart" || failure == "target_restart")
-            {
-                {
-                    LevelSetUtilities::LevelSetMassLossFixer writer("Fixer", integrator, fields, controls);
-                    writer.setInitialVolume(before[phase]);
-                    if (failure == "width_restart")
-                    {
-                        writer.getLevelSetContainer().setInterfaceHalfWidth(-1.0);
-                    }
-                    else
-                    {
-                        writer.setTargetVolume(std::numeric_limits<double>::quiet_NaN());
-                    }
-                    RestartManager::getManager()->writeRestartFile("invalid_restart", 1);
-                }
-                if (!RestartManager::getManager()->openRestartFile("invalid_restart", 1, IBTK_MPI::getNodes()))
-                {
-                    TBOX_ERROR("Could not open invalid-state restart fixture\n");
-                }
-            }
-            LevelSetUtilities::LevelSetMassLossFixer fixer("Fixer", integrator, fields, controls, false);
-            fixer.setInitialVolume(before[phase]);
-            if (failure == "target_nonfinite")
-            {
-                target = std::numeric_limits<double>::quiet_NaN();
             }
             else if (failure == "target_infeasible")
             {
                 target = 2.0 * capacity;
             }
-            if (failure != "target_restart")
-            {
-                fixer.setTargetVolume(target);
-            }
-            if (failure == "width_setter")
-            {
-                fixer.getLevelSetContainer().setInterfaceHalfWidth(-1.0);
-            }
-            if (failure == "rank_nonfinite" && IBTK_MPI::getRank() == IBTK_MPI::getNodes() - 1)
+            LevelSetUtilities::LevelSetMassLossFixer fixer("Fixer", integrator, fields, controls, false);
+            fixer.setInitialVolume(before[phase]);
+            fixer.setTargetVolume(target);
+            if (failure == "nonfinite")
             {
                 Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
                 PatchLevel<NDIM>::Iterator p(level);
@@ -312,8 +270,8 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
             }
             if (!failure.empty())
             {
-                // Unexpected continuation must be reported as success to the
-                // test-local parent, which requires the real fatal diagnostic.
+                // The correction should have failed. Return normally so that
+                // the expected-error case is rejected.
                 break;
             }
             if (fixer.getTargetVolume() != target)

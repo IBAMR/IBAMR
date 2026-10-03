@@ -1,3 +1,4 @@
+// A phase-volume correction that is allowed one trial shift, which is too few to reach its target.
 Main { log_file_name = "output" }
 AdvDiff { start_time = 0.0 end_time = 0.1 dt_max = 0.1 num_cycles = 1 enable_logging = FALSE }
 CartesianGeometry { domain_boxes = [(0,0),(15,15)] x_lo = 0,0 x_up = 1,1 periodic_dimension = 0,0 }
@@ -14,4 +15,4 @@ Velocity {
   function_1 = "0.0"
 }
 Initial { function = "X_0 - 0.45" }
-abs_tol = 1.0e-11
+failure = "budget_exhausted"

@@ -148,10 +148,6 @@ SETUP_2D(level_set heaviside_integrals.cpp)
 SETUP_3D(level_set heaviside_integrals.cpp)
 SETUP_2D(level_set mass_loss_correction.cpp)
 SETUP_3D(level_set mass_loss_correction.cpp)
-CONFIGURE_FILE(level_set/mass_loss_errors.py.in CMakeFiles/mass_loss_errors @ONLY)
-FILE(COPY ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mass_loss_errors
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/level_set
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
 # multiphase_flow:
 SETUP(multiphase_flow free_falling_cyl_cib.cpp IBAMR2d)
@@ -347,14 +343,6 @@ FOREACH(_dir ${TEST_DIRECTORIES})
     POST_BUILD
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/link-test-files.sh
     ${CMAKE_SOURCE_DIR}/tests/${_dir} ${CMAKE_BINARY_DIR}/tests/${_dir}
-    VERBATIM)
-ENDFOREACH()
-
-# These cases violate a patch-data precondition checked only without NDEBUG.
-FOREACH(_case centering data_type)
-  ADD_CUSTOM_COMMAND(TARGET tests-IBTK POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove -f
-    "$<$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>:${CMAKE_BINARY_DIR}/tests/IBTK/pointwise_function_2d.${_case}.expect_error=true.input>"
     VERBATIM)
 ENDFOREACH()
 

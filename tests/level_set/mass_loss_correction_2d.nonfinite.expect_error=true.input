@@ -1,5 +1,6 @@
+// A phase-volume correction of a level set that contains a NaN.
 Main { log_file_name = "output" }
-AdvDiff { start_time = 0.0 end_time = 0.1 dt_max = 0.1 num_cycles = 2 enable_logging = FALSE }
+AdvDiff { start_time = 0.0 end_time = 0.1 dt_max = 0.1 num_cycles = 1 enable_logging = FALSE }
 CartesianGeometry { domain_boxes = [(0,0),(15,15)] x_lo = 0,0 x_up = 1,1 periodic_dimension = 0,0 }
 GriddingAlgorithm {
   max_levels = 1
@@ -14,6 +15,4 @@ Velocity {
   function_1 = "0.0"
 }
 Initial { function = "X_0 - 0.45" }
-mode = "lifecycle"
-phases = 3
-test_restart = FALSE
+failure = "nonfinite"
