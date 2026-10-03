@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesIBLevelRelaxationFACOperator keeps its coarse solver when setResetLevels() excludes the coarsest level.
+<br>
+(Boyce Griffith, 2026/09/20)
