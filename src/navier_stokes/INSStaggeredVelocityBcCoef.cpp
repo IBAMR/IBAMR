@@ -28,10 +28,14 @@
 #include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
+#include <BoxArray.h>
+#include <BoxList.h>
 #include <CartesianPatchGeometry.h>
+#include <GridGeometry.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <Patch.h>
+#include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
 #include <SideIndex.h>
@@ -58,6 +62,124 @@ class Variable;
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+// Return the physical domain refined to the level of patch, together with its
+// periodic images, so that a cell across a periodic boundary is not mistaken
+// for a cell outside the domain.
+BoxArray<NDIM>
+get_physical_domain(const Pointer<PatchHierarchy<NDIM>>& hierarchy, const Patch<NDIM>& patch, const char* const method)
+{
+    if (!hierarchy)
+    {
+        TBOX_ERROR(method << ": the fluid solver has no patch hierarchy; a TRACTION boundary condition requires the "
+                             "hierarchy to locate the corners of the physical boundary.\n");
+    }
+    Pointer<GridGeometry<NDIM>> grid_geom = hierarchy->getGridGeometry();
+    const IntVector<NDIM>& ratio = patch.getPatchGeometry()->getRatio();
+    BoxArray<NDIM> domain = grid_geom->getPhysicalDomain();
+    domain.refine(ratio);
+    const IntVector<NDIM> shift = grid_geom->getPeriodicShift(ratio);
+    BoxList<NDIM> domain_list(domain);
+    int num_offsets = 1;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        num_offsets *= 3;
+    }
+    for (int offset = 0; offset < num_offsets; ++offset)
+    {
+        IntVector<NDIM> image_shift(0);
+        bool is_image = false;
+        bool is_valid = true;
+        for (unsigned int d = 0, k = offset; d < NDIM; ++d, k /= 3)
+        {
+            const int n = static_cast<int>(k % 3) - 1;
+            image_shift(d) = n * shift(d);
+            is_image = is_image || n != 0;
+            is_valid = is_valid && (n == 0 || shift(d) != 0);
+        }
+        if (is_image && is_valid)
+        {
+            BoxArray<NDIM> image_domain = domain;
+            for (int b = 0; b < image_domain.size(); ++b)
+            {
+                image_domain[b].shift(image_shift);
+            }
+            domain_list.unionBoxes(BoxList<NDIM>(image_domain));
+        }
+    }
+    return BoxArray<NDIM>(domain_list);
+} // get_physical_domain
+
+// Return true if the normal velocity face i_face lies on the physical boundary
+// normal to bdry_normal_axis, i.e., if the cell adjacent to the face on the
+// interior side of that boundary lies in domain.
+bool
+is_boundary_face(hier::Index<NDIM> i_face,
+                 const unsigned int bdry_normal_axis,
+                 const bool bdry_is_lower,
+                 const BoxArray<NDIM>& domain)
+{
+    if (!bdry_is_lower)
+    {
+        i_face(bdry_normal_axis) -= 1;
+    }
+    return domain.contains(i_face);
+} // is_boundary_face
+
+// Return the normal velocity face from which the TRACTION condition takes the
+// normal velocity at the boundary face with index i_face, where the boundary is
+// normal to bdry_normal_axis and the condition differences the normal velocity
+// along tangential_axis. A face is beyond a corner if the cell adjacent to it
+// on the interior side of the boundary lies outside the physical domain; this
+// is determined from the domain, not from the patch. The value at such a face is
+// not available, so the nearest face on the boundary is used, which makes the
+// difference zero across the corner.
+SideIndex<NDIM>
+get_normal_velocity_index(hier::Index<NDIM> i_face,
+                          const unsigned int bdry_normal_axis,
+                          const bool bdry_is_lower,
+                          const unsigned int tangential_axis,
+                          const BoxArray<NDIM>& domain,
+                          const Box<NDIM>& ghost_box)
+{
+    const int j = i_face(tangential_axis);
+    if (is_boundary_face(i_face, bdry_normal_axis, bdry_is_lower, domain))
+    {
+        i_face(tangential_axis) =
+            std::min(std::max(j, ghost_box.lower(tangential_axis)), ghost_box.upper(tangential_axis));
+        return SideIndex<NDIM>(i_face, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    }
+
+    // The nearest face on the boundary: below the face if the boundary ends above
+    // it, above the face if the boundary ends below it.
+    hier::Index<NDIM> i_below = i_face, i_above = i_face;
+    i_below(tangential_axis) = j - 1;
+    i_above(tangential_axis) = j + 1;
+    int step = 0;
+    if (is_boundary_face(i_below, bdry_normal_axis, bdry_is_lower, domain))
+    {
+        step = -1;
+    }
+    else if (is_boundary_face(i_above, bdry_normal_axis, bdry_is_lower, domain))
+    {
+        step = +1;
+    }
+    else
+    {
+        TBOX_ERROR("INSStaggeredVelocityBcCoef: the normal velocity face "
+                   << i_face << " is beyond a corner of the physical boundary, but neither adjacent face along axis "
+                   << tangential_axis << " lies on the boundary.\n");
+    }
+    hier::Index<NDIM> i_near = i_face;
+    i_near(tangential_axis) = j + step;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ghost_box.contains(i_near));
+#endif
+    return SideIndex<NDIM>(i_near, bdry_normal_axis, SideIndex<NDIM>::Lower);
+} // get_normal_velocity_index
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -257,6 +379,8 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
+    BoxArray<NDIM> domain;
+    bool have_domain = false;
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
@@ -296,11 +420,18 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
                 {
                     // Compute the tangential derivative of the normal
                     // component of the velocity at the boundary.
-                    hier::Index<NDIM> i_lower(i), i_upper(i);
-                    i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
-                    i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-                    const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                    if (!have_domain)
+                    {
+                        domain = get_physical_domain(
+                            d_fluid_solver->getPatchHierarchy(), patch, "INSStaggeredVelocityBcCoef::setBcCoefs()");
+                        have_domain = true;
+                    }
+                    hier::Index<NDIM> i_lower(i);
+                    i_lower(d_comp_idx) -= 1;
+                    const SideIndex<NDIM> i_s_lower =
+                        get_normal_velocity_index(i_lower, bdry_normal_axis, is_lower, d_comp_idx, domain, ghost_box);
+                    const SideIndex<NDIM> i_s_upper =
+                        get_normal_velocity_index(i, bdry_normal_axis, is_lower, d_comp_idx, domain, ghost_box);
                     const double du_norm_dx_tan =
                         ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) / dx[d_comp_idx];
 

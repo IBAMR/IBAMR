@@ -74,6 +74,13 @@ namespace IBAMR
  *
  * Dirichlet, true traction, and pseudo-traction boundary conditions are
  * all supported.
+ *
+ * With TRACTION boundary conditions, the value set for a tangential velocity
+ * component includes the tangential derivative of the normal velocity along the
+ * boundary. A corner is where the boundary meets an adjacent physical boundary
+ * (an edge in three dimensions). A normal velocity value beyond a corner is
+ * replaced by the value on the nearest face on the boundary, so that the
+ * difference is zero across the corner.
  */
 class INSStaggeredVelocityBcCoef : public StokesBcCoefStrategy
 {
