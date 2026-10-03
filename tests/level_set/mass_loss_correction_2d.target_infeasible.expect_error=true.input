@@ -1,6 +1,7 @@
+// A phase-volume correction whose target is twice the volume available to the fluid.
 Main { log_file_name = "output" }
 AdvDiff { start_time = 0.0 end_time = 0.1 dt_max = 0.1 num_cycles = 1 enable_logging = FALSE }
-CartesianGeometry { domain_boxes = [(0,0),(15,15)] x_lo = 0,0 x_up = 0.1,0.1 periodic_dimension = 0,0 }
+CartesianGeometry { domain_boxes = [(0,0),(15,15)] x_lo = 0,0 x_up = 1,1 periodic_dimension = 0,0 }
 GriddingAlgorithm {
   max_levels = 1
   ratio_to_coarser { level_1 = 2,2 }
@@ -14,3 +15,4 @@ Velocity {
   function_1 = "0.0"
 }
 Initial { function = "X_0 - 0.45" }
+failure = "target_infeasible"
