@@ -1,0 +1,16 @@
+lower = 41
+upper = 52
+axis 0:
+  below = -1
+  above = -1
+  below, periodic = 44
+  above, periodic = 49
+  below along two axes, periodic = -1
+axis 1:
+  below = -1
+  above = -1
+  below, periodic = 49
+  above, periodic = 44
+  below along two axes, periodic = -1
+lower - 1, periodic = 52
+upper + 1, periodic = 41
