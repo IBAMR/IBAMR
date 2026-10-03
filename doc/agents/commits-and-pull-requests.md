@@ -68,8 +68,7 @@ add source-code banners to `.input` or `.output` fixtures that do not use them.
 
 Use short imperative PR titles that name the fix or addition. Normally start a
 bug-fix title with `Fix`. A title may begin with a bracketed tag that tells
-reviewers which area or stack the PR belongs to, such as `[FAC]`, `[HYPRE]`,
-`[IBMethod]`, `[MPI]`, `[BC]`, or `[CAV R07]` for a position in the CAV stack.
+reviewers which area the PR belongs to, such as `[FAC]`, `[HYPRE]`, or `[MPI]`.
 Use a tag that open or recently merged PRs already use, and ask before
 introducing a new one. The imperative title follows the tag. Begin the body with one or two concrete sentences that
 state the change. Add only details a reviewer needs, such as material limitations,
