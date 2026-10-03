@@ -283,18 +283,6 @@ public:
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> getFACPreconditionerStrategy() const;
 
 protected:
-    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                 int level_num,
-                 int mu);
-
-    void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                  int level_num,
-                  int mu);
-
     SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = 0;
