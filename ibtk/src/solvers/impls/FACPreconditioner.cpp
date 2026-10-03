@@ -16,8 +16,6 @@
 #include <ibtk/FACPreconditioner.h>
 #include <ibtk/FACPreconditionerStrategy.h>
 #include <ibtk/LinearSolver.h>
-#include <ibtk/SAMRAIScopedVectorCopy.h>
-#include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
@@ -121,18 +119,7 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     x.setToScalar(0.0, /*interior_only*/ false);
 
     // Apply a single FAC cycle.
-    if (d_cycle_type == FMG_CYCLE)
-    {
-        // Clone the right-hand-side vector to avoid modifying it during the
-        // preconditioning operation.
-        SAMRAIScopedVectorCopy<double> f(b);
-        SAMRAIScopedVectorDuplicate<double> r(b);
-        FMGCycle(x, f, r, d_finest_ln, 1);
-    }
-    else
-    {
-        zeroStartCycle(x, b, d_finest_ln, d_cycle_type);
-    }
+    zeroStartCycle(x, b, d_finest_ln, d_cycle_type);
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -230,11 +217,10 @@ FACPreconditioner::setMaxIterations(int max_iterations)
 void
 FACPreconditioner::setMGCycleType(MGCycleType cycle_type)
 {
-    if (cycle_type != V_CYCLE && cycle_type != W_CYCLE && cycle_type != F_CYCLE && cycle_type != FMG_CYCLE)
+    if (cycle_type != V_CYCLE && cycle_type != W_CYCLE && cycle_type != F_CYCLE)
     {
         TBOX_ERROR(d_object_name << "::setMGCycleType():\n"
-                                 << "  unsupported cycle type; use V_CYCLE, W_CYCLE, F_CYCLE, or FMG_CYCLE."
-                                 << std::endl);
+                                 << "  unsupported cycle type; use V_CYCLE, W_CYCLE, or F_CYCLE." << std::endl);
     }
     d_cycle_type = cycle_type;
     return;
@@ -361,57 +347,6 @@ FACPreconditioner::improveCycle(SAMRAIVectorReal<NDIM, double>& u,
     return;
 } // improveCycle
 
-void
-FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
-                           SAMRAIVectorReal<NDIM, double>& f,
-                           SAMRAIVectorReal<NDIM, double>& r,
-                           int level_num,
-                           int mu)
-{
-    if (level_num == d_coarsest_ln)
-    {
-        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
-    }
-    else
-    {
-        if (d_num_pre_sweeps > 0)
-        {
-            d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
-        }
-        d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
-        d_fac_strategy->restrictResidual(r, f, level_num - 1);
-        d_fac_strategy->setToZero(u, level_num - 1);
-        for (int k = 0; k < mu; ++k) muCycle(u, f, r, level_num - 1, mu);
-        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
-        if (d_num_post_sweeps > 0)
-        {
-            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
-        }
-    }
-    return;
-} // muCycle
-
-void
-FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u,
-                            SAMRAIVectorReal<NDIM, double>& f,
-                            SAMRAIVectorReal<NDIM, double>& r,
-                            int level_num,
-                            int mu)
-{
-    if (level_num == d_coarsest_ln)
-    {
-        d_fac_strategy->setToZero(u, level_num);
-    }
-    else
-    {
-        d_fac_strategy->restrictResidual(f, f, level_num - 1);
-        FMGCycle(u, f, r, level_num - 1, mu);
-        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
-    }
-    muCycle(u, f, r, level_num, mu);
-    return;
-} // FMGCycle
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 Pointer<SAMRAIVectorReal<NDIM, double>>
@@ -446,8 +381,8 @@ void
 FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAIVectorReal<NDIM, double>& rhs)
 {
-    // A single level and the FMG cycle use no scratch data.
-    if (d_coarsest_ln == d_finest_ln || d_cycle_type == FMG_CYCLE)
+    // A single level uses no scratch data.
+    if (d_coarsest_ln == d_finest_ln)
     {
         return;
     }
@@ -462,7 +397,7 @@ FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>
             }
         }
     }
-    if (d_cycle_type == W_CYCLE || d_cycle_type == F_CYCLE)
+    if (d_cycle_type != V_CYCLE)
     {
         for (int ln = d_coarsest_ln; ln < d_finest_ln; ++ln)
         {
