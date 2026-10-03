@@ -285,7 +285,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 scratch_data->getArrayData(axis).copy(error_data->getArrayData(axis),
-                                                      d_patch_bc_box_overlap[level_num][patch_counter][axis],
+                                                      d_patch_cf_bdry_ghost_boxes[level_num][patch_counter][axis],
                                                       IntVector<NDIM>(0));
             }
         }
@@ -316,7 +316,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         error_data->getArrayData(axis).copy(scratch_data->getArrayData(axis),
-                                                            d_patch_bc_box_overlap[level_num][patch_counter][axis],
+                                                            d_patch_cf_bdry_ghost_boxes[level_num][patch_counter][axis],
                                                             IntVector<NDIM>(0));
                     }
                 }
