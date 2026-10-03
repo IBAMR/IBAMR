@@ -2185,12 +2185,14 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         values[6] = w0 * (1.0 - w1) * (1.0 - w2);
                         if (samrai_petsc_map[d * n_interpolants + 6] < 0)
                         {
-                            values[4] += values[6];
+                            // Fold an out-of-domain corner weight into the tangential neighbor that is inside the
+                            // domain.
+                            values[samrai_petsc_map[d * n_interpolants + 2] < 0 ? 4 : 2] += values[6];
                         }
                         values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
                         if (samrai_petsc_map[d * n_interpolants + 7] < 0)
                         {
-                            values[5] += values[7];
+                            values[samrai_petsc_map[d * n_interpolants + 3] < 0 ? 5 : 3] += values[7];
                         }
                         if (samrai_petsc_map[d * n_interpolants + 4] < 0)
                         {
@@ -2245,12 +2247,12 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         values[6] = (1.0 - w0) * w1 * (1.0 - w2);
                         if (samrai_petsc_map[d * n_interpolants + 6] < 0)
                         {
-                            values[4] += values[6];
+                            values[samrai_petsc_map[d * n_interpolants + 2] < 0 ? 4 : 2] += values[6];
                         }
                         values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
                         if (samrai_petsc_map[d * n_interpolants + 7] < 0)
                         {
-                            values[5] += values[7];
+                            values[samrai_petsc_map[d * n_interpolants + 3] < 0 ? 5 : 3] += values[7];
                         }
                         if (samrai_petsc_map[d * n_interpolants + 4] < 0)
                         {
@@ -2303,12 +2305,12 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
                         values[6] = (1.0 - w0) * (1.0 - w1) * w2;
                         if (samrai_petsc_map[d * n_interpolants + 6] < 0)
                         {
-                            values[4] += values[6];
+                            values[samrai_petsc_map[d * n_interpolants + 2] < 0 ? 4 : 2] += values[6];
                         }
                         values[7] = (1.0 - w0) * (1.0 - w1) * (1.0 - w2);
                         if (samrai_petsc_map[d * n_interpolants + 7] < 0)
                         {
-                            values[5] += values[7];
+                            values[samrai_petsc_map[d * n_interpolants + 3] < 0 ? 5 : 3] += values[7];
                         }
                         if (samrai_petsc_map[d * n_interpolants + 4] < 0)
                         {
