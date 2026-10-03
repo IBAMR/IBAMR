@@ -500,6 +500,39 @@ public:
              int src2_depth = 0);
 
     /*!
+     * \brief Compute the cell-centered divergence of a side-centered normal
+     * vector field using centered differences.
+     *
+     * Sets dst = alpha div src1 + beta src2 + gamma src3.
+     *
+     * Compute the divergence of a vector field using centered differences.
+     * When specified, coarse values on each coarse-fine interface are
+     * synchronized prior to performing the differencing.  The term beta src2
+     * is omitted when beta is zero or src2_idx is invalid, and likewise for
+     * gamma src3.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void div(int dst_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> dst_var,
+             double alpha,
+             int src1_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src1_var,
+             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+             double src1_ghost_fill_time,
+             bool src1_cf_bdry_synch,
+             double beta,
+             int src2_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> src2_var,
+             double gamma,
+             int src3_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> src3_var,
+             int dst_depth = 0,
+             int src2_depth = 0,
+             int src3_depth = 0);
+
+    /*!
      * \brief Compute the gradient of a scalar quantity using centered
      * differences.
      *
@@ -1050,6 +1083,9 @@ public:
      * levels of the hierarchy, the appropriately synchronized gradient and
      * divergence operators are employed to obtain a consistent discretization
      * of the Laplace operator.
+     *
+     * \note When src2_idx is invalid, the term gamma src2 is omitted and gamma
+     * is ignored.
      *
      * \see setPatchHierarchy
      * \see resetLevels

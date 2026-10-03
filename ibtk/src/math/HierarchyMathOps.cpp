@@ -1231,6 +1231,80 @@ HierarchyMathOps::div(const int dst_idx,
 } // div
 
 void
+HierarchyMathOps::div(const int dst_idx,
+                      const Pointer<CellVariable<NDIM, double>> /*dst_var*/,
+                      const double alpha,
+                      const int src1_idx,
+                      const Pointer<SideVariable<NDIM, double>> /*src1_var*/,
+                      const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                      const double src1_ghost_fill_time,
+                      const bool src1_cf_bdry_synch,
+                      const double beta,
+                      const int src2_idx,
+                      const Pointer<CellVariable<NDIM, double>> /*src2_var*/,
+                      const double gamma,
+                      const int src3_idx,
+                      const Pointer<CellVariable<NDIM, double>> /*src3_var*/,
+                      const int dst_depth,
+                      const int src2_depth,
+                      const int src3_depth)
+{
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
+
+    for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+
+        // Allocate temporary data to synchronize the coarse-fine interface.
+        if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
+        {
+            level->allocatePatchData(d_os_idx);
+        }
+
+        // Compute the discrete divergence and extract data on the coarse-fine
+        // interface.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+
+            Pointer<CellData<NDIM, double>> dst_data = patch->getPatchData(dst_idx);
+            Pointer<SideData<NDIM, double>> src1_data = patch->getPatchData(src1_idx);
+            Pointer<CellData<NDIM, double>> src2_data =
+                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM>>();
+            Pointer<CellData<NDIM, double>> src3_data =
+                (src3_idx >= 0) ? patch->getPatchData(src3_idx) : Pointer<PatchData<NDIM>>();
+
+            d_patch_math_ops.div(dst_data,
+                                 alpha,
+                                 src1_data,
+                                 beta,
+                                 src2_data,
+                                 gamma,
+                                 src3_data,
+                                 patch,
+                                 dst_depth,
+                                 src2_depth,
+                                 src3_depth);
+
+            if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
+            {
+                Pointer<OutersideData<NDIM, double>> os_data = patch->getPatchData(d_os_idx);
+                os_data->copy(*src1_data);
+            }
+        }
+
+        // Synchronize the coarse-fine interface of src1 and deallocate
+        // temporary data.
+        if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
+        {
+            xeqScheduleOutersideRestriction(src1_idx, d_os_idx, ln - 1);
+            level->deallocatePatchData(d_os_idx);
+        }
+    }
+    return;
+} // div
+
+void
 HierarchyMathOps::grad(const int dst_idx,
                        const Pointer<CellVariable<NDIM, double>> dst_var,
                        const double alpha,
@@ -2649,76 +2723,23 @@ HierarchyMathOps::laplace(const int dst_idx,
         }
 
         // Take the divergence of the flux.
-        if (beta == 0.0 && gamma == 0.0)
-        {
-            div(dst_idx,
-                dst_var,
-                1.0,
-                d_sc_idx,
-                d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(nullptr),
-                0.0,
-                false, // don't re-synch coarse-fine boundary
-                0.0,
-                -1,
-                Pointer<CellVariable<NDIM, double>>(nullptr),
-                dst_depth);
-        }
-        else if (beta == 0.0)
-        {
-            div(dst_idx,
-                dst_var,
-                1.0,
-                d_sc_idx,
-                d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(nullptr),
-                0.0,
-                false, // don't re-synch coarse-fine boundary
-                gamma,
-                src2_idx,
-                src2_var,
-                dst_depth,
-                src2_depth);
-        }
-        else if (gamma == 0.0)
-        {
-            div(dst_idx,
-                dst_var,
-                1.0,
-                d_sc_idx,
-                d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(nullptr),
-                0.0,
-                false, // don't re-synch coarse-fine boundary
-                beta,
-                src1_idx,
-                src1_var,
-                dst_depth,
-                src1_depth);
-        }
-        else
-        {
-            const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
-            const Pointer<CellVariable<NDIM, double>> cc_var = dst_var;
-            const int cc_depth = dst_depth;
-
-            div(cc_idx,
-                cc_var,
-                1.0,
-                d_sc_idx,
-                d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(nullptr),
-                0.0,
-                false, // don't re-synch coarse-fine boundary
-                beta,
-                src1_idx,
-                src1_var,
-                cc_depth,
-                src1_depth);
-
-            pointwiseMultiply(
-                dst_idx, dst_var, gamma, src2_idx, src2_var, 1.0, cc_idx, cc_var, dst_depth, src2_depth, cc_depth);
-        }
+        div(dst_idx,
+            dst_var,
+            1.0,
+            d_sc_idx,
+            d_sc_var,
+            Pointer<HierarchyGhostCellInterpolation>(nullptr),
+            0.0,
+            false, // don't re-synch coarse-fine boundary
+            beta,
+            src1_idx,
+            src1_var,
+            gamma,
+            src2_idx,
+            src2_var,
+            dst_depth,
+            src1_depth,
+            src2_depth);
 
         // Deallocate temporary data.
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
