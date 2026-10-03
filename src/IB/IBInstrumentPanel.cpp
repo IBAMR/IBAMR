@@ -93,12 +93,14 @@ static Timer* t_write_plot_data;
 static const unsigned int SILO_MPI_ROOT = 0;
 
 // The name of the Silo dumps and database filenames.
+#if defined(IBAMR_HAVE_SILO)
 static const std::string VISIT_DUMPS_FILENAME = "meter_data.visit";
 static const std::string SILO_DUMP_DIR_PREFIX = "meter_data.cycle_";
 static const std::string SILO_SUMMARY_FILE_PREFIX = "meter_data.cycle_";
 static const std::string SILO_SUMMARY_FILE_POSTFIX = ".summary.silo";
 static const std::string SILO_PROCESSOR_FILE_PREFIX = "meter_data.proc_";
 static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
+#endif
 
 void
 init_meter_elements(boost::multi_array<Point, 2>& X_web,
