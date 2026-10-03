@@ -351,6 +351,14 @@ protected:
 
     //\}
 
+    /*!
+     * \brief Set \a negated_spec to Poisson specifications for the operator -A, where A is the operator described by
+     * this object's Poisson specifications.
+     *
+     * \pre The diffusion coefficient D is constant and the damping coefficient C is zero or constant.
+     */
+    void negatePoissonSpecifications(SAMRAI::solv::PoissonSpecifications& negated_spec) const;
+
     /*
      * Problem specification.
      */

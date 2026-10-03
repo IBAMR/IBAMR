@@ -635,6 +635,24 @@ PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const 
     return;
 } // xeqScheduleDataSynch
 
+void
+PoissonFACPreconditionerStrategy::negatePoissonSpecifications(PoissonSpecifications& negated_spec) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_poisson_spec.dIsConstant() && !d_poisson_spec.cIsVariable());
+#endif
+    negated_spec.setDConstant(-d_poisson_spec.getDConstant());
+    if (d_poisson_spec.cIsZero())
+    {
+        negated_spec.setCZero();
+    }
+    else
+    {
+        negated_spec.setCConstant(-d_poisson_spec.getCConstant());
+    }
+    return;
+} // negatePoissonSpecifications
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

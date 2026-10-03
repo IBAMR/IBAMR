@@ -32,7 +32,6 @@
 #include <EdgeData.h>
 #include <EdgeVariable.h>
 #include <HierarchyDataOpsReal.h>
-#include <HierarchySideDataOpsReal.h>
 #include <MultiblockDataTranslator.h>
 #include <NodeData.h>
 #include <NodeVariable.h>
@@ -793,6 +792,7 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
 
     const Pointer<SideVariable<NDIM, double>> res_var = residual.getComponentVariable(0);
     const Pointer<SideVariable<NDIM, double>> sol_var = solution.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM, double>> rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -837,11 +837,12 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                  finest_level_num);
     }
 
-    double alpha = 1.0;
-    double beta = 1.0;
+    // Negating the coefficients and passing f as the additive source gives f - A*u in one pass.
+    const double alpha = -1.0;
+    double beta = -1.0;
     if (d_poisson_spec.cIsZero() || d_poisson_spec.cIsConstant())
     {
-        beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+        beta = d_poisson_spec.cIsZero() ? 0.0 : -d_poisson_spec.getCConstant();
     }
 
     d_level_math_ops[finest_level_num]->vc_laplace(res_idx,
@@ -860,11 +861,11 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                    Pointer<HierarchyGhostCellInterpolation>(nullptr),
                                                    d_solution_time,
                                                    d_D_interp_type,
-                                                   d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() :
-                                                                                  -1);
-
-    HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
-    hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
+                                                   d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() : -1,
+                                                   Pointer<SideVariable<NDIM, double>>(nullptr),
+                                                   1.0,
+                                                   rhs_idx,
+                                                   rhs_var);
 
     IBTK_TIMER_STOP(t_compute_residual);
     return;
