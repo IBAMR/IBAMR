@@ -49,6 +49,8 @@
 #include <SideVariable.h>
 #include <VariableContext.h>
 
+#include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -1118,6 +1120,10 @@ public:
      * damping factor C and diffusivity D be spatially constant and
      * scalar-valued.
      *
+     * Coarse values on each coarse-fine interface are synchronized unless
+     * dst_cf_bdry_synch is false, in which case the caller must synchronize
+     * dst, for example with synchronizeCoarseFineBoundary().
+     *
      * \see setPatchHierarchy
      * \see resetLevels
      */
@@ -1130,7 +1136,8 @@ public:
                  double src1_ghost_fill_time,
                  double gamma = 0.0,
                  int src2_idx = invalid_index,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src2_var = nullptr);
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src2_var = nullptr,
+                 bool dst_cf_bdry_synch = true);
 
     /*!
      * \brief Compute the Laplacian of a side-centered vector field plus a
@@ -1578,6 +1585,20 @@ public:
     void enforceHangingNodeConstraints(int dst_idx,
                                        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> dst_var);
 
+    /*!
+     * \brief Synchronize side-centered data across coarse-fine interfaces.
+     *
+     * The coarse values on each interface are replaced by the restriction of
+     * the fine values.
+     *
+     * \note The indices must refer to side-centered, double-valued, depth-one
+     * data that is allocated on every level of this object's range of levels.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void synchronizeCoarseFineBoundary(const std::vector<int>& sc_data_idxs);
+
 private:
     /*!
      * \brief Default constructor.
@@ -1612,6 +1633,12 @@ private:
     void resetCoarsenOperators();
 
     /*!
+     * \brief Discard the cached coarsen schedules, leaving num_scheds empty
+     * entries in each per-level vector.
+     */
+    void resetCoarsenSchedules(std::size_t num_scheds);
+
+    /*!
      * \brief Reset the refine operators.
      */
     void resetRefineOperators();
@@ -1631,8 +1658,17 @@ private:
     /*!
      * \brief Execute schedule for restricting Outerside data to the specified
      * level from the next finer level.
+     *
+     * The datum src_idxs[k] is restricted into dst_idxs[k].
      */
-    void xeqScheduleOutersideRestriction(int dst_idx, int src_idx, int dst_ln);
+    void
+    xeqScheduleOutersideRestriction(const std::vector<int>& dst_idxs, const std::vector<int>& src_idxs, int dst_ln);
+
+    /*!
+     * \brief Register Outerside scratch data so that at least num_idxs indices
+     * are available in d_os_idxs.
+     */
+    void registerOutersideScratch(std::size_t num_idxs);
 
     /*!
      * \brief Execute schedule for restricting Outeredge data to the specified
@@ -1692,13 +1728,24 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_of_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_on_s_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_on_v_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_os_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_oe_coarsen_alg;
+
+    // Coarsen schedules for each level. Schedules are created on first use and discarded when the levels or the
+    // coarsen operators are reset.
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_of_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_on_s_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_on_v_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_os_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_oe_coarsen_scheds;
+
+    // Scratch Outerside indices; d_os_idxs[0] is d_os_idx.
+    std::vector<int> d_os_idxs;
+
+    // Coarsen algorithms and schedules for restricting Outerside data, keyed by
+    // the number of data restricted together. Schedules are created on first
+    // use and discarded when the levels or the coarsen operators are reset.
+    std::map<std::size_t, SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>>> d_os_multi_coarsen_algs;
+    std::map<std::size_t, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>>
+        d_os_multi_coarsen_scheds;
 
     // Hierarchy data operations.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double>> d_hier_cc_data_ops;
