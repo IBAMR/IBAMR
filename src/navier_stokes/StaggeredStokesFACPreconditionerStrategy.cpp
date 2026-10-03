@@ -458,11 +458,8 @@ StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVec
     }
     xeqScheduleProlongation(scratch_idxs, src_idxs, dst_ln);
 
-    // Add the prolonged correction into the fine level's interior only; the fine level's ghost cells are replaced
-    // by the prolonged ghost values below, not added to whatever they held before this call, for the same reason
-    // as in PoissonFACPreconditionerStrategy::prolongErrorAndCorrect (CartSideDoubleQuadraticCFInterpolation::
-    // computeNormalExtension() treats a ghost's current value as the coarse-side contribution to its quadratic
-    // extrapolation).
+    // Correct the interior values and overwrite the ghost values with the prolonged correction. Coarse-fine
+    // interpolation requires the coarse-fine ghost values to hold data interpolated from the coarse level alone.
     HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
     level_sc_data_ops_fine.add(U_dst_idx, U_dst_idx, d_side_scratch_idx, /*interior_only*/ true);
     HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
@@ -472,7 +469,7 @@ StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVec
     copy_ghost_region(*level, P_dst_idx, d_cell_scratch_idx);
 
     // Refill the physical-boundary and same-level ghost cells from the corrected interior; the coarse-fine ghost
-    // cells keep the (coarse-only) prolonged values set above.
+    // cells keep the values interpolated from the coarse level set above.
     xeqScheduleGhostFillNoCoarse(std::make_pair(U_dst_idx, P_dst_idx), dst_ln);
 
     IBAMR_TIMER_STOP(t_prolong_error_and_correct);
