@@ -162,6 +162,8 @@ SETUP(multiphase_flow water_entry_circular_cylinder.cpp IBAMR2d)
 
 # navier_stokes:
 SETUP_2D(navier_stokes stokes_petsc_level_solver_boundary.cpp)
+SETUP_2D(navier_stokes side_prolongation.cpp)
+SETUP_3D(navier_stokes side_prolongation.cpp)
 SETUP_2D(navier_stokes stokes_petsc_mat_utilities_pressure_transfer.cpp)
 SETUP_3D(navier_stokes stokes_petsc_mat_utilities_pressure_transfer.cpp)
 SETUP_2D(navier_stokes navier_stokes_01.cpp)
@@ -221,6 +223,7 @@ SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)
 SETUP(IB implicit_ib_jacobian_interpolation_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_01.cpp IBAMR2d)
+SETUP(IB implicit_stokes_ib_coarse_saj_transfer_parity_01.cpp IBAMR2d)
 SETUP(IB implicit_stokes_ib_solver_components_01.cpp IBAMR2d)
 
 # IBFE:
