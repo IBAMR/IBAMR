@@ -302,11 +302,6 @@ c     NOTE: We require the boundary box to be a "side centered" box.
       INTEGER ibdryc(0:NDIM-1)
       REAL w,w_fac
 
-c
-c     Prevent compiler warning about unused variables.
-c
-      coarse_box_lower(0) = coarse_box_lower(0)
-      coarse_box_upper(0) = coarse_box_upper(0)
 
 c
 c     Setup boundary box extents.
@@ -353,8 +348,10 @@ c
          enddo
          w_fac = 1.d0/w_fac
 
-         do k_c = bbox_ilowerc(2),bbox_iupperc(2)
-            do j_c = bbox_ilowerc(1),bbox_iupperc(1)
+         do k_c = max(bbox_ilowerc(2),coarse_box_lower(2)),
+     &             min(bbox_iupperc(2),coarse_box_upper(2))
+            do j_c = max(bbox_ilowerc(1),coarse_box_lower(1)),
+     &                min(bbox_iupperc(1),coarse_box_upper(1))
                i_c = ibdryc(0)
                i_f = i_c*ratio_to_coarser(0)
                j_f = j_c*ratio_to_coarser(1)
@@ -388,9 +385,11 @@ c
          enddo
          w_fac = 1.d0/w_fac
 
-         do k_c = bbox_ilowerc(2),bbox_iupperc(2)
+         do k_c = max(bbox_ilowerc(2),coarse_box_lower(2)),
+     &             min(bbox_iupperc(2),coarse_box_upper(2))
             j_c = ibdryc(1)
-            do i_c = bbox_ilowerc(0),bbox_iupperc(0)
+            do i_c = max(bbox_ilowerc(0),coarse_box_lower(0)),
+     &                min(bbox_iupperc(0),coarse_box_upper(0))
                i_f = i_c*ratio_to_coarser(0)
                j_f = j_c*ratio_to_coarser(1)
                k_f = k_c*ratio_to_coarser(2)
@@ -424,8 +423,10 @@ c
          w_fac = 1.d0/w_fac
 
          k_c = ibdryc(2)
-         do j_c = bbox_ilowerc(1),bbox_iupperc(1)
-            do i_c = bbox_ilowerc(0),bbox_iupperc(0)
+         do j_c = max(bbox_ilowerc(1),coarse_box_lower(1)),
+     &             min(bbox_iupperc(1),coarse_box_upper(1))
+            do i_c = max(bbox_ilowerc(0),coarse_box_lower(0)),
+     &                min(bbox_iupperc(0),coarse_box_upper(0))
                i_f = i_c*ratio_to_coarser(0)
                j_f = j_c*ratio_to_coarser(1)
                k_f = k_c*ratio_to_coarser(2)

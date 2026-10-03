@@ -77,7 +77,8 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
         Pointer<SideVariable<NDIM, double>> u_sc_var = new SideVariable<NDIM, double>("u_sc");
-        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(4));
+        const int u_ghost_width = input_db->getIntegerWithDefault("u_ghost_width", 4);
+        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(u_ghost_width));
         Pointer<SideVariable<NDIM, double>> exact_sc_var = new SideVariable<NDIM, double>("exact_sc");
         const int exact_sc_idx = var_db->registerVariableAndContext(exact_sc_var, ctx, IntVector<NDIM>(4));
         // TODO u_cc_var is only for plotting (and testing): remove later
@@ -163,10 +164,9 @@ main(int argc, char* argv[])
 
         // The rest is just book-keeping, this is the actual test:
         {
-            IntVector<NDIM> ratio;
-            for (int d = 0; d < NDIM; ++d) ratio(d) = 4;
             Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg = new CoarsenAlgorithm<NDIM>();
-            Pointer<CoarsenOperator<NDIM>> coarsen_op = new IBTK::CartSideDoubleRT0Coarsen(ratio);
+            Pointer<CoarsenOperator<NDIM>> coarsen_op =
+                new IBTK::CartSideDoubleRT0Coarsen(IntVector<NDIM>(u_ghost_width));
             coarsen_alg->registerCoarsen(u_sc_idx, u_sc_idx, coarsen_op);
             Pointer<CoarsenSchedule<NDIM>> coarsen_sched =
                 coarsen_alg->createSchedule(patch_hierarchy->getPatchLevel(0), patch_hierarchy->getPatchLevel(1));

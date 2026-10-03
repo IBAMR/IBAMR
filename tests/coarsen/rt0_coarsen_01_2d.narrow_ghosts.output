@@ -1,0 +1,22 @@
+max norm error = 0.125
+patch number 0
+Array side normal = 0
+Array depth = 0
+array(0,0) = -0.0833333
+array(4,0) = 0.0833333
+array(0,1) = -0.0833333
+array(4,1) = 0.0833333
+array(0,2) = -0.0833333
+array(4,2) = 0.0833333
+array(0,3) = -0.0833333
+array(4,3) = 0.0833333
+Array side normal = 1
+Array depth = 0
+array(0,0) = 0.125
+array(1,0) = 0.125
+array(2,0) = 0.125
+array(3,0) = 0.125
+array(0,4) = -0.125
+array(1,4) = -0.125
+array(2,4) = -0.125
+array(3,4) = -0.125
