@@ -416,8 +416,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     }
                     else if (traction_bc)
                     {
-                        // A Robin-type ghost value folds into the diagonal with the same sign on both the lower
-                        // and upper boundary, as in PoissonUtilities::computeMatrixCoefficients().
+                        // A traction condition prescribes the normal derivative of a tangential velocity
+                        // component, so the ghost value is the interior value plus boundary data. Add the ghost
+                        // coefficient to the diagonal.
                         if (is_lower)
                         {
                             uu_matrix_coefs(i_s, 0) += uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
