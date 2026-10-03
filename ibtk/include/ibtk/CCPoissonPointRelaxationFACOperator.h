@@ -258,9 +258,15 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
+     * d_patch_cf_bdry_ghost_boxes[ln][k] holds the ghost cells along the coarse-fine interface of the k-th local patch
+     * on level ln above the coarsest level, which smoothError() saves and restores between sweeps. It is empty for a
+     * patch without a coarse-fine interface.
+     */
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_cf_bdry_ghost_boxes;
+
+    /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_bc_box_overlap;
     std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM>>>> d_patch_neighbor_overlap;
 
     // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost
