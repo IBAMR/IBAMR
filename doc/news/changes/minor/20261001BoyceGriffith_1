@@ -1,0 +1,3 @@
+Fixed: Use a divergence-free normal velocity ghost value in the staggered convective operators at open boundaries.
+<br>
+(Boyce Griffith, 2026/10/01)

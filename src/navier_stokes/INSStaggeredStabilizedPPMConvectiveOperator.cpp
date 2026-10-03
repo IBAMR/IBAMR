@@ -589,6 +589,9 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, nullptr);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
+    // Use divergence-free normal velocity ghost values where the normal velocity is not prescribed.
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx, d_coarsest_ln, d_finest_ln);
+
     // Compute the convective derivative.
     Pointer<GridGeometry<NDIM>> grid_geometry = d_hierarchy->getGridGeometry();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

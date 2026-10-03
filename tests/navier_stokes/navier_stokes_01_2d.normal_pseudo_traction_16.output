@@ -1,0 +1,377 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 6
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 1.13244e-20
+Input database:
+input_db {
+   MU                 = 0.01                                // input used
+   RHO                = 1                                   // input used
+   L                  = 1                                   // input used
+   MAX_LEVELS         = 1                                   // input used
+   N                  = 16                                  // input used
+   SOLVER_TYPE        = "STAGGERED"                         // input used
+   CFL_MAX            = 0.3                                 // input used
+   DT_MAX             = 0.00390625                          // input used
+   START_TIME         = 0                                   // input used
+   END_TIME           = 0.03125                             // input used
+   GROW_DT            = 2                                   // input used
+   NUM_CYCLES         = 1                                   // input used
+   CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"                   // input used
+   CONVECTIVE_OP_TYPE = "PPM"                               // input used
+   CONVECTIVE_FORM    = "ADVECTIVE"                         // input used
+   NORMALIZE_PRESSURE = FALSE                               // input used
+   REGRID_INTERVAL    = 10000000                            // input used
+   ENABLE_LOGGING     = TRUE                                // input used
+   TRACTION_BC_TYPE   = "PSEUDO_TRACTION"                   // input used
+   U                  = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)" // input used
+   V                  = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)" // input used
+   P                  = "-(cos(4*PI*(X_0-t)) + cos(4*PI*(X_1-t)))*exp(-16*PI*PI*nu*t)" // input used
+   T_N                = "(cos(4*PI*(X_0-t))+cos(4*PI*(X_1-t)))*exp(-16*PI^2*nu*t)-4*nu*PI*sin(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)" // input used
+   T_T                = "-4*PI*nu*cos(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)" // input used
+   VelocityInitialConditions {
+      nu         = 0.01                                     // input used
+      function_0 = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)" // input used
+      function_1 = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)" // input used
+   }
+   VelocityBcCoefs_0 {
+      nu               = 0.01                               // input used
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "1.0"                              // input used
+      acoef_function_2 = "0.0"                              // input used
+      acoef_function_3 = "0.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "0.0"                              // input used
+      bcoef_function_2 = "1.0"                              // input used
+      bcoef_function_3 = "1.0"                              // input used
+      gcoef_function_0 = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)" // input used
+      gcoef_function_1 = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)" // input used
+      gcoef_function_2 = "-4*PI*nu*cos(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)" // input used
+      gcoef_function_3 = "-4*PI*nu*cos(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)" // input used
+   }
+   VelocityBcCoefs_1 {
+      nu               = 0.01                               // input used
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "1.0"                              // input used
+      acoef_function_2 = "0.0"                              // input used
+      acoef_function_3 = "0.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "0.0"                              // input used
+      bcoef_function_2 = "1.0"                              // input used
+      bcoef_function_3 = "1.0"                              // input used
+      gcoef_function_0 = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)" // input used
+      gcoef_function_1 = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)" // input used
+      gcoef_function_2 = "(cos(4*PI*(X_0-t))+cos(4*PI*(X_1-t)))*exp(-16*PI^2*nu*t)-4*nu*PI*sin(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)" // input used
+      gcoef_function_3 = "(cos(4*PI*(X_0-t))+cos(4*PI*(X_1-t)))*exp(-16*PI^2*nu*t)-4*nu*PI*sin(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI^2*nu*t)" // input used
+   }
+   PressureInitialConditions {
+      nu       = 0.01                                       // input used
+      function = "-(cos(4*PI*(X_0-t)) + cos(4*PI*(X_1-t)))*exp(-16*PI*PI*nu*t)" // input used
+   }
+   INSStaggeredHierarchyIntegrator {
+      mu                             = 0.01                 // input used
+      rho                            = 1                    // input used
+      start_time                     = 0                    // input used
+      end_time                       = 0.03125              // input used
+      grow_dt                        = 2                    // input used
+      num_cycles                     = 1                    // input used
+      convective_time_stepping_type  = "ADAMS_BASHFORTH"    // input used
+      convective_op_type             = "PPM"                // input used
+      convective_difference_form     = "ADVECTIVE"          // input used
+      normalize_pressure             = FALSE                // input used
+      cfl                            = 0.3                  // input used
+      dt_max                         = 0.00390625           // input used
+      regrid_interval                = 10000000             // input used
+      enable_logging                 = TRUE                 // input used
+      traction_bc_type               = "PSEUDO_TRACTION"    // input used
+      stokes_solver_type             = "PETSC_KRYLOV_SOLVER" // input used
+      stokes_precond_type            = "PROJECTION_PRECONDITIONER" // input used
+      velocity_solver_type           = "PETSC_KRYLOV_SOLVER" // input used
+      velocity_precond_type          = "POINT_RELAXATION_FAC_PRECONDITIONER" // input used
+      pressure_solver_type           = "PETSC_KRYLOV_SOLVER" // input used
+      pressure_precond_type          = "POINT_RELAXATION_FAC_PRECONDITIONER" // input used
+      regrid_projection_solver_type  = "PETSC_KRYLOV_SOLVER" // input used
+      regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER" // input used
+      U_P_bdry_interp_type           = "LINEAR"             // from default
+      stokes_solver_db {
+         ksp_type               = "fgmres"                  // input used
+         rel_residual_tol       = 1e-12                     // input used
+         max_iterations         = 200                       // input used
+         refine_type            = "NONE"                    // from default
+         coarsen_type           = "CUBIC_COARSEN"           // from default
+         bdry_extrap_type       = "LINEAR"                  // from default
+         bdry_interp_type       = "LINEAR"                  // from default
+         use_cf_interpolation   = TRUE                      // from default
+         consistent_type_2_bdry = FALSE                     // from default
+      }
+      stokes_precond_db {
+         Phi_data_refine_type     = "NONE"                  // input used
+         Phi_use_cf_interpolation = TRUE                    // input used
+         Phi_data_coarsen_type    = "CUBIC_COARSEN"         // input used
+         Phi_bdry_extrap_type     = "LINEAR"                // input used
+      }
+      velocity_solver_db {
+         ksp_type       = "richardson"                      // input used
+         max_iterations = 1                                 // input used
+         laplace_op {
+            data_refine_type     = "NONE"                   // input used
+            use_cf_interpolation = TRUE                     // input used
+            data_coarsen_type    = "CUBIC_COARSEN"          // input used
+            bdry_extrap_type     = "LINEAR"                 // input used
+         }
+      }
+      velocity_precond_db {
+         num_pre_sweeps                 = 0                 // input used
+         num_post_sweeps                = 3                 // input used
+         prolongation_method            = "CONSTANT_REFINE" // input used
+         restriction_method             = "CONSERVATIVE_COARSEN" // input used
+         coarse_solver_type             = "HYPRE_LEVEL_SOLVER" // input used
+         coarse_solver_rel_residual_tol = 1e-12             // input used
+         coarse_solver_abs_residual_tol = 1e-50             // input used
+         coarse_solver_max_iterations   = 1                 // input used
+         data_refine_type               = "NONE"            // input used
+         use_cf_interpolation           = TRUE              // input used
+         data_coarsen_type              = "CUBIC_COARSEN"   // input used
+         bdry_extrap_type               = "LINEAR"          // input used
+         coarse_solver_db {
+            solver_type       = "Split"                     // input used
+            split_solver_type = "PFMG"                      // input used
+            enable_logging    = FALSE                       // input used
+         }
+      }
+      pressure_solver_db {
+         ksp_type       = "richardson"                      // input used
+         max_iterations = 1                                 // input used
+         laplace_op {
+            data_refine_type     = "NONE"                   // input used
+            use_cf_interpolation = TRUE                     // input used
+            data_coarsen_type    = "CUBIC_COARSEN"          // input used
+            bdry_extrap_type     = "LINEAR"                 // input used
+         }
+      }
+      pressure_precond_db {
+         num_pre_sweeps                 = 0                 // input used
+         num_post_sweeps                = 3                 // input used
+         prolongation_method            = "LINEAR_REFINE"   // input used
+         restriction_method             = "CONSERVATIVE_COARSEN" // input used
+         coarse_solver_type             = "HYPRE_LEVEL_SOLVER" // input used
+         coarse_solver_rel_residual_tol = 1e-12             // input used
+         coarse_solver_abs_residual_tol = 1e-50             // input used
+         coarse_solver_max_iterations   = 1                 // input used
+         data_refine_type               = "NONE"            // input used
+         use_cf_interpolation           = TRUE              // input used
+         data_coarsen_type              = "CUBIC_COARSEN"   // input used
+         bdry_extrap_type               = "LINEAR"          // input used
+         coarse_solver_db {
+            solver_type          = "PFMG"                   // input used
+            num_pre_relax_steps  = 0                        // input used
+            num_post_relax_steps = 3                        // input used
+            enable_logging       = FALSE                    // input used
+         }
+      }
+      regrid_projection_solver_db {
+         ksp_type = "fgmres"                                // input used
+      }
+      regrid_projection_precond_db {
+         num_pre_sweeps                 = 0                 // input used
+         num_post_sweeps                = 3                 // input used
+         prolongation_method            = "LINEAR_REFINE"   // input used
+         restriction_method             = "CONSERVATIVE_COARSEN" // input used
+         coarse_solver_type             = "HYPRE_LEVEL_SOLVER" // input used
+         coarse_solver_rel_residual_tol = 1e-12             // input used
+         coarse_solver_abs_residual_tol = 1e-50             // input used
+         coarse_solver_max_iterations   = 1                 // input used
+         data_refine_type               = "NONE"            // input used
+         use_cf_interpolation           = TRUE              // input used
+         data_coarsen_type              = "CUBIC_COARSEN"   // input used
+         bdry_extrap_type               = "LINEAR"          // input used
+         coarse_solver_db {
+            solver_type          = "PFMG"                   // input used
+            num_pre_relax_steps  = 0                        // input used
+            num_post_relax_steps = 3                        // input used
+            enable_logging       = FALSE                    // input used
+         }
+      }
+   }
+   Main {
+      solver_type   = "STAGGERED"                           // input used
+      log_file_name = "output"                              // input used
+      log_all_nodes = FALSE                                 // input used
+   }
+   CartesianGeometry {
+      domain_boxes       = [(0,0),(15,15)]                  // input used
+      x_lo               = 0, 0                             // input used
+      x_up               = 1, 1                             // input used
+      periodic_dimension = 1, 0                             // input used
+   }
+   GriddingAlgorithm {
+      max_levels                = 1                         // input used
+      check_nonrefined_tags     = 'w'                       // from default
+      check_overlapping_patches = 'i'                       // from default
+      extend_tags_to_bdry       = FALSE                     // from default
+      largest_patch_size {
+         level_0 = 512, 512                                 // input used
+      }
+      smallest_patch_size {
+         level_0 = 4, 4                                     // input used
+      }
+   }
+   StandardTagAndInitialize {
+      tagging_method = "GRADIENT_DETECTOR"                  // input used
+   }
+   LoadBalancer {
+      bin_pack_method                      = "SPATIAL"      // input used
+      max_workload_factor                  = 1              // input used
+      ignore_level_box_union_is_single_box = FALSE          // from default
+   }
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.00390625], dt = 0.00390625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.68248e-11
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 9
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.12278e-10
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.185269
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 0
+Simulation time is 0.00390625
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.00390625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.00390625,0.0078125], dt = 0.00390625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 7.17552e-11
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.185291
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 1
+Simulation time is 0.0078125
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 2
+Simulation time is 0.0078125
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.0078125,0.0117188], dt = 0.00390625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 7.49436e-11
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.185162
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 2
+Simulation time is 0.0117188
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 3
+Simulation time is 0.0117188
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.0117188,0.015625], dt = 0.00390625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 7.74861e-11
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.184887
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 3
+Simulation time is 0.015625
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 4
+Simulation time is 0.015625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.015625,0.0195312], dt = 0.00390625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.14497e-11
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.184462
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 4
+Simulation time is 0.0195312
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 5
+Simulation time is 0.0195312
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.0195312,0.0234375], dt = 0.00390625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.43156e-11
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.183889
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 5
+Simulation time is 0.0234375
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 6
+Simulation time is 0.0234375
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.0234375,0.0273438], dt = 0.00390625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.72219e-11
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.183171
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 6
+Simulation time is 0.0273438
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 7
+Simulation time is 0.0273438
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.0273438,0.03125], dt = 0.00390625
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.01006e-11
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.182309
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 7
+Simulation time is 0.03125
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+Computing error norms.
+
+Error in u at time 0.03125:
+  L1-norm:  0.001352910886
+  L2-norm:  0.001425850079
+  max-norm: 0.004521643275
+Error in p at time 0.029296875:
+  L1-norm:  0.05588668024
+  L2-norm:  0.05728056241
+  max-norm: 0.08384947653
++++++++++++++++++++++++++++++++++++++++++++++++++++
