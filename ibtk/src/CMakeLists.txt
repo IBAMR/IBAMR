@@ -155,6 +155,8 @@ SET(CXX_SRC
   solvers/impls/PETScLevelSolverPetscSubdomainSolver.cpp
   solvers/impls/PETScLevelSolverBlasLapackSubdomainSolver.cpp
   solvers/impls/PETScLevelSolverSubdomainSolver.cpp
+  solvers/impls/PETScLevelSolverEigenSubdomainSolver.cpp
+  solvers/impls/EigenDenseSolver.cpp
   solvers/impls/CCPoissonSolverManager.cpp
   solvers/impls/PoissonFACPreconditionerStrategy.cpp
   solvers/impls/BGaussSeidelPreconditioner.cpp

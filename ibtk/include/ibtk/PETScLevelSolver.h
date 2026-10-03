@@ -128,10 +128,11 @@ namespace IBTK
  * <b>Subdomain solvers</b>
  *
  * The optional database subdomain_relaxation.subdomain_solver selects the subdomain solver by its type
- * and holds its settings. The type is "petsc" (default) or "blas-lapack"; see make_petsc_subdomain_solver()
- * and make_blas_lapack_subdomain_solver() for their settings. The type can also name one of the
- * SubdomainSolverFactories that a derived class or its user supplies, and setSubdomainSolver() supplies
- * another subdomain solver.
+ * and holds its settings. The type is "petsc" (default), "blas-lapack", "eigen", or
+ * "eigen-pseudoinverse"; see make_petsc_subdomain_solver(), make_blas_lapack_subdomain_solver(),
+ * make_eigen_subdomain_solver(), and make_eigen_pseudoinverse_subdomain_solver() for their settings. The
+ * type can also name one of the SubdomainSolverFactories that a derived class or its user supplies, and
+ * setSubdomainSolver() supplies another subdomain solver.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
@@ -182,7 +183,8 @@ public:
      * of the one that the subdomain_solver database selects.
      *
      * The solver takes ownership of subdomain_solver, which must not be empty, and
-     * retains it across reinitialization of the solver state. It is initialized
+     * retains it across reinitialization of the solver state. It takes precedence
+     * over the subdomain_solver database. It is initialized
      * and deallocated only when pc_type = "shell". Call this before initializing
      * the level solver, or after calling its deallocateSolverState().
      */

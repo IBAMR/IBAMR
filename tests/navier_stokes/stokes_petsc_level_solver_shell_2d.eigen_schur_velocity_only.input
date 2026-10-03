@@ -1,0 +1,7 @@
+test {
+ eigen_local = "schur_velocity_only"
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
