@@ -175,6 +175,14 @@ main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
+        // Create fluid source/sink function specification objects (when necessary).
+        if (input_db->keyExists("FluidSourceFunction"))
+        {
+            Pointer<CartGridFunction> q_fcn = new muParserCartGridFunction(
+                "q_fcn", app_initializer->getComponentDatabase("FluidSourceFunction"), grid_geometry);
+            time_integrator->registerVelocityDivergenceFunction(q_fcn);
+        }
+
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
