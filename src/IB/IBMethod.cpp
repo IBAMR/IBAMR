@@ -1076,10 +1076,33 @@ IBMethod::spreadFluidSource(const int q_data_idx,
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    // Get the present source locations.
-    std::vector<Pointer<LData>>* X_data;
-    bool* X_needs_ghost_fill;
-    getLECouplingPositionData(&X_data, &X_needs_ghost_fill, data_time);
+    // Get the present source locations. Outside of a time step, use the
+    // positions stored by the Lagrangian data manager.
+    std::vector<Pointer<LData>> X_stored_data;
+    std::vector<Pointer<LData>>* X_data = nullptr;
+    bool* X_needs_ghost_fill = nullptr;
+    if (std::isfinite(d_current_time))
+    {
+        getLECouplingPositionData(&X_data, &X_needs_ghost_fill, data_time);
+    }
+    else
+    {
+        if (!IBTK::rel_equal_eps(data_time, d_ib_solver->getIntegratorTime()))
+        {
+            TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
+                                     << "  outside of a time step, sources can be spread only at the current time."
+                                     << std::endl);
+        }
+        X_stored_data.resize(finest_ln + 1);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_l_data_manager->levelContainsLagrangianData(ln))
+            {
+                X_stored_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
+            }
+        }
+        X_data = &X_stored_data;
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
