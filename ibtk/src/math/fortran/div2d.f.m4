@@ -378,3 +378,76 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes D = alpha div u + beta V + gamma W.
+c
+c     Uses centered differences to compute the cell centered divergence
+c     of a side centered variable u=(u0,u1).  The sum is evaluated as
+c     (alpha div u + beta V) + gamma W, so that the result is identical
+c     to computing alpha div u + beta V first and then adding gamma W.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine stocdivaddadd2d(
+     &     D,D_gcw,
+     &     alpha,
+     &     u0,u1,u_gcw,
+     &     beta,
+     &     V,V_gcw,
+     &     gamma,
+     &     W,W_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER D_gcw,u_gcw,V_gcw,W_gcw
+
+      REAL alpha
+
+      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
+
+      REAL beta
+
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+
+      REAL gamma
+
+      REAL W(CELL2d(ilower,iupper,W_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL D(CELL2d(ilower,iupper,D_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    fac0,fac1
+c
+c     Compute D = alpha div u + beta V + gamma W.
+c
+      fac0 = alpha/dx(0)
+      fac1 = alpha/dx(1)
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            D(i0,i1) =
+     &           (fac0*(u0(i0+1,i1)-u0(i0,i1)) +
+     &            fac1*(u1(i0,i1+1)-u1(i0,i1)) +
+     &            beta*V(i0,i1)) +
+     &           gamma*W(i0,i1)
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

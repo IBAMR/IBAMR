@@ -227,6 +227,23 @@ public:
              int m = 0) const;
 
     /*!
+     * \brief Computes dst_l = alpha div src1 + beta src2_m + gamma src3_n.
+     *
+     * Uses centered differences.
+     */
+    void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dst,
+             double alpha,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> src1,
+             double beta,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> src2,
+             double gamma,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> src3,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+             int l = 0,
+             int m = 0,
+             int n = 0) const;
+
+    /*!
      * \brief Computes dst = alpha grad src1_l + beta src2.
      *
      * Uses centered differences.
