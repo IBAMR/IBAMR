@@ -271,45 +271,31 @@ enum SmootherType
     PATCH_GAUSS_SEIDEL,
     PROCESSOR_GAUSS_SEIDEL,
     RED_BLACK_GAUSS_SEIDEL,
+    PATCH_RED_BLACK_GAUSS_SEIDEL,
     UNKNOWN = -1
 };
 
 inline SmootherType
 get_smoother_type(const std::string& smoother_type_string)
 {
-    if (smoother_type_string == "PATCH_GAUSS_SEIDEL") return PATCH_GAUSS_SEIDEL;
-    if (smoother_type_string == "PROCESSOR_GAUSS_SEIDEL") return PROCESSOR_GAUSS_SEIDEL;
+    if (smoother_type_string == "PATCH_GAUSS_SEIDEL")
+    {
+        return PATCH_GAUSS_SEIDEL;
+    }
+    if (smoother_type_string == "PROCESSOR_GAUSS_SEIDEL")
+    {
+        return PROCESSOR_GAUSS_SEIDEL;
+    }
     if (smoother_type_string == "RED_BLACK_GAUSS_SEIDEL")
+    {
         return RED_BLACK_GAUSS_SEIDEL;
-    else
-        return UNKNOWN;
+    }
+    if (smoother_type_string == "PATCH_RED_BLACK_GAUSS_SEIDEL")
+    {
+        return PATCH_RED_BLACK_GAUSS_SEIDEL;
+    }
+    return UNKNOWN;
 } // get_smoother_type
-
-inline bool
-use_red_black_ordering(SmootherType smoother_type)
-{
-    if (smoother_type == RED_BLACK_GAUSS_SEIDEL)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-} // use_red_black_ordering
-
-inline bool
-do_local_data_update(SmootherType smoother_type)
-{
-    if (smoother_type == PROCESSOR_GAUSS_SEIDEL || smoother_type == RED_BLACK_GAUSS_SEIDEL)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-} // do_local_data_update
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -454,13 +440,18 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
 #if !defined(NDEBUG)
     TBOX_ASSERT(smoother_type != UNKNOWN);
 #endif
-    const bool red_black_ordering = use_red_black_ordering(smoother_type);
-    const bool update_local_data = do_local_data_update(smoother_type);
+    const bool level_red_black_ordering = smoother_type == RED_BLACK_GAUSS_SEIDEL;
+    const bool patch_red_black_ordering = smoother_type == PATCH_RED_BLACK_GAUSS_SEIDEL;
+    const bool red_black_ordering = level_red_black_ordering || patch_red_black_ordering;
+    // Only the processor Gauss-Seidel smoother reads updated values of neighboring patches within a pass.
+    const bool update_local_data = smoother_type == PROCESSOR_GAUSS_SEIDEL;
 
-    // Red-black ordering does two passes (red, then black) per requested sweep, so double num_sweeps before
-    // deciding whether to cache the coarse-fine ghost values below: that decision depends on the actual number
-    // of passes that will run, not the number of sweeps the caller requested.
-    if (red_black_ordering) num_sweeps *= 2;
+    // Red-black ordering over the whole level makes two passes per sweep.
+    if (level_red_black_ordering)
+    {
+        num_sweeps *= 2;
+    }
+
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln && num_sweeps > 1)
     {
@@ -527,6 +518,11 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
         {
             xeqScheduleGhostFillNoCoarse(error_idx, level_num);
         }
+
+        // Red-black ordering within each patch applies both colors to each patch in one pass. Red-black ordering over
+        // the whole level applies one color per pass ("red" = 0, "black" = 1).
+        const int first_color = patch_red_black_ordering ? 0 : isweep % 2;
+        const int end_color = patch_red_black_ordering ? 2 : first_color + 1;
 
         // Smooth the error on the patches.
         int patch_counter = 0;
@@ -603,23 +599,25 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                 {
                     if (red_black_ordering)
                     {
-                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        SMOOTH_GS_RB_CONST_DC_FC(U,
-                                                 U_ghosts,
-                                                 D,
-                                                 C,
-                                                 F,
-                                                 F_ghosts,
-                                                 patch_box.lower(0),
-                                                 patch_box.upper(0),
-                                                 patch_box.lower(1),
-                                                 patch_box.upper(1),
+                        for (int red_or_black = first_color; red_or_black < end_color; ++red_or_black)
+                        {
+                            SMOOTH_GS_RB_CONST_DC_FC(U,
+                                                     U_ghosts,
+                                                     D,
+                                                     C,
+                                                     F,
+                                                     F_ghosts,
+                                                     patch_box.lower(0),
+                                                     patch_box.upper(0),
+                                                     patch_box.lower(1),
+                                                     patch_box.upper(1),
 #if (NDIM == 3)
-                                                 patch_box.lower(2),
-                                                 patch_box.upper(2),
+                                                     patch_box.lower(2),
+                                                     patch_box.upper(2),
 #endif
-                                                 dx,
-                                                 red_or_black);
+                                                     dx,
+                                                     red_or_black);
+                        }
                     }
                     else
                     {
@@ -650,28 +648,30 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     const int D_ghosts = (D_data->getGhostCellWidth()).max();
                     if (red_black_ordering)
                     {
-                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        SMOOTH_GS_RB_VAR_D_CONST_C_FC(U,
-                                                      U_ghosts,
-                                                      D0,
-                                                      D1,
+                        for (int red_or_black = first_color; red_or_black < end_color; ++red_or_black)
+                        {
+                            SMOOTH_GS_RB_VAR_D_CONST_C_FC(U,
+                                                          U_ghosts,
+                                                          D0,
+                                                          D1,
 #if (NDIM == 3)
-                                                      D2,
+                                                          D2,
 #endif
-                                                      D_ghosts,
-                                                      C,
-                                                      F,
-                                                      F_ghosts,
-                                                      patch_box.lower(0),
-                                                      patch_box.upper(0),
-                                                      patch_box.lower(1),
-                                                      patch_box.upper(1),
+                                                          D_ghosts,
+                                                          C,
+                                                          F,
+                                                          F_ghosts,
+                                                          patch_box.lower(0),
+                                                          patch_box.upper(0),
+                                                          patch_box.lower(1),
+                                                          patch_box.upper(1),
 #if (NDIM == 3)
-                                                      patch_box.lower(2),
-                                                      patch_box.upper(2),
+                                                          patch_box.lower(2),
+                                                          patch_box.upper(2),
 #endif
-                                                      dx,
-                                                      red_or_black);
+                                                          dx,
+                                                          red_or_black);
+                        }
                     }
                     else
                     {
@@ -701,24 +701,26 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                 {
                     if (red_black_ordering)
                     {
-                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        SMOOTH_GS_RB_CONST_D_VAR_C_FC(U,
-                                                      U_ghosts,
-                                                      D,
-                                                      C_data->getPointer(),
-                                                      C_data->getGhostCellWidth().max(),
-                                                      F,
-                                                      F_ghosts,
-                                                      patch_box.lower(0),
-                                                      patch_box.upper(0),
-                                                      patch_box.lower(1),
-                                                      patch_box.upper(1),
+                        for (int red_or_black = first_color; red_or_black < end_color; ++red_or_black)
+                        {
+                            SMOOTH_GS_RB_CONST_D_VAR_C_FC(U,
+                                                          U_ghosts,
+                                                          D,
+                                                          C_data->getPointer(),
+                                                          C_data->getGhostCellWidth().max(),
+                                                          F,
+                                                          F_ghosts,
+                                                          patch_box.lower(0),
+                                                          patch_box.upper(0),
+                                                          patch_box.lower(1),
+                                                          patch_box.upper(1),
 #if (NDIM == 3)
-                                                      patch_box.lower(2),
-                                                      patch_box.upper(2),
+                                                          patch_box.lower(2),
+                                                          patch_box.upper(2),
 #endif
-                                                      dx,
-                                                      red_or_black);
+                                                          dx,
+                                                          red_or_black);
+                        }
                     }
                     else
                     {
@@ -750,29 +752,31 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     const int D_ghosts = (D_data->getGhostCellWidth()).max();
                     if (red_black_ordering)
                     {
-                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        SMOOTH_GS_RB_VAR_DC_FC(U,
-                                               U_ghosts,
-                                               D0,
-                                               D1,
+                        for (int red_or_black = first_color; red_or_black < end_color; ++red_or_black)
+                        {
+                            SMOOTH_GS_RB_VAR_DC_FC(U,
+                                                   U_ghosts,
+                                                   D0,
+                                                   D1,
 #if (NDIM == 3)
-                                               D2,
+                                                   D2,
 #endif
-                                               D_ghosts,
-                                               C_data->getPointer(),
-                                               C_data->getGhostCellWidth().max(),
-                                               F,
-                                               F_ghosts,
-                                               patch_box.lower(0),
-                                               patch_box.upper(0),
-                                               patch_box.lower(1),
-                                               patch_box.upper(1),
+                                                   D_ghosts,
+                                                   C_data->getPointer(),
+                                                   C_data->getGhostCellWidth().max(),
+                                                   F,
+                                                   F_ghosts,
+                                                   patch_box.lower(0),
+                                                   patch_box.upper(0),
+                                                   patch_box.lower(1),
+                                                   patch_box.upper(1),
 #if (NDIM == 3)
-                                               patch_box.lower(2),
-                                               patch_box.upper(2),
+                                                   patch_box.lower(2),
+                                                   patch_box.upper(2),
 #endif
-                                               dx,
-                                               red_or_black);
+                                                   dx,
+                                                   red_or_black);
+                        }
                     }
                     else
                     {

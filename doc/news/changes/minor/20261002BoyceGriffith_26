@@ -1,0 +1,3 @@
+New: IBTK::CCPoissonPointRelaxationFACOperator and IBTK::SCPoissonPointRelaxationFACOperator support the smoother type PATCH_RED_BLACK_GAUSS_SEIDEL, which applies red-black ordering within each patch.
+<br>
+(Boyce Griffith, 2026/10/02)

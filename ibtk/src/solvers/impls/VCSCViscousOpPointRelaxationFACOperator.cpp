@@ -50,14 +50,10 @@
 #if (NDIM == 2)
 #define VC_GS_SMOOTH_FC IBTK_FC_FUNC(vcgssmooth2d, VCGSSMOOTH2D)
 #define VC_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(vcgssmoothmask2d, VCGSSMOOTHMASK2D)
-#define VC_RB_GS_SMOOTH_FC IBTK_FC_FUNC(vcrbgssmooth2d, VCRBGSSMOOTH2D)
-#define VC_RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(vcrbgssmoothmask2d, VCRBGSSMOOTHMASK2D)
 #endif
 #if (NDIM == 3)
 #define VC_GS_SMOOTH_FC IBTK_FC_FUNC(vcgssmooth3d, VCGSSMOOTH3D)
 #define VC_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(vcgssmoothmask3d, VCGSSMOOTHMASK3D)
-#define VC_RB_GS_SMOOTH_FC IBTK_FC_FUNC(vcrbgssmooth3d, VCRBGSSMOOTH3D)
-#define VC_RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(vcrbgssmoothmask3d, VCRBGSSMOOTHMASK3D)
 #endif
 
 // Function interfaces
@@ -150,96 +146,6 @@ extern "C"
                               const double* dx,
                               const int& var_c,
                               const int& use_harmonic_interp);
-
-    void VC_RB_GS_SMOOTH_FC(double* U0,
-                            double* U1,
-#if (NDIM == 3)
-                            double* U2,
-#endif
-                            const int& U_gcw,
-                            const double* F0,
-                            const double* F1,
-#if (NDIM == 3)
-                            const double* F2,
-#endif
-                            const int& F_gcw,
-                            const double* C0,
-                            const double* C1,
-#if (NDIM == 3)
-                            const double* C2,
-#endif
-                            const int& C_gcw,
-#if (NDIM == 2)
-                            const double* mu,
-#endif
-#if (NDIM == 3)
-                            const double* mu0,
-                            const double* mu1,
-                            const double* mu2,
-#endif
-                            const int& mu_gcw,
-                            const double& alpha,
-                            const double& beta,
-                            const int& ilower0,
-                            const int& iupper0,
-                            const int& ilower1,
-                            const int& iupper1,
-#if (NDIM == 3)
-                            const int& ilower2,
-                            const int& iupper2,
-#endif
-                            const double* dx,
-                            const int& var_c,
-                            const int& use_harmonic_interp,
-                            const int& red_or_black);
-
-    void VC_RB_GS_SMOOTH_MASK_FC(double* U0,
-                                 double* U1,
-#if (NDIM == 3)
-                                 double* U2,
-#endif
-                                 const int& U_gcw,
-                                 const double* F0,
-                                 const double* F1,
-#if (NDIM == 3)
-                                 const double* F2,
-#endif
-                                 const int& F_gcw,
-                                 const int* mask0,
-                                 const int* mask1,
-#if (NDIM == 3)
-                                 const int* mask2,
-#endif
-                                 const int& mask_gcw,
-                                 const double* C0,
-                                 const double* C1,
-#if (NDIM == 3)
-                                 const double* C2,
-#endif
-                                 const int& C_gcw,
-#if (NDIM == 2)
-                                 const double* mu,
-#endif
-#if (NDIM == 3)
-                                 const double* mu0,
-                                 const double* mu1,
-                                 const double* mu2,
-#endif
-                                 const int& mu_gcw,
-                                 const double& alpha,
-                                 const double& beta,
-                                 const int& ilower0,
-                                 const int& iupper0,
-                                 const int& ilower1,
-                                 const int& iupper1,
-#if (NDIM == 3)
-                                 const int& ilower2,
-                                 const int& iupper2,
-#endif
-                                 const double* dx,
-                                 const int& var_c,
-                                 const int& use_harmonic_interp,
-                                 const int& red_or_black);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -274,46 +180,35 @@ enum SmootherType
 {
     PATCH_GAUSS_SEIDEL,
     PROCESSOR_GAUSS_SEIDEL,
-    RED_BLACK_GAUSS_SEIDEL,
     UNKNOWN = -1
 };
 
 inline SmootherType
 get_smoother_type(const std::string& smoother_type_string)
 {
-    if (smoother_type_string == "PATCH_GAUSS_SEIDEL") return PATCH_GAUSS_SEIDEL;
-    if (smoother_type_string == "PROCESSOR_GAUSS_SEIDEL") return PROCESSOR_GAUSS_SEIDEL;
-    if (smoother_type_string == "RED_BLACK_GAUSS_SEIDEL")
-        return RED_BLACK_GAUSS_SEIDEL;
-    else
-        return UNKNOWN;
+    if (smoother_type_string == "PATCH_GAUSS_SEIDEL")
+    {
+        return PATCH_GAUSS_SEIDEL;
+    }
+    if (smoother_type_string == "PROCESSOR_GAUSS_SEIDEL")
+    {
+        return PROCESSOR_GAUSS_SEIDEL;
+    }
+    return UNKNOWN;
 } // get_smoother_type
 
-inline bool
-use_red_black_ordering(SmootherType smoother_type)
+// Raise an error if a red-black Gauss-Seidel smoother is requested.
+void
+reject_red_black_ordering(const std::string& where, const std::string& value)
 {
-    if (smoother_type == RED_BLACK_GAUSS_SEIDEL)
+    if (value == "RED_BLACK_GAUSS_SEIDEL" || value == "PATCH_RED_BLACK_GAUSS_SEIDEL")
     {
-        return true;
+        TBOX_ERROR(where << ":\n"
+                         << "  VCSCViscousOpPointRelaxationFACOperator does not support red-black ordering: " << value
+                         << "\n");
     }
-    else
-    {
-        return false;
-    }
-} // use_red_black_ordering
-
-inline bool
-do_local_data_update(SmootherType smoother_type)
-{
-    if (smoother_type == PROCESSOR_GAUSS_SEIDEL || smoother_type == RED_BLACK_GAUSS_SEIDEL)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-} // do_local_data_update
+    return;
+} // reject_red_black_ordering
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -334,6 +229,10 @@ VCSCViscousOpPointRelaxationFACOperator::VCSCViscousOpPointRelaxationFACOperator
         t_compute_residual =
             TimerManager::getManager()->getTimer("IBTK::VCSCViscousOpPointRelaxationFACOperator::computeResidual()"););
 
+    // Input values read by the base class constructor do not pass through this class's setters.
+    reject_red_black_ordering(d_object_name + "::VCSCViscousOpPointRelaxationFACOperator()", d_smoother_type);
+    reject_red_black_ordering(d_object_name + "::VCSCViscousOpPointRelaxationFACOperator()", d_coarse_solver_type);
+
     // Set a default interpolation type.
     d_D_interp_type = IBTK::VC_HARMONIC_INTERP;
 
@@ -345,6 +244,22 @@ VCSCViscousOpPointRelaxationFACOperator::~VCSCViscousOpPointRelaxationFACOperato
     if (d_is_initialized) deallocateOperatorState();
     return;
 } // ~VCSCViscousOpPointRelaxationFACOperator
+
+void
+VCSCViscousOpPointRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
+{
+    reject_red_black_ordering(d_object_name + "::setSmootherType()", smoother_type);
+    SCPoissonPointRelaxationFACOperator::setSmootherType(smoother_type);
+    return;
+} // setSmootherType
+
+void
+VCSCViscousOpPointRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
+{
+    reject_red_black_ordering(d_object_name + "::setCoarseSolverType()", coarse_solver_type);
+    SCPoissonPointRelaxationFACOperator::setCoarseSolverType(coarse_solver_type);
+    return;
+} // setCoarseSolverType
 
 void
 VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
@@ -368,13 +283,9 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 #if !defined(NDEBUG)
     TBOX_ASSERT(smoother_type != UNKNOWN);
 #endif
-    const bool red_black_ordering = use_red_black_ordering(smoother_type);
-    const bool update_local_data = do_local_data_update(smoother_type);
+    // Only the processor Gauss-Seidel smoother reads updated values of neighboring patches within a pass.
+    const bool update_local_data = smoother_type == PROCESSOR_GAUSS_SEIDEL;
 
-    // Red-black ordering does two passes (red, then black) per requested sweep, so double num_sweeps before
-    // deciding whether to cache the coarse-fine ghost values below: that decision depends on the actual number
-    // of passes that will run, not the number of sweeps the caller requested.
-    if (red_black_ordering) num_sweeps *= 2;
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln && num_sweeps > 1)
     {
@@ -576,197 +487,95 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 
                 if (patch_has_dirichlet_bdry)
                 {
-                    if (red_black_ordering)
-                    {
-                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        VC_RB_GS_SMOOTH_MASK_FC(U0,
-                                                U1,
+                    VC_GS_SMOOTH_MASK_FC(U0,
+                                         U1,
 #if (NDIM == 3)
-                                                U2,
+                                         U2,
 #endif
-                                                U_ghosts,
-                                                F0,
-                                                F1,
+                                         U_ghosts,
+                                         F0,
+                                         F1,
 #if (NDIM == 3)
-                                                F2,
+                                         F2,
 #endif
-                                                F_ghosts,
-                                                mask0,
-                                                mask1,
+                                         F_ghosts,
+                                         mask0,
+                                         mask1,
 #if (NDIM == 3)
-                                                mask2,
+                                         mask2,
 #endif
-                                                mask_ghosts,
-                                                C0,
-                                                C1,
+                                         mask_ghosts,
+                                         C0,
+                                         C1,
 #if (NDIM == 3)
-                                                C2,
+                                         C2,
 #endif
-                                                C_ghosts,
+                                         C_ghosts,
 #if (NDIM == 2)
-                                                mu,
+                                         mu,
 #endif
 #if (NDIM == 3)
-                                                mu0,
-                                                mu1,
-                                                mu2,
+                                         mu0,
+                                         mu1,
+                                         mu2,
 #endif
-                                                mu_ghosts,
-                                                alpha,
-                                                beta,
-                                                patch_box.lower(0),
-                                                patch_box.upper(0),
-                                                patch_box.lower(1),
-                                                patch_box.upper(1),
+                                         mu_ghosts,
+                                         alpha,
+                                         beta,
+                                         patch_box.lower(0),
+                                         patch_box.upper(0),
+                                         patch_box.lower(1),
+                                         patch_box.upper(1),
 #if (NDIM == 3)
-                                                patch_box.lower(2),
-                                                patch_box.upper(2),
+                                         patch_box.lower(2),
+                                         patch_box.upper(2),
 #endif
-                                                dx,
-                                                C_is_varying,
-                                                use_harmonic_interp,
-                                                red_or_black);
-                    }
-                    else
-                    {
-                        VC_GS_SMOOTH_MASK_FC(U0,
-                                             U1,
-#if (NDIM == 3)
-                                             U2,
-#endif
-                                             U_ghosts,
-                                             F0,
-                                             F1,
-#if (NDIM == 3)
-                                             F2,
-#endif
-                                             F_ghosts,
-                                             mask0,
-                                             mask1,
-#if (NDIM == 3)
-                                             mask2,
-#endif
-                                             mask_ghosts,
-                                             C0,
-                                             C1,
-#if (NDIM == 3)
-                                             C2,
-#endif
-                                             C_ghosts,
-#if (NDIM == 2)
-                                             mu,
-#endif
-#if (NDIM == 3)
-                                             mu0,
-                                             mu1,
-                                             mu2,
-#endif
-                                             mu_ghosts,
-                                             alpha,
-                                             beta,
-                                             patch_box.lower(0),
-                                             patch_box.upper(0),
-                                             patch_box.lower(1),
-                                             patch_box.upper(1),
-#if (NDIM == 3)
-                                             patch_box.lower(2),
-                                             patch_box.upper(2),
-#endif
-                                             dx,
-                                             C_is_varying,
-                                             use_harmonic_interp);
-                    }
+                                         dx,
+                                         C_is_varying,
+                                         use_harmonic_interp);
                 }
                 else
                 {
-                    if (red_black_ordering)
-                    {
-                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        VC_RB_GS_SMOOTH_FC(U0,
-                                           U1,
+                    VC_GS_SMOOTH_FC(U0,
+                                    U1,
 #if (NDIM == 3)
-                                           U2,
+                                    U2,
 #endif
-                                           U_ghosts,
-                                           F0,
-                                           F1,
+                                    U_ghosts,
+                                    F0,
+                                    F1,
 #if (NDIM == 3)
-                                           F2,
+                                    F2,
 #endif
-                                           F_ghosts,
-                                           C0,
-                                           C1,
+                                    F_ghosts,
+                                    C0,
+                                    C1,
 #if (NDIM == 3)
-                                           C2,
+                                    C2,
 #endif
-                                           C_ghosts,
+                                    C_ghosts,
 #if (NDIM == 2)
-                                           mu,
+                                    mu,
 #endif
 #if (NDIM == 3)
-                                           mu0,
-                                           mu1,
-                                           mu2,
+                                    mu0,
+                                    mu1,
+                                    mu2,
 #endif
-                                           mu_ghosts,
-                                           alpha,
-                                           beta,
-                                           patch_box.lower(0),
-                                           patch_box.upper(0),
-                                           patch_box.lower(1),
-                                           patch_box.upper(1),
+                                    mu_ghosts,
+                                    alpha,
+                                    beta,
+                                    patch_box.lower(0),
+                                    patch_box.upper(0),
+                                    patch_box.lower(1),
+                                    patch_box.upper(1),
 #if (NDIM == 3)
-                                           patch_box.lower(2),
-                                           patch_box.upper(2),
+                                    patch_box.lower(2),
+                                    patch_box.upper(2),
 #endif
-                                           dx,
-                                           C_is_varying,
-                                           use_harmonic_interp,
-                                           red_or_black);
-                    }
-                    else
-                    {
-                        VC_GS_SMOOTH_FC(U0,
-                                        U1,
-#if (NDIM == 3)
-                                        U2,
-#endif
-                                        U_ghosts,
-                                        F0,
-                                        F1,
-#if (NDIM == 3)
-                                        F2,
-#endif
-                                        F_ghosts,
-                                        C0,
-                                        C1,
-#if (NDIM == 3)
-                                        C2,
-#endif
-                                        C_ghosts,
-#if (NDIM == 2)
-                                        mu,
-#endif
-#if (NDIM == 3)
-                                        mu0,
-                                        mu1,
-                                        mu2,
-#endif
-                                        mu_ghosts,
-                                        alpha,
-                                        beta,
-                                        patch_box.lower(0),
-                                        patch_box.upper(0),
-                                        patch_box.lower(1),
-                                        patch_box.upper(1),
-#if (NDIM == 3)
-                                        patch_box.lower(2),
-                                        patch_box.upper(2),
-#endif
-                                        dx,
-                                        C_is_varying,
-                                        use_harmonic_interp);
-                    }
+                                    dx,
+                                    C_is_varying,
+                                    use_harmonic_interp);
                 }
             }
         }
