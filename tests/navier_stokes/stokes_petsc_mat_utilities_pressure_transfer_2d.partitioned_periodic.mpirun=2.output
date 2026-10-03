@@ -1,0 +1,14 @@
+prolongation input norm = 1.98195
+prolongation matrix norm = 1.98195
+prolongation schedule norm = 1.98195
+prolongation transfer error = 4.44089e-16
+prolongation constant error = 2.22045e-16
+prolongation affine interior error = 2.22045e-16
+restriction input norm = 1.98382
+restriction matrix norm = 1.41647
+restriction schedule norm = 1.41647
+restriction transfer error = 2.22045e-16
+restriction constant error = 2.22045e-16
+restriction affine interior error = 2.22045e-16
+restriction volume adjoint error = 6.93889e-18
+off-process pressure matrix entries = 128
