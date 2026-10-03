@@ -61,27 +61,7 @@ namespace IBTK
 class FACPreconditionerStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
-    /*!
-     * \brief Every concrete FACPreconditionerStrategy implements the FAC
-     * correction scheme: it solves the error equation \f$ A e = r \f$ for a
-     * Krylov (or standalone FACPreconditioner) linear preconditioner
-     * application, and the boundary conditions satisfied by an error/
-     * correction are always the homogeneous form of the original problem's
-     * boundary conditions. This is a mathematical consequence of what a
-     * correction equation is, not a configurable option, so unlike
-     * SAMRAI::solv::RobinBcCoefStrategy-facing classes elsewhere in IBTK,
-     * FACPreconditionerStrategy does not expose a settable homogeneous-BC
-     * toggle; see FACPreconditioner::setHomogeneousBc(), which enforces this
-     * invariant on the one place a caller can attempt to configure it.
-     *
-     * This constant is named, rather than left as a bare \c true at each of
-     * the many call sites in concrete implementations that configure a
-     * ghost-cell-filling or level-solver object's own homogeneous-BC
-     * setting, so that a future extension supporting a standalone (as
-     * opposed to preconditioner-only) FAC or FAS solver -- which would need
-     * real, inhomogeneous boundary conditions -- has exactly one symbol to
-     * find and repurpose.
-     */
+    /*! \brief FAC preconditioners solve the error equation, whose boundary conditions are always homogeneous. */
     static constexpr bool ALWAYS_HOMOGENEOUS_BC = true;
 
     /*!
