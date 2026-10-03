@@ -127,8 +127,8 @@ public:
      * Ghost values of \a x are unspecified on return. Ghost values of \a b may
      * be overwritten.
      *
-     * \note With V_CYCLE or W_CYCLE and no presmoothing, interior values of \a b
-     * on coarse cells covered by finer levels are overwritten.
+     * \note With V_CYCLE, W_CYCLE, or F_CYCLE and no presmoothing, interior
+     * values of \a b on coarse cells covered by finer levels are overwritten.
      *
      * \param x solution vector
      * \param b right-hand-side vector
@@ -242,7 +242,8 @@ public:
      * \brief Set the multigrid algorithm cycle type.
      *
      * V_CYCLE visits each coarser level once. W_CYCLE visits each coarser
-     * level twice per visit to the level above.
+     * level twice per visit to the level above. F_CYCLE applies an F-cycle and
+     * then a V-cycle to the coarser levels.
      */
     void setMGCycleType(MGCycleType cycle_type);
 
@@ -287,11 +288,6 @@ protected:
                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
                  int level_num,
                  int mu);
-
-    void FCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
-                int level_num);
 
     void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
