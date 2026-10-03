@@ -25,6 +25,13 @@
   an option that the changed code does not read. An expected output identical to
   a sibling's is evidence that a case is redundant. Each expected-error case
   should reach a different check.
+- A change that should not alter results, such as removing redundant work,
+  normally needs no new case when existing cases reach the changed code and
+  their expected outputs do not change. Do not add a case that counts internal
+  operations such as ghost fills, messages, or timer calls. For changed branches
+  that no committed case reaches, compare outputs with the base branch locally
+  using temporary inputs, and report that comparison instead of committing the
+  cases.
 - Add an expected-error case when the error path contains logic that could
   plausibly be wrong, such as detecting a nonfinite or unconverged result. A
   precondition or argument check that is evident by inspection does not need one.
@@ -35,7 +42,9 @@
   Boolean `PASS` markers or duplicating the comparison in a custom test helper.
 - Keep numerical output short, labeled, and readable by a reviewer. Select a few
   meaningful values or norms instead of dumping large vectors and matrices. Print
-  enough digits to expose relevant differences. Use an additional numerical check
+  enough digits to expose relevant differences. Do not write the input database
+  to `output`, so that editing an input's comments does not change its expected
+  output. Use an additional numerical check
   when a required property is not adequately checked by the output comparison.
 - Use existing assertions for suitable non-numerical conditions instead of a
   bespoke Boolean-checking wrapper. Ensure required checks remain active in the

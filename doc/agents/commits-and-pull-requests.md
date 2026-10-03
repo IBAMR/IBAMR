@@ -119,6 +119,8 @@ account access.
 
 Read [doc/news/changes/README.md](../../doc/news/changes/README.md) before writing an
 entry. It is the source of truth for categories, filenames, dates, and attribution.
+Choose a filename that the target branch does not already use, and check again
+after a rebase, since another merged PR may have taken it.
 Use the actual human contributor names, not an agent name or invented identity.
 Use an established prefix such as `Fixed:`, `Improved:`, or `New:`; for example,
 `Fixed: Preserve command-line PETSc option precedence.` Keep the entry very short,

@@ -28,7 +28,10 @@ Verify each affected head's incremental diff, formatting, fixture discovery, and
 assigned tests after a restack; testing only the tip does not establish intermediate
 heads' correctness. Ensure each expected output matches the code at that head.
 State dependencies and the intended base in the PR and confirm that CI actually
-runs on the affected PRs.
+runs on the affected PRs. Changing a PR's base on GitHub does not start CI; push
+a new commit afterwards, if necessary by amending without changes, and check that
+the run uses the new base. When a PR moves down a stack, change its base before
+pushing its new history, or GitHub may mark it merged.
 
 Keep a bug discovered during stack work as a focused fix with its own regression
 and changelog when needed. Coordinate dependency changes with owners. For a fix

@@ -66,6 +66,13 @@
   rather than inferring capabilities from its name. Correct a misreported contract
   at its source. Validate supported-mode restrictions at the earliest valid
   lifecycle point.
+- Do not select a code path by testing an object's dynamic type with `typeid` or
+  `dynamic_cast`, for example to take a faster path only for the base class or to
+  keep work that a derived class might use. Remove work that nothing uses; when
+  implementations differ in what they support, express that in the interface.
+  Before adding a virtual function or a capability query so that callers can skip
+  work, check whether every existing implementation already supports the cheaper
+  path; if so, use it directly.
 - Review frequently called code affected by the change for repeated conversions,
   lookups, allocations, and indirect calls. Move invariant work outside loops
   when practical, and use profiling when an uncertain cost could matter to the
@@ -73,6 +80,8 @@
   calls where they are appropriate. Include repeated setup and rebuild costs;
   choose data structures for their access pattern and allocation cost, especially
   for per-degree-of-freedom storage. Debug timings are not performance evidence.
+  Weigh the work an optimization saves, such as the number of ghost fills or
+  copies per time step it removes, against the interface and code it adds.
 
 ```cpp
 // Prefer a direct fatal error at the point of detection.
