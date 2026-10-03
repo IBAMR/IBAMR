@@ -221,6 +221,13 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
+    // Set the normal velocity ghost values that impose TRACTION conditions where the normal velocity is not prescribed.
+    if (d_bc_helper)
+    {
+        d_bc_helper->setNormalTractionGhostValues(
+            U_idx, d_U_bc_coefs, x.getCoarsestLevelNumber(), x.getFinestLevelNumber());
+    }
+
     // Compute the action of the operator:
     //
     // A*[U;P] := [A_U;A_P] = [(C*I+D*L)*U + Grad P; -Div U]
