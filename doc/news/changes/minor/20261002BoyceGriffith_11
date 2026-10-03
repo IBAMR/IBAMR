@@ -1,0 +1,3 @@
+Improved: IBAMR::INSStaggeredHierarchyIntegrator no longer recomputes the convective term in later cycles of a time step that uses forward Euler for it, and no longer copies the convective term in each Adams-Bashforth time step.
+<br>
+(Boyce Griffith, 2026/10/02)

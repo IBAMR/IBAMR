@@ -1,0 +1,3 @@
+Changed: IBAMR::INSStaggeredHierarchyIntegrator and IBAMR::INSVCStaggeredHierarchyIntegrator no longer set up INSHierarchyIntegrator::d_P_bdry_bc_fill_op, which they do not use. Classes that inherit from them and use this object must set it up themselves.
+<br>
+(Boyce Griffith, 2026/10/02)
