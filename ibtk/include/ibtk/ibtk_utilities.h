@@ -165,13 +165,15 @@ get_data_or_null(const Container& data) -> decltype(data.data())
 double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
 
 /*!
- * On each local patch of the specified level, copy the patch data at index @p src_idx into the patch data at index
- * @p dst_idx, but only at ghost locations of @p dst_idx: those inside its ghost box and outside the patch interior,
- * as defined by the data's own centering (e.g., side-centered values on the faces of the patch box are interior).
- * Interior values of @p dst_idx are not modified.
+ * \brief Copy patch data from \a src_idx to \a dst_idx in the ghost region of each local patch of \a patch_level,
+ * leaving interior values of \a dst_idx unchanged.
  *
- * The ghost region is computed by the SAMRAI::hier::BoxGeometry of the data type, so this works for any patch data
- * type with such a geometry, including cell-, side-, node-, and edge-centered data.
+ * Values are copied only where the ghost boxes of the two data overlap. Values on the patch boundary (e.g.,
+ * side-centered normal components) are interior.
+ *
+ * Both indices must be allocated and hold data of the same element type. Data whose geometries compute no overlap with
+ * each other produce an error: data of different centerings, and outerface or outerside data with data of their own
+ * type. If the depths differ, only the common components are copied.
  */
 void copy_ghost_region(const SAMRAI::hier::PatchLevel<NDIM>& patch_level, int dst_idx, int src_idx);
 
