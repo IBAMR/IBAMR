@@ -1,0 +1,26 @@
+// A periodic 8 x 8 x 8 domain and a level refined by a factor of 2, with the
+// patches of each level given below.
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (7,7,7)]
+   x_lo               = 0, 0, 0
+   x_up               = 1, 1, 1
+   periodic_dimension = 1, 1, 1
+}
+
+Patches {
+   // Patches of three sizes, so that a patch is along the whole side of
+   // several others.
+   level_0 = [(4,4,0),(7,7,3)], [(4,0,0),(7,3,7)], [(0,0,0),(3,7,7)],
+             [(4,4,4),(7,7,7)]
+
+   // Seven of the eight blocks of 8 x 8 x 8 cells.
+   level_1 = [(8,0,8),(15,7,15)], [(0,8,0),(7,15,7)], [(8,8,0),(15,15,7)],
+             [(0,0,0),(7,7,7)], [(0,8,8),(7,15,15)], [(8,0,0),(15,7,7)],
+             [(0,0,8),(7,7,15)]
+}

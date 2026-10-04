@@ -22,6 +22,7 @@
 #include <NodeGeometry.h>
 #include <NodeOverlap.h>
 
+#include <algorithm>
 #include <string>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
@@ -61,24 +62,29 @@ NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
     auto const t_dst_geometry = dynamic_cast<const NodeGeometry<NDIM>*>(&dst_geometry);
+    auto const t_src_geometry = dynamic_cast<const NodeGeometry<NDIM>*>(&src_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
+    TBOX_ASSERT(t_src_geometry);
 #endif
+    const Box<NDIM>& dst_box = t_dst_geometry->getBox();
+    const Box<NDIM> src_box = Box<NDIM>::shift(t_src_geometry->getBox(), src_offset);
+
+    // Copy from a source on the upper side in d_axis, where source and
+    // destination are on the same side in each later direction.
     BoxList<NDIM> dst_boxes;
-    bool skip = false;
-    for (unsigned int d = 0; d < NDIM && !skip; ++d)
-    {
-        if (d != d_axis)
-        {
-            skip = skip || (src_offset(d) != 0);
-        }
-    }
-    if (!skip)
+    if (src_box.upper(d_axis) > dst_box.upper(d_axis))
     {
         // Determine the stencil box.
-        const Box<NDIM>& dst_box = t_dst_geometry->getBox();
         Box<NDIM> stencil_box = NodeGeometry<NDIM>::toNodeBox(dst_box);
         stencil_box.lower(d_axis) = stencil_box.upper(d_axis);
+        for (unsigned int d = d_axis + 1; d < NDIM; ++d)
+        {
+            if (src_box.upper(d) != dst_box.upper(d))
+            {
+                stencil_box.upper(d) = std::min(src_box.upper(d), dst_box.upper(d));
+            }
+        }
 
         // Intersect the original overlap boxes with the stencil box.
         const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList();
