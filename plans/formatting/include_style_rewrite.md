@@ -53,7 +53,6 @@ Run from the repository root:
   examples \
   include \
   src \
-  ibtk/examples \
   ibtk/include \
   ibtk/src \
   tests
@@ -68,7 +67,6 @@ Run from the repository root:
   examples \
   include \
   src \
-  ibtk/examples \
   ibtk/include \
   ibtk/src \
   tests

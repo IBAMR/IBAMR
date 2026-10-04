@@ -12,14 +12,9 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
-// C++ includes
-#include <numeric>
-
 // Headers for basic PETSc objects
-#include <petscao.h>
 #include <petscsys.h>
 
 // Headers for major SAMRAI objects
@@ -27,17 +22,12 @@
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
-#include <SAMRAIVectorReal.h>
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
-#include <ibtk/HierarchyGhostCellInterpolation.h>
-#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
-#include <ibtk/IBTK_MPI.h>
-#include <ibtk/PETScMatUtilities.h>
-#include <ibtk/PETScVecUtilities.h>
+#include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
@@ -60,7 +50,7 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_prolongation.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_laplace.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
@@ -146,110 +136,39 @@ main(int argc, char* argv[])
             level->allocatePatchData(e_cc_idx, 0.0);
         }
 
-        // Setup exact solutions.
-        muParserCartGridFunction fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
-        fcn.setDataOnPatchHierarchy(u_sc_idx, u_sc_var, patch_hierarchy, 0.0);
-        fcn.setDataOnPatchHierarchy(f_sc_idx, f_sc_var, patch_hierarchy, 0.0);
-        fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
-
-        // Compute u DOFs per processor.
-        std::vector<std::vector<int>> num_dofs_per_proc;
-        Pointer<SideVariable<NDIM, int>> u_dof_index_var = new SideVariable<NDIM, int>("u_dof_index");
-        ;
-        const IntVector<NDIM> no_ghosts = 0;
-        const int u_dof_index_idx = var_db->registerVariableAndContext(u_dof_index_var, ctx, no_ghosts);
-
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        if (finest_ln != 1)
-        {
-            TBOX_ERROR("This is a 2 level example \n. Please set max_levels = 2 in the input file \n");
-        }
-        num_dofs_per_proc.resize(finest_ln + 1);
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(u_dof_index_idx, 0.0);
-            PETScVecUtilities::constructPatchLevelDOFIndices(num_dofs_per_proc[ln], u_dof_index_idx, level);
-        }
-
-        // Construct the coarse and fine level PETSc Vecs
-        const int mpi_rank = IBTK_MPI::getRank();
-        const int n_local_coarsest = num_dofs_per_proc[coarsest_ln][mpi_rank];
-        const int n_total_coarsest =
-            std::accumulate(num_dofs_per_proc[coarsest_ln].begin(), num_dofs_per_proc[coarsest_ln].end(), 0);
-        const int n_local_finest = num_dofs_per_proc[finest_ln][mpi_rank];
-        const int n_total_finest =
-            std::accumulate(num_dofs_per_proc[finest_ln].begin(), num_dofs_per_proc[finest_ln].end(), 0);
-
-        Vec x;
-        VecCreateMPI(PETSC_COMM_WORLD, n_local_coarsest, n_total_coarsest, &x);
-        Vec X, Y, E;
-        VecCreateMPI(PETSC_COMM_WORLD, n_local_finest, n_total_finest, &X);
-        PETScVecUtilities::copyToPatchLevelVec(
-            x, u_sc_idx, u_dof_index_idx, patch_hierarchy->getPatchLevel(coarsest_ln));
-        PETScVecUtilities::copyToPatchLevelVec(X, u_sc_idx, u_dof_index_idx, patch_hierarchy->getPatchLevel(finest_ln));
-        VecDuplicate(X, &Y);
-        VecDuplicate(X, &E);
-
-        // Construct PETSc prolongation mat.
-        std::string prolongation_op_type = input_db->getString("prolongation_op_type");
-        AO coarse_level_ao = nullptr;
-        PETScVecUtilities::constructPatchLevelAO(coarse_level_ao,
-                                                 num_dofs_per_proc[coarsest_ln],
-                                                 u_dof_index_idx,
-                                                 patch_hierarchy->getPatchLevel(coarsest_ln),
-                                                 /*ao_offset*/ 0);
-        Mat prolongation_mat = nullptr;
-        PETScMatUtilities::constructProlongationOp(prolongation_mat,
-                                                   prolongation_op_type,
-                                                   u_dof_index_idx,
-                                                   num_dofs_per_proc[finest_ln],
-                                                   num_dofs_per_proc[coarsest_ln],
-                                                   patch_hierarchy->getPatchLevel(finest_ln),
-                                                   patch_hierarchy->getPatchLevel(coarsest_ln),
-                                                   coarse_level_ao,
-                                                   /*coarse_ao_offset*/ 0);
-
-        // Obtain finest DOFs from prolongation matrix.
-        // P * x = Y
-        MatMult(prolongation_mat, x, Y);
-
-        PetscViewer matlab_viewer;
-        PetscViewerBinaryOpen(PETSC_COMM_WORLD, "PROLONG.MAT", FILE_MODE_WRITE, &matlab_viewer);
-        PetscViewerPushFormat(matlab_viewer, PETSC_VIEWER_ASCII_MATLAB);
-        MatView(prolongation_mat, matlab_viewer);
-        PetscViewerDestroy(&matlab_viewer);
-
-        // Compute error of prolongation E = Y - X, and find its norm.
-        double norm_1, norm_2, norm_oo;
-        VecWAXPY(E, -1.0, X, Y);
-        VecNorm(E, NORM_1, &norm_1);
-        VecNorm(E, NORM_2, &norm_2);
-        VecNorm(E, NORM_INFINITY, &norm_oo);
-        pout << "|| E ||_1 of the error vector  = " << norm_1 << "\n"
-             << "|| E ||_2 of the error vector  = " << norm_2 << "\n"
-             << "|| E ||_oo of the error vector = " << norm_oo << "\n";
-
-        // Copy PETSc Vec to SAMRAI vec
-        Pointer<RefineSchedule<NDIM>> data_synch_sched =
-            PETScVecUtilities::constructDataSynchSchedule(f_sc_idx, patch_hierarchy->getPatchLevel(finest_ln));
-        PETScVecUtilities::copyFromPatchLevelVec(Y,
-                                                 f_sc_idx,
-                                                 u_dof_index_idx,
-                                                 patch_hierarchy->getPatchLevel(finest_ln),
-                                                 data_synch_sched,
-                                                 Pointer<RefineSchedule<NDIM>>(nullptr));
-
-        // Setup SAMRAI vector objects.
+        // Setup vector objects.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int h_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
+        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
+        u_vec.addComponent(u_sc_var, u_sc_idx, h_sc_idx);
         f_vec.addComponent(f_sc_var, f_sc_idx, h_sc_idx);
         e_vec.addComponent(e_sc_var, e_sc_idx, h_sc_idx);
+
+        u_vec.setToScalar(0.0);
+        f_vec.setToScalar(0.0);
+        e_vec.setToScalar(0.0);
+
+        // Setup exact solutions.
+        muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
+        muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
+
+        u_fcn.setDataOnPatchHierarchy(u_sc_idx, u_sc_var, patch_hierarchy, 0.0);
+        f_fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
+
+        // Compute -L*u = f.
+        PoissonSpecifications poisson_spec("poisson_spec");
+        poisson_spec.setCConstant(0.0);
+        poisson_spec.setDConstant(-1.0);
+        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, nullptr);
+        SCLaplaceOperator laplace_op("laplace op");
+        laplace_op.setPoissonSpecifications(poisson_spec);
+        laplace_op.setPhysicalBcCoefs(bc_coefs);
+        laplace_op.initializeOperatorState(u_vec, f_vec);
+        laplace_op.apply(u_vec, f_vec);
 
         // Compute error and print error norms.
         e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false),
@@ -259,28 +178,10 @@ main(int argc, char* argv[])
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
 
         // Interpolate the side-centered data to cell centers for output.
-        static const bool synch_cf_interface = false;
-        hier_math_ops.interp(u_cc_idx,
-                             u_cc_var,
-                             u_sc_idx,
-                             u_sc_var,
-                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
-                             0.0,
-                             synch_cf_interface);
-        hier_math_ops.interp(f_cc_idx,
-                             f_cc_var,
-                             f_sc_idx,
-                             f_sc_var,
-                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
-                             0.0,
-                             synch_cf_interface);
-        hier_math_ops.interp(e_cc_idx,
-                             e_cc_var,
-                             e_sc_idx,
-                             e_sc_var,
-                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
-                             0.0,
-                             synch_cf_interface);
+        static const bool synch_cf_interface = true;
+        hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, nullptr, 0.0, synch_cf_interface);
+        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, nullptr, 0.0, synch_cf_interface);
+        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, nullptr, 0.0, synch_cf_interface);
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.
