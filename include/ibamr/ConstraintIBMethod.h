@@ -24,11 +24,9 @@
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
 
-#include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/CCPoissonPointRelaxationFACOperator.h>
-#include <ibtk/FACPreconditioner.h>
+#include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
-#include <ibtk/PETScKrylovPoissonSolver.h>
+#include <ibtk/PoissonSolver.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Database.h>
@@ -83,6 +81,12 @@ namespace IBAMR
  * References
  *  Bhalla et al. A unified mathematical framework and an adaptive numerical method for
  *  fluid-structure interaction with rigid, deforming, and elastic bodies. J Comput Phys, 250:446-476 (2013).
+ *
+ * If needs_divfree_projection is TRUE, the corrected velocity is projected with
+ * a cell-centered Poisson solver from IBTK::CCPoissonSolverManager. The input
+ * keys projection_solver_type and projection_precond_type select the solver and
+ * its preconditioner, and the databases projection_solver_db and
+ * projection_precond_db, each read only if its type is set, configure them.
  */
 class ConstraintIBMethod : public IBAMR::IBMethod
 {
@@ -613,11 +617,11 @@ private:
      */
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_velcorrection_projection_bc_coef;
     std::unique_ptr<SAMRAI::solv::PoissonSpecifications> d_velcorrection_projection_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> d_velcorrection_projection_op;
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovPoissonSolver> d_velcorrection_projection_solver;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_velcorrection_projection_fac_op;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velcorrection_projection_fac_pc_db;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner> d_velcorrection_projection_fac_pc;
+    std::string d_velcorrection_projection_solver_type = IBTK::CCPoissonSolverManager::UNDEFINED;
+    std::string d_velcorrection_projection_precond_type = IBTK::CCPoissonSolverManager::UNDEFINED;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velcorrection_projection_solver_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velcorrection_projection_precond_db;
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velcorrection_projection_solver;
 
     /*!
      * File streams associated for the output.

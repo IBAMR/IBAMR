@@ -1,0 +1,3 @@
+New: IBAMR::ConstraintIBMethod reads its projection solver and preconditioner types and databases from the input; on single-level hierarchies the default preconditioner is the level solver.
+<br>
+(Boyce Griffith, 2026/10/04)
