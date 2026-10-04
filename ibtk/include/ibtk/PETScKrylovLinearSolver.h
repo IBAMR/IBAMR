@@ -98,7 +98,18 @@ namespace IBTK
  abs_residual_tol = 1.0e-50    // see setAbsoluteTolerance()
  max_iterations = 10000        // see setMaxIterations()
  enable_logging = FALSE        // see setLoggingEnabled()
+ check_preconditioner_linearity = FALSE  // see below
  \endverbatim
+ *
+ * If check_preconditioner_linearity is TRUE (or the PETSc option
+ * <code>-ibtk_check_preconditioner_linearity</code> is set, which takes
+ * precedence), the first solveSystem() after each initializeSolverState()
+ * applies the preconditioner \f$B\f$ set by setPreconditioner() to pseudo-random
+ * \f$x\f$, \f$y\f$, and \f$x+y\f$, and logs \f$\|B(x+y)-B(x)-B(y)\|/\|B(x+y)\|\f$,
+ * which is at the level of roundoff for a linear preconditioner.  A ratio above
+ * \f$10^{-8}\f$ causes a warning unless the KSP type is flexible, "richardson",
+ * or "preonly".  The check applies the preconditioner three more times after
+ * the solve.
  *
  * PETSc is developed in the Mathematics and Computer Science (MCS) Division at
  * Argonne National Laboratory (ANL).  For more information about PETSc, see <A
@@ -355,6 +366,18 @@ private:
     void resetKSPPC();
 
     /*!
+     * \brief Apply the preconditioner to \a x and store the result in \a y.
+     */
+    void applyPreconditioner(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+
+    /*!
+     * \brief Log the additivity defect of the preconditioner, with a warning if
+     * the KSP type requires a linear preconditioner.
+     */
+    void checkPreconditionerLinearity();
+
+    /*!
      * \brief Reset the Mat nullspace object to correspond to the supplied
      * nullspace basis vectors.
      */
@@ -397,6 +420,8 @@ private:
     bool d_managing_petsc_ksp = true;
     bool d_user_provided_mat = false;
     bool d_user_provided_pc = false;
+    bool d_check_preconditioner_linearity = false;
+    bool d_checked_preconditioner_linearity = false;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_nullspace_constant_vec;
     Vec d_petsc_nullspace_constant_vec = nullptr;
