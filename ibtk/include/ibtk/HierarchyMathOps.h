@@ -1133,6 +1133,37 @@ public:
                  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src2_var = nullptr);
 
     /*!
+     * \brief Compute the Laplacian of a side-centered vector field plus a
+     * cell-centered gradient using centered differences.
+     *
+     * Sets dst = C src1 + div D grad src1 + gamma grad src2 + delta src3, for
+     * side-centered src1 and src3 and cell-centered src2. This is equivalent
+     * to passing gamma grad src2 + delta src3 as the additive source of
+     * laplace(), but is evaluated in one pass over each patch.
+     *
+     * \note The present implementation of this operator \em requires that
+     * damping factor C and diffusivity D be spatially constant and
+     * scalar-valued. The sources src2 and src3 are required, and dst must
+     * differ from src1 and src3.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void laplace_grad(int dst_idx,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> dst_var,
+                      const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                      int src1_idx,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src1_var,
+                      double gamma,
+                      int src2_idx,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> src2_var,
+                      SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> ghost_fill,
+                      double ghost_fill_time,
+                      double delta,
+                      int src3_idx,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> src3_var);
+
+    /*!
      * \brief Compute dst = alpha div coef1 ((grad src1) + (grad src1)^T) + beta coef2
      * src1 + gamma src2, the variable coefficient generalized Laplacian of
      * src1.

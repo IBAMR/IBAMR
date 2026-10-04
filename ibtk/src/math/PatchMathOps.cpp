@@ -42,6 +42,7 @@
 #define LAPLACE_ADD_FC IBTK_FC_FUNC(laplaceadd2d, LAPLACEADD2D)
 #define DAMPED_LAPLACE_FC IBTK_FC_FUNC(dampedlaplace2d, DAMPEDLAPLACE2D)
 #define DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(dampedlaplaceadd2d, DAMPEDLAPLACEADD2D)
+#define S_TO_S_LAPLACE_GRAD_FC IBTK_FC_FUNC(stoslaplacegrad2d, STOSLAPLACEGRAD2D)
 
 #define MULTIPLY1_FC IBTK_FC_FUNC(multiply12d, MULTIPLY12D)
 #define MULTIPLY_ADD1_FC IBTK_FC_FUNC(multiplyadd12d, MULTIPLYADD12D)
@@ -119,6 +120,7 @@
 #define LAPLACE_ADD_FC IBTK_FC_FUNC(laplaceadd3d, LAPLACEADD3D)
 #define DAMPED_LAPLACE_FC IBTK_FC_FUNC(dampedlaplace3d, DAMPEDLAPLACE3D)
 #define DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(dampedlaplaceadd3d, DAMPEDLAPLACEADD3D)
+#define S_TO_S_LAPLACE_GRAD_FC IBTK_FC_FUNC(stoslaplacegrad3d, STOSLAPLACEGRAD3D)
 
 #define MULTIPLY1_FC IBTK_FC_FUNC(multiply13d, MULTIPLY13D)
 #define MULTIPLY_ADD1_FC IBTK_FC_FUNC(multiplyadd13d, MULTIPLYADD13D)
@@ -266,6 +268,40 @@ extern "C"
                                const int& iupper2,
 #endif
                                const double* dx);
+
+    void S_TO_S_LAPLACE_GRAD_FC(double* F0,
+                                double* F1,
+#if (NDIM == 3)
+                                double* F2,
+#endif
+                                const int& F_gcw,
+                                const double& alpha,
+                                const double& beta,
+                                const double* U0,
+                                const double* U1,
+#if (NDIM == 3)
+                                const double* U2,
+#endif
+                                const int& U_gcw,
+                                const double& gamma,
+                                const double* P,
+                                const int& P_gcw,
+                                const double& delta,
+                                const double* V0,
+                                const double* V1,
+#if (NDIM == 3)
+                                const double* V2,
+#endif
+                                const int& V_gcw,
+                                const int& ilower0,
+                                const int& iupper0,
+                                const int& ilower1,
+                                const int& iupper1,
+#if (NDIM == 3)
+                                const int& ilower2,
+                                const int& iupper2,
+#endif
+                                const double* dx);
 
     void C_TO_C_CURL_FC(double* W,
                         const int& W_gcw,
@@ -5560,6 +5596,101 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double>> dst,
     }
     return;
 } // laplace
+
+void
+PatchMathOps::laplace_grad(Pointer<SideData<NDIM, double>> dst,
+                           const double alpha,
+                           const double beta,
+                           const Pointer<SideData<NDIM, double>> src1,
+                           const double gamma,
+                           const Pointer<CellData<NDIM, double>> src2,
+                           const double delta,
+                           const Pointer<SideData<NDIM, double>> src3,
+                           const Pointer<Patch<NDIM>> patch) const
+{
+    const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    std::array<double*, NDIM> F;
+    std::array<const double*, NDIM> U, V;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        F[d] = dst->getPointer(d);
+        U[d] = src1->getPointer(d);
+        V[d] = src3->getPointer(d);
+    }
+    const int F_ghosts = (dst->getGhostCellWidth()).max();
+    const int U_ghosts = (src1->getGhostCellWidth()).max();
+    const int V_ghosts = (src3->getGhostCellWidth()).max();
+
+    const double* const P = src2->getPointer();
+    const int P_ghosts = (src2->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (F_ghosts != (dst->getGhostCellWidth()).min() || U_ghosts != (src1->getGhostCellWidth()).min() ||
+        P_ghosts != (src2->getGhostCellWidth()).min() || V_ghosts != (src3->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::laplace_grad():\n"
+                   << "  dst, src1, src2, and src3 must have uniform ghost cell widths" << std::endl);
+    }
+
+    if (src1 == dst || src3 == dst)
+    {
+        TBOX_ERROR("PatchMathOps::laplace_grad():\n"
+                   << "  dst must differ from src1 and from src3" << std::endl);
+    }
+
+    if (U_ghosts < 1 || P_ghosts < 1)
+    {
+        TBOX_ERROR("PatchMathOps::laplace_grad():\n"
+                   << "  src1 and src2 have insufficient ghost cell width" << std::endl);
+    }
+
+    if (patch_box != dst->getBox() || patch_box != src1->getBox() || patch_box != src2->getBox() ||
+        patch_box != src3->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::laplace_grad():\n"
+                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+    }
+#endif
+
+    S_TO_S_LAPLACE_GRAD_FC(F[0],
+                           F[1],
+#if (NDIM == 3)
+                           F[2],
+#endif
+                           F_ghosts,
+                           alpha,
+                           beta,
+                           U[0],
+                           U[1],
+#if (NDIM == 3)
+                           U[2],
+#endif
+                           U_ghosts,
+                           gamma,
+                           P,
+                           P_ghosts,
+                           delta,
+                           V[0],
+                           V[1],
+#if (NDIM == 3)
+                           V[2],
+#endif
+                           V_ghosts,
+                           patch_box.lower(0),
+                           patch_box.upper(0),
+                           patch_box.lower(1),
+                           patch_box.upper(1),
+#if (NDIM == 3)
+                           patch_box.lower(2),
+                           patch_box.upper(2),
+#endif
+                           dx);
+    return;
+} // laplace_grad
 
 void
 PatchMathOps::laplace(Pointer<CellData<NDIM, double>> dst,

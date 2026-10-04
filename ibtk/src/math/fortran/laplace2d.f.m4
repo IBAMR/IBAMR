@@ -1435,3 +1435,95 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes F = alpha div grad U + beta U + gamma grad P + delta V.
+c
+c     Uses the five point stencil to compute the damped discrete
+c     Laplacian of a side centered variable U=(U0,U1) and centered
+c     differences to compute the partial gradient of a cell centered
+c     variable P on each side.  The sum is evaluated as
+c     (alpha div grad U + beta U) + (gamma grad P + delta V).
+c     The term beta U is omitted when beta is zero.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+define(BETA_TERM,`beta*U$1(i0,i1) +
+     &              ')dnl
+define(LAPLACE_GRAD_LOOP,`dnl
+         do i1 = ilower1,iupper1$3
+            do i0 = ilower0,iupper0$2
+               F$1(i0,i1) =
+     &              fac0*(U$1(i0-1,i1)+U$1(i0+1,i1)-2.d0*U$1(i0,i1)) +
+     &              fac1*(U$1(i0,i1-1)+U$1(i0,i1+1)-2.d0*U$1(i0,i1)) +
+     &              ifelse($5,1,`BETA_TERM($1)')dnl
+(gfac$1*(P(i0,i1)-P($4)) + delta*V$1(i0,i1))
+            enddo
+         enddo
+')dnl
+define(LAPLACE_GRAD,`dnl
+      if (beta.eq.0.d0) then
+LAPLACE_GRAD_LOOP($1,`$2',`$3',`$4',0)dnl
+      else
+LAPLACE_GRAD_LOOP($1,`$2',`$3',`$4',1)dnl
+      endif
+')dnl
+      subroutine stoslaplacegrad2d(
+     &     F0,F1,F_gcw,
+     &     alpha,beta,
+     &     U0,U1,U_gcw,
+     &     gamma,
+     &     P,P_gcw,
+     &     delta,
+     &     V0,V1,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER F_gcw,U_gcw,P_gcw,V_gcw
+
+      REAL alpha,beta
+
+      REAL U0(SIDE2d0(ilower,iupper,U_gcw))
+      REAL U1(SIDE2d1(ilower,iupper,U_gcw))
+
+      REAL gamma
+
+      REAL P(CELL2d(ilower,iupper,P_gcw))
+
+      REAL delta
+
+      REAL V0(SIDE2d0(ilower,iupper,V_gcw))
+      REAL V1(SIDE2d1(ilower,iupper,V_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL F0(SIDE2d0(ilower,iupper,F_gcw))
+      REAL F1(SIDE2d1(ilower,iupper,F_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    fac0,fac1,gfac0,gfac1
+c
+c     Compute F.
+c
+      fac0 = alpha/(dx(0)*dx(0))
+      fac1 = alpha/(dx(1)*dx(1))
+      gfac0 = gamma/dx(0)
+      gfac1 = gamma/dx(1)
+
+LAPLACE_GRAD(0,`+1',,`i0-1,i1')dnl
+LAPLACE_GRAD(1,,`+1',`i0,i1-1')dnl
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

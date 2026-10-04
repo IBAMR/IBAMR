@@ -1,0 +1,5 @@
+|laplace_grad - laplace(grad)|_oo = 0
+values that differ = 0
+|e|_oo = 3.73483
+|e|_2  = 2.81386
+|e|_1  = 3.1617

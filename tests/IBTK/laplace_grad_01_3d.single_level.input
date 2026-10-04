@@ -1,0 +1,77 @@
+// one patch level with a nonzero damping coefficient and a nonzero additive source
+
+C = 0.5                 // damping coefficient
+D = -1.0                // diffusion coefficient
+gamma = -1.0            // coefficient of the gradient of p
+delta = 1.5             // coefficient of the additive source v
+
+u {
+   function_0 = "sin(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)"
+   function_1 = "cos(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)"
+   function_2 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+}
+
+p {
+   function = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+}
+
+v {
+   function_0 = "cos(2*PI*X_1)"
+   function_1 = "sin(2*PI*X_2)"
+   function_2 = "sin(2*PI*X_0)"
+}
+
+f {
+   damping = C
+   diffusion = D
+   grad_coef = gamma
+   source_coef = delta
+   function_0 = "(damping - 3*diffusion*(2*PI)^2)*(sin(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)) + grad_coef*(2*PI*cos(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)) + source_coef*(cos(2*PI*X_1))"
+   function_1 = "(damping - 3*diffusion*(2*PI)^2)*(cos(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)) + grad_coef*(-2*PI*sin(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)) + source_coef*(sin(2*PI*X_2))"
+   function_2 = "(damping - 3*diffusion*(2*PI)^2)*(sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)) + grad_coef*(2*PI*sin(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*X_2)) + source_coef*(sin(2*PI*X_0))"
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 8
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = 0, 0, 0
+   x_up               = 1, 1, 1
+   periodic_dimension = 1, 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // number of levels in the hierarchy
+
+   ratio_to_coarser {
+      level_1 = 4, 4, 4
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512, 512
+   }
+
+   smallest_patch_size {
+      level_0 = 2, 2, 2
+   }
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(N/4,N/4,N/4), (3*N/4 - 1,N/2 - 1,N/2 - 1)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
