@@ -366,10 +366,8 @@ StaggeredStokesFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, doubl
     const int U_data_idx = vec.getComponentDescriptorIndex(0);
     const int P_data_idx = vec.getComponentDescriptorIndex(1);
     static const bool interior_only = false;
-    HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, level_num, level_num);
-    level_sc_data_ops.setToScalar(U_data_idx, 0.0, interior_only);
-    HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(d_hierarchy, level_num, level_num);
-    level_cc_data_ops.setToScalar(P_data_idx, 0.0, interior_only);
+    d_level_U_data_ops[level_num]->setToScalar(U_data_idx, 0.0, interior_only);
+    d_level_P_data_ops[level_num]->setToScalar(P_data_idx, 0.0, interior_only);
     return;
 } // setToZero
 
@@ -394,27 +392,23 @@ StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorRea
     if (d_U_restriction_coarsen_operator->getStencilWidth().max() > 0 ||
         d_P_restriction_coarsen_operator->getStencilWidth().max() > 0)
     {
-        HierarchySideDataOpsReal<NDIM, double> fine_sc_data_ops(d_hierarchy, dst_ln + 1, dst_ln + 1);
-        fine_sc_data_ops.setToScalar(d_side_scratch_idx, 0.0, /*interior_only*/ false);
-        fine_sc_data_ops.copyData(d_side_scratch_idx, U_src_idx, /*interior_only*/ true);
-        HierarchyCellDataOpsReal<NDIM, double> fine_cc_data_ops(d_hierarchy, dst_ln + 1, dst_ln + 1);
-        fine_cc_data_ops.setToScalar(d_cell_scratch_idx, 0.0, /*interior_only*/ false);
-        fine_cc_data_ops.copyData(d_cell_scratch_idx, P_src_idx, /*interior_only*/ true);
+        d_level_U_data_ops[dst_ln + 1]->setToScalar(d_side_scratch_idx, 0.0, /*interior_only*/ false);
+        d_level_U_data_ops[dst_ln + 1]->copyData(d_side_scratch_idx, U_src_idx, /*interior_only*/ true);
+        d_level_P_data_ops[dst_ln + 1]->setToScalar(d_cell_scratch_idx, 0.0, /*interior_only*/ false);
+        d_level_P_data_ops[dst_ln + 1]->copyData(d_cell_scratch_idx, P_src_idx, /*interior_only*/ true);
         restriction_src_idxs = std::make_pair(d_side_scratch_idx, d_cell_scratch_idx);
         xeqScheduleGhostFillNoCoarse(restriction_src_idxs, dst_ln + 1);
     }
 
     if (U_src_idx != U_dst_idx)
     {
-        HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, dst_ln, dst_ln);
         static const bool interior_only = false;
-        level_sc_data_ops.copyData(U_dst_idx, U_src_idx, interior_only);
+        d_level_U_data_ops[dst_ln]->copyData(U_dst_idx, U_src_idx, interior_only);
     }
     if (P_src_idx != P_dst_idx)
     {
-        HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(d_hierarchy, dst_ln, dst_ln);
         static const bool interior_only = false;
-        level_cc_data_ops.copyData(P_dst_idx, P_src_idx, interior_only);
+        d_level_P_data_ops[dst_ln]->copyData(P_dst_idx, P_src_idx, interior_only);
     }
     xeqScheduleRestriction(dst_idxs, restriction_src_idxs, dst_ln);
 
@@ -465,22 +459,18 @@ StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVec
     // scratch data and then correct the fine level dst data.
     if (U_src_idx != U_dst_idx)
     {
-        HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops_coarse(d_hierarchy, dst_ln - 1, dst_ln - 1);
-        level_sc_data_ops_coarse.add(U_dst_idx, U_dst_idx, U_src_idx, /*interior_only*/ false);
+        d_level_U_data_ops[dst_ln - 1]->add(U_dst_idx, U_dst_idx, U_src_idx, /*interior_only*/ false);
     }
     if (P_src_idx != P_dst_idx)
     {
-        HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops_coarse(d_hierarchy, dst_ln - 1, dst_ln - 1);
-        level_cc_data_ops_coarse.add(P_dst_idx, P_dst_idx, P_src_idx, /*interior_only*/ false);
+        d_level_P_data_ops[dst_ln - 1]->add(P_dst_idx, P_dst_idx, P_src_idx, /*interior_only*/ false);
     }
     xeqScheduleProlongation(scratch_idxs, src_idxs, dst_ln);
 
     // Correct the interior values and overwrite the ghost values with the prolonged correction. Coarse-fine
     // interpolation requires the coarse-fine ghost values to hold data interpolated from the coarse level alone.
-    HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
-    level_sc_data_ops_fine.add(U_dst_idx, U_dst_idx, d_side_scratch_idx, /*interior_only*/ true);
-    HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
-    level_cc_data_ops_fine.add(P_dst_idx, P_dst_idx, d_cell_scratch_idx, /*interior_only*/ true);
+    d_level_U_data_ops[dst_ln]->add(U_dst_idx, U_dst_idx, d_side_scratch_idx, /*interior_only*/ true);
+    d_level_P_data_ops[dst_ln]->add(P_dst_idx, P_dst_idx, d_cell_scratch_idx, /*interior_only*/ true);
     Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
     copy_ghost_region(*level, U_dst_idx, d_side_scratch_idx);
     copy_ghost_region(*level, P_dst_idx, d_cell_scratch_idx);
@@ -758,10 +748,14 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
 
     // Setup level operators.
+    d_level_U_data_ops.resize(d_finest_ln + 1);
+    d_level_P_data_ops.resize(d_finest_ln + 1);
     d_level_bdry_fill_ops.resize(d_finest_ln + 1, nullptr);
     d_level_math_ops.resize(d_finest_ln + 1, nullptr);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
+        d_level_U_data_ops[ln] = new HierarchySideDataOpsReal<NDIM, double>(d_hierarchy, ln, ln);
+        d_level_P_data_ops[ln] = new HierarchyCellDataOpsReal<NDIM, double>(d_hierarchy, ln, ln);
         d_level_bdry_fill_ops[ln].setNull();
         d_level_math_ops[ln].setNull();
     }
@@ -943,6 +937,8 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
         d_coarsest_ln = IBTK::invalid_level_number;
         d_finest_ln = IBTK::invalid_level_number;
 
+        d_level_U_data_ops.clear();
+        d_level_P_data_ops.clear();
         d_level_bdry_fill_ops.clear();
         d_level_math_ops.clear();
 

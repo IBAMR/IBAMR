@@ -59,6 +59,13 @@ class HierarchyMathOps;
 } // namespace IBTK
 namespace SAMRAI
 {
+namespace math
+{
+template <int DIM, class TYPE>
+class HierarchyCellDataOpsReal;
+template <int DIM, class TYPE>
+class HierarchySideDataOpsReal;
+} // namespace math
 namespace solv
 {
 template <int DIM>
@@ -420,6 +427,13 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
+
+    /*
+     * HierarchySideDataOpsReal (velocity) and HierarchyCellDataOpsReal
+     * (pressure) objects restricted to a single level of the patch hierarchy.
+     */
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double>>> d_level_U_data_ops;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double>>> d_level_P_data_ops;
 
     /*
      * Level operators, used to compute composite-grid residuals.

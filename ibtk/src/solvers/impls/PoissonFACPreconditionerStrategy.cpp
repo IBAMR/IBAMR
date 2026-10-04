@@ -520,6 +520,7 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
         d_coarsest_ln = invalid_level_number;
         d_finest_ln = invalid_level_number;
 
+        d_level_data_ops.clear();
         d_level_bdry_fill_ops.clear();
         d_level_math_ops.clear();
 
