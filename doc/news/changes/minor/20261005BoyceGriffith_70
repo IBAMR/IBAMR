@@ -1,0 +1,3 @@
+Improved: IBTK::PETScKrylovLinearSolver skips the convergence test of Richardson solves limited to one iteration.
+<br>
+(Boyce Griffith, 2026/10/05)
