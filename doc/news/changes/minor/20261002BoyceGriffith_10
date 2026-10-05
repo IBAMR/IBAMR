@@ -1,0 +1,3 @@
+Improved: IBAMR::IBExplicitHierarchyIntegrator reuses its ghost cell filling operators when advecting marker points.
+<br>
+(Boyce Griffith, 2026/10/02)
