@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesBoxRelaxationFACOperator and IBAMR::StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp() accept a velocity damping coefficient set with setCZero().
+<br>
+(Boyce Griffith, 2026/10/05)
