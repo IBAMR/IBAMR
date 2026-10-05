@@ -88,6 +88,10 @@ namespace IBTK
  *   caller's responsibility to ensure that the supplied KSP object is properly
  *   destroyed via KSPDestroy().
  *
+ * When this class creates its own KSP object, a Richardson solve limited to one
+ * iteration uses KSP_NORM_NONE (no convergence test), and any other solve uses
+ * the PETSc default norm type, unless <code>-ksp_norm_type</code> is set.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
