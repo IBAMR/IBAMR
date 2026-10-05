@@ -850,6 +850,15 @@ PETScLevelSolver::resetKSPNormType()
     {
         ksp_norm_type = d_ksp_norm_type;
     }
+
+    // Skip the convergence test of a one-iteration Richardson solve.
+    KSPType ksp_type;
+    ierr = KSPGetType(d_petsc_ksp, &ksp_type);
+    IBTK_CHKERRQ(ierr);
+    if (std::string(ksp_type) == KSPRICHARDSON && d_max_iterations == 1)
+    {
+        ksp_norm_type = KSP_NORM_NONE;
+    }
     ierr = KSPSetNormType(d_petsc_ksp, ksp_norm_type);
     IBTK_CHKERRQ(ierr);
     return;
