@@ -302,9 +302,7 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
             Pointer<CellData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
             Pointer<CellData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
-            const Box<NDIM>& ghost_box = error_data->getGhostBox();
-            TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
-            TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
             TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
             scratch_data->getArrayData().copy(
@@ -329,9 +327,7 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
                     Pointer<CellData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
                     Pointer<CellData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
-                    const Box<NDIM>& ghost_box = error_data->getGhostBox();
-                    TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
-                    TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
+                    TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
                     TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
                     error_data->getArrayData().copy(scratch_data->getArrayData(),
@@ -367,10 +363,8 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
             Pointer<CellData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
             Pointer<CellData<NDIM, double>> residual_data = residual.getComponentPatchData(0, *patch);
 #if !defined(NDEBUG)
-            const Box<NDIM>& ghost_box = error_data->getGhostBox();
-            TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
-            TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
-            TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
+            TBOX_ASSERT(residual_data->getGhostCellWidth() >= d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
 #endif
 
@@ -401,6 +395,27 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
             residual_data->getArrayData().copy(
                 error_data->getArrayData(), d_patch_bc_box_overlap[level_num][patch_counter], IntVector<NDIM>(0));
 
+            // The patch operators act on data with d_gcw ghost cells. Data with more ghost cells are gathered into
+            // local arrays with d_gcw ghost cells.
+            const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), d_gcw);
+            Pointer<CellData<NDIM, double>> e_data = d_patch_e_data[level_num][patch_counter];
+            Pointer<CellData<NDIM, double>> f_data = d_patch_f_data[level_num][patch_counter];
+            const bool gather = !e_data.isNull();
+            if (gather)
+            {
+                e_data->getArrayData().copy(error_data->getArrayData(), ghost_box);
+                f_data->getArrayData().copy(residual_data->getArrayData(), ghost_box);
+            }
+            else
+            {
+#if !defined(NDEBUG)
+                TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
+                TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
+#endif
+                e_data = error_data;
+                f_data = residual_data;
+            }
+
             for (int depth = 0; depth < error_data->getDepth(); ++depth)
             {
                 // Smooth the error on the patch using PETSc.  Here, we are
@@ -412,9 +427,9 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
                 int ierr;
                 Vec& e = d_patch_vec_e[level_num][patch_counter];
                 Vec& f = d_patch_vec_f[level_num][patch_counter];
-                ierr = VecPlaceArray(e, error_data->getPointer(depth));
+                ierr = VecPlaceArray(e, e_data->getPointer(depth));
                 IBTK_CHKERRQ(ierr);
-                ierr = VecPlaceArray(f, residual_data->getPointer(depth));
+                ierr = VecPlaceArray(f, f_data->getPointer(depth));
                 IBTK_CHKERRQ(ierr);
                 ierr = KSPSolve(d_patch_ksp[level_num][patch_counter], f, e);
                 IBTK_CHKERRQ(ierr);
@@ -422,6 +437,11 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
                 IBTK_CHKERRQ(ierr);
                 ierr = VecResetArray(f);
                 IBTK_CHKERRQ(ierr);
+            }
+            if (gather)
+            {
+                // Scatter the smoothed error.
+                error_data->getArrayData().copy(e_data->getArrayData(), ghost_box);
             }
         }
     }
@@ -604,8 +624,15 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
     PetscBool ksp_type_in_options = PETSC_FALSE;
     ierr = PetscOptionsHasName(nullptr, d_petsc_options_prefix.c_str(), "-ksp_type", &ksp_type_in_options);
     IBTK_CHKERRQ(ierr);
+    // The patch operators act on data with d_gcw ghost cells, so error and residual data with more ghost cells are
+    // gathered into local arrays.
+    const bool gather = var_db->getPatchDescriptor()
+                            ->getPatchDataFactory(solution.getComponentDescriptorIndex(0))
+                            ->getGhostCellWidth() != d_gcw;
     d_patch_vec_e.resize(d_finest_ln + 1);
     d_patch_vec_f.resize(d_finest_ln + 1);
+    d_patch_e_data.resize(d_finest_ln + 1);
+    d_patch_f_data.resize(d_finest_ln + 1);
     d_patch_mat.resize(d_finest_ln + 1);
     d_patch_ksp.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
@@ -614,6 +641,8 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_vec_e[ln].resize(num_local_patches);
         d_patch_vec_f[ln].resize(num_local_patches);
+        d_patch_e_data[ln].resize(num_local_patches);
+        d_patch_f_data[ln].resize(num_local_patches);
         d_patch_mat[ln].resize(num_local_patches);
         d_patch_ksp[ln].resize(num_local_patches);
         int patch_counter = 0;
@@ -623,6 +652,13 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
             const Box<NDIM>& patch_box = patch->getBox();
             const Box<NDIM>& ghost_box = Box<NDIM>::grow(patch_box, d_gcw);
             const int size = ghost_box.size();
+            if (gather)
+            {
+                d_patch_e_data[ln][patch_counter] =
+                    new CellData<NDIM, double>(patch_box, solution_pdat_fac->getDefaultDepth(), d_gcw);
+                d_patch_f_data[ln][patch_counter] =
+                    new CellData<NDIM, double>(patch_box, rhs_pdat_fac->getDefaultDepth(), d_gcw);
+            }
             Vec& e = d_patch_vec_e[ln][patch_counter];
             Vec& f = d_patch_vec_f[ln][patch_counter];
             const int bs = 1;
@@ -733,6 +769,8 @@ CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int 
             IBTK_CHKERRQ(ierr);
         }
         d_patch_vec_f[ln].clear();
+        d_patch_e_data[ln].clear();
+        d_patch_f_data[ln].clear();
         for (auto& A : d_patch_mat[ln])
         {
             ierr = MatDestroy(&A);
@@ -751,6 +789,8 @@ CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int 
     {
         d_patch_vec_e.clear();
         d_patch_vec_f.clear();
+        d_patch_e_data.clear();
+        d_patch_f_data.clear();
         d_patch_mat.clear();
         d_patch_ksp.clear();
         d_patch_bc_box_overlap.clear();

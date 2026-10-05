@@ -87,9 +87,9 @@ namespace IBTK
  * FACPreconditionerStrategy implementing many of the operations required by
  * smoothers for the Poisson equation and related problems.
  *
- * The parameter ghost_cell_width is the necessary ghost cell width for all operations required by this class and
- derived classes. Such operations includes restricting, prolongation, computing residuals, and smoothing error. The
- patch indices in the RHS vector must have ghost cell widths that are equal to this parameter.
+ * The scratch data has the ghost cell width given to the constructor, which is the width that the stencils of the
+ * operators require. The solution and right-hand-side vectors must have the same ghost cell width, which may be any
+ * width of at least that width. The vectors passed to the other member functions must have that width.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
@@ -295,10 +295,10 @@ public:
      *
      * - hierarchy configuration (hierarchy pointer and level range)
      * - number, type and alignment of vector component data
-     * - ghost cell width of data in the solution (or solution-like) vector
+     * - ghost cell width of data in the solution (or solution-like) and right-hand-side vectors
      *
-     * An unrecoverable error will occur if the rhs vector does not have consistent ghost cell width as that provided in
-     * the constructor.
+     * An unrecoverable error will occur if the solution and right-hand-side vectors have different ghost cell widths,
+     * or a ghost cell width less than that provided in the constructor.
      *
      * \param solution solution vector u
      * \param rhs right hand side vector f
@@ -339,22 +339,32 @@ protected:
 
     /*!
      * \brief Execute a refinement schedule for prolonging data.
+     *
+     * \a dst_idx is either the scratch data or has the ghost cell width of the solution vector, and \a src_idx has the
+     * ghost cell width of the solution vector.
      */
     void xeqScheduleProlongation(int dst_idx, int src_idx, int dst_ln);
 
     /*!
      * \brief Execute schedule for restricting solution or residual to the
      * specified level.
+     *
+     * \a dst_idx has the ghost cell width of the right-hand-side vector, and \a src_idx is either the scratch data or
+     * has the ghost cell width of the right-hand-side vector.
      */
     void xeqScheduleRestriction(int dst_idx, int src_idx, int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.
+     *
+     * \a dst_idx has the ghost cell width of the solution vector.
      */
     void xeqScheduleGhostFillNoCoarse(int dst_idx, int dst_ln);
 
     /*!
      * \brief Execute schedule for synchronizing data on the specified level.
+     *
+     * \a dst_idx has the ghost cell width of the solution vector.
      */
     void xeqScheduleDataSynch(int dst_idx, int dst_ln);
 
@@ -518,19 +528,29 @@ private:
     //\{
 
     /*
-     * Error prolongation (refinement) operator.
+     * Error prolongation (refinement) operator. A schedule can only be reset with data that have the ghost cell widths
+     * of the data it was created with. There are therefore schedules for prolonging into data with the ghost cell
+     * width of the scratch data and, when the solution vector has a different ghost cell width, schedules for
+     * prolonging into data with that width (the wide schedules). The latter are created when they are first used.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_prolongation_refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_prolongation_refine_patch_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_prolongation_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_prolongation_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_prolongation_refine_algorithm,
+        d_prolongation_wide_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_prolongation_refine_schedules,
+        d_prolongation_wide_refine_schedules;
 
     /*
-     * Residual restriction (coarsening) operator.
+     * Residual restriction (coarsening) operator. As for prolongation, there are schedules for restricting from data
+     * with the ghost cell width of the right-hand-side vector and, when that vector has a different ghost cell width
+     * than the scratch data, schedules for restricting from the scratch data. The latter are created when they are
+     * first used.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM>> d_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_restriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_restriction_coarsen_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_restriction_coarsen_algorithm,
+        d_restriction_scratch_coarsen_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_restriction_coarsen_schedules,
+        d_restriction_scratch_coarsen_schedules;
 
     /*
      * Refine operator for cell data from same level.

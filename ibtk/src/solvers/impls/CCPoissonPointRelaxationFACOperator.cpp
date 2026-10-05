@@ -473,9 +473,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             Pointer<CellData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
             Pointer<CellData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
-            const Box<NDIM>& ghost_box = error_data->getGhostBox();
-            TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
-            TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
             TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
             scratch_data->getArrayData().copy(
@@ -500,9 +498,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     Pointer<CellData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
                     Pointer<CellData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
-                    const Box<NDIM>& ghost_box = error_data->getGhostBox();
-                    TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
-                    TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
+                    TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
                     TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
                     error_data->getArrayData().copy(scratch_data->getArrayData(),
@@ -538,10 +534,8 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             Pointer<CellData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
             Pointer<CellData<NDIM, double>> residual_data = residual.getComponentPatchData(0, *patch);
 #if !defined(NDEBUG)
-            const Box<NDIM>& ghost_box = error_data->getGhostBox();
-            TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
-            TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
-            TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
+            TBOX_ASSERT(residual_data->getGhostCellWidth() >= d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
 #endif
             const Box<NDIM>& patch_box = patch->getBox();

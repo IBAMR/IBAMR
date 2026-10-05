@@ -108,11 +108,6 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
     // Get values from the input database.
     if (input_db)
     {
-        if (input_db->keyExists("ghost_cell_width"))
-        {
-            int gcw = input_db->getInteger("ghost_cell_width");
-            for (int d = 0; d < NDIM; ++d) d_gcw(d) = gcw;
-        }
         if (input_db->keyExists("smoother_type")) d_smoother_type = input_db->getString("smoother_type");
         if (input_db->keyExists("prolongation_method"))
             d_prolongation_method = input_db->getString("prolongation_method");
@@ -373,18 +368,22 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln = solution.getFinestLevelNumber();
 
-#if !defined(NDEBUG)
-    // To prevent very obtuse errors later on, we check that the rhs index has the correct ghost cell width.
+    // The vectors must have the same ghost cell width, which must be at least d_gcw.
     Pointer<PatchDescriptor<NDIM>> pd = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
-    const IntVector<NDIM>& gcw = pd->getPatchDataFactory(rhs_idx)->getGhostCellWidth();
-    if (gcw != d_gcw)
+    const IntVector<NDIM>& sol_gcw = pd->getPatchDataFactory(sol_idx)->getGhostCellWidth();
+    const IntVector<NDIM>& rhs_gcw = pd->getPatchDataFactory(rhs_idx)->getGhostCellWidth();
+    if (sol_gcw != rhs_gcw)
     {
-        TBOX_ERROR(
-            d_object_name +
-                "::initializeOperatorState(): RHS index does not have the correct ghost width. RHS has ghost width of "
-            << gcw << ". Expecting a ghost cell width of " << d_gcw << ".\n");
+        TBOX_ERROR(d_object_name << "::initializeOperatorState(): vectors " << solution.getName() << " and "
+                                 << rhs.getName() << " have different ghost cell widths, " << sol_gcw << " and "
+                                 << rhs_gcw << ".\n");
     }
-#endif
+    if (!(sol_gcw >= d_gcw))
+    {
+        TBOX_ERROR(d_object_name << "::initializeOperatorState(): vectors " << solution.getName() << " and "
+                                 << rhs.getName() << " have ghost cell width " << sol_gcw
+                                 << ", which is less than the required ghost cell width " << d_gcw << ".\n");
+    }
 
     // Perform implementation-specific initialization.
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
@@ -433,7 +432,9 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
         prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
 
     d_prolongation_refine_schedules.resize(d_finest_ln + 1);
+    d_prolongation_wide_refine_schedules.resize(d_finest_ln + 1);
     d_restriction_coarsen_schedules.resize(d_finest_ln);
+    d_restriction_scratch_coarsen_schedules.resize(d_finest_ln);
     d_ghostfill_nocoarse_refine_schedules.resize(d_finest_ln + 1);
     d_synch_refine_schedules.resize(d_finest_ln + 1);
 
@@ -444,12 +445,26 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
 
     d_prolongation_refine_algorithm->registerRefine(
         d_scratch_idx, sol_idx, d_scratch_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
-    d_restriction_coarsen_algorithm->registerCoarsen(d_scratch_idx, rhs_idx, d_restriction_coarsen_operator);
+    d_restriction_coarsen_algorithm->registerCoarsen(rhs_idx, rhs_idx, d_restriction_coarsen_operator);
+    d_prolongation_wide_refine_algorithm.setNull();
+    d_restriction_scratch_coarsen_algorithm.setNull();
+    if (sol_gcw != d_gcw)
+    {
+        d_prolongation_wide_refine_algorithm = new RefineAlgorithm<NDIM>();
+        d_prolongation_wide_refine_algorithm->registerRefine(
+            sol_idx, sol_idx, sol_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
+        d_restriction_scratch_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
+        d_restriction_scratch_coarsen_algorithm->registerCoarsen(
+            rhs_idx, d_scratch_idx, d_restriction_coarsen_operator);
+    }
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(
         sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM>>(), d_op_stencil_fill_pattern);
     d_synch_refine_algorithm->registerRefine(
         sol_idx, sol_idx, sol_idx, Pointer<RefineOperator<NDIM>>(), d_synch_fill_pattern);
 
+    // The wide prolongation and scratch restriction schedules are created when they are first used, so discard those
+    // that are to be reset.
+    //
     // TODO: Here we take a pessimistic approach and are recreating refine schedule for
     // (coarsest_reset_ln - 1) level as well.
     for (int dst_ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln - 1); dst_ln <= finest_reset_ln; ++dst_ln)
@@ -460,12 +475,14 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
                                                             dst_ln - 1,
                                                             d_hierarchy,
                                                             d_prolongation_refine_patch_strategy.getPointer());
+        d_prolongation_wide_refine_schedules[dst_ln].setNull();
     }
 
     for (int dst_ln = coarsest_reset_ln; dst_ln < std::min(finest_reset_ln + 1, d_finest_ln); ++dst_ln)
     {
         d_restriction_coarsen_schedules[dst_ln] = d_restriction_coarsen_algorithm->createSchedule(
             d_hierarchy->getPatchLevel(dst_ln), d_hierarchy->getPatchLevel(dst_ln + 1));
+        d_restriction_scratch_coarsen_schedules[dst_ln].setNull();
     }
 
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
@@ -531,10 +548,14 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
         d_prolongation_refine_patch_strategy.setNull();
         d_prolongation_refine_algorithm.setNull();
         d_prolongation_refine_schedules.resize(0);
+        d_prolongation_wide_refine_algorithm.setNull();
+        d_prolongation_wide_refine_schedules.resize(0);
 
         d_restriction_coarsen_operator.setNull();
         d_restriction_coarsen_algorithm.setNull();
         d_restriction_coarsen_schedules.resize(0);
+        d_restriction_scratch_coarsen_algorithm.setNull();
+        d_restriction_scratch_coarsen_schedules.resize(0);
 
         d_ghostfill_nocoarse_refine_algorithm.setNull();
         d_ghostfill_nocoarse_refine_schedules.resize(0);
@@ -572,11 +593,26 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, con
             extended_bc_coef->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         }
     }
+
+    // Use the schedule that was created with data of the ghost cell width of dst_idx.
+    const bool dst_is_wide = dst_idx != d_scratch_idx && !d_prolongation_wide_refine_algorithm.isNull();
+    const Pointer<RefineAlgorithm<NDIM>>& algorithm =
+        dst_is_wide ? d_prolongation_wide_refine_algorithm : d_prolongation_refine_algorithm;
+    Pointer<RefineSchedule<NDIM>>& schedule =
+        dst_is_wide ? d_prolongation_wide_refine_schedules[dst_ln] : d_prolongation_refine_schedules[dst_ln];
+    if (schedule.isNull()) // a wide schedule that is used for the first time
+    {
+        schedule = algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
+                                             Pointer<PatchLevel<NDIM>>(),
+                                             dst_ln - 1,
+                                             d_hierarchy,
+                                             d_prolongation_refine_patch_strategy.getPointer());
+    }
     RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, src_idx, dst_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
-    refiner.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
-    d_prolongation_refine_schedules[dst_ln]->fillData(d_solution_time);
-    d_prolongation_refine_algorithm->resetSchedule(d_prolongation_refine_schedules[dst_ln]);
+    refiner.resetSchedule(schedule);
+    schedule->fillData(d_solution_time);
+    algorithm->resetSchedule(schedule);
     for (const auto& bc_coef : d_bc_coefs)
     {
         auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
@@ -588,11 +624,22 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, con
 void
 PoissonFACPreconditionerStrategy::xeqScheduleRestriction(const int dst_idx, const int src_idx, const int dst_ln)
 {
+    // Use the schedule that was created with data of the ghost cell width of src_idx.
+    const bool src_is_scratch = src_idx == d_scratch_idx && !d_restriction_scratch_coarsen_algorithm.isNull();
+    const Pointer<CoarsenAlgorithm<NDIM>>& algorithm =
+        src_is_scratch ? d_restriction_scratch_coarsen_algorithm : d_restriction_coarsen_algorithm;
+    Pointer<CoarsenSchedule<NDIM>>& schedule =
+        src_is_scratch ? d_restriction_scratch_coarsen_schedules[dst_ln] : d_restriction_coarsen_schedules[dst_ln];
+    if (schedule.isNull()) // a scratch schedule that is used for the first time
+    {
+        schedule =
+            algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_hierarchy->getPatchLevel(dst_ln + 1));
+    }
     CoarsenAlgorithm<NDIM> coarsener;
     coarsener.registerCoarsen(dst_idx, src_idx, d_restriction_coarsen_operator);
-    coarsener.resetSchedule(d_restriction_coarsen_schedules[dst_ln]);
-    d_restriction_coarsen_schedules[dst_ln]->coarsenData();
-    d_restriction_coarsen_algorithm->resetSchedule(d_restriction_coarsen_schedules[dst_ln]);
+    coarsener.resetSchedule(schedule);
+    schedule->coarsenData();
+    algorithm->resetSchedule(schedule);
     return;
 } // xeqScheduleRestriction
 
