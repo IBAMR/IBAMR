@@ -1,0 +1,3 @@
+Fixed: The staggered Stokes preconditioners treat the velocity damping coefficient as zero only when it is exactly zero.
+<br>
+(Boyce Griffith, 2026/10/05)
