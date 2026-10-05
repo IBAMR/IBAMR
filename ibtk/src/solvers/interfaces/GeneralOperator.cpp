@@ -15,7 +15,6 @@
 
 #include <ibtk/GeneralOperator.h>
 #include <ibtk/HierarchyMathOps.h>
-#include <ibtk/SAMRAIScopedVectorCopy.h>
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
 
 #include <tbox/Pointer.h>
@@ -127,7 +126,7 @@ GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
                           SAMRAIVectorReal<NDIM, double>& z)
 {
     // Guard against the case that y == z.
-    SAMRAIScopedVectorCopy<double> zz(z);
+    SAMRAIScopedVectorDuplicate<double> zz(z);
     apply(x, zz);
     z.add(Pointer<SAMRAIVectorReal<NDIM, double>>(&y, false), zz);
     return;
