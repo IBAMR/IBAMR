@@ -121,6 +121,32 @@ example, `Bug` for a bug fix, `Tests` for test changes, and `C++`, `Fortran`,
 repository label list; do not create labels or infer publication permission from
 account access.
 
+## Draft and ready for review
+
+Marking a PR ready for review tells reviewers that the work is done. Mark a PR
+ready only when all of the following hold; otherwise open it, or keep it, as a
+draft:
+
+- No more revisions to the code, tests, title, or description are planned.
+- Local checks pass: the change builds with the applicable CI warning settings
+  and the affected tests pass.
+- No test is known to fail, locally or in CI on the current revision.
+- Every PR below it in its stack is ready.
+- It is not waiting on something that will not merge first, such as a change
+  held for a later release.
+
+Hosted CI need not have finished. A ready PR stays ready while a simple CI
+failure is fixed, while changes that a reviewer requested are made, and while it
+is rebased. Convert it back to a draft when further changes that no reviewer
+asked for are planned, when fixing a failure or a review comment needs rework
+substantial enough that a reviewer would have to read the PR again, when a PR
+below it in its stack becomes a draft, or when it becomes blocked.
+
+A finished PR may also be held as a draft when it is naturally reviewed later,
+such as the upper PRs of a stack or a follow-up to a PR that has not merged, so
+that the number of PRs in review stays manageable. Changing a PR between draft
+and ready is a publication action: do it only within authorized PR work.
+
 ## Changelog entries
 
 Read [doc/news/changes/README.md](../../doc/news/changes/README.md) before writing an
