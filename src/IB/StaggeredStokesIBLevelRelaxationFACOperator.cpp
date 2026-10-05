@@ -43,6 +43,7 @@
 #include <IntVector.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
+#include <PatchDescriptor.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <ProcessorMapping.h>
@@ -371,8 +372,6 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
             Pointer<SideData<NDIM, double>> U_error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<NDIM, double>> U_scratch_data = patch->getPatchData(U_scratch_idx);
 #if !defined(NDEBUG)
-            const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
-            TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
             TBOX_ASSERT(U_error_data->getGhostCellWidth() == SIDEG);
             TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == SIDEG);
 #endif
@@ -386,8 +385,6 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
             Pointer<CellData<NDIM, double>> P_error_data = error.getComponentPatchData(1, *patch);
             Pointer<CellData<NDIM, double>> P_scratch_data = patch->getPatchData(P_scratch_idx);
 #if !defined(NDEBUG)
-            const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
-            TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
             TBOX_ASSERT(P_error_data->getGhostCellWidth() == CELLG);
             TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == CELLG);
 #endif
@@ -467,12 +464,32 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
 
 void
 StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
-    const SAMRAIVectorReal<NDIM, double>& /*rhs*/,
+    const SAMRAIVectorReal<NDIM, double>& solution,
+    const SAMRAIVectorReal<NDIM, double>& rhs,
     const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
     int ierr;
+
+    // The smoother and the residual computation act on data with one ghost cell. The base class has checked that the
+    // solution and right-hand-side vectors have the same ghost cell widths.
+    Pointer<PatchDescriptor<NDIM>> pd = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
+    const IntVector<NDIM>& U_gcw =
+        pd->getPatchDataFactory(solution.getComponentDescriptorIndex(0))->getGhostCellWidth();
+    const IntVector<NDIM>& P_gcw =
+        pd->getPatchDataFactory(solution.getComponentDescriptorIndex(1))->getGhostCellWidth();
+    if (U_gcw != IntVector<NDIM>(SIDEG))
+    {
+        TBOX_ERROR(d_object_name << "::initializeOperatorState(): the velocity components of vectors "
+                                 << solution.getName() << " and " << rhs.getName() << " have ghost cell width " << U_gcw
+                                 << ", which is not the required ghost cell width " << SIDEG << ".\n");
+    }
+    if (P_gcw != IntVector<NDIM>(CELLG))
+    {
+        TBOX_ERROR(d_object_name << "::initializeOperatorState(): the pressure components of vectors "
+                                 << solution.getName() << " and " << rhs.getName() << " have ghost cell width " << P_gcw
+                                 << ", which is not the required ghost cell width " << CELLG << ".\n");
+    }
 
     const double dt = d_new_time - d_current_time;
     double kappa = std::numeric_limits<double>::quiet_NaN();

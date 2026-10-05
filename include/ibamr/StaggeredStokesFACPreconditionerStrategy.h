@@ -83,6 +83,11 @@ namespace IBAMR
  * smoothers for staggered-grid (MAC) discretizations of the incompressible
  * Stokes equations and related problems.
  *
+ * The scratch data has the ghost cell width given to the constructor, which is the width that the stencils of the
+ * operators require. The velocity components of the solution and right-hand-side vectors must have the same ghost cell
+ * width, and likewise their pressure components; each may be any width of at least that width. The vectors passed to
+ * the other member functions must have those widths.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
@@ -326,7 +331,10 @@ public:
      *
      * - hierarchy configuration (hierarchy pointer and level range)
      * - number, type and alignment of vector component data
-     * - ghost cell width of data in the solution (or solution-like) vector
+     * - ghost cell width of data in the solution (or solution-like) and right-hand-side vectors
+     *
+     * An unrecoverable error will occur if the solution and right-hand-side vectors have different ghost cell widths
+     * in their velocity or pressure components, or a ghost cell width less than that provided in the constructor.
      *
      * \param solution solution vector u
      * \param rhs right hand side vector f
@@ -367,22 +375,32 @@ protected:
 
     /*!
      * \brief Execute a refinement schedule for prolonging data.
+     *
+     * \a dst_idxs are either the scratch data or have the ghost cell widths of the solution vector, and \a src_idxs
+     * have the ghost cell widths of the solution vector.
      */
     void xeqScheduleProlongation(const std::pair<int, int>& dst_idxs, const std::pair<int, int>& src_idxs, int dst_ln);
 
     /*!
      * \brief Execute schedule for restricting solution or residual to the
      * specified level.
+     *
+     * \a dst_idxs have the ghost cell widths of the right-hand-side vector, and \a src_idxs are either the scratch data
+     * or have the ghost cell widths of the right-hand-side vector.
      */
     void xeqScheduleRestriction(const std::pair<int, int>& dst_idxs, const std::pair<int, int>& src_idxs, int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.
+     *
+     * \a dst_idxs are either the scratch data or have the ghost cell widths of the solution vector.
      */
     void xeqScheduleGhostFillNoCoarse(const std::pair<int, int>& dst_idxs, int dst_ln);
 
     /*!
      * \brief Execute schedule for synchronizing data on the specified level.
+     *
+     * \a dst_idx has the ghost cell width of the solution vector.
      */
     void xeqScheduleDataSynch(int dst_idx, int dst_ln);
 
@@ -557,27 +575,42 @@ private:
     SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_U_P_bc_op;
 
     /*
-     * Error prolongation (refinement) operator.
+     * Error prolongation (refinement) operator. A schedule can only be reset with data that have the ghost cell widths
+     * of the data it was created with. There are therefore schedules for prolonging into data with the ghost cell
+     * width of the scratch data and, when a component of the solution vector has a different ghost cell width,
+     * schedules for prolonging into data with that width (the wide schedules). The latter are created when they are
+     * first used.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_U_prolongation_refine_operator,
         d_P_prolongation_refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_prolongation_refine_patch_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_prolongation_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_prolongation_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_prolongation_refine_algorithm,
+        d_prolongation_wide_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_prolongation_refine_schedules,
+        d_prolongation_wide_refine_schedules;
 
     /*
-     * Residual restriction (coarsening) operator.
+     * Residual restriction (coarsening) operator. As for prolongation, there are schedules for restricting from data
+     * with the ghost cell widths of the right-hand-side vector and, when a component of that vector has a different
+     * ghost cell width than the scratch data, schedules for restricting from the scratch data. The latter are created
+     * when they are first used.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM>> d_U_restriction_coarsen_operator,
         d_P_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_restriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_restriction_coarsen_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_restriction_coarsen_algorithm,
+        d_restriction_scratch_coarsen_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_restriction_coarsen_schedules,
+        d_restriction_scratch_coarsen_schedules;
 
     /*
-     * Refine operator for side and cell data from same level.
+     * Refine operator for side and cell data from same level. There are schedules for filling data with the ghost
+     * cell widths of the solution vector and, when a component of that vector has a different ghost cell width than
+     * the scratch data, schedules for filling the scratch data. The latter are created when they are first used.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_ghostfill_nocoarse_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_ghostfill_nocoarse_refine_algorithm,
+        d_ghostfill_nocoarse_scratch_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_ghostfill_nocoarse_refine_schedules,
+        d_ghostfill_nocoarse_scratch_refine_schedules;
 
     /*
      * Operator for side data synchronization on same level.
