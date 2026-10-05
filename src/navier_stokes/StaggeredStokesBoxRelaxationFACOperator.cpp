@@ -106,7 +106,7 @@ buildBoxOperator(Mat& A,
 {
     int ierr;
 
-    const double C = U_problem_coefs.getCConstant();
+    const double C = (U_problem_coefs.cIsZero() ? 0.0 : U_problem_coefs.getCConstant());
     const double D = U_problem_coefs.getDConstant();
 
     // Allocate a PETSc matrix for the box operator.

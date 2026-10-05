@@ -248,7 +248,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 #endif
 
     // Set the matrix coefficients.
-    const double C = u_problem_coefs.getCConstant();
+    const double C = (u_problem_coefs.cIsZero() ? 0.0 : u_problem_coefs.getCConstant());
     const double D = u_problem_coefs.getDConstant();
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
