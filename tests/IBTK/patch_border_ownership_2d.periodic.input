@@ -1,0 +1,16 @@
+// A 16 x 16 periodic domain covered by a single patch.
+
+// Copy and synchronize data on a patch that is its own neighbor.
+TEST_PERIODIC_DOMAIN = TRUE
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (15,15)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 1, 1
+}
