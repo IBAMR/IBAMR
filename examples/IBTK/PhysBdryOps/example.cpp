@@ -12,7 +12,6 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc objects
@@ -30,6 +29,7 @@
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <LocationIndexRobinBcCoefs.h>
 

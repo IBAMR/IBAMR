@@ -12,10 +12,13 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
+// C++ includes
+#include <numeric>
+
 // Headers for basic PETSc objects
+#include <petscao.h>
 #include <petscsys.h>
 
 // Headers for major SAMRAI objects
@@ -23,13 +26,17 @@
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
+#include <SAMRAIVectorReal.h>
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
-#include <ibtk/SCLaplaceOperator.h>
-#include <ibtk/SCPoissonSolverManager.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/PETScMatUtilities.h>
+#include <ibtk/PETScVecUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
@@ -52,7 +59,7 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_poisson.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_prolongation.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
@@ -79,22 +86,18 @@ main(int argc, char* argv[])
         Pointer<SideVariable<NDIM, double>> u_sc_var = new SideVariable<NDIM, double>("u_sc");
         Pointer<SideVariable<NDIM, double>> f_sc_var = new SideVariable<NDIM, double>("f_sc");
         Pointer<SideVariable<NDIM, double>> e_sc_var = new SideVariable<NDIM, double>("e_sc");
-        Pointer<SideVariable<NDIM, double>> r_sc_var = new SideVariable<NDIM, double>("r_sc");
 
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(1));
         const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVector<NDIM>(1));
         const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVector<NDIM>(1));
-        const int r_sc_idx = var_db->registerVariableAndContext(r_sc_var, ctx, IntVector<NDIM>(1));
 
         Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
         Pointer<CellVariable<NDIM, double>> f_cc_var = new CellVariable<NDIM, double>("f_cc", NDIM);
         Pointer<CellVariable<NDIM, double>> e_cc_var = new CellVariable<NDIM, double>("e_cc", NDIM);
-        Pointer<CellVariable<NDIM, double>> r_cc_var = new CellVariable<NDIM, double>("r_cc", NDIM);
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(0));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(0));
         const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(0));
-        const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector<NDIM>(0));
 
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
@@ -118,12 +121,6 @@ main(int argc, char* argv[])
             visit_data_writer->registerPlotQuantity(e_cc_var->getName() + std::to_string(d), "SCALAR", e_cc_idx, d);
         }
 
-        visit_data_writer->registerPlotQuantity(r_cc_var->getName(), "VECTOR", r_cc_idx);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            visit_data_writer->registerPlotQuantity(r_cc_var->getName() + std::to_string(d), "SCALAR", r_cc_idx, d);
-        }
-
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         int tag_buffer = 1;
@@ -143,84 +140,146 @@ main(int argc, char* argv[])
             level->allocatePatchData(u_sc_idx, 0.0);
             level->allocatePatchData(f_sc_idx, 0.0);
             level->allocatePatchData(e_sc_idx, 0.0);
-            level->allocatePatchData(r_sc_idx, 0.0);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
-            level->allocatePatchData(r_cc_idx, 0.0);
         }
 
-        // Setup vector objects.
+        // Setup exact solutions.
+        muParserCartGridFunction fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
+        fcn.setDataOnPatchHierarchy(u_sc_idx, u_sc_var, patch_hierarchy, 0.0);
+        fcn.setDataOnPatchHierarchy(f_sc_idx, f_sc_var, patch_hierarchy, 0.0);
+        fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
+
+        // Compute u DOFs per processor.
+        std::vector<std::vector<int>> num_dofs_per_proc;
+        Pointer<SideVariable<NDIM, int>> u_dof_index_var = new SideVariable<NDIM, int>("u_dof_index");
+        ;
+        const IntVector<NDIM> no_ghosts = 0;
+        const int u_dof_index_idx = var_db->registerVariableAndContext(u_dof_index_var, ctx, no_ghosts);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+        if (finest_ln != 1)
+        {
+            TBOX_ERROR("This is a 2 level example \n. Please set max_levels = 2 in the input file \n");
+        }
+        num_dofs_per_proc.resize(finest_ln + 1);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(u_dof_index_idx, 0.0);
+            PETScVecUtilities::constructPatchLevelDOFIndices(num_dofs_per_proc[ln], u_dof_index_idx, level);
+        }
+
+        // Construct the coarse and fine level PETSc Vecs
+        const int mpi_rank = IBTK_MPI::getRank();
+        const int n_local_coarsest = num_dofs_per_proc[coarsest_ln][mpi_rank];
+        const int n_total_coarsest =
+            std::accumulate(num_dofs_per_proc[coarsest_ln].begin(), num_dofs_per_proc[coarsest_ln].end(), 0);
+        const int n_local_finest = num_dofs_per_proc[finest_ln][mpi_rank];
+        const int n_total_finest =
+            std::accumulate(num_dofs_per_proc[finest_ln].begin(), num_dofs_per_proc[finest_ln].end(), 0);
+
+        Vec x;
+        VecCreateMPI(PETSC_COMM_WORLD, n_local_coarsest, n_total_coarsest, &x);
+        Vec X, Y, E;
+        VecCreateMPI(PETSC_COMM_WORLD, n_local_finest, n_total_finest, &X);
+        PETScVecUtilities::copyToPatchLevelVec(
+            x, u_sc_idx, u_dof_index_idx, patch_hierarchy->getPatchLevel(coarsest_ln));
+        PETScVecUtilities::copyToPatchLevelVec(X, u_sc_idx, u_dof_index_idx, patch_hierarchy->getPatchLevel(finest_ln));
+        VecDuplicate(X, &Y);
+        VecDuplicate(X, &E);
+
+        // Construct PETSc prolongation mat.
+        std::string prolongation_op_type = input_db->getString("prolongation_op_type");
+        AO coarse_level_ao = nullptr;
+        PETScVecUtilities::constructPatchLevelAO(coarse_level_ao,
+                                                 num_dofs_per_proc[coarsest_ln],
+                                                 u_dof_index_idx,
+                                                 patch_hierarchy->getPatchLevel(coarsest_ln),
+                                                 /*ao_offset*/ 0);
+        Mat prolongation_mat = nullptr;
+        PETScMatUtilities::constructProlongationOp(prolongation_mat,
+                                                   prolongation_op_type,
+                                                   u_dof_index_idx,
+                                                   num_dofs_per_proc[finest_ln],
+                                                   num_dofs_per_proc[coarsest_ln],
+                                                   patch_hierarchy->getPatchLevel(finest_ln),
+                                                   patch_hierarchy->getPatchLevel(coarsest_ln),
+                                                   coarse_level_ao,
+                                                   /*coarse_ao_offset*/ 0);
+
+        // Obtain finest DOFs from prolongation matrix.
+        // P * x = Y
+        MatMult(prolongation_mat, x, Y);
+
+        PetscViewer matlab_viewer;
+        PetscViewerBinaryOpen(PETSC_COMM_WORLD, "PROLONG.MAT", FILE_MODE_WRITE, &matlab_viewer);
+        PetscViewerPushFormat(matlab_viewer, PETSC_VIEWER_ASCII_MATLAB);
+        MatView(prolongation_mat, matlab_viewer);
+        PetscViewerDestroy(&matlab_viewer);
+
+        // Compute error of prolongation E = Y - X, and find its norm.
+        double norm_1, norm_2, norm_oo;
+        VecWAXPY(E, -1.0, X, Y);
+        VecNorm(E, NORM_1, &norm_1);
+        VecNorm(E, NORM_2, &norm_2);
+        VecNorm(E, NORM_INFINITY, &norm_oo);
+        pout << "|| E ||_1 of the error vector  = " << norm_1 << "\n"
+             << "|| E ||_2 of the error vector  = " << norm_2 << "\n"
+             << "|| E ||_oo of the error vector = " << norm_oo << "\n";
+
+        // Copy PETSc Vec to SAMRAI vec
+        Pointer<RefineSchedule<NDIM>> data_synch_sched =
+            PETScVecUtilities::constructDataSynchSchedule(f_sc_idx, patch_hierarchy->getPatchLevel(finest_ln));
+        PETScVecUtilities::copyFromPatchLevelVec(Y,
+                                                 f_sc_idx,
+                                                 u_dof_index_idx,
+                                                 patch_hierarchy->getPatchLevel(finest_ln),
+                                                 data_synch_sched,
+                                                 Pointer<RefineSchedule<NDIM>>(nullptr));
+
+        // Setup SAMRAI vector objects.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int h_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
-        u_vec.addComponent(u_sc_var, u_sc_idx, h_sc_idx);
         f_vec.addComponent(f_sc_var, f_sc_idx, h_sc_idx);
         e_vec.addComponent(e_sc_var, e_sc_idx, h_sc_idx);
-        r_vec.addComponent(r_sc_var, r_sc_idx, h_sc_idx);
-
-        u_vec.setToScalar(0.0);
-        f_vec.setToScalar(0.0);
-        e_vec.setToScalar(0.0);
-        r_vec.setToScalar(0.0);
-
-        // Setup exact solutions.
-        muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
-        muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
-
-        u_fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
-        f_fcn.setDataOnPatchHierarchy(f_sc_idx, f_sc_var, patch_hierarchy, 0.0);
-
-        // Setup the Poisson solver.
-        PoissonSpecifications poisson_spec("poisson_spec");
-        poisson_spec.setCConstant(0.0);
-        poisson_spec.setDConstant(-1.0);
-        vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, nullptr);
-        SCLaplaceOperator laplace_op("laplace_op");
-        laplace_op.setPoissonSpecifications(poisson_spec);
-        laplace_op.setPhysicalBcCoefs(bc_coefs);
-        laplace_op.initializeOperatorState(u_vec, f_vec);
-
-        string solver_type = input_db->getString("solver_type");
-        Pointer<Database> solver_db = input_db->getDatabase("solver_db");
-        string precond_type = input_db->getString("precond_type");
-        Pointer<Database> precond_db = input_db->getDatabase("precond_db");
-        Pointer<PoissonSolver> poisson_solver = SCPoissonSolverManager::getManager()->allocateSolver(
-            solver_type, "poisson_solver", solver_db, "", precond_type, "poisson_precond", precond_db, "");
-        poisson_solver->setPoissonSpecifications(poisson_spec);
-        poisson_solver->setPhysicalBcCoefs(bc_coefs);
-        poisson_solver->initializeSolverState(u_vec, f_vec);
-
-        // Solve -L*u = f.
-        u_vec.setToScalar(0.0);
-        poisson_solver->solveSystem(u_vec, f_vec);
 
         // Compute error and print error norms.
         e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double>>(&u_vec, false));
+                       Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
 
-        // Compute the residual and print residual norms.
-        laplace_op.apply(u_vec, r_vec);
-        r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double>>(&r_vec, false));
-        pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
-        pout << "|r|_2  = " << r_vec.L2Norm() << "\n";
-        pout << "|r|_1  = " << r_vec.L1Norm() << "\n";
-
         // Interpolate the side-centered data to cell centers for output.
-        static const bool synch_cf_interface = true;
-        hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, nullptr, 0.0, synch_cf_interface);
-        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, nullptr, 0.0, synch_cf_interface);
-        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, nullptr, 0.0, synch_cf_interface);
-        hier_math_ops.interp(r_cc_idx, r_cc_var, r_sc_idx, r_sc_var, nullptr, 0.0, synch_cf_interface);
+        static const bool synch_cf_interface = false;
+        hier_math_ops.interp(u_cc_idx,
+                             u_cc_var,
+                             u_sc_idx,
+                             u_sc_var,
+                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
+                             0.0,
+                             synch_cf_interface);
+        hier_math_ops.interp(f_cc_idx,
+                             f_cc_var,
+                             f_sc_idx,
+                             f_sc_var,
+                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
+                             0.0,
+                             synch_cf_interface);
+        hier_math_ops.interp(e_cc_idx,
+                             e_cc_var,
+                             e_sc_idx,
+                             e_sc_var,
+                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
+                             0.0,
+                             synch_cf_interface);
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.
@@ -236,7 +295,6 @@ main(int argc, char* argv[])
                 Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<CellData<NDIM, double>> e_cc_data = patch->getPatchData(e_cc_idx);
-                Pointer<CellData<NDIM, double>> r_cc_data = patch->getPatchData(r_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const Box<NDIM> refined_box = refined_region_boxes[i];
@@ -244,7 +302,6 @@ main(int argc, char* argv[])
                     if (!intersection.empty())
                     {
                         e_cc_data->fillAll(0.0, intersection);
-                        r_cc_data->fillAll(0.0, intersection);
                     }
                 }
             }

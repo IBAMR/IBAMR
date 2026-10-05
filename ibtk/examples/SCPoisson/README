@@ -1,2 +1,0 @@
-A test program to check that the cell-centered Poisson solver achieves
-the expected order of accuracy.
