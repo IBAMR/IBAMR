@@ -1,0 +1,3 @@
+Fixed: IBAMR::INSStaggeredUpwindConvectiveOperator and the upwind stabilization of IBAMR::INSStaggeredStabilizedPPMConvectiveOperator choose the upwind value from the sign of the advection velocity, whatever its magnitude.
+<br>
+(Boyce Griffith, 2026/10/04)
