@@ -26,6 +26,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBLagrangianSourceStrategy.h>
 #include <ibamr/IBMethod.h>
 #include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/IBStandardForceGen.h>
@@ -69,6 +70,68 @@ generate_structure(const unsigned int& struct_num,
     return;
 }
 
+// A source and a sink of equal strength on either side of the centroid of the
+// Lagrangian points.
+class CentroidSource : public IBLagrangianSourceStrategy
+{
+public:
+    unsigned int getNumSources(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                               const int ln,
+                               double /*data_time*/,
+                               LDataManager* /*l_data_manager*/) override
+    {
+        return ln == finest_ln ? 2 : 0;
+    }
+
+    void getSourceLocations(std::vector<Point>& X_src,
+                            std::vector<double>& r_src,
+                            Pointer<LData> X_data,
+                            Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                            int /*ln*/,
+                            double /*data_time*/,
+                            LDataManager* /*l_data_manager*/) override
+    {
+        if (X_src.empty())
+        {
+            return;
+        }
+        Point centroid = Point::Zero();
+        const boost::multi_array_ref<double, 2>& X = *X_data->getLocalFormVecArray();
+        for (unsigned int n = 0; n < X_data->getLocalNodeCount(); ++n)
+        {
+            for (int d = 0; d < NDIM; ++d)
+            {
+                centroid[d] += X[n][d];
+            }
+        }
+        X_data->restoreArrays();
+        IBTK_MPI::sumReduction(centroid.data(), NDIM);
+        centroid /= X_data->getGlobalNodeCount();
+        X_src[0] = centroid - Point::Constant(0.125);
+        X_src[1] = centroid + Point::Constant(0.125);
+        r_src[0] = r_src[1] = 0.125;
+    }
+
+    void setSourcePressures(const std::vector<double>& P_src,
+                            Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                            int /*ln*/,
+                            const double data_time,
+                            LDataManager* /*l_data_manager*/) override
+    {
+        plog << "source pressures at time " << data_time << ": " << P_src[0] << " " << P_src[1] << "\n";
+    }
+
+    void computeSourceStrengths(std::vector<double>& Q_src,
+                                Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
+                                int /*ln*/,
+                                double /*data_time*/,
+                                LDataManager* /*l_data_manager*/) override
+    {
+        Q_src[0] = +0.01;
+        Q_src[1] = -0.01;
+    }
+};
+
 int
 main(int argc, char* argv[])
 {
@@ -98,6 +161,10 @@ main(int argc, char* argv[])
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        if (input_db->getBoolWithDefault("use_fluid_sources", false))
+        {
+            ib_method_ops->registerIBLagrangianSourceFunction(new CentroidSource());
+        }
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
