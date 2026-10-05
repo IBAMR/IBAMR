@@ -300,6 +300,12 @@ private:
      */
     std::string d_petsc_options_prefix = "cc_poisson_fac_";
     std::vector<std::vector<Vec>> d_patch_vec_e, d_patch_vec_f;
+
+    /*
+     * Copies of the patch error and residual data with d_gcw ghost cells, null when the vectors have d_gcw ghost cells.
+     */
+    std::vector<std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>>>> d_patch_e_data,
+        d_patch_f_data;
     std::vector<std::vector<Mat>> d_patch_mat;
     std::vector<std::vector<KSP>> d_patch_ksp;
 
