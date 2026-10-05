@@ -302,9 +302,9 @@ main(int argc, char* argv[])
 
         if (test_petsc_vector_ops) check_petsc_vector_ops(u_vec, f_vec);
 
-        // Compute -L*u = f.
+        // Compute -L*u + C*u = f.
         PoissonSpecifications poisson_spec("poisson_spec");
-        poisson_spec.setCConstant(0.0);
+        poisson_spec.setCConstant(input_db->getDoubleWithDefault("C", 0.0));
         poisson_spec.setDConstant(-1.0);
         RobinBcCoefStrategy<NDIM>* bc_coef = nullptr;
         CCLaplaceOperator laplace_op("laplace op");

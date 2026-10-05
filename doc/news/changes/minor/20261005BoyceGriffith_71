@@ -1,0 +1,3 @@
+Fixed: The cell-centered IBTK::HierarchyMathOps::laplace() treats the damping coefficient and the source weight as zero only when they are exactly zero.
+<br>
+(Boyce Griffith, 2026/10/05)
