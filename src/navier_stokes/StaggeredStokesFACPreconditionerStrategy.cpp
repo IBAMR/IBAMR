@@ -39,6 +39,7 @@
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/solver_utilities.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -720,6 +721,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
                                                                            d_object_name + "::coarse_solver",
                                                                            d_coarse_solver_db,
                                                                            d_coarse_solver_default_options_prefix);
+            set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
         }
 #if !defined(NDEBUG)
         TBOX_ASSERT(d_coarse_solver);

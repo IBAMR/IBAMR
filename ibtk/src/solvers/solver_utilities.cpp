@@ -13,7 +13,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/GeneralSolver.h>
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/PETScLevelSolver.h>
 #include <ibtk/solver_utilities.h>
 
 #include <SideGeometry.h>
@@ -134,6 +136,18 @@ reportPETScSNESConvergedReason(const std::string& object_name, const SNESConverg
         break;
     }
 } // reportPETScSNESConvergedReason
+
+void
+set_fixed_iteration_ksp_defaults(GeneralSolver* solver, const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& solver_db)
+{
+    auto p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(solver);
+    if (p_petsc_level_solver && !(solver_db && solver_db->keyExists("ksp_type")))
+    {
+        p_petsc_level_solver->setKSPType(KSPRICHARDSON);
+        p_petsc_level_solver->setKSPNormType(KSP_NORM_NONE);
+    }
+    return;
+} // set_fixed_iteration_ksp_defaults
 
 // hypre defines HYPRE_RELEASE_NUMBER in version 2.21 and newer.
 #if HYPRE_RELEASE_NUMBER >= 22100

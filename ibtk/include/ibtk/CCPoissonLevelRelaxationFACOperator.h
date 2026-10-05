@@ -96,16 +96,20 @@ namespace IBTK
  smoother_type = "PATCH_GAUSS_SEIDEL"         // see setSmootherType()
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
- coarse_solver_type = "HYPRE_LEVEL_SOLVER"    // see setCoarseSolverType()
+ level_solver_type = "PETSC_LEVEL_SOLVER"
+ level_solver_rel_residual_tol = 1.0e-5
+ level_solver_abs_residual_tol = 1.0e-50
+ level_solver_max_iterations = 1
+ level_solver_db { }                          // SAMRAI::tbox::Database for the level solvers
+ coarse_solver_type = "PETSC_LEVEL_SOLVER"    // see setCoarseSolverType()
  coarse_solver_rel_residual_tol = 1.0e-5      // see setCoarseSolverRelativeTolerance()
  coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
  coarse_solver_max_iterations = 1             // see setCoarseSolverMaxIterations()
- coarse_solver_db {                           // SAMRAI::tbox::Database for coarse level solver
-    solver_type = "PFMG"
-    num_pre_relax_steps = 0
-    num_post_relax_steps = 2
- }
+ coarse_solver_db { }                         // SAMRAI::tbox::Database for the coarse level solver
  \endverbatim
+ *
+ * By default, PETSc level solvers apply level_solver_max_iterations Richardson iterations with no convergence test. A
+ * KSP type in level_solver_db or the PETSc options database overrides this.
 */
 class CCPoissonLevelRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {

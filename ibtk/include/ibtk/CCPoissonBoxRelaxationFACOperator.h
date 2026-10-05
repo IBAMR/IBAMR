@@ -106,7 +106,11 @@ namespace IBTK
     num_pre_relax_steps = 0
     num_post_relax_steps = 2
  }
+ petsc_options_prefix = "cc_poisson_fac_"     // PETSc options prefix of the patch solvers
  \endverbatim
+ *
+ * By default, each smoothing sweep applies one Richardson iteration with an ILU preconditioner to each patch problem.
+ * The PETSc options database, with the prefix \c petsc_options_prefix, selects other patch solvers.
 */
 class CCPoissonBoxRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {
