@@ -1625,8 +1625,8 @@ INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorRe
     }
     if (d_Q_fcn)
     {
-        d_hier_sc_data_ops->axpy(
-            rhs_vec->getComponentDescriptorIndex(0), -rho, d_F_div_idx, rhs_vec->getComponentDescriptorIndex(0));
+        d_hier_sc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_div_idx);
         d_hier_cc_data_ops->add(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
