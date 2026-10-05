@@ -302,6 +302,161 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Computes D = alpha div grad U + beta U + gamma W on the cells of
+c     a patch, evaluating each flux once.
+c
+c     Uses the seven point stencil.  The side centered fluxes alpha grad U
+c     are computed one row at a time into the scratch arrays gx, gy, and
+c     gz.  The terms beta U and gamma W are omitted when beta and gamma
+c     are zero.  The fluxes on the sides of the patch box that lie on its
+c     boundary are returned in FL0, FU0, FL1, FU1, FL2, FU2 (lower and
+c     upper sides in each coordinate direction).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine fluxlaplace3d(
+     &     D,D_gcw,
+     &     alpha,beta,
+     &     U,U_gcw,
+     &     gamma,
+     &     W,W_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     FL0,FU0,FL1,FU1,FL2,FU2,
+     &     gx,gy,gz)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER D_gcw,U_gcw,W_gcw
+
+      REAL alpha,beta
+
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+
+      REAL gamma
+
+      REAL W(CELL3d(ilower,iupper,W_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL D(CELL3d(ilower,iupper,D_gcw))
+
+      REAL FL0(ilower1:iupper1,ilower2:iupper2)
+      REAL FU0(ilower1:iupper1,ilower2:iupper2)
+      REAL FL1(ilower0:iupper0,ilower2:iupper2)
+      REAL FU1(ilower0:iupper0,ilower2:iupper2)
+      REAL FL2(ilower0:iupper0,ilower1:iupper1)
+      REAL FU2(ilower0:iupper0,ilower1:iupper1)
+
+      REAL gx(ilower0:iupper0+1)
+      REAL gy(ilower0:iupper0,0:1)
+      REAL gz(ilower0:iupper0,ilower1:iupper1,0:1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2,jl,jh,kl,kh
+      REAL    fac0,fac1,fac2,dfac0,dfac1,dfac2
+c
+c     Compute D.
+c
+      fac0 = alpha/dx(0)
+      fac1 = alpha/dx(1)
+      fac2 = alpha/dx(2)
+      dfac0 = 1.d0/dx(0)
+      dfac1 = 1.d0/dx(1)
+      dfac2 = 1.d0/dx(2)
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            gz(i0,i1,0) = fac2*(U(i0,i1,ilower2)-U(i0,i1,ilower2-1))
+            FL2(i0,i1) = gz(i0,i1,0)
+         enddo
+      enddo
+      kh = 0
+      do i2 = ilower2,iupper2
+         kl = mod(i2-ilower2,2)
+         kh = 1-kl
+         do i0 = ilower0,iupper0
+            gy(i0,0) = fac1*(U(i0,ilower1,i2)-U(i0,ilower1-1,i2))
+            FL1(i0,i2) = gy(i0,0)
+         enddo
+         jh = 0
+         do i1 = ilower1,iupper1
+            jl = mod(i1-ilower1,2)
+            jh = 1-jl
+            do i0 = ilower0,iupper0+1
+               gx(i0) = fac0*(U(i0,i1,i2)-U(i0-1,i1,i2))
+            enddo
+            do i0 = ilower0,iupper0
+               gy(i0,jh) = fac1*(U(i0,i1+1,i2)-U(i0,i1,i2))
+            enddo
+            do i0 = ilower0,iupper0
+               gz(i0,i1,kh) = fac2*(U(i0,i1,i2+1)-U(i0,i1,i2))
+            enddo
+            FL0(i1,i2) = gx(ilower0)
+            FU0(i1,i2) = gx(iupper0+1)
+            if (beta.eq.0.d0) then
+               if (gamma.eq.0.d0) then
+                  do i0 = ilower0,iupper0
+                     D(i0,i1,i2) =
+     &                    dfac0*(gx(i0+1)-gx(i0)) +
+     &                    dfac1*(gy(i0,jh)-gy(i0,jl)) +
+     &                    dfac2*(gz(i0,i1,kh)-gz(i0,i1,kl))
+                  enddo
+               else
+                  do i0 = ilower0,iupper0
+                     D(i0,i1,i2) =
+     &                    dfac0*(gx(i0+1)-gx(i0)) +
+     &                    dfac1*(gy(i0,jh)-gy(i0,jl)) +
+     &                    dfac2*(gz(i0,i1,kh)-gz(i0,i1,kl)) +
+     &                    gamma*W(i0,i1,i2)
+                  enddo
+               endif
+            else
+               if (gamma.eq.0.d0) then
+                  do i0 = ilower0,iupper0
+                     D(i0,i1,i2) =
+     &                    dfac0*(gx(i0+1)-gx(i0)) +
+     &                    dfac1*(gy(i0,jh)-gy(i0,jl)) +
+     &                    dfac2*(gz(i0,i1,kh)-gz(i0,i1,kl)) +
+     &                    beta*U(i0,i1,i2)
+                  enddo
+               else
+                  do i0 = ilower0,iupper0
+                     D(i0,i1,i2) =
+     &                    (dfac0*(gx(i0+1)-gx(i0)) +
+     &                     dfac1*(gy(i0,jh)-gy(i0,jl)) +
+     &                     dfac2*(gz(i0,i1,kh)-gz(i0,i1,kl)) +
+     &                     beta*U(i0,i1,i2)) +
+     &                    gamma*W(i0,i1,i2)
+                  enddo
+               endif
+            endif
+         enddo
+         do i0 = ilower0,iupper0
+            FU1(i0,i2) = gy(i0,jh)
+         enddo
+      enddo
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            FU2(i0,i1) = gz(i0,i1,kh)
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Computes F = div alpha grad U.
 c
 c     Uses a seven point stencil to compute the cell centered
