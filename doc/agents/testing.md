@@ -48,6 +48,18 @@
   an input key does not change the expected output. Use an additional numerical
   check when a required property is not adequately checked by the output
   comparison.
+- Keep a test simple enough that a reviewer can see what it checks. Prefer a
+  few labeled numbers in the expected output to checks made in the test source.
+  A test that needs several modes, a table of cases, its own log appender, or
+  reference files is doing too much: cut it or split it into separate tests.
+- When a check made in the test source fails, stop there with `TBOX_ERROR`,
+  naming what failed. Do not collect the result in a pass/fail flag or return
+  it as the exit status: `attest` already reports a run that aborts and compares
+  the output of a run that completes, and stopping at the failed check shows
+  where it failed.
+- Give a test one way to receive its settings. Read solver and other parameters
+  from the input file; do not build a default database in the test source that
+  the input may replace.
 - Use existing assertions for suitable non-numerical conditions instead of a
   bespoke Boolean-checking wrapper. Ensure required checks remain active in the
   tested configuration: a Debug-only assertion is not Release coverage. An
