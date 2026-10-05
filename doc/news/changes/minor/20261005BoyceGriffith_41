@@ -1,0 +1,3 @@
+Fixed: Compute the sink drag term of INSCollocatedHierarchyIntegrator from the face-centered advection velocity.
+<br>
+(Boyce Griffith, 2026/10/05)
