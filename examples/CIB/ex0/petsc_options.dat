@@ -6,7 +6,7 @@
 
 
 # Options for the Rigid Body solver
--SP_ksp_type gmres            # Use GMRES
+-SP_ksp_type fgmres           # Use FGMRES
 -SP_ksp_rtol 1.0e-08          # Set tight tolerance               
 -SP_ksp_pc_side right         # Use right PC to determine convergence with the norm of the real residual
 -SP_ksp_gmres_restart 60      # Set restart frequency to a high value

@@ -20,7 +20,9 @@
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include <muParser.h>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <string>
 

@@ -1,0 +1,3 @@
+Fixed: examples/CIB/ex4 links against the 3D library, examples/CIB/ex0 uses FGMRES for its outer solver, and the examples and tests that include muParser.h directly build with clang when pedantic warnings are errors.
+<br>
+(Boyce Griffith, 2026/10/04)
