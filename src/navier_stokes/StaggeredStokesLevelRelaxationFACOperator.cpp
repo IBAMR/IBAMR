@@ -22,6 +22,7 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScLevelSolver.h>
+#include <ibtk/solver_utilities.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -280,6 +281,7 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
                                                                            d_object_name + "::level_solver",
                                                                            d_level_solver_db,
                                                                            d_level_solver_default_options_prefix);
+            set_fixed_iteration_ksp_defaults(level_solver.getPointer(), d_level_solver_db);
         }
 
         level_solver->setSolutionTime(d_solution_time);

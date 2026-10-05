@@ -102,6 +102,15 @@ namespace IBTK
  coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
  coarse_solver_max_iterations = 10            // see setCoarseSolverMaxIterations()
  \endverbatim
+ *
+ * A PETSc level solver used as the coarse solver applies coarse_solver_max_iterations iterations of the Richardson
+ * method with no convergence test, so that coarse_solver_rel_residual_tol and coarse_solver_abs_residual_tol are not
+ * used, unless coarse_solver_db or the PETSc options database selects a KSP type.
+ *
+ * A Krylov method such as GMRES in the coarse solver or the smoother, a coarse solver that stops on a convergence
+ * tolerance, or a prolongation method that limits slopes (CONSERVATIVE_LINEAR_REFINE,
+ * BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE, or SPECIALIZED_LINEAR_REFINE) makes the preconditioner nonlinear; see
+ * IBTK::FACPreconditioner.
 */
 class PoissonFACPreconditionerStrategy : public FACPreconditionerStrategy
 {

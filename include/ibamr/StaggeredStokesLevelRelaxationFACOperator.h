@@ -64,6 +64,21 @@ namespace IBAMR
  * \brief Class StaggeredStokesLevelRelaxationFACOperator is a concrete
  * StaggeredStokesFACPreconditionerStrategy implementing a level relaxation
  * smoother for use as a multigrid preconditioner.
+ *
+ * Sample parameters for initialization from database (and their default
+ * values): \verbatim
+
+ level_solver_type = "PETSC_LEVEL_SOLVER"
+ level_solver_rel_residual_tol = 1.0e-5
+ level_solver_abs_residual_tol = 1.0e-50
+ level_solver_max_iterations = 1
+ level_solver_db { }                          // SAMRAI::tbox::Database for the level solvers
+ \endverbatim
+ *
+ * PETSc level solvers apply level_solver_max_iterations iterations of the Richardson method with no convergence test,
+ * so that level_solver_rel_residual_tol and level_solver_abs_residual_tol are not used, unless level_solver_db or the
+ * PETSc options database selects a KSP type. The default coarse solver applies the level solver
+ * coarse_solver_max_iterations times.
  */
 class StaggeredStokesLevelRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {

@@ -30,6 +30,9 @@ IBTK_DISABLE_EXTRA_WARNINGS
 #include <HYPRE_struct_mv.h>
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+
 #include <CellData.h>
 #include <SideData.h>
 
@@ -38,6 +41,8 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 namespace IBTK
 {
+class GeneralSolver;
+
 /*!
  * \brief Report the KSPConvergedReason.
  */
@@ -48,6 +53,16 @@ void reportPETScKSPConvergedReason(const std::string& object_name, const KSPConv
  */
 void
 reportPETScSNESConvergedReason(const std::string& object_name, const SNESConvergedReason& reason, std::ostream& os);
+
+/*!
+ * \brief Make \a solver apply a fixed number of Richardson iterations with no convergence test if it is a
+ * PETScLevelSolver and \a solver_db, the database from which it was constructed, does not select a KSP type.
+ *
+ * Call this before the solver state is initialized. A KSP type selected through the PETSc options database takes
+ * precedence.
+ */
+void set_fixed_iteration_ksp_defaults(GeneralSolver* solver,
+                                      const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& solver_db);
 
 /*!
  * \brief Initialize Hypre if it is not already initialized, and then finalize it when PETSc is finalized.

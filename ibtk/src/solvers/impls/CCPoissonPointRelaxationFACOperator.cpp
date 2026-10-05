@@ -27,6 +27,7 @@
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/solver_utilities.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -428,6 +429,7 @@ CCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coar
                                                                                d_object_name + "::coarse_solver",
                                                                                d_coarse_solver_db,
                                                                                d_coarse_solver_default_options_prefix);
+        set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
     }
     return;
 } // setCoarseSolverType
