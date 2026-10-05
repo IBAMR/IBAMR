@@ -78,9 +78,11 @@ namespace IBTK
  *
  * The KSP norm type is the one set by setKSPNormType(); the initial value, KSP_NORM_DEFAULT, leaves the norm type to
  * the KSP type. When the PETSc options database selects the KSP type, the norm type is the default of that KSP type,
- * because not every KSP type supports every norm type. A norm type selected through the PETSc options database
- * (<code>-ksp_norm_type</code> with the options prefix of the solver) takes precedence. With the norm type
- * KSP_NORM_NONE, a Richardson solve applies exactly max_iterations iterations with no convergence test. A
+ * because not every KSP type supports every norm type. With the norm type KSP_NORM_NONE, a Richardson solve applies
+ * exactly max_iterations iterations with no convergence test, and solveSystem() returns true. A Richardson solve (KSP
+ * type "richardson") limited to one iteration (max_iterations = 1) always uses KSP_NORM_NONE, whatever setKSPNormType()
+ * set and whether or not the PETSc options database selects the KSP type. A norm type selected through the PETSc
+ * options database (<code>-ksp_norm_type</code> with the options prefix of the solver) takes precedence. A
  * preconditioner that implements its own Richardson iteration, for example PCMG, applies the tolerances itself.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
@@ -106,7 +108,8 @@ public:
     void setKSPType(const std::string& ksp_type);
 
     /*!
-     * \brief Set the KSP norm type; see the class documentation.
+     * \brief Set the KSP norm type used by solves other than one-iteration Richardson solves; see the class
+     * documentation.
      */
     void setKSPNormType(KSPNormType ksp_norm_type);
 
