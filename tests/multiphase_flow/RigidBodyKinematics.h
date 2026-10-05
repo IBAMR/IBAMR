@@ -25,7 +25,9 @@
 
 #include <ibtk/CartGridFunctionSet.h>
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include <muParser.h>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #ifndef included_IBAMR_multiphase_flow_RigidBodyKinematics
 #define included_IBAMR_multiphase_flow_RigidBodyKinematics

@@ -23,7 +23,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp
   LINK_TARGETS
-    IBAMR2d
+    IBAMR3d
   INPUT_FILES
     input3d.sphere input3d.test.long petsc_options.dat sphere_3d.vertex
   EXTRA_FILES

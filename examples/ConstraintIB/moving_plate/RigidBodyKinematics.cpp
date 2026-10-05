@@ -18,7 +18,9 @@
 
 #include <CartesianPatchGeometry.h>
 #include <PatchLevel.h>
+IBTK_DISABLE_EXTRA_WARNINGS
 #include <muParser.h>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <cmath>
 #include <fstream>
