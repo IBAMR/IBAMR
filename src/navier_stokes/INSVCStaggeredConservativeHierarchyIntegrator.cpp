@@ -704,7 +704,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchySpecialized(con
     {
         d_hier_sc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!IBTK::rel_equal_eps(A_scale, 1.0))
+        if (A_scale != 1.0)
         {
             d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
                                       A_scale,
@@ -722,7 +722,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchySpecialized(con
     {
         d_hier_sc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!IBTK::rel_equal_eps(A_scale, 1.0))
+        if (A_scale != 1.0)
         {
             d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
                                       1.0 / A_scale,
@@ -1171,7 +1171,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
 
         // C_sc = (rho / dt) + K * lambda + L(x,t^n+1)
         d_hier_sc_data_ops->scale(d_velocity_C_idx, A_scale / dt, d_rho_sc_scratch_idx, /*interior_only*/ true);
-        if (!IBTK::abs_equal_eps(lambda, 0.0))
+        if (lambda != 0.0)
         {
             d_hier_sc_data_ops->addScalar(d_velocity_C_idx,
                                           d_velocity_C_idx,
@@ -1447,7 +1447,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     {
         d_hier_cc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!IBTK::rel_equal_eps(A_scale, 1.0))
+        if (A_scale != 1.0)
         {
             d_hier_cc_data_ops->scale(sol_vec->getComponentDescriptorIndex(1),
                                       A_scale,
@@ -1503,7 +1503,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     {
         d_hier_cc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!IBTK::rel_equal_eps(A_scale, 1.0))
+        if (A_scale != 1.0)
         {
             d_hier_cc_data_ops->scale(d_P_new_idx,
                                       1.0 / A_scale,

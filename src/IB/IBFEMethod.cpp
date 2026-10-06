@@ -288,7 +288,7 @@ assemble_poisson(EquationSystems& es, const std::string& system_name)
     std::vector<dof_id_type> dof_indices;
 
     const double epsilon = es.parameters.get<Real>("Phi_epsilon");
-    const double epsilon_inv = (std::abs(epsilon) > std::numeric_limits<double>::epsilon() ? 1.0 / epsilon : 0.0);
+    const double epsilon_inv = (epsilon != 0.0 ? 1.0 / epsilon : 0.0);
 
     MeshBase::const_element_iterator el = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator end_el = mesh.active_local_elements_end();

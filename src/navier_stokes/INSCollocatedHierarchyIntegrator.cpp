@@ -1235,7 +1235,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchySpecialized(const double cur
                             new_time);
 
     // Project U(*) to compute U(n+1) and u_ADV(n+1).
-    const double div_fac = (IBTK::abs_equal_eps(rho, 0.0) || IBTK::abs_equal_eps(dt, 0.0) ? 1.0 : rho / dt);
+    const double div_fac = (rho == 0.0 ? 1.0 : rho / dt);
     d_hier_math_ops->div(d_Phi_rhs_vec->getComponentDescriptorIndex(0),
                          d_Phi_rhs_vec->getComponentVariable(0),
                          -div_fac,
@@ -1305,7 +1305,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchySpecialized(const double cur
         TBOX_ERROR("this statment should not be reached");
     }
     PoissonSpecifications helmholtz_spec(d_object_name + "::helmholtz_spec");
-    if (IBTK::abs_equal_eps(rho, 0.0))
+    if (rho == 0.0)
     {
         helmholtz_spec.setCConstant(0.0);
         helmholtz_spec.setDConstant(-K * mu);
