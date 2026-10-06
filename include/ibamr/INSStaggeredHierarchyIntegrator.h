@@ -40,12 +40,14 @@
 #include <SAMRAIVectorReal.h>
 #include <SideVariable.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace IBAMR
 {
 class ConvectiveOperator;
+class INSStaggeredDivergenceFreePhysBdryOp;
 } // namespace IBAMR
 namespace IBTK
 {
@@ -134,6 +136,12 @@ public:
      * used by this solver class.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> getStokesSolver();
+
+    /*!
+     * Get the divergence-free velocity boundary operator, created when first
+     * requested.
+     */
+    IBTK::RobinPhysBdryPatchStrategy* getDivergenceFreeVelocityPhysBdryOp() override;
 
     /*!
      * Indicate that the Stokes solver should be (re-)initialized before the
@@ -427,6 +435,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db, d_stokes_sub_precond_db;
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     bool d_stokes_solver_needs_init;
+
+    /*!
+     * The divergence-free velocity boundary operator, created when first requested.
+     */
+    std::unique_ptr<INSStaggeredDivergenceFreePhysBdryOp> d_divergence_free_velocity_phys_bdry_op;
 
     /*!
      * Fluid solver variables.

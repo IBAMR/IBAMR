@@ -1,0 +1,3 @@
+New: IBHierarchyIntegrator option divergence_free_velocity_extension fills velocity ghost values outside physical boundaries so that the discrete divergence vanishes there, and spreads forces with the transpose of that extension.
+<br>
+(Boyce Griffith, 2026/10/01)

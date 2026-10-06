@@ -162,6 +162,12 @@ INSHierarchyIntegrator::getTractionBcType() const
     return d_traction_bc_type;
 } // getTractionBcType
 
+IBTK::RobinPhysBdryPatchStrategy*
+INSHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()
+{
+    return nullptr;
+} // getDivergenceFreeVelocityPhysBdryOp
+
 RobinBcCoefStrategy<NDIM>*
 INSHierarchyIntegrator::getPressureBoundaryConditions() const
 {
