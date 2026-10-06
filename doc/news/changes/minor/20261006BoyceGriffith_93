@@ -1,0 +1,3 @@
+Fixed: IBAMR::DirectMobilitySolver initializes min_eigenvalue_threshold and eigenvalue_replace_value to zero. They were previously uninitialized unless the LAPACK_SVD database was given in the input.
+<br>
+(Boyce Griffith, 2026/10/06)

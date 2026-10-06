@@ -277,7 +277,7 @@ private:
     // Parameters used in this class.
     double d_f_periodic_corr = 0.0;
     bool d_recompute_mob_mat = false;
-    double d_svd_replace_value, d_svd_eps;
+    double d_svd_replace_value = 0.0, d_svd_eps = 0.0;
 
 }; // DirectMobilitySolver
 
