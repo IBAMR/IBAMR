@@ -150,6 +150,18 @@ INSHierarchyIntegrator::getVelocityBoundaryConditions() const
     return d_U_bc_coefs;
 } // getVelocityBoundaryConditions
 
+const std::vector<RobinBcCoefStrategy<NDIM>*>&
+INSHierarchyIntegrator::getPhysicalBoundaryConditions() const
+{
+    return d_bc_coefs;
+} // getPhysicalBoundaryConditions
+
+TractionBcType
+INSHierarchyIntegrator::getTractionBcType() const
+{
+    return d_traction_bc_type;
+} // getTractionBcType
+
 RobinBcCoefStrategy<NDIM>*
 INSHierarchyIntegrator::getPressureBoundaryConditions() const
 {

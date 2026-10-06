@@ -1,0 +1,86 @@
+// Periodic in x, TRACTION at y = 0 and velocity prescribed at y = 1.
+
+N = 16
+extension_ghost_width = 3
+
+ExactVelocity {
+   function_0 = "sin(2*_pi*X_0)*(0.3+1.0*X_1-1.2*X_1^2)"
+   function_1 = "-2*_pi*cos(2*_pi*X_0)*(0.3*X_1+0.5*X_1^2-0.4*X_1^3)"
+}
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "sin(2*_pi*X_0)*(0.3+1.0*X_1-1.2*X_1^2)"
+   gcoef_function_1 = "sin(2*_pi*X_0)*(0.3+1.0*X_1-1.2*X_1^2)"
+   gcoef_function_2 = "sin(2*_pi*X_0)*(1.0-2.4*X_1)+4*_pi^2*sin(2*_pi*X_0)*(0.3*X_1+0.5*X_1^2-0.4*X_1^3)"
+   gcoef_function_3 = "sin(2*_pi*X_0)*(0.3+1.0*X_1-1.2*X_1^2)"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "-2*_pi*cos(2*_pi*X_0)*(0.3*X_1+0.5*X_1^2-0.4*X_1^3)"
+   gcoef_function_1 = "-2*_pi*cos(2*_pi*X_0)*(0.3*X_1+0.5*X_1^2-0.4*X_1^3)"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "-2*_pi*cos(2*_pi*X_0)*(0.3*X_1+0.5*X_1^2-0.4*X_1^3)"
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                      = 1.0
+   rho                     = 1.0
+   start_time              = 0.0
+   end_time                = 0.01
+   dt_max                  = 0.01
+   traction_bc_type        = "TRACTION"
+   convective_op_type      = "PPM"
+   enable_logging          = FALSE
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = 1,1
+   periodic_dimension = 1,0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 4,4
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {}
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
