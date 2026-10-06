@@ -222,6 +222,13 @@ public:
     //\}
 
 protected:
+    /*!
+     * \brief Fill the ghost values of the velocity and pressure components of
+     * \p x with the interior ghost fill and the physical boundary conditions of
+     * the operator.
+     */
+    void fillGhostCellValues(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x);
+
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_U_bc_coef;
