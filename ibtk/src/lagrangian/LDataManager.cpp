@@ -2668,7 +2668,7 @@ LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM>> hier
             for (CellIterator<NDIM> ic(patch_box); ic; ic++)
             {
                 const CellIndex<NDIM>& i = ic();
-                if (!IBTK::abs_equal_eps((*node_count_data)(i), 0.0))
+                if ((*node_count_data)(i) > 0.0)
                 {
                     (*tag_data)(i) = 1;
                 }
