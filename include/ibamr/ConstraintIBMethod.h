@@ -333,15 +333,6 @@ private:
     void calculateVolumeElement();
 
     /*!
-     * \brief Set the counter for this method.
-     */
-    inline void setCounter()
-    {
-        ++d_timestep_counter;
-        return;
-    }
-
-    /*!
      * \brief Set the time at which FuRMoRP is applied.
      */
     void setFuRMoRPTime(const double current_time, const double new_time)
@@ -558,9 +549,16 @@ private:
     bool d_calculate_structure_linear_mom = false, d_calculate_structure_rotational_mom = false;
 
     /*!
-     * Iteration_counter for printing stuff.
+     * Number of the current time step, counted from one, and the number of time
+     * steps between outputs.
      */
     int d_timestep_counter = 0, d_output_interval = 1;
+
+    /*!
+     * Whether the output files are written in the current call to
+     * postprocessSolveFluidEquations().
+     */
+    bool d_write_output = false;
 
     /*!
      * Bools for outputing stuff which is calculated on the fly.
