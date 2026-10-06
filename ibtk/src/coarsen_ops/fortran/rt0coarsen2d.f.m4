@@ -26,9 +26,8 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Coarsen side-centered data via the adjoint of RT0 interpolation.
 c
-c     NOTE: Values at physical boundaries and coarse-fine interfaces
-c     will need to be corrected.  This routine uses the correct stencil
-c     only *away* from such boundaries.
+c     Fine ghost values outside the fine level must be zero.  Sides on a
+c     physical boundary are reset by the boundary routine.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -157,7 +156,9 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Fix up RT0 coarsening along a boundary.
+c     Fix up RT0 coarsening along a physical boundary: only the fine
+c     sides inside the domain contribute, with weights normalized to sum
+c     to one.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
