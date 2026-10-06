@@ -113,7 +113,7 @@ set_rotation_matrix(const std::vector<Eigen::Vector3d>& rot_vel,
     for (unsigned struct_no = 0; struct_no < n_structs; ++struct_no)
     {
         const double norm = rot_vel[struct_no].norm();
-        if (!IBTK::abs_equal_eps(norm, 0.0))
+        if (norm != 0.0)
         {
             Eigen::Vector3d rot_axis = rot_vel[struct_no] / norm;
             Eigen::Quaterniond q(Eigen::AngleAxisd(norm * dt, rot_axis));

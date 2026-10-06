@@ -73,7 +73,7 @@ set_rotation_matrix(const Eigen::Vector3d& rot_vel,
                     const double dt)
 {
     const double norm = rot_vel.norm();
-    if (!IBTK::abs_equal_eps(norm, 0.0))
+    if (norm != 0.0)
     {
         Eigen::Vector3d rot_axis = rot_vel / norm;
         Eigen::Quaterniond q(Eigen::AngleAxisd(norm * dt, rot_axis));
