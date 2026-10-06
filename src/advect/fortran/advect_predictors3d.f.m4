@@ -128,7 +128,14 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute the sign of the input, returning zero if the absolute
-c     value of x is less than a specified tolerance epsilon.
+c     value of x is at most a specified tolerance epsilon.
+c
+c     The predictors use the sign of the advection velocity to choose
+c     the upwind state and use the average of the left and right
+c     states where the sign is zero.  The chosen state is also used
+c     in forms that do not multiply it by the velocity that chose it,
+c     so the sign of a velocity that is zero up to rounding errors
+c     must not choose a side.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -146,7 +153,7 @@ c
       REAL x
 c
 c     Compute the sign of the input, returning zero if the absolute
-c     value of x is less than a tolerance epsilon.
+c     value of x is at most a tolerance epsilon.
 c
       if (dabs(x) .le. EPSILON) then
          sign_eps =  0.d0
