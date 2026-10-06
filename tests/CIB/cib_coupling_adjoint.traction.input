@@ -1,0 +1,137 @@
+// TRACTION at the lower boundaries, velocity prescribed at the upper boundaries; the plate is next to the lower-left corner of the domain.
+
+// physical parameters
+RHO = 1.0
+MU  = 0.05
+
+// Gridding
+N = 16
+MAX_LEVELS = 1
+
+// time stepping and delta function parameters
+DELTA_FUNCTION       = "IB_6"
+START_TIME           = 0.0
+END_TIME             = 0.01
+DT                   = 0.01
+NUM_CYCLES_INS       = 1
+
+IBHierarchyIntegrator {
+   start_time          = START_TIME
+   end_time            = END_TIME
+   num_cycles          = NUM_CYCLES_INS
+   dt_max              = DT
+   enable_logging      = FALSE
+   time_stepping_type  = "MIDPOINT_RULE"
+}
+
+num_structures = 1
+CIBMethod {
+   delta_fcn             = DELTA_FUNCTION
+   enable_logging        = FALSE
+   lambda_dirname        = "./Lambda"
+   lambda_dump_interval  = 0
+   output_eul_lambda     = FALSE
+}
+
+IBStandardInitializer {
+   posn_shift      = -9.97, -9.98
+   max_levels      = MAX_LEVELS
+   structure_names = "plate2d"
+
+   plate2d {
+      level_number = MAX_LEVELS - 1
+      uniform_spring_stiffness = 0.0
+   }
+}
+
+
+INSStaggeredHierarchyIntegrator {
+   mu                            = MU
+   rho                           = RHO
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   num_cycles                    = NUM_CYCLES_INS
+   viscous_time_stepping_type    = "BACKWARD_EULER"
+   convective_time_stepping_type = "ADAMS_BASHFORTH"
+   convective_op_type            = "PPM"
+   convective_difference_form    = "ADVECTIVE"
+   dt_max                        = DT
+   creeping_flow                 = TRUE
+   traction_bc_type              = "TRACTION"
+   enable_logging                = FALSE
+   init_convective_time_stepping_type = "FORWARD_EULER"
+}
+
+Main {
+   log_file_name  = "CIB2d.log"
+   log_all_nodes  = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),( N - 1, N - 1) ]
+   x_lo = 0, 0
+   x_up = 1, 1
+   periodic_dimension = 0, 0
+}
+
+
+// u velocity
+VelocityBcCoefs_0 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+// v velocity
+VelocityBcCoefs_1 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = 4, 4
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+   efficiency_tolerance = 0.85e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}

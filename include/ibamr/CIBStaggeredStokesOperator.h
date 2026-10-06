@@ -155,9 +155,11 @@ protected:
 private:
     /*!
      * \brief Interpolate the velocity component of \p u_p to the Lagrangian
-     * points, scaled by \p scale, into \p V.
+     * points, scaled by \p scale, into \p V, with the ghost values at physical
+     * boundaries set by the IB velocity boundary operator that force spreading
+     * uses.
      *
-     * The ghost values of \p u_p must already be filled.
+     * The ghost values of \p u_p must otherwise already be filled.
      */
     void interpolateVelocity(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u_p, Vec V, double data_time, double scale);
 

@@ -1697,6 +1697,12 @@ CIBMethod::setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_o
     return;
 }
 
+IBTK::RobinPhysBdryPatchStrategy*
+CIBMethod::getVelocityPhysBdryOp() const
+{
+    return d_u_phys_bdry_op;
+} // getVelocityPhysBdryOp
+
 bool
 CIBMethod::flagRegrid() const
 {

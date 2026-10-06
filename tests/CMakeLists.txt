@@ -204,6 +204,7 @@ ENDIF()
 
 # CIB:
 SETUP(CIB cib_plate.cpp IBAMR2d)
+SETUP(CIB cib_coupling_adjoint.cpp IBAMR2d)
 SETUP(CIB cib_double_shell.cpp IBAMR3d)
 
 # ConstraintIB:
