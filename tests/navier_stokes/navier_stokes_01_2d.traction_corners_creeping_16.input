@@ -1,0 +1,234 @@
+// Creeping flow with TRACTION conditions for both components on the lower x and lower y boundaries, which meet at a
+// corner, and prescribed velocity on the upper boundaries. The exact solution is a vortex array plus a shear flow.
+
+MU  = 1.0e-2
+RHO = 1.0
+L   = 1.0
+MAX_LEVELS = 1
+N = 16
+SOLVER_TYPE        = "STAGGERED"
+CFL_MAX            = 0.3
+DT_MAX             = 0.0625/N
+START_TIME         = 0.0e0
+END_TIME           = 0.03125
+GROW_DT            = 2.0e0
+NUM_CYCLES         = 1
+NORMALIZE_PRESSURE = FALSE
+REGRID_INTERVAL    = 10000000
+ENABLE_LOGGING     = TRUE
+TRACTION_BC_TYPE   = "TRACTION"
+
+// exact solution function expressions
+U = "1 - 2*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t) + 4*X_1*(1-X_1)"
+V = "1 + 2*sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t)"
+P = "-(cos(2*2*PI*(X_0-t))+cos(2*2*PI*(X_1-t)))*exp(-16*PI*PI*nu*t) - 2*nu*4*X_0"
+// normal tractions on the lower x boundary (GN0) and the lower y boundary (GN1), and tangential tractions
+GN0 = "(cos(2*2*PI*(X_0-t))+cos(2*2*PI*(X_1-t)))*exp(-16*PI*PI*nu*t) + 2*nu*4*X_0 + 8*nu*PI*sin(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t)"
+GN1 = "(cos(2*2*PI*(X_0-t))+cos(2*2*PI*(X_1-t)))*exp(-16*PI*PI*nu*t) + 2*nu*4*X_0 - 8*nu*PI*sin(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t)"
+ST_X = "nu*4*(1-2*X_1)"
+ST_Y = "nu*4*(1-2*X_1)"
+
+ForcingFunction {
+   nu = MU/RHO
+   function_0 = "-((1 - 2*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t))*(4*PI*sin(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t)) + (1 + 2*sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t))*(-4*PI*cos(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t)))"
+   function_1 = "-((1 - 2*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t))*(4*PI*cos(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t)) + (1 + 2*sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t))*(-4*PI*sin(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI*PI*nu*t)))"
+}
+
+
+VelocityInitialConditions {
+   nu = MU/RHO
+   function_0 = U
+   function_1 = V
+}
+
+// Boundary locations 0 and 2 (lower x and lower y) have traction conditions and locations 1 and 3 (upper x and
+// upper y) have prescribed velocity.
+VelocityBcCoefs_0 {
+   nu = MU/RHO
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+   gcoef_function_0 = GN0
+   gcoef_function_1 = U
+   gcoef_function_2 = ST_Y
+   gcoef_function_3 = U
+}
+
+VelocityBcCoefs_1 {
+   nu = MU/RHO
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+   gcoef_function_0 = ST_X
+   gcoef_function_1 = V
+   gcoef_function_2 = GN1
+   gcoef_function_3 = V
+}
+
+PressureInitialConditions {
+   nu = MU/RHO
+   function = P
+}
+
+INSStaggeredHierarchyIntegrator {
+   creeping_flow                 = TRUE
+   mu                            = MU
+   rho                           = RHO
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = NUM_CYCLES
+   normalize_pressure            = NORMALIZE_PRESSURE
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   regrid_interval               = REGRID_INTERVAL
+   enable_logging                = ENABLE_LOGGING
+   traction_bc_type              = TRACTION_BC_TYPE
+
+   stokes_solver_type = "PETSC_KRYLOV_SOLVER"
+   stokes_precond_type = "PROJECTION_PRECONDITIONER"
+   stokes_solver_db {
+      ksp_type = "fgmres"
+      rel_residual_tol = 1.0e-12
+      max_iterations = 200
+   }
+   stokes_precond_db {
+      Phi_data_refine_type = "NONE"
+      Phi_use_cf_interpolation = TRUE
+      Phi_data_coarsen_type = "CUBIC_COARSEN"
+      Phi_bdry_extrap_type = "LINEAR"
+   }
+
+   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+      laplace_op {
+         data_refine_type = "NONE"
+         use_cf_interpolation = TRUE
+         data_coarsen_type = "CUBIC_COARSEN"
+         bdry_extrap_type = "LINEAR"
+      }
+   }
+   velocity_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "CONSTANT_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "Split"
+         split_solver_type    = "PFMG"
+         enable_logging       = FALSE
+      }
+      data_refine_type = "NONE"
+      use_cf_interpolation = TRUE
+      data_coarsen_type = "CUBIC_COARSEN"
+      bdry_extrap_type = "LINEAR"
+   }
+
+   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   pressure_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+      laplace_op {
+         data_refine_type = "NONE"
+         use_cf_interpolation = TRUE
+         data_coarsen_type = "CUBIC_COARSEN"
+         bdry_extrap_type = "LINEAR"
+      }
+   }
+   pressure_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+         enable_logging       = FALSE
+      }
+      data_refine_type = "NONE"
+      use_cf_interpolation = TRUE
+      data_coarsen_type = "CUBIC_COARSEN"
+      bdry_extrap_type = "LINEAR"
+   }
+
+   regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
+   regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   regrid_projection_solver_db {
+      ksp_type = "fgmres"
+   }
+   regrid_projection_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 1
+      coarse_solver_db {
+         solver_type          = "PFMG"
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+         enable_logging       = FALSE
+      }
+      data_refine_type = "NONE"
+      use_cf_interpolation = TRUE
+      data_coarsen_type = "CUBIC_COARSEN"
+      bdry_extrap_type = "LINEAR"
+   }
+}
+
+Main {
+   solver_type = SOLVER_TYPE
+   log_file_name               = "output"
+   log_all_nodes               = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   largest_patch_size {
+      level_0 = 512,512
+   }
+   smallest_patch_size {
+      level_0 =   4,  4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
