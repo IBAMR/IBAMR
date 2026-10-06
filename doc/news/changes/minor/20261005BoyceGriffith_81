@@ -1,0 +1,3 @@
+Fixed: The logarithmic evolution in IBAMR::CFUpperConvectiveOperator treats two eigenvalues of the log-conformation tensor as equal when they differ by less than the square root of machine epsilon, in two and three dimensions. The three-dimensional kernel previously tested a different pair of eigenvalues than the pair it divides by, which gave wrong diagonal components and could divide by zero, and both kernels switched formulas at a threshold at which the general formula had lost accuracy.
+<br>
+(Boyce Griffith, 2026/10/05)
