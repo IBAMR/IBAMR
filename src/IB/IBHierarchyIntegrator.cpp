@@ -206,7 +206,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
     static bool skip_check_for_dt_change =
         IBTK::rel_equal_eps(d_integrator_time, d_start_time) || RestartManager::getManager()->isFromRestart();
     if (!skip_check_for_dt_change && (d_error_on_dt_change || d_warn_on_dt_change) &&
-        !IBTK::rel_equal_eps(dt, d_dt_previous[0]) && !IBTK::rel_equal_eps(new_time, d_end_time))
+        !IBTK::same_time_step_size(dt, d_dt_previous[0]) && !IBTK::rel_equal_eps(new_time, d_end_time))
     {
         if (d_error_on_dt_change)
         {

@@ -2388,7 +2388,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
 
     // Ensure that solver components are appropriately reinitialized when the
     // time step size changes.
-    const bool dt_change = initial_time || !IBTK::rel_equal_eps(dt, d_dt_previous[0]);
+    const bool dt_change = initial_time || !IBTK::same_time_step_size(dt, d_dt_previous[0]);
     if (dt_change)
     {
         d_velocity_solver_needs_init = true;
