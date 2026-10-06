@@ -158,6 +158,14 @@ public:
      * \brief Register structure ID, level number, and integration domain
      * with the class.
      *
+     * The faces of the integration domain must lie on cell sides of the
+     * coarsest level. A face that does not is moved away from the interior of
+     * the domain to the nearest such side (a lower face moves down and an upper
+     * face moves up), so that the domain never shrinks. On return,
+     * \p box_X_lower and \p box_X_upper hold the coordinates of the cell sides
+     * that bound the domain, which for a face that was on a cell side differ
+     * from the given coordinates by rounding error at most.
+     *
      * \param box_X_lower Initial (typically at time = 0) position of lower left
      * corner of the integration domain.
      *
