@@ -8,6 +8,7 @@
 
 #include <HierarchyDataOpsManager.h>
 
+#include <array>
 #include <cmath>
 #include <fstream>
 
@@ -56,6 +57,49 @@ main(int argc, char** argv)
         const hier::IntVector<NDIM> periodic_shift(extent);
         tbox::pout << "lower - 1, periodic = " << map_index(lower - 1, periodic_shift) << '\n'
                    << "upper + 1, periodic = " << map_index(upper + 1, periodic_shift) << '\n';
+        return 0;
+    }
+
+    if (app_initializer->getInputDatabase()->getBoolWithDefault("test_clamp", false))
+    {
+        // clampToDomain() returns a point in [x_lower, x_upper), and that point
+        // is in an interior cell. The last three domains are so far from the
+        // origin, or so short, that the offset of clampToDomain() is smaller
+        // than the spacing of the floating-point values near x_upper.
+        const double domains[][2] = { { 0.0, 1.0 },
+                                      { -4.0, 4.0 },
+                                      { 1.0e9, 1.0e9 + 1.0 },
+                                      { -1.0e9 - 1.0, -1.0e9 },
+                                      { 1.0, std::nextafter(1.0, 2.0) } };
+        const int n_cells = 16;
+        const hier::Index<NDIM> ilower(0), iupper(n_cells - 1);
+        auto in_domain = [](const double x, const double x_lower, const double x_upper)
+        { return x_lower <= x && x < x_upper; };
+        int domain_n = 0;
+        for (const auto& domain : domains)
+        {
+            const double x_lower = domain[0], x_upper = domain[1];
+            const double x_below = IndexUtilities::clampToDomain(x_lower - 1.0, x_lower, x_upper);
+            const double x_on_lower = IndexUtilities::clampToDomain(x_lower, x_lower, x_upper);
+            const double x_on_upper = IndexUtilities::clampToDomain(x_upper, x_lower, x_upper);
+            const double x_above = IndexUtilities::clampToDomain(x_upper + 1.0, x_lower, x_upper);
+            std::array<double, NDIM> X, X_lower, X_upper, dx;
+            X.fill(x_on_upper);
+            X_lower.fill(x_lower);
+            X_upper.fill(x_upper);
+            dx.fill((x_upper - x_lower) / n_cells);
+            const hier::Index<NDIM> index =
+                IndexUtilities::getCellIndex(X, X_lower.data(), X_upper.data(), dx.data(), ilower, iupper);
+            tbox::pout << "domain " << domain_n++ << ":\n"
+                       << "  below the domain is moved to the lower boundary = " << (x_below == x_lower) << '\n'
+                       << "  the lower boundary is not moved = " << (x_on_lower == x_lower) << '\n'
+                       << "  the upper boundary is moved into the domain = " << in_domain(x_on_upper, x_lower, x_upper)
+                       << '\n'
+                       << "  above the domain is moved into the domain = " << in_domain(x_above, x_lower, x_upper)
+                       << '\n'
+                       << "  cell of the upper boundary is interior = "
+                       << (ilower(0) <= index(0) && index(0) <= iupper(0)) << '\n';
+        }
         return 0;
     }
 

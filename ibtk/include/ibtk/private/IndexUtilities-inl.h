@@ -22,7 +22,9 @@
 
 #include <ibtk/IndexUtilities.h>
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -46,6 +48,18 @@ IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse, const SAMRAI::
 {
     return i_coarse * ratio;
 } // refine
+
+inline double
+IndexUtilities::clampToDomain(const double x, const double x_lower, const double x_upper)
+{
+    // On a domain that is far from the origin relative to its length, the
+    // offset is smaller than the spacing of the floating-point values near
+    // x_upper, and x_upper - offset is x_upper itself. The largest value below
+    // x_upper is then the upper bound.
+    const double offset = std::sqrt(std::numeric_limits<double>::epsilon()) * (x_upper - x_lower);
+    const double x_max = std::min(x_upper - offset, std::nextafter(x_upper, x_lower));
+    return std::max(x_lower, std::min(x, x_max));
+} // clampToDomain
 
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>

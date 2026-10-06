@@ -1535,12 +1535,18 @@ IBMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> hierarchy,
         X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
     }
 
-    // Compute the set of local anchor points.
+    // Compute the set of local anchor points: nodes that are within a small fraction of the domain length of a
+    // non-periodic physical boundary.
     static const double eps = 2.0 * std::sqrt(std::numeric_limits<double>::epsilon());
     Pointer<CartesianGridGeometry<NDIM>> grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    double anchor_distance[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        anchor_distance[d] = eps * (grid_x_upper[d] - grid_x_lower[d]);
+    }
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         d_anchor_point_local_idxs[ln].clear();
@@ -1562,8 +1568,8 @@ IBMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> hierarchy,
         {
             for (int d = 0; d < NDIM; ++d)
             {
-                if ((periodic_shift[d] == 0) &&
-                    (X_array[i][d] <= grid_x_lower[d] + eps || X_array[i][d] >= grid_x_upper[d] - eps))
+                if ((periodic_shift[d] == 0) && (X_array[i][d] <= grid_x_lower[d] + anchor_distance[d] ||
+                                                 X_array[i][d] >= grid_x_upper[d] - anchor_distance[d]))
                 {
                     d_anchor_point_local_idxs[ln].insert(i);
                     break;

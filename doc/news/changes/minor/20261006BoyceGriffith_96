@@ -1,0 +1,3 @@
+Fixed: IBTK::LDataManager, IBAMR::IBRedundantInitializer and IBAMR::IBFEInstrumentPanel move points into the computational domain with the new function IBTK::IndexUtilities::clampToDomain(), and IBAMR::IBMethod marks anchor points within a distance of the boundary that is relative to the domain length. The distances were previously absolute in IBAMR::IBRedundantInitializer, IBAMR::IBFEInstrumentPanel and IBAMR::IBMethod, so they depended on the units, and IBAMR::IBFEInstrumentPanel also moved points that lie on a lower boundary.
+<br>
+(Boyce Griffith, 2026/10/06)

@@ -146,9 +146,6 @@ static Timer* t_compute_node_offsets;
 // Assume max(U)dt/dx <= 2.
 static const int CFL_WIDTH = 2;
 
-// Default floating point tolerance.
-static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
-
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
 } // namespace
@@ -1631,8 +1628,7 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
                 }
                 else
                 {
-                    X[d] = std::max(X[d], domain_x_lower[d]);
-                    X[d] = std::min(X[d], domain_x_upper[d] - (domain_x_upper[d] - domain_x_lower[d]) * TOL);
+                    X[d] = IndexUtilities::clampToDomain(X[d], domain_x_lower[d], domain_x_upper[d]);
                 }
             }
             Vector periodic_displacement = X_real - X;
