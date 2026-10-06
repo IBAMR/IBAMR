@@ -2049,9 +2049,8 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
     auto P_bc_coef = dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_P_bc_coef);
     P_bc_coef->setStokesSpecifications(&d_problem_coefs);
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
-    P_bc_coef->setSolutionTime(new_time);
+    P_bc_coef->setSolutionTime(getPressureTime(current_time, new_time));
     P_bc_coef->setTimeInterval(current_time, new_time);
-    P_bc_coef->setViscosityInterpolationType(d_mu_vc_interp_type);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         auto U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);

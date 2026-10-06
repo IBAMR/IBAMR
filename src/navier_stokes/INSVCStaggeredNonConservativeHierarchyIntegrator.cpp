@@ -455,7 +455,6 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ nullptr);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     // RHS^n = (C_rhs*I + L(D_rhs))*U^n
     d_hier_math_ops->vc_laplace(U_rhs_idx,
                                 U_rhs_var,
@@ -472,6 +471,14 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                 d_no_fill_op,
                                 current_time,
                                 d_mu_vc_interp_type);
+    // Add the part of the viscous term that imposes TRACTION and PSEUDO_TRACTION conditions where the normal velocity
+    // is not prescribed.  The Stokes operator checks the pressure extrapolation.
+    d_bc_helper->addNormalTractionViscousTerm(U_rhs_idx,
+                                              d_U_scratch_idx,
+                                              U_rhs_problem_coefs.getDPatchDataId(),
+                                              d_mu_vc_interp_type,
+                                              d_U_bc_coefs,
+                                              /*linear_pressure_extrapolation*/ true);
     d_hier_sc_data_ops->copyData(d_U_src_idx,
                                  d_U_scratch_idx,
                                  /*interior_only*/ false);
