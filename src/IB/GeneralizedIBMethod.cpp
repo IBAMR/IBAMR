@@ -173,13 +173,12 @@ GeneralizedIBMethod::preprocessIntegrateData(double current_time, double new_tim
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double start_time = d_ib_solver->getStartTime();
 
     if (d_ib_force_and_torque_fcn)
     {
         if (d_ib_force_and_torque_fcn_needs_init)
         {
-            const bool initial_time = IBTK::rel_equal_eps(current_time, start_time);
+            const bool initial_time = d_ib_solver->getIntegratorStep() == 0;
             resetLagrangianForceAndTorqueFunction(current_time, initial_time);
             d_ib_force_and_torque_fcn_needs_init = false;
         }

@@ -1896,7 +1896,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
+    const bool initial_time = d_integrator_step == 0;
     const double half_time = current_time + 0.5 * dt;
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const double rho = d_problem_coefs.getRho();

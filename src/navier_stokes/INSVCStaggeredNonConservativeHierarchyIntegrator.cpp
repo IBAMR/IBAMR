@@ -1246,7 +1246,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
                                                                             const double new_time)
 {
     const double dt = new_time - current_time;
-    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
+    const bool initial_time = d_integrator_step == 0;
     const double half_time = current_time + 0.5 * dt;
     const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
     const double mu = d_mu_is_const ? d_problem_coefs.getMu() : -1.0;
