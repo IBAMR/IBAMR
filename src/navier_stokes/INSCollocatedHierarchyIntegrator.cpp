@@ -34,6 +34,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
@@ -1951,7 +1952,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
     }
 
     // Setup solver vectors.
-    const bool has_velocity_nullspace = d_normalize_velocity && IBTK::abs_equal_eps(rho, 0.0);
+    const bool has_velocity_nullspace = d_normalize_velocity && !PoissonUtilities::isDamped(U_problem_coefs);
     const bool has_pressure_nullspace = d_normalize_pressure;
     if (d_vectors_need_init)
     {

@@ -2269,6 +2269,12 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
     return;
 } // adjustVCSCViscousOpRHSAtCoarseFineBoundary
 
+bool
+PoissonUtilities::isDamped(const PoissonSpecifications& poisson_spec)
+{
+    return !poisson_spec.cIsZero() && !(poisson_spec.cIsConstant() && poisson_spec.getCConstant() == 0.0);
+} // isDamped
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

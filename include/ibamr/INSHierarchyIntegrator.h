@@ -582,8 +582,8 @@ protected:
      * This boolean value determines whether the velocity is normalized to have
      * zero mean (i.e., discrete integral) at the end of each timestep.
      *
-     * This parameter only affects the case in which rho=0 (i.e. the steady
-     * Stokes equations).
+     * This parameter only affects the case in which the velocity damping
+     * coefficient is a constant equal to zero.
      */
     bool d_normalize_velocity = false;
 
