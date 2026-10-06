@@ -118,12 +118,12 @@ HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Databa
     {
         getFromRestart();
     }
-    else
+    if (input_db) getFromInput(input_db, from_restart);
+    if (!from_restart)
     {
         d_integrator_time = d_start_time;
         d_integrator_step = 0;
     }
-    if (input_db) getFromInput(input_db, from_restart);
 
     // Initialize all variable contexts.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
