@@ -181,20 +181,22 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
                             V1Im(d) = 0.25 * ((*Ui)(is_e) + (*Ui)(is_ne) + (*Ui)(is_w) + (*Ui)(is_nw));
                         }
                     }
+                    // <W1 x (Theta1 x R)> = <W1 x W1/(i omega) x R> = 1/(2*omega)*(W1Re x (W1Im x R) - W1Im x (W1Re x
+                    // R))
                     IBTK::Vector3d W1RexR = W1Re.cross(R);
                     IBTK::Vector3d W1ImxR = W1Im.cross(R);
                     IBTK::Vector3d W1ImxW1RexR = W1Im.cross(W1RexR);
                     IBTK::Vector3d W1RexW1ImxR = W1Re.cross(W1ImxR);
-                    IBTK::Vector3d W1RexV1Im = W1Re.cross(V1Im);
-                    IBTK::Vector3d W1ImxV1Re = W1Im.cross(V1Re);
                     IBTK::Vector3d so_velocity = U2 + W2.cross(R);
 
                     // Compute the Stokes drift velocity at the side center based on the first-order velocity field.
+                    // Stokes drift = <(xi1. Grad) v1> = <(v1/(i*omega).Grad)v1> = 1/(2*omega)*((v1Im.Grad)v1Re -
+                    // (v1Re.Grad)v1Im)
                     const SideIndex<NDIM> is_e(it(), axis, SideIndex<NDIM>::Upper);
                     const SideIndex<NDIM> is_w(it() + get_shift(axis, -1), axis, SideIndex<NDIM>::Lower);
-                    const double g_normal = ((V1Im(axis) + W1ImxR(axis)) * ((*Ur)(is_e) - (*Ur)(is_w)) -
-                                             (V1Re(axis) + W1RexR(axis)) * ((*Ui)(is_e) - (*Ui)(is_w))) /
-                                            (2.0 * patch_dx[axis]);
+                    const double g_normal =
+                        (V1Im(axis) * ((*Ur)(is_e) - (*Ur)(is_w)) - V1Re(axis) * ((*Ui)(is_e) - (*Ui)(is_w))) /
+                        (2.0 * patch_dx[axis]);
 
                     double g_tangential = 0.0;
                     for (int d = 0; d < NDIM; ++d)
@@ -204,11 +206,10 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
                         const SideIndex<NDIM> is_n(it() + get_shift(d, 1), axis, SideIndex<NDIM>::Lower);
                         const SideIndex<NDIM> is_s(it() + get_shift(d, -1), axis, SideIndex<NDIM>::Lower);
 
-                        g_tangential += (V1Im(d) + W1ImxR(d)) * ((*Ur)(is_n) - (*Ur)(is_s)) / (2 * patch_dx[d]);
-                        g_tangential -= (V1Re(d) + W1RexR(d)) * ((*Ui)(is_n) - (*Ui)(is_s)) / (2 * patch_dx[d]);
+                        g_tangential += V1Im(d) * ((*Ur)(is_n) - (*Ur)(is_s)) / (2 * patch_dx[d]);
+                        g_tangential -= V1Re(d) * ((*Ui)(is_n) - (*Ui)(is_s)) / (2 * patch_dx[d]);
                     }
                     double stokes_drift = -(g_normal + g_tangential);
-                    // stokes_drift += (W1RexV1Im(axis) - W1ImxV1Re(axis));
                     stokes_drift += (W1RexW1ImxR(axis) - W1ImxW1RexR(axis));
                     stokes_drift /= (2.0 * d_acoustic_freq);
 

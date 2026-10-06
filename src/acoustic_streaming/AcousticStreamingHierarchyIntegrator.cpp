@@ -2215,7 +2215,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
         double current_residual = R_current.norm();
         if (iter == 0) init_residual = current_residual;
 
-        if (iter == 0 && current_residual <= 1e-10) break;
+        if (iter == 0 && current_residual <= 1e-11) break;
         if (iter > 0 && (current_residual / init_residual <= 1e-10 || current_residual <= 1e-10)) break;
 
         // Compute the Jacobian matrix
