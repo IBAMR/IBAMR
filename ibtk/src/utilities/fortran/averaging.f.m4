@@ -48,11 +48,10 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       REAL function h_avg2(a0,a1)
       implicit none
       REAL a0,a1
-      REAL dmr,nmr, eps
+      REAL dmr,nmr
       nmr = 2.d0
-      eps = sqrt(epsilon(0.d0))
 c     If any of the arguments is zero, then harmonic average is zero
-      if (abs(a0) .le. eps .or. abs(a1) .le. eps) then
+      if (a0 .eq. 0.d0 .or. a1 .eq. 0.d0) then
         h_avg2 = 0.d0
       else
         dmr = 1.d0/a0+1.d0/a1
@@ -69,14 +68,13 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       REAL function h_avg4(a0,a1,a2,a3)
       implicit none
       REAL a0,a1,a2,a3
-      REAL dmr,nmr,eps
+      REAL dmr,nmr
       nmr = 4.d0
-      eps = sqrt(epsilon(0.d0))
 
 c     If any of the arguments is zero, then harmonic average is zero
-      if (abs(a0) .le. eps .or. abs(a1) .le. eps .or.
-     &    abs(a2) .le. eps .or. abs(a3) .le. eps) then
-        h_avg4 = 0.0
+      if (a0 .eq. 0.d0 .or. a1 .eq. 0.d0 .or.
+     &    a2 .eq. 0.d0 .or. a3 .eq. 0.d0) then
+        h_avg4 = 0.d0
       else
         dmr = 1.d0/a0+1.d0/a1+1.d0/a2+1.d0/a3
         h_avg4 = nmr/dmr
@@ -94,17 +92,16 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
      &                      a8,a9,a10,a11)
       implicit none
       REAL a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11
-      REAL dmr,nmr,eps
+      REAL dmr,nmr
       nmr = 12.d0
-      eps = sqrt(epsilon(0.d0))
 
 c     If any of the arguments is zero, then harmonic average is zero
-      if (abs(a0) .le. eps .or. abs(a1) .le. eps .or.
-     &    abs(a2) .le. eps .or. abs(a3) .le. eps .or.
-     &    abs(a4) .le. eps .or. abs(a5) .le. eps .or.
-     &    abs(a6) .le. eps .or. abs(a7) .le. eps .or.
-     &    abs(a8) .le. eps .or. abs(a9) .le. eps .or.
-     &    abs(a10) .le. eps .or. abs(a11) .le. eps) then
+      if (a0 .eq. 0.d0 .or. a1 .eq. 0.d0 .or.
+     &    a2 .eq. 0.d0 .or. a3 .eq. 0.d0 .or.
+     &    a4 .eq. 0.d0 .or. a5 .eq. 0.d0 .or.
+     &    a6 .eq. 0.d0 .or. a7 .eq. 0.d0 .or.
+     &    a8 .eq. 0.d0 .or. a9 .eq. 0.d0 .or.
+     &    a10 .eq. 0.d0 .or. a11 .eq. 0.d0) then
           h_avg12 = 0.d0
       else
           dmr = 1.d0/a0+1.d0/a1+1.d0/a2+1.d0/a3+1.d0/a4+1.d0/a5

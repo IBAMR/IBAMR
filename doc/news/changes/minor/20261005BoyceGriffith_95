@@ -1,0 +1,3 @@
+Fixed: The harmonic averages of viscosity and other coefficients are zero only when a value is exactly zero.
+<br>
+(Boyce Griffith, 2026/10/05)

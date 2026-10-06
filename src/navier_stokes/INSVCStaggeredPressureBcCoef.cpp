@@ -327,7 +327,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                     else if (d_mu_interp_type == VC_HARMONIC_INTERP)
                     {
                         double mu_harmonic;
-                        if (IBTK::abs_equal_eps((*mu_data)(i_g), 0.0) || IBTK::abs_equal_eps((*mu_data)(i_i), 0.0))
+                        if ((*mu_data)(i_g) == 0.0 || (*mu_data)(i_i) == 0.0)
                             mu_harmonic = 0.0;
                         else
                             mu_harmonic =

@@ -1,3 +1,5 @@
+mu_interp_type = "VC_AVERAGE_INTERP"
+
 u {
    function_0 = "sin(2*PI*X_0)*sin(2*PI*X_1)"  // x-component
    function_1 = "cos(2*PI*X_1)*sin(2*PI*X_2)"  // y-component

@@ -149,6 +149,9 @@ main(int argc, char* argv[])
         // Set the simulation time to be zero.
         const double data_time = 0.0;
 
+        // Get the interpolation type for averaging the viscosity.
+        const VCInterpType mu_interp_type = string_to_enum<VCInterpType>(input_db->getString("mu_interp_type"));
+
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
@@ -223,7 +226,7 @@ main(int argc, char* argv[])
                                  u_side_var,
                                  bdry_fill_op,
                                  data_time,
-                                 VC_AVERAGE_INTERP);
+                                 mu_interp_type);
 #endif
 
 #if (NDIM == 3)
@@ -238,7 +241,7 @@ main(int argc, char* argv[])
                                  u_side_var,
                                  bdry_fill_op,
                                  data_time,
-                                 VC_AVERAGE_INTERP);
+                                 mu_interp_type);
 #endif
         // Compute error and print error norms.
         Pointer<HierarchyDataOpsReal<NDIM, double>> hier_side_data_ops =

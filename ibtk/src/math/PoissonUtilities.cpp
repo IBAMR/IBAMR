@@ -98,7 +98,7 @@ compute_mu_harmonic_avg(const hier::Index<NDIM>& i, const NodeData<NDIM, double>
     for (NodeIterator<NDIM> n(node_box); n; n++, total_nodes++)
     {
         const double mu = mu_data(n(), /*depth*/ 0);
-        if (IBTK::abs_equal_eps(mu, 0.0))
+        if (mu == 0.0)
         {
             return 0.0;
         }
@@ -148,7 +148,7 @@ compute_mu_harmonic_avg(const hier::Index<NDIM>& i, const EdgeData<NDIM, double>
         for (EdgeIterator<NDIM> e(edge_box, axis); e; e++, total_edges++)
         {
             const double mu = mu_data(e(), /*depth*/ 0);
-            if (IBTK::abs_equal_eps(mu, 0.0))
+            if (mu == 0.0)
             {
                 return 0.0;
             }
