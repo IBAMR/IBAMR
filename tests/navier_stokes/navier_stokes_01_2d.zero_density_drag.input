@@ -1,0 +1,132 @@
+// Steady Stokes flow with drag and a nonzero mean velocity, on one level, for a fluid of zero density.
+
+// physical parameters
+MU     = 1.0e-2                           // fluid viscosity
+RHO    = 0.0                              // fluid density, exactly zero
+LAMBDA = 1.0                              // drag coefficient
+L      = 1.0
+
+// grid parameters
+N = 16                                    // number of grid cells
+
+// time
+END_TIME = 0.0625/N                       // final simulation time, one timestep
+
+// exact solution function expressions
+U = "1 - 2*cos(2*PI*X_0)*sin(2*PI*X_1)"
+V = "1 + 2*sin(2*PI*X_0)*cos(2*PI*X_1)"
+P = "0.0"
+
+VelocityInitialConditions {
+   function_0 = U
+   function_1 = V
+}
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = U
+   gcoef_function_1 = U
+   gcoef_function_2 = U
+   gcoef_function_3 = U
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = V
+   gcoef_function_1 = V
+   gcoef_function_2 = V
+   gcoef_function_3 = V
+}
+
+PressureInitialConditions {
+   function = P
+}
+
+ForcingFunction {
+   mu     = MU
+   lambda = LAMBDA
+
+   // drag and viscous force of the exact solution
+   function_0 = "lambda*(1 - 2*cos(2*PI*X_0)*sin(2*PI*X_1)) - 16*PI*PI*mu*cos(2*PI*X_0)*sin(2*PI*X_1)"
+   function_1 = "lambda*(1 + 2*sin(2*PI*X_0)*cos(2*PI*X_1)) + 16*PI*PI*mu*sin(2*PI*X_0)*cos(2*PI*X_1)"
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                 = MU
+   rho                = RHO
+   lambda             = LAMBDA
+   end_time           = END_TIME
+   normalize_pressure = TRUE                 // whether to explicitly force the pressure to have mean zero
+   normalize_velocity = TRUE                 // declare a velocity null space when the velocity damping coefficient is exactly zero
+   viscous_time_stepping_type = "BACKWARD_EULER"   // the step solves the steady problem
+   explicitly_remove_nullspace = TRUE        // remove the means that are forced to zero from the solution
+
+   stokes_solver_type = "PETSC_KRYLOV_SOLVER"
+   stokes_solver_db {
+      ksp_type = "fgmres"
+      rel_residual_tol = 1.0e-10         // converge to the discrete solution
+   }
+
+   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+   }
+
+   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   pressure_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+   }
+   pressure_precond_db {
+      coarse_solver_db {
+         num_pre_relax_steps  = 0
+         num_post_relax_steps = 3
+      }
+   }
+}
+
+Main {
+   log_file_name = "output"
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 512,512
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+}
