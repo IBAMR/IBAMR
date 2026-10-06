@@ -1,0 +1,3 @@
+Fixed: IBTK::intersect_line_with_face() accepts intersections with a TRI3 element that lie within the tolerance of its first edge, as it does for the other two edges.
+<br>
+(Boyce Griffith, 2026/10/05)

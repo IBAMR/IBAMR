@@ -1197,7 +1197,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point>>& t_vals,
             {
                 const libMesh::VectorValue<double> q = s.cross(e1);
                 double v = f * (d * q);
-                if (v >= tol && (u + v) <= 1.0 + tol)
+                if (v >= -tol && (u + v) <= 1.0 + tol)
                 {
                     double t = f * (e2 * q);
                     t_vals.push_back(std::make_pair(t, libMesh::Point(u, v, 0.0)));
