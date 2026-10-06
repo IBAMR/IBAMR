@@ -27,7 +27,6 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/ibamr_enums.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -298,10 +297,8 @@ main(int argc, char* argv[])
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p_cloned_idx, loop_time);
         }
 
-        // The pressure is defined at the new time for BDF viscous time stepping and at the middle of the time step
-        // otherwise.
-        const double p_time =
-            is_bdf_time_stepping_type(time_integrator->getViscousTimeSteppingType()) ? loop_time : loop_time - 0.5 * dt;
+        // The integrator reports the time at which the pressure of the time step is defined.
+        const double p_time = time_integrator->getPressureTime(loop_time - dt, loop_time);
 
         u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
         p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, p_time);

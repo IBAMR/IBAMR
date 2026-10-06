@@ -144,6 +144,13 @@ public:
     IBTK::RobinPhysBdryPatchStrategy* getDivergenceFreeVelocityPhysBdryOp() override;
 
     /*!
+     * Return the time at which the pressure computed in the time step from \p current_time to \p new_time is
+     * defined, which is also the time at which the body force is evaluated: the new time for BDF viscous time
+     * stepping and the time at the middle of the time step otherwise.
+     */
+    double getPressureTime(double current_time, double new_time) const override;
+
+    /*!
      * Indicate that the Stokes solver should be (re-)initialized before the
      * next time step.
      */
@@ -377,12 +384,6 @@ private:
      * cycle number.
      */
     TimeSteppingType getConvectiveTimeSteppingType(int cycle_num);
-
-    /*!
-     * Determine the time at which the pressure is defined and the body force is evaluated: the new time for BDF
-     * viscous time stepping and the time at the middle of the time step otherwise.
-     */
-    double getPressureTime(double current_time, double new_time) const;
 
     /*!
      * Determine the time step size ratio.
