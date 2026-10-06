@@ -1,0 +1,7 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+max tangential ghost error at the lower corners of the x boundaries = 1.562500e-01
+max tangential ghost error at the upper corners of the x boundaries = 7.396045e-01
+max tangential ghost error elsewhere on the x boundaries            = 7.275247e-04
+max tangential ghost error at the outermost ghost faces             = 0.000000e+00

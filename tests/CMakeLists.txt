@@ -164,6 +164,7 @@ SETUP_2D(navier_stokes poiseuille_flow.cpp)
 SETUP_2D(navier_stokes stokes_operator.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 SETUP_2D(navier_stokes stokes_operator_open_boundary.cpp)
+SETUP_2D(navier_stokes traction_corner_accuracy.cpp)
 SETUP_2D(navier_stokes stokes_fac_restriction.cpp)
 
 # physical_boundary:
