@@ -35,8 +35,6 @@ namespace
 
 const double MOB_FIT_FG_TOL = 1.0e-5; // min distance between blobs to apply empirical fitting
 const double ZERO_TOL = 1.0e-10;      // tolerance for zero value
-double MOB_FIT_FACTOR;                // constant for normalization
-int reUse = 0;                        // flag for reuse data
 
 typedef enum _KERNEL_TYPES
 {
@@ -363,7 +361,9 @@ InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta)
     return;
 } // InterpolateConstants
 
-void
+// Sets the fitting constants and returns the normalization factor of the
+// mobility components.
+double
 InitializeAllConstants(const char* IBKernelName, const double MU, const double rho, const double Dt, const double DX)
 {
     KERNEL_TYPES CurrentKernelType = GetKernelType(IBKernelName);
@@ -374,22 +374,23 @@ InitializeAllConstants(const char* IBKernelName, const double MU, const double r
     else
         beta = MU * Dt / (rho * DX * DX);
 
+    double mob_fit_factor;
 #if (NDIM == 3)
     //******3D case
     if ((rho <= 0.0) || (beta >= 1000.1))
-        MOB_FIT_FACTOR = 1. / MU / DX; // 3D steady stokes
+        mob_fit_factor = 1. / MU / DX; // 3D steady stokes
     else
-        MOB_FIT_FACTOR = Dt / (rho * DX * DX * DX);
+        mob_fit_factor = Dt / (rho * DX * DX * DX);
 #elif (NDIM == 2)
     //*******2D case
     if ((rho <= 0.0) || (beta >= 100.1)) // 2D steady stokes
-        MOB_FIT_FACTOR = 1. / MU;
+        mob_fit_factor = 1. / MU;
     else
-        MOB_FIT_FACTOR = Dt / (rho * DX * DX);
+        mob_fit_factor = Dt / (rho * DX * DX);
 #endif
 
     InterpolateConstants(CurrentKernelType, beta);
-
+    return mob_fit_factor;
 } // InitializeAllConstants
 
 double
@@ -518,26 +519,19 @@ _G_R_BETA(const double rr, const double Dx, const double beta)
 #endif
 } // _G_R_BETA
 
-// Computes Empirical Mobility components f(r) and g(r)
+// Computes Empirical Mobility components f(r) and g(r) from the fitting
+// constants and the normalization factor set by InitializeAllConstants().
 void
-getEmpiricalMobilityComponents(const char* IBKernelName,
+getEmpiricalMobilityComponents(const double mob_fit_factor,
                                const double MU,
                                const double rho,
                                const double Dt,
                                const double r,
                                const double DX,
-                               const int resetAllConstants,
                                const double L_domain,
                                double* F_MobilityValue,
                                double* G_Mobilityvalue)
 {
-    // Reuse same static constants for efficiency
-    if (resetAllConstants) reUse = 0;
-    if (!reUse)
-    {
-        InitializeAllConstants(IBKernelName, MU, rho, Dt, DX);
-        reUse = 1;
-    }
     double beta;
     // finding beta
     if (MU <= 0.0)
@@ -547,13 +541,13 @@ getEmpiricalMobilityComponents(const char* IBKernelName,
 
     if (rho <= 0.0)
     {
-        *F_MobilityValue = MOB_FIT_FACTOR * _F_R_INF(r, DX, L_domain); // steady stokes term for f(r)
-        *G_Mobilityvalue = MOB_FIT_FACTOR * _G_R_INF(r, DX);           // steady stokes term for g(r)
+        *F_MobilityValue = mob_fit_factor * _F_R_INF(r, DX, L_domain); // steady stokes term for f(r)
+        *G_Mobilityvalue = mob_fit_factor * _G_R_INF(r, DX);           // steady stokes term for g(r)
     }
     else
     {
-        *F_MobilityValue = MOB_FIT_FACTOR * _F_R_BETA(r, DX, beta, L_domain); // time-dependent f(r)
-        *G_Mobilityvalue = MOB_FIT_FACTOR * _G_R_BETA(r, DX, beta);           // time-dependent g(r)
+        *F_MobilityValue = mob_fit_factor * _F_R_BETA(r, DX, beta, L_domain); // time-dependent f(r)
+        *G_Mobilityvalue = mob_fit_factor * _G_R_BETA(r, DX, beta);           // time-dependent g(r)
     }
     return;
 } // getEmpiricalMobilityComponents
@@ -569,11 +563,15 @@ MobilityFunctions::constructEmpiricalMobilityMatrix(const char* IBKernelName,
                                                     const double DX,
                                                     const double* X,
                                                     const int N,
-                                                    const int resetAllConstants,
+                                                    const int /*resetAllConstants*/,
                                                     const double /*PERIODIC_CORRECTION*/,
                                                     const double L_domain,
                                                     double* MM)
 {
+    // The fitting constants depend on the kernel, the fluid properties, the time step size, and the grid spacing, so
+    // compute them for the arguments of this call. The calls for individual pairs of markers below reuse them.
+    const double mob_fit_factor = InitializeAllConstants(IBKernelName, MU, rho, Dt, DX);
+
     int row, col;
     for (row = 0; row < N; row++)
         for (col = 0; col <= row; col++)
@@ -590,7 +588,7 @@ MobilityFunctions::constructEmpiricalMobilityMatrix(const char* IBKernelName,
             const double r = std::sqrt(rsq);
             double F_R, G_R;
 
-            getEmpiricalMobilityComponents(IBKernelName, MU, rho, Dt, r, DX, resetAllConstants, L_domain, &F_R, &G_R);
+            getEmpiricalMobilityComponents(mob_fit_factor, MU, rho, Dt, r, DX, L_domain, &F_R, &G_R);
 
             int idir, jdir;
             for (idir = 0; idir < NDIM; idir++)

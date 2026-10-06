@@ -382,11 +382,10 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     int rank = IBTK_MPI::getRank();
     auto managed_mats = static_cast<unsigned>(d_mat_map.size());
 
-    static bool recreate_mobility_matrices = true;
-    static std::vector<bool> read_files(managed_mats, false);
+    d_read_files.resize(managed_mats, false);
     bool initial_time = !d_recompute_mob_mat;
 
-    if (recreate_mobility_matrices)
+    if (d_recreate_mobility_matrices)
     {
         // Get grid-info
         Vec* vx;
@@ -420,7 +419,7 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
             const std::pair<double, double>& scale = d_mat_scale_map[mat_name];
             const int managing_proc = d_mat_proc_map[mat_name];
 
-            if (mat_type == READ_FROM_FILE && !read_files[file_counter])
+            if (mat_type == READ_FROM_FILE && !d_read_files[file_counter])
             {
                 // Get the matrix from file.
                 const std::string& filename = d_mat_filename_map[mat_name];
@@ -432,7 +431,7 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
                     PetscViewerDestroy(&binary_viewer);
                 }
 
-                read_files[file_counter] = true;
+                d_read_files[file_counter] = true;
             }
             else
             {
@@ -460,7 +459,7 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     }
 
     d_is_initialized = true;
-    recreate_mobility_matrices = d_recompute_mob_mat;
+    d_recreate_mobility_matrices = d_recompute_mob_mat;
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
 
