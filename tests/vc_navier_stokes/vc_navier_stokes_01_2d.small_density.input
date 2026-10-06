@@ -1,0 +1,111 @@
+// Periodic box filled with a fluid of constant density, variable viscosity and drag.
+// The exact velocity has a mean that grows in time.
+
+// physical parameters
+L      = 1.0
+RHO    = 1.0e-12                  // constant density, small but not zero
+MU0    = 1.0
+LAMBDA = 1.0                      // drag coefficient
+
+// grid and time stepping parameters
+N        = 16
+DT       = 0.002
+END_TIME = 5*DT
+
+// exact solution function expressions
+U   = "100*t + 0.5*sin(2*PI*X_1)"
+V   = "0.0"
+P   = "sin(2*PI*X_0)"
+F_U = "rho*100 + lambda*(100*(t + dt_half) + 0.5*sin(2*PI*X_1)) - mu0*PI^2*(cos(2*PI*X_1)^2 - 2*sin(2*PI*X_1) - sin(2*PI*X_1)^2) + 2*PI*cos(2*PI*X_0)"
+MU  = "mu0*(1.0 + 0.5*sin(2*PI*X_1))"
+
+DensityFunction {
+   function = "rho"
+   rho = RHO
+}
+
+ViscosityFunction {
+   function = MU
+   mu0 = MU0
+}
+
+VelocityInitialConditions {
+   function_0 = U
+   function_1 = V
+}
+
+PressureInitialConditions {
+   function = P
+}
+
+ForcingFunction {
+   function_0 = F_U
+   function_1 = "0.0"
+   rho = RHO
+   mu0 = MU0
+   lambda = LAMBDA
+   dt_half = 0.5*DT   // the force is evaluated at mid-step; t + dt_half is the new time, where backward Euler evaluates the drag
+}
+
+INSVCStaggeredNonConservativeHierarchyIntegrator {
+   end_time                   = END_TIME
+   dt_max                     = DT
+   viscous_time_stepping_type = "BACKWARD_EULER"
+   creeping_flow              = TRUE      // omit the convective term
+   rho_is_const               = TRUE
+   rho                        = RHO
+   mu_is_const                = FALSE
+   lambda                     = LAMBDA
+   normalize_pressure         = TRUE
+   normalize_velocity         = TRUE      // declare a velocity null space when the velocity damping coefficient is exactly zero
+
+   velocity_solver_type  = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type       = "richardson"
+      max_iterations = 5
+   }
+   velocity_precond_db {
+      num_pre_sweeps     = 0
+      num_post_sweeps    = 3
+      coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type  = "jacobi"
+      }
+   }
+
+   stokes_solver_type = "VC_STAGGERED_STOKES_PETSC_KRYLOV_SOLVER"
+   stokes_solver_db {
+      ksp_type         = "fgmres"
+      rel_residual_tol = 1.0e-10   // converge to the discrete solution
+      max_iterations   = 50        // bounds the run when the solver cannot converge
+   }
+}
+
+Main {
+   log_file_name = "INS2d.log"
+}
+
+CartesianGeometry {
+   domain_boxes       = [ (0,0),(N - 1,N - 1) ]
+   x_lo               = 0,0
+   x_up               = L,L
+   periodic_dimension = 1,1
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 512,512
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+}

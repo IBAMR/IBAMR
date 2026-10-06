@@ -526,6 +526,16 @@ protected:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
 
     /*!
+     * Allocate the vectors that span the null space of the Stokes system (d_nul_vecs) and of the velocity problem
+     * (d_U_nul_vecs): the constant velocities when has_velocity_nullspace is true, and the constant pressure
+     * when has_pressure_nullspace is true. The first call after the hierarchy has been reset allocates the vectors
+     * for the null space it is given; later calls do nothing. A derived class must call this function in each time
+     * step, after it has determined whether the velocity problem has a null space and before it attaches the
+     * vectors to a solver.
+     */
+    void updateNullSpaceVectors(double current_time, bool has_velocity_nullspace, bool has_pressure_nullspace);
+
+    /*!
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double>> d_hier_cc_data_ops;
@@ -568,6 +578,7 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_nul_vecs;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_U_nul_vecs;
     bool d_vectors_need_init, d_explicitly_remove_nullspace = false;
+    bool d_nul_vecs_need_init = true;
 
     std::string d_stokes_solver_type = StaggeredStokesSolverManager::UNDEFINED,
                 d_stokes_precond_type = StaggeredStokesSolverManager::UNDEFINED;

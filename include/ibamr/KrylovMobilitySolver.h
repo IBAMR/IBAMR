@@ -286,6 +286,9 @@ private:
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr;
 
+    // Problem specification.
+    SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
+
     // Linear operator.
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar>>> d_samrai_temp;
     SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
@@ -321,8 +324,10 @@ private:
      * This boolean value determines whether the velocity is normalized to have
      * zero mean (i.e., discrete integral) at the end of each timestep.
      *
-     * This parameter only affects the case in which rho=0 (i.e. the steady
-     * Stokes equations).
+     * This parameter only affects the case in which the damping coefficient of
+     * the velocity equation, which combines the density and drag terms, is a
+     * constant that is exactly zero (e.g., the steady Stokes equations without
+     * drag).
      */
     bool d_normalize_velocity = false;
 
