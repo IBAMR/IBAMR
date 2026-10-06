@@ -155,7 +155,7 @@ GriddingAlgorithm {
       level_5 = REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512,512  // all finer levels will use same values as level_0
+      level_0 = 32,32  // four patches, so that the structure crosses patch boundaries
    }
    smallest_patch_size {
       level_0 =   8,  8  // all finer levels will use same values as level_0
