@@ -1,0 +1,3 @@
+Fixed: Consistency checks in IBAMR::IBMethod (source and sink totals) and IBAMR::IBFEMethod (intersection points) measure differences relative to the quantities they compare, and every comparison of two time step sizes in the integrators uses the new function IBTK::same_time_step_size(), which is relative to the time step size. The checks previously used absolute tolerances or compared dimensional values with one, so they depended on the units.
+<br>
+(Boyce Griffith, 2026/10/06)

@@ -1243,7 +1243,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     // Ensure that solver components are appropriately reinitialized at the
     // correct intervals or
     // when the time step size changes.
-    const bool dt_change = initial_time || !IBTK::rel_equal_eps(dt, d_dt_previous[0]);
+    const bool dt_change = initial_time || !IBTK::same_time_step_size(dt, d_dt_previous[0]);
     const bool precond_reinit = d_integrator_step % d_precond_reinit_interval == 0;
     if (precond_reinit)
     {

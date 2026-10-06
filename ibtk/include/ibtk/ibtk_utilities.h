@@ -118,6 +118,18 @@ abs_equal_eps(double a, double b, double eps = std::sqrt(std::numeric_limits<dou
     return std::abs(a - b) < eps;
 }
 
+/*!
+ * \brief Check whether two time step sizes are the same.
+ *
+ * The difference is measured relative to the larger of the two time step sizes, so that the check does not depend on
+ * the unit of time.
+ */
+inline bool
+same_time_step_size(double dt_a, double dt_b)
+{
+    return rel_equal_eps(dt_a, dt_b);
+}
+
 inline std::string
 get_data_time_str(const double data_time, const double current_time, const double new_time)
 {

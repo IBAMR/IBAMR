@@ -1166,18 +1166,20 @@ IBMethod::spreadFluidSource(const int q_data_idx,
     // Compute the net inflow into the computational domain.
     const int wgt_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     PatchCellDataOpsReal<NDIM, double> patch_cc_data_ops;
+    // The rounding errors of the totals grow with the sum of the magnitudes of the source strengths, so that sum is the
+    // scale of the consistency checks below.
     double Q_sum = 0.0;
-    double Q_max = 0.0;
+    double Q_abs_sum = 0.0;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Q_sum = std::accumulate(d_Q_src[ln].begin(), d_Q_src[ln].end(), Q_sum);
         for (const auto& Q_src : d_Q_src[ln])
         {
-            Q_max = std::max(Q_max, std::abs(Q_src));
+            Q_abs_sum += std::abs(Q_src);
         }
     }
     const double q_total = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
-    if (std::abs(q_total - Q_sum) > 1.0e-12 && std::abs(q_total - Q_sum) / std::max(Q_max, 1.0) > 1.0e-12)
+    if (std::abs(q_total - Q_sum) > 1.0e-12 * Q_abs_sum)
     {
 #if (NDIM == 2)
         TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
@@ -1234,7 +1236,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
             }
         }
         const double integral_q = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
-        if (std::abs(integral_q) > 1.0e-10 * std::max(1.0, getPressureHierarchyDataOps()->maxNorm(q_data_idx, wgt_idx)))
+        if (std::abs(integral_q) > 1.0e-10 * Q_abs_sum)
         {
             TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
                                      << "  ``external' source/sink does not correctly offset net "

@@ -24,6 +24,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LaplaceOperator.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Database.h>
 #include <tbox/MathUtilities.h>
@@ -502,7 +503,7 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
 
     // Indicate that all solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
-    const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
+    const bool dt_change = initial_time || !IBTK::same_time_step_size(dt, d_dt_previous[0]);
     if (dt_change)
     {
         d_coarsest_reset_ln = 0;
