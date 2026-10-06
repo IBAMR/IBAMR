@@ -19,6 +19,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IndexUtilities.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -1185,7 +1186,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 #endif
 
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(dt, getTimeStepSize()));
+    TBOX_ASSERT(IBTK::rel_equal_eps(dt, getTimeStepSize()));
 #endif
 
     if (d_V_old_idx == d_V_current_idx)
