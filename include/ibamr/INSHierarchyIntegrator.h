@@ -37,6 +37,7 @@
 #include <FaceVariable.h>
 #include <IntVector.h>
 #include <LocationIndexRobinBcCoefs.h>
+#include <SAMRAIVectorReal.h>
 #include <Variable.h>
 
 #include <string>
@@ -501,6 +502,18 @@ protected:
     bool usePhysicalBcCoefsBeforeFirstTimeStep() const;
 
     /*!
+     * Allocate the null-space vectors d_U_nul_vecs of the side- or cell-centered velocity \p U_vec, and d_nul_vecs of
+     * the Stokes system \p sol_vec (none if null), on the first call after a hierarchy reset. A derived class must
+     * call this function in each time step, after it decides which null spaces the problem has and before it
+     * attaches the vectors to a solver.
+     */
+    void updateNullSpaceVectors(double current_time,
+                                bool has_velocity_nullspace,
+                                bool has_pressure_nullspace,
+                                const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>& U_vec,
+                                const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>& sol_vec);
+
+    /*!
      * Return the maximum stable time step size.
      */
     double getMaximumTimeStepSizeSpecialized() override;
@@ -582,10 +595,18 @@ protected:
      * This boolean value determines whether the velocity is normalized to have
      * zero mean (i.e., discrete integral) at the end of each timestep.
      *
-     * This parameter only affects the case in which rho=0 (i.e. the steady
-     * Stokes equations).
+     * This parameter only affects the case in which the velocity damping
+     * coefficient is a constant equal to zero.
      */
     bool d_normalize_velocity = false;
+
+    /*!
+     * The null-space vectors of the Stokes system and of the velocity, and whether updateNullSpaceVectors() must
+     * allocate them. A derived class sets the flag when the hierarchy changes.
+     */
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_nul_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_U_nul_vecs;
+    bool d_nul_vecs_need_init = true;
 
     /*!
      * This boolean value determines whether the convective acceleration term is

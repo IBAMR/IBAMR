@@ -35,6 +35,7 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/SideDataSynchronization.h>
 #include <ibtk/ibtk_enums.h>
 
@@ -1401,8 +1402,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     }
 
     // Setup subdomain solvers.
-    const bool has_velocity_nullspace = d_normalize_velocity && (d_rho_is_const && IBTK::abs_equal_eps(rho, 0.0));
+    const bool has_velocity_nullspace = d_normalize_velocity && !PoissonUtilities::isDamped(U_problem_coefs);
     const bool has_pressure_nullspace = d_normalize_pressure;
+    updateNullSpaceVectors(current_time, has_velocity_nullspace, has_pressure_nullspace, d_U_scratch_vec, d_sol_vec);
 
     if (d_velocity_solver)
     {
@@ -1421,7 +1423,13 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(false);
-                if (has_velocity_nullspace) p_velocity_solver->setNullSpace(false, d_U_nul_vecs);
+                if (has_velocity_nullspace)
+                {
+#if !defined(NDEBUG)
+                    TBOX_ASSERT(!d_nul_vecs_need_init);
+#endif
+                    p_velocity_solver->setNullSpace(false, d_U_nul_vecs);
+                }
             }
             d_velocity_solver->initializeSolverState(*d_U_scratch_vec, *d_U_rhs_vec);
             d_velocity_solver_needs_init = false;
@@ -1518,7 +1526,12 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         {
             p_stokes_linear_solver->setInitialGuessNonzero(true);
             if (has_velocity_nullspace || has_pressure_nullspace)
+            {
+#if !defined(NDEBUG)
+                TBOX_ASSERT(!d_nul_vecs_need_init);
+#endif
                 p_stokes_linear_solver->setNullSpace(false, d_nul_vecs);
+            }
         }
         d_stokes_solver->initializeSolverState(*d_sol_vec, *d_rhs_vec);
         d_stokes_solver_needs_init = false;

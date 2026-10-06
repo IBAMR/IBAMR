@@ -46,6 +46,7 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/SCPoissonSolverManager.h>
 #include <ibtk/SideDataSynchronization.h>
 #include <ibtk/ibtk_enums.h>
@@ -615,14 +616,6 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
     if (d_N_vec) free_vector_components(*d_N_vec);
     if (d_P_rhs_vec) free_vector_components(*d_P_rhs_vec);
-    for (const auto& nul_vec : d_nul_vecs)
-    {
-        if (nul_vec) free_vector_components(*nul_vec);
-    }
-    for (const auto& U_nul_vec : d_U_nul_vecs)
-    {
-        if (U_nul_vec) free_vector_components(*U_nul_vec);
-    }
     return;
 } // ~INSStaggeredHierarchyIntegrator
 
@@ -1998,6 +1991,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_coarsest_reset_ln = coarsest_level;
     d_finest_reset_ln = finest_level;
     d_vectors_need_init = true;
+    d_nul_vecs_need_init = true;
     d_convective_op_needs_init = true;
     d_velocity_solver_needs_init = true;
     d_pressure_solver_needs_init = true;
@@ -2435,7 +2429,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
     }
 
     // Setup solver vectors.
-    const bool has_velocity_nullspace = d_normalize_velocity && IBTK::abs_equal_eps(rho, 0.0);
+    const bool has_velocity_nullspace = d_normalize_velocity && !PoissonUtilities::isDamped(U_problem_coefs);
     const bool has_pressure_nullspace = d_normalize_pressure;
     if (d_vectors_need_init)
     {
@@ -2477,55 +2471,6 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
         d_rhs_vec->addComponent(d_P_var, P_rhs_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        for (const auto& nul_vec : d_nul_vecs)
-        {
-            if (nul_vec) free_vector_components(*nul_vec);
-        }
-        const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
-        d_nul_vecs.resize(n_nul_vecs);
-
-        for (const auto& U_nul_vec : d_U_nul_vecs)
-        {
-            if (U_nul_vec) free_vector_components(*U_nul_vec);
-        }
-        const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
-        d_U_nul_vecs.resize(n_U_nul_vecs);
-
-        if (has_velocity_nullspace)
-        {
-            for (unsigned int k = 0; k < NDIM; ++k)
-            {
-                d_nul_vecs[k] = d_sol_vec->cloneVector(d_object_name + "::nul_vec_U_" + std::to_string(k));
-                d_nul_vecs[k]->allocateVectorData(current_time);
-                d_nul_vecs[k]->setToScalar(0.0);
-                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name + "::U_nul_vec_U_" + std::to_string(k));
-                d_U_nul_vecs[k]->allocateVectorData(current_time);
-                d_U_nul_vecs[k]->setToScalar(0.0);
-                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-                {
-                    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                    {
-                        Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                        Pointer<SideData<NDIM, double>> nul_data =
-                            patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        nul_data->getArrayData(k).fillAll(1.0);
-                        Pointer<SideData<NDIM, double>> U_nul_data =
-                            patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        U_nul_data->getArrayData(k).fillAll(1.0);
-                    }
-                }
-            }
-        }
-
-        if (has_pressure_nullspace)
-        {
-            d_nul_vecs.back() = d_sol_vec->cloneVector(d_object_name + "::nul_vec_p");
-            d_nul_vecs.back()->allocateVectorData(current_time);
-            d_hier_sc_data_ops->setToScalar(d_nul_vecs.back()->getComponentDescriptorIndex(0), 0.0);
-            d_hier_cc_data_ops->setToScalar(d_nul_vecs.back()->getComponentDescriptorIndex(1), 1.0);
-        }
-
         // Setup the patch boundary synchronization objects.
         using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent U_rhs_synch_transaction =
@@ -2533,41 +2478,9 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         d_U_rhs_side_synch_op = new SideDataSynchronization();
         d_U_rhs_side_synch_op->initializeOperatorState(U_rhs_synch_transaction, d_hierarchy);
 
-        // Normalize the basis vectors for the nullspace.
-        for (const auto& nul_vec : d_nul_vecs)
-        {
-            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
-            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
-        }
-
-        for (const auto& nul_vec : d_U_nul_vecs)
-        {
-            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
-            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
-        }
-
-#if !defined(NDEBUG)
-        for (unsigned int j = 0; j < d_nul_vecs.size(); ++j)
-        {
-            for (unsigned int i = 0; i < d_nul_vecs.size(); ++i)
-            {
-                auto dot_product = d_nul_vecs[i]->dot(d_nul_vecs[j]);
-                TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
-            }
-        }
-
-        for (unsigned int j = 0; j < d_U_nul_vecs.size(); ++j)
-        {
-            for (unsigned int i = 0; i < d_U_nul_vecs.size(); ++i)
-            {
-                auto dot_product = d_U_nul_vecs[i]->dot(d_U_nul_vecs[j]);
-                TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
-            }
-        }
-#endif
-
         d_vectors_need_init = false;
     }
+    updateNullSpaceVectors(current_time, has_velocity_nullspace, has_pressure_nullspace, d_U_scratch_vec, d_sol_vec);
 
     // Setup boundary conditions objects.
     setSolverPhysicalBcCoefs(SolverPhysicalBcCoefs::REGISTERED);
@@ -2624,7 +2537,13 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(false);
-                if (has_velocity_nullspace) p_velocity_solver->setNullSpace(false, d_U_nul_vecs);
+                if (has_velocity_nullspace)
+                {
+#if !defined(NDEBUG)
+                    TBOX_ASSERT(!d_nul_vecs_need_init);
+#endif
+                    p_velocity_solver->setNullSpace(false, d_U_nul_vecs);
+                }
             }
             d_velocity_solver->initializeSolverState(*d_U_scratch_vec, *d_U_rhs_vec);
             d_velocity_solver_needs_init = false;
@@ -2722,7 +2641,12 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         {
             p_stokes_linear_solver->setInitialGuessNonzero(true);
             if (has_velocity_nullspace || has_pressure_nullspace)
+            {
+#if !defined(NDEBUG)
+                TBOX_ASSERT(!d_nul_vecs_need_init);
+#endif
                 p_stokes_linear_solver->setNullSpace(false, d_nul_vecs);
+            }
         }
         d_stokes_solver->initializeSolverState(*d_sol_vec, *d_rhs_vec);
         d_stokes_solver_needs_init = false;

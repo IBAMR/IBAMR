@@ -38,14 +38,18 @@
 #include <tbox/RestartManager.h>
 #include <tbox/Utilities.h>
 
+#include <CellData.h>
 #include <FaceVariable.h>
 #include <IntVector.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
+#include <PatchData.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <RobinBcCoefStrategy.h>
+#include <SAMRAIVectorReal.h>
+#include <SideData.h>
 #include <Variable.h>
 
 #include <algorithm>
@@ -67,6 +71,44 @@ namespace
 {
 // Version of INSHierarchyIntegrator restart file data.
 static const int INS_HIERARCHY_INTEGRATOR_VERSION = 4;
+
+// Set the velocity stored in component 0 of vec to the unit vector in direction k.
+void
+set_unit_velocity(const Pointer<PatchHierarchy<NDIM>>& hierarchy,
+                  const Pointer<SAMRAIVectorReal<NDIM, double>>& vec,
+                  const unsigned int k)
+{
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<PatchData<NDIM>> data = patch->getPatchData(vec->getComponentDescriptorIndex(0));
+            Pointer<SideData<NDIM, double>> sc_data = data;
+            Pointer<CellData<NDIM, double>> cc_data = data;
+            if (sc_data)
+            {
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    sc_data->getArrayData(d).fillAll(d == k ? 1.0 : 0.0);
+                }
+            }
+            else if (cc_data)
+            {
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    cc_data->fill(d == k ? 1.0 : 0.0, d);
+                }
+            }
+            else
+            {
+                TBOX_ERROR("set_unit_velocity():\n"
+                           << "  the velocity must be side-centered or cell-centered\n");
+            }
+        }
+    }
+}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -77,6 +119,14 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     {
         delete d_U_star_bc_coefs[d];
         d_U_star_bc_coefs[d] = nullptr;
+    }
+    for (const auto& nul_vec : d_nul_vecs)
+    {
+        if (nul_vec) free_vector_components(*nul_vec);
+    }
+    for (const auto& U_nul_vec : d_U_nul_vecs)
+    {
+        if (U_nul_vec) free_vector_components(*U_nul_vec);
     }
     return;
 } // ~INSHierarchyIntegrator
@@ -705,6 +755,106 @@ INSHierarchyIntegrator::usePhysicalBcCoefsBeforeFirstTimeStep() const
 {
     return d_U_init || RestartManager::getManager()->isFromRestart();
 } // usePhysicalBcCoefsBeforeFirstTimeStep
+
+void
+INSHierarchyIntegrator::updateNullSpaceVectors(const double current_time,
+                                               const bool has_velocity_nullspace,
+                                               const bool has_pressure_nullspace,
+                                               const Pointer<SAMRAIVectorReal<NDIM, double>>& U_vec,
+                                               const Pointer<SAMRAIVectorReal<NDIM, double>>& sol_vec)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const bool has_stokes_vec = !sol_vec.isNull();
+    const int n_nul_vecs = has_stokes_vec ? (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0) : 0;
+
+    if (d_nul_vecs_need_init)
+    {
+        for (const auto& nul_vec : d_nul_vecs)
+        {
+            if (nul_vec) free_vector_components(*nul_vec);
+        }
+        d_nul_vecs.resize(n_nul_vecs);
+
+        for (const auto& U_nul_vec : d_U_nul_vecs)
+        {
+            if (U_nul_vec) free_vector_components(*U_nul_vec);
+        }
+        const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
+        d_U_nul_vecs.resize(n_U_nul_vecs);
+
+        if (has_velocity_nullspace)
+        {
+            for (unsigned int k = 0; k < NDIM; ++k)
+            {
+                if (has_stokes_vec)
+                {
+                    d_nul_vecs[k] = sol_vec->cloneVector(d_object_name + "::nul_vec_U_" + std::to_string(k));
+                    d_nul_vecs[k]->allocateVectorData(current_time);
+                    d_nul_vecs[k]->setToScalar(0.0);
+                    set_unit_velocity(d_hierarchy, d_nul_vecs[k], k);
+                }
+                d_U_nul_vecs[k] = U_vec->cloneVector(d_object_name + "::U_nul_vec_U_" + std::to_string(k));
+                d_U_nul_vecs[k]->allocateVectorData(current_time);
+                set_unit_velocity(d_hierarchy, d_U_nul_vecs[k], k);
+            }
+        }
+
+        if (has_stokes_vec && has_pressure_nullspace)
+        {
+            d_nul_vecs.back() = sol_vec->cloneVector(d_object_name + "::nul_vec_p");
+            d_nul_vecs.back()->allocateVectorData(current_time);
+            d_nul_vecs.back()->setToScalar(0.0);
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<CellData<NDIM, double>> P_nul_data =
+                        patch->getPatchData(d_nul_vecs.back()->getComponentDescriptorIndex(1));
+                    P_nul_data->fill(1.0, patch->getBox());
+                }
+            }
+        }
+
+        // Normalize the basis vectors for the nullspace.
+        for (const auto& nul_vec : d_nul_vecs)
+        {
+            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
+            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
+        }
+
+        for (const auto& nul_vec : d_U_nul_vecs)
+        {
+            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
+            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
+        }
+
+#if !defined(NDEBUG)
+        for (unsigned int j = 0; j < d_nul_vecs.size(); ++j)
+        {
+            for (unsigned int i = 0; i < d_nul_vecs.size(); ++i)
+            {
+                auto dot_product = d_nul_vecs[i]->dot(d_nul_vecs[j]);
+                TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
+            }
+        }
+
+        for (unsigned int j = 0; j < d_U_nul_vecs.size(); ++j)
+        {
+            for (unsigned int i = 0; i < d_U_nul_vecs.size(); ++i)
+            {
+                auto dot_product = d_U_nul_vecs[i]->dot(d_U_nul_vecs[j]);
+                TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
+            }
+        }
+#endif
+
+        d_nul_vecs_need_init = false;
+    }
+    return;
+} // updateNullSpaceVectors
 
 double
 INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()

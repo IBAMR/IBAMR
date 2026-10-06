@@ -221,6 +221,11 @@ public:
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
+    /*!
+     * Return whether the operator has a damping term, i.e. C is not exactly zero.
+     */
+    static bool isDamped(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+
 protected:
 private:
     /*!
