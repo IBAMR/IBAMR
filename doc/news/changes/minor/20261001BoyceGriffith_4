@@ -1,0 +1,3 @@
+New: INSStaggeredHierarchyIntegrator input key traction_bc_corner_type selects the treatment of TRACTION boundary conditions at corners of the physical boundary.
+<br>
+(Boyce Griffith, 2026/10/01)

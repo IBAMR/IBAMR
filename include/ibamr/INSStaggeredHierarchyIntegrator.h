@@ -456,6 +456,12 @@ private:
     std::string d_U_P_bdry_interp_type = "LINEAR";
 
     /*!
+     * The treatment of the tangential derivative of the normal velocity at corners with TRACTION boundary conditions,
+     * read from the input key traction_bc_corner_type.
+     */
+    TractionBcCornerType d_traction_bc_corner_type = TractionBcCornerType::ZERO_DIFFERENCE;
+
+    /*!
      * Variables for graphical output.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_U_nc_var;

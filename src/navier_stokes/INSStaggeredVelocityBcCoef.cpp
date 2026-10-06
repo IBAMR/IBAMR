@@ -20,7 +20,9 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 
+#include <tbox/Array.h>
 #include <tbox/MathUtilities.h>
 #include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
@@ -44,6 +46,7 @@
 #include <algorithm>
 #include <array>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -67,6 +70,126 @@ namespace IBAMR
 
 namespace
 {
+// The normal velocity used by the TRACTION condition at a boundary face, as
+// weight[0]*u(idx[0]) + weight[1]*u(idx[1]) + offset.
+struct NormalVelocityStencil
+{
+    std::array<SideIndex<NDIM>, 2> idx;
+    std::array<double, 2> weight;
+    double offset;
+};
+
+// A patch geometry shifted by a given displacement, so that boundary coefficients are evaluated at the locations of
+// another component of the velocity. The geometry is built once, from the geometry that the patch has at that time.
+// Constructing a ShiftedPatchGeometry::Scope replaces the geometry of the patch by the shifted geometry, and destroying
+// the scope restores the geometry that the patch had, on every exit path. The patch is not otherwise modified.
+class ShiftedPatchGeometry
+{
+public:
+    ShiftedPatchGeometry(const Patch<NDIM>& patch, const std::array<double, NDIM>& shift)
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+        const double* const dx = pgeom->getDx();
+        std::array<double, NDIM> x_lower, x_upper;
+        Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            x_lower[d] = pgeom->getXLower()[d] + shift[d];
+            x_upper[d] = pgeom->getXUpper()[d] + shift[d];
+            touches_regular_bdry[d].resizeArray(2);
+            touches_periodic_bdry[d].resizeArray(2);
+            for (int upperlower = 0; upperlower < 2; ++upperlower)
+            {
+                touches_regular_bdry[d][upperlower] = pgeom->getTouchesRegularBoundary(d, upperlower);
+                touches_periodic_bdry[d][upperlower] = pgeom->getTouchesPeriodicBoundary(d, upperlower);
+            }
+        }
+        d_geometry = new CartesianPatchGeometry<NDIM>(
+            pgeom->getRatio(), touches_regular_bdry, touches_periodic_bdry, dx, x_lower.data(), x_upper.data());
+    }
+
+    class Scope
+    {
+    public:
+        // The patch passed to a boundary coefficient object is a reference to a patch that the caller owns and can
+        // modify, and its geometry is replaced only until the scope ends.
+        Scope(const Patch<NDIM>& patch, const ShiftedPatchGeometry& shifted)
+            : d_patch(const_cast<Patch<NDIM>&>(patch)), d_original(patch.getPatchGeometry())
+        {
+            d_patch.setPatchGeometry(shifted.d_geometry);
+        }
+
+        ~Scope()
+        {
+            d_patch.setPatchGeometry(d_original);
+        }
+
+        Scope(const Scope&) = delete;
+        Scope& operator=(const Scope&) = delete;
+
+    private:
+        Patch<NDIM>& d_patch;
+        Pointer<PatchGeometry<NDIM>> d_original;
+    };
+
+private:
+    Pointer<PatchGeometry<NDIM>> d_geometry;
+};
+
+// Return true and set u_prescribed if normal_bc_coef prescribes the normal
+// velocity on the adjacent boundary (location index adj_location_index) at the
+// extension of the boundary face i_face. The geometry of patch is centered on
+// the tangential component; the coefficients are evaluated with a geometry
+// centered on the normal component, which is built when first needed and kept
+// in normal_geometry.
+bool
+get_prescribed_normal_velocity(double& u_prescribed,
+                               const hier::Index<NDIM>& i_face,
+                               const unsigned int bdry_normal_axis,
+                               const unsigned int tangential_axis,
+                               const unsigned int adj_location_index,
+                               RobinBcCoefStrategy<NDIM>* const normal_bc_coef,
+                               const Patch<NDIM>& patch,
+                               std::unique_ptr<ShiftedPatchGeometry>& normal_geometry,
+                               const double fill_time)
+{
+    const Box<NDIM>& patch_box = patch.getBox();
+    hier::Index<NDIM> i_cell = i_face;
+    i_cell(bdry_normal_axis) = std::min(i_face(bdry_normal_axis), patch_box.upper(bdry_normal_axis));
+    const BoundaryBox<NDIM> adj_bdry_box(Box<NDIM>(i_cell, i_cell), 1, adj_location_index);
+    Box<NDIM> adj_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(adj_bdry_box);
+    adj_coef_box.lower()(bdry_normal_axis) = i_face(bdry_normal_axis);
+    adj_coef_box.upper()(bdry_normal_axis) = i_face(bdry_normal_axis);
+
+    if (!normal_geometry)
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+        const double* const dx = pgeom->getDx();
+        std::array<double, NDIM> shift;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            shift[d] = (d == tangential_axis ? 0.5 * dx[d] : 0.0) - (d == bdry_normal_axis ? 0.5 * dx[d] : 0.0);
+        }
+        normal_geometry = std::make_unique<ShiftedPatchGeometry>(patch, shift);
+    }
+    Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(adj_coef_box, 1);
+    Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(adj_coef_box, 1);
+    Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(adj_coef_box, 1);
+    {
+        ShiftedPatchGeometry::Scope scope(patch, *normal_geometry);
+        normal_bc_coef->setBcCoefs(
+            acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM>>(), patch, adj_bdry_box, fill_time);
+    }
+    const hier::Index<NDIM>& i_coef = adj_coef_box.lower();
+    const double alpha = (*acoef_data)(i_coef, 0);
+    if (!IBTK::rel_equal_eps(alpha, 1.0))
+    {
+        return false;
+    }
+    u_prescribed = (*gcoef_data)(i_coef, 0) / alpha;
+    return true;
+} // get_prescribed_normal_velocity
+
 // Return the physical domain refined to the level of patch, together with its
 // periodic images, so that a cell across a periodic boundary is not mistaken
 // for a cell outside the domain.
@@ -130,22 +253,14 @@ is_boundary_face(hier::Index<NDIM> i_face,
     return domain.contains(i_face);
 } // is_boundary_face
 
-// The normal velocity used by the TRACTION condition at a boundary face, as
-// weight[0]*u(idx[0]) + weight[1]*u(idx[1]).
-struct NormalVelocityStencil
-{
-    std::array<SideIndex<NDIM>, 2> idx;
-    std::array<double, 2> weight;
-};
-
-// Return the stencil of the normal velocity from which the TRACTION condition
-// takes the normal velocity at the boundary face with index i_face, where the
-// boundary is normal to bdry_normal_axis and the condition differences the
-// normal velocity along tangential_axis. A face is beyond a corner if the cell
-// adjacent to it on the interior side of the boundary lies outside the physical
-// domain; this is determined from the domain, not from the patch. The value at
-// such a face is not available, so the nearest face on the boundary is used,
-// which makes the difference zero across the corner. A face on the boundary
+// Return the stencil of the normal velocity on the boundary face with index
+// i_face, where the boundary is normal to bdry_normal_axis and the TRACTION
+// condition differences the normal velocity along tangential_axis. A face is
+// beyond a corner if the cell adjacent to it on the interior side of the
+// boundary lies outside the physical domain; this is determined from the domain,
+// not from the patch. The value at such a face is not available, so it is
+// determined by corner_type from the two nearest faces on the boundary and, for
+// WALL_AWARE, the condition on the adjacent boundary. A face on the boundary
 // that lies outside ghost_box along tangential_axis is extrapolated linearly
 // from the two nearest faces in ghost_box, which makes the difference there the
 // one-sided difference inside ghost_box; if ghost_box holds a single face along
@@ -155,30 +270,33 @@ get_normal_velocity_stencil(hier::Index<NDIM> i_face,
                             const unsigned int bdry_normal_axis,
                             const bool bdry_is_lower,
                             const unsigned int tangential_axis,
+                            const TractionBcCornerType corner_type,
+                            RobinBcCoefStrategy<NDIM>* const normal_bc_coef,
+                            const bool homogeneous_bc,
+                            const Patch<NDIM>& patch,
+                            std::unique_ptr<ShiftedPatchGeometry>& normal_geometry,
                             const BoxArray<NDIM>& domain,
-                            const Box<NDIM>& ghost_box)
+                            const Box<NDIM>& ghost_box,
+                            const double fill_time)
 {
     const int j = i_face(tangential_axis);
     if (is_boundary_face(i_face, bdry_normal_axis, bdry_is_lower, domain))
     {
         const int j_lower = ghost_box.lower(tangential_axis);
         const int j_upper = ghost_box.upper(tangential_axis);
-        NormalVelocityStencil stencil;
         i_face(tangential_axis) = std::min(std::max(j, j_lower), j_upper);
-        stencil.idx[0] = SideIndex<NDIM>(i_face, bdry_normal_axis, SideIndex<NDIM>::Lower);
-        stencil.idx[1] = stencil.idx[0];
-        stencil.weight = { 1.0, 0.0 };
+        const SideIndex<NDIM> idx(i_face, bdry_normal_axis, SideIndex<NDIM>::Lower);
         if ((j < j_lower || j > j_upper) && j_lower < j_upper)
         {
             i_face(tangential_axis) += (j < j_lower ? +1 : -1);
-            stencil.idx[1] = SideIndex<NDIM>(i_face, bdry_normal_axis, SideIndex<NDIM>::Lower);
-            stencil.weight = { 2.0, -1.0 };
+            const SideIndex<NDIM> idx_inside(i_face, bdry_normal_axis, SideIndex<NDIM>::Lower);
+            return { { idx, idx_inside }, { 2.0, -1.0 }, 0.0 };
         }
-        return stencil;
+        return { { idx, idx }, { 1.0, 0.0 }, 0.0 };
     }
 
-    // The nearest face on the boundary: below the face if the boundary ends above
-    // it, above the face if the boundary ends below it.
+    // The nearest two faces on the boundary: below the face if the boundary ends
+    // above it, above the face if the boundary ends below it.
     hier::Index<NDIM> i_below = i_face, i_above = i_face;
     i_below(tangential_axis) = j - 1;
     i_above(tangential_axis) = j + 1;
@@ -197,16 +315,49 @@ get_normal_velocity_stencil(hier::Index<NDIM> i_face,
                    << i_face << " is beyond a corner of the physical boundary, but neither adjacent face along axis "
                    << tangential_axis << " lies on the boundary.\n");
     }
-    hier::Index<NDIM> i_near = i_face;
+    hier::Index<NDIM> i_near = i_face, i_next = i_face;
     i_near(tangential_axis) = j + step;
+    i_next(tangential_axis) = j + 2 * step;
 #if !defined(NDEBUG)
     TBOX_ASSERT(ghost_box.contains(i_near));
 #endif
-    NormalVelocityStencil stencil;
-    stencil.idx[0] = SideIndex<NDIM>(i_near, bdry_normal_axis, SideIndex<NDIM>::Lower);
-    stencil.idx[1] = stencil.idx[0];
-    stencil.weight = { 1.0, 0.0 };
-    return stencil;
+    const SideIndex<NDIM> near_idx(i_near, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    const SideIndex<NDIM> next_idx(i_next, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    const NormalVelocityStencil zero_difference = { { near_idx, near_idx }, { 1.0, 0.0 }, 0.0 };
+
+    // Linear extrapolation requires a second face on the boundary; a boundary segment that is one cell long has none.
+    const bool can_extrapolate = is_boundary_face(i_next, bdry_normal_axis, bdry_is_lower, domain);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!can_extrapolate || ghost_box.contains(i_next));
+#endif
+    const NormalVelocityStencil linear_extrapolation =
+        can_extrapolate ? NormalVelocityStencil{ { near_idx, next_idx }, { 2.0, -1.0 }, 0.0 } : zero_difference;
+    switch (corner_type)
+    {
+    case TractionBcCornerType::ZERO_DIFFERENCE:
+        return zero_difference;
+    case TractionBcCornerType::LINEAR_EXTRAPOLATION:
+        return linear_extrapolation;
+    case TractionBcCornerType::WALL_AWARE:
+    {
+        const unsigned int adj_location_index = 2 * tangential_axis + (step < 0 ? 1 : 0);
+        double u_prescribed = 0.0;
+        if (get_prescribed_normal_velocity(u_prescribed,
+                                           i_face,
+                                           bdry_normal_axis,
+                                           tangential_axis,
+                                           adj_location_index,
+                                           normal_bc_coef,
+                                           patch,
+                                           normal_geometry,
+                                           fill_time))
+        {
+            return { { near_idx, near_idx }, { -1.0, 0.0 }, homogeneous_bc ? 0.0 : 2.0 * u_prescribed };
+        }
+        return linear_extrapolation;
+    }
+    }
+    return zero_difference;
 } // get_normal_velocity_stencil
 } // namespace
 
@@ -347,6 +498,13 @@ INSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
+INSStaggeredVelocityBcCoef::setTractionBcCornerType(const TractionBcCornerType corner_type)
+{
+    d_traction_bc_corner_type = corner_type;
+    return;
+} // setTractionBcCornerType
+
+void
 INSStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double>& gcoef_data,
                                                   const Patch<NDIM>& patch,
                                                   const BoundaryBox<NDIM>& bdry_box,
@@ -392,6 +550,22 @@ INSStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double>&
     const double sgn = is_lower ? -1.0 : +1.0;
     BoxArray<NDIM> domain;
     bool have_domain = false;
+    std::unique_ptr<ShiftedPatchGeometry> normal_geometry;
+    auto get_stencil = [&](const hier::Index<NDIM>& i_face)
+    {
+        return get_normal_velocity_stencil(i_face,
+                                           bdry_normal_axis,
+                                           is_lower,
+                                           d_comp_idx,
+                                           d_traction_bc_corner_type,
+                                           d_bc_coefs[bdry_normal_axis],
+                                           d_homogeneous_bc,
+                                           patch,
+                                           normal_geometry,
+                                           domain,
+                                           ghost_box,
+                                           fill_time);
+    };
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
@@ -407,19 +581,17 @@ INSStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double>&
         }
         hier::Index<NDIM> i_lower(i);
         i_lower(d_comp_idx) -= 1;
-        const NormalVelocityStencil lower_stencil =
-            get_normal_velocity_stencil(i_lower, bdry_normal_axis, is_lower, d_comp_idx, domain, ghost_box);
-        const NormalVelocityStencil upper_stencil =
-            get_normal_velocity_stencil(i, bdry_normal_axis, is_lower, d_comp_idx, domain, ghost_box);
+        const NormalVelocityStencil u_lower = get_stencil(i_lower);
+        const NormalVelocityStencil u_upper = get_stencil(i);
         const double du_transpose = sgn * gcoef_data(i, 0) / dx[d_comp_idx];
-        for (unsigned int k = 0; k < 2; ++k)
+        for (int k = 0; k < 2; ++k)
         {
 #if !defined(NDEBUG)
-            TBOX_ASSERT(target_side_box.contains(upper_stencil.idx[k]));
-            TBOX_ASSERT(target_side_box.contains(lower_stencil.idx[k]));
+            TBOX_ASSERT(target_side_box.contains(u_upper.idx[k]));
+            TBOX_ASSERT(target_side_box.contains(u_lower.idx[k]));
 #endif
-            (*u_target_data)(upper_stencil.idx[k]) -= upper_stencil.weight[k] * du_transpose;
-            (*u_target_data)(lower_stencil.idx[k]) += lower_stencil.weight[k] * du_transpose;
+            (*u_target_data)(u_upper.idx[k]) -= u_upper.weight[k] * du_transpose;
+            (*u_target_data)(u_lower.idx[k]) += u_lower.weight[k] * du_transpose;
         }
     }
     return;
@@ -489,6 +661,22 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
     const double mu = d_problem_coefs->getMu();
     BoxArray<NDIM> domain;
     bool have_domain = false;
+    std::unique_ptr<ShiftedPatchGeometry> normal_geometry;
+    auto get_stencil = [&](const hier::Index<NDIM>& i_face)
+    {
+        return get_normal_velocity_stencil(i_face,
+                                           bdry_normal_axis,
+                                           is_lower,
+                                           d_comp_idx,
+                                           d_traction_bc_corner_type,
+                                           d_bc_coefs[bdry_normal_axis],
+                                           d_homogeneous_bc,
+                                           patch,
+                                           normal_geometry,
+                                           domain,
+                                           ghost_box,
+                                           fill_time);
+    };
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
@@ -536,15 +724,13 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
                     }
                     hier::Index<NDIM> i_lower(i);
                     i_lower(d_comp_idx) -= 1;
-                    const NormalVelocityStencil lower_stencil =
-                        get_normal_velocity_stencil(i_lower, bdry_normal_axis, is_lower, d_comp_idx, domain, ghost_box);
-                    const NormalVelocityStencil upper_stencil =
-                        get_normal_velocity_stencil(i, bdry_normal_axis, is_lower, d_comp_idx, domain, ghost_box);
-                    double du_norm = 0.0;
-                    for (unsigned int k = 0; k < 2; ++k)
+                    const NormalVelocityStencil u_lower = get_stencil(i_lower);
+                    const NormalVelocityStencil u_upper = get_stencil(i);
+                    double du_norm = u_upper.offset - u_lower.offset;
+                    for (int k = 0; k < 2; ++k)
                     {
-                        du_norm += upper_stencil.weight[k] * (*u_target_data)(upper_stencil.idx[k]) -
-                                   lower_stencil.weight[k] * (*u_target_data)(lower_stencil.idx[k]);
+                        du_norm += u_upper.weight[k] * (*u_target_data)(u_upper.idx[k]) -
+                                   u_lower.weight[k] * (*u_target_data)(u_lower.idx[k]);
                     }
                     const double du_norm_dx_tan = du_norm / dx[d_comp_idx];
 

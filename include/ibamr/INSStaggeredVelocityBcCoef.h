@@ -79,10 +79,10 @@ namespace IBAMR
  * component includes the tangential derivative of the normal velocity along the
  * boundary. A corner is where the boundary meets an adjacent physical boundary
  * (an edge in three dimensions). A normal velocity value beyond a corner is
- * replaced by the value on the nearest face on the boundary, so that the
- * difference is zero across the corner. At the outermost tangential ghost
- * column of the patch data the difference is taken one cell further inside the
- * data, and is first-order accurate there.
+ * determined by the TractionBcCornerType set by setTractionBcCornerType()
+ * (ZERO_DIFFERENCE by default). At the outermost tangential ghost column of the
+ * patch data the difference is taken one cell further inside the data, and is
+ * first-order accurate there.
  */
 class INSStaggeredVelocityBcCoef : public StokesBcCoefStrategy
 {
@@ -108,6 +108,12 @@ public:
      * \param bc_coefs  IBTK::Vector of boundary condition specification objects
      */
     void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+
+    /*!
+     * \brief Set how TRACTION boundary conditions treat the tangential
+     * derivative of the normal velocity at corners.
+     */
+    void setTractionBcCornerType(TractionBcCornerType corner_type);
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
@@ -302,6 +308,12 @@ private:
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    /*
+     * The treatment of the tangential derivative of the normal velocity at
+     * corners with TRACTION boundary conditions.
+     */
+    TractionBcCornerType d_traction_bc_corner_type = TractionBcCornerType::ZERO_DIFFERENCE;
 };
 } // namespace IBAMR
 

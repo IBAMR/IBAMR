@@ -558,11 +558,18 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
         d_explicitly_remove_nullspace = input_db->getBool("explicitly_remove_nullspace");
 
     // Setup physical boundary conditions objects.
+    if (input_db->keyExists("traction_bc_corner_type"))
+    {
+        d_traction_bc_corner_type =
+            string_to_enum<TractionBcCornerType>(input_db->getString("traction_bc_corner_type"));
+    }
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
+        auto U_bc_coef = new INSStaggeredVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
+        U_bc_coef->setTractionBcCornerType(d_traction_bc_corner_type);
+        d_U_bc_coefs[d] = U_bc_coef;
     }
     d_P_bc_coef = new INSStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
     d_U_P_bdry_interp_type = input_db->getStringWithDefault("U_P_bdry_interp_type", d_U_P_bdry_interp_type);

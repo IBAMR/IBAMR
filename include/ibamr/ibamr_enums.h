@@ -385,6 +385,64 @@ enum_to_string<TractionBcType>(TractionBcType val)
 } // enum_to_string
 
 /*!
+ * \brief Enumerated type for the treatment of the tangential derivative of the
+ * normal velocity in TRACTION boundary conditions at corners.
+ *
+ * A corner is where the boundary meets an adjacent physical boundary (an edge
+ * in three dimensions). At a corner, the difference of the normal velocity along
+ * the boundary would use a value beyond the adjacent physical boundary.
+ *
+ * - ZERO_DIFFERENCE takes the difference to be zero, which makes the tangential
+ *   velocity ghost value at the corner first-order accurate unless the
+ *   derivative vanishes there. The condition then reduces to the
+ *   PSEUDO_TRACTION condition at the corner.
+ * - LINEAR_EXTRAPOLATION extrapolates the normal velocity linearly along the
+ *   boundary.
+ * - WALL_AWARE uses 2*u_b - u, the reflection of the normal velocity u across
+ *   the normal velocity u_b prescribed on the adjacent boundary, or
+ *   extrapolates linearly where the adjacent boundary does not prescribe that
+ *   velocity component.
+ *
+ * Where linear extrapolation needs a face that is not on the boundary, because
+ * the boundary segment is one cell long, the difference is taken to be zero.
+ */
+enum class TractionBcCornerType
+{
+    ZERO_DIFFERENCE,
+    LINEAR_EXTRAPOLATION,
+    WALL_AWARE
+};
+
+template <>
+inline TractionBcCornerType
+string_to_enum<TractionBcCornerType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "ZERO_DIFFERENCE") == 0) return TractionBcCornerType::ZERO_DIFFERENCE;
+    if (strcasecmp(val.c_str(), "LINEAR_EXTRAPOLATION") == 0) return TractionBcCornerType::LINEAR_EXTRAPOLATION;
+    if (strcasecmp(val.c_str(), "WALL_AWARE") == 0) return TractionBcCornerType::WALL_AWARE;
+    TBOX_ERROR("string_to_enum<TractionBcCornerType>():\n"
+               << "  unrecognized value " << val << "\n"
+               << "  valid values are ZERO_DIFFERENCE, LINEAR_EXTRAPOLATION, and WALL_AWARE\n");
+    return TractionBcCornerType::ZERO_DIFFERENCE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<TractionBcCornerType>(TractionBcCornerType val)
+{
+    switch (val)
+    {
+    case TractionBcCornerType::ZERO_DIFFERENCE:
+        return "ZERO_DIFFERENCE";
+    case TractionBcCornerType::LINEAR_EXTRAPOLATION:
+        return "LINEAR_EXTRAPOLATION";
+    case TractionBcCornerType::WALL_AWARE:
+        return "WALL_AWARE";
+    }
+    return "";
+} // enum_to_string
+
+/*!
  * \brief Enumerated type for different pressure update schemes for the
  * projection method.
  */
