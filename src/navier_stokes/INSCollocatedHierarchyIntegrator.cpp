@@ -1363,10 +1363,8 @@ INSCollocatedHierarchyIntegrator::integrateHierarchySpecialized(const double cur
     }
     if (d_Q_fcn)
     {
-        d_hier_cc_data_ops->axpy(d_U_rhs_vec->getComponentDescriptorIndex(0),
-                                 -rho,
-                                 d_F_div_idx,
-                                 d_U_rhs_vec->getComponentDescriptorIndex(0));
+        d_hier_cc_data_ops->subtract(
+            d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_F_div_idx);
         d_hier_cc_data_ops->add(
             d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Q_new_idx);
     }
