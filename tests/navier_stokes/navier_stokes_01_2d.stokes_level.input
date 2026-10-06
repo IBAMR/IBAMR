@@ -1,14 +1,6 @@
-// Like navier_stokes_01_2d.input, but uses LEVEL_RELAXATION_FAC_PRECONDITIONER as the Stokes preconditioner
-// (rather than PROJECTION_PRECONDITIONER), on the same partially refined, coarse-fine-interface-containing
-// hierarchy, with a tangential traction ("slip wall") condition (rather than pure Dirichlet velocity) on
-// the y_lo/y_hi boundaries. This input's level_solver_type and coarse_solver_type are both
-// PETSC_LEVEL_SOLVER, so both exercise IBAMR::StaggeredStokesPETScLevelSolver::setupKSPVecs()'s
-// right-hand-side adjustment for physical boundary and coarse-fine interface corrections. The traction
-// boundary exercises IBAMR::StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp()'s traction
-// (Neumann-type) tangential velocity matrix assembly; the traction target here is trivially zero, but the
-// matrix coefficients this exercises are independent of that target value. stokes_solver_db's
-// max_iterations = 5 is a deliberate cap for a fast, deterministic regression pin, not a converged solve;
-// some timesteps below hit that cap without reaching stokes_solver_rel_residual_tol.
+// Stokes solver with a level-relaxation FAC preconditioner that uses PETSc level solvers on every level, on a
+// locally refined grid with prescribed normal velocity and zero tangential traction at the physical boundaries.
+// Each Stokes solve is limited to 5 iterations.
 
 // physical parameters
 MU  = 1.0e-2                              // fluid viscosity
@@ -49,8 +41,7 @@ U = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
 V = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
 P = "-(cos(4*PI*(X_0-t)) + cos(4*PI*(X_1-t)))*exp(-16*PI*PI*nu*t)"
 
-// tangential traction (slip wall) target; the sign bug this test exercises is in the matrix coefficients,
-// not this target value, so a trivial zero target is enough.
+// tangential traction boundary value
 T_t = "0.0"
 
 VelocityInitialConditions {

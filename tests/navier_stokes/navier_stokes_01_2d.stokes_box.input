@@ -1,14 +1,6 @@
-// Like navier_stokes_01_2d.stokes_level.input, but uses BOX_RELAXATION_FAC_PRECONDITIONER (a Vanka-type
-// smoother) as the Stokes preconditioner instead of LEVEL_RELAXATION_FAC_PRECONDITIONER, on the same
-// partially refined, coarse-fine-interface-containing hierarchy with the same tangential traction ("slip
-// wall") boundary conditions. First test coverage of BOX_RELAXATION_FAC_PRECONDITIONER as a whole: it is
-// registered with StaggeredStokesSolverManager and reachable via stokes_precond_type here for the first time.
-// Pins the sign of IBAMR::StaggeredStokesBoxRelaxationFACOperator::modifyRhsForBcs()'s off-box velocity
-// neighbor contribution to the right-hand side (its matrix coefficient is +D/dx^2, so the correct right-hand
-// side term is -D*u_neighbor/dx^2). This input's refine box also touches the x_lo boundary, so
-// smoothError()'s Dirichlet-normal-velocity boundary correction runs; this fixture does not, however, verify
-// that correction (its numerical effect is below what this input's tolerances can detect). The
-// stokes_operator box_mixed fixtures check the normal boundary values directly after smoothing.
+// Stokes solver with a box-relaxation (Vanka) FAC preconditioner on a locally refined grid with prescribed
+// normal velocity and zero tangential traction at the physical boundaries. The refined region touches the lower x
+// boundary. Each Stokes solve is limited to 5 iterations.
 
 // physical parameters
 MU  = 1.0e-2                              // fluid viscosity
@@ -49,8 +41,7 @@ U = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
 V = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
 P = "-(cos(4*PI*(X_0-t)) + cos(4*PI*(X_1-t)))*exp(-16*PI*PI*nu*t)"
 
-// tangential traction (slip wall) target; the sign bug this test exercises is in the matrix coefficients,
-// not this target value, so a trivial zero target is enough.
+// tangential traction boundary value
 T_t = "0.0"
 
 VelocityInitialConditions {
@@ -292,11 +283,7 @@ GriddingAlgorithm {
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 }
 
-// Unlike navier_stokes_01_2d.stokes_level.input's refine boxes (which are entirely interior to the domain),
-// this box touches the x_lo physical boundary, so the box smoother runs on level 1 patches that have
-// Dirichlet-normal-velocity boundary DOFs (the x-velocity at x_lo is Dirichlet; see VelocityBcCoefs_0
-// above). Without that, the smoother would only ever run on level 0 (handled by the coarse solver, not
-// smoothError()) or on interior level-1 patches that never touch a physical boundary.
+// The refined region touches the lower x boundary, where the normal velocity is prescribed.
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
