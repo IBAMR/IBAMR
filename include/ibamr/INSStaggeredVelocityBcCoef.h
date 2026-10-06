@@ -184,6 +184,20 @@ public:
      */
     void setHomogeneousBc(bool homogeneous_bc) override;
 
+    /*!
+     * \brief Accumulate the transpose of the dependence of \f$ \gamma \f$ on the normal velocity.
+     *
+     * With TRACTION boundary conditions, \f$ \gamma \f$ for a tangential component includes the tangential
+     * derivative of the normal velocity along the boundary. This function adds the transpose of that term to the
+     * normal velocity on the faces it depends on, in the patch interior or in its ghost cells.
+     *
+     * \see IBTK::ExtendedRobinBcCoefStrategy::accumulateFromBcCoefs()
+     */
+    void accumulateFromBcCoefs(const SAMRAI::pdat::ArrayData<NDIM, double>& gcoef_data,
+                               const SAMRAI::hier::Patch<NDIM>& patch,
+                               const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                               double fill_time) const override;
+
     //\}
 
     /*!

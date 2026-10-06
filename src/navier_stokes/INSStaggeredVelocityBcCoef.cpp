@@ -40,6 +40,7 @@
 #include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
+#include <SideGeometry.h>
 #include <SideIndex.h>
 
 #include <algorithm>
@@ -482,6 +483,95 @@ INSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     }
     return;
 } // setHomogeneousBc
+
+void
+INSStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double>& gcoef_data,
+                                                  const Patch<NDIM>& patch,
+                                                  const BoundaryBox<NDIM>& bdry_box,
+                                                  const double fill_time) const
+{
+    // Only a TRACTION condition on a tangential component depends on the
+    // velocity.
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index / 2;
+    if (d_traction_bc_type != TRACTION || d_comp_idx == bdry_normal_axis)
+    {
+        return;
+    }
+
+    // Determine where the physical boundary conditions prescribe the traction.
+    const Box<NDIM>& bc_coef_box = gcoef_data.getBox();
+    Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+    Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+    Pointer<ArrayData<NDIM, double>> gcoef_unused;
+    d_bc_coefs[d_comp_idx]->setBcCoefs(
+        acoef_data, bcoef_data, gcoef_unused, Pointer<Variable<NDIM>>(), patch, bdry_box, fill_time);
+
+    // setBcCoefs() sets gamma = sgn*(g/mu - (u_upper - u_lower)/dx_tan) using
+    // the normal velocity at the boundary. Accumulate the transpose of the
+    // velocity term into the target velocity, including its ghost cells.
+    Pointer<SideData<NDIM, double>> u_target_data;
+    if (d_u_target_data_idx >= 0)
+    {
+        u_target_data = patch.getPatchData(d_u_target_data_idx);
+    }
+    else if (d_target_data_idx >= 0)
+    {
+        u_target_data = patch.getPatchData(d_target_data_idx);
+    }
+#if !defined(NDEBUG)
+    TBOX_ASSERT(u_target_data);
+#endif
+    const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
+    const Box<NDIM> target_side_box = SideGeometry<NDIM>::toSideBox(ghost_box, bdry_normal_axis);
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    const bool is_lower = location_index % 2 == 0;
+    const double sgn = is_lower ? -1.0 : +1.0;
+    const BoxArray<NDIM>* domain = nullptr;
+    std::unique_ptr<ShiftedPatchGeometry> normal_geometry;
+    const auto get_stencil = [&](const hier::Index<NDIM>& i_face)
+    {
+        return get_normal_velocity_stencil(i_face,
+                                           bdry_normal_axis,
+                                           is_lower,
+                                           d_comp_idx,
+                                           d_bc_coefs[bdry_normal_axis],
+                                           d_homogeneous_bc,
+                                           patch,
+                                           normal_geometry,
+                                           *domain,
+                                           ghost_box,
+                                           fill_time);
+    };
+    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    {
+        const hier::Index<NDIM>& i = it();
+        if (!IBTK::rel_equal_eps((*bcoef_data)(i, 0), 1.0))
+        {
+            continue;
+        }
+        if (!domain)
+        {
+            domain = &getPhysicalDomain(patch);
+        }
+        hier::Index<NDIM> i_lower(i);
+        i_lower(d_comp_idx) -= 1;
+        const NormalVelocityStencil u_lower = get_stencil(i_lower);
+        const NormalVelocityStencil u_upper = get_stencil(i);
+        const double du_transpose = sgn * gcoef_data(i, 0) / dx[d_comp_idx];
+        for (unsigned int k = 0; k < 2; ++k)
+        {
+#if !defined(NDEBUG)
+            TBOX_ASSERT(target_side_box.contains(u_upper.idx[k]));
+            TBOX_ASSERT(target_side_box.contains(u_lower.idx[k]));
+#endif
+            (*u_target_data)(u_upper.idx[k]) -= u_upper.weight[k] * du_transpose;
+            (*u_target_data)(u_lower.idx[k]) += u_lower.weight[k] * du_transpose;
+        }
+    }
+    return;
+} // accumulateFromBcCoefs
 
 void
 INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,

@@ -22,6 +22,7 @@
 #include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
 
+#include <ArrayData.h>
 #include <Box.h>
 #include <CartesianPatchGeometry.h>
 #include <ComponentSelector.h>
@@ -416,6 +417,42 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
+
+// For a component tangential to a codimension-one boundary, compute the derivative of the sum over ghost layers k of
+// transpose_data(ghost k) * u(ghost k) with respect to the Robin coefficient gamma. The ghost value in layer k (k = 0
+// is adjacent to the boundary) depends on gamma with coefficient 2*n*h/(a*n*h + 2*b), n = 2*k + 1.
+void
+compute_gcoef_transpose(ArrayData<NDIM, double>& gcoef_transpose_data,
+                        const ArrayData<NDIM, double>& transpose_data,
+                        const int depth,
+                        const ArrayData<NDIM, double>& acoef_data,
+                        const ArrayData<NDIM, double>& bcoef_data,
+                        const unsigned int location_index,
+                        const Box<NDIM>& patch_box,
+                        const int ghost_width,
+                        const double* const dx)
+{
+    const unsigned int bdry_normal_axis = location_index / 2;
+    const bool is_lower = location_index % 2 == 0;
+    const double h = dx[bdry_normal_axis];
+    for (Box<NDIM>::Iterator it(gcoef_transpose_data.getBox()); it; it++)
+    {
+        const hier::Index<NDIM>& i = it();
+        const double a = acoef_data(i, 0);
+        const double b = bcoef_data(i, 0);
+        hier::Index<NDIM> i_g = i;
+        double g_transpose = 0.0;
+        for (int k = 0; k < ghost_width; ++k)
+        {
+            const double n = 1.0 + 2.0 * k;
+            i_g(bdry_normal_axis) =
+                is_lower ? patch_box.lower(bdry_normal_axis) - 1 - k : patch_box.upper(bdry_normal_axis) + 1 + k;
+            g_transpose += 2.0 * n * h / (a * n * h + 2.0 * b) * transpose_data(i_g, depth);
+        }
+        gcoef_transpose_data(i, 0) = g_transpose;
+    }
+    return;
+} // compute_gcoef_transpose
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -948,6 +985,25 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                     }
                     bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
                     if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+
+                    // The kernels do not transpose any dependence of the
+                    // inhomogeneous coefficients on the patch data, so let the
+                    // coefficient object accumulate it.
+                    if (adjoint_op && extended_bc_coef)
+                    {
+                        ArrayData<NDIM, double> gcoef_transpose_data(bc_coef_box, 1);
+                        compute_gcoef_transpose(gcoef_transpose_data,
+                                                patch_data->getArrayData(axis),
+                                                d,
+                                                *acoef_data,
+                                                *bcoef_data,
+                                                location_index,
+                                                patch_box,
+                                                patch_data_gcw,
+                                                dx);
+                        extended_bc_coef->accumulateFromBcCoefs(
+                            gcoef_transpose_data, patch, trimmed_bdry_box, fill_time);
+                    }
                     if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
 
                     // Restore the original patch geometry object.
