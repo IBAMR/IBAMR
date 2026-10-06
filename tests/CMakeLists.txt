@@ -188,6 +188,7 @@ IF(${IBAMR_HAVE_LIBMESH})
   SETUP_3D(spread spread_01.cpp)
   SETUP_2D(spread spread_02.cpp)
   SETUP_3D(spread spread_02.cpp)
+  SETUP_2D(spread spread_03.cpp)
 ENDIF()
 
 # vc_navier_stokes:

@@ -21,6 +21,7 @@
 #include <ibamr/IBStrategy.h>
 
 #include <ibtk/FEDataManager.h>
+#include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
 
@@ -613,6 +614,12 @@ protected:
      * Scratch data caching objects.
      */
     std::shared_ptr<IBTK::SAMRAIDataCache> d_eulerian_data_cache;
+
+    /*
+     * Object that sums forces spread into patch ghost regions into the
+     * patches that own those cells.
+     */
+    std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_ghost_data_accumulator;
 
     /*
      * The current time step interval.

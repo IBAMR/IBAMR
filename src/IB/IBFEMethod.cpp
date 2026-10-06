@@ -1293,29 +1293,79 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
-        d_secondary_hierarchy->transferPrimaryToSecondary(
-            d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx, data_time);
     }
+
+    // Spread into a zeroed scratch index on the hierarchy used for spreading.
+    // The sources spread into patch ghost regions are then summed into the
+    // patches that own those cells before the result is added to q_data_idx.
+    Pointer<PatchHierarchy<NDIM>> hierarchy =
+        d_use_scratch_hierarchy ? d_secondary_hierarchy->getSecondaryHierarchy() : d_hierarchy;
+    std::shared_ptr<SAMRAIDataCache> data_cache =
+        d_use_scratch_hierarchy ? d_secondary_hierarchy->getSAMRAIDataCache() : d_eulerian_data_cache;
+    const auto q_scratch_data_idx = data_cache->getCachedPatchDataIndex(q_data_idx);
+    Pointer<hier::Variable<NDIM>> q_var;
+    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(q_data_idx, q_var);
+    auto q_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(q_var, hierarchy, true);
+    q_active_data_ops->resetLevels(0, getFinestPatchLevelNumber());
+    q_active_data_ops->setToScalar(q_scratch_data_idx, 0.0, /*interior_only*/ false);
 
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         if (!d_lag_body_source_part[part] || !d_part_is_active[part]) continue;
 
-        d_active_fe_data_managers[part]->spread(q_data_idx,
-                                                *Q_IB_ghost_vecs[part],
-                                                *X_IB_ghost_vecs[part],
-                                                getSourceSystemName(),
-                                                q_phys_bdry_op,
-                                                data_time,
-                                                /*close_Q*/ false,
-                                                /*close_X*/ false);
+        d_active_fe_data_managers[part]->spread(
+            q_scratch_data_idx, *Q_IB_ghost_vecs[part], *X_IB_ghost_vecs[part], getSourceSystemName());
     }
+
+    // Apply the transpose of the physical boundary fill to the values spread
+    // outside the physical domain. This must precede the accumulation, which
+    // ignores ghost cells that do not correspond to degrees of freedom.
+    if (q_phys_bdry_op)
+    {
+        q_phys_bdry_op->setPatchDataIndex(q_scratch_data_idx);
+        for (int ln = getCoarsestPatchLevelNumber(); ln <= getFinestPatchLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<PatchData<NDIM>> q_data = patch->getPatchData(q_scratch_data_idx);
+                q_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, q_data->getGhostCellWidth());
+            }
+        }
+        q_phys_bdry_op->setPatchDataIndex(q_data_idx);
+    }
+
+    // Sum the sources spread into patch ghost regions into the owning patches.
+    if (!d_source_ghost_data_accumulator)
+    {
+        // Use the ghost width that the data actually has, since it may be wider
+        // than the one required by this class.
+        const Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(hierarchy->getFinestLevelNumber());
+        const IntVector<NDIM> gcw =
+            level->getPatchDescriptor()->getPatchDataFactory(q_scratch_data_idx)->getGhostCellWidth();
+        d_source_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(
+            hierarchy, q_var, gcw, getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber());
+    }
+    d_source_ghost_data_accumulator->accumulateGhostData(q_scratch_data_idx);
 
     if (d_use_scratch_hierarchy)
     {
-        assertStructureOnFinestLevel();
+        // The scratch index lives on the secondary hierarchy, so transfer it to
+        // the primary hierarchy before adding it to q_data_idx. The transfer
+        // does not touch ghost cells, so zero them first.
+        auto q_primary_data_ops =
+            HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(q_var, d_hierarchy, true);
+        const auto q_primary_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(q_data_idx);
+        q_primary_data_ops->resetLevels(0, getFinestPatchLevelNumber());
+        q_primary_data_ops->setToScalar(q_primary_scratch_data_idx, 0.0, /*interior_only*/ false);
         d_secondary_hierarchy->transferSecondaryToPrimary(
-            d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx, data_time);
+            d_hierarchy->getFinestLevelNumber(), q_primary_scratch_data_idx, q_scratch_data_idx, data_time);
+        q_primary_data_ops->add(q_data_idx, q_data_idx, q_primary_scratch_data_idx);
+    }
+    else
+    {
+        q_active_data_ops->add(q_data_idx, q_data_idx, q_scratch_data_idx);
     }
 
     IBAMR_TIMER_STOP(t_spread_fluid_source);
@@ -1541,6 +1591,7 @@ IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // clear some things that contain data specific to the current patch hierarchy
     d_ghost_data_accumulator.reset();
+    d_source_ghost_data_accumulator.reset();
     d_prolongation_schedules.clear();
 
     // If we are using the secondary hierarchy then communicate workload data
@@ -1585,6 +1636,10 @@ IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                   Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
+    // Fluid sources may be spread between beginDataRedistribution() and this
+    // function, so discard any accumulator built for the previous patches.
+    d_source_ghost_data_accumulator.reset();
+
     // if we are not initialized then there is nothing to do
     if (d_is_initialized)
     {
