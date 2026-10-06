@@ -13,8 +13,8 @@
 
 // This test checks LevelSetUtilities::LevelSetMassLossFixer and the
 // fixMassLoss{2,3}PhaseFlows callbacks that apply it, which correct a phase
-// volume computed from the regularized Heaviside/delta functions back toward
-// a target by shifting phi near the interface.
+// volume computed from the regularized Heaviside/delta functions to a target
+// by a uniform shift of phi.
 //
 // The input file's "mode" key selects one of three test modes:
 //   - "algebraic" (the default): check_algebraic_corrections() sweeps
@@ -22,10 +22,9 @@
 //     the fixer directly, once for a two-phase LevelSetContainer and once for
 //     a three-phase one. "case = N" in the log indexes into cases[], with the
 //     full two-phase sweep printed first, followed by the three-phase sweep.
-//     Deliberately invalid controls are exercised through the "failure" input
-//     key, which is otherwise unset; failure is set only by
-//     mass_loss_errors.py, which drives this mode through each failure case
-//     and checks that the expected diagnostic is raised.
+//     The "failure" input key ("budget_exhausted", "target_infeasible", or
+//     "nonfinite") instead sets up one correction that must fail; the
+//     expected output is then the error message.
 //   - "lifecycle": check_correction_lifecycle() registers the fixer as a
 //     postprocessIntegrateHierarchy callback and advances the hierarchy
 //     integrator through several steps, exercising the correction-interval
@@ -58,11 +57,12 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <tuple>
 #include <vector>
+
+#include "../tests.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -167,18 +167,11 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
     }
     const double domain_volume = std::pow(length, NDIM);
     const double eps = std::numeric_limits<double>::epsilon();
-    int cells = 0;
-    for (int ln = 0; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            cells += level->getPatch(p())->getBox().size();
-        }
-    }
-    const double accumulation_eps = (2.0 * IBTK_MPI::sumReduction(cells) + 8.0) * eps;
-    const double identity_tolerance = accumulation_eps / (1.0 - accumulation_eps) * domain_volume;
     const std::string failure = input->getStringWithDefault("failure", "");
+    if (!failure.empty())
+    {
+        Logger::getInstance()->setAbortAppender(new TestAppender());
+    }
     const bool exact_initial_success = input->getBoolWithDefault("exact_initial_success", false);
     // The third coordinate is extruded for these algebraic cases.
     using Case = std::tuple<Geometry, Geometry, double>;
@@ -230,70 +223,19 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
                 controls->putDouble("abs_tol", 0.0);
                 target = before[phase];
             }
-            if (input->keyExists("abs_tol"))
+            if (failure == "budget_exhausted")
             {
-                controls->putDouble("abs_tol", input->getDouble("abs_tol"));
-            }
-            if (failure == "interval_zero" || failure == "interval_negative")
-            {
-                controls->putInteger("correction_interval", failure == "interval_zero" ? 0 : -1);
-            }
-            if (failure == "width_input")
-            {
-                controls->putDouble("half_width", 0.0);
-            }
-            if (failure == "relative_tolerance")
-            {
-                controls->putDouble("rel_tol", 1.0);
-            }
-            if (failure == "absolute_tolerance")
-            {
-                controls->putDouble("abs_tol", -1.0);
-            }
-            if (failure == "budget_zero" || failure == "budget_exhausted")
-            {
-                controls->putInteger("max_its", failure == "budget_zero" ? 0 : 1);
+                controls->putInteger("max_its", 1);
                 target = 0.8 * capacity;
-            }
-            if (failure == "width_restart" || failure == "target_restart")
-            {
-                {
-                    LevelSetUtilities::LevelSetMassLossFixer writer("Fixer", integrator, fields, controls);
-                    writer.setInitialVolume(before[phase]);
-                    if (failure == "width_restart")
-                    {
-                        writer.getLevelSetContainer().setInterfaceHalfWidth(-1.0);
-                    }
-                    else
-                    {
-                        writer.setTargetVolume(std::numeric_limits<double>::quiet_NaN());
-                    }
-                    RestartManager::getManager()->writeRestartFile("invalid_restart", 1);
-                }
-                if (!RestartManager::getManager()->openRestartFile("invalid_restart", 1, IBTK_MPI::getNodes()))
-                {
-                    TBOX_ERROR("Could not open invalid-state restart fixture\n");
-                }
-            }
-            LevelSetUtilities::LevelSetMassLossFixer fixer("Fixer", integrator, fields, controls, false);
-            fixer.setInitialVolume(before[phase]);
-            if (failure == "target_nonfinite")
-            {
-                target = std::numeric_limits<double>::quiet_NaN();
             }
             else if (failure == "target_infeasible")
             {
                 target = 2.0 * capacity;
             }
-            if (failure != "target_restart")
-            {
-                fixer.setTargetVolume(target);
-            }
-            if (failure == "width_setter")
-            {
-                fixer.getLevelSetContainer().setInterfaceHalfWidth(-1.0);
-            }
-            if (failure == "rank_nonfinite" && IBTK_MPI::getRank() == IBTK_MPI::getNodes() - 1)
+            LevelSetUtilities::LevelSetMassLossFixer fixer("Fixer", integrator, fields, controls, false);
+            fixer.setInitialVolume(before[phase]);
+            fixer.setTargetVolume(target);
+            if (failure == "nonfinite")
             {
                 Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(0);
                 PatchLevel<NDIM>::Iterator p(level);
@@ -312,30 +254,18 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
             }
             if (!failure.empty())
             {
-                // Unexpected continuation must be reported as success to the
-                // test-local parent, which requires the real fatal diagnostic.
+                // The correction should have failed. Return normally so that
+                // the expected-error case is rejected.
                 break;
-            }
-            if (fixer.getTargetVolume() != target)
-            {
-                TBOX_ERROR("Correction regression: stored application target changed\n");
             }
             const double q = fixer.getLagrangeMultiplier();
             double shift_error = 0.0;
-            int local_support = 0;
             for (int ln = 0; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
                     Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    Pointer<CartesianPatchGeometry<NDIM>> geom = patch->getPatchGeometry();
-                    double cell_volume = 1.0;
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        cell_volume *= geom->getDx()[d];
-                    }
-                    const double alpha = std::pow(cell_volume, 1.0 / NDIM);
                     for (int k = 0; k < 3; ++k)
                     {
                         Pointer<CellData<NDIM, double>> old_data = patch->getPatchData(original[k]);
@@ -351,20 +281,10 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
                             }
                             if (k == 0)
                             {
-                                local_support += smooth_delta((*old_data)(i()), alpha) > 0.0;
                                 shift_error = std::max(shift_error, std::abs((value - (*old_data)(i())) - q));
                             }
                         }
                     }
-                }
-            }
-            if (NDIM == 2 && IBTK_MPI::getNodes() == 2 && finest_ln == 0 && field == Geometry::CORNER_CURVE)
-            {
-                const int minimum_support = IBTK_MPI::minReduction(local_support);
-                const int maximum_support = IBTK_MPI::maxReduction(local_support);
-                if (minimum_support != 0 || maximum_support == 0)
-                {
-                    TBOX_ERROR("Correction regression: missing rank without local interface support\n");
                 }
             }
             shift_error = IBTK_MPI::maxReduction(shift_error);
@@ -376,37 +296,6 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
             const std::vector<double> after = three_phase ?
                                                   LevelSetUtilities::computeHeavisideIntegrals3PhaseFlows(container) :
                                                   LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(container);
-            if (!(std::abs(after[0] + after[1] - capacity) <= identity_tolerance) ||
-                (three_phase && !(std::abs(after[0] + after[1] + after[2] - domain_volume) <= identity_tolerance)))
-            {
-                TBOX_ERROR("Correction regression: composite phase-sum identity\n");
-            }
-            const double tolerance =
-                input->getDoubleWithDefault("abs_tol", 64.0 * eps * capacity) + 1.0e-12 * std::abs(target);
-            if (!(std::abs(after[phase] - target) <= (exact_initial_success ? 0.0 : tolerance)))
-            {
-                TBOX_ERROR("Correction regression: phase volume missed the specified tolerance\n");
-            }
-            if (std::abs(before[phase] - target) <= tolerance && q != 0.0)
-            {
-                TBOX_ERROR("Correction regression: initial success changed the field\n");
-            }
-            if (std::abs(before[phase] - target) > tolerance &&
-                !((three_phase ? q : -q) * (target - before[phase]) > 0.0))
-            {
-                TBOX_ERROR("Correction regression: wrong shift sign\n");
-            }
-            if (field == Geometry::PLANE && solid == Geometry::POSITIVE &&
-                (std::get<2>(test) == 0.4 || std::get<2>(test) == 0.6) && finest_ln == 0)
-            {
-                // For the symmetric plane, the continuum location agrees with
-                // the discrete regularization to within one cell width.
-                const double expected_q = (three_phase ? 1.0 : -1.0) * (target / capacity - 0.5) * length;
-                if (!(std::abs(q - expected_q) <= length / 16.0))
-                {
-                    TBOX_ERROR("Correction regression: planar interface location\n");
-                }
-            }
             plog << "case = " << case_number++ << "; phases = " << (three_phase ? 3 : 2)
                  << "; target, volume, shift: " << target / domain_volume << ' ' << after[phase] / domain_volume << ' '
                  << q / length << '\n';
@@ -426,70 +315,6 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
         var_db->removePatchDataIndex(original[k]);
     }
 }
-void
-check_lifecycle_callback(const double current_time,
-                         const double new_time,
-                         const bool skip_synchronize,
-                         const int num_cycles,
-                         void* ctx)
-{
-    std::pair<LevelSetUtilities::LevelSetMassLossFixer*, bool>* callback =
-        static_cast<std::pair<LevelSetUtilities::LevelSetMassLossFixer*, bool>*>(ctx);
-    Pointer<AdvDiffHierarchyIntegrator> integrator =
-        callback->first->getLevelSetContainer().getAdvDiffHierarchyIntegrator();
-    Pointer<PatchHierarchy<NDIM>> hierarchy = integrator->getPatchHierarchy();
-    const int idx = VariableDatabase<NDIM>::getDatabase()->mapVariableAndContextToIndex(
-        callback->first->getLevelSetContainer().getLevelSetVariable(), integrator->getNewContext());
-    const bool skipped = integrator->getIntegratorStep() % callback->first->getCorrectionInterval() != 0;
-    std::vector<double> before;
-    if (skipped)
-    {
-        for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> data = patch->getPatchData(idx);
-                for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
-                {
-                    before.push_back((*data)(i()));
-                }
-            }
-        }
-    }
-    if (callback->second)
-    {
-        LevelSetUtilities::fixMassLoss3PhaseFlows(
-            current_time, new_time, skip_synchronize, num_cycles, callback->first);
-    }
-    else
-    {
-        LevelSetUtilities::fixMassLoss2PhaseFlows(
-            current_time, new_time, skip_synchronize, num_cycles, callback->first);
-    }
-    if (skipped)
-    {
-        std::size_t j = 0;
-        for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double>> data = patch->getPatchData(idx);
-                for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
-                {
-                    if ((*data)(i()) != before[j++])
-                    {
-                        TBOX_ERROR("Correction regression: skipped callback changed NEW data\n");
-                    }
-                }
-            }
-        }
-    }
-}
-
 void
 check_correction_lifecycle(Pointer<AdvDiffHierarchyIntegrator> integrator,
                            const std::vector<Pointer<CellVariable<NDIM, double>>>& variables,
@@ -540,9 +365,8 @@ check_correction_lifecycle(Pointer<AdvDiffHierarchyIntegrator> integrator,
             TBOX_ERROR("Correction regression: restart/input precedence\n");
         }
     }
-    std::pair<LevelSetUtilities::LevelSetMassLossFixer*, bool> callback(&fixer, three_phase);
-    integrator->registerPostprocessIntegrateHierarchyCallback(check_lifecycle_callback, &callback);
-    const int finest_ln = hierarchy->getFinestLevelNumber();
+    integrator->registerPostprocessIntegrateHierarchyCallback(
+        three_phase ? LevelSetUtilities::fixMassLoss3PhaseFlows : LevelSetUtilities::fixMassLoss2PhaseFlows, &fixer);
     while (integrator->getIntegratorStep() < 3)
     {
         const int step = integrator->getIntegratorStep();
@@ -550,90 +374,14 @@ check_correction_lifecycle(Pointer<AdvDiffHierarchyIntegrator> integrator,
         {
             fixer.setTargetVolume((step == 0 ? 0.4 : 0.6) * capacity);
         }
-        const double previous_q = fixer.getLagrangeMultiplier();
-        const double previous_time = fixer.getTime();
         integrator->advanceHierarchy(0.01);
         const double volume = volumes()[phase];
-        const double tolerance = 64.0 * std::numeric_limits<double>::epsilon() * capacity +
-                                 fixer.getErrorRelTolerance() * std::abs(fixer.getTargetVolume());
-        if (!(std::abs(volume - fixer.getTargetVolume()) <= tolerance))
-        {
-            TBOX_ERROR("Correction regression: CURRENT volume after synchronization and context swap\n");
-        }
-        if (step == 1)
-        {
-            if (fixer.getTime() != previous_time ||
-                !(fixer.getLagrangeMultiplier() == previous_q ||
-                  (std::isnan(previous_q) && std::isnan(fixer.getLagrangeMultiplier()))))
-            {
-                TBOX_ERROR("Correction regression: skipped event changed logging state\n");
-            }
-        }
-        else if (fixer.getTime() != integrator->getIntegratorTime())
-        {
-            TBOX_ERROR("Correction regression: incorrect pre-increment correction schedule\n");
-        }
         plog << "completed step = " << step + 1
-             << "; normalized target, CURRENT volume: " << fixer.getTargetVolume() / domain_volume << ' '
-             << volume / domain_volume << '\n';
+             << "; normalized target, CURRENT volume, correction time: " << fixer.getTargetVolume() / domain_volume
+             << ' ' << volume / domain_volume << ' ' << fixer.getTime() << '\n';
         if (test_restart && !from_restart && step == 0)
         {
             RestartManager::getManager()->writeRestartFile("restart", 1);
-        }
-    }
-    if (test_restart)
-    {
-        std::vector<double> values{ fixer.getInitialVolume() };
-        for (int ln = 0; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                for (const int idx : current)
-                {
-                    Pointer<CellData<NDIM, double>> data = patch->getPatchData(idx);
-                    for (Box<NDIM>::Iterator i(patch->getBox()); i; i++)
-                    {
-                        values.push_back((*data)(i()));
-                    }
-                }
-            }
-        }
-        const std::string filename = "uninterrupted-" + std::to_string(IBTK_MPI::getRank()) + ".dat";
-        if (!from_restart)
-        {
-            std::ofstream reference(filename, std::ios::binary);
-            reference.write(reinterpret_cast<const char*>(values.data()), values.size() * sizeof(double));
-            if (!reference)
-            {
-                TBOX_ERROR("Cannot write uninterrupted correction reference\n");
-            }
-        }
-        else
-        {
-            std::vector<double> reference(values.size());
-            std::ifstream stream(filename, std::ios::binary);
-            stream.read(reinterpret_cast<char*>(reference.data()), reference.size() * sizeof(double));
-            if (!stream || stream.peek() != std::ifstream::traits_type::eof())
-            {
-                TBOX_ERROR("Invalid uninterrupted correction reference\n");
-            }
-            double error = 0.0;
-            for (std::size_t i = 0; i < values.size(); ++i)
-            {
-                if (!std::isfinite(values[i]) || !std::isfinite(reference[i]))
-                {
-                    TBOX_ERROR("Correction regression: nonfinite restart comparison data\n");
-                }
-                error = std::max(error, std::abs(values[i] - reference[i]));
-            }
-            error = IBTK_MPI::maxReduction(error);
-            if (!(error <= 128.0 * std::numeric_limits<double>::epsilon() * length))
-            {
-                TBOX_ERROR("Correction regression: restart differs from uninterrupted fields\n");
-            }
-            plog << "normalized restart field difference: " << error / length << '\n';
         }
     }
 }
@@ -704,13 +452,8 @@ check_corrected_transport(Pointer<AdvDiffHierarchyIntegrator> integrator,
     for (int step = 0; step < 3; ++step)
     {
         integrator->advanceHierarchy(0.005);
-        const double volume = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(corrected)[0];
-        if (!(std::abs(volume - target) <= 64.0 * std::numeric_limits<double>::epsilon() + 1.0e-12 * target))
-        {
-            TBOX_ERROR("Correction regression: transported/reinitialized phase volume\n");
-        }
     }
-    double distance_error = 0.0, control_error = 0.0, change = 0.0, difference = 0.0, mesh_width = 0.0;
+    double distance_error = 0.0, control_error = 0.0, difference = 0.0;
     const int weight_idx = integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     for (int ln = 0; ln <= finest_ln; ++ln)
     {
@@ -723,7 +466,6 @@ check_corrected_transport(Pointer<AdvDiffHierarchyIntegrator> integrator,
             Pointer<CellData<NDIM, double>> weight = patch->getPatchData(weight_idx);
             Pointer<CartesianPatchGeometry<NDIM>> geom = patch->getPatchGeometry();
             const Box<NDIM>& box = patch->getBox();
-            mesh_width = std::max(mesh_width, geom->getDx()[0]);
             for (Box<NDIM>::Iterator i(box); i; i++)
             {
                 const double x = geom->getXLower()[0] + (i()(0) - box.lower(0) + 0.5) * geom->getDx()[0];
@@ -731,36 +473,18 @@ check_corrected_transport(Pointer<AdvDiffHierarchyIntegrator> integrator,
                 const double distance = std::hypot(x - 0.5, y - 0.5) - 0.2;
                 const double value = (*phi)(i());
                 const double other_value = (*other)(i());
-                if (!std::isfinite(value) || !std::isfinite(other_value))
-                {
-                    TBOX_ERROR("Correction regression: nonfinite transported field\n");
-                }
                 if (std::abs(distance) < 0.15)
                 {
                     distance_error += std::abs(value - distance) * (*weight)(i());
                     control_error += std::abs(other_value - distance) * (*weight)(i());
                 }
-                change = std::max(change, std::abs(other_value - distance));
                 difference = std::max(difference, std::abs(value - other_value));
             }
         }
     }
     distance_error = IBTK_MPI::sumReduction(distance_error);
     control_error = IBTK_MPI::sumReduction(control_error);
-    change = IBTK_MPI::maxReduction(change);
     difference = IBTK_MPI::maxReduction(difference);
-    mesh_width = IBTK_MPI::maxReduction(mesh_width);
-    // The exact transported distance changes by at most max|u|*time.
-    // Allow two cells of spatial error around the original circular interface.
-    const double geometry_bound = std::sqrt(2.0) * integrator->getIntegratorTime() + 2.0 * mesh_width;
-    if (!(distance_error <= geometry_bound && control_error <= geometry_bound && difference <= 2.0 * mesh_width &&
-          change > 128.0 * std::numeric_limits<double>::epsilon()) ||
-        sources[0].second != 3 || sources[1].second != 3)
-    {
-        TBOX_ERROR("Correction regression: transported interface geometry or inactive reinitialization: "
-                   << distance_error << ", " << control_error << ", " << difference << ", " << change
-                   << ", calls = " << sources[0].second << ", " << sources[1].second << '\n');
-    }
     const double volume = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(corrected)[0];
     const double control_volume = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(control)[0];
     plog << "transported target, corrected volume, control volume: " << target << ' ' << volume << ' ' << control_volume

@@ -1,0 +1,6 @@
+AdvDiff::initializePatchHierarchy(): tag_buffer = 0
+Program abort called with error message
+
+    Fixer::correctVolume(): correction trial budget exhausted
+  phase = two-phase gas, target = 0.8, capacity = 1, residual = -0.125831, trials = 1
+
