@@ -1,0 +1,3 @@
+Fixed: IBAMR::AdvDiffSemiImplicitHierarchyIntegrator and IBAMR::BrinkmanAdvDiffSemiImplicitHierarchyIntegrator detect a change of the time step size relative to the time step size, as the other integrators do. A change smaller than about 1.5e-8 in absolute value was previously ignored, so the Helmholtz solvers were not reinitialized.
+<br>
+(Boyce Griffith, 2026/10/05)
