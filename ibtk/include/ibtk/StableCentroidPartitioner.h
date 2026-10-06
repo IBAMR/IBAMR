@@ -53,6 +53,8 @@ namespace IBTK
  *   <li>Centroids are sorted lexically instead of by a specified coordinate.</li>
  *   <li>To improve stability the least significant bits are cleared by casting
  *   the coordinates to and from single precision.</li>
+ *   <li>To improve stability coordinates that are zero up to rounding errors
+ *   are set to zero.</li>
  *   <li>To improve stability a stable sorting algorithm is used.</li>
  */
 class StableCentroidPartitioner : public libMesh::Partitioner
