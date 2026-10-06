@@ -1199,6 +1199,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point>>& t_vals,
                 double v = f * (d * q);
                 if (v >= -tol && (u + v) <= 1.0 + tol)
                 {
+                    is_interior_intersection = (u >= 0.0 && v >= 0.0 && (u + v) <= 1.0);
                     double t = f * (e2 * q);
                     t_vals.push_back(std::make_pair(t, libMesh::Point(u, v, 0.0)));
                 }
@@ -1291,7 +1292,7 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point>>& t_vals,
 
                 if (u >= 0.0 - tol && u <= 1.0 + tol)
                 {
-                    is_interior_intersection = (u >= 0.0 && u <= 1.0 && v >= 0.0 && v <= 0.0);
+                    is_interior_intersection = (u >= 0.0 && u <= 1.0 && v >= 0.0 && v <= 1.0);
                     double t;
                     if (std::abs(q(0)) >= std::abs(q(1)) && std::abs(q(0)) >= std::abs(q(2)))
                     {
