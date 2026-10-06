@@ -111,6 +111,40 @@ public:
                                                   short int bdry_tag = NORMAL_TRACTION_BDRY) const;
 
     /*!
+     * \brief Add the part of the viscous term that imposes TRACTION conditions at the boundary faces where the normal
+     * velocity is not prescribed.
+     *
+     * At each such boundary face for which the entry of \a u_bc_coefs for the normal component is a
+     * StokesBcCoefStrategy with TRACTION conditions, this function adds \f$ D (u_I - u_{div}) / h^2 \f$ to the normal
+     * component of \a f_data_idx at the boundary face.  Here \f$ D \f$ is \a viscous_coef, \f$ u_I \f$ is the normal
+     * velocity on the next face inside the domain, \f$ u_{div} \f$ is the normal velocity on the next face outside the
+     * domain that makes the discrete divergence of \a u_data_idx vanish in the ghost cell, and \f$ h \f$ is the grid
+     * spacing normal to the boundary.  Nothing is added at other boundary faces, and \a u_data_idx is not modified.
+     *
+     * The data \a f_data_idx must already hold the viscous term \f$ D \Delta u \f$ evaluated with the velocity ghost
+     * values set by the velocity boundary conditions, which give the normal velocity ghost value that reflects the
+     * normal velocity on the next face inside the domain.  The tangential velocity ghost values of \a u_data_idx must
+     * have been set.  Together with the pressure boundary value \f$ p = -g \f$, the result imposes
+     * \f$ -p + 2 \mu \partial u_n / \partial x_n = g \f$.
+     */
+    void addNormalTractionViscousTerm(int f_data_idx,
+                                      int u_data_idx,
+                                      double viscous_coef,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      int coarsest_ln = IBTK::invalid_level_number,
+                                      int finest_ln = IBTK::invalid_level_number) const;
+
+    /*!
+     * \brief Add the part of the viscous term that imposes TRACTION conditions on one patch; see the version of this
+     * function for a patch hierarchy.
+     */
+    void addNormalTractionViscousTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> f_data,
+                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_data,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                      double viscous_coef,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs) const;
+
+    /*!
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
      */

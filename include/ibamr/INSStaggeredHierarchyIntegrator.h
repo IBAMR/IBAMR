@@ -371,6 +371,12 @@ private:
     TimeSteppingType getConvectiveTimeSteppingType(int cycle_num);
 
     /*!
+     * Determine the time at which the pressure is defined and the body force is evaluated: the new time for BDF
+     * viscous time stepping and the time at the middle of the time step otherwise.
+     */
+    double getPressureTime(double current_time, double new_time) const;
+
+    /*!
      * Determine the time step size ratio.
      */
     double getTimeStepSizeRatio() const;

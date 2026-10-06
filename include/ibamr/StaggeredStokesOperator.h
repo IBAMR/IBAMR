@@ -125,7 +125,8 @@ public:
                                     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
     /*!
-     * \brief Set the physical boundary condition helper object.
+     * \brief Set the physical boundary condition helper object.  It is required to impose TRACTION conditions where the
+     * normal velocity is not prescribed.
      */
     virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 

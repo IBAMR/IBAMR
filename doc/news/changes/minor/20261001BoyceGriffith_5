@@ -1,0 +1,3 @@
+Fixed: TRACTION and BDF2 open boundary conditions in the staggered-grid Stokes solver.
+<br>
+(Boyce Griffith, 2026/10/01)

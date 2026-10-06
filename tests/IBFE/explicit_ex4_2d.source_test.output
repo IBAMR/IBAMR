@@ -36,7 +36,7 @@ IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source s
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 11
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.3730300296377628623e-15
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid

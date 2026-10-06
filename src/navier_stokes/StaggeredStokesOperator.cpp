@@ -234,6 +234,16 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                           d_new_time);
     d_hier_math_ops->laplace(
         A_U_idx, A_U_sc_var, d_U_problem_coefs, U_idx, U_sc_var, d_no_fill, d_new_time, 1.0, A_U_idx, A_U_sc_var);
+    // Add the part of the viscous term that imposes TRACTION conditions where the normal velocity is not prescribed.
+    if (d_bc_helper)
+    {
+        d_bc_helper->addNormalTractionViscousTerm(A_U_idx,
+                                                  U_idx,
+                                                  d_U_problem_coefs.getDConstant(),
+                                                  d_U_bc_coefs,
+                                                  x.getCoarsestLevelNumber(),
+                                                  x.getFinestLevelNumber());
+    }
     d_hier_math_ops->div(A_P_idx,
                          A_P_cc_var,
                          -1.0,
