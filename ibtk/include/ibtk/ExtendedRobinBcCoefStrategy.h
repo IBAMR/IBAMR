@@ -69,6 +69,22 @@ public:
      */
     virtual void setHomogeneousBc(bool homogeneous_bc);
 
+    /*!
+     * \brief Accumulate the transpose of the dependence of the coefficients set by setBcCoefs() on the target patch
+     * data.
+     *
+     * On entry, \p gcoef_data holds the derivative of a linear functional of the ghost values with respect to
+     * \f$ \gamma \f$ at each location where setBcCoefs() sets coefficients for \p bdry_box. The function adds the
+     * corresponding derivative with respect to the target patch data to every value of the target patch data that
+     * \f$ \gamma \f$ depends on, in the patch interior or in its ghost cells. The target patch data index must be set,
+     * and \p gcoef_data must have the box of the coefficient data passed to setBcCoefs(). The default implementation
+     * does nothing.
+     */
+    virtual void accumulateFromBcCoefs(const SAMRAI::pdat::ArrayData<NDIM, double>& gcoef_data,
+                                       const SAMRAI::hier::Patch<NDIM>& patch,
+                                       const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                       double fill_time) const;
+
     //\}
 
 protected:
