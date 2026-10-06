@@ -1944,7 +1944,7 @@ CIBMethod::setRegularizationWeight(const int level_number)
                 const double& weight = reg_weight[lag_idx - lag_idx_range.first];
 
                 // For zero weight we do not use any regularization
-                if (!IBTK::abs_equal_eps(weight, 0.0))
+                if (weight != 0.0)
                 {
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {

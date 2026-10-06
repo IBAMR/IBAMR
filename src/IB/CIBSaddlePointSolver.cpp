@@ -924,8 +924,8 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 #endif
 
     // Get some constants
-    static const double gamma = solver->d_scale_spread;
-    static const double beta = solver->d_scale_interp;
+    const double gamma = solver->d_scale_spread;
+    const double beta = solver->d_scale_interp;
     const double half_time = 0.5 * (solver->d_new_time + solver->d_current_time);
 
     int total_comps, free_comps = 0;

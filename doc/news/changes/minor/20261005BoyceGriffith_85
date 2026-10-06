@@ -1,0 +1,3 @@
+Fixed: IBAMR::CIBMethod, IBAMR::CIBStaggeredStokesOperator, IBAMR::KrylovMobilitySolver and the empirical mobility functions treat the regularization weights, the mobility regularization factor, the density and the viscosity as zero only when they are exactly zero. IBAMR::KrylovMobilitySolver and IBAMR::CIBSaddlePointSolver no longer keep the interpolation, spreading and regularization factors of the first solver that is applied.
+<br>
+(Boyce Griffith, 2026/10/05)
