@@ -68,15 +68,13 @@ public:
 
     ~TestDirGuard()
     {
-        // Wait until all processors are done with the directory, then remove it on the master processor only
-        IBTK_MPI::barrier();
+        // Remove the directory on the master processor only
         if (IBTK_MPI::getRank() == 0 && !d_path.empty())
         {
             std::error_code ec;
             std::filesystem::remove_all(d_path, ec);
             // Silently ignore errors in destructor
         }
-        IBTK_MPI::barrier();
     }
 
     // Disable copy to prevent double deletion
@@ -87,7 +85,7 @@ private:
     std::string d_path;
 };
 
-// Only the master processor creates the test directories; the other processors wait until it is done
+// Only the master processor creates the test directories
 void
 create_test_restart_dirs(const std::string& base_path, const std::vector<int>& restart_restore_numbers)
 {
@@ -108,7 +106,6 @@ create_test_restart_dirs(const std::string& base_path, const std::vector<int>& r
                 std::filesystem::path data_file = dir_path / ("samrai_data_" + std::to_string(i) + ".dat");
                 std::ofstream file(data_file);
                 file << "SAMRAI restart data file " << i << " for iteration " << restart_restore_number << std::endl;
-                file.close();
             }
 
             // Create subdirectory with hierarchy data
@@ -117,10 +114,8 @@ create_test_restart_dirs(const std::string& base_path, const std::vector<int>& r
             std::filesystem::path hier_file = sub_dir / "hierarchy.samrai.00000";
             std::ofstream hier(hier_file);
             hier << "Hierarchy data for iteration " << restart_restore_number << std::endl;
-            hier.close();
         }
     }
-    IBTK_MPI::barrier();
 }
 
 void
@@ -139,7 +134,6 @@ create_invalid_dirs(const std::string& base_path, const std::vector<std::string>
             std::filesystem::path test_file = dir_path / "invalid_data.txt";
             std::ofstream file(test_file);
             file << "Invalid directory content for " << name << std::endl;
-            file.close();
         }
     }
     IBTK_MPI::barrier();
@@ -502,24 +496,27 @@ main(int argc, char** argv)
             RestartCleaner cleaner("MarkTest", db);
             cleaner.markImportant(300);
 
-            // Verify marker file exists in restore.000300
-            std::filesystem::path marker_path = std::filesystem::path(test_dir) / "restore.000300" / ".important";
-            bool marker_exists = std::filesystem::exists(marker_path);
-
-            // Verify marker file does NOT exist in other directories
-            bool no_marker_100 =
-                !std::filesystem::exists(std::filesystem::path(test_dir) / "restore.000100" / ".important");
-            bool no_marker_500 =
-                !std::filesystem::exists(std::filesystem::path(test_dir) / "restore.000500" / ".important");
-
-            if (marker_exists && no_marker_100 && no_marker_500)
+            if (IBTK_MPI::getRank() == 0)
             {
-                pout << "Test 7 PASSED: markImportant correctly created marker file" << std::endl;
-            }
-            else
-            {
-                pout << "FAILED: Marker file state incorrect" << std::endl;
-                test_failures++;
+                // Verify marker file exists in restore.000300
+                std::filesystem::path marker_path = std::filesystem::path(test_dir) / "restore.000300" / ".keep";
+                bool marker_exists = std::filesystem::exists(marker_path);
+
+                // Verify marker file does NOT exist in other directories
+                bool no_marker_100 =
+                    !std::filesystem::exists(std::filesystem::path(test_dir) / "restore.000100" / ".keep");
+                bool no_marker_500 =
+                    !std::filesystem::exists(std::filesystem::path(test_dir) / "restore.000500" / ".keep");
+
+                if (marker_exists && no_marker_100 && no_marker_500)
+                {
+                    pout << "Test 7 PASSED: markImportant correctly created marker file" << std::endl;
+                }
+                else
+                {
+                    pout << "FAILED: Marker file state incorrect" << std::endl;
+                    test_failures++;
+                }
             }
         }
         catch (const std::exception& e)
@@ -695,7 +692,7 @@ main(int argc, char** argv)
             }
 
             // Round 3: construct a NEW RestartCleaner from a fresh database
-            // to simulate a new simulation run. The .important marker on disk must persist.
+            // to simulate a new simulation run. The .keep marker on disk must persist.
             Pointer<MemoryDatabase> db2 = new MemoryDatabase("PersistenceNewObjConfig");
             db2->putString("restart_directory", test_dir);
             db2->putInteger("keep_recent_files", 3);

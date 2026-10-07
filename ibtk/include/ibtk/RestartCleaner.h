@@ -124,11 +124,12 @@ public:
     /*!
      * \brief Mark a restart directory as important to protect it from deletion.
      *
-     * Creates a ".important" marker file inside the restore directory corresponding
+     * Creates a ".keep" marker file inside the restore directory corresponding
      * to the given restart restore number. During cleanup(), directories with this
      * marker are unconditionally kept regardless of the keep_recent_n policy.
      *
-     * The final keep set during cleanup is: K_recent ∪ K_important.
+     * During cleanup, both the most recent restart directories and all directories
+     * marked as important are kept.
      *
      * \note Must be called AFTER RestartManager::writeRestartFile() has created the
      * directory, and BEFORE cleanup() deletes old directories. The typical calling
@@ -218,7 +219,7 @@ private:
     bool isMarkedImportant(const std::filesystem::path& dir_path) const;
 
     // Filename for the importance marker within restore directories
-    static const std::string s_important_marker_filename;
+    static const std::string s_keep_marker_filename;
 
     // Member variables
     std::string d_object_name;

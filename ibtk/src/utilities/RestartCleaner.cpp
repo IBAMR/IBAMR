@@ -20,6 +20,7 @@
 #include <tbox/Utilities.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -36,7 +37,7 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 const std::regex RestartCleaner::s_restart_dir_pattern("restore\\.([0-9]{6,})");
-const std::string RestartCleaner::s_important_marker_filename(".important");
+const std::string RestartCleaner::s_keep_marker_filename(".keep");
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -107,14 +108,14 @@ RestartCleaner::markImportant(int restart_restore_number)
         }
         else
         {
-            std::filesystem::path marker_path = dir_path / s_important_marker_filename;
+            std::filesystem::path marker_path = dir_path / s_keep_marker_filename;
             if (!std::filesystem::exists(marker_path))
             {
                 std::ofstream marker_file(marker_path);
                 if (!marker_file)
                 {
-                    TBOX_WARNING(d_object_name << "::markImportant(): "
-                                               << "Failed to create marker file: " << marker_path << std::endl);
+                    TBOX_ERROR(d_object_name << "::markImportant(): "
+                                             << "Failed to create marker file: " << marker_path << std::endl);
                 }
                 else if (d_enable_logging)
                 {
@@ -128,8 +129,6 @@ RestartCleaner::markImportant(int restart_restore_number)
             }
         }
     }
-    // All processors must reach this barrier, even when marking is skipped on the master processor
-    IBTK_MPI::barrier();
 } // markImportant
 
 std::vector<int>
@@ -247,7 +246,7 @@ RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
 bool
 RestartCleaner::isMarkedImportant(const std::filesystem::path& dir_path) const
 {
-    return std::filesystem::exists(dir_path / s_important_marker_filename);
+    return std::filesystem::exists(dir_path / s_keep_marker_filename);
 } // isMarkedImportant
 
 void
@@ -277,7 +276,7 @@ RestartCleaner::keepRecentN() const
         }
     }
 
-    if (valid_dirs.size() <= static_cast<size_t>(d_keep_restart_count))
+    if (valid_dirs.size() <= static_cast<std::size_t>(d_keep_restart_count))
     {
         if (d_enable_logging)
         {
@@ -295,18 +294,18 @@ RestartCleaner::keepRecentN() const
     // Determine the boundary between "old" and "recent" directories.
     // Directories at indices [0, keep_start_idx) are candidates for deletion.
     // Directories at indices [keep_start_idx, end) are always kept (recent N).
-    size_t keep_start_idx = valid_dirs.size() - d_keep_restart_count;
+    std::size_t keep_start_idx = valid_dirs.size() - d_keep_restart_count;
 
     // Among the deletion candidates, count important directories (kept) vs normal (deleted)
-    size_t important_count = 0;
-    for (size_t i = 0; i < keep_start_idx; ++i)
+    std::size_t important_count = 0;
+    for (std::size_t i = 0; i < keep_start_idx; ++i)
     {
         if (isMarkedImportant(valid_dirs[i].path))
         {
             ++important_count;
         }
     }
-    size_t dirs_to_delete_count = keep_start_idx - important_count;
+    std::size_t dirs_to_delete_count = keep_start_idx - important_count;
 
     if (d_enable_logging)
     {
@@ -319,7 +318,7 @@ RestartCleaner::keepRecentN() const
         plog << ", deleting " << dirs_to_delete_count << " oldest" << std::endl;
     }
 
-    for (size_t i = 0; i < keep_start_idx; ++i)
+    for (std::size_t i = 0; i < keep_start_idx; ++i)
     {
         const auto& dir_path = valid_dirs[i].path;
 
