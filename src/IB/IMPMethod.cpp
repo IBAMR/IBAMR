@@ -436,7 +436,11 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
             {
                 side_boxes[axis] = SideGeometry<NDIM>::toSideBox(u_data->getGhostBox() * idx_data->getGhostBox(), axis);
             }
-            for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
+            // Only the nodes in the patch interior are interpolated. These are
+            // owned by this process, which is what the arrays above contain.
+            // Nodes in the ghost cells are owned by other patches, and are
+            // interpolated there.
+            for (LNodeSetData::CellIterator it(patch_box); it; it++)
             {
                 const hier::Index<NDIM>& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
