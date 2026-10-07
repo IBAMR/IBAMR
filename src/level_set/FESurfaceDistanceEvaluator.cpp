@@ -410,7 +410,7 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
                     w << n1(0), n1(1);
 
                     const double L2 = (v - w).squaredNorm();
-                    if (IBTK::abs_equal_eps(L2, 0.0))
+                    if (L2 == 0.0)
                     {
                         // Special case where line element collapses to a
                         // point. Shouldn't happen.
