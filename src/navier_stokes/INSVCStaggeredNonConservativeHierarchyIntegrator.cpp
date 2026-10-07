@@ -1098,7 +1098,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(const bool in
     }
     else
     {
-        regrid_projection_spec.setDConstant(-1.0 / d_problem_coefs.getRho());
+        // For a constant density the projected velocity does not depend on the density, because Phi scales with it:
+        // solve - Div Grad Phi = Q - Div U* and set U := U* - Grad Phi.
+        regrid_projection_spec.setDConstant(-1.0);
     }
 
     LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
@@ -1183,10 +1185,11 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(const bool in
     }
     else
     {
+        // For a constant density Phi is scaled by the density, as above, so that U := U* - Grad Phi.
         d_hier_math_ops->grad(d_U_current_idx,
                               d_U_var,
                               /*synch_cf_bdry*/ true,
-                              -1.0 / d_problem_coefs.getRho(),
+                              -1.0,
                               d_P_scratch_idx,
                               d_P_var,
                               d_no_fill_op,
