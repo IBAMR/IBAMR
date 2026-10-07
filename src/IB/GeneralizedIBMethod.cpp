@@ -62,7 +62,6 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <cmath>
-#include <limits>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -330,7 +329,7 @@ GeneralizedIBMethod::forwardEulerStep(const double current_time, const double ne
                 e(d) = W_current_data[l][d];
             }
             const double norm_e = e.norm();
-            if (norm_e > std::numeric_limits<double>::epsilon())
+            if (norm_e != 0.0)
             {
                 const double theta = norm_e * dt;
                 e /= norm_e;
@@ -399,7 +398,7 @@ GeneralizedIBMethod::trapezoidalStep(const double current_time, const double new
                 e(d) = 0.5 * (W_current_data[l][d] + W_new_data[l][d]);
             }
             const double norm_e = e.norm();
-            if (norm_e > std::numeric_limits<double>::epsilon())
+            if (norm_e != 0.0)
             {
                 const double theta = norm_e * dt;
                 e /= norm_e;
