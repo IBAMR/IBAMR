@@ -167,6 +167,12 @@ c
         enddo
       enddo
 
+c     The terms for pairs of distinct eigenvectors.  The general formula
+c     divides by the difference of the exponentials of the eigenvalues
+c     and loses accuracy to cancellation as the eigenvalues approach
+c     each other; the formula for equal eigenvalues is its limit.  The
+c     limit formula is the more accurate one where the eigenvalues
+c     differ by less than the square root of machine epsilon.
       do k=1,d
         do kk=1,d
           do i=1,d; do j=1,d
@@ -179,7 +185,7 @@ c
                   Lji = Lji + vecs(jj,j)*L(jj,ii)*vecs(ii,i)
                 enddo
               enddo
-              if(abs(exp_vals(i)-exp_vals(j))<1d-12) then
+              if(abs(vals(i)-vals(j))<sqrt(epsilon(1.d0))) then
                   to_ret(k,kk) = to_ret(k,kk) +
      &              (Lji+Lij)*vecs(k,i)*vecs(kk,j)
               else
