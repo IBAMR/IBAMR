@@ -403,7 +403,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     d_hier_math_ops->vc_laplace(U_rhs_idx,
                                 U_rhs_var,
                                 1.0,
-                                0.0,
+                                U_rhs_problem_coefs.getCConstant(),
                                 U_rhs_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
                                 Pointer<NodeVariable<NDIM, double>>(nullptr),
