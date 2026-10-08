@@ -1,0 +1,3 @@
+Improved: IBTK::SAMRAIGhostDataAccumulator sums ghost values with SAMRAI communication instead of a PETSc vector, and a new accumulateGhostData() call includes the transpose of the physical boundary fill. The one-argument accumulateGhostData() is deprecated.
+<br>
+(Boyce Griffith, 2026/10/05)
