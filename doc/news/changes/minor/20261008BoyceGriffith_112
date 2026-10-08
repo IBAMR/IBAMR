@@ -1,0 +1,3 @@
+Fixed: The regrid projections of IBAMR::INSVCStaggeredConservativeHierarchyIntegrator and IBAMR::INSVCStaggeredNonConservativeHierarchyIntegrator allocate the divergence data that they use. They previously crashed when a regrid after the initial time required a projection.
+<br>
+(Boyce Griffith, 2026/10/08)
