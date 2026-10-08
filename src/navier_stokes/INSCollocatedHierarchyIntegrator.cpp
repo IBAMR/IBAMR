@@ -523,6 +523,15 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
 
+    // Without velocity initial conditions, the solver boundary condition
+    // objects use homogeneous conditions until the first time step. The
+    // reasons are given in the documentation of
+    // INSHierarchyIntegrator::usePhysicalBcCoefsBeforeFirstTimeStep().
+    if (!usePhysicalBcCoefsBeforeFirstTimeStep())
+    {
+        setSolverPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_bc_coefs));
+    }
+
     if (d_gridding_alg->getMaxLevels() > 1 && d_projection_method_type == PRESSURE_INCREMENT)
     {
         pout << "\n"
@@ -1886,6 +1895,18 @@ INSCollocatedHierarchyIntegrator::regridProjection(const bool initial_time)
     return;
 } // regridProjection
 
+void
+INSCollocatedHierarchyIntegrator::setSolverPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+{
+    INSHierarchyIntegrator::setSolverPhysicalBcCoefs(bc_coefs);
+    for (const auto& bc_coef : d_U_bc_coefs)
+    {
+        auto U_bc_coef = dynamic_cast<INSCollocatedVelocityBcCoef*>(bc_coef);
+        U_bc_coef->setPhysicalBcCoefs(bc_coefs);
+    }
+    return;
+} // setSolverPhysicalBcCoefs
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -1985,15 +2006,14 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
     }
 
     // Setup boundary conditions objects.
+    setSolverPhysicalBcCoefs(d_bc_coefs);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         auto U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
-        U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time, new_time);
     }
     auto Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef.get());
-    Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setSolutionTime(0.5 * (current_time + new_time));
     Phi_bc_coef->setTimeInterval(current_time, new_time);
 

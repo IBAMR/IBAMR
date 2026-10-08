@@ -319,6 +319,12 @@ protected:
      */
     void regridProjection(const bool initial_time) override;
 
+    /*!
+     * Set the physical boundary conditions that the solver boundary condition
+     * objects of the integrator use to \p bc_coefs.
+     */
+    void setSolverPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) override;
+
 private:
     /*!
      * \brief Default constructor.

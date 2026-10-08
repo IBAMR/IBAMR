@@ -1,0 +1,3 @@
+Fixed: The boundary condition objects of the incompressible Navier-Stokes integrators hold the registered physical boundary conditions as soon as they are registered. They previously held homogeneous conditions until the first time step, so IBAMR::INSCollocatedHierarchyIntegrator removed part of the initial velocity in its initial projection. A run without velocity initial conditions still uses homogeneous conditions until its first time step.
+<br>
+(Boyce Griffith, 2026/10/08)

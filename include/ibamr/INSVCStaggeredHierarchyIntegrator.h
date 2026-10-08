@@ -735,6 +735,12 @@ protected:
      */
     unsigned int d_mu_adv_diff_idx = 0;
 
+    /*!
+     * Set the physical boundary conditions that the solver boundary condition
+     * objects of the integrator use to \p bc_coefs.
+     */
+    void setSolverPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) override;
+
 private:
     /*!
      * \brief Default constructor.

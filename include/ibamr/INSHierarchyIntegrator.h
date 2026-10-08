@@ -463,6 +463,46 @@ protected:
     void tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx);
 
     /*!
+     * Set the physical boundary conditions that the solver boundary condition
+     * objects of the integrator use to \p bc_coefs. The physical boundary
+     * conditions registered with the integrator are not changed.
+     *
+     * This implementation sets the objects that this class owns, which are
+     * returned by getIntermediateVelocityBoundaryConditions() and
+     * getProjectionBoundaryConditions(). A derived class overrides this
+     * function to set the objects that it owns, and calls this implementation.
+     */
+    virtual void setSolverPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+
+    /*!
+     * Return whether the registered physical boundary conditions are used
+     * before the first time step.
+     *
+     * If velocity initial conditions are registered, they are projected when
+     * the patch hierarchy is initialized, because an analytically prescribed
+     * velocity need not be discretely divergence free. The projected velocity
+     * is the initial condition of the computation, so the projection must
+     * impose the registered boundary conditions, and so must the other
+     * operations that use the velocity before the first time step: computing
+     * the vorticity that tags cells for refinement, and filling the patches
+     * that a regrid creates. The same holds when the integrator is restarted.
+     *
+     * If no velocity initial conditions are registered, the initial velocity
+     * is zero and there is nothing to project. A zero velocity does not in
+     * general satisfy the registered boundary conditions, and applying them
+     * before the first time step would interpolate the boundary values into
+     * the domain when a regrid fills new patches. In that case the solver
+     * boundary condition objects are given homogeneous conditions, which the
+     * zero velocity satisfies, when the integrator is initialized, and the
+     * first time step, whose solve is the first operation to impose the
+     * registered conditions, gives them the registered conditions again.
+     *
+     * \return true if velocity initial conditions are registered or the
+     * integrator is restarted.
+     */
+    bool usePhysicalBcCoefsBeforeFirstTimeStep() const;
+
+    /*!
      * Return the maximum stable time step size.
      */
     double getMaximumTimeStepSizeSpecialized() override;
