@@ -4,6 +4,7 @@
 [attest]
 jobs = 1
 keep_work_directories = False
+malloc_perturb = False
 mpiexec = @MPIEXEC_EXECUTABLE@
 numdiff = @NUMDIFF_EXECUTABLE@
 show_only = False
