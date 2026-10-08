@@ -1188,7 +1188,14 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point>>& t_vals,
         const libMesh::VectorValue<double> e2 = p2 - p0;
         const libMesh::VectorValue<double> h = d.cross(e2);
         double a = e1 * h;
-        if (std::abs(a) > std::numeric_limits<double>::epsilon())
+
+        // The line is parallel to the triangle when a vanishes. The direction d is a unit vector, so the magnitude of
+        // a is |e1 x e2| times the sine of the angle between d and the plane of the triangle. Compare it to the
+        // product of the lengths |e1| |e2| to make the test independent of the units and the size of the triangle.
+#if !defined(NDEBUG)
+        TBOX_ASSERT(rel_equal_eps(d.norm(), 1.0));
+#endif
+        if (std::abs(a) > std::numeric_limits<double>::epsilon() * e1.norm() * e2.norm())
         {
             double f = 1.0 / a;
             const libMesh::VectorValue<double> s = p - p0;
