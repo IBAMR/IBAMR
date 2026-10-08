@@ -760,7 +760,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
     }
-    d_bc_helper->setupMaskingFunction(d_mask_idx);
+    d_bc_helper->setupMaskingFunction(d_mask_idx, d_coarsest_ln, d_finest_ln);
 
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver)
