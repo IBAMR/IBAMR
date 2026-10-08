@@ -369,20 +369,20 @@ InitializeAllConstants(const char* IBKernelName, const double MU, const double r
     KERNEL_TYPES CurrentKernelType = GetKernelType(IBKernelName);
     double beta;
     // finding beta
-    if (MU <= ZERO_TOL)
+    if (MU <= 0.0)
         beta = 0.0; // invisid case
     else
         beta = MU * Dt / (rho * DX * DX);
 
 #if (NDIM == 3)
     //******3D case
-    if ((rho < ZERO_TOL) || (beta >= 1000.1))
+    if ((rho <= 0.0) || (beta >= 1000.1))
         MOB_FIT_FACTOR = 1. / MU / DX; // 3D steady stokes
     else
         MOB_FIT_FACTOR = Dt / (rho * DX * DX * DX);
 #elif (NDIM == 2)
     //*******2D case
-    if ((rho < ZERO_TOL) || (beta >= 100.1)) // 2D steady stokes
+    if ((rho <= 0.0) || (beta >= 100.1)) // 2D steady stokes
         MOB_FIT_FACTOR = 1. / MU;
     else
         MOB_FIT_FACTOR = Dt / (rho * DX * DX);
@@ -405,7 +405,7 @@ _F_R_INF(const double rr, const double Dx, const double L_domain)
         return factor * (std::exp(-F_s[0] * r) * F_s[1] / HRad +
                          (F_s[2] * r + F_s[3] * r * r * r) / (1.0 + F_s[4] * r * r + F_s[5] * std::pow(r, 4)));
 #elif (NDIM == 2)
-    if (L_domain < ZERO_TOL)
+    if (L_domain <= 0.0)
     {
         std::cerr << "IBEMpiricalMobility:_F_R_INF()  L_domain must be non specified in 2D!. Abort.\n";
         std::exit(EXIT_FAILURE);
@@ -540,12 +540,12 @@ getEmpiricalMobilityComponents(const char* IBKernelName,
     }
     double beta;
     // finding beta
-    if (MU <= ZERO_TOL)
+    if (MU <= 0.0)
         beta = 0.0; // invisid case
     else
         beta = MU * Dt / (rho * DX * DX);
 
-    if (rho < ZERO_TOL)
+    if (rho <= 0.0)
     {
         *F_MobilityValue = MOB_FIT_FACTOR * _F_R_INF(r, DX, L_domain); // steady stokes term for f(r)
         *G_Mobilityvalue = MOB_FIT_FACTOR * _G_R_INF(r, DX);           // steady stokes term for g(r)

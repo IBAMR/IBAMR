@@ -880,9 +880,9 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
 #endif
 
     // Some constants
-    static const double gamma = solver->d_scale_spread;
-    static const double beta = solver->d_scale_interp;
-    static const double delta = solver->d_reg_mob_factor;
+    const double gamma = solver->d_scale_spread;
+    const double beta = solver->d_scale_interp;
+    const double delta = solver->d_reg_mob_factor;
     const double half_time = 0.5 * (solver->d_new_time + solver->d_current_time);
 
     // Use homogeneous BCs with Stokes solver in the preconditioner.
@@ -932,7 +932,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     solver->d_cib_strategy->getInterpolatedVelocity(y, half_time, beta);
 
     // 4) Regularize mobility.
-    if (!IBTK::abs_equal_eps(delta, 0.0))
+    if (delta != 0.0)
     {
         Vec D;
         VecDuplicate(x, &D);
