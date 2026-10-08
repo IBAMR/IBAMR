@@ -1,0 +1,3 @@
+Fixed: IBTK::IBTK_MPI::minMaxReduction() reduces integer maxima through a reflection about the middle of the range of the type instead of negation. Negation overflows for the most negative value, which gave a wrong maximum, and required a signed type; the function now also accepts unsigned types.
+<br>
+(Boyce Griffith, 2026/10/08)

@@ -23,6 +23,7 @@
 #include <tbox/Utilities.h>
 
 #include <algorithm>
+#include <limits>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -79,20 +80,38 @@ template <typename T>
 inline void
 IBTK_MPI::minMaxReduction(T* x_min, T* x_max, const int n)
 {
-    static_assert(std::is_signed<T>::value, "This function requires a signed type.");
-    // The maximum of x is minus the minimum of -x, so reduce the minima
-    // together with the negated maxima.
+    // The maximum of x is recovered from the minimum of an order-reversing
+    // transformation of x, so reduce the minima together with the transformed
+    // maxima. Negation reverses the order of floating-point values by
+    // reflecting them about zero, the middle of their range. The middle of an
+    // integer range is not zero, so negation overflows for the most negative
+    // value and is not available for unsigned types. Integers are reflected
+    // about the middle of their own range instead: lowest + max - x lies in
+    // the range for every x in it, so it cannot overflow.
+    const auto reverse = [](const T x) -> T
+    {
+        if constexpr (std::is_integral<T>::value)
+        {
+            return static_cast<T>((std::numeric_limits<T>::max() + std::numeric_limits<T>::lowest()) - x);
+        }
+        else
+        {
+            return -x;
+        }
+    };
     std::vector<T> buffer(2 * n);
     for (int i = 0; i < n; ++i)
     {
         buffer[i] = x_min[i];
-        buffer[n + i] = -x_max[i];
+        buffer[n + i] = reverse(x_max[i]);
     }
-    minReduction(buffer.data(), 2 * n);
+    const int ierr =
+        MPI_Allreduce(MPI_IN_PLACE, buffer.data(), 2 * n, mpi_type_id(T{}), MPI_MIN, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
     for (int i = 0; i < n; ++i)
     {
         x_min[i] = buffer[i];
-        x_max[i] = -buffer[n + i];
+        x_max[i] = reverse(buffer[n + i]);
     }
 } // minMaxReduction
 
