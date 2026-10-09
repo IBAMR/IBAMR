@@ -31,6 +31,7 @@
 #include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
+#include <ibamr/IBStandardSourceGen.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
@@ -165,6 +166,11 @@ main(int argc, char* argv[])
         {
             ib_method_ops->registerIBLagrangianSourceFunction(new CentroidSource());
         }
+        else if (input_db->getBoolWithDefault("use_standard_source_gen", false))
+        {
+            // The standard source generator, with no sources registered.
+            ib_method_ops->registerIBLagrangianSourceFunction(new IBStandardSourceGen());
+        }
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -247,6 +253,13 @@ main(int argc, char* argv[])
                 pout << F[0] << " " << F[1] << "\n";
             }
             F_data->restoreArrays();
+
+            iteration_num += 1;
+            if (app_initializer->dumpRestartData() && iteration_num % app_initializer->getRestartDumpInterval() == 0)
+            {
+                RestartManager::getManager()->writeRestartFile(app_initializer->getRestartDumpDirectory(),
+                                                               iteration_num);
+            }
         }
 
     } // cleanup dynamically allocated objects prior to shutdown

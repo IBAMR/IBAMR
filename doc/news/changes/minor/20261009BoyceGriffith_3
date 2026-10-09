@@ -1,0 +1,3 @@
+Fixed: IBAMR::IBStandardSourceGen works when no sources are registered. IBStandardSourceGen::getNumSources() read past the end of the source counts for a level without sources, and the restart code took the address of the first entry of empty arrays and asked SAMRAI to write zero-length arrays, which SAMRAI refuses.
+<br>
+(Boyce Griffith, 2026/10/09)
