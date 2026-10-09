@@ -1,0 +1,3 @@
+Fixed: IBTK::SCPoissonHypreLevelSolver now iterates correctly when its solver type is "Split" and initial_guess_nonzero is FALSE: it stalled after the first iteration because hypre's zero-guess setting made the split solver ignore the current iterate. With initial_guess_nonzero FALSE, IBTK::CCPoissonHypreLevelSolver and IBTK::SCPoissonHypreLevelSolver now give hypre a zero solution vector and no longer modify the solution vector before they write the solution.
+<br>
+(Boyce Griffith, 2026/10/07)

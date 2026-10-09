@@ -142,15 +142,6 @@ SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    // Ensure the initial guess is zero when appropriate.  (hypre does not
-    // reliably honor the SetZeroGuess settings.)  The ghost values are not part
-    // of the initial guess: at coarse-fine boundaries they hold the boundary
-    // data from which the right-hand side is corrected.
-    if (!d_initial_guess_nonzero)
-    {
-        x.setToScalar(0.0, /*interior_only*/ true);
-    }
-
     // Solve the system using the hypre solver.
     static const int comp = 0;
     const int x_idx = x.getComponentDescriptorIndex(comp);
@@ -471,14 +462,11 @@ SCPoissonHypreLevelSolver::setupHypreSolver()
         HYPRE_SStructSplitSetMaxIter(d_solver, d_max_iterations);
         HYPRE_SStructSplitSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructSplitSetStructSolver(d_solver, split_solver_type_id);
-        if (d_initial_guess_nonzero)
-        {
-            HYPRE_SStructSplitSetNonZeroGuess(d_solver);
-        }
-        else
-        {
-            HYPRE_SStructSplitSetZeroGuess(d_solver);
-        }
+        // The initial guess is whatever solveSystem() has put in the solution
+        // vector: zero if initial_guess_nonzero is FALSE.  hypre's zero-guess
+        // setting is not used because the solver would then also treat every
+        // iterate after the first as zero.
+        HYPRE_SStructSplitSetNonZeroGuess(d_solver);
         HYPRE_SStructSplitSetup(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
     }
     else if (d_solver_type == "PCG")
@@ -609,9 +597,22 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
-        // Copy the solution data into the hypre vector.
+        // Give hypre the initial guess: the values of the solution data, or zero
+        // without reading or modifying the solution data.  The ghost values of the
+        // solution data are not part of the initial guess: at coarse-fine
+        // boundaries they hold the boundary data from which the right-hand side
+        // is corrected.
         Pointer<SideData<NDIM, double>> x_data = patch->getPatchData(x_idx);
-        copyToHypre(d_sol_vec, *x_data, patch_box);
+        if (d_initial_guess_nonzero)
+        {
+            copyToHypre(d_sol_vec, *x_data, patch_box);
+        }
+        else
+        {
+            SideData<NDIM, double> zero_data(patch_box, 1, IntVector<NDIM>(0));
+            zero_data.fillAll(0.0);
+            copyToHypre(d_sol_vec, zero_data, patch_box);
+        }
 
         // Modify the right-hand-side data to account for any boundary
         // conditions and copy the right-hand-side into the hypre vector.
@@ -659,14 +660,6 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     {
         HYPRE_SStructSplitSetMaxIter(d_solver, d_max_iterations);
         HYPRE_SStructSplitSetTol(d_solver, d_rel_residual_tol);
-        if (d_initial_guess_nonzero)
-        {
-            HYPRE_SStructSplitSetNonZeroGuess(d_solver);
-        }
-        else
-        {
-            HYPRE_SStructSplitSetZeroGuess(d_solver);
-        }
         HYPRE_SStructSplitSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
         HYPRE_SStructSplitGetNumIterations(d_solver, &current_iterations);
         HYPRE_SStructSplitGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
