@@ -620,12 +620,16 @@ c
       REAL    Dxm,Dxp,Dym,Dyp
       REAL    Dxx,Dxxp,Dxxm,Dyy,Dyyp,Dyym
       REAL    Dxx0,Dyy0
-      REAL    H,dt_cell,sgn,cfl,eps,D,diff
+      REAL    H,dt_cell,sgn,cfl,rel_tol,D,diff
 
       hx = dx(0)
       hy = dx(1)
       cfl = 0.45d0
-      eps = 1.d-10
+c     The subcell fix uses its quadratic formula only if the second
+c     difference exceeds rel_tol times the first difference; below
+c     that the quadratic formula loses more accuracy to cancellation
+c     than the linear formula has truncation error.
+      rel_tol = sqrt(epsilon(1.d0))
 
       hmin = dmin1(hx,hy)
       sgn = S_eps(V(i0,i1),hmin)
@@ -666,7 +670,7 @@ c     Compute ENO differences with subcell fix
         Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
         diff = V(i0,i1)-V(i0+1,i1)
-        if (abs(Dxx0) .gt. eps) then
+        if (abs(Dxx0) .gt. rel_tol*abs(diff)) then
           D = (Dxx0/two-V(i0,i1)-V(i0+1,i1))**two
      &        -four*V(i0,i1)*V(i0+1,i1)
           hxp = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
@@ -683,7 +687,7 @@ c     Compute ENO differences with subcell fix
         Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
         diff = V(i0,i1)-V(i0-1,i1)
-        if (abs(Dxx0) .gt. eps) then
+        if (abs(Dxx0) .gt. rel_tol*abs(diff)) then
           D = (Dxx0/two-V(i0,i1)-V(i0-1,i1))**two
      &        -four*V(i0,i1)*V(i0-1,i1)
           hxm = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
@@ -700,7 +704,7 @@ c     Compute ENO differences with subcell fix
         Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
         diff = V(i0,i1)-V(i0,i1+1)
-        if (abs(Dyy0) .gt. eps) then
+        if (abs(Dyy0) .gt. rel_tol*abs(diff)) then
           D = (Dyy0/two-V(i0,i1)-V(i0,i1+1))**two
      &        -four*V(i0,i1)*V(i0,i1+1)
           hyp = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
@@ -717,7 +721,7 @@ c     Compute ENO differences with subcell fix
         Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
         diff = V(i0,i1)-V(i0,i1-1)
-        if (abs(Dyy0) .gt. eps) then
+        if (abs(Dyy0) .gt. rel_tol*abs(diff)) then
           D = (Dyy0/two-V(i0,i1)-V(i0,i1-1))**two
      &        -four*V(i0,i1)*V(i0,i1-1)
           hym = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
@@ -791,11 +795,15 @@ c
       REAL    Dxm,Dxp,Dym,Dyp
       REAL    Dxx,Dxxp,Dxxm,Dyy,Dyyp,Dyym
       REAL    Dxx0,Dyy0
-      REAL    sgn,eps,D,diff
+      REAL    sgn,rel_tol,D,diff
 
       hx = dx(0)
       hy = dx(1)
-      eps = 1.d-10
+c     The subcell fix uses its quadratic formula only if the second
+c     difference exceeds rel_tol times the first difference; below
+c     that the quadratic formula loses more accuracy to cancellation
+c     than the linear formula has truncation error.
+      rel_tol = sqrt(epsilon(1.d0))
       hmin = dmin1(hx,hy)
 
       do i1 = ilower1,iupper1
@@ -820,7 +828,7 @@ c         Compute ENO differences with subcell fix
             Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                    V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
             diff = V(i0,i1)-V(i0+1,i1)
-            if (abs(Dxx0) .gt. eps) then
+            if (abs(Dxx0) .gt. rel_tol*abs(diff)) then
               D = (Dxx0/two-V(i0,i1)-V(i0+1,i1))**two
      &            -four*V(i0,i1)*V(i0+1,i1)
               hxp = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
@@ -838,7 +846,7 @@ c         Compute ENO differences with subcell fix
             Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                    V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
             diff = V(i0,i1)-V(i0-1,i1)
-            if (abs(Dxx0) .gt. eps) then
+            if (abs(Dxx0) .gt. rel_tol*abs(diff)) then
               D = (Dxx0/two-V(i0,i1)-V(i0-1,i1))**two
      &            -four*V(i0,i1)*V(i0-1,i1)
               hxm = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
@@ -856,7 +864,7 @@ c         Compute ENO differences with subcell fix
             Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
             diff = V(i0,i1)-V(i0,i1+1)
-            if (abs(Dyy0) .gt. eps) then
+            if (abs(Dyy0) .gt. rel_tol*abs(diff)) then
               D = (Dyy0/two-V(i0,i1)-V(i0,i1+1))**two
      &            -four*V(i0,i1)*V(i0,i1+1)
               hyp = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
@@ -874,7 +882,7 @@ c         Compute ENO differences with subcell fix
             Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                    V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
             diff = V(i0,i1)-V(i0,i1-1)
-            if (abs(Dyy0) .gt. eps) then
+            if (abs(Dyy0) .gt. rel_tol*abs(diff)) then
               D = (Dyy0/two-V(i0,i1)-V(i0,i1-1))**two
      &            -four*V(i0,i1)*V(i0,i1-1)
               hym = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
@@ -1040,12 +1048,17 @@ c
       REAL    ryp,wyp
       REAL    h1,h2
       REAL    Dxx0,Dyy0
-      REAL    H,dt_cell,sgn,cfl,eps,D,diff
+      REAL    H,dt_cell,sgn,cfl,eps,D,diff,rel_tol
 
       hx = dx(0)
       hy = dx(1)
       cfl = 0.45d0
       eps = 1.d-10
+c     The subcell fix uses its quadratic formula only if the second
+c     difference exceeds rel_tol times the first difference; below
+c     that the quadratic formula loses more accuracy to cancellation
+c     than the linear formula has truncation error.
+      rel_tol = sqrt(epsilon(1.d0))
 
       hmin = dmin1(hx,hy)
       sgn = S_eps(V(i0,i1),hmin)
@@ -1105,7 +1118,7 @@ c     Compute ENO differences with subcell fix
         Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
         diff = V(i0,i1)-V(i0+1,i1)
-        if (abs(Dxx0) .gt. eps) then
+        if (abs(Dxx0) .gt. rel_tol*abs(diff)) then
           D = (Dxx0/two-V(i0,i1)-V(i0+1,i1))**two
      &        -four*V(i0,i1)*V(i0+1,i1)
           hxp = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
@@ -1126,7 +1139,7 @@ c     Compute ENO differences with subcell fix
         Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
         diff = V(i0,i1)-V(i0-1,i1)
-        if (abs(Dxx0) .gt. eps) then
+        if (abs(Dxx0) .gt. rel_tol*abs(diff)) then
           D = (Dxx0/two-V(i0,i1)-V(i0-1,i1))**two
      &        -four*V(i0,i1)*V(i0-1,i1)
           hxm = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
@@ -1147,7 +1160,7 @@ c     Compute ENO differences with subcell fix
         Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
         diff = V(i0,i1)-V(i0,i1+1)
-        if (abs(Dyy0) .gt. eps) then
+        if (abs(Dyy0) .gt. rel_tol*abs(diff)) then
           D = (Dyy0/two-V(i0,i1)-V(i0,i1+1))**two
      &        -four*V(i0,i1)*V(i0,i1+1)
           hyp = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
@@ -1168,7 +1181,7 @@ c     Compute ENO differences with subcell fix
         Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
         diff = V(i0,i1)-V(i0,i1-1)
-        if (abs(Dyy0) .gt. eps) then
+        if (abs(Dyy0) .gt. rel_tol*abs(diff)) then
           D = (Dyy0/two-V(i0,i1)-V(i0,i1-1))**two
      &        -four*V(i0,i1)*V(i0,i1-1)
           hym = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
@@ -1260,11 +1273,16 @@ c
       REAL    ryp,wyp
       REAL    h1,h2,hmin
       REAL    Dxx0,Dyy0
-      REAL    sgn,eps,D,diff
+      REAL    sgn,eps,D,diff,rel_tol
 
       hx = dx(0)
       hy = dx(1)
       eps = 1.d-10
+c     The subcell fix uses its quadratic formula only if the second
+c     difference exceeds rel_tol times the first difference; below
+c     that the quadratic formula loses more accuracy to cancellation
+c     than the linear formula has truncation error.
+      rel_tol = sqrt(epsilon(1.d0))
       hmin = dmin1(hx,hy)
 
       do i1 = ilower1,iupper1
@@ -1308,7 +1326,7 @@ c         Compute WENO differences with subcell fix
             Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                    V(i0,i1)-two*V(i0+1,i1)+V(i0+2,i1))
             diff = V(i0,i1)-V(i0+1,i1)
-            if (abs(Dxx0) .gt. eps) then
+            if (abs(Dxx0) .gt. rel_tol*abs(diff)) then
               D = (Dxx0/two-V(i0,i1)-V(i0+1,i1))**two
      &            -four*V(i0,i1)*V(i0+1,i1)
               hxp = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
@@ -1330,7 +1348,7 @@ c         Compute WENO differences with subcell fix
             Dxx0 = minmod(V(i0-1,i1)-two*V(i0,i1)+V(i0+1,i1),
      &                   V(i0,i1)-two*V(i0-1,i1)+V(i0-2,i1))
             diff = V(i0,i1)-V(i0-1,i1)
-            if (abs(Dxx0) .gt. eps) then
+            if (abs(Dxx0) .gt. rel_tol*abs(diff)) then
               D = (Dxx0/two-V(i0,i1)-V(i0-1,i1))**two
      &            -four*V(i0,i1)*V(i0-1,i1)
               hxm = hx*(half + (diff-sign(one,diff)*sqrt(D))/Dxx0)
@@ -1353,7 +1371,7 @@ c         Compute WENO differences with subcell fix
             Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                   V(i0,i1)-two*V(i0,i1+1)+V(i0,i1+2))
             diff = V(i0,i1)-V(i0,i1+1)
-            if (abs(Dyy0) .gt. eps) then
+            if (abs(Dyy0) .gt. rel_tol*abs(diff)) then
               D = (Dyy0/two-V(i0,i1)-V(i0,i1+1))**two
      &            -four*V(i0,i1)*V(i0,i1+1)
               hyp = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
@@ -1375,7 +1393,7 @@ c         Compute WENO differences with subcell fix
             Dyy0 = minmod(V(i0,i1-1)-two*V(i0,i1)+V(i0,i1+1),
      &                    V(i0,i1)-two*V(i0,i1-1)+V(i0,i1-2))
             diff = V(i0,i1)-V(i0,i1-1)
-            if (abs(Dyy0) .gt. eps) then
+            if (abs(Dyy0) .gt. rel_tol*abs(diff)) then
               D = (Dyy0/two-V(i0,i1)-V(i0,i1-1))**two
      &            -four*V(i0,i1)*V(i0,i1-1)
               hym = hy*(half + (diff-sign(one,diff)*sqrt(D))/Dyy0)
