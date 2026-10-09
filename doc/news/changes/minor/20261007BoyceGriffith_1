@@ -1,0 +1,3 @@
+Fixed: IBTK::PoissonUtilities::adjustRHSAtPhysicalBoundary() and adjustVCSCViscousOpRHSAtPhysicalBoundary() for side-centered data leave the right-hand side entries of Dirichlet identity rows unchanged.
+<br>
+(Boyce Griffith, 2026/10/07)
