@@ -29,7 +29,7 @@ double
 map_to_period(const double t_start, const double t_end, double time)
 {
     const double period = t_end - t_start;
-    if (IBTK::abs_equal_eps(period, 0.0)) return t_start;
+    if (period == 0.0) return t_start;
 #ifndef NDEBUG
     // We only deal with positive period lengths.
     TBOX_ASSERT(period > 0.0);

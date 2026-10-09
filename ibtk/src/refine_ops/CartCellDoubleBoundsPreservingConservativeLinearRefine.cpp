@@ -182,7 +182,9 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine
             }
 
             // Distribute the discrepancy to maintain conservation.
-            if (Delta >= std::numeric_limits<double>::epsilon())
+            // K is zero when every value is already at the bound that it would
+            // move toward, in which case the discrepancy cannot be distributed.
+            if (Delta > 0.0)
             {
                 double K = 0.0;
                 for (Box<NDIM>::Iterator b(stencil_box_fine); b; b++)
@@ -191,14 +193,17 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine
                     double k = u - m;
                     K += k;
                 }
-                for (Box<NDIM>::Iterator b(stencil_box_fine); b; b++)
+                if (K > 0.0)
                 {
-                    double& m = (*fdata)(b(), depth);
-                    double k = u - m;
-                    m += Delta * k / K;
+                    for (Box<NDIM>::Iterator b(stencil_box_fine); b; b++)
+                    {
+                        double& m = (*fdata)(b(), depth);
+                        double k = u - m;
+                        m += Delta * k / K;
+                    }
                 }
             }
-            else if (Delta <= -std::numeric_limits<double>::epsilon())
+            else if (Delta < 0.0)
             {
                 double K = 0.0;
                 for (Box<NDIM>::Iterator b(stencil_box_fine); b; b++)
@@ -207,11 +212,14 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine
                     double k = m - l;
                     K += k;
                 }
-                for (Box<NDIM>::Iterator b(stencil_box_fine); b; b++)
+                if (K > 0.0)
                 {
-                    double& m = (*fdata)(b(), depth);
-                    double k = m - l;
-                    m += Delta * k / K;
+                    for (Box<NDIM>::Iterator b(stencil_box_fine); b; b++)
+                    {
+                        double& m = (*fdata)(b(), depth);
+                        double k = m - l;
+                        m += Delta * k / K;
+                    }
                 }
             }
         }

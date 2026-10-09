@@ -737,7 +737,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithSplitting(int 
                         }
                     }
                     const double n_norm = n.norm();
-                    if (!IBTK::abs_equal_eps(n_norm, 0.0))
+                    if (n_norm != 0.0)
                     {
                         n /= n_norm;
                     }
@@ -962,7 +962,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithSplitting(int u_
                         }
                     }
                     const double n_norm = n.norm();
-                    if (!IBTK::abs_equal_eps(n_norm, 0.0))
+                    if (n_norm != 0.0)
                     {
                         n /= n_norm;
                     }

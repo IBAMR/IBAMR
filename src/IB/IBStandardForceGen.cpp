@@ -868,7 +868,7 @@ IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
 #if (NDIM == 3)
             R = std::sqrt(D[0] * D[0] + D[1] * D[1] + D[2] * D[2]);
 #endif
-            if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
+            if (UNLIKELY(R == 0.0)) continue;
             T_over_R = (force_fcns[k])(R, parameters[k], lag_mastr_node_idxs[k], lag_slave_node_idxs[k]) / R;
             F[0] = T_over_R * D[0];
             F[1] = T_over_R * D[1];
@@ -905,7 +905,7 @@ IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
 #if (NDIM == 3)
         R = std::sqrt(D[0] * D[0] + D[1] * D[1] + D[2] * D[2]);
 #endif
-        if (UNLIKELY(R < std::numeric_limits<double>::epsilon())) continue;
+        if (UNLIKELY(R == 0.0)) continue;
         T_over_R = (force_fcns[k])(R, parameters[k], lag_mastr_node_idxs[k], lag_slave_node_idxs[k]) / R;
         F[0] = T_over_R * D[0];
         F[1] = T_over_R * D[1];

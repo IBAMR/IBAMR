@@ -1124,7 +1124,7 @@ PETScMatUtilities::constructRestrictionScalingOp(Mat& P, Vec& L)
     for (int k = 0; k < N; ++k)
     {
         const double sum = column_sum_inv[k];
-        if (!IBTK::abs_equal_eps(sum, 0.0))
+        if (sum != 0.0)
         {
             column_sum_inv[k] = 1.0 / sum;
         }
