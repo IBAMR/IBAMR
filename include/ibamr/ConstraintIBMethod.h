@@ -208,8 +208,10 @@ public:
         return d_center_of_mass_current;
     }
 
-    /*
-     * Set velocity physical boundary options
+    /*!
+     * \brief Set the boundary operator for the velocity at physical boundaries. The operator fills the velocity ghost
+     * values at physical boundaries before the velocity is interpolated, and the velocity correction is spread with
+     * it.
      */
     inline void setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op)
     {
@@ -352,7 +354,8 @@ private:
     }
 
     /*!
-     * \brief Copy vector.
+     * \brief Copy the fluid velocity and fill the ghost values of the copy. The ghost values at physical boundaries
+     * are set with the velocity boundary operator if one is set.
      */
     void copyFluidVariable(int copy_from_idx, int copy_to);
 

@@ -40,6 +40,7 @@
 #include <ibtk/LSetDataIterator.h>
 #include <ibtk/LinearOperator.h>
 #include <ibtk/LinearSolver.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/SideDataSynchronization.h>
 #include <ibtk/ibtk_utilities.h>
 
@@ -2382,6 +2383,26 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     const bool homogeneous_bc = true;
     hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     hier_bdry_fill->fillData(0.0);
+
+    // Set the ghost values at the physical boundaries with the velocity boundary conditions.
+    if (d_u_phys_bdry_op)
+    {
+        d_u_phys_bdry_op->setPatchDataIndex(copy_to_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                if (patch->getPatchGeometry()->getTouchesRegularBoundary())
+                {
+                    d_u_phys_bdry_op->setPhysicalBoundaryConditions(
+                        *patch, d_FuRMoRP_new_time, patch->getPatchData(copy_to_idx)->getGhostCellWidth());
+                }
+            }
+        }
+    }
 
     return;
 } // copyFluidVariable
