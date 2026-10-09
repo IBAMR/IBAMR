@@ -208,7 +208,7 @@ INSStaggeredHierarchyIntegrator {
    output_F                      = OUTPUT_F
    output_Omega                  = OUTPUT_OMEGA
    output_Div_U                  = OUTPUT_DIV_U
-   enable_logging                = ENABLE_LOGGING
+   enable_logging                = FALSE
    enable_logging_solver_iterations = FALSE
 
    //convective_op_db {
