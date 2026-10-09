@@ -143,8 +143,13 @@ SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
     if (deallocate_after_solve) initializeSolverState(x, b);
 
     // Ensure the initial guess is zero when appropriate.  (hypre does not
-    // reliably honor the SetZeroGuess settings.)
-    if (!d_initial_guess_nonzero) x.setToScalar(0.0, /*interior_only*/ false);
+    // reliably honor the SetZeroGuess settings.)  The ghost values are not part
+    // of the initial guess: at coarse-fine boundaries they hold the boundary
+    // data from which the right-hand side is corrected.
+    if (!d_initial_guess_nonzero)
+    {
+        x.setToScalar(0.0, /*interior_only*/ true);
+    }
 
     // Solve the system using the hypre solver.
     static const int comp = 0;
@@ -375,6 +380,8 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients()
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_size, IntVector<NDIM>(0));
         PoissonUtilities::computeMatrixCoefficients(
             matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
+        // Drop the couplings to sides that are not sides of the level.
+        clearOffLevelMatrixEntries(matrix_coefs, *d_level, d_stencil_offsets);
 
         // Copy matrix entries to the hypre matrix structure.
         std::vector<HYPRE_Int> stencil_indices(stencil_size);

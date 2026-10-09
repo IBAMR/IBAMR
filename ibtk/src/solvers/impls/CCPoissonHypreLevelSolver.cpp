@@ -197,8 +197,13 @@ CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
     if (deallocate_after_solve) initializeSolverState(x, b);
 
     // Ensure the initial guess is zero when appropriate.  (hypre does not
-    // reliably honor the SetZeroGuess settings.)
-    if (!d_initial_guess_nonzero) x.setToScalar(0.0, /*interior_only*/ false);
+    // reliably honor the SetZeroGuess settings.)  The ghost values are not part
+    // of the initial guess: at coarse-fine boundaries they hold the boundary
+    // data from which the right-hand side is corrected.
+    if (!d_initial_guess_nonzero)
+    {
+        x.setToScalar(0.0, /*interior_only*/ true);
+    }
 
     // Solve the system using the hypre solver.
     static const int comp = 0;
@@ -491,6 +496,8 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         {
             PoissonUtilities::computeMatrixCoefficients(
                 matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
+            // Drop the couplings to cells that are not cells of the level.
+            clearOffLevelMatrixEntries(matrix_coefs, *d_level, d_stencil_offsets);
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
                 hier::Index<NDIM> i = b();
@@ -597,6 +604,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 
         // Set the matrix coefficients to correspond to a second-order accurate
         // finite difference stencil for the Laplace operator.
+        CellData<NDIM, double> matrix_coefs(patch_box, stencil_size, no_ghosts);
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
             hier::Index<NDIM> i = b();
@@ -701,11 +709,27 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                 }
             }
 
+            for (unsigned int j = 0; j < stencil_size; ++j)
+            {
+                matrix_coefs(i, j) = mat_vals[j];
+            }
+        }
+
+        // Drop the couplings to cells that are not cells of the level, then copy the matrix entries to hypre.
+        clearOffLevelMatrixEntries(matrix_coefs, *d_level, d_stencil_offsets);
+        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        {
+            hier::Index<NDIM> i = b();
+            std::vector<double> mat_vals(stencil_size);
+            for (unsigned int j = 0; j < stencil_size; ++j)
+            {
+                mat_vals[j] = matrix_coefs(i, j);
+            }
             for (unsigned int k = 0; k < d_depth; ++k)
             {
                 auto hypre_i = hypre_array(i);
                 HYPRE_StructMatrixSetValues(
-                    d_matrices[k], hypre_i.data(), stencil_indices.size(), stencil_indices.data(), &mat_vals[0]);
+                    d_matrices[k], hypre_i.data(), stencil_indices.size(), stencil_indices.data(), mat_vals.data());
             }
         }
     }

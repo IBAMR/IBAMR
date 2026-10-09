@@ -59,6 +59,11 @@ namespace IBTK
  * of linear equations on a \em single SAMRAI::hier::PatchLevel using <A
  * HREF="http://www.mcs.anl.gov/petsc/petsc-as">PETSc</A>.
  *
+ * <b>Contract of solveSystem().</b> The interior values of \a x are the
+ * initial guess if initial_guess_nonzero is TRUE, which is the default, and are
+ * ignored (taken as zero) if it is FALSE.  On return the interior values of
+ * \a x hold the solution.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
