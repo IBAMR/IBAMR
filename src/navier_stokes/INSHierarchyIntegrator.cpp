@@ -141,6 +141,7 @@ INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<Rob
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     d_bc_coefs = bc_coefs;
+    setSolverPhysicalBcCoefs(d_bc_coefs);
     return;
 } // registerPhysicalBoundaryConditions
 
@@ -669,6 +670,28 @@ INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, con
     }
     return;
 }
+
+void
+INSHierarchyIntegrator::setSolverPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+{
+    for (const auto& bc_coef : d_U_star_bc_coefs)
+    {
+        auto U_star_bc_coef = dynamic_cast<INSIntermediateVelocityBcCoef*>(bc_coef);
+        U_star_bc_coef->setPhysicalBcCoefs(bc_coefs);
+    }
+    if (d_Phi_bc_coef)
+    {
+        auto Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef.get());
+        Phi_bc_coef->setPhysicalBcCoefs(bc_coefs);
+    }
+    return;
+} // setSolverPhysicalBcCoefs
+
+bool
+INSHierarchyIntegrator::usePhysicalBcCoefsBeforeFirstTimeStep() const
+{
+    return d_U_init || RestartManager::getManager()->isFromRestart();
+} // usePhysicalBcCoefsBeforeFirstTimeStep
 
 double
 INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
