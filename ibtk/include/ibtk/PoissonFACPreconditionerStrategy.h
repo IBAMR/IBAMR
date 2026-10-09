@@ -101,6 +101,11 @@ namespace IBTK
  coarse_solver_rel_residual_tol = 1.0e-5      // see setCoarseSolverRelativeTolerance()
  coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
  coarse_solver_max_iterations = 10            // see setCoarseSolverMaxIterations()
+ data_refine_type = "NONE"                    // refine operator that fills ghost cells at coarse-fine interfaces
+ use_cf_interpolation = TRUE                  // whether to interpolate at coarse-fine interfaces
+ data_coarsen_type = "CUBIC_COARSEN"          // coarsen operator applied before ghost cell filling
+ bdry_extrap_type = "LINEAR"                  // extrapolation at physical boundaries
+ use_consistent_type_2_bdry = FALSE           // currently has no effect
  \endverbatim
 */
 class PoissonFACPreconditionerStrategy : public FACPreconditionerStrategy
@@ -433,6 +438,20 @@ protected:
     double d_coarse_solver_rel_residual_tol = 1.0e-5;
     double d_coarse_solver_abs_residual_tol = 1.0e-50;
     int d_coarse_solver_max_iterations = 10;
+
+    /*
+     * Ghost cell filling parameters for composite-grid residual evaluation.
+     */
+    std::string d_data_refine_type = "NONE";
+    bool d_use_cf_interpolation = true;
+    std::string d_data_coarsen_type = "CUBIC_COARSEN";
+    std::string d_bdry_extrap_type = "LINEAR";
+
+    /*
+     * Whether to request a consistent interpolation scheme at coarse-fine interface ghost cells of co-dimension
+     * greater than 1.
+     */
+    bool d_use_consistent_type_2_bdry = false;
 
     //\}
 

@@ -1,0 +1,3 @@
+Fixed: IBTK::CCPoissonLevelRelaxationFACOperator, IBTK::CCPoissonBoxRelaxationFACOperator, and IBTK::VCSCViscousOpPointRelaxationFACOperator honor the ghost-cell-filling input keys.
+<br>
+(Boyce Griffith, 2026/10/02)
