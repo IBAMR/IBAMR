@@ -100,7 +100,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     const std::vector<int>& num_dofs_per_proc,
     int u_dof_index_idx,
     int p_dof_index_idx,
-    Pointer<PatchLevel<NDIM>> patch_level)
+    Pointer<PatchLevel<NDIM>> patch_level,
+    RobinBcCoefStrategy<NDIM>* p_bc_coef)
 {
     int ierr;
     if (mat)
@@ -481,6 +482,23 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
+                // Set the pressure boundary condition coefficients.
+                Pointer<ArrayData<NDIM, double>> p_acoef_data, p_bcoef_data;
+                if (p_bc_coef)
+                {
+                    p_acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    p_bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    Pointer<ArrayData<NDIM, double>> p_gcoef_data;
+                    auto extended_p_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(p_bc_coef);
+                    if (extended_p_bc_coef)
+                    {
+                        extended_p_bc_coef->clearTargetPatchDataIndex();
+                        extended_p_bc_coef->setHomogeneousBc(homogeneous_bc);
+                    }
+                    p_bc_coef->setBcCoefs(
+                        p_acoef_data, p_bcoef_data, p_gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
+                }
+
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
                 for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
@@ -516,6 +534,21 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                             uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) +=
                                 uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
                             uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
+                        }
+
+                        // The pressure in the ghost cell is p_G = f_i*p_I + f_g*g, in which p_I is the pressure in
+                        // the interior cell abutting the boundary. Add the ghost coefficient times f_i to the
+                        // coefficient of p_I. The term f_g*g is moved to the right-hand side.
+                        if (p_bc_coef)
+                        {
+                            const double h = dx[bdry_normal_axis];
+                            const double p_a = (*p_acoef_data)(i, 0);
+                            const double p_b = (*p_bcoef_data)(i, 0);
+                            const double f_i = -(p_a * h - 2.0 * p_b) / (p_a * h + 2.0 * p_b);
+                            const int ghost_index = is_lower ? 0 : 1;
+                            const int interior_index = is_lower ? 1 : 0;
+                            up_matrix_coefs(i_s, interior_index) += f_i * up_matrix_coefs(i_s, ghost_index);
+                            up_matrix_coefs(i_s, ghost_index) = 0.0;
                         }
                     }
                     else
