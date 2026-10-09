@@ -21,6 +21,9 @@
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <EdgeData.h>
+#include <EdgeIterator.h>
+#include <EdgeVariable.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
@@ -123,7 +126,7 @@ main(int argc, char* argv[])
         std::string var_centering = input_db->getString("VAR_CENTERING");
         TBOX_ASSERT(extrap_type == "CONSTANT" || extrap_type == "LINEAR" || extrap_type == "QUADRATIC");
         TBOX_ASSERT(var_centering == "CELL" || var_centering == "SIDE" || var_centering == "FACE" ||
-                    var_centering == "NODE");
+                    var_centering == "NODE" || var_centering == "EDGE");
 
         // Create cell-centered data and extrapolate that data at physical
         // boundaries to obtain ghost cell values.
@@ -133,17 +136,20 @@ main(int argc, char* argv[])
         Pointer<SideVariable<NDIM, double>> s_var = new SideVariable<NDIM, double>("s_u");
         Pointer<FaceVariable<NDIM, double>> f_var = new FaceVariable<NDIM, double>("f_u");
         Pointer<NodeVariable<NDIM, double>> n_var = new NodeVariable<NDIM, double>("n_u");
+        Pointer<EdgeVariable<NDIM, double>> e_var = new EdgeVariable<NDIM, double>("e_u");
         const int gcw = 4;
         const int c_idx = var_db->registerVariableAndContext(c_var, context, gcw);
         const int s_idx = var_db->registerVariableAndContext(s_var, context, gcw);
         const int f_idx = var_db->registerVariableAndContext(f_var, context, gcw);
         const int n_idx = var_db->registerVariableAndContext(n_var, context, gcw);
+        const int e_idx = var_db->registerVariableAndContext(e_var, context, gcw);
         std::map<std::string, int> typeMap;
         std::map<std::string, fcn_type> fcnMap;
         typeMap["CELL"] = c_idx;
         typeMap["SIDE"] = s_idx;
         typeMap["FACE"] = f_idx;
         typeMap["NODE"] = n_idx;
+        typeMap["EDGE"] = e_idx;
         fcnMap["CONSTANT"] = &const_f;
         fcnMap["LINEAR"] = &linear_f;
         fcnMap["QUADRATIC"] = &quadratic_f;
@@ -163,6 +169,7 @@ main(int argc, char* argv[])
                 Pointer<SideData<NDIM, double>> s_data = patch->getPatchData(typeMap[var_centering]);
                 Pointer<FaceData<NDIM, double>> f_data = patch->getPatchData(typeMap[var_centering]);
                 Pointer<NodeData<NDIM, double>> n_data = patch->getPatchData(typeMap[var_centering]);
+                Pointer<EdgeData<NDIM, double>> e_data = patch->getPatchData(typeMap[var_centering]);
                 std::vector<double> x(NDIM);
                 if (var_centering == "CELL")
                 {
@@ -220,6 +227,22 @@ main(int argc, char* argv[])
                         }
                         auto fcn = fcnMap[extrap_type];
                         (*n_data)(i) = fcn(x.data());
+                    }
+                }
+                else if (var_centering == "EDGE")
+                {
+                    for (int axis = 0; axis < NDIM; ++axis)
+                    {
+                        for (EdgeIterator<NDIM> ei(patch_box, axis); ei; ei++)
+                        {
+                            const EdgeIndex<NDIM>& i = ei();
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                x[d] = x_low[d] + dx[d] * (i(d) - patch_lower(d) + (axis == d ? 0.5 : 0.0));
+                            }
+                            auto fcn = fcnMap[extrap_type];
+                            (*e_data)(i) = fcn(x.data());
+                        }
                     }
                 }
                 else
@@ -308,6 +331,28 @@ main(int argc, char* argv[])
                             warning = true;
                             pout << "warning: value at location " << i << " is not correct\n";
                             pout << "  expected value = " << val << "   computed value = " << (*n_data)(i) << "\n";
+                        }
+                    }
+                }
+                else if (var_centering == "EDGE")
+                {
+                    for (int axis = 0; axis < NDIM; ++axis)
+                    {
+                        for (EdgeIterator<NDIM> ei(e_data->getGhostBox(), axis); ei; ei++)
+                        {
+                            const EdgeIndex<NDIM>& i = ei();
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                x[d] = x_low[d] + dx[d] * (i(d) - patch_lower(d) + (axis == d ? 0.5 : 0.0));
+                            }
+                            auto fcn = fcnMap[extrap_type];
+                            double val = fcn(x.data());
+                            if (!IBTK::rel_equal_eps(val, (*e_data)(i)))
+                            {
+                                warning = true;
+                                pout << "warning: value at location " << i << " is not correct\n";
+                                pout << "  expected value = " << val << "   computed value = " << (*e_data)(i) << "\n";
+                            }
                         }
                     }
                 }

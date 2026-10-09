@@ -25,6 +25,10 @@
 #include <CellData.h>
 #include <CellVariable.h>
 #include <ComponentSelector.h>
+#include <EdgeData.h>
+#include <EdgeIndex.h>
+#include <EdgeIterator.h>
+#include <EdgeVariable.h>
 #include <FaceData.h>
 #include <FaceIndex.h>
 #include <FaceIterator.h>
@@ -254,6 +258,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
 
     // Set the boundary values.
     setPhysicalBoundaryConditions_cell(patch, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_edge(patch, bdry_fill_boxes);
     setPhysicalBoundaryConditions_face(patch, bdry_fill_boxes);
     setPhysicalBoundaryConditions_node(patch, bdry_fill_boxes);
     setPhysicalBoundaryConditions_side(patch, bdry_fill_boxes);
@@ -388,6 +393,117 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     }
     return;
 } // setPhysicalBoundaryConditions_cell
+
+void
+CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_edge(
+    Patch<NDIM>& patch,
+    const std::vector<std::pair<Box<NDIM>, std::pair<int, int>>>& bdry_fill_boxes)
+{
+    const Box<NDIM>& patch_box = patch.getBox();
+    const hier::Index<NDIM>& patch_lower = patch_box.lower();
+    const hier::Index<NDIM>& patch_upper = patch_box.upper();
+
+    const int extrap_type =
+        (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
+    if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
+    {
+        TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
+                   << "  unknown extrapolation type: " << d_extrap_type << "\n"
+                   << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
+    }
+
+    // Set the physical boundary conditions for the specified patch data
+    // indices.
+    for (const auto& patch_data_idx : d_patch_data_indices)
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<Variable<NDIM>> var;
+        var_db->mapIndexToVariable(patch_data_idx, var);
+        Pointer<EdgeVariable<NDIM, double>> ec_var = var;
+        if (!ec_var)
+        {
+            continue;
+        }
+        Pointer<EdgeData<NDIM, double>> patch_data = patch.getPatchData(patch_data_idx);
+        const Box<NDIM>& ghost_box = patch_data->getGhostBox();
+
+        // Loop over the boundary fill boxes and extrapolate the data.
+        for (const auto& bdry_fill_box_pair : bdry_fill_boxes)
+        {
+            const Box<NDIM>& bdry_fill_box = bdry_fill_box_pair.first;
+            const unsigned int location_index = bdry_fill_box_pair.second.first;
+            const int codim = bdry_fill_box_pair.second.second;
+#if (NDIM == 2)
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 1) } };
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 1) } };
+#endif
+#if (NDIM == 3)
+            const std::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                        PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isLower(
+                                                            location_index, codim, 2) } };
+            const std::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                        PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
+                                                        PhysicalBoundaryUtilities::isUpper(
+                                                            location_index, codim, 2) } };
+#endif
+            for (int depth = 0; depth < patch_data->getDepth(); ++depth)
+            {
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (EdgeIterator<NDIM> b(bdry_fill_box * ghost_box, axis); b; b++)
+                    {
+                        const EdgeIndex<NDIM> i = b();
+                        EdgeIndex<NDIM> i_bdry = i;
+                        IntVector<NDIM> i_shft = 0;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            if (is_lower[d])
+                            {
+                                i_bdry(d) = patch_lower(d);
+                                i_shft(d) = +1; // use interior data for extrapolation
+                            }
+                            else if (is_upper[d])
+                            {
+                                // Edge-centered data are cell-centered along the edge and node-centered in the
+                                // other directions.
+                                if (axis == d)
+                                {
+                                    i_bdry(d) = patch_upper(d);
+                                }
+                                else
+                                {
+                                    i_bdry(d) = patch_upper(d) + 1;
+                                }
+                                i_shft(d) = -1; // use interior data for extrapolation
+                            }
+                        }
+
+                        // Perform constant, linear, or quadratic extrapolation.
+                        switch (extrap_type)
+                        {
+                        case 0:
+                            (*patch_data)(i, depth) = (*patch_data)(i_bdry, depth);
+                            break;
+                        case 1:
+                            (*patch_data)(i, depth) = compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
+                            break;
+                        case 2:
+                            (*patch_data)(i, depth) =
+                                compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth, codim);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return;
+} // setPhysicalBoundaryConditions_edge
 
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
