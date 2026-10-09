@@ -225,11 +225,8 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
         double& gamma = gcoef_data ? (*gcoef_data)(i, 0) : dummy_val;
-        const bool velocity_bc = IBTK::rel_equal_eps(alpha, 1.0);
-        const bool traction_bc = IBTK::rel_equal_eps(beta, 1.0);
-#if !defined(NDEBUG)
-        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
+        const bool velocity_bc = (alpha == 1.0 && beta == 0.0);
+        const bool traction_bc = (alpha == 0.0 && beta == 1.0);
         if (velocity_bc)
         {
             alpha = 0.0;
@@ -244,7 +241,11 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
         }
         else
         {
-            TBOX_ERROR("this statement should not be reached!\n");
+            TBOX_ERROR("INSStaggeredPressureBcCoef::setBcCoefs():\n"
+                       << "  unsupported velocity boundary condition coefficients (a, b) = (" << alpha << ", " << beta
+                       << ").\n"
+                       << "  Only a prescribed velocity, (a, b) = (1, 0), or a prescribed traction, (a, b) = (0, 1),\n"
+                       << "  is supported.\n");
         }
     }
     return;

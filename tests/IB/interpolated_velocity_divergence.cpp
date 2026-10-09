@@ -192,7 +192,7 @@ get_open_lower_boundaries(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
             Pointer<ArrayData<NDIM, double>> g_data = new ArrayData<NDIM, double>(coef_box, 1);
             bc_coefs[axis]->setBcCoefs(
                 a_data, b_data, g_data, Pointer<Variable<NDIM>>(), *patch, boundary_boxes[k], time);
-            if (IBTK::rel_equal_eps((*b_data)(coef_box.lower(), 0), 1.0))
+            if ((*a_data)(coef_box.lower(), 0) == 0.0 && (*b_data)(coef_box.lower(), 0) == 1.0)
             {
                 is_open[axis] = 1;
             }

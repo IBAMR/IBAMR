@@ -178,7 +178,7 @@ check_open_boundary_ghost_values(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                 {
                     // This is the interior cell abutting a lower boundary and the ghost cell abutting an upper
                     // boundary, so its lower face is the boundary face.
-                    if (!IBTK::rel_equal_eps((*b_data)(it(), 0), 1.0))
+                    if (!((*a_data)(it(), 0) == 0.0 && (*b_data)(it(), 0) == 1.0))
                     {
                         continue;
                     }

@@ -255,11 +255,7 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefSt
                         const hier::Index<NDIM>& i = it();
                         const double& alpha = (*acoef_data)(i, 0);
                         const double& beta = (*bcoef_data)(i, 0);
-#if !defined(NDEBUG)
-                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha + beta, 1.0));
-                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha, 1.0) || IBTK::rel_equal_eps(beta, 1.0));
-#endif
-                        bdry_locs_data(i, 0) = IBTK::rel_equal_eps(alpha, 1.0) && IBTK::abs_equal_eps(beta, 0.0);
+                        bdry_locs_data(i, 0) = (alpha != 0.0 && beta == 0.0);
                     }
                 }
             }

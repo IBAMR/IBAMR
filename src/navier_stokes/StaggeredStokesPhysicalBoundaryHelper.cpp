@@ -296,14 +296,24 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                     {
                         const hier::Index<NDIM>& i = it();
                         const double& alpha = (*acoef_data)(i, 0);
-                        const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
-#if !defined(NDEBUG)
                         const double& beta = (*bcoef_data)(i, 0);
-                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha + beta, 1.0));
-                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha, 1.0) || IBTK::rel_equal_eps(beta, 1.0));
-#endif
-                        if (IBTK::rel_equal_eps(alpha, 1.0))
+                        const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
+                        const bool velocity_bc = (alpha == 1.0 && beta == 0.0);
+                        const bool traction_bc = (alpha == 0.0 && beta == 1.0);
+                        if (!velocity_bc && !traction_bc)
+                        {
+                            TBOX_ERROR(
+                                "StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions():\n"
+                                << "  unsupported boundary condition coefficients (a, b) = (" << alpha << ", " << beta
+                                << ") for the normal velocity.\n"
+                                << "  Only a prescribed velocity, (a, b) = (1, 0), or a prescribed traction, "
+                                   "(a, b) = (0, 1),\n"
+                                << "  is supported.\n");
+                        }
+                        if (velocity_bc)
+                        {
                             (*u_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) = gamma;
+                        }
                     }
                 }
             }

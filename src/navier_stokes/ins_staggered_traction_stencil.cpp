@@ -316,7 +316,18 @@ get_prescribed_normal_velocity(double& u_prescribed,
     }
     const hier::Index<NDIM>& i_coef = adj_coef_box.lower();
     const double alpha = (*acoef_data)(i_coef, 0);
-    if (!IBTK::rel_equal_eps(alpha, 1.0))
+    const double beta = (*bcoef_data)(i_coef, 0);
+    const bool velocity_bc = (alpha == 1.0 && beta == 0.0);
+    const bool traction_bc = (alpha == 0.0 && beta == 1.0);
+    if (!velocity_bc && !traction_bc)
+    {
+        TBOX_ERROR("traction_stencil::get_prescribed_normal_velocity():\n"
+                   << "  unsupported boundary condition coefficients (a, b) = (" << alpha << ", " << beta
+                   << ") for the normal velocity.\n"
+                   << "  Only a prescribed velocity, (a, b) = (1, 0), or a prescribed traction, (a, b) = (0, 1),\n"
+                   << "  is supported.\n");
+    }
+    if (!velocity_bc)
     {
         return false;
     }
@@ -449,7 +460,19 @@ accumulate_from_traction_bc_coefs(SideData<NDIM, double>& u_data,
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
-        if (!IBTK::rel_equal_eps((*bcoef_data)(i, 0), 1.0))
+        const double alpha = (*acoef_data)(i, 0);
+        const double beta = (*bcoef_data)(i, 0);
+        const bool velocity_bc = (alpha == 1.0 && beta == 0.0);
+        const bool traction_bc = (alpha == 0.0 && beta == 1.0);
+        if (!velocity_bc && !traction_bc)
+        {
+            TBOX_ERROR("traction_stencil::accumulate_from_traction_bc_coefs():\n"
+                       << "  unsupported boundary condition coefficients (a, b) = (" << alpha << ", " << beta
+                       << ") for the tangential velocity.\n"
+                       << "  Only a prescribed velocity, (a, b) = (1, 0), or a prescribed traction, (a, b) = (0, 1),\n"
+                       << "  is supported.\n");
+        }
+        if (!traction_bc)
         {
             continue;
         }
