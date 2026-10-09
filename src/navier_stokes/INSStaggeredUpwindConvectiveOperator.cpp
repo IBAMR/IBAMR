@@ -300,6 +300,14 @@ namespace
 // with the simple first-order upwind method.
 static const int GADVECTG = 2;
 
+// Advection velocities of magnitude at most U_ADV_EPS are treated as zero when
+// choosing the upwind value, and the centered value is used instead, as in the
+// advection predictors.  The advective and skew-symmetric forms multiply the
+// chosen values by cell averages of the advection velocity, not by the velocity
+// that chose them, so the sign of a velocity that is zero up to rounding errors
+// must not choose a side.
+static const double U_ADV_EPS = 1.0e-8;
+
 // Timers.
 static Timer* t_apply_convective_operator;
 static Timer* t_apply;
@@ -525,9 +533,9 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
                         const double u_ADV = (*U_adv_data[axis])(i);
                         const double U_lower = U_array_data(i.toCell(0), 0);
                         const double U_upper = U_array_data(i.toCell(1), 0);
-                        (*U_half_data[axis])(i) = (u_ADV > 0.0) ? U_lower :
-                                                  (u_ADV < 0.0) ? U_upper :
-                                                                  0.5 * (U_lower + U_upper);
+                        (*U_half_data[axis])(i) = (u_ADV > U_ADV_EPS)  ? U_lower :
+                                                  (u_ADV < -U_ADV_EPS) ? U_upper :
+                                                                         0.5 * (U_lower + U_upper);
                     }
                 }
             }
