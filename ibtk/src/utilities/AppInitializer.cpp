@@ -37,6 +37,7 @@
 
 #include <charconv>
 #include <cstddef>
+#include <cstring>
 #include <filesystem>
 #include <limits>
 #include <ostream>
@@ -134,8 +135,19 @@ insert_petsc_options(const std::string& options_file, int argc, char* argv[])
     IBTK_CHKERRQ(ierr);
 }
 
+// PETSc compares option names without regard to case, so the set that detects
+// an option defined more than once does the same.
+struct PetscOptionNameLess
+{
+    bool operator()(const std::string& a, const std::string& b) const
+    {
+        return strcasecmp(a.c_str(), b.c_str()) < 0;
+    }
+};
+using PetscOptionNameSet = std::set<std::string, PetscOptionNameLess>;
+
 bool
-insert_petsc_settings(Pointer<Database> input_db, std::set<std::string>& option_names)
+insert_petsc_settings(Pointer<Database> input_db, PetscOptionNameSet& option_names)
 {
     bool found_settings = false;
     const Array<std::string> database_keys = input_db->getAllKeys();
@@ -246,7 +258,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     }
 
     // Configure PETSc options and then reapply normal PETSc sources so command-line options win.
-    std::set<std::string> option_names;
+    PetscOptionNameSet option_names;
     const bool found_settings = insert_petsc_settings(d_input_db, option_names);
     const bool has_options_file =
         d_input_db->keyExists("PETSC_OPTIONS_FILE") || d_input_db->keyExists("petsc_options_file");
