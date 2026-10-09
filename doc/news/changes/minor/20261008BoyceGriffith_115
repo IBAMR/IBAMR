@@ -1,0 +1,3 @@
+Fixed: IBTK::AppInitializer stops with an error when a PETSc option is defined more than once in inline settings with names that differ only in case. PETSc does not distinguish case in option names, so the second definition silently replaced the first.
+<br>
+(Boyce Griffith, 2026/10/08)
