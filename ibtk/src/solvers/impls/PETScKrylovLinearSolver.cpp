@@ -625,10 +625,11 @@ PETScKrylovLinearSolver::resetMatNullSpace()
         {
             d_nullspace_constant_vec = d_x->cloneVector(d_x->getName());
             d_nullspace_constant_vec->allocateVectorData();
+            // Set the values with SAMRAI: VecSet() would cache a norm computed from the placeholder global size of
+            // the PETSc wrapper, and the vector is normalized below.
+            d_nullspace_constant_vec->setToScalar(1.0, /*interior_only*/ false);
             d_petsc_nullspace_constant_vec =
                 PETScSAMRAIVectorReal::createPETScVector(d_nullspace_constant_vec, d_petsc_comm);
-            ierr = VecSet(d_petsc_nullspace_constant_vec, 1.0);
-            IBTK_CHKERRQ(ierr);
             nullspace_vecs.push_back(d_petsc_nullspace_constant_vec);
         }
 

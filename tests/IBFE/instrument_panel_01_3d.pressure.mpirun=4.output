@@ -5,7 +5,7 @@ IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
-INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 8.92929e-06
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 8.75406e-06
 
 
 Writing visualization files...

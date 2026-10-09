@@ -1,0 +1,3 @@
+Fixed: IBTK::PETScKrylovLinearSolver normalizes the constant null-space vector with the weighted norm of the SAMRAI vector, so that the null-space projection removes the full constant component. Left-preconditioned solves with a constant null space no longer stall on the preconditioned residual.
+<br>
+(Boyce Griffith, 2026/10/08)
