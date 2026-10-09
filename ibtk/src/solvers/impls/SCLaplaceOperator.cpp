@@ -16,6 +16,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/LaplaceOperator.h>
+#include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
@@ -264,7 +265,61 @@ SCLaplaceOperator::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
+void
+SCLaplaceOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
+{
+    LaplaceOperator::modifyRhsForBcs(y);
+    imposeDirichletBoundaryValues(y, /*homogeneous_bc*/ true);
+    return;
+} // modifyRhsForBcs
+
+void
+SCLaplaceOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
+{
+    imposeDirichletBoundaryValues(u, d_homogeneous_bc);
+    return;
+} // imposeSolBcs
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+SCLaplaceOperator::imposeDirichletBoundaryValues(SAMRAIVectorReal<NDIM, double>& u, const bool homogeneous_bc)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_is_initialized);
+#endif
+    // Filling the ghost cells of a vector also sets its values on the boundary sides at which Dirichlet conditions are
+    // prescribed.  Fill a vector of zeros so that no other value of u changes.
+    SAMRAIScopedVectorDuplicate<double> u_bdry(u);
+    SAMRAIVectorReal<NDIM, double>& u_bdry_vec = u_bdry;
+    if (!homogeneous_bc)
+    {
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        std::vector<InterpolationTransactionComponent> transaction_comps;
+        for (int comp = 0; comp < d_ncomp; ++comp)
+        {
+            InterpolationTransactionComponent u_bdry_component(u_bdry_vec.getComponentDescriptorIndex(comp),
+                                                               d_data_refine_type,
+                                                               d_use_cf_interpolation,
+                                                               d_data_coarsen_type,
+                                                               d_bdry_extrap_type,
+                                                               d_use_consistent_type_2_bdry,
+                                                               d_bc_coefs,
+                                                               d_fill_pattern);
+            transaction_comps.push_back(u_bdry_component);
+        }
+        d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
+        d_hier_bdry_fill->setHomogeneousBc(false);
+        d_hier_bdry_fill->fillData(d_solution_time);
+        d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
+    }
+    for (int comp = 0; comp < d_ncomp; ++comp)
+    {
+        d_bc_helpers[comp]->copyDataAtDirichletBoundaries(u.getComponentDescriptorIndex(comp),
+                                                          u_bdry_vec.getComponentDescriptorIndex(comp));
+    }
+    return;
+} // imposeDirichletBoundaryValues
 
 //////////////////////////////////////////////////////////////////////////////
 

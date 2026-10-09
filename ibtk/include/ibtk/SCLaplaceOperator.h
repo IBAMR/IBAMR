@@ -124,6 +124,21 @@ public:
      */
     void deallocateOperatorState() override;
 
+    /*!
+     * \brief Modify the right-hand side vector to account for physical boundary conditions.
+     *
+     * In addition to the shift made by LinearOperator::modifyRhsForBcs(), set the right-hand side to zero on the
+     * sides on the physical boundary at which Dirichlet conditions are prescribed.  With homogeneous boundary
+     * conditions, apply() returns zero on those sides.
+     */
+    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+
+    /*!
+     * \brief Set the solution vector to the prescribed values on the sides on the physical boundary at which
+     * Dirichlet conditions are prescribed.
+     */
+    void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
+
     //\}
 
 protected:
@@ -181,6 +196,12 @@ private:
      * \return A reference to this object.
      */
     SCLaplaceOperator& operator=(const SCLaplaceOperator& that) = delete;
+
+    /*!
+     * \brief Set u to the prescribed values, or to zero if homogeneous_bc is true, on the sides on the physical
+     * boundary at which Dirichlet conditions are prescribed.
+     */
+    void imposeDirichletBoundaryValues(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u, bool homogeneous_bc);
 };
 } // namespace IBTK
 
