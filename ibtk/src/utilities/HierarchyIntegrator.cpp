@@ -1263,7 +1263,7 @@ double
 HierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = d_dt_max;
-    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
+    const bool initial_time = d_integrator_step == 0;
     if (initial_time)
     {
         dt = std::min(d_dt_init, d_dt_max);
@@ -1380,9 +1380,8 @@ HierarchyIntegrator::atRegridPointSpecialized() const
         // By default, always regrid before integrating the first time step.
         //
         // Subsequently, regrid according to the regrid interval.
-        const bool initial_time = IBTK::abs_equal_eps(d_integrator_time, d_start_time);
-        return initial_time ||
-               ((d_integrator_step > 0) && (d_regrid_interval != 0) && (d_integrator_step % d_regrid_interval == 0));
+        const bool initial_time = d_integrator_step == 0;
+        return initial_time || ((d_regrid_interval != 0) && (d_integrator_step % d_regrid_interval == 0));
     }
 } // atRegridPointSpecialized
 

@@ -26,7 +26,6 @@
 #include <ibtk/PoissonSolver.h>
 
 #include <tbox/Database.h>
-#include <tbox/MathUtilities.h>
 #include <tbox/MemoryDatabase.h>
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
@@ -462,7 +461,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
             Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
             // Set the velocities used to update the density and the previous time step
             // size
-            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+            if (d_integrator_step == 0)
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                     /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ -1);
@@ -899,7 +898,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
             d_rho_p_integrator->setDensityPatchDataIndex(d_rho_current_idx);
 
             // Set the velocities used to update the density
-            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+            if (d_integrator_step == 0)
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                     /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ d_u_adv_new_idx);

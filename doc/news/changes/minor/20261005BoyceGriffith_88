@@ -1,0 +1,3 @@
+Changed: The hierarchy integrators and the IB methods decide whether a time step is the first one from the integrator step counter. They previously compared the current time with the start time or with zero, using several different tolerances.
+<br>
+(Boyce Griffith, 2026/10/05)

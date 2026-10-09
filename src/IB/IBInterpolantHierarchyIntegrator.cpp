@@ -108,7 +108,7 @@ IBInterpolantHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
     // ... and preprocess objects owned by this class.
-    bool initial_time = IBTK::abs_equal_eps(current_time, 0.0);
+    const bool initial_time = d_integrator_step == 0;
     if (initial_time) d_ib_interpolant_method_ops->interpolateQ();
 
     // Execute any registered callbacks.

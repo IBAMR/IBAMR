@@ -203,9 +203,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
 
     // Determine whether there has been a time step size change.
     const double dt = new_time - current_time;
-    static bool skip_check_for_dt_change =
-        IBTK::rel_equal_eps(d_integrator_time, d_start_time) || RestartManager::getManager()->isFromRestart();
-    if (!skip_check_for_dt_change && (d_error_on_dt_change || d_warn_on_dt_change) &&
+    if (!d_skip_check_for_dt_change && (d_error_on_dt_change || d_warn_on_dt_change) &&
         !IBTK::rel_equal_eps(dt, d_dt_previous[0]) && !IBTK::rel_equal_eps(new_time, d_end_time))
     {
         if (d_error_on_dt_change)
@@ -219,7 +217,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                  << "Suggest reducing maximum time step size in input file." << std::endl;
         }
     }
-    skip_check_for_dt_change = false;
+    d_skip_check_for_dt_change = false;
 
     return;
 } // preprocessIntegrateHierarchy
@@ -471,7 +469,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hi
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_var, getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
-    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
+    const bool initial_time = d_integrator_step == 0;
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
     d_u_phys_bdry_op->setHomogeneousBc(false);
     d_ib_method_ops->initializePatchHierarchy(hierarchy,
@@ -606,7 +604,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
 bool
 IBHierarchyIntegrator::atRegridPointSpecialized() const
 {
-    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
+    const bool initial_time = d_integrator_step == 0;
     if (initial_time) return true;
     if (d_regrid_fluid_cfl_interval > 0.0 || d_regrid_structure_cfl_interval > 0.0)
     {

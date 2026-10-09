@@ -932,7 +932,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         // structures.
         Pointer<LData> ptr_x_lag_data_current(nullptr), ptr_x_lag_data_new(nullptr);
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
-        if (IBTK::abs_equal_eps(d_FuRMoRP_current_time, 0.0))
+        if (d_ib_solver->getIntegratorStep() == 0)
         {
             ptr_x_lag_data_new = d_l_data_manager->getLData("X", ln);
         }
@@ -1058,7 +1058,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         // Get LData corresponding to the present position of the structures.
         Pointer<LData> ptr_x_lag_data_current, ptr_x_lag_data_new;
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
-        if (IBTK::abs_equal_eps(d_FuRMoRP_current_time, 0.0))
+        if (d_ib_solver->getIntegratorStep() == 0)
         {
             ptr_x_lag_data_new = d_l_data_manager->getLData("X", ln);
         }
@@ -1181,7 +1181,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
 
     // write the COM and MOI to the output file
     if (!IBTK_MPI::getRank() && d_print_output && d_output_COM_coordinates &&
-        (d_timestep_counter % d_output_interval) == 0 && !IBTK::abs_equal_eps(d_FuRMoRP_current_time, 0.0))
+        (d_timestep_counter % d_output_interval) == 0 && d_ib_solver->getIntegratorStep() != 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -1193,7 +1193,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     }
 
     if (!IBTK_MPI::getRank() && d_print_output && d_output_MOI && (d_timestep_counter % d_output_interval) == 0 &&
-        !IBTK::abs_equal_eps(d_FuRMoRP_current_time, 0.0))
+        d_ib_solver->getIntegratorStep() != 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -1316,7 +1316,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
 
             // Get LData corresponding to the present position of the structures.
             Pointer<LData> ptr_x_lag_data;
-            if (IBTK::abs_equal_eps(d_FuRMoRP_current_time, 0.0))
+            if (d_ib_solver->getIntegratorStep() == 0)
             {
                 ptr_x_lag_data = d_l_data_manager->getLData("X", ln);
             }
