@@ -3,7 +3,6 @@
 var_type = "CELL"
 ghost_width = 2
 depth = 1
-undeliverable_side_value = 0.0
 
 Main {
    log_file_name = "output"

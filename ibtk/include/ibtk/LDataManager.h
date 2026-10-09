@@ -316,17 +316,12 @@ public:
      * fill of \a f_phys_bdry_op, if it is not null, the values in ghost cells
      * are summed into the patches that own them. The ghost cells of the data
      * must hold the support of the kernel function around each point, at the
-     * present position of the point. For cell-centered data the support must lie
-     * within the ghost cells of the patch that holds the point. For side-centered
-     * data it must also not reach the outermost layer of ghost sides of that
-     * patch, because a value there cannot be summed into a patch that is
-     * separated from the patch by exactly the ghost cell width (the accumulation
-     * emits an error for such a value). The function emits an error if the ghost
-     * cell width of the data is less than LEInteractor::getMinimumGhostWidth()
-     * of the kernel function. That width holds the support of a point that has
-     * moved up to one cell outside the patch box that holds it if the stencil
-     * size of the kernel function is even. If the stencil size is odd, it does so
-     * for side-centered data only up to half a cell.
+     * present position of the point: the support must lie within the ghost
+     * cells of the patch that holds the point. The function emits an error if
+     * the ghost cell width of the data is less than
+     * LEInteractor::getMinimumGhostWidth() of the kernel function. That width
+     * holds the support of a point that has moved up to one cell outside the
+     * patch box that holds it.
      * The patches of each level that holds Lagrangian data must be at least as
      * wide as the ghost cell width of the data in every direction in which the
      * level has patches next to each other or is periodic (see

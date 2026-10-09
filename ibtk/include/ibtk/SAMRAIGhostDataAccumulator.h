@@ -46,7 +46,10 @@ class RobinPhysBdryPatchStrategy;
  * the ghost data box of p that lies in the interior data box of another patch q
  * of the same level is owned by q. The interior data box of q is the patch box
  * of q for cell-centered data and the side boxes of the patch box of q for
- * side-centered data, which include the sides on the boundary of q. Periodic
+ * side-centered data, which include the sides on the boundary of q. For
+ * side-centered data, the sides on the outermost layer of the ghost side box of
+ * p can be on the boundary of a patch q that has no cell in common with the
+ * ghost cell box of p; such a side is owned by q, too. Periodic
  * boundaries are taken into account: a location is identified with its periodic
  * images, and p and q may be the same patch if its ghost region overlaps its own
  * periodic image.
@@ -62,16 +65,6 @@ class RobinPhysBdryPatchStrategy;
  * are in the interior data box of no patch of the level are not summed
  * anywhere: these are ghost cells at a coarse-fine interface that no patch of
  * the same level covers and locations outside the physical domain.
- *
- * Side-centered data have one case that cannot be accumulated. A side on the
- * outermost layer of the ghost side box of a patch p can be a side on the
- * boundary of a patch q that has no cell in common with the ghost cell box of p
- * (q is separated from p by exactly the ghost cell width). The communication
- * pattern of the level does not connect p to q, so the value of p at that side
- * cannot be added to the value of q. An accumulation emits an error if such a
- * value is not zero. Values that are spread with a regularized delta function
- * whose support lies within the ghost region of the data are zero there.
- * Cell-centered data do not have this case.
  *
  * The patches of a level must be at least as wide as the ghost cell width in
  * every direction in which the level has patches next to each other or is

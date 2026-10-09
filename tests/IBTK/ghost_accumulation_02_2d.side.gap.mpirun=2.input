@@ -3,7 +3,6 @@
 var_type = "SIDE"
 ghost_width = 2
 depth = 2
-undeliverable_side_value = 0.0
 
 Main {
    log_file_name = "output"

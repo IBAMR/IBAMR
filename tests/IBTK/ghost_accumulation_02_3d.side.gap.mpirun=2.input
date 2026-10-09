@@ -1,4 +1,4 @@
-// one level, periodic in z, side-centered data with Dirichlet and Neumann conditions
+// two levels with patches on the finer level separated by the ghost width, periodic in z
 
 var_type = "SIDE"
 ghost_width = 2
@@ -18,7 +18,7 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels = 1
+   max_levels = 2
    ratio_to_coarser    {level_1 = 2, 2, 2}
    largest_patch_size  {level_0 = 4, 4, 4}
    smallest_patch_size {level_0 = 2, 2, 2}
@@ -30,6 +30,8 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
+      level_0 = [(1, 1, 1), (2, 4, 3)],
+                [(4, 1, 1), (5, 4, 3)]
    }
 }
 

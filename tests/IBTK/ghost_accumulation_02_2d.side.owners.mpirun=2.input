@@ -1,8 +1,9 @@
-// one level, periodic in x with patches that span the period, side-centered data with Dirichlet and Neumann conditions
+// one level of patches exactly as wide as the ghost width, so that a side on the outermost layer of a ghost region is
+// owned by two patches, periodic in x
 
 var_type = "SIDE"
-ghost_width = 2
-depth = 1
+ghost_width = 3
+depth = 2
 
 Main {
    log_file_name = "output"
@@ -11,7 +12,7 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes       = [(0,0), (15,15)]
+   domain_boxes       = [(0,0), (17,17)]
    x_lo               = 0, 0
    x_up               = 1, 1
    periodic_dimension = 1, 0
@@ -20,8 +21,9 @@ CartesianGeometry {
 GriddingAlgorithm {
    max_levels = 1
    ratio_to_coarser    {level_1 = 2, 2}
-   largest_patch_size  {level_0 = 16, 8}
-   smallest_patch_size {level_0 = 2, 2}
+   largest_patch_size  {level_0 = 3, 3}
+   smallest_patch_size {level_0 = 3, 3}
+   allow_patches_smaller_than_ghostwidth = TRUE
 
    efficiency_tolerance = 0.70e0
    combine_efficiency   = 0.85e0
