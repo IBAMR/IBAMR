@@ -1,0 +1,3 @@
+Fixed: IBAMR::IBStandardSourceGen writes and reads restart files when no sources are registered or no level data are initialized. It took the address of the first entry of empty arrays and asked SAMRAI to write zero-length arrays, which SAMRAI refuses.
+<br>
+(Boyce Griffith, 2026/10/09)
