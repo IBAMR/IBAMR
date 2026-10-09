@@ -3536,10 +3536,13 @@ IIMethod::putToDatabase(Pointer<Database> db)
 {
     db->putInteger("IIM_VERSION", IIM_VERSION);
     const int dt_old_arr_size = static_cast<int>(d_dt_old.size());
-    Array<double> dt_old_arr(dt_old_arr_size);
-    std::copy(d_dt_old.begin(), d_dt_old.end(), dt_old_arr.getPointer());
     db->putInteger("dt_old_arr_size", dt_old_arr_size);
-    if (!d_dt_old.empty()) db->putDoubleArray("dt_old_arr", dt_old_arr);
+    if (!d_dt_old.empty())
+    {
+        Array<double> dt_old_arr(dt_old_arr_size);
+        std::copy(d_dt_old.begin(), d_dt_old.end(), dt_old_arr.getPointer());
+        db->putDoubleArray("dt_old_arr", dt_old_arr);
+    }
     return;
 } // putToDatabase
 

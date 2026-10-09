@@ -1,0 +1,3 @@
+Fixed: IBAMR::IIMethod writes its restart data when the time-step history is empty, which is the case for all runs that do not use BDF2. It previously aborted when it wrote a restart file in a build with SAMRAI assertions enabled.
+<br>
+(Boyce Griffith, 2026/10/09)
