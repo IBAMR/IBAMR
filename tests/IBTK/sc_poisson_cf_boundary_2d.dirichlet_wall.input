@@ -1,0 +1,54 @@
+// Fine patch across the domain width, with nonzero Dirichlet data on the walls.
+bc_type = "DIRICHLET"
+solver_db {
+   ksp_type = "gmres"
+   pc_type = "bjacobi"
+   rel_residual_tol = 1.0e-14
+   max_iterations = 2000
+   initial_guess_nonzero = FALSE
+}
+test {
+   f_data_type = "CELL"
+   n_components = 1
+   ghost_width = 1
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz"
+   visit_number_procs_per_file = 1
+}
+N = 16
+CartesianGeometry {
+   domain_boxes = [(0, 0), (N - 1, N - 1)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 0, 0
+}
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = N, N
+      level_1 = 64, 64
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+      level_1 = 4, 4
+   }
+   efficiency_tolerance = 0.99
+   combine_efficiency = 0.99
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0, 4), (15, 11)]
+   }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
