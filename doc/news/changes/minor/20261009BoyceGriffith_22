@@ -1,0 +1,3 @@
+Fixed: IBTK::SCLaplaceOperator and IBTK::VCSCViscousOperator override modifyRhsForBcs() and imposeSolBcs(), so that Krylov solvers using them converge and return the prescribed values when the normal component is prescribed on a physical boundary.
+<br>
+(Boyce Griffith, 2026/10/09)
