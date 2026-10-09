@@ -6,4 +6,6 @@ bcast test passed.
 send and recv test passed.
 all gather test passed.
 minMaxReduction: 0 7
+minMaxReduction of ints: -2147483648 2147483647 0 2147483647 -2147483648 -1
+minMaxReduction of unsigned ints: 1 4294967295 4294967295 7
 sumReduction of several arrays: 28 8 56

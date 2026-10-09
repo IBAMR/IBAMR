@@ -102,6 +102,30 @@ main(int argc, char* argv[])
     IBTK::IBTK_MPI::minMaxReduction(&x_min, &x_max);
     if (!rank) output_file << "minMaxReduction: " << x_min << " " << x_max << "\n";
 
+    // Integer reductions must be correct for the extreme values of the type.
+    // In the last entry the largest value is small and one rank holds the
+    // lowest value.
+    const int i_lowest = std::numeric_limits<int>::lowest(), i_highest = std::numeric_limits<int>::max();
+    int i_min[3] = { rank == num_nodes - 1 ? i_lowest : rank, i_highest, rank };
+    int i_max[3] = { rank == 0 ? i_highest : -rank, i_lowest, rank == 0 ? i_lowest : -rank };
+    IBTK::IBTK_MPI::minMaxReduction(i_min, i_max, 3);
+    if (!rank)
+    {
+        output_file << "minMaxReduction of ints: " << i_min[0] << " " << i_min[1] << " " << i_min[2] << " " << i_max[0]
+                    << " " << i_max[1] << " " << i_max[2] << "\n";
+    }
+
+    const unsigned int u_highest = std::numeric_limits<unsigned int>::max();
+    unsigned int u_min[2] = { static_cast<unsigned int>(rank) + 1u, u_highest };
+    unsigned int u_max[2] = { rank == 0 ? u_highest : static_cast<unsigned int>(rank),
+                              static_cast<unsigned int>(rank) };
+    IBTK::IBTK_MPI::minMaxReduction(u_min, u_max, 2);
+    if (!rank)
+    {
+        output_file << "minMaxReduction of unsigned ints: " << u_min[0] << " " << u_min[1] << " " << u_max[0] << " "
+                    << u_max[1] << "\n";
+    }
+
     int a[2] = { rank, 1 }, b = 2 * rank;
     IBTK::IBTK_MPI::sumReduction<int>({ { a, 2 }, { &b, 1 } });
     if (!rank) output_file << "sumReduction of several arrays: " << a[0] << " " << a[1] << " " << b << "\n";

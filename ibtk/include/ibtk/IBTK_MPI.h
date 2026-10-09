@@ -160,7 +160,7 @@ struct IBTK_MPI
 
     /**
      * Perform a min reduction on the array \p x_min and a max reduction on the array \p x_max, each of
-     * length \p n, with one MPI call. The type must be double, int, or float.
+     * length \p n, with one MPI call. The type must be double, float, int, unsigned int, or char.
      */
     template <typename T>
     static void minMaxReduction(T* x_min, T* x_max, const int n = 1);
