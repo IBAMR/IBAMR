@@ -1247,7 +1247,15 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         d_convective_op->setSolutionTime(current_time);
         d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        if (is_multistep_time_stepping_type(d_convective_time_stepping_type))
+        if (convective_time_stepping_type == ADAMS_BASHFORTH)
+        {
+            // setupSolverVectors() computes the extrapolated convective term
+            // from the data with indices d_N_old_new_idx and
+            // d_N_old_current_idx, so the data of d_N_vec do not need to keep
+            // this value.
+            d_hier_sc_data_ops->swapData(d_N_old_new_idx, N_idx);
+        }
+        else if (is_multistep_time_stepping_type(d_convective_time_stepping_type))
         {
             d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
         }
@@ -1429,7 +1437,8 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
     if (!d_creeping_flow)
     {
         const TimeSteppingType convective_time_stepping_type = getConvectiveTimeSteppingType(cycle_num);
-        if (cycle_num > 0)
+        if (cycle_num > 0 &&
+            (convective_time_stepping_type == MIDPOINT_RULE || convective_time_stepping_type == TRAPEZOIDAL_RULE))
         {
             const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
             double apply_time = std::numeric_limits<double>::quiet_NaN();
@@ -1466,7 +1475,7 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
                 beta1 = 1.0 + 0.5 * omega;
                 beta2 = -0.5 * omega;
             }
-            d_hier_sc_data_ops->linearSum(N_idx, beta1, N_idx, beta2, d_N_old_current_idx);
+            d_hier_sc_data_ops->linearSum(N_idx, beta1, d_N_old_new_idx, beta2, d_N_old_current_idx);
         }
 
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
@@ -1499,6 +1508,8 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
     }
 
     // Account for internal source/sink distributions.
+    const int U_sol_idx = sol_vec->getComponentDescriptorIndex(0);
+    bool U_sol_is_set = false;
     if (d_Q_fcn)
     {
         if (is_bdf_time_stepping_type(d_viscous_time_stepping_type))
@@ -1532,7 +1543,11 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
                 }
                 else
                 {
+                    // If sol_vec stores its velocity in d_U_scratch_idx, then
+                    // this copy also sets it to the most recent approximation
+                    // to u(n+1).
                     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
+                    U_sol_is_set = U_sol_idx == d_U_scratch_idx;
                 }
             }
             else
@@ -1575,8 +1590,10 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
 
     // Set solution components to equal most recent approximations to u(n+1) and
     // p(n+1/2).
-    d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0),
-                                 (cycle_num == 0) ? d_U_current_idx : d_U_new_idx);
+    if (!U_sol_is_set)
+    {
+        d_hier_sc_data_ops->copyData(U_sol_idx, (cycle_num == 0) ? d_U_current_idx : d_U_new_idx);
+    }
     d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1),
                                  (cycle_num == 0) ? d_P_current_idx : d_P_new_idx);
 
@@ -2415,8 +2432,16 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
 
         d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
         d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
-        d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
         d_P_rhs_vec = d_P_scratch_vec->cloneVector(d_object_name + "::P_rhs_vec");
+
+        // The data of d_N_vec are swapped with the data with index
+        // d_N_old_new_idx, which have no ghost cells, so clone d_N_vec from
+        // data without ghost cells. The new velocity data are the template
+        // because d_N_old_var is registered only for multistep convective
+        // time stepping schemes.
+        SAMRAIVectorReal<NDIM, double> U_new_vec(d_object_name + "::U_new_vec", d_hierarchy, coarsest_ln, finest_ln);
+        U_new_vec.addComponent(d_U_var, d_U_new_idx, wgt_sc_idx, d_hier_sc_data_ops);
+        d_N_vec = U_new_vec.cloneVector(d_object_name + "::N_vec");
 
         d_sol_vec =
             new SAMRAIVectorReal<NDIM, double>(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
