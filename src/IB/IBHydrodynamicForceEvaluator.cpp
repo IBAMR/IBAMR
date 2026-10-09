@@ -145,23 +145,31 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
             double num_cells_lower = (box_X_lower[d] - grid_X_lower[d]) / dx_coarsest[d];
             double num_cells_upper = (box_X_upper[d] - grid_X_lower[d]) / dx_coarsest[d];
 
-            if (!IBTK::rel_equal_eps(num_cells_lower, floor(num_cells_lower)))
+            // A face is aligned with the grid when its position in cells is an integer. That position is
+            // dimensionless, so its distance from the nearest integer is compared with an absolute tolerance. A
+            // face that is not aligned moves outward, so that the box grows and still contains the structure.
+            // Each face is then placed at the coordinate of its side. For an aligned face that changes the
+            // coordinate by rounding error at most, but the cell indices of the box are computed from the
+            // coordinates by rounding down, and a face slightly below its side would give the cell below it.
+            const bool lower_is_aligned = IBTK::abs_equal_eps(num_cells_lower, std::round(num_cells_lower));
+            if (!lower_is_aligned)
             {
                 TBOX_WARNING("Lower side of integration box is not aligned with sides on coarsest level in dimension "
-                             << d << ". Modifying coordinate to nearest box side\n");
-                const int N = floor(num_cells_lower);
-                box_X_lower[d] = grid_X_lower[d] + dx_coarsest[d] * N;
+                             << d << ". Moving it down to the nearest side below it\n");
                 modified_box = true;
             }
+            const double side_lower = lower_is_aligned ? std::round(num_cells_lower) : std::floor(num_cells_lower);
+            box_X_lower[d] = grid_X_lower[d] + dx_coarsest[d] * side_lower;
 
-            if (!IBTK::rel_equal_eps(num_cells_upper, floor(num_cells_upper)))
+            const bool upper_is_aligned = IBTK::abs_equal_eps(num_cells_upper, std::round(num_cells_upper));
+            if (!upper_is_aligned)
             {
                 TBOX_WARNING("Upper side of integration box is not aligned with sides on coarsest level in dimension "
-                             << d << ". Modifying coordinate to nearest box side\n");
-                const int N = ceil(num_cells_upper);
-                box_X_upper[d] = grid_X_lower[d] + dx_coarsest[d] * N;
+                             << d << ". Moving it up to the nearest side above it\n");
                 modified_box = true;
             }
+            const double side_upper = upper_is_aligned ? std::round(num_cells_upper) : std::ceil(num_cells_upper);
+            box_X_upper[d] = grid_X_lower[d] + dx_coarsest[d] * side_upper;
         }
 
         if (modified_box)
