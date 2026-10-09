@@ -17,11 +17,19 @@
 Before publishing, from the top-level directory of IBAMR:
 
     scripts/maintenance/check_pull_request.py [--base REF]
-        [--title TITLE] [--body FILE]
+        [--title TITLE] [--body FILE] [--compiler-check BUILD_DIRECTORY]
 
 checks the commits on the current branch that are not on REF (default:
 origin/master; for a stacked branch, give the branch it is based on). With
---title and --body it also checks the intended title and description.
+--title and --body it also checks the intended title and description. With
+--compiler-check it also compiles the changed C++ sources, syntax only, with
+the compiler family that BUILD_DIRECTORY does not use: GCC if it was configured
+with Clang, Clang if it was configured with GCC. The include paths and
+definitions come from BUILD_DIRECTORY/compile_commands.json (configure with
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON). The hosted builds use GCC on Linux and
+Clang on macOS and treat warnings as errors, and each compiler reports
+problems that the other does not. The check is skipped, with a note, when no
+such compiler or no compilation database is found.
 
 For a pull request that already exists:
 
@@ -37,6 +45,8 @@ The script reports:
                same change
   comments     added comment lines containing development history or working
                shorthand, and added uses of typeid
+  compiler     with --compiler-check, errors and warnings that the other
+               compiler reports for the changed C++ sources
 
 This is a screen, not a review. It cannot judge whether a comment is clear or
 whether a test case is needed, and a reported line may be legitimate. The exit
@@ -47,7 +57,10 @@ import argparse
 import collections
 import hashlib
 import json
+import os
 import re
+import shlex
+import shutil
 import subprocess
 import sys
 
@@ -223,6 +236,150 @@ def check_comments(files):
     return notes
 
 
+# The warning flags of the hosted builds for each compiler family. Warnings are
+# reported, not promoted to errors, so that every one is listed.
+COMPILER_FLAGS = {
+    "GCC": ("-Wall", "-Wextra", "-Wpedantic", "-Wno-deprecated-declarations"),
+    "Clang": ("-Wall", "-Wextra", "-Wpedantic", "-Wmost", "-Wmove", "-Wunused"),
+}
+COMPILER_NAMES = {
+    "GCC": ("g++-15", "g++-14", "g++-13", "g++-12", "g++-11", "g++"),
+    "Clang": ("clang++", "clang++-20", "clang++-19", "clang++-18", "clang++-17"),
+}
+
+
+def compiler_family(compiler):
+    """Return "GCC", "Clang", or None for a compiler or compiler wrapper.
+
+    The name does not decide: g++ is Clang on macOS, and an MPI wrapper can be
+    either.
+    """
+    path = shutil.which(compiler)
+    if path is None:
+        return None
+    version = subprocess.run(
+        [path, "--version"], capture_output=True, text=True
+    ).stdout
+    if "Free Software Foundation" in version:
+        return "GCC"
+    if "clang" in version.lower():
+        return "Clang"
+    return None
+
+
+def command_tokens(entry):
+    if "arguments" in entry:
+        return list(entry["arguments"])
+    return shlex.split(entry["command"])
+
+
+def other_compiler(entries):
+    """Return (compiler, family) of the family the build does not use."""
+    build_family = None
+    for token in command_tokens(entries[0])[:3]:
+        if token.startswith("-"):
+            break
+        build_family = compiler_family(token) or build_family
+    if build_family is None:
+        return None, "the compiler of the build directory is neither GCC nor Clang"
+    family = "Clang" if build_family == "GCC" else "GCC"
+    for name in COMPILER_NAMES[family]:
+        if compiler_family(name) == family:
+            return shutil.which(name), family
+    return None, f"the build uses {build_family} and no {family} compiler was found"
+
+
+def compiler_arguments(entry, top, build_directory):
+    """Return the definitions and include paths of one compilation command.
+
+    Warning and code generation options are dropped because they were written
+    for another compiler. Include directories outside the IBAMR sources and the
+    build directory, and bundled third-party sources, become system include
+    directories so that only IBAMR code is diagnosed.
+    """
+    tokens = command_tokens(entry)
+    arguments = []
+    label = ""
+    index = 1
+    while index < len(tokens):
+        token = tokens[index]
+        index += 1
+        if token in ("-I", "-isystem", "-D", "-U", "-include"):
+            value = tokens[index]
+            index += 1
+        elif token[:2] in ("-I", "-D", "-U"):
+            token, value = token[:2], token[2:]
+        elif token.startswith("-std="):
+            arguments.append(token)
+            continue
+        else:
+            continue
+        if token == "-I":
+            path = os.path.normpath(os.path.join(entry["directory"], value))
+            ours = (
+                path.startswith(top + os.sep) and "contrib" not in path
+            ) or path.startswith(build_directory + os.sep)
+            arguments += ["-I" if ours else "-isystem", path]
+        else:
+            arguments += [token, value]
+            if token == "-D" and value.startswith("NDIM="):
+                label = value
+    return arguments, label
+
+
+def check_compiler(files, build_directory, compiler):
+    """Return (notes, reason the check was skipped or None)."""
+    build_directory = os.path.abspath(build_directory)
+    database = os.path.join(build_directory, "compile_commands.json")
+    if not os.path.exists(database):
+        return [], f"{database} does not exist"
+    top = run("git", "rev-parse", "--show-toplevel").strip()
+    sources = {
+        os.path.join(top, path): path
+        for path in files
+        if path.endswith(".cpp") and os.path.exists(os.path.join(top, path))
+    }
+    if not sources:
+        return [], None
+    with open(database) as database_file:
+        entries = [
+            entry for entry in json.load(database_file)
+            if os.path.normpath(os.path.join(entry["directory"], entry["file"]))
+            in sources
+        ]
+    if not entries:
+        return [], f"{database} lists none of the changed C++ sources"
+    if compiler is None:
+        compiler, family = other_compiler(entries)
+        if compiler is None:
+            return [], family
+    else:
+        family = compiler_family(compiler)
+        if family is None:
+            return [], f"{compiler} is neither GCC nor Clang"
+        compiler = shutil.which(compiler)
+    notes = []
+    seen = set()
+    for entry in entries:
+        source = os.path.normpath(os.path.join(entry["directory"], entry["file"]))
+        arguments, label = compiler_arguments(entry, top, build_directory)
+        if (source, label) in seen:
+            continue
+        seen.add((source, label))
+        result = subprocess.run(
+            [compiler, "-fsyntax-only", *COMPILER_FLAGS[family], *arguments, source],
+            capture_output=True, text=True,
+        )
+        for line in result.stderr.splitlines():
+            if " error: " in line or " warning: " in line:
+                where = f" ({family}, {label})" if label else f" ({family})"
+                notes.append(line.replace(top + os.sep, "") + where)
+    missing = sorted(set(sources.values()) - {sources[s] for s, _ in seen})
+    for path in missing:
+        notes.append(f"{path}: not in {database}, so not compiled")
+    return notes, None
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -232,6 +389,15 @@ def main():
     parser.add_argument("--body", help="file containing the description")
     parser.add_argument("--pr", type=int, help="number of an existing PR")
     parser.add_argument("--repo", default="IBAMR/IBAMR")
+    parser.add_argument(
+        "--compiler-check", metavar="BUILD_DIRECTORY",
+        help="also compile the changed C++ sources, syntax only, with the "
+        "compiler family the build directory does not use",
+    )
+    parser.add_argument(
+        "--compiler", help="compiler for --compiler-check, in place of the "
+        "one found automatically",
+    )
     args = parser.parse_args()
 
     labels = None
@@ -259,11 +425,22 @@ def main():
     files = parse_diff(diff)
     summary, test_notes = count_tests(files)
     print(summary)
+    compiler_notes = []
+    if args.compiler_check is not None:
+        if args.pr is not None:
+            skipped = "it needs the branch checked out; do not use --pr"
+        else:
+            compiler_notes, skipped = check_compiler(
+                files, args.compiler_check, args.compiler
+            )
+        if skipped is not None:
+            print(f"compiler: skipped: {skipped}")
     failed = False
     for section, notes in (
         ("description", check_description(title, body, labels, base)),
         ("tests", test_notes),
         ("comments", check_comments(files)),
+        ("compiler", compiler_notes),
     ):
         for note in notes:
             print(f"{section}: {note}")
