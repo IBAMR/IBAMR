@@ -2673,28 +2673,37 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM>> hie
         // Tag all cells that correspond to elements that should be on finer
         // element levels.
         updateQuadPointCountData(level_number + 1, d_hierarchy->getFinestLevelNumber());
-        const auto qp_scratch_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_qp_count_idx);
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
-            d_hierarchy, level_number, d_hierarchy->getFinestLevelNumber());
-        hier_cc_data_ops.setToScalar(qp_scratch_idx, 0.0);
 
-        // The semantics of d_qp_count_idx are slightly abused here: since we
-        // need to tag cells for refinement whenever they contain a quadrature
-        // point on a finer level, the values (after this loop) in that index
-        // correspond to all quadrature points on finer levels.
-        for (int finer_ln = d_hierarchy->getFinestLevelNumber(); finer_ln > level_number; --finer_ln)
+        // The hierarchy can have levels that are finer than the finest level
+        // with elements, for example when cells are also tagged by another
+        // criterion. Those levels have no quadrature points, and the scratch
+        // data are only available up to the finest level with elements.
+        const int finest_elem_ln = std::min(d_hierarchy->getFinestLevelNumber(), getFinestPatchLevelNumber());
+        if (level_number < finest_elem_ln)
         {
-            Pointer<PatchLevel<NDIM>> finer_level = d_hierarchy->getPatchLevel(finer_ln);
-            const int coarser_ln = finer_ln - 1;
-            TBOX_ASSERT(coarser_ln >= level_number);
-            Pointer<PatchLevel<NDIM>> coarser_level = d_hierarchy->getPatchLevel(coarser_ln);
-            Pointer<CoarsenOperator<NDIM>> coarsen_op = new CartesianCellDoubleWeightedAverage<NDIM>();
-            Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg = new CoarsenAlgorithm<NDIM>();
-            // Coarsen into the scratch index and then add that to the quadrature count.
-            coarsen_alg->registerCoarsen(qp_scratch_idx, d_qp_count_idx, coarsen_op);
-            coarsen_alg->createSchedule(coarser_level, finer_level)->coarsenData();
-            hier_cc_data_ops.resetLevels(coarser_ln, coarser_ln);
-            hier_cc_data_ops.add(d_qp_count_idx, d_qp_count_idx, qp_scratch_idx);
+            const auto qp_scratch_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_qp_count_idx);
+            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, level_number, finest_elem_ln);
+            hier_cc_data_ops.setToScalar(qp_scratch_idx, 0.0);
+
+            // The semantics of d_qp_count_idx are slightly abused here: since
+            // we need to tag cells for refinement whenever they contain a
+            // quadrature point on a finer level, the values (after this loop)
+            // in that index correspond to all quadrature points on finer
+            // levels.
+            for (int finer_ln = finest_elem_ln; finer_ln > level_number; --finer_ln)
+            {
+                Pointer<PatchLevel<NDIM>> finer_level = d_hierarchy->getPatchLevel(finer_ln);
+                const int coarser_ln = finer_ln - 1;
+                TBOX_ASSERT(coarser_ln >= level_number);
+                Pointer<PatchLevel<NDIM>> coarser_level = d_hierarchy->getPatchLevel(coarser_ln);
+                Pointer<CoarsenOperator<NDIM>> coarsen_op = new CartesianCellDoubleWeightedAverage<NDIM>();
+                Pointer<CoarsenAlgorithm<NDIM>> coarsen_alg = new CoarsenAlgorithm<NDIM>();
+                // Coarsen into the scratch index and then add that to the quadrature count.
+                coarsen_alg->registerCoarsen(qp_scratch_idx, d_qp_count_idx, coarsen_op);
+                coarsen_alg->createSchedule(coarser_level, finer_level)->coarsenData();
+                hier_cc_data_ops.resetLevels(coarser_ln, coarser_ln);
+                hier_cc_data_ops.add(d_qp_count_idx, d_qp_count_idx, qp_scratch_idx);
+            }
         }
 
         // Tag cells for refinement whenever they contain element quadrature

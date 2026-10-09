@@ -1,0 +1,3 @@
+Fixed: IBTK::FEDataManager::applyGradientDetector() no longer aborts when the patch hierarchy has a level that is finer than the finest level with elements, for example when cells are also tagged by another criterion.
+<br>
+(Boyce Griffith, 2026/10/08)
