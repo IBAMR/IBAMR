@@ -198,6 +198,16 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     }
     d_p_nullspace_idx = var_db->registerVariableAndContext(d_p_nullspace_var, d_context, NOGHOST);
 
+    // Construct the variable/index of the velocity that the velocity boundary conditions read.
+    d_u_bc_target_var = new SideVariable<NDIM, double>(object_name + "::u_bc_target_var");
+    if (var_db->checkVariableExists(d_u_bc_target_var->getName()))
+    {
+        d_u_bc_target_var = var_db->getVariable(d_u_bc_target_var->getName());
+        d_u_bc_target_idx = var_db->mapVariableAndContextToIndex(d_u_bc_target_var, d_context);
+        var_db->removePatchDataIndex(d_u_bc_target_idx);
+    }
+    d_u_bc_target_idx = var_db->registerVariableAndContext(d_u_bc_target_var, d_context, SIDEG);
+
     return;
 } // StaggeredStokesPETScLevelSolver
 
@@ -245,6 +255,15 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     // Allocate DOF index data.
     if (!d_level->checkAllocated(d_u_dof_index_idx)) d_level->allocatePatchData(d_u_dof_index_idx);
     if (!d_level->checkAllocated(d_p_dof_index_idx)) d_level->allocatePatchData(d_p_dof_index_idx);
+    if (!d_level->checkAllocated(d_u_bc_target_idx))
+    {
+        d_level->allocatePatchData(d_u_bc_target_idx);
+    }
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        Pointer<SideData<NDIM, double>> u_bc_target_data = d_level->getPatch(p())->getPatchData(d_u_bc_target_idx);
+        u_bc_target_data->fillAll(0.0);
+    }
     StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
         d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
 
@@ -320,6 +339,10 @@ StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     // Deallocate DOF index data.
     if (d_level->checkAllocated(d_u_dof_index_idx)) d_level->deallocatePatchData(d_u_dof_index_idx);
     if (d_level->checkAllocated(d_p_dof_index_idx)) d_level->deallocatePatchData(d_p_dof_index_idx);
+    if (d_level->checkAllocated(d_u_bc_target_idx))
+    {
+        d_level->deallocatePatchData(d_u_bc_target_idx);
+    }
     return;
 } // deallocateSolverStateSpecialized
 
@@ -369,23 +392,48 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         f_adj_data->copy(*f_data);
         h_adj_data->copy(*h_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
-        // TODO: should we be using target data idx's here?
-        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-            d_U_bc_coefs, d_P_bc_coef, u_idx, p_idx, d_homogeneous_bc);
-        if (at_physical_bdry)
-        {
-            PoissonUtilities::adjustRHSAtPhysicalBoundary(
-                *f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs, d_solution_time, d_homogeneous_bc);
-            adjust_rhs_for_ghost_pressure(
-                *f_adj_data, *patch, d_U_bc_coefs, d_P_bc_coef, p_idx, d_solution_time, d_homogeneous_bc);
-            d_bc_helper->enforceNormalVelocityBoundaryConditions(
-                f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
-        }
         const Array<BoundaryBox<NDIM>>& type_1_cf_bdry = level_zero ?
                                                              Array<BoundaryBox<NDIM>>() :
                                                              d_cf_boundary->getBoundaries(patch->getPatchNumber(),
                                                                                           /* boundary type */ 1);
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
+
+        // A TRACTION condition for a tangential velocity depends on the normal velocity on the boundary. The matrix
+        // contains that dependence, so the boundary condition objects evaluate the right-hand side only from boundary
+        // data and read a velocity that holds zeros. The exception is a normal velocity that is not a degree of
+        // freedom of this level, which is a velocity in a ghost cell at a coarse-fine boundary: it is data, and the
+        // velocity that the objects read holds it.
+        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+            d_U_bc_coefs, d_P_bc_coef, d_u_bc_target_idx, p_idx, d_homogeneous_bc);
+        if (at_physical_bdry)
+        {
+            Pointer<SideData<NDIM, double>> u_bc_target_data = patch->getPatchData(d_u_bc_target_idx);
+            if (at_cf_bdry)
+            {
+                Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(d_u_dof_index_idx);
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator b(u_bc_target_data->getGhostBox()); b; b++)
+                    {
+                        const SideIndex<NDIM> is(b(), axis, SideIndex<NDIM>::Lower);
+                        if ((*u_dof_index_data)(is) < 0)
+                        {
+                            (*u_bc_target_data)(is) = (*u_data)(is);
+                        }
+                    }
+                }
+            }
+            PoissonUtilities::adjustRHSAtPhysicalBoundary(
+                *f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs, d_solution_time, d_homogeneous_bc);
+            if (at_cf_bdry)
+            {
+                u_bc_target_data->fillAll(0.0);
+            }
+            adjust_rhs_for_ghost_pressure(
+                *f_adj_data, *patch, d_U_bc_coefs, d_P_bc_coef, p_idx, d_solution_time, d_homogeneous_bc);
+            d_bc_helper->enforceNormalVelocityBoundaryConditions(
+                f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
+        }
         if (at_cf_bdry)
         {
             PoissonUtilities::adjustRHSAtCoarseFineBoundary(
