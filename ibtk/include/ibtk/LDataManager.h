@@ -46,18 +46,23 @@
 #include <RefineAlgorithm.h>
 #include <RefineSchedule.h>
 #include <StandardTagAndInitStrategy.h>
+#include <Variable.h>
 #include <VariableContext.h>
 #include <VisItDataWriter.h>
 
+#include <array>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
 namespace IBTK
 {
 class LData;
+class SAMRAIGhostDataAccumulator;
 class LMesh;
 class LNode;
 class RobinPhysBdryPatchStrategy;
@@ -265,6 +270,21 @@ public:
     const SAMRAI::hier::IntVector<NDIM>& getGhostCellWidth() const;
 
     /*!
+     * \brief Select whether spread() of cell-centered and side-centered data
+     * restricts the accumulation of ghost values to the patches that hold
+     * Lagrangian points. The default is true.
+     *
+     * If \a active_patches_only is true, only the patches that hold points
+     * take part in the transpose of the physical boundary fill and send their
+     * ghost values to the patches that own them. If it is false, every patch of
+     * the levels that hold Lagrangian data takes part. The results are the same
+     * unless the transpose of the physical boundary fill applied to the data of
+     * a patch without points leaves them nonzero (see
+     * SAMRAIGhostDataAccumulator::accumulateGhostData()).
+     */
+    void setAccumulateActivePatchesOnly(bool active_patches_only);
+
+    /*!
      * \brief Return the default kernel function associated with the
      * Eulerian-to-Lagrangian interpolation scheme.
      */
@@ -288,6 +308,33 @@ public:
      *
      * This is the standard regularized delta function spreading operation,
      * which spreads densities, \em NOT values.
+     *
+     * Cell-centered and side-centered data are spread as follows. Each
+     * Lagrangian point is spread once, at its present position, by the patch
+     * whose patch box contains its index cell, into the data of that patch
+     * including its ghost cells. After the transpose of the physical boundary
+     * fill of \a f_phys_bdry_op, if it is not null, the values in ghost cells
+     * are summed into the patches that own them. The ghost cells of the data
+     * must hold the support of the kernel function around each point, at the
+     * present position of the point. For cell-centered data the support must lie
+     * within the ghost cells of the patch that holds the point. For side-centered
+     * data it must also not reach the outermost layer of ghost sides of that
+     * patch, because a value there cannot be summed into a patch that is
+     * separated from the patch by exactly the ghost cell width (the accumulation
+     * emits an error for such a value). The function emits an error if the ghost
+     * cell width of the data is less than LEInteractor::getMinimumGhostWidth()
+     * of the kernel function. That width holds the support of a point that has
+     * moved up to one cell outside the patch box that holds it if the stencil
+     * size of the kernel function is even. If the stencil size is odd, it does so
+     * for side-centered data only up to half a cell.
+     * The patches of each level that holds Lagrangian data must be at least as
+     * wide as the ghost cell width of the data in every direction in which the
+     * level has patches next to each other or is periodic (see
+     * SAMRAIGhostDataAccumulator); the function emits an error otherwise. The
+     * values in the ghost cells of \a f_data_idx are not modified.
+     * Edge-centered and node-centered data are spread by every patch from all
+     * points whose index cell lies in the ghost region of the Lagrangian index
+     * data, and only the values in patch interiors are kept.
      */
     void spread(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
@@ -314,6 +361,9 @@ public:
      *
      * This is the standard regularized delta function spreading operation,
      * which spreads densities, \em NOT values.
+     *
+     * Cell-centered, side-centered, edge-centered and node-centered data are
+     * spread as described for the first overload of spread().
      */
     void spread(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
@@ -341,6 +391,9 @@ public:
      *
      * This is the standard regularized delta function spreading operation,
      * which spreads densities, \em NOT values.
+     *
+     * Cell-centered, side-centered, edge-centered and node-centered data are
+     * spread as described for the first overload of spread().
      */
     void spread(int f_data_idx,
                 std::vector<SAMRAI::tbox::Pointer<LData>>& F_data,
@@ -368,6 +421,9 @@ public:
      *
      * This is the standard regularized delta function spreading operation,
      * which spreads densities, \em NOT values.
+     *
+     * Cell-centered, side-centered, edge-centered and node-centered data are
+     * spread as described for the first overload of spread().
      */
     void spread(int f_data_idx,
                 std::vector<SAMRAI::tbox::Pointer<LData>>& F_data,
@@ -396,6 +452,9 @@ public:
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operation spreads values, \em NOT densities.
+     *
+     * Cell-centered, side-centered, edge-centered and node-centered data are
+     * spread as described for the first overload of spread().
      */
     void spread(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
@@ -420,6 +479,9 @@ public:
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operation spreads values, \em NOT densities.
+     *
+     * Cell-centered, side-centered, edge-centered and node-centered data are
+     * spread as described for the first overload of spread().
      */
     void spread(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
@@ -445,6 +507,9 @@ public:
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operation spreads values, \em NOT densities.
+     *
+     * Cell-centered, side-centered, edge-centered and node-centered data are
+     * spread as described for the first overload of spread().
      */
     void spread(int f_data_idx,
                 std::vector<SAMRAI::tbox::Pointer<LData>>& F_data,
@@ -470,6 +535,9 @@ public:
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operation spreads values, \em NOT densities.
+     *
+     * Cell-centered, side-centered, edge-centered and node-centered data are
+     * spread as described for the first overload of spread().
      */
     void spread(int f_data_idx,
                 std::vector<SAMRAI::tbox::Pointer<LData>>& F_data,
@@ -1061,6 +1129,17 @@ private:
     void scatterData(Vec& lagrangian_vec, Vec& petsc_vec, int level_number, ScatterMode mode) const;
 
     /*!
+     * \brief Return the object that sums the values that spread() puts in ghost
+     * cells of the data with the given variable and ghost cell width on the
+     * given range of levels into the patches that own them, creating it if it
+     * does not exist.
+     */
+    SAMRAIGhostDataAccumulator& getGhostDataAccumulator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>>& var,
+                                                        const SAMRAI::hier::IntVector<NDIM>& gcw,
+                                                        int coarsest_ln,
+                                                        int finest_ln);
+
+    /*!
      * \brief Begin the process of refilling nonlocal Lagrangian quantities over
      * the specified range of levels in the patch hierarchy.
      *
@@ -1157,6 +1236,21 @@ private:
      * Cached Eulerian data to reduce the number of allocations/deallocations.
      */
     SAMRAIDataCache d_cached_eulerian_data;
+
+    /*
+     * Whether spread() restricts the accumulation of ghost values to the
+     * patches that hold Lagrangian points.
+     */
+    bool d_accumulate_active_patches_only = true;
+
+    /*
+     * Objects that sum ghost values into their owners in spread(), by variable,
+     * ghost cell width and range of levels. They are valid for one
+     * configuration of the patches and are destroyed when it changes.
+     */
+    std::map<std::tuple<const SAMRAI::hier::Variable<NDIM>*, std::array<int, NDIM>, int, int>,
+             std::unique_ptr<SAMRAIGhostDataAccumulator>>
+        d_ghost_data_accumulators;
 
     /*
      * We cache a pointer to the visualization data writers to register plot

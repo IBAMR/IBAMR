@@ -15,6 +15,7 @@
 #include <ibtk/IBTK_MPI.h>
 
 #include <CartesianGridGeometry.h>
+#include <VariableDatabase.h>
 
 #include "LSLocateStructureInterface.h"
 
@@ -131,9 +132,42 @@ LSLocateStructureInterface::setLevelSetPatchDataBySpreading(int D_idx,
         VecSet(petsc_vec, 1.0 * d_vol_elem);
     }
 
+    // The ghost cells of the data that are spread into must hold the support of the kernel function, which the ghost
+    // cells of D_idx do not. Spread into data with the ghost cell width of the Lagrangian data manager and copy the
+    // patch interiors into D_idx.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM>> D_var;
+    var_db->mapIndexToVariable(D_idx, D_var);
+    Pointer<VariableContext> D_spread_context = var_db->getContext(d_object_name + "::D_SPREAD");
+    const int D_spread_idx =
+        var_db->registerVariableAndContext(D_var, D_spread_context, d_lag_data_manager->getGhostCellWidth());
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(D_spread_idx);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<CellData<NDIM, double>> D_spread_data = level->getPatch(p())->getPatchData(D_spread_idx);
+            D_spread_data->fill(0.0);
+        }
+    }
+
     std::vector<Pointer<LData>> PHI_data(finest_ln + 1, Pointer<LData>(nullptr));
     PHI_data[finest_ln] = lag_phi[finest_ln];
-    d_lag_data_manager->spread(D_idx, PHI_data, X_data, (RobinPhysBdryPatchStrategy*)nullptr);
+    d_lag_data_manager->spread(D_spread_idx, PHI_data, X_data, (RobinPhysBdryPatchStrategy*)nullptr);
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(D_idx);
+            Pointer<CellData<NDIM, double>> D_spread_data = patch->getPatchData(D_spread_idx);
+            D_data->getArrayData().copy(D_spread_data->getArrayData(), patch->getBox(), IntVector<NDIM>(0));
+        }
+        level->deallocatePatchData(D_spread_idx);
+    }
     return;
 } // setLevelSetPatchDataBySpreading
 

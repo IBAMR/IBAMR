@@ -14,6 +14,10 @@
 // Check that IB force spreading is the adjoint of IB velocity interpolation,
 // including the velocity boundary conditions at physical boundaries, on a level
 // with several patches: (F, J u) = (S F, u).
+//
+// Before the check, the markers are moved, without assigning them to patches
+// again, by marker_displacement grid cells along each axis (see
+// displace_markers).
 
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
@@ -104,6 +108,43 @@ generate_markers(const unsigned int& /*strct_num*/,
     num_vertices = static_cast<int>(vertex_posn.size());
     return;
 } // generate_markers
+
+// Markers may move up to one grid cell between the times at which they are
+// assigned to patches, and then lie outside the patches that hold them. Move
+// each marker by the given number of grid cells along each axis toward the
+// center of the domain, without assigning the markers to patches again, and
+// update the ghost values of the positions.
+void
+displace_markers(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                 Pointer<IBMethod> ib_method_ops,
+                 const double displacement)
+{
+    const int ln = patch_hierarchy->getFinestLevelNumber();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = patch_hierarchy->getGridGeometry();
+    const IntVector<NDIM>& ratio = patch_hierarchy->getPatchLevel(ln)->getRatio();
+    const double* const x_lower = grid_geom->getXLower();
+    const double* const x_upper = grid_geom->getXUpper();
+    const double* const dx_coarsest = grid_geom->getDx();
+    LDataManager* l_data_manager = ib_method_ops->getLDataManager();
+    Pointer<LData> X_data = l_data_manager->getLData("X", ln);
+    {
+        boost::multi_array_ref<double, 2>& X = *X_data->getLocalFormVecArray();
+        for (const auto& node : l_data_manager->getLMesh(ln)->getLocalNodes())
+        {
+            const int petsc_idx = node->getLocalPETScIndex();
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const double center = 0.5 * (x_lower[d] + x_upper[d]);
+                const double h = dx_coarsest[d] / ratio(d);
+                X[petsc_idx][d] += (X[petsc_idx][d] < center ? 1.0 : -1.0) * displacement * h;
+            }
+        }
+        X_data->restoreArrays();
+    }
+    X_data->beginGhostUpdate();
+    X_data->endGhostUpdate();
+    return;
+} // displace_markers
 
 // Register and allocate velocity data on the level, with the ghost width that the IB integrator registers: the ghost
 // width that the IB method needs, plus the stencil width of the velocity boundary operator if the divergence-free
@@ -334,6 +375,13 @@ main(int argc, char* argv[])
         const double current_time = ib_integrator->getIntegratorTime();
         ib_integrator->preprocessIntegrateHierarchy(
             current_time, current_time + ib_integrator->getMaximumTimeStepSize(), 1);
+        const double marker_displacement = input_db->getDouble("marker_displacement");
+        if (!(std::abs(marker_displacement) < 1.0))
+        {
+            TBOX_ERROR("marker_displacement = " << marker_displacement
+                                                << " must be less than one grid cell in magnitude\n");
+        }
+        displace_markers(patch_hierarchy, ib_method_ops, marker_displacement);
         check_interpolation_spreading_adjoint(
             patch_hierarchy, ins_integrator, ib_integrator, ib_method_ops, divergence_free_extension);
 

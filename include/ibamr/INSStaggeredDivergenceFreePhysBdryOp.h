@@ -92,8 +92,8 @@ namespace IBAMR
  * It adds each ghost value outside the domain to the values of the faces it depends on, which lie anywhere in the
  * ghost box of the patch data inside the domain, and sets it to zero. The caller combines the contributions to the
  * ghost cells inside the domain with those of the patches that own them. A ghost value that depends on a face outside
- * the ghost box of the patch data is not transposed and is left unchanged; a caller that can place nonzero values there
- * must transpose them on a patch whose data contain those faces.
+ * the ghost box of the patch data cannot be transposed; the function emits an error if such a value is not zero, so a
+ * caller must give the patch data a ghost width that keeps the values that it spreads away from those faces.
  *
  * \note The physical domain must be a single rectangular box, and the patch data must have depth one.
  */

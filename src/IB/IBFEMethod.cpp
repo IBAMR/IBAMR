@@ -1064,26 +1064,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
         }
     }
 
-    // Deal with force values spread outside the physical domain. Since these
-    // are spread into ghost regions that don't correspond to actual degrees
-    // of freedom they are ignored by the accumulation step - we have to
-    // handle this before we do that.
-    if (f_phys_bdry_op)
-    {
-        for (int ln = getCoarsestPatchLevelNumber(); ln <= getFinestPatchLevelNumber(); ++ln)
-        {
-            f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
-            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                const Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_scratch_data_idx);
-                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
-            }
-        }
-    }
-
-    // Accumulate forces spread into patch ghost regions.
+    // Apply the transpose of the physical boundary fill to the force values spread outside the physical domain and
+    // sum the values spread into patch ghost regions into the patches that own them.
     {
         if (!d_ghost_data_accumulator)
         {
@@ -1095,11 +1077,10 @@ IBFEMethod::spreadForce(const int f_data_idx,
             const IntVector<NDIM> gcw =
                 level->getPatchDescriptor()->getPatchDataFactory(f_scratch_data_idx)->getGhostCellWidth();
 
-            // TODO - SAMRAIGhostDataAccumulator has not been tested with multiple levels
             d_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(
                 hierarchy, f_var, gcw, getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber());
         }
-        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
+        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, f_phys_bdry_op, data_time);
     }
 
     // Prolong forces spread onto coarser levels onto finer levels.

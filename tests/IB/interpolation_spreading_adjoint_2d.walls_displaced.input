@@ -1,7 +1,7 @@
-// Walls on all boundaries.
+// Walls on all boundaries, with the markers displaced by 0.9 grid cells.
 N = 16
 MAX_LEVELS = 1
-marker_displacement = 0.0   // in grid cells along each axis, toward the center of the domain
+marker_displacement = 0.9   // markers lie outside the patches that hold them
 
 VelocityInitialConditions {
    function_0 = "0.0"

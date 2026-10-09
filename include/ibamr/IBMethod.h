@@ -89,6 +89,12 @@ namespace IBAMR
  * \brief Class IBMethod is an implementation of the abstract base class
  * IBImplicitStrategy that provides functionality required by the standard IB
  * method.
+ *
+ * The input database may contain the key
+ * <code>accumulate_active_patches_only</code> (default TRUE). It is passed to
+ * IBTK::LDataManager::setAccumulateActivePatchesOnly() and selects whether
+ * spreading restricts the accumulation of ghost values to the patches that hold
+ * Lagrangian points.
  */
 class IBMethod : public IBImplicitStrategy
 {
@@ -601,6 +607,7 @@ protected:
     IBTK::LDataManager* d_l_data_manager;
     std::string d_interp_kernel_fcn = "IB_4", d_spread_kernel_fcn = "IB_4";
     bool d_error_if_points_leave_domain = false;
+    bool d_accumulate_active_patches_only = true;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*
