@@ -1,0 +1,423 @@
+INSCollocatedHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 1
+INSCollocatedHierarchyIntegrator::regridProjection(): projection solve number of iterations = 7
+INSCollocatedHierarchyIntegrator::regridProjection(): projection solve residual norm        = 8.34761e-05
+
+
+Writing visualization files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.000488281], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
+INSCollocatedHierarchyIntegrator::regridProjection(): projection solve number of iterations = 6
+INSCollocatedHierarchyIntegrator::regridProjection(): projection solve residual norm        = 6.4657e-05
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 3.08981e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 7
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 1.59829e-10
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 1.03055e-12
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 6
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 3.23571e-11
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187448
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 0
+Simulation time is 0.000488281
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.000488281,0.000976562], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 8.52725e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 8
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 3.5621e-11
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187411
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 1
+Simulation time is 0.000976562
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 2
+Simulation time is 0.000976562
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.000976562,0.00146484], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 5.6763e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 6
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 8.68518e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.18736
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 2
+Simulation time is 0.00146484
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 3
+Simulation time is 0.00146484
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00146484,0.00195312], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 5.37011e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 2.20206e-11
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187306
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 3
+Simulation time is 0.00195312
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 4
+Simulation time is 0.00195312
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00195312,0.00244141], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 5.05862e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 1.60035e-11
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187244
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 4
+Simulation time is 0.00244141
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 5
+Simulation time is 0.00244141
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00244141,0.00292969], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 4.75444e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 1.22116e-11
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187175
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 5
+Simulation time is 0.00292969
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing visualization files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 6
+Simulation time is 0.00292969
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00292969,0.00341797], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 4.47058e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 1.04084e-11
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187098
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 6
+Simulation time is 0.00341797
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 7
+Simulation time is 0.00341797
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00341797,0.00390625], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 4.21472e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 8.65317e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187015
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 7
+Simulation time is 0.00390625
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 8
+Simulation time is 0.00390625
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00390625,0.00439453], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 3.97959e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 7.58944e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186927
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 8
+Simulation time is 0.00439453
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 9
+Simulation time is 0.00439453
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00439453,0.00488281], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 3.76413e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 7.82278e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186876
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 9
+Simulation time is 0.00488281
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 10
+Simulation time is 0.00488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00488281,0.00537109], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 3.56713e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 7.8739e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186822
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 10
+Simulation time is 0.00537109
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 11
+Simulation time is 0.00537109
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00537109,0.00585938], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 3.37791e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 7.75284e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186766
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 11
+Simulation time is 0.00585938
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing visualization files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 12
+Simulation time is 0.00585938
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00585938,0.00634766], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 3.21013e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 7.13459e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186708
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 12
+Simulation time is 0.00634766
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 13
+Simulation time is 0.00634766
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00634766,0.00683594], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 3.06845e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 6.42e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.18665
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 13
+Simulation time is 0.00683594
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 14
+Simulation time is 0.00683594
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00683594,0.00732422], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 2.94397e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 5.92146e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.18659
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 14
+Simulation time is 0.00732422
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 15
+Simulation time is 0.00732422
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00732422,0.0078125], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 2.83457e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 5.94471e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186544
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 15
+Simulation time is 0.0078125
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 16
+Simulation time is 0.0078125
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.0078125,0.00830078], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 2.73741e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 5.35738e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186501
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 16
+Simulation time is 0.00830078
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 17
+Simulation time is 0.00830078
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00830078,0.00878906], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 2.65052e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 4.53168e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186458
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 17
+Simulation time is 0.00878906
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing visualization files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 18
+Simulation time is 0.00878906
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00878906,0.00927734], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 2.5747e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 4.09059e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186414
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 18
+Simulation time is 0.00927734
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 19
+Simulation time is 0.00927734
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00927734,0.00976562], dt = 0.000488281
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 2
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 2.51048e-14
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 5
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 3.65554e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186368
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 19
+Simulation time is 0.00976562
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 20
+Simulation time is 0.00976562
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): time interval = [0.00976562,0.01], dt = 0.000234375
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve number of iterations = 1
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 6.94872e-11
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve number of iterations = 7
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 3.26079e-12
+INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0894468
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSCollocatedHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 20
+Simulation time is 0.01
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing visualization files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+Computing error norms.
+
+Error in u at time 0.01:
+  L1-norm:  0.03582682469
+  L2-norm:  0.04207514607
+  max-norm: 0.1760614113
+Error in p at time 0.0098828125:
+  L1-norm:  1.780861854e-10
+  L2-norm:  2.677864089e-10
+  max-norm: 1.335612869e-09
++++++++++++++++++++++++++++++++++++++++++++++++++++

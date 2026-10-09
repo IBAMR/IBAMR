@@ -1,0 +1,3 @@
+Fixed: User-specified coefficients are treated as zero (or one) only when they are exactly so in IBAMR::IBRedundantInitializer (boundary mass), IBAMR::IBStandardInitializer (stiffness warnings), IBAMR::IBFEMethod (Phi_epsilon), IBAMR::INSCollocatedHierarchyIntegrator (density) and the variable-coefficient staggered Navier-Stokes integrators (damping coefficient, condition number scaling). IBAMR::INSCollocatedHierarchyIntegrator also no longer changes the scaling of its projection when the time step size is smaller than about 1.5e-8.
+<br>
+(Boyce Griffith, 2026/10/05)

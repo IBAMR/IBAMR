@@ -1152,7 +1152,7 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
             const double K = spec.stiffness;
 
             // Avoid division by zero at massless nodes.
-            if (IBTK::abs_equal_eps(M, 0.0))
+            if (M == 0.0)
             {
                 M_array[local_petsc_idx] = std::numeric_limits<double>::epsilon();
                 K_array[local_petsc_idx] = 0.0;
