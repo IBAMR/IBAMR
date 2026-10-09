@@ -1,0 +1,48 @@
+// Two levels on a domain box whose lower index is -N/2 rather than zero.
+
+test {}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+
+}
+
+N = 32
+
+CartesianGeometry {
+   domain_boxes       = [(-N/2, -N/2), (N/2 - 1, N/2 - 1)]
+   x_lo               = -1, -1
+   x_up               = 1, 1
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+
+   ratio_to_coarser {level_1 = 4, 4}
+
+   // a few large patches per level keep the output short
+   largest_patch_size {level_0 = 32, 32}
+
+   smallest_patch_size {level_0 = 4, 4}
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(-N/4, -N/4), (N/4 - 1, N/4 - 1)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
