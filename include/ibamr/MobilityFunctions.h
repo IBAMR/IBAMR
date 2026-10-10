@@ -35,7 +35,7 @@ public:
      * \param kernel_name IB kernel function.
      * \note Supported IB kernels are "IB_3", "IB_4" and "IB_6".
      *
-     * \param mu Fluid density.
+     * \param mu Fluid viscosity.
      *
      * \param rho Fluid density.
      *
@@ -77,7 +77,7 @@ public:
      * \param kernel_name IB kernel function.
      * \note Supported IB kernels are "IB_3", "IB_4" and "IB_6".
      *
-     * \param mu Fluid density.
+     * \param mu Fluid viscosity.
      *
      * \param dx Cartesian grid spacing.
      *
