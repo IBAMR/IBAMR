@@ -88,6 +88,16 @@ namespace IBTK
  *   caller's responsibility to ensure that the supplied KSP object is properly
  *   destroyed via KSPDestroy().
  *
+ * When this class creates its own KSP object, a Richardson solve (KSP type
+ * "richardson") limited to one iteration (max_iterations = 1) uses the KSP norm
+ * type KSP_NORM_NONE: it applies one iteration with no convergence test, the
+ * converged reason is the iteration limit, solveSystem() returns true, and no
+ * residual norm is computed.  For any other solve the norm type is
+ * reset to the PETSc default before each solve, which replaces a norm type set
+ * on the KSP returned by getPETScKSP().  A norm type selected through the PETSc
+ * options database (<code>-ksp_norm_type</code> with the options prefix of the
+ * solver) takes precedence.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
