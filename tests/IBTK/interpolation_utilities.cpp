@@ -19,6 +19,7 @@
 #include <ibtk/IBOperatorBuilder.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/ib_kernel_dispatch.h>
@@ -420,8 +421,10 @@ check_matrix_assembly(Pointer<PatchLevel<NDIM>> level, Pointer<CartesianGridGeom
     }
     return 0;
 }
-// Build the matrix with the DOF index ghost width that the builder requires,
-// so that a stencil the builder under-reports fails inside the construction.
+// Compare the matrix of the builder with the matrix of the evaluator that the kernel name should select. This checks
+// the dispatch from a name to its evaluator; the kernel weights are checked in ib_kernel. Build the matrix with the DOF
+// index ghost width that the builder requires, so that a stencil the builder under-reports fails inside the
+// construction.
 template <class Evaluator>
 void
 compare_operator_builder(const IBOperatorBuilder& builder,
@@ -601,6 +604,32 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     {
         query_errors += IBOperatorBuilder::is_built_in(IBKernelTensorProduct(name));
     }
+    // The builder asks for the ghost width that LEInteractor asks for when the stencil size is even, and for one layer
+    // less when it is odd, because LEInteractor rounds the three- and five-point kernels up to the next even size.
+    int ghost_width_mismatches = 0;
+    std::string ghost_width_report;
+    for (const char* name : { "BSPLINE_3",
+                              "BSPLINE_4",
+                              "BSPLINE_6",
+                              "IB_3",
+                              "IB_4",
+                              "IB_5",
+                              "IB_6",
+                              "COMPOSITE_BSPLINE_2_3",
+                              "DISCONTINUOUS_LINEAR" })
+    {
+        const IBKernelTensorProduct kernel(name);
+        const int builder_width = IBOperatorBuilder(kernel).getMinimumGhostWidth();
+        const int interactor_width = LEInteractor::getMinimumGhostWidth(kernel);
+        const bool odd = std::string(name) == "BSPLINE_3" || std::string(name) == "IB_3" ||
+                         std::string(name) == "IB_5" || std::string(name) == "COMPOSITE_BSPLINE_2_3";
+        if (builder_width != interactor_width - (odd ? 1 : 0))
+        {
+            ++ghost_width_mismatches;
+            ghost_width_report += std::string(" ") + name + ": builder " + std::to_string(builder_width) +
+                                  ", LEInteractor " + std::to_string(interactor_width) + ";";
+        }
+    }
     ierr = VecDestroy(&X);
     IBTK_CHKERRQ(ierr);
     plog << "kernels compared = " << compared << '\n';
@@ -608,6 +637,11 @@ check_operator_builder(Pointer<PatchLevel<NDIM>> level)
     plog << "row length mismatches = " << row_length_mismatches << '\n';
     plog << "application kernel mismatches = " << application_mismatches << '\n';
     plog << "unsupported kernels reported built in = " << query_errors << '\n';
+    if (ghost_width_mismatches != 0)
+    {
+        TBOX_ERROR("The operator builder and LEInteractor report different ghost widths for "
+                   << ghost_width_mismatches << " kernels:" << ghost_width_report << "\n");
+    }
     if (matrix_mismatches + row_length_mismatches + application_mismatches + query_errors != 0)
     {
         TBOX_ERROR("Operator builder comparison failed; see the printed mismatch counts.\n");
