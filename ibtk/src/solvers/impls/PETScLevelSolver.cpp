@@ -844,6 +844,17 @@ PETScLevelSolver::resetKSPNormType()
     {
         ksp_norm_type = d_ksp_norm_type;
     }
+
+    // A Richardson solve limited to one iteration needs one application of the preconditioner. With the default norm
+    // type, PETSc applies it once more (zero initial guess) or twice more (nonzero initial guess), only to test
+    // convergence.
+    KSPType ksp_type;
+    ierr = KSPGetType(d_petsc_ksp, &ksp_type);
+    IBTK_CHKERRQ(ierr);
+    if (std::string(ksp_type) == KSPRICHARDSON && d_max_iterations == 1)
+    {
+        ksp_norm_type = KSP_NORM_NONE;
+    }
     ierr = KSPSetNormType(d_petsc_ksp, ksp_norm_type);
     IBTK_CHKERRQ(ierr);
     return;
