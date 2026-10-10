@@ -1,0 +1,64 @@
+// two levels, cell-centered data with Dirichlet and Neumann conditions
+
+var_type = "CELL"
+ghost_width = 2
+depth = 1
+undeliverable_side_value = 0.0
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   timer_enabled = TRUE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (7,7,7)]
+   x_lo               = 0, 0, 0
+   x_up               = 1, 1, 1
+   periodic_dimension = 0, 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser    {level_1 = 2, 2, 2}
+   largest_patch_size  {level_0 = 4, 4, 4}
+   smallest_patch_size {level_0 = 2, 2, 2}
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(2, 2, 2), (5, 5, 5)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+BcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "0.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
