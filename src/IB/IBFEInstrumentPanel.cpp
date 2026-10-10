@@ -40,12 +40,10 @@ namespace
 inline libMesh::Point
 put_point_in_domain(const libMesh::Point& x, const double* const domain_x_lower, const double* const domain_x_upper)
 {
-    const double TOL = sqrt(std::numeric_limits<double>::epsilon());
     libMesh::Point x_corrected = x;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        if (x(d) <= domain_x_lower[d]) x_corrected(d) = domain_x_lower[d] + TOL;
-        if (x(d) >= domain_x_upper[d]) x_corrected(d) = domain_x_upper[d] - TOL;
+        x_corrected(d) = IndexUtilities::clampToDomain(x(d), domain_x_lower[d], domain_x_upper[d]);
     }
     return x_corrected;
 }

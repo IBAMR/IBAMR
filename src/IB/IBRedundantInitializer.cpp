@@ -1469,8 +1469,7 @@ IBRedundantInitializer::getShiftedVertexPosn(const std::pair<int, int>& point_in
             while (X[d] < domain_x_lower[d]) X[d] += domain_length;
             while (X[d] >= domain_x_upper[d]) X[d] -= domain_length;
             TBOX_ASSERT(X[d] >= domain_x_lower[d] && X[d] < domain_x_upper[d]);
-            X[d] = std::max(X[d], domain_x_lower[d]);
-            X[d] = std::min(X[d], domain_x_upper[d] - std::numeric_limits<double>::epsilon());
+            X[d] = IndexUtilities::clampToDomain(X[d], domain_x_lower[d], domain_x_upper[d]);
         }
     }
     return X;

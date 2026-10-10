@@ -160,6 +160,29 @@ public:
                          const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
+     * \return The coordinate \p x, moved if necessary into the half-open
+     * interval [\p x_lower, \p x_upper) that the computational domain
+     * occupies in one coordinate direction.
+     *
+     * Cells are half-open: a point on the lower boundary of the domain lies in
+     * the first cell and is returned unchanged, whereas getCellIndex() assigns
+     * a point on the upper boundary to a ghost cell. A coordinate below
+     * \p x_lower is therefore moved to \p x_lower, and a coordinate that is
+     * above \p x_upper, or within the square root of machine epsilon times
+     * the length of the domain of it, is moved to that distance below
+     * \p x_upper. The distance is relative to the length of the domain so
+     * that it does not depend on the units. If that distance is too small to
+     * change \p x_upper in floating-point arithmetic, the coordinate is moved
+     * to the largest floating-point value below \p x_upper instead, so the
+     * returned coordinate is always in [\p x_lower, \p x_upper).
+     *
+     * This function does not shift points on periodic domains. It is up to the
+     * caller to shift \p x with respect to periodicity before calling this
+     * function.
+     */
+    static double clampToDomain(double x, double x_lower, double x_upper);
+
+    /*!
      * \return The spatial coordinate of the given cell center.
      *
      * @param patch The patch on which the cell lives.
