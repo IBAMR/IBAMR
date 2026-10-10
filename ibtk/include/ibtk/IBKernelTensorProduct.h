@@ -1,0 +1,122 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2026 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
+#ifndef included_IBTK_IBKernelTensorProduct
+#define included_IBTK_IBKernelTensorProduct
+
+#include <ibtk/config.h>
+
+#include <ibtk/IBKernel.h>
+
+#include <array>
+#include <compare>
+#include <initializer_list>
+#include <iosfwd>
+#include <string>
+#include <string_view>
+
+namespace IBTK
+{
+/*!
+ * \brief Class IBKernelTensorProduct describes a tensor product of scalar IB kernels.
+ *
+ * A single factor applies in every coordinate direction. With two factors,
+ * the first applies along an axis selected by the calling code and the second
+ * applies in the remaining directions. Two equal factors are stored as a single
+ * factor.
+ *
+ * Composite B-spline names have the form COMPOSITE_BSPLINE_N_M, where N and M
+ * are positive orders. For single-digit orders, COMPOSITE_BSPLINE_NM is an
+ * equivalent spelling. For example, COMPOSITE_BSPLINE_78 and
+ * COMPOSITE_BSPLINE_7_8 both denote
+ * <code>IBKernelTensorProduct{ IBKernel("BSPLINE_7"), IBKernel("BSPLINE_8") }</code>.
+ * Multi-digit orders require the separator, as in COMPOSITE_BSPLINE_12_11.
+ * DISCONTINUOUS_LINEAR is an alias for COMPOSITE_BSPLINE_2_1.
+ */
+class IBKernelTensorProduct
+{
+public:
+    /*! \brief Construct a tensor product using the same kernel in every direction. */
+    IBKernelTensorProduct(const IBKernel& factor);
+
+    /*! \brief Construct a tensor product from one or two scalar kernels. */
+    IBKernelTensorProduct(std::initializer_list<IBKernel> factors);
+
+    /*! \brief Construct a tensor product from a scalar or composite kernel name. */
+    IBKernelTensorProduct(const std::string& name);
+
+    /*! \brief Construct a tensor product from a nonnull scalar or composite kernel name. */
+    IBKernelTensorProduct(const char* name);
+
+    /*! \brief Return whether \p name is a valid scalar or composite kernel name. */
+    static bool is_valid_name(const std::string& name);
+
+    /*! \brief Return the number of factors, treating two equal factors as one. */
+    std::size_t size() const;
+
+    /*! \brief Access a factor. Valid indices satisfy \p slot < size(). */
+    const IBKernel& operator[](std::size_t slot) const;
+
+    /*! \brief Return whether the same scalar kernel applies in every direction. */
+    bool isIsotropic() const;
+
+    /*! \brief Return whether two products have the same factors after combining equal pairs. */
+    bool operator==(const IBKernelTensorProduct& other) const;
+
+    /*! \brief Compare active factors lexicographically. */
+    std::strong_ordering operator<=>(const IBKernelTensorProduct& other) const;
+
+private:
+    //! Minimum number of factors accepted by the constructors.
+    static constexpr std::size_t MIN_ACTIVE_FACTORS = 1;
+
+    //! Maximum number of factors accepted by the constructors.
+    static constexpr std::size_t MAX_ACTIVE_FACTORS = 2;
+
+    //! Factors and their count after combining equal pairs.
+    struct CanonicalFactors
+    {
+        //! Scalar kernels; only the first size entries are used.
+        std::array<IBKernel, MAX_ACTIVE_FACTORS> factors;
+
+        //! Number of factors in use.
+        std::size_t size;
+    };
+
+    /*! \brief Construct from factors with equal pairs already combined. */
+    explicit IBKernelTensorProduct(CanonicalFactors factors);
+
+    /*! \brief Check the factor count and combine two equal factors into one. */
+    static CanonicalFactors canonicalize(std::initializer_list<IBKernel> factors);
+
+    /*! \brief Parse a scalar or composite kernel name. */
+    static CanonicalFactors parse_name(std::string_view name);
+
+    /*! \brief Parse a scalar or composite kernel name, rejecting null pointers. */
+    static CanonicalFactors parse_name(const char* name);
+
+    //! Scalar kernels in the tensor product.
+    std::array<IBKernel, MAX_ACTIVE_FACTORS> d_factors;
+
+    //! Number of active factors in d_factors.
+    std::size_t d_size;
+};
+
+//! Compare an isotropic product with a scalar kernel.
+bool operator==(const IBKernelTensorProduct& product, const IBKernel& kernel);
+
+//! Write the scalar kernel names as a parenthesized, comma-separated list.
+std::ostream& operator<<(std::ostream& stream, const IBKernelTensorProduct& kernel);
+} // namespace IBTK
+
+#endif
