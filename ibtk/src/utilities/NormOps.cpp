@@ -13,23 +13,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/CartesianCentering.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/NormOps.h>
 
 #include <tbox/Pointer.h>
 
-#include <CellData.h>
-#include <CellVariable.h>
+#include <Box.h>
 #include <IntVector.h>
 #include <Patch.h>
-#include <PatchCellDataNormOpsReal.h>
 #include <PatchData.h>
+#include <PatchDataFactory.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
-#include <PatchSideDataNormOpsReal.h>
 #include <SAMRAIVectorReal.h>
-#include <SideData.h>
-#include <SideVariable.h>
+#include <Variable.h>
 
 #include <algorithm>
 #include <cmath>
@@ -76,6 +74,49 @@ accurate_sum_of_squares(std::vector<double>& vec)
     std::sort(vec.begin(), vec.end(), std::less<double>());
     return std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.0);
 } // accurate_sum_of_squares
+
+// Call function(patch_ops, data, patch_box, cvol) for every patch of one component of the vector, which has the data
+// centering C, where patch_ops is the norm operations of C, data and cvol are the patch data of the component and of
+// its control volume (null if the component has none), and patch_box is the box of the patch. The calls are ordered by
+// level, from the coarsest to the finest level of the vector, and for each level by the iteration order of its patches.
+template <DataCentering C, typename Function>
+void
+for_each_patch(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const int comp, Function&& function)
+{
+    using Data = typename CartesianCentering<C>::template Data<double>;
+    typename CartesianCentering<C>::template PatchNormOps<double> patch_ops;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = samrai_vector->getPatchHierarchy();
+    const int comp_idx = samrai_vector->getComponentDescriptorIndex(comp);
+    const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
+    const bool has_cvol = cvol_idx >= 0;
+    for (int ln = samrai_vector->getCoarsestLevelNumber(); ln <= samrai_vector->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<Data> data = patch->getPatchData(comp_idx);
+            Pointer<Data> cvol = has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM>>(nullptr);
+            function(patch_ops, data, patch->getBox(), cvol);
+        }
+    }
+}
+
+// Call function(patch_ops, data, patch_box, cvol), as described for for_each_patch(), for every patch of every
+// component of the vector, in the order of the components. It is a fatal error if a component is not cell-, node-,
+// side-, face-, or edge-centered double-precision data.
+template <typename Function>
+void
+for_each_component_patch(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, Function&& function)
+{
+    for (int comp = 0; comp < samrai_vector->getNumberOfComponents(); ++comp)
+    {
+        const DataCentering centering =
+            get_data_centering<double>(*samrai_vector->getComponentVariable(comp)->getPatchDataFactory());
+        dispatch_data_centering(centering,
+                                [&]<DataCentering C>() { for_each_patch<C>(samrai_vector, comp, function); });
+    }
+}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -120,55 +161,9 @@ double
 NormOps::L1Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
 {
     std::vector<double> L1_norm_local_patch;
-    Pointer<PatchHierarchy<NDIM>> hierarchy = samrai_vector->getPatchHierarchy();
-    const int coarsest_ln = samrai_vector->getCoarsestLevelNumber();
-    const int finest_ln = samrai_vector->getFinestLevelNumber();
-    const int ncomp = samrai_vector->getNumberOfComponents();
-    for (int comp = 0; comp < ncomp; ++comp)
-    {
-        const Pointer<Variable<NDIM>>& comp_var = samrai_vector->getComponentVariable(comp);
-        const int comp_idx = samrai_vector->getComponentDescriptorIndex(comp);
-        const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
-        const bool has_cvol = cvol_idx >= 0;
-
-        Pointer<CellVariable<NDIM, double>> comp_cc_var = comp_var;
-        if (comp_cc_var)
-        {
-            PatchCellDataNormOpsReal<NDIM, double> patch_ops;
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<CellData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
-                    Pointer<CellData<NDIM, double>> cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM>>(nullptr));
-                    L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
-                }
-            }
-        }
-
-        Pointer<SideVariable<NDIM, double>> comp_sc_var = comp_var;
-        if (comp_sc_var)
-        {
-            PatchSideDataNormOpsReal<NDIM, double> patch_ops;
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<SideData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
-                    Pointer<SideData<NDIM, double>> cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM>>(nullptr));
-                    L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
-                }
-            }
-        }
-    }
+    for_each_component_patch(samrai_vector,
+                             [&](const auto& patch_ops, const auto& data, const Box<NDIM>& patch_box, const auto& cvol)
+                             { L1_norm_local_patch.push_back(patch_ops.L1Norm(data, patch_box, cvol)); });
     return accurate_sum(L1_norm_local_patch);
 } // L1Norm_local
 
@@ -176,55 +171,9 @@ double
 NormOps::L2Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
 {
     std::vector<double> L2_norm_local_patch;
-    Pointer<PatchHierarchy<NDIM>> hierarchy = samrai_vector->getPatchHierarchy();
-    const int coarsest_ln = samrai_vector->getCoarsestLevelNumber();
-    const int finest_ln = samrai_vector->getFinestLevelNumber();
-    const int ncomp = samrai_vector->getNumberOfComponents();
-    for (int comp = 0; comp < ncomp; ++comp)
-    {
-        const Pointer<Variable<NDIM>>& comp_var = samrai_vector->getComponentVariable(comp);
-        const int comp_idx = samrai_vector->getComponentDescriptorIndex(comp);
-        const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
-        const bool has_cvol = cvol_idx >= 0;
-
-        Pointer<CellVariable<NDIM, double>> comp_cc_var = comp_var;
-        if (comp_cc_var)
-        {
-            PatchCellDataNormOpsReal<NDIM, double> patch_ops;
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<CellData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
-                    Pointer<CellData<NDIM, double>> cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM>>(nullptr));
-                    L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
-                }
-            }
-        }
-
-        Pointer<SideVariable<NDIM, double>> comp_sc_var = comp_var;
-        if (comp_sc_var)
-        {
-            PatchSideDataNormOpsReal<NDIM, double> patch_ops;
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<SideData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
-                    Pointer<SideData<NDIM, double>> cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM>>(nullptr));
-                    L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
-                }
-            }
-        }
-    }
+    for_each_component_patch(samrai_vector,
+                             [&](const auto& patch_ops, const auto& data, const Box<NDIM>& patch_box, const auto& cvol)
+                             { L2_norm_local_patch.push_back(patch_ops.L2Norm(data, patch_box, cvol)); });
     return std::sqrt(accurate_sum_of_squares(L2_norm_local_patch));
 } // L2Norm_local
 

@@ -13,9 +13,12 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CartesianCentering.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/NormOps.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/SAMRAIScopedVectorCopy.h>
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
@@ -23,17 +26,29 @@
 
 #include <petscvec.h>
 
+#include <ArrayData.h>
 #include <BergerRigoutsos.h>
+#include <Box.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
+#include <CellVariable.h>
+#include <EdgeVariable.h>
+#include <FaceVariable.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
+#include <NodeVariable.h>
+#include <SideVariable.h>
 #include <StandardTagAndInitialize.h>
 
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <iomanip>
+#include <memory>
+#include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "../tests.h"
 
@@ -141,6 +156,205 @@ check_petsc_vector_ops(SAMRAIVectorReal<NDIM, double>& u_vec, SAMRAIVectorReal<N
     PETScSAMRAIVectorReal::destroyPETScVector(y_petsc);
     PETScSAMRAIVectorReal::destroyPETScVector(w_petsc);
 }
+
+// A variable of one data centering and depth for vector tests, with the member function of HierarchyMathOps that
+// provides its control volume, or nullptr if HierarchyMathOps provides none.
+struct TestVariable
+{
+    std::string label;
+    Pointer<SAMRAI::hier::Variable<NDIM>> var;
+    int idx;
+    int depth;
+    int (HierarchyMathOps::*get_weight_index)();
+};
+
+// Register a variable with the variable database and return it with its patch data index.
+TestVariable
+register_test_variable(Pointer<VariableContext> ctx,
+                       const std::string& label,
+                       Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                       const int depth,
+                       const int ghost_width,
+                       int (HierarchyMathOps::*get_weight_index)())
+{
+    const int idx =
+        VariableDatabase<NDIM>::getDatabase()->registerVariableAndContext(var, ctx, IntVector<NDIM>(ghost_width));
+    return { label, var, idx, depth, get_weight_index };
+}
+
+// Register variables of all five centerings with depths one and two. They are registered before the hierarchy is built
+// so that the patch geometry accounts for their ghost widths. Cell and side variables use the control volumes of
+// HierarchyMathOps; node, face, and edge variables have none.
+std::vector<TestVariable>
+register_test_variables(Pointer<VariableContext> ctx)
+{
+    std::vector<TestVariable> variables;
+    for (const auto depth : { 1, 2 })
+    {
+        const std::string label = " depth " + std::to_string(depth);
+        const std::string name = "test_" + std::to_string(depth) + "_";
+        variables.push_back(register_test_variable(ctx,
+                                                   "cell" + label,
+                                                   new CellVariable<NDIM, double>(name + "cell", depth),
+                                                   depth,
+                                                   1,
+                                                   &HierarchyMathOps::getCellWeightPatchDescriptorIndex));
+        variables.push_back(register_test_variable(
+            ctx, "node" + label, new NodeVariable<NDIM, double>(name + "node", depth), depth, 1, nullptr));
+        variables.push_back(register_test_variable(ctx,
+                                                   "side" + label,
+                                                   new SideVariable<NDIM, double>(name + "side", depth),
+                                                   depth,
+                                                   1,
+                                                   &HierarchyMathOps::getSideWeightPatchDescriptorIndex));
+        variables.push_back(register_test_variable(
+            ctx, "face" + label, new FaceVariable<NDIM, double>(name + "face", depth), depth, 1, nullptr));
+        variables.push_back(register_test_variable(
+            ctx, "edge" + label, new EdgeVariable<NDIM, double>(name + "edge", depth), depth, 1, nullptr));
+    }
+    return variables;
+}
+
+// Allocate the patch data of the variables on every level of the hierarchy.
+void
+allocate_test_variables(Pointer<PatchHierarchy<NDIM>> hierarchy, const std::vector<TestVariable>& variables)
+{
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (const auto& variable : variables)
+        {
+            level->allocatePatchData(variable.idx, 0.0);
+        }
+    }
+}
+
+// Return a vector on the hierarchy whose single component is the variable and its control volume, if it has one.
+std::unique_ptr<SAMRAIVectorReal<NDIM, double>>
+make_test_vector(Pointer<PatchHierarchy<NDIM>> hierarchy, HierarchyMathOps& hier_math_ops, const TestVariable& variable)
+{
+    const int cv_idx = variable.get_weight_index ? (hier_math_ops.*variable.get_weight_index)() : invalid_index;
+    auto vec = std::make_unique<SAMRAIVectorReal<NDIM, double>>(
+        "test " + variable.label, hierarchy, 0, hierarchy->getFinestLevelNumber());
+    vec->addComponent(variable.var, variable.idx, cv_idx);
+    return vec;
+}
+
+// Set the data of component c to smooth functions of the array indices that depend on seed, the direction, and the
+// depth, including in the ghost cells. The functions are offset + sin(phase).
+template <DataCentering C>
+void
+fill_component(SAMRAIVectorReal<NDIM, double>& vec, const int c, const double seed, const double offset)
+{
+    using Traits = CartesianCentering<C>;
+    using Data = typename Traits::template Data<double>;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = vec.getPatchHierarchy();
+    for (int ln = vec.getCoarsestLevelNumber(); ln <= vec.getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Data> data = level->getPatch(p())->getPatchData(vec.getComponentDescriptorIndex(c));
+            for (int axis = 0; axis < Traits::num_axes(); ++axis)
+            {
+                if (!Traits::template has_axis<double>(*data, axis))
+                {
+                    continue;
+                }
+                ArrayData<NDIM, double>& array = Traits::template array_data<double>(*data, axis);
+                for (Box<NDIM>::Iterator b(array.getBox()); b; b++)
+                {
+                    for (int depth = 0; depth < array.getDepth(); ++depth)
+                    {
+                        double phase = seed + 0.3 * axis + 0.7 * depth;
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            phase += (0.11 - 0.03 * d) * b()(d);
+                        }
+                        array(b(), depth) = offset + std::sin(phase);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void
+fill_vector(SAMRAIVectorReal<NDIM, double>& vec, const double seed, const double offset = 1.5)
+{
+    for (int c = 0; c < vec.getNumberOfComponents(); ++c)
+    {
+        dispatch_data_centering(get_data_centering<double>(*vec.getComponentVariable(c)->getPatchDataFactory()),
+                                [&]<DataCentering C>() { fill_component<C>(vec, c, seed + 0.4 * c, offset); });
+    }
+}
+
+// Return whether a and b differ by a relative difference below tolerance; a difference that is not a number does not.
+bool
+agree(const double a, const double b, const double tolerance)
+{
+    const double scale = std::max(std::abs(a), std::abs(b));
+    return scale == 0.0 || std::abs(a - b) / scale < tolerance;
+}
+
+// Print the L1, L2, and max norms of NormOps for the vector and compare them with those of SAMRAIVectorReal. Return
+// whether they agree.
+bool
+check_norm_ops(const std::string& label, const SAMRAIVectorReal<NDIM, double>& vec)
+{
+    constexpr double TOLERANCE = 1.0e-12;
+    const double l1_norm = NormOps::L1Norm(&vec);
+    const double l2_norm = NormOps::L2Norm(&vec);
+    const double max_norm = NormOps::maxNorm(&vec);
+    const double expected_l1_norm = vec.L1Norm();
+    const double expected_l2_norm = vec.L2Norm();
+    const double expected_max_norm = vec.maxNorm();
+    const bool agrees = agree(l1_norm, expected_l1_norm, TOLERANCE) && agree(l2_norm, expected_l2_norm, TOLERANCE) &&
+                        agree(max_norm, expected_max_norm, TOLERANCE);
+
+    std::ostringstream out;
+    out << std::setprecision(12) << label << ":\n";
+    out << "  L1 norm = " << l1_norm << "\n";
+    out << "  L2 norm = " << l2_norm << "\n";
+    out << "  max norm = " << max_norm << "\n";
+    out << "  agree with SAMRAIVectorReal to a relative difference below 1e-12: " << (agrees ? "yes" : "no") << "\n";
+    if (!agrees)
+    {
+        out << "  SAMRAIVectorReal: L1 norm = " << expected_l1_norm << ", L2 norm = " << expected_l2_norm
+            << ", max norm = " << expected_max_norm << "\n";
+    }
+    plog << out.str();
+    return agrees;
+}
+
+// Run check_norm_ops() for a vector of each variable and for a vector with a component of every centering. Report a
+// failure only after all comparisons have been printed.
+void
+check_all_norm_ops(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                   HierarchyMathOps& hier_math_ops,
+                   const std::vector<TestVariable>& variables)
+{
+    allocate_test_variables(hierarchy, variables);
+
+    SAMRAIVectorReal<NDIM, double> mixed_vec("test all centerings", hierarchy, 0, hierarchy->getFinestLevelNumber());
+    bool all_agree = true;
+    for (const auto& variable : variables)
+    {
+        const auto vec = make_test_vector(hierarchy, hier_math_ops, variable);
+        fill_vector(*vec, 0.9 * variable.idx, 0.25);
+        all_agree = check_norm_ops(variable.label, *vec) && all_agree;
+        if (variable.depth == 1)
+        {
+            mixed_vec.addComponent(variable.var, variable.idx, vec->getControlVolumeIndex(0));
+        }
+    }
+    all_agree = check_norm_ops("all centerings, depth 1", mixed_vec) && all_agree;
+    plog << std::flush;
+    if (!all_agree)
+    {
+        TBOX_ERROR("NormOps norms differ from the norms of SAMRAIVectorReal\n");
+    }
+}
 } // namespace
 
 /*******************************************************************************
@@ -167,6 +381,7 @@ main(int argc, char* argv[])
         const bool test_duplicated_vector = input_db->getBoolWithDefault("test_duplicated_vector", false);
         const bool test_standard_vector = !test_copied_vector && !test_duplicated_vector;
         const bool test_petsc_vector_ops = input_db->getBoolWithDefault("test_petsc_vector_ops", false);
+        const bool test_norm_ops = input_db->getBoolWithDefault("test_norm_ops", false);
 
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input
@@ -208,6 +423,12 @@ main(int argc, char* argv[])
         const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
         const int f_approx_cc_idx = var_db->registerVariableAndContext(f_approx_cc_var, ctx, IntVector<NDIM>(1));
 
+        std::vector<TestVariable> test_variables;
+        if (test_norm_ops)
+        {
+            test_variables = register_test_variables(ctx);
+        }
+
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         const int tag_buffer = std::numeric_limits<int>::max();
         int level_number = 0;
@@ -243,6 +464,12 @@ main(int argc, char* argv[])
         // ask for the ID. Due to the way SAMRAI works these calls must occur
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int cv_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+
+        if (test_norm_ops)
+        {
+            check_all_norm_ops(patch_hierarchy, hier_math_ops, test_variables);
+            return EXIT_SUCCESS;
+        }
 
         // SAMRAI patches do not store data as a single contiguous arrays;
         // instead, each hierarchy contains several contiguous arrays. Hence,
