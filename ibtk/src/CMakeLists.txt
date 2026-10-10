@@ -115,6 +115,7 @@ SET(CXX_SRC
   # math
   math/PETScVecUtilities.cpp
   math/HierarchyMathOps.cpp
+  math/IBOperatorBuilder.cpp
   math/PoissonUtilities.cpp
   math/SAMRAIGhostDataAccumulator.cpp
   math/PETScMatUtilities.cpp

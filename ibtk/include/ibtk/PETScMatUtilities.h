@@ -20,6 +20,7 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBKernelConcepts.h>
 #include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
@@ -28,8 +29,11 @@
 #include <petscmat.h>
 #include <petscvec.h>
 
+#include <Box.h>
+#include <Index.h>
 #include <PoissonSpecifications.h>
 
+#include <array>
 #include <cmath>
 #include <vector>
 
@@ -49,6 +53,11 @@ namespace solv
 template <int DIM>
 class RobinBcCoefStrategy;
 } // namespace solv
+namespace pdat
+{
+template <int DIM, class TYPE>
+class SideData;
+} // namespace pdat
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -178,6 +187,41 @@ public:
     static const int pwl_interp_stencil = 2;
 
     /*!
+     * \brief Construct a matrix mapping side-centered velocity on patch_level to IB points.
+     *
+     * X_vec contains consecutive NDIM coordinates for each IB point and
+     * determines the matrix row ordering. The side-centered data at
+     * dof_index_idx contain global column indices; num_dofs_per_proc gives
+     * the column counts on each rank. The physical domain must be a single
+     * box, and local index data must cover the stencils of local IB points.
+     * Insufficient DOF ghost storage is a fatal error.
+     * Each local point's cell must lie in a locally owned patch or its
+     * one-cell neighborhood.
+     *
+     * Axis selects the side-normal coordinate. With data centering included in
+     * the grid coordinate q, the first stencil index is floor(q+1/2)-(N-1)/2
+     * for odd width N. For even N it is floor(q)-N/2+1 in the normal direction
+     * and ceil(q)-N/2 in other directions. The evaluator receives r = q minus
+     * the first stencil index, following the coordinate convention of
+     * IBKernelEvaluatorScalar. The evaluator and X_vec are borrowed for this
+     * call.
+     *
+     * An existing mat is destroyed and replaced; the caller owns the new matrix.
+     *
+     * \warning Physical boundary conditions are not handled: a stencil point outside the domain at a
+     * non-periodic boundary has no DOF, so its weight is dropped from the row instead of being folded or
+     * renormalized, and a row whose stencil crosses such a boundary sums to less than one. A one-time warning
+     * is logged when this happens.
+     */
+    template <IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
+    static void constructPatchLevelSCInterpOp(Mat& mat,
+                                              const Evaluator& evaluator,
+                                              Vec X_vec,
+                                              const std::vector<int>& num_dofs_per_proc,
+                                              int dof_index_idx,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
+    /*!
      * \brief Construct a parallel PETSc Mat object corresponding to data
      * prolongation from a coarser level to a finer level.
      */
@@ -217,6 +261,48 @@ public:
 
 protected:
 private:
+    /*! \brief Interpolation stencil geometry and borrowed IB positions. */
+    struct SCInterpOpData
+    {
+        /*! \brief Allocate the matrix and determine stencil boxes and local patches. */
+        SCInterpOpData(Mat& mat,
+                       Vec X,
+                       const std::array<std::array<int, NDIM>, NDIM>& stencil_widths,
+                       const std::vector<int>& num_dofs_per_proc,
+                       int dof_index_idx,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+        /*! \brief Restore the borrowed position array. */
+        ~SCInterpOpData();
+        /*! \brief Disallow copying borrowed array access. */
+        SCInterpOpData(const SCInterpOpData&) = delete;
+        /*! \brief Disallow assigning borrowed array access. */
+        SCInterpOpData& operator=(const SCInterpOpData&) = delete;
+        /*! \brief Finish matrix assembly. */
+        void assemble();
+
+        //! Caller-owned matrix handle.
+        Mat& d_mat;
+        //! Borrowed vector; must remain alive through restoration of d_positions.
+        Vec d_X;
+        //! Read-only array borrowed until the matching VecRestoreArrayRead.
+        const double* d_positions = nullptr;
+        //! Grid spacings and physical domain origin.
+        std::array<double, NDIM> d_dx, d_x_lower;
+        //! Lower index of the physical domain.
+        SAMRAI::hier::Index<NDIM> d_domain_lower;
+        //! Number of local IB points and first local matrix row.
+        int d_n_local_points = 0, d_row_lower = 0;
+        //! Component stencil boxes for each IB point.
+        std::vector<std::array<SAMRAI::hier::Box<NDIM>, NDIM>> d_stencil_boxes;
+        //! Shared DOF index data for each local IB point's patch, used to
+        //! read global column indices without repeating the patch lookup.
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, int>>> d_dof_index_data;
+    };
+
+    /*! \brief Assemble matrix rows for one velocity component. */
+    template <int Axis, IBKernelEvaluatorCartesian<double, PetscScalar> Evaluator>
+    static void constructSCInterpOpAxis(SCInterpOpData& data, const Evaluator& evaluator);
+
     /*!
      * \brief Default constructor.
      *
@@ -313,6 +399,8 @@ private:
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> cf_boundary);
 };
 } // namespace IBTK
+
+#include <ibtk/private/PETScMatUtilities-inl.h>
 
 /////////////////////////////////////////////////////////////////////////////
 
