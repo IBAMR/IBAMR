@@ -455,6 +455,54 @@ get_shift(int dir, int shift)
     iv(dir) = shift;
     return iv;
 } // get_shift
+
+// The stencil maps of the matrix of the variable-coefficient viscous operator: one for 2D and one for each axis in 3D.
+// A map takes the index offset of a stencil entry of a side to its position in the list of coefficients of the side.
+// The offsets are the origin, the offsets of one cell along each axis, and the offsets of one cell along the axis of
+// the component and along each other axis, which couple a component to the others.
+std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder>>
+make_vcsc_stencil_maps()
+{
+    std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder>> stencil_map_vec;
+    const unsigned int n_maps = NDIM == 2 ? 1 : NDIM;
+    for (unsigned int m = 0; m < n_maps; ++m)
+    {
+        std::map<hier::Index<NDIM>, int, IndexFortranOrder> stencil_map;
+        int k = 0;
+        stencil_map[hier::Index<NDIM>(0)] = k++;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            stencil_map[get_shift(d, +1)] = k++;
+            stencil_map[get_shift(d, -1)] = k++;
+        }
+#if (NDIM == 2)
+        for (int s = -1; s <= 1; s += 2)
+        {
+            for (int t = -1; t <= 1; t += 2)
+            {
+                stencil_map[get_shift(0, s) + get_shift(1, t)] = k++;
+            }
+        }
+#elif (NDIM == 3)
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (d == m)
+            {
+                continue;
+            }
+            for (int s = -1; s <= 1; s += 2)
+            {
+                for (int t = -1; t <= 1; t += 2)
+                {
+                    stencil_map[get_shift(m, s) + get_shift(d, t)] = k++;
+                }
+            }
+        }
+#endif
+        stencil_map_vec.push_back(stencil_map);
+    }
+    return stencil_map_vec;
+}
 } // namespace
 
 void
@@ -2534,6 +2582,118 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                 const double D = is_lower ? mu_lower : mu_upper;
 
                 rhs_data(i_s) -= (2.0 * alpha) * (D / h) * sol_data(i_s_bdry) / h;
+            }
+        }
+    }
+    return;
+} // adjustVCSCViscousOpRHSAtCoarseFineBoundary
+
+void
+PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data,
+                                                             const SideData<NDIM, double>& sol_data,
+                                                             Pointer<Patch<NDIM>> patch,
+                                                             const PoissonSpecifications& poisson_spec,
+                                                             double alpha,
+                                                             const Array<BoundaryBox<NDIM>>& type1_cf_bdry,
+                                                             const Array<BoundaryBox<NDIM>>& type2_cf_bdry,
+                                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                             double data_time,
+                                                             VCInterpType mu_interp_type)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
+#endif
+    const Box<NDIM>& patch_box = patch->getBox();
+    const LevelCellClassifier cells(*patch, type1_cf_bdry, &type2_cf_bdry);
+
+    // The matrix coefficients of the patch, including the treatment of physical boundary conditions, are those of the
+    // matrix of the level solver. The coefficient of a stencil entry whose side is not a degree of freedom of the level
+    // is the coefficient of the term that the matrix drops.
+    static const std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder>> stencil_map_vec =
+        make_vcsc_stencil_maps();
+    const int stencil_sz = static_cast<int>(stencil_map_vec[0].size());
+    SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
+    computeVCSCViscousOpMatrixCoefficients(matrix_coefs,
+                                           patch,
+                                           stencil_map_vec,
+                                           poisson_spec,
+                                           alpha,
+                                           /*beta*/ 0.0,
+                                           bc_coefs,
+                                           data_time,
+                                           mu_interp_type);
+
+    // A side is a degree of freedom of the level if either of the two cells that it separates belongs to the level.
+    // The terms of sides outside a physical boundary are handled by the treatment of the physical boundary.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        const std::map<hier::Index<NDIM>, int, IndexFortranOrder>& stencil_map = stencil_map_vec[NDIM == 2 ? 0 : axis];
+        for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+        {
+            const hier::Index<NDIM>& cc = b();
+            const SideIndex<NDIM> i_s(cc, axis, SideIndex<NDIM>::Lower);
+            for (const auto& entry : stencil_map)
+            {
+                const hier::Index<NDIM>& offset = entry.first;
+
+                // The side of the stencil entry is a side of the same component, or a side of the component along the
+                // other axis of the offset. It is located by the cell on its upper side.
+                int n_nonzero = 0;
+                unsigned int other_axis = axis;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    if (offset(d) != 0)
+                    {
+                        ++n_nonzero;
+                        if (d != axis)
+                        {
+                            other_axis = d;
+                        }
+                    }
+                }
+                if (n_nonzero == 0)
+                {
+                    continue;
+                }
+                unsigned int comp = axis;
+                hier::Index<NDIM> upper_cell = cc;
+                if (n_nonzero == 1)
+                {
+                    upper_cell += offset;
+                }
+                else
+                {
+                    comp = other_axis;
+                    if (offset(axis) < 0)
+                    {
+                        upper_cell(axis) -= 1;
+                    }
+                    if (offset(comp) > 0)
+                    {
+                        upper_cell(comp) += 1;
+                    }
+                }
+                hier::Index<NDIM> lower_cell = upper_cell;
+                lower_cell(comp) -= 1;
+                if (patch_box.contains(upper_cell) || patch_box.contains(lower_cell))
+                {
+                    continue;
+                }
+                if (cells.isLevelCell(upper_cell) || cells.isLevelCell(lower_cell))
+                {
+                    continue;
+                }
+                if (cells.isOutsideDomain(upper_cell) && cells.isOutsideDomain(lower_cell))
+                {
+                    continue;
+                }
+
+                const double coef = matrix_coefs(i_s, entry.second);
+                if (coef == 0.0)
+                {
+                    continue;
+                }
+                rhs_data(i_s) -= coef * sol_data(SideIndex<NDIM>(upper_cell, comp, SideIndex<NDIM>::Lower));
             }
         }
     }

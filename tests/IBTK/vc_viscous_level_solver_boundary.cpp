@@ -181,10 +181,12 @@ main(int argc, char* argv[])
         Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
         const SAMRAI::tbox::Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
             cf_boundary.getBoundaries(patch->getPatchNumber(), 1);
+        const SAMRAI::tbox::Array<BoundaryBox<NDIM>>& type_2_cf_bdry =
+            cf_boundary.getBoundaries(patch->getPatchNumber(), 2);
         SideData<NDIM, double> correction(patch->getBox(), 1, IntVector<NDIM>(0));
         correction.fillAll(0.0);
         PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(
-            correction, *u_data, patch, poisson_spec, 1.0, type_1_cf_bdry);
+            correction, *u_data, patch, poisson_spec, 1.0, type_1_cf_bdry, type_2_cf_bdry, bc_coefs, 0.0);
         for (int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis)); b; b++)

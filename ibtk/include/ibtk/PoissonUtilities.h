@@ -255,6 +255,13 @@ public:
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
      * side-centered discretization of the variable coefficient viscous operator.
      *
+     * This function corrects every stencil entry of a side that reaches across a boundary box of codimension 1 of the
+     * patch. It is exact only if no two patches of the level touch only at a corner or an edge, the refined region has
+     * no concave corner, and no coarse-fine boundary meets a physical boundary at which a Dirichlet condition is
+     * imposed: otherwise it corrects couplings that the matrix of the level keeps, and it modifies the right-hand side
+     * entries of identity rows. Use the version of this function that takes the boundary boxes of codimension 2 and
+     * the boundary condition coefficients on a patch level with such features.
+     *
      * \note This function simply uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
      * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
      * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
@@ -269,6 +276,38 @@ public:
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         double alpha,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
+     * side-centered discretization of the variable coefficient viscous operator, as in the version of this function
+     * that takes only the boundary boxes of codimension 1, but exact for any layout of the patches of the level.
+     *
+     * The ghost values in sol_data take the place of the degrees of freedom that the matrix of a level solver does not
+     * contain: for each side in the side box of the patch and each entry of its stencil, including the entries that
+     * couple the components of the velocity, the term of the entry is subtracted from the right-hand side if no patch
+     * of the level has the side of the entry as a side. The coefficients of the terms are the coefficients of the
+     * matrix of the level solver, so the terms of the sides that lie outside a physical boundary are not included, and
+     * the right-hand side entry of an identity row is not modified. This function only modifies rhs_data in the side
+     * box of the patch and only reads ghost values from sol_data, so rhs_data does not need ghost cells.
+     *
+     * The boundary boxes of codimension 2 of the patch (the corner cells in 2D and the edge cells in 3D) determine
+     * which ghost cells that touch the patch only along an edge or a corner belong to the level. The boundary
+     * condition coefficients are those of the matrix, and are evaluated at data_time.
+     *
+     * \note The scaling factors of \f$ D \f$ variable in the PoissonSpecification object
+     * is passed separately and is denoted \f$ \alpha \f$.
+     */
+    static void adjustVCSCViscousOpRHSAtCoarseFineBoundary(
+        SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+        const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        double alpha,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type2_cf_bdry,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
 protected:
