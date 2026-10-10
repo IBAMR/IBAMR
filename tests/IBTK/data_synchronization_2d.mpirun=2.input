@@ -1,0 +1,26 @@
+// A periodic 16 x 16 domain and a level refined by a factor of 2, with the
+// patches of each level given below.
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (15,15)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 1, 1
+}
+
+Patches {
+   // One patch along the whole side of two others.
+   level_0 = [(8,0),(15,7)], [(0,0),(7,15)], [(8,8),(15,15)]
+
+   // Half of the 16 blocks of 8 x 8 cells, arranged so that each of the 16
+   // ways in which the four blocks around a corner of a block can be present
+   // or absent occurs.
+   level_1 = [(16,8),(23,15)], [(8,16),(15,23)], [(16,24),(23,31)],
+             [(8,0),(15,7)], [(24,8),(31,15)], [(16,16),(23,23)],
+             [(8,8),(15,15)], [(0,16),(7,23)]
+}
