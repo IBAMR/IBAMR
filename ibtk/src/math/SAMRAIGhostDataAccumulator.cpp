@@ -22,6 +22,7 @@
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
 #include <tbox/SAMRAI_MPI.h>
+#include <tbox/Schedule.h>
 #include <tbox/Transaction.h>
 #include <tbox/Utilities.h>
 
@@ -55,7 +56,6 @@
 
 #include <algorithm>
 #include <array>
-#include <map>
 #include <memory>
 #include <vector>
 
@@ -148,7 +148,9 @@ struct ScheduleState
  * different locations of its ghost region and do get a transaction.
  *
  * The overlap boxes are in the index space of p. The boxes in the index space of
- * q are obtained with the negative of the source offset of the overlap.
+ * q are obtained with the negative of the source offset of the overlap. The same
+ * transaction moves the values that the refine schedule does not move (see
+ * compute_gap_transfers()), with overlaps that are built from the patch boxes.
  */
 class GhostSumTransaction : public tbox::Transaction
 {
@@ -328,104 +330,197 @@ private:
 
 using SideBoxLists = std::array<BoxList<NDIM>, NDIM>;
 
-/*!
- * For each patch of the level owned by this process, determine the sides of its
- * ghost side box that lie in the interior side box of another patch (or of a
- * periodic image of a patch) but that the schedule of the level does not move to
- * that patch.
- *
- * The schedule moves values from a patch p to a patch q if the cell box of q
- * intersects the ghost cell box of p, and then moves the values at the
- * locations in the intersection of the ghost side box of p and the side box of
- * the intersection of the two cell boxes. A side in the ghost side box of p and
- * the interior side box of q that is not in that set is on the outermost layer
- * of the ghost side box of p, and q is separated from the ghost cell box of p by
- * a zero width. If the ghost cell width is zero, the schedule makes the
- * intersection with the cell box of q after growing the ghost cell box of p by
- * one.
- *
- * The result holds the sides by patch number and by axis, only for patches that
- * have such sides.
- */
-std::map<int, SideBoxLists>
-compute_undeliverable_sides(Pointer<PatchLevel<NDIM>> level, const IntVector<NDIM>& gcw)
+// Values that patch p holds at sides of its ghost side box and that the refine schedule of the level does not move to
+// the patch q that owns the sides.
+struct GapTransfer
 {
-    std::map<int, SideBoxLists> result;
+    int p = -1;
+    int q = -1;
+    IntVector<NDIM> shift = IntVector<NDIM>(0); // q is shifted by this to be near p
+    SideBoxLists boxes;                         // in the index space of p
+};
+
+/*!
+ * Find the sides of the ghost side box of a patch p that lie in the side box of another patch q (or of a periodic
+ * image of q), but that the refine schedule of the level does not move to q. The result has an entry for each pair
+ * of patches and periodic shift with such sides, for the pairs in which p or q is owned by this process. The entries
+ * are sorted by patch numbers and shift, so that the processes that own p and q list their common entries in the same
+ * order.
+ *
+ * The schedule moves values from a patch p to a patch q, or to a periodic image of q that SAMRAI gives to q (only
+ * patches that touch a periodic boundary have images), if the cell box of q intersects the ghost cell box of p, and
+ * then moves the values at the locations in the intersection of the ghost side box of p and the side box of the
+ * intersection of the two cell boxes. A side in the ghost side box of p and the side box of q that is not in that set
+ * is on the outermost layer of the ghost side box of p, and q is separated from the ghost cell box of p by a zero
+ * width. If the ghost cell width is zero, the schedule makes the intersection with the cell box of q after growing the
+ * ghost cell box of p by one. The sides of every periodic image of q, also an image that SAMRAI does not give to q,
+ * are considered here; the schedule moves nothing to such an image.
+ */
+std::vector<GapTransfer>
+compute_gap_transfers(Pointer<PatchLevel<NDIM>> level, const IntVector<NDIM>& gcw)
+{
     const BoxArray<NDIM>& patch_boxes = level->getBoxes();
     Pointer<BoxTree<NDIM>> box_tree = level->getBoxTree();
     const IntVector<NDIM> no_shift(0);
     const IntVector<NDIM> one(1);
     const bool zero_gcw = (gcw == no_shift);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        const Box<NDIM> ghost_box = Box<NDIM>::grow(patch_boxes[p()], gcw);
-        const Box<NDIM> wide_ghost_box = Box<NDIM>::grow(ghost_box, one);
-        SideBoxLists sides;
-        bool found = false;
-        auto find_sides = [&](const int q, const IntVector<NDIM>& shift)
-        {
-            if (q == p() && shift == no_shift)
-            {
-                return;
-            }
-            const Box<NDIM> shifted = Box<NDIM>::shift(patch_boxes[q], shift);
-            if ((wide_ghost_box * shifted).empty())
-            {
-                return;
-            }
+    const int rank = IBTK_MPI::getRank();
+    std::vector<GapTransfer> transfers;
 
-            Box<NDIM> moved = ghost_box * shifted;
+    // All shifts that map a patch to its periodic images, and the test whether the schedule uses a shift for a patch.
+    const IntVector<NDIM> period = level->getGridGeometry()->getPeriodicShift(level->getRatio());
+    std::vector<IntVector<NDIM>> all_shifts(1, no_shift);
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (period(d) == 0)
+        {
+            continue;
+        }
+        const std::size_t n = all_shifts.size();
+        for (std::size_t k = 0; k < n; ++k)
+        {
+            for (const int sign : { -1, 1 })
+            {
+                IntVector<NDIM> shift = all_shifts[k];
+                shift(d) += sign * period(d);
+                all_shifts.push_back(shift);
+            }
+        }
+    }
+    auto is_schedule_shift = [&](const int q, const IntVector<NDIM>& shift)
+    {
+        if (shift == no_shift)
+        {
+            return true;
+        }
+        for (tbox::List<IntVector<NDIM>>::Iterator s(level->getShiftsForPatch(q)); s; s++)
+        {
+            if (s() == shift)
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto find_sides = [&](const int p, const int q, const IntVector<NDIM>& shift)
+    {
+        if (q == p && shift == no_shift)
+        {
+            return;
+        }
+        const Box<NDIM> ghost_box = Box<NDIM>::grow(patch_boxes[p], gcw);
+        const Box<NDIM> wide_ghost_box = Box<NDIM>::grow(ghost_box, one);
+        const Box<NDIM> shifted = Box<NDIM>::shift(patch_boxes[q], shift);
+        if ((wide_ghost_box * shifted).empty())
+        {
+            return;
+        }
+
+        Box<NDIM> moved;
+        if (is_schedule_shift(q, shift))
+        {
+            moved = ghost_box * shifted;
             if (moved.empty() && zero_gcw)
             {
                 moved = wide_ghost_box * shifted;
             }
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                const Box<NDIM> ghost_side_box = SideGeometry<NDIM>::toSideBox(ghost_box, axis);
-                const Box<NDIM> shared = ghost_side_box * SideGeometry<NDIM>::toSideBox(shifted, axis);
-                if (shared.empty())
-                {
-                    continue;
-                }
-                BoxList<NDIM> missing(shared);
-                if (!moved.empty())
-                {
-                    missing.removeIntersections(ghost_side_box * SideGeometry<NDIM>::toSideBox(moved, axis));
-                }
-                for (BoxList<NDIM>::Iterator b(missing); b; b++)
-                {
-                    sides[axis].appendItem(b());
-                    found = true;
-                }
-            }
-        };
-
-        // The box tree holds the patches together with their periodic images,
-        // so it finds every patch with an image that intersects the box. The
-        // indices are sorted and a patch may appear more than once.
-        tbox::Array<int> candidates;
-        box_tree->findOverlapIndices(candidates, wide_ghost_box);
-        int previous = -1;
-        for (int k = 0; k < candidates.size(); ++k)
+        }
+        GapTransfer transfer;
+        transfer.p = p;
+        transfer.q = q;
+        transfer.shift = shift;
+        bool found = false;
+        for (int axis = 0; axis < NDIM; ++axis)
         {
-            const int q = candidates[k];
-            if (q == previous)
+            const Box<NDIM> ghost_side_box = SideGeometry<NDIM>::toSideBox(ghost_box, axis);
+            const Box<NDIM> shared = ghost_side_box * SideGeometry<NDIM>::toSideBox(shifted, axis);
+            if (shared.empty())
             {
                 continue;
             }
-            previous = q;
-            find_sides(q, no_shift);
-            for (tbox::List<IntVector<NDIM>>::Iterator s(level->getShiftsForPatch(q)); s; s++)
+            BoxList<NDIM> missing(shared);
+            if (!moved.empty())
             {
-                find_sides(q, s());
+                missing.removeIntersections(ghost_side_box * SideGeometry<NDIM>::toSideBox(moved, axis));
+            }
+            for (BoxList<NDIM>::Iterator b(missing); b; b++)
+            {
+                transfer.boxes[axis].appendItem(b());
+                found = true;
             }
         }
         if (found)
         {
-            result[p()] = sides;
+            transfers.push_back(transfer);
+        }
+    };
+
+    // The box tree holds the patches together with their periodic images, so it finds every patch with an image that
+    // intersects the box. The indices are sorted and a patch may appear more than once.
+    tbox::Array<int> candidates;
+    auto for_each_candidate = [&](const Box<NDIM>& region, const auto& function)
+    {
+        box_tree->findOverlapIndices(candidates, region);
+        int previous = -1;
+        for (int k = 0; k < candidates.size(); ++k)
+        {
+            if (candidates[k] != previous)
+            {
+                previous = candidates[k];
+                function(previous);
+            }
+        }
+    };
+
+    // Pairs in which this process owns p.
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        const Box<NDIM> region = Box<NDIM>::grow(patch_boxes[p()], gcw + one);
+        for (const IntVector<NDIM>& shift : all_shifts)
+        {
+            for_each_candidate(Box<NDIM>::shift(region, -shift), [&](const int q) { find_sides(p(), q, shift); });
         }
     }
-    return result;
+
+    // Pairs in which this process owns q but not p.
+    for (PatchLevel<NDIM>::Iterator q(level); q; q++)
+    {
+        for (const IntVector<NDIM>& shift : all_shifts)
+        {
+            for_each_candidate(Box<NDIM>::grow(Box<NDIM>::shift(patch_boxes[q()], shift), gcw + one),
+                               [&](const int p)
+                               {
+                                   if (level->getMappingForPatch(p) != rank)
+                                   {
+                                       find_sides(p, q(), shift);
+                                   }
+                               });
+        }
+    }
+
+    std::sort(transfers.begin(),
+              transfers.end(),
+              [](const GapTransfer& a, const GapTransfer& b)
+              {
+                  if (a.p != b.p)
+                  {
+                      return a.p < b.p;
+                  }
+                  if (a.q != b.q)
+                  {
+                      return a.q < b.q;
+                  }
+                  for (int d = 0; d < NDIM; ++d)
+                  {
+                      if (a.shift(d) != b.shift(d))
+                      {
+                          return a.shift(d) < b.shift(d);
+                      }
+                  }
+                  return false;
+              });
+    return transfers;
 }
 
 /*!
@@ -483,12 +578,15 @@ struct SAMRAIGhostDataAccumulator::LevelInfo
 
     // Set when the level is first used.
     bool initialized = false;
-    std::map<int, SideBoxLists> undeliverable_sides;
 
     // The schedule of the level, built when the level is first used.
     Pointer<RefineAlgorithm<NDIM>> algorithm;
     Pointer<RefineSchedule<NDIM>> schedule;
     std::shared_ptr<ScheduleState> state;
+
+    // For side-centered data, the schedule that moves the values that the schedule above does not move. It is null if
+    // this process sends and receives no such values.
+    Pointer<tbox::Schedule> gap_schedule;
 };
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -633,41 +731,16 @@ SAMRAIGhostDataAccumulator::accumulateGhostData(const int idx,
                 bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_time, d_gcw);
             }
 
-            // 2. Check the values that the schedule cannot move to their owners.
-            const auto sides = level_info.undeliverable_sides.find(patch->getPatchNumber());
-            if (sides != level_info.undeliverable_sides.end())
-            {
-                const SideData<NDIM, double>& side_data = dynamic_cast<const SideData<NDIM, double>&>(*data);
-                for (int axis = 0; axis < NDIM; ++axis)
-                {
-                    for (BoxList<NDIM>::Iterator b(sides->second[axis]); b; b++)
-                    {
-                        for (Box<NDIM>::Iterator i(b()); i; i++)
-                        {
-                            for (int depth = 0; depth < side_data.getDepth(); ++depth)
-                            {
-                                if (side_data.getArrayData(axis)(i(), depth) != 0.0)
-                                {
-                                    TBOX_ERROR("SAMRAIGhostDataAccumulator::accumulateGhostData():\n"
-                                               << "  patch " << patch->getPatchNumber() << " of level " << ln
-                                               << " (box " << patch->getBox() << ") has a nonzero value at side " << i()
-                                               << " in axis " << axis << " and depth " << depth
-                                               << ", on the outermost layer of its ghost region,\n"
-                                               << "  where the value cannot be summed into the patch that owns "
-                                                  "the side.");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 3. Copy the values that are summed into the interiors.
+            // 2. Copy the values that are summed into the interiors.
             patch->getPatchData(d_scratch_idx)->copy(*data);
         }
 
-        // 4. Sum the values in ghost regions into the interiors of the patches that own them.
+        // 3. Sum the values in ghost regions into the interiors of the patches that own them.
         level_info.schedule->fillData(fill_time, /*do_physical_boundary_fill*/ false);
+        if (level_info.gap_schedule)
+        {
+            level_info.gap_schedule->communicate();
+        }
     }
     IBTK_TIMER_STOP(t_accumulate_ghost_data);
 }
@@ -685,10 +758,6 @@ SAMRAIGhostDataAccumulator::initializeLevel(const int ln)
     Pointer<PatchLevel<NDIM>> level = level_info.level;
 
     check_patch_widths(level, d_gcw);
-    if (!d_cc_data)
-    {
-        level_info.undeliverable_sides = compute_undeliverable_sides(level, d_gcw);
-    }
 
     int depth = 0;
     if (d_cc_data)
@@ -715,6 +784,24 @@ SAMRAIGhostDataAccumulator::initializeLevel(const int ln)
     Pointer<RefineTransactionFactory<NDIM>> factory = new GhostSumTransactionFactory(
         d_cc_data ? Centering::CELL : Centering::SIDE, depth, d_scratch_idx, level_info.state);
     level_info.schedule = level_info.algorithm->createSchedule("DEFAULT_FILL", level, nullptr, factory);
+
+    // The schedule does not move the values at the sides on the outermost layer of the ghost side box of a patch p to a
+    // patch q whose cells are all outside the ghost cell box of p. They are moved by a schedule of the same
+    // transactions.
+    if (!d_cc_data)
+    {
+        const std::vector<GapTransfer> transfers = compute_gap_transfers(level, d_gcw);
+        if (!transfers.empty())
+        {
+            level_info.gap_schedule = new tbox::Schedule();
+            for (const GapTransfer& transfer : transfers)
+            {
+                const SideOverlap<NDIM> overlap(transfer.boxes.data(), transfer.shift);
+                level_info.gap_schedule->appendTransaction(Pointer<tbox::Transaction>(new GhostSumTransaction(
+                    Centering::SIDE, depth, d_scratch_idx, level, overlap, transfer.p, transfer.q, level_info.state)));
+            }
+        }
+    }
     level_info.initialized = true;
 }
 

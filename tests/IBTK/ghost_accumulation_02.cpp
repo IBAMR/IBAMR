@@ -183,11 +183,11 @@ fill_levels(Pointer<PatchHierarchy<NDIM>> hierarchy, const int idx, const bool c
     }
 }
 
-// Set the values at sides that are in the ghost region of a patch p and on the boundary of another patch q (or of a
-// periodic image of q), where p and q share no cell, to the given value. Returns the number of such sides on this
-// process.
+// Count the sides that are in the ghost region of a patch p and on the boundary of another patch q (or of a periodic
+// image of q), where p and q share no cell. The accumulation delivers the values at these sides to q like all others.
+// Returns the number of such sides on this process.
 int
-set_undeliverable_sides(Pointer<PatchLevel<NDIM>> level, const int idx, const int depth, const double value)
+count_outermost_sides(Pointer<PatchLevel<NDIM>> level, const int idx)
 {
     const BoxArray<NDIM>& boxes = level->getBoxes();
     const std::vector<IntVector<NDIM>> shifts = periodic_shifts(level);
@@ -199,11 +199,10 @@ set_undeliverable_sides(Pointer<PatchLevel<NDIM>> level, const int idx, const in
         const Box<NDIM> ghost_box = side_data->getGhostBox();
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            ArrayData<NDIM, double>& array = side_data->getArrayData(axis);
-            for (Box<NDIM>::Iterator i(array.getBox()); i; i++)
+            for (Box<NDIM>::Iterator i(side_data->getArrayData(axis).getBox()); i; i++)
             {
-                bool undeliverable = false;
-                for (int q = 0; q < boxes.getNumberOfBoxes() && !undeliverable; ++q)
+                bool owned_without_shared_cell = false;
+                for (int q = 0; q < boxes.getNumberOfBoxes() && !owned_without_shared_cell; ++q)
                 {
                     for (const IntVector<NDIM>& shift : shifts)
                     {
@@ -215,18 +214,14 @@ set_undeliverable_sides(Pointer<PatchLevel<NDIM>> level, const int idx, const in
                         const Box<NDIM> q_side_box = SideGeometry<NDIM>::toSideBox(q_box, axis);
                         if (q_side_box.contains(i()) && (ghost_box * q_box).empty())
                         {
-                            undeliverable = true;
+                            owned_without_shared_cell = true;
                             break;
                         }
                     }
                 }
-                if (undeliverable)
+                if (owned_without_shared_cell)
                 {
                     ++count;
-                    for (int d = 0; d < depth; ++d)
-                    {
-                        array(i(), d) = value;
-                    }
                 }
             }
         }
@@ -262,6 +257,9 @@ main(int argc, char* argv[])
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
+
+    // Some inputs allow patches smaller than the ghost cell width, which causes a warning.
+    Logger::getInstance()->setWarning(false);
     {
         Pointer<Logger::Appender> abort_append(new TestAppender());
         Logger::getInstance()->setAbortAppender(abort_append);
@@ -287,7 +285,6 @@ main(int argc, char* argv[])
         const bool cell = input_db->getString("var_type") == "CELL";
         const int depth = input_db->getInteger("depth");
         const IntVector<NDIM> gcw(input_db->getInteger("ghost_width"));
-        const double gap_value = input_db->getDouble("undeliverable_side_value");
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
@@ -342,19 +339,17 @@ main(int argc, char* argv[])
             bdry_op = std::make_unique<CartSideRobinPhysBdryOp>(result_idx, bc_coef_ptrs, /*homogeneous_bc*/ false);
         }
 
-        // Random values in the interiors and ghost regions of all levels, and a chosen value at sides that the
-        // accumulation cannot deliver.
+        // Random values in the interiors and ghost regions of all levels.
         fill_levels(patch_hierarchy, original_idx, cell, depth);
-        int num_undeliverable = 0;
+        int num_outermost = 0;
         if (!cell)
         {
             for (int ln = 0; ln <= finest_ln; ++ln)
             {
-                num_undeliverable +=
-                    set_undeliverable_sides(patch_hierarchy->getPatchLevel(ln), original_idx, depth, gap_value);
+                num_outermost += count_outermost_sides(patch_hierarchy->getPatchLevel(ln), original_idx);
             }
         }
-        num_undeliverable = IBTK_MPI::sumReduction(num_undeliverable);
+        num_outermost = IBTK_MPI::sumReduction(num_outermost);
         for (const int idx : { transposed_idx, result_idx })
         {
             copy_levels(patch_hierarchy, idx, original_idx);
@@ -492,7 +487,8 @@ main(int argc, char* argv[])
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             plog << "number of patches on level " << ln << ": " << level->getNumberOfPatches() << '\n';
         }
-        plog << "number of undeliverable sides set: " << num_undeliverable << '\n';
+        plog << "number of ghost sides owned by a patch that shares no cell with the ghost region: " << num_outermost
+             << '\n';
         plog << "number of values compared: " << num_values << '\n';
         plog << "sum of accumulated values: " << std::setprecision(10) << sum_values << '\n';
         plog << "number of active patches: " << num_active << '\n';

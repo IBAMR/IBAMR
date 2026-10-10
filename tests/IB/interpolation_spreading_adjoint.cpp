@@ -305,10 +305,8 @@ main(int argc, char* argv[])
 {
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
-#ifndef IBTK_HAVE_SILO
-    // Suppress warnings caused by running without Silo.
+    // Suppress warnings caused by running without Silo and by allowing patches smaller than the ghost cell width.
     SAMRAI::tbox::Logger::getInstance()->setWarning(false);
-#endif
 
     {
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
