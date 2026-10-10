@@ -1,0 +1,3 @@
+Fixed: IBTK::SCPoissonPointRelaxationFACOperator, IBTK::VCSCViscousOpPointRelaxationFACOperator, and IBAMR::StaggeredStokesBoxRelaxationFACOperator synchronize the values on faces shared by patches before they fill ghost values between sweeps. Their results with more than one sweep previously depended on how the patches were distributed among processes.
+<br>
+(Boyce Griffith, 2026/10/10)
