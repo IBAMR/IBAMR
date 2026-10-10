@@ -1,0 +1,81 @@
+// A boundary at x = 0 at which the traction is prescribed, between walls with prescribed velocity at y = 0 and y = 1
+// and a slip wall at x = 1, on four patches.
+
+N = 8
+
+// The Robin coefficients are a = 1, b = 0, g = velocity where the velocity is prescribed and
+// a = 0, b = 1, g = traction where the traction is prescribed.
+VelocityBcCoefs_0 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.5*cos(2*X_1) + 0.3"
+   gcoef_function_1 = "-0.4 + 0.5*cos(X_1)"
+   gcoef_function_2 = "0.4*sin(2*X_0) + 0.2"
+   gcoef_function_3 = "-0.3 + 0.2*cos(X_0)"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.3*sin(2*X_1) + 0.1"
+   gcoef_function_1 = "0.2*cos(3*X_1) - 0.2"
+   gcoef_function_2 = "0.5 + 0.2*cos(2*X_0)"
+   gcoef_function_3 = "-0.7 + 0.3*sin(X_0)"
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                      = 1.0
+   rho                     = 1.0
+   start_time              = 0.0
+   end_time                = 0.01
+   dt_max                  = 0.01
+   traction_bc_type        = "TRACTION"
+   enable_logging          = FALSE
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = 1,1
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = N/2,N/2
+   }
+   smallest_patch_size {
+      level_0 = N/2,N/2
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}

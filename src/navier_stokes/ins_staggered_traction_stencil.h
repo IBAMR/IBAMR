@@ -248,6 +248,44 @@ void accumulate_from_traction_bc_coefs(SAMRAI::pdat::SideData<NDIM, double>& u_d
                                        PhysicalDomainCache& domain_cache,
                                        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy,
                                        double fill_time);
+
+/*!
+ * Return the normal velocity on the face of the ghost cell i_g outside a physical boundary that is farther from the
+ * boundary, such that the discrete divergence of u_data vanishes in the ghost cell. The boundary is normal to
+ * normal_axis and is the lower boundary if is_lower. The face of i_g on the boundary and the tangential faces of i_g
+ * are read, and the value of u_data on the face that is returned is not.
+ */
+double get_divergence_free_ghost_value(const SAMRAI::pdat::SideData<NDIM, double>& u_data,
+                                       const SAMRAI::hier::Index<NDIM>& i_g,
+                                       unsigned int normal_axis,
+                                       bool is_lower,
+                                       const double* dx);
+
+/*!
+ * Return the dependence of get_divergence_free_ghost_value() on u_data as the list of the faces that it reads, each
+ * with its coefficient. The faces are those of i_g, which are the face on the boundary and the faces tangential to the
+ * boundary, which are ghost values.
+ */
+std::vector<std::pair<SAMRAI::pdat::SideIndex<NDIM>, double>>
+get_divergence_free_ghost_value_stencil(const SAMRAI::hier::Index<NDIM>& i_g,
+                                        unsigned int normal_axis,
+                                        bool is_lower,
+                                        const double* dx);
+
+/*!
+ * Return the dependence on u_data of u_I - u_div at the face i of a physical boundary normal to bdry_normal_axis,
+ * which is the lower boundary if bdry_is_lower, as the list of the faces that it reads, each with its coefficient.
+ * Here u_I is the normal velocity on the next face inside the domain and u_div is the value of
+ * get_divergence_free_ghost_value() in the ghost cell abutting the boundary at i. The viscous normal-stress term that
+ * StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm() adds at the boundary face is D/h^2 times this
+ * difference. A face may be listed more than once, and the coefficients add. The faces tangential to the boundary
+ * are ghost faces; their values are defined by the boundary conditions for the tangential velocity.
+ */
+std::vector<std::pair<SAMRAI::pdat::SideIndex<NDIM>, double>>
+get_normal_stress_stencil(const SAMRAI::hier::Index<NDIM>& i,
+                          unsigned int bdry_normal_axis,
+                          bool bdry_is_lower,
+                          const double* dx);
 } // namespace traction_stencil
 } // namespace IBAMR
 

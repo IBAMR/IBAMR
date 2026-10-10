@@ -1,0 +1,5 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+Largest magnitude of the momentum right-hand side: 409.8115009
+Largest magnitude of the continuity right-hand side: 22.90151427

@@ -17,6 +17,7 @@
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/StaggeredStokesSolverManager.h>
+#include <ibamr/StokesBcCoefStrategy.h>
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/CartCellDoubleCubicCoarsen.h>
@@ -652,6 +653,23 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                                 1.0,
                                                 U_res_idx,
                                                 U_res_sc_var);
+    if (d_has_traction_conditions && d_bc_helper)
+    {
+        // Add the part of the viscous term that imposes TRACTION conditions where the normal velocity is not
+        // prescribed. The ghost values are linear extrapolations.
+        d_bc_helper->addNormalTractionViscousTerm(U_res_idx,
+                                                  U_sol_idx,
+                                                  d_U_problem_coefs.getDConstant(),
+                                                  d_U_bc_coefs,
+                                                  /*linear_pressure_extrapolation*/ true,
+                                                  coarsest_level_num,
+                                                  finest_level_num);
+
+        // The row of the operator at a face at which the normal velocity is prescribed is the velocity. With TRACTION
+        // conditions the viscous term at such a face is not zero next to a boundary where the ghost values of the
+        // tangential velocity depend on the normal velocity on the boundary.
+        d_bc_helper->copyDataAtDirichletBoundaries(U_res_idx, U_sol_idx, coarsest_level_num, finest_level_num);
+    }
     HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     level_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
     d_level_math_ops[finest_level_num]->div(P_res_idx,
@@ -699,6 +717,17 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_hierarchy = solution.getPatchHierarchy();
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln = solution.getFinestLevelNumber();
+
+    // Decide once whether any velocity boundary condition object imposes TRACTION conditions.
+    d_has_traction_conditions = false;
+    for (const auto& U_bc_coef : d_U_bc_coefs)
+    {
+        const auto stokes_U_bc_coef = dynamic_cast<const StokesBcCoefStrategy*>(U_bc_coef);
+        if (stokes_U_bc_coef && stokes_U_bc_coef->getTractionBcType() == TRACTION)
+        {
+            d_has_traction_conditions = true;
+        }
+    }
 
     // Setup boundary condition handling objects.
     d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);

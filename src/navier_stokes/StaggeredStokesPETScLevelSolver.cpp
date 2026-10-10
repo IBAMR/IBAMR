@@ -17,6 +17,7 @@
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+#include <ibamr/StokesBcCoefStrategy.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/GeneralSolver.h>
@@ -59,9 +60,12 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <array>
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "./ins_staggered_traction_stencil.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -147,6 +151,105 @@ adjust_rhs_for_ghost_pressure(SideData<NDIM, double>& f_data,
     }
     return;
 } // adjust_rhs_for_ghost_pressure
+
+// At each face of a physical boundary at which TRACTION conditions are imposed and the normal velocity is not
+// prescribed, the momentum equation for the normal velocity on the boundary contains D/h^2 times u_I - u_div, in which
+// u_I is the normal velocity on the next face inside the domain and u_div is the normal velocity that makes the
+// discrete divergence vanish in the ghost cell outside the boundary. The velocities of the ghost cell that enter u_div
+// are ghost values of the tangential velocities, f_i*u + f_g*gamma, in which u is the velocity on the face inside the
+// domain, f_i and f_g are the coefficients of the linear extrapolation that defines the ghost value, and gamma is the
+// inhomogeneous Robin coefficient. The matrix includes the terms with u and with the dependence of gamma on the normal
+// velocities on the boundary; this function moves the term with the data in gamma to the right-hand side. The boundary
+// condition objects evaluate gamma with the velocity that holds the values in coarse-fine ghost cells, which are data.
+void
+adjust_rhs_for_normal_stress(SideData<NDIM, double>& f_data,
+                             Patch<NDIM>& patch,
+                             const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                             const double D,
+                             const double data_time,
+                             const bool homogeneous_bc)
+{
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+    {
+        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const unsigned int bdry_normal_axis = location_index / 2;
+        const bool is_lower = location_index % 2 == 0;
+        const auto normal_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(U_bc_coefs[bdry_normal_axis]);
+        if (!normal_bc_coef || normal_bc_coef->getTractionBcType() != TRACTION)
+        {
+            continue;
+        }
+        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, patch);
+        const Box<NDIM> normal_bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+        // The boundary conditions of the tangential components at the locations of their ghost values.
+        std::array<Pointer<ArrayData<NDIM, double>>, NDIM> acoef_data, bcoef_data, gcoef_data;
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            if (axis == bdry_normal_axis)
+            {
+                continue;
+            }
+            Box<NDIM> bc_coef_box = normal_bc_coef_box;
+            bc_coef_box.upper()(axis) += 1;
+            acoef_data[axis] = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            bcoef_data[axis] = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            gcoef_data[axis] = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            std::array<double, NDIM> shift;
+            shift.fill(0.0);
+            shift[axis] = -0.5 * dx[axis];
+            const traction_stencil::ShiftedPatchGeometry shifted_geometry(patch, shift);
+            const traction_stencil::ShiftedPatchGeometry::Scope scope(patch, shifted_geometry);
+            U_bc_coefs[axis]->setBcCoefs(
+                acoef_data[axis], bcoef_data[axis], gcoef_data[axis], nullptr, patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !dynamic_cast<ExtendedRobinBcCoefStrategy*>(U_bc_coefs[axis]))
+            {
+                gcoef_data[axis]->fillAll(0.0);
+            }
+        }
+
+        // The normal velocity is not prescribed where the velocity boundary condition is a traction condition.
+        Pointer<ArrayData<NDIM, double>> normal_acoef_data = new ArrayData<NDIM, double>(normal_bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> normal_bcoef_data = new ArrayData<NDIM, double>(normal_bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> normal_gcoef_data;
+        normal_bc_coef->setBcCoefs(
+            normal_acoef_data, normal_bcoef_data, normal_gcoef_data, nullptr, patch, trimmed_bdry_box, data_time);
+        const double h = dx[bdry_normal_axis];
+        for (Box<NDIM>::Iterator b(normal_bc_coef_box); b; b++)
+        {
+            const hier::Index<NDIM>& i = b();
+            if (!((*normal_acoef_data)(i, 0) == 0.0 && (*normal_bcoef_data)(i, 0) == 1.0))
+            {
+                continue;
+            }
+            double datum = 0.0;
+            for (const auto& entry : traction_stencil::get_normal_stress_stencil(i, bdry_normal_axis, is_lower, dx))
+            {
+                const unsigned int axis = entry.first.getAxis();
+                if (axis == bdry_normal_axis)
+                {
+                    continue;
+                }
+                hier::Index<NDIM> i_bc = entry.first;
+                if (is_lower)
+                {
+                    i_bc(bdry_normal_axis) += 1;
+                }
+                const double a = (*acoef_data[axis])(i_bc, 0);
+                const double b_coef = (*bcoef_data[axis])(i_bc, 0);
+                const double f_g = 2.0 * h / (a * h + 2.0 * b_coef);
+                datum += entry.second * f_g * (*gcoef_data[axis])(i_bc, 0);
+            }
+            f_data(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) -= D / (h * h) * datum;
+        }
+    }
+    return;
+} // adjust_rhs_for_normal_stress
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -425,6 +528,8 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
             }
             PoissonUtilities::adjustRHSAtPhysicalBoundary(
                 *f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs, d_solution_time, d_homogeneous_bc);
+            adjust_rhs_for_normal_stress(
+                *f_adj_data, *patch, d_U_bc_coefs, d_U_problem_coefs.getDConstant(), d_solution_time, d_homogeneous_bc);
             if (at_cf_bdry)
             {
                 u_bc_target_data->fillAll(0.0);

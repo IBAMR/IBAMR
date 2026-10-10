@@ -170,6 +170,8 @@ SETUP_2D(navier_stokes traction_corner_accuracy.cpp)
 SETUP_2D(navier_stokes divergence_free_phys_bdry_op.cpp)
 SETUP_3D(navier_stokes divergence_free_phys_bdry_op.cpp)
 SETUP_2D(navier_stokes stokes_fac_restriction.cpp)
+SETUP_2D(navier_stokes stokes_fac_open_boundary.cpp)
+SETUP_3D(navier_stokes stokes_fac_open_boundary.cpp)
 
 # physical_boundary:
 SETUP(physical_boundary extrapolation_01.cpp IBAMR2d)
