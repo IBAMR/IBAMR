@@ -313,7 +313,10 @@ main(int argc, char* argv[])
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(U_adv_diff_cloned_idx, loop_time);
         }
         u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
-        p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
+        // The integrator reports the time at which the pressure of the time step is defined.
+        const double p_time = time_integrator->getPressureTime(loop_time - dt, loop_time);
+
+        p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, p_time);
         u_init->setDataOnPatchHierarchy(U_adv_diff_cloned_idx, U_adv_diff_var, patch_hierarchy, loop_time);
 
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -345,7 +348,7 @@ main(int argc, char* argv[])
         }
 
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
-        pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
+        pout << "Error in p at time " << p_time << ":\n"
              << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx, wgt_cc_idx) << "\n"
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_idx, wgt_cc_idx) << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx, wgt_cc_idx) << "\n";

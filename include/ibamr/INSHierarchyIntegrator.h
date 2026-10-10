@@ -99,6 +99,15 @@ public:
     TimeSteppingType getViscousTimeSteppingType() const;
 
     /*!
+     * Return the time at which the pressure computed in the time step from
+     * \p current_time to \p new_time is defined.
+     *
+     * The time depends on the time stepping scheme. The default implementation
+     * returns the time at the middle of the time step.
+     */
+    virtual double getPressureTime(double current_time, double new_time) const;
+
+    /*!
      * Set the type of convective time integration scheme being employed by the
      * incompressible flow solver.
      *

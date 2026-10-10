@@ -49,7 +49,7 @@ Error in u at time 0.00195312:
   L1-norm:  4.350635406e-05
   L2-norm:  8.273040115e-05
   max-norm: 0.0005376307383
-Error in p at time 0.0009765625:
+Error in p at time 0.001953125:
   L1-norm:  0.2293710679
   L2-norm:  0.9716089269
   max-norm: 7.748935494
@@ -83,7 +83,7 @@ Error in u at time 0.00390625:
   L1-norm:  5.221002746e-05
   L2-norm:  9.241276344e-05
   max-norm: 0.0005618422782
-Error in p at time 0.0029296875:
+Error in p at time 0.00390625:
   L1-norm:  0.2293705026
   L2-norm:  0.971607785
   max-norm: 7.748910917
@@ -120,7 +120,7 @@ Error in u at time 0.005859375:
   L1-norm:  5.343336533e-05
   L2-norm:  9.193287164e-05
   max-norm: 0.0005463972345
-Error in p at time 0.0048828125:
+Error in p at time 0.005859375:
   L1-norm:  0.2293700912
   L2-norm:  0.971606925
   max-norm: 7.748890068
@@ -154,7 +154,7 @@ Error in u at time 0.0078125:
   L1-norm:  5.316170191e-05
   L2-norm:  9.068069739e-05
   max-norm: 0.0005370707931
-Error in p at time 0.0068359375:
+Error in p at time 0.0078125:
   L1-norm:  0.2293697376
   L2-norm:  0.9716061575
   max-norm: 7.748871125
@@ -188,7 +188,7 @@ Error in u at time 0.009765625:
   L1-norm:  5.252442951e-05
   L2-norm:  8.960078609e-05
   max-norm: 0.0005313440326
-Error in p at time 0.0087890625:
+Error in p at time 0.009765625:
   L1-norm:  0.2293693934
   L2-norm:  0.9716054289
   max-norm: 7.748852913
@@ -225,7 +225,7 @@ Error in u at time 0.01171875:
   L1-norm:  5.184448351e-05
   L2-norm:  8.863900145e-05
   max-norm: 0.0005267499705
-Error in p at time 0.0107421875:
+Error in p at time 0.01171875:
   L1-norm:  0.2293690723
   L2-norm:  0.9716047214
   max-norm: 7.748835027
@@ -259,7 +259,7 @@ Error in u at time 0.013671875:
   L1-norm:  5.133595867e-05
   L2-norm:  8.773198284e-05
   max-norm: 0.0005224823515
-Error in p at time 0.0126953125:
+Error in p at time 0.013671875:
   L1-norm:  0.2293687762
   L2-norm:  0.9716040255
   max-norm: 7.748817388
@@ -293,7 +293,7 @@ Error in u at time 0.015625:
   L1-norm:  5.109326623e-05
   L2-norm:  8.686719475e-05
   max-norm: 0.0005183660134
-Error in p at time 0.0146484375:
+Error in p at time 0.015625:
   L1-norm:  0.2293684835
   L2-norm:  0.9716033359
   max-norm: 7.748799987
@@ -330,7 +330,7 @@ Error in u at time 0.017578125:
   L1-norm:  5.110776661e-05
   L2-norm:  8.604942091e-05
   max-norm: 0.0005143692469
-Error in p at time 0.0166015625:
+Error in p at time 0.017578125:
   L1-norm:  0.2293681935
   L2-norm:  0.9716026494
   max-norm: 7.748782818
@@ -367,7 +367,7 @@ Error in u at time 0.01953125:
   L1-norm:  5.134706257e-05
   L2-norm:  8.528499913e-05
   max-norm: 0.0005104762275
-Error in p at time 0.0185546875:
+Error in p at time 0.01953125:
   L1-norm:  0.2293679059
   L2-norm:  0.9716019638
   max-norm: 7.748765876
