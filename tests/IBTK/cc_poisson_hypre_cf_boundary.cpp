@@ -29,17 +29,19 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <vector>
 
 #include "../tests.h"
 
 #include <ibtk/app_namespaces.h>
 
-// Solve a cell-centered Poisson problem on the finest level of a two-level hierarchy with
-// CCPoissonHypreLevelSolver. The fine level has coarse-fine boundaries and does not touch the physical boundary. The
-// input selects a multigrid configuration of the solver, which converges only if the matrix has no entries that couple
-// to cells outside the level. The exact solution is a constant, which the discretization reproduces. The initial guess
-// is zero in the interior and the exact value in the ghost cells, which hold the boundary data at the coarse-fine
-// boundary. The input sets initial_guess_nonzero = FALSE.
+// Solve a cell-centered Poisson problem on the finest level of a two-level hierarchy with CCPoissonHypreLevelSolver.
+// The fine level has coarse-fine boundaries and does not touch the physical boundary. The input selects a multigrid
+// configuration of the solver, which converges only if the matrix has no entries that couple to cells outside the
+// level. The exact solution is a constant, which the discretization reproduces. The solver solves twice with the exact
+// value in the ghost cells, which hold the boundary data at the coarse-fine boundary, once from large interior values
+// that vary from one cell to the next and once from zero, and the solutions must be identical, because the input sets
+// initial_guess_nonzero = FALSE.
 int
 main(int argc, char* argv[])
 {
@@ -80,15 +82,44 @@ main(int argc, char* argv[])
     f.addComponent(f_var, f_idx);
     solver.initializeSolverState(u, f);
 
-    // Start from zero in the interior and the exact value in the ghost cells.
+    // Solve twice. The first solve starts from large values that vary from one cell to the next in the interior and
+    // the second from zero, with the exact value in the ghost values for both. The solver ignores the interior values,
+    // so the solutions are identical.
     f.setToScalar(0.0);
-    u.setToScalar(exact, /*interior_only*/ false);
-    u.setToScalar(0.0, /*interior_only*/ true);
-    const bool converged = solver.solveSystem(u, f);
+    std::vector<double> solution[2];
+    bool converged = true;
+    for (int start = 0; start < 2; ++start)
+    {
+        u.setToScalar(exact, /*interior_only*/ false);
+        int counter = 0;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+            {
+                (*u_data)(CellIndex<NDIM>(b())) = start == 0 ? 1000.0 + 37.0 * (counter++ % 11) : 0.0;
+            }
+        }
+        converged = solver.solveSystem(u, f) && converged;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            for (Box<NDIM>::Iterator b(patch->getBox()); b; b++)
+            {
+                solution[start].push_back((*u_data)(CellIndex<NDIM>(b())));
+            }
+        }
+    }
     solver.deallocateSolverState();
     if (!converged)
     {
         TBOX_ERROR("The solver did not converge.\n");
+    }
+    if (solution[0] != solution[1])
+    {
+        TBOX_ERROR("The solution depends on the interior values of the solution vector.\n");
     }
 
     double u_min = std::numeric_limits<double>::max(), u_max = std::numeric_limits<double>::lowest();
