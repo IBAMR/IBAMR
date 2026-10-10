@@ -287,6 +287,9 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
 
+    // Boundary condition types may depend on time, so refresh the cached boundary data.
+    d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
+
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -315,6 +318,10 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, nullptr);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
+
+    // Use divergence-free normal velocity ghost values where the normal velocity is not prescribed.
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx, d_coarsest_ln, d_finest_ln);
+    d_bc_helper->clearBcCoefData();
 
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
