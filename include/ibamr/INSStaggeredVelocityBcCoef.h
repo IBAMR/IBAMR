@@ -25,8 +25,11 @@
 
 #include <tbox/Pointer.h>
 
+#include <BoxArray.h>
 #include <IntVector.h>
 
+#include <array>
+#include <map>
 #include <vector>
 
 namespace IBAMR
@@ -74,6 +77,17 @@ namespace IBAMR
  *
  * Dirichlet, true traction, and pseudo-traction boundary conditions are
  * all supported.
+ *
+ * With TRACTION boundary conditions, the value set for a tangential velocity
+ * component includes the tangential derivative of the normal velocity along the
+ * boundary. A corner is where the boundary meets an adjacent physical boundary
+ * (an edge in three dimensions). The difference across a corner needs a normal
+ * velocity value beyond it. If the adjacent boundary prescribes the normal
+ * velocity, that value is 2*u_b - u, where u is the normal velocity on the
+ * nearest face of the boundary and u_b is the prescribed value; otherwise it is
+ * extrapolated linearly along the boundary. The difference is first-order
+ * accurate at a corner, and so is the outermost tangential ghost column of the
+ * patch data, where the difference is taken one cell further inside the data.
  */
 class INSStaggeredVelocityBcCoef : public StokesBcCoefStrategy
 {
@@ -279,6 +293,18 @@ private:
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    /*
+     * Return the physical domain of the level of patch, including its periodic
+     * images, computed on first use for each refinement ratio.
+     */
+    const SAMRAI::hier::BoxArray<NDIM>& getPhysicalDomain(const SAMRAI::hier::Patch<NDIM>& patch) const;
+
+    /*
+     * The physical domain, with its periodic images, refined by each refinement
+     * ratio for which it has been requested.
+     */
+    mutable std::map<std::array<int, NDIM>, SAMRAI::hier::BoxArray<NDIM>> d_physical_domain;
 };
 } // namespace IBAMR
 
