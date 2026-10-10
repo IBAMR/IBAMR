@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <limits>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -367,12 +368,21 @@ double
 InitializeAllConstants(const char* IBKernelName, const double MU, const double rho, const double Dt, const double DX)
 {
     KERNEL_TYPES CurrentKernelType = GetKernelType(IBKernelName);
+    // beta is the viscous CFL number. A fluid of zero density has no inertia:
+    // beta is unbounded and the steady Stokes fits are used.
     double beta;
-    // finding beta
     if (MU <= 0.0)
-        beta = 0.0; // invisid case
+    {
+        beta = 0.0; // inviscid case
+    }
+    else if (rho <= 0.0)
+    {
+        beta = std::numeric_limits<double>::infinity();
+    }
     else
+    {
         beta = MU * Dt / (rho * DX * DX);
+    }
 
     double mob_fit_factor;
 #if (NDIM == 3)
@@ -532,12 +542,21 @@ getEmpiricalMobilityComponents(const double mob_fit_factor,
                                double* F_MobilityValue,
                                double* G_Mobilityvalue)
 {
+    // beta is the viscous CFL number. A fluid of zero density has no inertia:
+    // beta is unbounded and the steady Stokes fits are used.
     double beta;
-    // finding beta
     if (MU <= 0.0)
-        beta = 0.0; // invisid case
+    {
+        beta = 0.0; // inviscid case
+    }
+    else if (rho <= 0.0)
+    {
+        beta = std::numeric_limits<double>::infinity();
+    }
     else
+    {
         beta = MU * Dt / (rho * DX * DX);
+    }
 
     if (rho <= 0.0)
     {

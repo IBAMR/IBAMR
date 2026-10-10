@@ -1,0 +1,3 @@
+Removed: The mobility matrix type IBAMR::READ_FROM_FILE and the filename argument of IBAMR::DirectMobilitySolver::registerMobilityMat() are gone. A mobility matrix read from a file was not used in practice and stopped the solver when the matrices were recomputed in every time step. Callers that pass a scale to registerMobilityMat() must drop the filename argument that preceded it.
+<br>
+(Boyce Griffith, 2026/10/10)
