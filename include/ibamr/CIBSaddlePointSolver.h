@@ -397,8 +397,10 @@ private:
      * This boolean value determines whether the velocity is normalized to have
      * zero mean (i.e., discrete integral) at the end of each timestep.
      *
-     * This parameter only affects the case in which rho=0 (i.e. the steady
-     * Stokes equations).
+     * This parameter only affects the case in which the damping coefficient of
+     * the velocity equation, which combines the density and drag terms, is a
+     * constant that is exactly zero (e.g., the steady Stokes equations without
+     * drag).
      */
     bool d_normalize_velocity = false;
 

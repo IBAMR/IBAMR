@@ -1759,6 +1759,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_coarsest_reset_ln = coarsest_level;
     d_finest_reset_ln = finest_level;
     d_vectors_need_init = true;
+    d_nul_vecs_need_init = true;
     d_convective_op_needs_init = true;
     d_velocity_solver_needs_init = true;
     d_pressure_solver_needs_init = true;
@@ -1916,57 +1917,21 @@ INSVCStaggeredHierarchyIntegrator::copySideToFace(const int U_fc_idx,
     return;
 } // copySideToFace
 
-/////////////////////////////// PRIVATE //////////////////////////////////////
-
 void
-INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double current_time, const double new_time)
+INSVCStaggeredHierarchyIntegrator::updateNullSpaceVectors(const double current_time,
+                                                          const bool has_velocity_nullspace,
+                                                          const bool has_pressure_nullspace)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
-    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
+    const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
 
-    // Setup solver vectors.
-    const bool has_velocity_nullspace = d_normalize_velocity && (d_rho_is_const && IBTK::abs_equal_eps(rho, 0.0));
-    const bool has_pressure_nullspace = d_normalize_pressure;
-    if (d_vectors_need_init)
+    if (d_nul_vecs_need_init)
     {
-        d_U_scratch_vec =
-            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::U_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
-        d_U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, wgt_sc_idx, d_hier_sc_data_ops);
-
-        d_P_scratch_vec =
-            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
-        d_P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
-
-        if (d_U_rhs_vec) free_vector_components(*d_U_rhs_vec);
-        if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
-        if (d_N_vec) free_vector_components(*d_N_vec);
-        if (d_P_rhs_vec) free_vector_components(*d_P_rhs_vec);
-
-        d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
-        d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
-        d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
-        d_P_rhs_vec = d_P_scratch_vec->cloneVector(d_object_name + "::P_rhs_vec");
-
-        d_sol_vec =
-            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-        d_sol_vec->addComponent(d_U_var, d_U_scratch_idx, wgt_sc_idx, d_hier_sc_data_ops);
-        d_sol_vec->addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
-
-        d_rhs_vec =
-            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-        const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-        d_rhs_vec->addComponent(d_U_var, U_rhs_idx, wgt_sc_idx, d_hier_sc_data_ops);
-        const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
-        d_rhs_vec->addComponent(d_P_var, P_rhs_idx, wgt_cc_idx, d_hier_cc_data_ops);
-
         for (const auto& nul_vec : d_nul_vecs)
         {
             if (nul_vec) free_vector_components(*nul_vec);
         }
-        const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
         d_nul_vecs.resize(n_nul_vecs);
 
         for (const auto& U_nul_vec : d_U_nul_vecs)
@@ -2043,6 +2008,54 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
             }
         }
 #endif
+
+        d_nul_vecs_need_init = false;
+    }
+    return;
+} // updateNullSpaceVectors
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double current_time, const double new_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
+
+    // Setup solver vectors.
+    if (d_vectors_need_init)
+    {
+        d_U_scratch_vec =
+            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::U_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
+        d_U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, wgt_sc_idx, d_hier_sc_data_ops);
+
+        d_P_scratch_vec =
+            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
+        d_P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
+
+        if (d_U_rhs_vec) free_vector_components(*d_U_rhs_vec);
+        if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
+        if (d_N_vec) free_vector_components(*d_N_vec);
+        if (d_P_rhs_vec) free_vector_components(*d_P_rhs_vec);
+
+        d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
+        d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
+        d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
+        d_P_rhs_vec = d_P_scratch_vec->cloneVector(d_object_name + "::P_rhs_vec");
+
+        d_sol_vec =
+            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+        d_sol_vec->addComponent(d_U_var, d_U_scratch_idx, wgt_sc_idx, d_hier_sc_data_ops);
+        d_sol_vec->addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
+
+        d_rhs_vec =
+            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+        const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
+        d_rhs_vec->addComponent(d_U_var, U_rhs_idx, wgt_sc_idx, d_hier_sc_data_ops);
+        const int P_rhs_idx = d_P_rhs_vec->getComponentDescriptorIndex(0);
+        d_rhs_vec->addComponent(d_P_var, P_rhs_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
         d_vectors_need_init = false;
     }

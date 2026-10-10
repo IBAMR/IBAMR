@@ -1270,8 +1270,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     }
 
     // Setup subdomain solvers.
-    const bool has_velocity_nullspace = d_normalize_velocity;
+    const bool has_velocity_nullspace =
+        d_normalize_velocity &&
+        (U_problem_coefs.cIsZero() || (U_problem_coefs.cIsConstant() && U_problem_coefs.getCConstant() == 0.0));
     const bool has_pressure_nullspace = d_normalize_pressure;
+    updateNullSpaceVectors(current_time, has_velocity_nullspace, has_pressure_nullspace);
 
     if (d_velocity_solver)
     {
