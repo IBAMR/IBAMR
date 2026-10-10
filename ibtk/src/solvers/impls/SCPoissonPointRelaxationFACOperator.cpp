@@ -440,6 +440,11 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     }
                 }
 
+                // Patches that share a face each hold a copy of its values, and the copies differ after a patch
+                // sweep; synchronize them so that the ghost values filled next do not depend on the order of the
+                // copies.
+                xeqScheduleDataSynch(error_idx, level_num);
+
                 // Fill the non-coarse-fine interface ghost cell values.
                 xeqScheduleGhostFillNoCoarse(error_idx, level_num);
             }
@@ -457,6 +462,8 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
         }
         else if (isweep > 0)
         {
+            // Synchronize the copies of the values on shared faces before filling the ghost values.
+            xeqScheduleDataSynch(error_idx, level_num);
             xeqScheduleGhostFillNoCoarse(error_idx, level_num);
         }
 
