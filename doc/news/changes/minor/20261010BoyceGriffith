@@ -1,0 +1,3 @@
+Fixed: IBTK::CCPoissonPointRelaxationFACOperator, IBTK::SCPoissonPointRelaxationFACOperator, IBTK::VCSCViscousOpPointRelaxationFACOperator, and IBTK::CCPoissonBoxRelaxationFACOperator stop with an error in all builds when smoother_type is not a supported smoother. They previously accepted an unknown value in release builds and ran patch Gauss-Seidel.
+<br>
+(Boyce Griffith, 2026/10/10)

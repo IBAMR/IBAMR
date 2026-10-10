@@ -383,7 +383,8 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(const s
             d_use_consistent_type_2_bdry = input_db->getBool("use_consistent_type_2_bdry");
     }
 
-    // Configure the coarse level solver.
+    // Check the smoother type and configure the coarse level solver.
+    setSmootherType(d_smoother_type);
     setCoarseSolverType(d_coarse_solver_type);
 
     // Setup Timers.
@@ -405,9 +406,14 @@ CCPoissonPointRelaxationFACOperator::~CCPoissonPointRelaxationFACOperator()
 void
 CCPoissonPointRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(get_smoother_type(smoother_type) != UNKNOWN);
-#endif
+    if (get_smoother_type(smoother_type) == UNKNOWN)
+    {
+        TBOX_ERROR(d_object_name << "::setSmootherType():\n"
+                                 << "  unsupported smoother type: " << smoother_type << "\n"
+                                 << "  supported types: PATCH_GAUSS_SEIDEL, PROCESSOR_GAUSS_SEIDEL, "
+                                    "RED_BLACK_GAUSS_SEIDEL"
+                                 << std::endl);
+    }
     d_smoother_type = smoother_type;
     return;
 } // setSmootherType
