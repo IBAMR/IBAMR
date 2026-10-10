@@ -100,6 +100,11 @@ namespace IBTK
  * values of \a x hold the solution and the ghost values are as the caller gave
  * them.
  *
+ * <b>Periodic directions.</b>  In a periodic direction the level may either
+ * have cells at the same positions at both ends of the physical domain, as the
+ * coarsest level does, or have no cells at one of its ends.  A level that has
+ * cells at both ends, but not at the same positions, is an error.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 

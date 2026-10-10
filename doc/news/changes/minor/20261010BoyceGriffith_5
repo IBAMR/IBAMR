@@ -1,0 +1,3 @@
+Fixed: IBTK::SCPoissonHypreLevelSolver solves on a level above the coarsest that does not wrap around a periodic boundary.
+<br>
+(Boyce Griffith, 2026/10/10)
