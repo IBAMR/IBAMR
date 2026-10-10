@@ -435,7 +435,7 @@ c
             a = acoef(j)
             b = bcoef(j)
             g = gcoef(j)
-            if (abs(b) .lt. 1.d-12) then
+            if (b .eq. 0.d0) then
 c     Dirichlet boundary conditions
                u_b = g/a
                u0(i_b,j) = u_b
@@ -552,7 +552,7 @@ c
             a = acoef(i)
             b = bcoef(i)
             g = gcoef(i)
-            if (abs(b) .lt. 1.d-12) then
+            if (b .eq. 0.d0) then
 c     Dirichlet boundary conditions
                u_b = g/a
                u1(i,j_b) = u_b
@@ -969,7 +969,7 @@ c
             a = acoef(j)
             b = bcoef(j)
             g = gcoef(j)
-            if (abs(b) .lt. 1.d-12) then
+            if (b .eq. 0.d0) then
 c     Dirichlet boundary conditions
                u_b = g/a
                u0(i_b,j) = u_b
@@ -1074,7 +1074,7 @@ c
             a = acoef(i)
             b = bcoef(i)
             g = gcoef(i)
-            if (abs(b) .lt. 1.d-12) then
+            if (b .eq. 0.d0) then
 c     Dirichlet boundary conditions
                u_b = g/a
                u1(i,j_b) = u_b

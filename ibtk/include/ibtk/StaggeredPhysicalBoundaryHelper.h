@@ -128,6 +128,9 @@ public:
 
     /*!
      * \brief Cache boundary coefficient data.
+     *
+     * A boundary location is a Dirichlet location if and only if the Robin coefficients a and b satisfy b == 0 and
+     * a != 0.  No tolerance is used.
      */
     void cacheBcCoefData(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                          double fill_time,

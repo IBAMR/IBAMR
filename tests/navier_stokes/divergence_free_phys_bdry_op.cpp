@@ -78,17 +78,19 @@ private:
     std::vector<mu::Parser> d_parsers;
 };
 
-// Return, for each boundary, whether the velocity condition on it is a traction condition (b = 1) and not a
-// prescribed velocity (a = 1). The conditions are constant along each boundary and the same for every component.
+// Return, for each boundary, whether the velocity condition on it is a traction condition, (a, b) = (0, 1), and not a
+// prescribed velocity, (a, b) = (1, 0). The conditions are constant along each boundary and the same for every
+// component.
 std::array<bool, 2 * NDIM>
 get_traction_boundaries(Pointer<Database> bc_coefs_db)
 {
     std::array<bool, 2 * NDIM> is_traction;
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
-        mu::Parser parser;
-        parser.SetExpr(bc_coefs_db->getString("bcoef_function_" + std::to_string(location_index)));
-        is_traction[location_index] = IBTK::rel_equal_eps(parser.Eval(), 1.0);
+        mu::Parser a_parser, b_parser;
+        a_parser.SetExpr(bc_coefs_db->getString("acoef_function_" + std::to_string(location_index)));
+        b_parser.SetExpr(bc_coefs_db->getString("bcoef_function_" + std::to_string(location_index)));
+        is_traction[location_index] = (a_parser.Eval() == 0.0 && b_parser.Eval() == 1.0);
     }
     return is_traction;
 } // get_traction_boundaries
