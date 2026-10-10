@@ -20,6 +20,7 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <BergerRigoutsos.h>
@@ -53,12 +54,14 @@ exact_value(const hier::Index<NDIM>& i, const int component)
 }
 
 // Apply the staggered Stokes operator to an exact solution with inhomogeneous boundary data to obtain a right-hand
-// side, solve with the level solver from a zero initial guess, and compare the solution with the exact solution.
+// side, solve with the level solver from a zero initial guess, and compare the solution with the exact solution. If
+// the pressure has a null space, the pressure is compared up to a constant.
 void
 check_level_solver(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                    Pointer<INSHierarchyIntegrator> ins_integrator,
                    const vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                   Pointer<Database> solver_db)
+                   Pointer<Database> solver_db,
+                   const bool pressure_has_null_space)
 {
     const double solution_time = 0.5;
     const double mu = ins_integrator->getStokesSpecifications()->getMu();
@@ -146,7 +149,7 @@ check_level_solver(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     // Solve from a zero initial guess.
     StaggeredStokesPETScLevelSolver solver("StaggeredStokesPETScLevelSolver", solver_db, "level_solver_open_boundary_");
     solver.setVelocityPoissonSpecifications(spec);
-    solver.setComponentsHaveNullSpace(false, false);
+    solver.setComponentsHaveNullSpace(false, pressure_has_null_space);
     solver.setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     solver.setPhysicalBoundaryHelper(bc_helper);
     solver.setSolutionTime(solution_time);
@@ -158,7 +161,8 @@ check_level_solver(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     solver.deallocateSolverState();
 
     // Compare. The velocity on a physical boundary at which the normal velocity is prescribed is compared too.
-    double f_norm = 0.0, h_norm = 0.0, u_error = 0.0, p_error = 0.0;
+    double f_norm = 0.0, h_norm = 0.0, u_error = 0.0, p_error = 0.0, p_difference_sum = 0.0;
+    int num_cells = 0;
     bool solution_is_finite = true;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -185,9 +189,26 @@ check_level_solver(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
             const double p_difference = (*p_sol_data)(it()) - (*p_data)(it());
             solution_is_finite = solution_is_finite && std::isfinite(p_difference);
             h_norm = std::max(h_norm, std::abs((*h_data)(it())));
-            p_error = std::max(p_error, std::abs(p_difference));
+            p_difference_sum += p_difference;
+            ++num_cells;
         }
     }
+    f_norm = IBTK_MPI::maxReduction(f_norm);
+    h_norm = IBTK_MPI::maxReduction(h_norm);
+    u_error = IBTK_MPI::maxReduction(u_error);
+    const double p_shift =
+        pressure_has_null_space ? IBTK_MPI::sumReduction(p_difference_sum) / IBTK_MPI::sumReduction(num_cells) : 0.0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
+        Pointer<CellData<NDIM, double>> p_sol_data = patch->getPatchData(p_sol_idx);
+        for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
+        {
+            p_error = std::max(p_error, std::abs((*p_sol_data)(it()) - (*p_data)(it()) - p_shift));
+        }
+    }
+    p_error = IBTK_MPI::maxReduction(p_error);
     if (!converged || !solution_is_finite)
     {
         TBOX_ERROR("the level solver did not converge or its solution is not finite\n");
@@ -242,8 +263,12 @@ main(int argc, char* argv[])
         ins_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
 
         ins_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-        check_level_solver(
-            patch_hierarchy, ins_integrator, u_bc_coefs, app_initializer->getComponentDatabase("level_solver_db"));
+        check_level_solver(patch_hierarchy,
+                           ins_integrator,
+                           u_bc_coefs,
+                           app_initializer->getComponentDatabase("level_solver_db"),
+                           app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator")
+                               ->getBoolWithDefault("normalize_pressure", false));
 
         for (unsigned int d = 0; d < NDIM; ++d)
         {

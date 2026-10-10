@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/INSStaggeredVelocityBcCoef.h>
 #include <ibamr/StaggeredStokesPETScMatUtilities.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
@@ -64,11 +65,15 @@
 
 #include <algorithm>
 #include <array>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <ostream>
 #include <set>
+#include <utility>
 #include <vector>
+
+#include "./ins_staggered_traction_stencil.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -87,6 +92,127 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
+
+// The key of a row of the velocity part of the matrix: the component and the index of the side.
+using RowKey = std::array<int, NDIM + 1>;
+
+RowKey
+get_row_key(const SideIndex<NDIM>& i_s)
+{
+    RowKey key;
+    key[0] = static_cast<int>(i_s.getAxis());
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        key[d + 1] = i_s(d);
+    }
+    return key;
+} // get_row_key
+
+// The terms of the rows of the velocity part of the matrix that couple a tangential velocity to the normal velocities
+// on a physical boundary, as pairs of the global DOF index of the column and the coefficient.
+using TractionCouplings = std::map<RowKey, std::vector<std::pair<int, double>>>;
+
+// Return the couplings of the rows of the tangential velocity components next to the physical boundaries of the patch
+// at which the boundary condition object of the component imposes TRACTION conditions.
+//
+// With a TRACTION condition, the ghost value of the tangential velocity next to the boundary is u_G = u_I + h*gamma,
+// in which h is the grid spacing normal to the boundary and gamma, the inhomogeneous Robin coefficient, includes the
+// tangential difference of the normal velocity on the boundary. The row of u_I contains the ghost coefficient D/h^2
+// times u_G, so the derivative of gamma with respect to a normal velocity multiplied by D/h is the coefficient of that
+// velocity in the row. The part of gamma that does not depend on the solution is data and belongs to the right-hand
+// side. A normal velocity that is not a DOF of the level, which is a velocity in a coarse-fine ghost cell, has no
+// column; the right-hand side accounts for it.
+TractionCouplings
+compute_traction_couplings(Patch<NDIM>& patch,
+                           const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                           const double data_time,
+                           const double D,
+                           const SideData<NDIM, int>& u_dof_index_data)
+{
+    TractionCouplings couplings;
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    const Box<NDIM> ghost_box = Box<NDIM>::grow(patch.getBox(), IntVector<NDIM>(1));
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        auto u_bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(u_bc_coefs[axis]);
+        if (!u_bc_coef)
+        {
+            continue;
+        }
+        std::array<double, NDIM> shift;
+        shift.fill(0.0);
+        shift[axis] = -0.5 * dx[axis];
+        const traction_stencil::ShiftedPatchGeometry shifted_geometry(patch, shift);
+        for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
+            if (bdry_normal_axis == axis)
+            {
+                continue;
+            }
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, patch);
+            const Box<NDIM> bc_coef_box = compute_tangential_extension(
+                PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data;
+            static const bool homogeneous_bc = true;
+            u_bc_coef->clearTargetPatchDataIndex();
+            u_bc_coef->setHomogeneousBc(homogeneous_bc);
+            const traction_stencil::ShiftedPatchGeometry::Scope scope(patch, shifted_geometry);
+            u_bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, nullptr, patch, trimmed_bdry_box, data_time);
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            {
+                const hier::Index<NDIM>& i = bc();
+                if (!((*acoef_data)(i, 0) == 0.0 && (*bcoef_data)(i, 0) == 1.0))
+                {
+                    continue;
+                }
+                const auto stencil =
+                    u_bc_coef->getNormalVelocityStencil(i, patch, trimmed_bdry_box, ghost_box, data_time);
+                if (stencil.empty())
+                {
+                    continue;
+                }
+                hier::Index<NDIM> i_intr = i;
+                if (!is_lower)
+                {
+                    i_intr(bdry_normal_axis) -= 1;
+                }
+                std::vector<std::pair<int, double>>& row =
+                    couplings[get_row_key(SideIndex<NDIM>(i_intr, axis, SideIndex<NDIM>::Lower))];
+                const double h = dx[bdry_normal_axis];
+                for (const auto& entry : stencil)
+                {
+                    const int column = u_dof_index_data(entry.first);
+                    if (column < 0)
+                    {
+                        continue;
+                    }
+                    const double value = D / h * entry.second;
+                    auto it =
+                        std::find_if(row.begin(), row.end(), [column](const auto& c) { return c.first == column; });
+                    if (it == row.end())
+                    {
+                        row.emplace_back(column, value);
+                    }
+                    else
+                    {
+                        it->second += value;
+                    }
+                }
+            }
+        }
+    }
+    return couplings;
+} // compute_traction_couplings
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -150,6 +276,22 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     const int iupper = ilower + nlocal;
     const int ntotal = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
 
+    // Determine the couplings of tangential velocities to the normal velocities on the physical boundary.
+    const double C = (u_problem_coefs.cIsZero() ? 0.0 : u_problem_coefs.getCConstant());
+    const double D = u_problem_coefs.getDConstant();
+    std::map<int, TractionCouplings> traction_couplings;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
+        if (!patch->getPatchGeometry()->getTouchesRegularBoundary())
+        {
+            continue;
+        }
+        Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        traction_couplings[patch->getPatchNumber()] =
+            compute_traction_couplings(*patch, u_bc_coefs, data_time, D, *u_dof_index_data);
+    }
+
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(nlocal, 0), o_nnz(nlocal, 0);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -158,6 +300,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        const auto patch_couplings = traction_couplings.find(patch->getPatchNumber());
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
@@ -193,6 +336,24 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     else
                     {
                         o_nnz[u_local_idx] += 1;
+                    }
+                }
+                if (patch_couplings != traction_couplings.end())
+                {
+                    const auto row = patch_couplings->second.find(get_row_key(is));
+                    if (row != patch_couplings->second.end())
+                    {
+                        for (const auto& coupling : row->second)
+                        {
+                            if (coupling.first >= ilower && coupling.first < iupper)
+                            {
+                                d_nnz[u_local_idx] += 1;
+                            }
+                            else
+                            {
+                                o_nnz[u_local_idx] += 1;
+                            }
+                        }
                     }
                 }
                 d_nnz[u_local_idx] = std::min(nlocal, d_nnz[u_local_idx]);
@@ -249,11 +410,13 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 #endif
 
     // Set the matrix coefficients.
-    const double C = (u_problem_coefs.cIsZero() ? 0.0 : u_problem_coefs.getCConstant());
-    const double D = u_problem_coefs.getDConstant();
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
+        TractionCouplings empty_couplings;
+        const auto patch_couplings = traction_couplings.find(patch->getPatchNumber());
+        TractionCouplings& couplings =
+            patch_couplings != traction_couplings.end() ? patch_couplings->second : empty_couplings;
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
@@ -511,6 +674,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const bool traction_bc = (a == 0.0 && b == 1.0);
                     if (velocity_bc)
                     {
+                        // The row prescribes the velocity, so the couplings of the row are dropped.
+                        couplings.erase(get_row_key(i_s));
                         uu_matrix_coefs(i_s, 0) = 1.0;
                         for (int k = 1; k < uu_stencil_sz; ++k)
                         {
@@ -596,9 +761,19 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     u_mat_vals[uu_stencil_sz + side] = up_matrix_coefs(is, up_stencil_index);
                     u_mat_cols[uu_stencil_sz + side] = (*p_dof_index_data)(ic + up_stencil[axis][up_stencil_index]);
                 }
+                const auto row_couplings = couplings.find(get_row_key(is));
+                if (row_couplings != couplings.end())
+                {
+                    for (const auto& coupling : row_couplings->second)
+                    {
+                        u_mat_cols.push_back(coupling.first);
+                        u_mat_vals.push_back(coupling.second);
+                    }
+                }
 
-                ierr = MatSetValues(
-                    mat, 1, &u_dof_index, u_stencil_sz, u_mat_cols.data(), u_mat_vals.data(), INSERT_VALUES);
+                const int u_num_vals = static_cast<int>(u_mat_vals.size());
+                ierr =
+                    MatSetValues(mat, 1, &u_dof_index, u_num_vals, u_mat_cols.data(), u_mat_vals.data(), INSERT_VALUES);
                 IBTK_CHKERRQ(ierr);
             }
         }

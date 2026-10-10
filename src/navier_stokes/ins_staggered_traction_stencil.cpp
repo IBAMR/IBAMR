@@ -424,6 +424,55 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
     return du;
 } // get_normal_velocity_difference
 
+std::vector<std::pair<SideIndex<NDIM>, double>>
+get_traction_stencil(const hier::Index<NDIM>& i,
+                     const unsigned int bdry_normal_axis,
+                     const bool bdry_is_lower,
+                     const unsigned int tangential_axis,
+                     RobinBcCoefStrategy<NDIM>* const normal_bc_coef,
+                     const Patch<NDIM>& patch,
+                     std::unique_ptr<ShiftedPatchGeometry>& normal_geometry,
+                     const BoxArray<NDIM>& domain,
+                     const Box<NDIM>& ghost_box,
+                     const double fill_time)
+{
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const double sgn = bdry_is_lower ? -1.0 : +1.0;
+    const double derivative_scale = sgn / pgeom->getDx()[tangential_axis];
+    hier::Index<NDIM> i_lower(i);
+    i_lower(tangential_axis) -= 1;
+    const auto get_stencil = [&](const hier::Index<NDIM>& i_face)
+    {
+        return get_normal_velocity(i_face,
+                                   bdry_normal_axis,
+                                   bdry_is_lower,
+                                   tangential_axis,
+                                   normal_bc_coef,
+                                   /*homogeneous_bc*/ true,
+                                   patch,
+                                   normal_geometry,
+                                   domain,
+                                   ghost_box,
+                                   fill_time)
+            .stencil;
+    };
+    const NormalVelocityStencil u_lower = get_stencil(i_lower);
+    const NormalVelocityStencil u_upper = get_stencil(i);
+    std::vector<std::pair<SideIndex<NDIM>, double>> stencil;
+    for (int k = 0; k < 2; ++k)
+    {
+        if (u_upper.weight[k] != 0.0)
+        {
+            stencil.emplace_back(u_upper.idx[k], -u_upper.weight[k] * derivative_scale);
+        }
+        if (u_lower.weight[k] != 0.0)
+        {
+            stencil.emplace_back(u_lower.idx[k], +u_lower.weight[k] * derivative_scale);
+        }
+    }
+    return stencil;
+} // get_traction_stencil
+
 void
 accumulate_from_traction_bc_coefs(SideData<NDIM, double>& u_data,
                                   const ArrayData<NDIM, double>& gcoef_data,

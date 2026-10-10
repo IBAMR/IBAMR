@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesPETScLevelSolver couples the tangential velocity rows next to boundaries with TRACTION conditions to the normal velocity on the boundary in its matrix, as IBAMR::StaggeredStokesOperator does, and builds its right-hand side from boundary data without reading the solution vector.
+<br>
+(Boyce Griffith, 2026/10/08)

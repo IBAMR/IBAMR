@@ -69,6 +69,13 @@ namespace IBAMR
  * condition defines the pressure in the ghost cell outside the domain, which
  * enters the momentum equation for the normal velocity on the boundary.
  *
+ * With TRACTION boundary conditions, the ghost value of a tangential velocity includes the tangential difference of
+ * the normal velocity on the boundary. The matrix contains that dependence, and the right-hand side is built from the
+ * boundary data and from the velocity in coarse-fine ghost cells, so that the solution vector is read only as the
+ * initial guess and for those ghost values. The solver does not include the viscous normal-stress term that
+ * StaggeredStokesOperator adds to the momentum equation for the normal velocity on a boundary with TRACTION
+ * conditions at which the normal velocity is not prescribed, so at such a boundary it solves a different problem.
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public StaggeredStokesSolver
@@ -179,8 +186,10 @@ private:
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
     int d_u_nullspace_idx = IBTK::invalid_index, d_p_nullspace_idx = IBTK::invalid_index;
+    int d_u_bc_target_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_nullspace_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_bc_target_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
