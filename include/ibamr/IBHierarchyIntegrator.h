@@ -127,6 +127,16 @@ namespace IBAMR
  * <em>If either <code>regrid_structure_cfl_interval</code> or
  * <code>regrid_fluid_cfl_interval</code> are provided in the input database
  * then <code>regrid_interval</code> is ignored.</em>
+ *
+ * <h2>Option Controlling the Velocity Ghost Values at Physical Boundaries</h2>
+ *
+ * With <code>divergence_free_velocity_extension = TRUE</code> (default
+ * <code>FALSE</code>), the velocity ghost values outside physical boundaries
+ * are chosen so that the discrete divergence vanishes there, and forces are
+ * spread with the transpose of that extension. This option requires a fluid
+ * solver that provides the extension (see
+ * INSHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()) and is not
+ * supported with CIBStrategy methods or ConstraintIBMethod.
  */
 class IBHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
@@ -333,6 +343,11 @@ protected:
      */
     bool d_error_on_dt_change = true, d_warn_on_dt_change = false;
 
+    /*!
+     * Whether to use the divergence-free velocity extension at physical boundaries.
+     */
+    bool d_divergence_free_velocity_extension = false;
+
     /*
      * The (optional) INSHierarchyIntegrator is used to provide time integration
      * capability for the incompressible Navier-Stokes equations.
@@ -405,7 +420,8 @@ protected:
     /*
      * Refine and coarsen algorithm data.
      * The base class, HierarchyIntegrator, is responsible for the d_u_phys_bdry_op and d_p_phys_bdry_op
-     * objects as they are passed into d_ghostfill_strategies.
+     * objects as they are passed into d_ghostfill_strategies, except for the divergence-free velocity
+     * boundary operator, which the fluid solver owns.
      */
     IBTK::RobinPhysBdryPatchStrategy *d_u_phys_bdry_op, *d_p_phys_bdry_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,

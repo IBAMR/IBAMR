@@ -217,6 +217,8 @@ SETUP(IB explicit_ex1.cpp IBAMR2d)
 SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)
 SETUP_2D(IB interpolation_spreading_adjoint.cpp)
+SETUP_2D(IB interpolated_velocity_divergence.cpp)
+SETUP_3D(IB interpolated_velocity_divergence.cpp)
 
 # IBFE:
 IF(${IBAMR_HAVE_LIBMESH})

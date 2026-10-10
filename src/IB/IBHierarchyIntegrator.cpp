@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/CIBStrategy.h>
+#include <ibamr/ConstraintIBMethod.h>
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
@@ -80,6 +82,47 @@ namespace
 {
 // Version of IBHierarchyIntegrator restart file data.
 static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
+
+// A RefinePatchStrategy that forwards to a strategy that it does not own, so that a HierarchyIntegrator can hold a
+// strategy owned by another object.
+class BorrowedRefinePatchStrategy : public RefinePatchStrategy<NDIM>
+{
+public:
+    explicit BorrowedRefinePatchStrategy(RefinePatchStrategy<NDIM>* strategy) : d_strategy(strategy)
+    {
+    }
+
+    void setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+                                       const double fill_time,
+                                       const IntVector<NDIM>& ghost_width_to_fill) override
+    {
+        d_strategy->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
+    }
+
+    IntVector<NDIM> getRefineOpStencilWidth() const override
+    {
+        return d_strategy->getRefineOpStencilWidth();
+    }
+
+    void preprocessRefine(Patch<NDIM>& fine,
+                          const Patch<NDIM>& coarse,
+                          const Box<NDIM>& fine_box,
+                          const IntVector<NDIM>& ratio) override
+    {
+        d_strategy->preprocessRefine(fine, coarse, fine_box, ratio);
+    }
+
+    void postprocessRefine(Patch<NDIM>& fine,
+                           const Patch<NDIM>& coarse,
+                           const Box<NDIM>& fine_box,
+                           const IntVector<NDIM>& ratio) override
+    {
+        d_strategy->postprocessRefine(fine, coarse, fine_box, ratio);
+    }
+
+private:
+    RefinePatchStrategy<NDIM>* const d_strategy;
+};
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -291,15 +334,42 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     d_hier_cc_data_ops =
         hier_ops_manager->getOperationsDouble(new CellVariable<NDIM, double>("cc_var"), hierarchy, true);
 
+    Pointer<CellVariable<NDIM, double>> u_cc_var = d_u_var;
+    Pointer<SideVariable<NDIM, double>> u_sc_var = d_u_var;
+
+    // The fluid solver owns the divergence-free velocity boundary operator.
+    RobinPhysBdryPatchStrategy* divergence_free_u_phys_bdry_op = nullptr;
+    if (d_divergence_free_velocity_extension)
+    {
+        divergence_free_u_phys_bdry_op = d_ins_hier_integrator->getDivergenceFreeVelocityPhysBdryOp();
+        if (!divergence_free_u_phys_bdry_op)
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                                     << "  divergence_free_velocity_extension = TRUE, but the fluid solver does not "
+                                        "provide a divergence-free velocity extension\n");
+        }
+        if (dynamic_cast<CIBStrategy*>(d_ib_method_ops.getPointer()) ||
+            dynamic_cast<ConstraintIBMethod*>(d_ib_method_ops.getPointer()))
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                                     << "  divergence_free_velocity_extension = TRUE is not supported with "
+                                        "CIBStrategy methods or ConstraintIBMethod\n");
+        }
+    }
+
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
+    // The divergence-free velocity extension reads data beyond the ghost cells that it fills.
     const IntVector<NDIM> ib_ghosts(d_ib_method_ops->getMinimumGhostCellWidth());
+    const IntVector<NDIM> eulerian_ghosts = divergence_free_u_phys_bdry_op ?
+                                                ib_ghosts + divergence_free_u_phys_bdry_op->getRefineOpStencilWidth() :
+                                                ib_ghosts;
     const IntVector<NDIM> ghosts(1);
 
-    d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
+    d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, eulerian_ghosts);
     d_ib_data.setFlag(d_u_idx);
-    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, ib_ghosts);
+    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, eulerian_ghosts);
     d_ib_data.setFlag(d_f_idx);
     if (d_time_stepping_type == FORWARD_EULER || d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
@@ -340,9 +410,13 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     const int p_new_idx = var_db->mapVariableAndContextToIndex(d_p_var, getNewContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_p_var, getScratchContext());
 
-    Pointer<CellVariable<NDIM, double>> u_cc_var = d_u_var;
-    Pointer<SideVariable<NDIM, double>> u_sc_var = d_u_var;
-    if (u_cc_var)
+    if (divergence_free_u_phys_bdry_op)
+    {
+        d_u_phys_bdry_op = divergence_free_u_phys_bdry_op;
+        d_u_phys_bdry_op->setPatchDataIndex(u_scratch_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+    }
+    else if (u_cc_var)
     {
         d_u_phys_bdry_op = new CartCellRobinPhysBdryOp(u_scratch_idx,
                                                        d_ins_hier_integrator->getVelocityBoundaryConditions(),
@@ -364,7 +438,15 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
     d_u_ghostfill_op = nullptr;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
-    std::unique_ptr<RefinePatchStrategy<NDIM>> u_phys_bdry_op_unique(d_u_phys_bdry_op);
+    std::unique_ptr<RefinePatchStrategy<NDIM>> u_phys_bdry_op_unique;
+    if (divergence_free_u_phys_bdry_op)
+    {
+        u_phys_bdry_op_unique = std::make_unique<BorrowedRefinePatchStrategy>(d_u_phys_bdry_op);
+    }
+    else
+    {
+        u_phys_bdry_op_unique.reset(d_u_phys_bdry_op);
+    }
     registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, std::move(u_phys_bdry_op_unique));
 
     d_u_coarsen_alg = new CoarsenAlgorithm<NDIM>();
@@ -735,6 +817,10 @@ IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart
         d_warn_on_dt_change = db->getBool("warn_on_time_step_change");
     else if (db->keyExists("warn_on_timestep_change"))
         d_warn_on_dt_change = db->getBool("warn_on_timestep_change");
+    if (db->keyExists("divergence_free_velocity_extension"))
+    {
+        d_divergence_free_velocity_extension = db->getBool("divergence_free_velocity_extension");
+    }
     if (db->keyExists("time_stepping_type"))
         d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("time_stepping_type"));
     else if (db->keyExists("timestepping_type"))
