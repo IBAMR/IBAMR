@@ -1,0 +1,3 @@
+Improved: The cell-centered IBTK::HierarchyMathOps::laplace() adds its damping term and source in the pass that takes the divergence of the flux.
+<br>
+(Boyce Griffith, 2026/10/03)

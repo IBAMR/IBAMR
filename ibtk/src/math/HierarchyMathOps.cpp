@@ -2698,26 +2698,31 @@ HierarchyMathOps::laplace(const int dst_idx,
         }
         else
         {
-            const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
-            const Pointer<CellVariable<NDIM, double>> cc_var = dst_var;
-            const int cc_depth = dst_depth;
-
-            div(cc_idx,
-                cc_var,
-                1.0,
-                d_sc_idx,
-                d_sc_var,
-                Pointer<HierarchyGhostCellInterpolation>(nullptr),
-                0.0,
-                false, // don't re-synch coarse-fine boundary
-                beta,
-                src1_idx,
-                src1_var,
-                cc_depth,
-                src1_depth);
-
-            pointwiseMultiply(
-                dst_idx, dst_var, gamma, src2_idx, src2_var, 1.0, cc_idx, cc_var, dst_depth, src2_depth, cc_depth);
+            // Compute dst = div flux + beta src1 + gamma src2 in one pass over each patch, where flux is the
+            // side-centered flux computed above.
+            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<CellData<NDIM, double>> dst_data = patch->getPatchData(dst_idx);
+                    Pointer<SideData<NDIM, double>> flux_data = patch->getPatchData(d_sc_idx);
+                    Pointer<CellData<NDIM, double>> src1_data = patch->getPatchData(src1_idx);
+                    Pointer<CellData<NDIM, double>> src2_data = patch->getPatchData(src2_idx);
+                    d_patch_math_ops.div(dst_data,
+                                         1.0,
+                                         flux_data,
+                                         beta,
+                                         src1_data,
+                                         gamma,
+                                         src2_data,
+                                         patch,
+                                         dst_depth,
+                                         src1_depth,
+                                         src2_depth);
+                }
+            }
         }
 
         // Deallocate temporary data.
