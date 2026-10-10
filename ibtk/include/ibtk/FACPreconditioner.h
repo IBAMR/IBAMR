@@ -62,6 +62,10 @@ namespace IBTK
  * stand-alone solver; rather, it is intended to be used in conjunction with an
  * iterative Krylov method.
  *
+ * The preconditioner is a fixed linear operator only if every operation of its
+ * strategy is linear.  A nonlinear preconditioner requires a flexible Krylov
+ * method such as FGMRES, or Richardson iteration.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 

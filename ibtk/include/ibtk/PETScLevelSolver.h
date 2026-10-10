@@ -64,12 +64,24 @@ namespace IBTK
 
  options_prefix = ""           // see setOptionsPrefix()
  ksp_type = "gmres"            // see setKSPType()
+ pc_type = ""                  // PETSc preconditioner type
  initial_guess_nonzero = TRUE  // see setInitialGuessNonzero()
  rel_residual_tol = 1.0e-5     // see setRelativeTolerance()
  abs_residual_tol = 1.0e-50    // see setAbsoluteTolerance()
  max_iterations = 10000        // see setMaxIterations()
  enable_logging = FALSE        // see setLoggingEnabled()
  \endverbatim
+ *
+ * When pc_type is empty and the PETSc options database selects no preconditioner type, the preconditioner is ILU on one
+ * process and block Jacobi, with ILU on the block of each process, on more than one process, because PETSc provides
+ * no ILU for matrices distributed over several processes.
+ *
+ * The KSP norm type is the one set by setKSPNormType(); the initial value, KSP_NORM_DEFAULT, leaves the norm type to
+ * the KSP type. When the PETSc options database selects the KSP type, the norm type is the default of that KSP type,
+ * because not every KSP type supports every norm type. A norm type selected through the PETSc options database
+ * (<code>-ksp_norm_type</code> with the options prefix of the solver) takes precedence. With the norm type
+ * KSP_NORM_NONE, a Richardson solve applies exactly max_iterations iterations with no convergence test. A
+ * preconditioner that implements its own Richardson iteration, for example PCMG, applies the tolerances itself.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
@@ -92,6 +104,11 @@ public:
      * \brief Set the KSP type.
      */
     void setKSPType(const std::string& ksp_type);
+
+    /*!
+     * \brief Set the KSP norm type; see the class documentation.
+     */
+    void setKSPNormType(KSPNormType ksp_norm_type);
 
     /*!
      * \brief Set the options prefix used by this PETSc solver object.
@@ -298,7 +315,8 @@ protected:
      * \name PETSc objects.
      */
     //\{
-    std::string d_ksp_type = KSPGMRES, d_pc_type = PCILU, d_shell_pc_type;
+    std::string d_ksp_type = KSPGMRES, d_pc_type, d_shell_pc_type;
+    KSPNormType d_ksp_norm_type = KSP_NORM_DEFAULT;
     std::string d_options_prefix;
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
@@ -348,6 +366,11 @@ private:
      * \return A reference to this object.
      */
     PETScLevelSolver& operator=(const PETScLevelSolver& that) = delete;
+
+    /*!
+     * \brief Set the norm type of the KSP object as the class documentation describes.
+     */
+    void resetKSPNormType();
 
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.

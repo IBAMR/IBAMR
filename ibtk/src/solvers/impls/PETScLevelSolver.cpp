@@ -155,6 +155,13 @@ PETScLevelSolver::setKSPType(const std::string& ksp_type)
 } // setKSPType
 
 void
+PETScLevelSolver::setKSPNormType(const KSPNormType ksp_norm_type)
+{
+    d_ksp_norm_type = ksp_norm_type;
+    return;
+} // setKSPNormType
+
+void
 PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
@@ -204,6 +211,7 @@ PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
     // Configure solver.
     ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations);
     IBTK_CHKERRQ(ierr);
+    resetKSPNormType();
     ierr = KSPSetInitialGuessNonzero(d_petsc_ksp, d_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE);
     IBTK_CHKERRQ(ierr);
 
@@ -333,6 +341,13 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     ierr = KSPGetPC(d_petsc_ksp, &ksp_pc);
     IBTK_CHKERRQ(ierr);
     PCType pc_type = d_pc_type.c_str();
+    if (d_pc_type.empty())
+    {
+        // Default preconditioner; see the class documentation.
+        PetscMPIInt num_procs = 1;
+        MPI_Comm_size(PetscObjectComm(reinterpret_cast<PetscObject>(d_petsc_mat)), &num_procs);
+        pc_type = num_procs > 1 ? PCBJACOBI : PCILU;
+    }
     ierr = PCSetType(ksp_pc, pc_type);
     IBTK_CHKERRQ(ierr);
     if (d_options_prefix != "")
@@ -807,6 +822,32 @@ PETScLevelSolver::setupNullSpace()
 } // setupNullSpace
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+PETScLevelSolver::resetKSPNormType()
+{
+    // A norm type selected through the PETSc options database takes precedence.
+    PetscBool norm_type_in_options = PETSC_FALSE;
+    int ierr = PetscOptionsHasName(nullptr, d_options_prefix.c_str(), "-ksp_norm_type", &norm_type_in_options);
+    IBTK_CHKERRQ(ierr);
+    if (norm_type_in_options)
+    {
+        return;
+    }
+
+    // Not every KSP type supports every norm type, so the norm type goes with the KSP type of this class.
+    PetscBool ksp_type_in_options = PETSC_FALSE;
+    ierr = PetscOptionsHasName(nullptr, d_options_prefix.c_str(), "-ksp_type", &ksp_type_in_options);
+    IBTK_CHKERRQ(ierr);
+    KSPNormType ksp_norm_type = KSP_NORM_DEFAULT;
+    if (!ksp_type_in_options)
+    {
+        ksp_norm_type = d_ksp_norm_type;
+    }
+    ierr = KSPSetNormType(d_petsc_ksp, ksp_norm_type);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // resetKSPNormType
 
 PetscErrorCode
 PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)

@@ -27,6 +27,7 @@
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/solver_utilities.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -65,7 +66,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cstring>
 #include <functional>
 #include <map>
 #include <memory>
@@ -263,6 +263,7 @@ CCPoissonBoxRelaxationFACOperator::setCoarseSolverType(const std::string& coarse
                                                                                d_object_name + "::coarse_solver",
                                                                                d_coarse_solver_db,
                                                                                d_coarse_solver_default_options_prefix);
+        set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
     }
     return;
 } // setCoarseSolverType
@@ -600,6 +601,9 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
 
     // Initialize PETSc solver data.
     int ierr;
+    PetscBool ksp_type_in_options = PETSC_FALSE;
+    ierr = PetscOptionsHasName(nullptr, d_petsc_options_prefix.c_str(), "-ksp_type", &ksp_type_in_options);
+    IBTK_CHKERRQ(ierr);
     d_patch_vec_e.resize(d_finest_ln + 1);
     d_patch_vec_f.resize(d_finest_ln + 1);
     d_patch_mat.resize(d_finest_ln + 1);
@@ -637,16 +641,25 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
             IBTK_CHKERRQ(ierr);
             ierr = KSPSetOptionsPrefix(ksp, d_petsc_options_prefix.c_str());
             IBTK_CHKERRQ(ierr);
-            ierr = KSPSetFromOptions(ksp);
-            IBTK_CHKERRQ(ierr);
-            KSPType ksp_type;
-            ierr = KSPGetType(ksp, &ksp_type);
-            IBTK_CHKERRQ(ierr);
-            if (!std::strcmp(ksp_type, KSPPREONLY))
+            if (!ksp_type_in_options)
             {
+                // Default patch solver; see the class documentation.
+                ierr = KSPSetType(ksp, KSPRICHARDSON);
+                IBTK_CHKERRQ(ierr);
+                ierr = KSPSetNormType(ksp, KSP_NORM_NONE);
+                IBTK_CHKERRQ(ierr);
+                ierr = KSPSetTolerances(ksp, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT, 1);
+                IBTK_CHKERRQ(ierr);
                 ierr = KSPSetInitialGuessNonzero(ksp, PETSC_TRUE);
                 IBTK_CHKERRQ(ierr);
+                PC patch_pc;
+                ierr = KSPGetPC(ksp, &patch_pc);
+                IBTK_CHKERRQ(ierr);
+                ierr = PCSetType(patch_pc, PCILU);
+                IBTK_CHKERRQ(ierr);
             }
+            ierr = KSPSetFromOptions(ksp);
+            IBTK_CHKERRQ(ierr);
         }
     }
 
