@@ -1,5 +1,5 @@
 cell depth 1:
-  VecMDot values for n = 9: 5.17779541369809 4.00307701603371 2.30163635663279 1.36108980568793 1.89322424170902 3.49533093243546 4.95496747479175 5.16751003362689 3.97211063777796
+  VecMDot values for n = 9: 5.12182350453406 4.32218906947483 2.6214469193878 1.30668480654267 1.37288848613144 2.76995633331372 4.44061525404283 5.12054388427161 4.29518579206815
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -7,7 +7,7 @@ cell depth 1:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 node depth 1:
-  VecMDot values for n = 9: 10253.4974926026 7290.89948609346 5107.92695748394 5356.60999550375 7848.75023485915 10698.3456270629 11748.8791903714 10205.3280680787 7235.82097646511
+  VecMDot values for n = 9: 423.407284469239 345.360041262864 203.405783222294 104.9726627557 124.552903016226 247.328568536975 380.385483373974 423.028827073264 342.986967284007
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -15,7 +15,7 @@ node depth 1:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 side depth 1:
-  VecMDot values for n = 9: 15.11704535937 10.4836575841896 5.75690240916376 4.51389391560214 7.69531615014199 12.8935321922394 16.174635775684 15.0555531223822 10.3831836737151
+  VecMDot values for n = 9: 10.7211334314726 8.44637666977058 4.80871089450287 2.56104904191803 3.40437679144886 6.70048051528895 9.95493462814424 10.7048331399648 8.38266780738743
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -23,7 +23,7 @@ side depth 1:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 face depth 1:
-  VecMDot values for n = 9: 18201.8342527703 12513.5262042451 9076.42540767039 10491.6612219919 15688.2113978384 20733.4303633666 21809.1969896812 18101.392541053 12416.0095034074
+  VecMDot values for n = 9: 768.189080368791 603.470486717251 343.885257359674 185.88231864222 249.03514455414 485.550935494218 716.439256185843 766.968428644141 598.898982529608
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -31,7 +31,7 @@ face depth 1:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 edge depth 1:
-  VecMDot values for n = 9: 22531.2349279226 15453.9522451336 11275.454504433 13157.9454911902 19676.7935569866 25898.6644489114 27114.9703185422 22405.2351326745 15333.6925841429
+  VecMDot values for n = 9: 767.511902318237 604.65365544675 345.364457817325 185.869204866105 246.870724242872 482.2042822426 713.774133908301 766.332832201289 600.105002092094
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -39,7 +39,7 @@ edge depth 1:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 cell depth 2:
-  VecMDot values for n = 9: 9.97592861049491 6.96662091952613 3.87789573088772 3.04723868884387 5.10327448238491 8.49003621320155 10.644490123727 9.93618844683498 6.90115977051176
+  VecMDot values for n = 9: 10.5408675224549 7.89786776055141 4.40877023106834 2.71405438378141 4.09624738514485 7.5093331278747 10.370356366998 10.5141517540542 7.83189780690198
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -47,7 +47,7 @@ cell depth 2:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 node depth 2:
-  VecMDot values for n = 9: 17983.2783673902 12318.035950249 9278.72123555479 11165.4270059648 16550.3319488202 21358.2473597481 21950.6387089624 17879.1960336125 12225.1059799179
+  VecMDot values for n = 9: 849.211086923262 618.16479994001 340.564094988111 226.491651177235 362.275219773462 645.156503117894 861.056585649863 846.586589210091 612.697118622518
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -55,7 +55,7 @@ node depth 2:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 side depth 2:
-  VecMDot values for n = 9: 26.9753696996905 17.2588889600237 9.99262014464165 10.675530628757 18.7908073728644 28.1969707275735 31.7756237924049 26.818513273859 17.0770815847326
+  VecMDot values for n = 9: 20.9381774600706 14.7592172394928 7.98310281241242 5.73786248495865 9.72264937462191 16.9218562061735 21.8872667767798 20.861157359719 14.6200671047498
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -63,7 +63,7 @@ side depth 2:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 face depth 2:
-  VecMDot values for n = 9: 31169.6527961916 21211.441013912 17193.0349595886 22155.484222015 32343.3061334616 40046.5601812783 39435.5772783201 30972.7371046598 21062.5483839608
+  VecMDot values for n = 9: 1497.90667508643 1054.82239643144 573.086800724154 417.267782654238 705.286068604709 1219.17516185671 1570.03404180828 1492.33970302462 1044.88967214082
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -71,7 +71,7 @@ face depth 2:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 edge depth 2:
-  VecMDot values for n = 9: 38522.3818699382 26242.206393316 21458.6790140669 27791.8778858153 40448.964364503 49851.307741587 48883.4019994973 38277.7389071546 26060.4728526033
+  VecMDot values for n = 9: 1499.65081439004 1058.58196339428 575.480226775134 415.947367428236 700.714672773872 1214.27592340162 1567.97820347149 1494.14667902674 1048.65557582191
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -79,7 +79,7 @@ edge depth 2:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 all centerings, depth 1:
-  VecMDot values for n = 9: 29250.7964551328 23801.4803491309 25586.4271058753 33254.8246055265 41003.3825016722 42968.1466579541 37662.2227314998 29101.0281680783 23763.5043326778
+  VecMDot values for n = 9: 1424.42524697162 828.670450794787 551.176617554304 801.94554797929 1391.20031498926 1873.00465861309 1882.73865710847 1413.03581447636 819.357877770608
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
@@ -87,7 +87,7 @@ all centerings, depth 1:
   max |VecMAXPY - VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecNorm after VecMAXPY - VecNorm after VecAXPY|, general coefficients for n = 1, 3, 4, 5, 9: 0 0 0 0 0
 cell depth 1 with operands of wider ghost region:
-  VecMDot values for n = 9: 5.17779541369809 4.00307701603371 2.30163635663279 1.36108980568793 1.89322424170902 3.49533093243546 4.95496747479175 5.16751003362689 3.97211063777796
+  VecMDot values for n = 9: 5.12182350453406 4.32218906947483 2.6214469193878 1.30668480654267 1.37288848613144 2.76995633331372 4.44061525404283 5.12054388427161 4.29518579206815
   max |VecMDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMTDot - separate dots| for n = 1, 3, 4, 5, 9: 0 0 0 0 0
   max |VecMAXPY - VecAXPY|, coefficients 0, 1, -1, ... for n = 1, 3, 4, 5, 9: 0 0 0 0 0
