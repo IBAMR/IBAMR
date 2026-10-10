@@ -2,7 +2,7 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 1
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 8
-INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 2.02848e-07
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 1.58046e-07
 
 
 Writing visualization files...
@@ -19,12 +19,12 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pr
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00742022
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0154975
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00705337
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187608
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0047835
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187617
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -41,9 +41,9 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing ve
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00899799
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187712
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00527449
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187726
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -57,9 +57,9 @@ At beginning of timestep # 2
 Simulation time is 0.00195312
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.00195312,0.00292969], dt = 0.000976562
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00895437
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187818
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00187737
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187814
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -76,9 +76,9 @@ At beginning of timestep # 3
 Simulation time is 0.00292969
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.00292969,0.00390625], dt = 0.000976562
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00891326
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187913
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00177729
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187901
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -92,9 +92,9 @@ At beginning of timestep # 4
 Simulation time is 0.00390625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.00390625,0.00488281], dt = 0.000976562
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0089066
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187993
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00179052
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.187982
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -108,9 +108,9 @@ At beginning of timestep # 5
 Simulation time is 0.00488281
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.00488281,0.00585938], dt = 0.000976562
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00893201
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.188089
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00143551
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.188086
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -127,8 +127,8 @@ At beginning of timestep # 6
 Simulation time is 0.00585938
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.00585938,0.00683594], dt = 0.000976562
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00890736
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00115738
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.188148
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -143,9 +143,9 @@ At beginning of timestep # 7
 Simulation time is 0.00683594
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.00683594,0.0078125], dt = 0.000976562
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00891636
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.188177
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000989914
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.188173
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -159,9 +159,9 @@ At beginning of timestep # 8
 Simulation time is 0.0078125
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.0078125,0.00878906], dt = 0.000976562
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00890118
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.188176
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00081569
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.188169
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -178,9 +178,9 @@ At beginning of timestep # 9
 Simulation time is 0.00878906
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.00878906,0.00976562], dt = 0.000976562
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0088994
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.188147
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000798903
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.188141
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -196,11 +196,11 @@ Writing visualization files...
 Computing error norms.
 
 Error in u at time 0.00976562:
-  L1-norm:  0.007803104451
-  L2-norm:  0.007271805713
-  max-norm: 0.04151067744
+  L1-norm:  0.007809494023
+  L2-norm:  0.007279405112
+  max-norm: 0.04142632038
 Error in p at time 0.00927734375:
-  L1-norm:  0.02441261727
-  L2-norm:  0.03198973181
-  max-norm: 0.2405301886
+  L1-norm:  0.02421010728
+  L2-norm:  0.03178515424
+  max-norm: 0.2341951935
 +++++++++++++++++++++++++++++++++++++++++++++++++++

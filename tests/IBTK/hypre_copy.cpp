@@ -85,12 +85,19 @@ main(int argc, char* argv[])
         copyFromHypre(dst, vectors, box);
 
         double max_difference = 0.0;
+        bool difference_is_finite = true;
         for (int k = 0; k < depth; ++k)
         {
             for (CellIterator<NDIM> ic(box); ic; ic++)
             {
-                max_difference = std::max(max_difference, std::abs(dst(ic(), k) - src(ic(), k)));
+                const double difference = std::abs(dst(ic(), k) - src(ic(), k));
+                difference_is_finite = difference_is_finite && std::isfinite(difference);
+                max_difference = std::max(max_difference, difference);
             }
+        }
+        if (!difference_is_finite)
+        {
+            TBOX_ERROR("The copied cell-centered data are not finite.\n");
         }
         out << "cell-centered maximum difference = " << max_difference << "\n";
 
@@ -135,12 +142,19 @@ main(int argc, char* argv[])
         copyFromHypre(dst, vector, box);
 
         double max_difference = 0.0;
+        bool difference_is_finite = true;
         for (int axis = 0; axis < NDIM; ++axis)
         {
             for (SideIterator<NDIM> is(box, axis); is; is++)
             {
-                max_difference = std::max(max_difference, std::abs(dst(is()) - src(is())));
+                const double difference = std::abs(dst(is()) - src(is()));
+                difference_is_finite = difference_is_finite && std::isfinite(difference);
+                max_difference = std::max(max_difference, difference);
             }
+        }
+        if (!difference_is_finite)
+        {
+            TBOX_ERROR("The copied side-centered data are not finite.\n");
         }
         out << "side-centered maximum difference = " << max_difference << "\n";
 

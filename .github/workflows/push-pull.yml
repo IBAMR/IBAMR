@@ -28,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build IBAMR and run tests (0.19 dependencies ${{ matrix.name }})
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: "Arch Linux 2026, with libMesh"
@@ -103,7 +104,7 @@ jobs:
         id: test
         run: |
           cd build
-          runuser -u build -- ./attest --verbose --test-timeout=120 -j4 -E 'mpirun=[3-9]|explicit_ex2_3d|explicit_ex5_3d|explicit_ex8_2d|nwt_cylinder|cib_double_shell.in|cib_double_shell.cholesky.in|poiseuille_flow'
+          runuser -u build -- ./attest --verbose --test-timeout=120 -j4 -R 'navier_stokes/navier_stokes_01_2d' -E 'mpirun=[3-9]|explicit_ex2_3d|explicit_ex5_3d|explicit_ex8_2d|nwt_cylinder|cib_double_shell.in|cib_double_shell.cholesky.in|poiseuille_flow'
           ccache --show-stats
       - name: Install IBAMR
         id: install

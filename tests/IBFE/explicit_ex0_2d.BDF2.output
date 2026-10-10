@@ -59,12 +59,15 @@ Error in p at time 0.0009765625:
 At beginning of timestep # 1
 Simulation time is 0.001953125
 IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.00195312,0.00390625], dt = 0.00195312
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.22834e-13
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 9
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.35527e-13
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000140461
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000274868
@@ -97,8 +100,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.78012e-13
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.65398e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000136599
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000411468
@@ -134,8 +137,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.59362e-13
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.25886e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000134268
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000545735
@@ -168,8 +171,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 9
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.84033e-12
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.16831e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000132836
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000678571
@@ -202,8 +205,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 9
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.76339e-12
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.19755e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000131687
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000810259
@@ -239,8 +242,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 9
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.74916e-12
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.22853e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000130621
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000940879
@@ -273,8 +276,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.26862e-13
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.24625e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000129592
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.00107047
@@ -307,8 +310,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.60083e-12
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.25206e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000128592
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.00119906
@@ -344,8 +347,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59799e-12
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.24972e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000127619
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.00132668
