@@ -213,6 +213,12 @@ PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
     IBTK_CHKERRQ(ierr);
     copyFromPETScVec(d_petsc_x, x);
 
+    // Get iterations count and residual norm.
+    ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPGetResidualNorm(d_petsc_ksp, &d_current_residual_norm);
+    IBTK_CHKERRQ(ierr);
+
     // Log solver info.
     KSPConvergedReason reason;
     ierr = KSPGetConvergedReason(d_petsc_ksp, &reason);
