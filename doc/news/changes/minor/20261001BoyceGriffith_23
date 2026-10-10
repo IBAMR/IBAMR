@@ -1,0 +1,4 @@
+Improved: VecMAXPY on IBTK::PETScSAMRAIVectorReal vectors now traverses the
+data once for several vectors.
+<br>
+(Boyce Griffith, 2026/10/01)
