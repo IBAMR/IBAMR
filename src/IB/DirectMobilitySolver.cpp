@@ -33,8 +33,6 @@
 
 #include <petscmat.h>
 #include <petscvec.h>
-#include <petscviewer.h>
-#include <petscviewertypes.h>
 
 #include <Eigen/Cholesky>
 #include <Eigen/Eigenvalues>
@@ -118,16 +116,10 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
                                           MobilityMatrixType mat_type,
                                           std::pair<MobilityMatrixInverseType, MobilityMatrixInverseType> inv_type,
                                           const int managing_proc,
-                                          const std::string& filename,
                                           std::pair<double, double> scale)
 {
-    registerMobilityMat(mat_name,
-                        std::vector<unsigned int>(1, prototype_struct_id),
-                        mat_type,
-                        inv_type,
-                        managing_proc,
-                        filename,
-                        scale);
+    registerMobilityMat(
+        mat_name, std::vector<unsigned int>(1, prototype_struct_id), mat_type, inv_type, managing_proc, scale);
 
     return;
 } // registerMobilityMat
@@ -138,7 +130,6 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
                                           MobilityMatrixType mat_type,
                                           std::pair<MobilityMatrixInverseType, MobilityMatrixInverseType> inv_type,
                                           const int managing_proc,
-                                          const std::string& filename,
                                           std::pair<double, double> scale)
 {
 #if !defined(NDEBUG)
@@ -166,7 +157,6 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
     d_mat_parts_map[mat_name] = static_cast<unsigned>(prototype_struct_ids.size());
     d_mat_type_map[mat_name] = mat_type;
     d_mat_inv_type_map[mat_name] = inv_type;
-    d_mat_filename_map[mat_name] = filename;
     d_mat_scale_map[mat_name] = scale;
     d_mat_map[mat_name] = { {}, {} };
     d_geometric_mat_map[mat_name] = {};
@@ -379,10 +369,6 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
 
     IBAMR_TIMER_START(t_initialize_solver_state);
 
-    int rank = IBTK_MPI::getRank();
-    auto managed_mats = static_cast<unsigned>(d_mat_map.size());
-
-    d_read_files.resize(managed_mats, false);
     bool initial_time = !d_recompute_mob_mat;
 
     if (d_recreate_mobility_matrices)
@@ -408,8 +394,7 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
             domain_extents[d] = X_upper[d] - X_lower[d];
         }
 
-        int file_counter = 0;
-        for (auto it = d_petsc_mat_map.begin(); it != d_petsc_mat_map.end(); ++it, ++file_counter)
+        for (auto it = d_petsc_mat_map.begin(); it != d_petsc_mat_map.end(); ++it)
         {
             const std::string& mat_name = it->first;
             Mat& mobility_mat = d_petsc_mat_map[mat_name].first;
@@ -419,35 +404,18 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
             const std::pair<double, double>& scale = d_mat_scale_map[mat_name];
             const int managing_proc = d_mat_proc_map[mat_name];
 
-            if (mat_type == READ_FROM_FILE && !d_read_files[file_counter])
-            {
-                // Get the matrix from file.
-                const std::string& filename = d_mat_filename_map[mat_name];
-                if (rank == managing_proc)
-                {
-                    PetscViewer binary_viewer;
-                    PetscViewerBinaryOpen(PETSC_COMM_SELF, filename.c_str(), FILE_MODE_READ, &binary_viewer);
-                    MatLoad(mobility_mat, binary_viewer);
-                    PetscViewerDestroy(&binary_viewer);
-                }
-
-                d_read_files[file_counter] = true;
-            }
-            else
-            {
-                d_cib_strategy->constructMobilityMatrix(mat_name,
-                                                        mat_type,
-                                                        mobility_mat,
-                                                        struct_ids,
-                                                        dx,
-                                                        domain_extents,
-                                                        initial_time,
-                                                        d_rho,
-                                                        d_mu,
-                                                        scale,
-                                                        d_f_periodic_corr,
-                                                        managing_proc);
-            }
+            d_cib_strategy->constructMobilityMatrix(mat_name,
+                                                    mat_type,
+                                                    mobility_mat,
+                                                    struct_ids,
+                                                    dx,
+                                                    domain_extents,
+                                                    initial_time,
+                                                    d_rho,
+                                                    d_mu,
+                                                    scale,
+                                                    d_f_periodic_corr,
+                                                    managing_proc);
 
             // Construct the geometric matrix that maps rigid body velocity to
             // nodal velocity.
