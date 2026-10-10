@@ -59,6 +59,7 @@
 #include <IntVector.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <MultiblockDataTranslator.h>
+#include <PatchDescriptor.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <PoissonSpecifications.h>
@@ -105,6 +106,31 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
+
+// Check that the velocity or pressure components of the solution and right-hand-side vectors have the same ghost cell
+// width, and that it is at least the required ghost cell width.
+void
+check_ghost_cell_widths(const std::string& object_name,
+                        const SAMRAIVectorReal<NDIM, double>& solution,
+                        const SAMRAIVectorReal<NDIM, double>& rhs,
+                        const std::string& component,
+                        const IntVector<NDIM>& sol_gcw,
+                        const IntVector<NDIM>& rhs_gcw,
+                        const IntVector<NDIM>& required_gcw)
+{
+    if (sol_gcw != rhs_gcw)
+    {
+        TBOX_ERROR(object_name << "::initializeOperatorState(): the " << component << " components of vectors "
+                               << solution.getName() << " and " << rhs.getName()
+                               << " have different ghost cell widths, " << sol_gcw << " and " << rhs_gcw << ".\n");
+    }
+    if (!(sol_gcw >= required_gcw))
+    {
+        TBOX_ERROR(object_name << "::initializeOperatorState(): the " << component << " components of vectors "
+                               << solution.getName() << " and " << rhs.getName() << " have ghost cell width " << sol_gcw
+                               << ", which is less than the required ghost cell width " << required_gcw << ".\n");
+    }
+}
 
 // Timers.
 static Timer* t_restrict_residual;
@@ -692,6 +718,20 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
+    // For each component, the vectors must have the same ghost cell width, which must be at least d_gcw.
+    Pointer<PatchDescriptor<NDIM>> pd = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
+    const int U_sol_idx = solution.getComponentDescriptorIndex(0);
+    const int P_sol_idx = solution.getComponentDescriptorIndex(1);
+    const IntVector<NDIM>& U_sol_gcw = pd->getPatchDataFactory(U_sol_idx)->getGhostCellWidth();
+    const IntVector<NDIM>& P_sol_gcw = pd->getPatchDataFactory(P_sol_idx)->getGhostCellWidth();
+    const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
+    const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
+    const IntVector<NDIM>& U_rhs_gcw = pd->getPatchDataFactory(U_rhs_idx)->getGhostCellWidth();
+    const IntVector<NDIM>& P_rhs_gcw = pd->getPatchDataFactory(P_rhs_idx)->getGhostCellWidth();
+    const IntVector<NDIM> scratch_gcw(d_gcw);
+    check_ghost_cell_widths(d_object_name, solution, rhs, "velocity", U_sol_gcw, U_rhs_gcw, scratch_gcw);
+    check_ghost_cell_widths(d_object_name, solution, rhs, "pressure", P_sol_gcw, P_rhs_gcw, scratch_gcw);
+
     // Setup solution and rhs vectors.
     d_solution = solution.cloneVector(solution.getName());
     d_rhs = rhs.cloneVector(rhs.getName());
@@ -803,8 +843,11 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
         prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
 
     d_prolongation_refine_schedules.resize(d_finest_ln + 1);
+    d_prolongation_wide_refine_schedules.resize(d_finest_ln + 1);
     d_restriction_coarsen_schedules.resize(d_finest_ln + 1);
+    d_restriction_scratch_coarsen_schedules.resize(d_finest_ln + 1);
     d_ghostfill_nocoarse_refine_schedules.resize(d_finest_ln + 1);
+    d_ghostfill_nocoarse_scratch_refine_schedules.resize(d_finest_ln + 1);
     d_synch_refine_schedules.resize(d_finest_ln + 1);
 
     d_prolongation_refine_algorithm = new RefineAlgorithm<NDIM>();
@@ -822,11 +865,38 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
                                                     d_cell_scratch_idx,
                                                     d_P_prolongation_refine_operator,
                                                     d_P_op_stencil_fill_pattern);
+    d_prolongation_wide_refine_algorithm.setNull();
+    d_restriction_scratch_coarsen_algorithm.setNull();
+    d_ghostfill_nocoarse_scratch_refine_algorithm.setNull();
+    if (U_sol_gcw != scratch_gcw || P_sol_gcw != scratch_gcw)
+    {
+        d_prolongation_wide_refine_algorithm = new RefineAlgorithm<NDIM>();
+        d_prolongation_wide_refine_algorithm->registerRefine(
+            U_sol_idx, U_sol_idx, U_sol_idx, d_U_prolongation_refine_operator, d_U_op_stencil_fill_pattern);
+        d_prolongation_wide_refine_algorithm->registerRefine(
+            P_sol_idx, P_sol_idx, P_sol_idx, d_P_prolongation_refine_operator, d_P_op_stencil_fill_pattern);
 
-    d_restriction_coarsen_algorithm->registerCoarsen(
-        d_side_scratch_idx, rhs.getComponentDescriptorIndex(0), d_U_restriction_coarsen_operator);
-    d_restriction_coarsen_algorithm->registerCoarsen(
-        d_cell_scratch_idx, rhs.getComponentDescriptorIndex(1), d_P_restriction_coarsen_operator);
+        d_restriction_scratch_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
+        d_restriction_scratch_coarsen_algorithm->registerCoarsen(
+            U_rhs_idx, d_side_scratch_idx, d_U_restriction_coarsen_operator);
+        d_restriction_scratch_coarsen_algorithm->registerCoarsen(
+            P_rhs_idx, d_cell_scratch_idx, d_P_restriction_coarsen_operator);
+
+        d_ghostfill_nocoarse_scratch_refine_algorithm = new RefineAlgorithm<NDIM>();
+        d_ghostfill_nocoarse_scratch_refine_algorithm->registerRefine(d_side_scratch_idx,
+                                                                      d_side_scratch_idx,
+                                                                      d_side_scratch_idx,
+                                                                      Pointer<RefineOperator<NDIM>>(),
+                                                                      d_U_op_stencil_fill_pattern);
+        d_ghostfill_nocoarse_scratch_refine_algorithm->registerRefine(d_cell_scratch_idx,
+                                                                      d_cell_scratch_idx,
+                                                                      d_cell_scratch_idx,
+                                                                      Pointer<RefineOperator<NDIM>>(),
+                                                                      d_P_op_stencil_fill_pattern);
+    }
+
+    d_restriction_coarsen_algorithm->registerCoarsen(U_rhs_idx, U_rhs_idx, d_U_restriction_coarsen_operator);
+    d_restriction_coarsen_algorithm->registerCoarsen(P_rhs_idx, P_rhs_idx, d_P_restriction_coarsen_operator);
 
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
                                                           solution.getComponentDescriptorIndex(0),
@@ -852,15 +922,18 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
 
     for (int dst_ln = d_coarsest_ln + 1; dst_ln <= d_finest_ln; ++dst_ln)
     {
+        // The wide prolongation schedules are created when they are first used.
         d_prolongation_refine_schedules[dst_ln] =
             d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
                                                             Pointer<PatchLevel<NDIM>>(),
                                                             dst_ln - 1,
                                                             d_hierarchy,
                                                             d_prolongation_refine_patch_strategy.getPointer());
+        d_prolongation_wide_refine_schedules[dst_ln].setNull();
 
         d_ghostfill_nocoarse_refine_schedules[dst_ln] =
             d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op);
+        d_ghostfill_nocoarse_scratch_refine_schedules[dst_ln].setNull();
 
         d_synch_refine_schedules[dst_ln] = d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln));
     }
@@ -871,10 +944,13 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_synch_refine_schedules[d_coarsest_ln] =
         d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(d_coarsest_ln));
 
+    d_ghostfill_nocoarse_scratch_refine_schedules[d_coarsest_ln].setNull();
+
     for (int dst_ln = d_coarsest_ln; dst_ln < d_finest_ln; ++dst_ln)
     {
         d_restriction_coarsen_schedules[dst_ln] = d_restriction_coarsen_algorithm->createSchedule(
             d_hierarchy->getPatchLevel(dst_ln), d_hierarchy->getPatchLevel(dst_ln + 1));
+        d_restriction_scratch_coarsen_schedules[dst_ln].setNull();
     }
 
     // Indicate that the operator is initialized.
@@ -941,14 +1017,20 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
         d_prolongation_refine_patch_strategy.setNull();
         d_prolongation_refine_algorithm.setNull();
         d_prolongation_refine_schedules.resize(0);
+        d_prolongation_wide_refine_algorithm.setNull();
+        d_prolongation_wide_refine_schedules.resize(0);
 
         d_U_restriction_coarsen_operator.setNull();
         d_P_restriction_coarsen_operator.setNull();
         d_restriction_coarsen_algorithm.setNull();
         d_restriction_coarsen_schedules.resize(0);
+        d_restriction_scratch_coarsen_algorithm.setNull();
+        d_restriction_scratch_coarsen_schedules.resize(0);
 
         d_ghostfill_nocoarse_refine_algorithm.setNull();
         d_ghostfill_nocoarse_refine_schedules.resize(0);
+        d_ghostfill_nocoarse_scratch_refine_algorithm.setNull();
+        d_ghostfill_nocoarse_scratch_refine_schedules.resize(0);
 
         d_synch_refine_algorithm.setNull();
         d_synch_refine_schedules.resize(0);
@@ -986,14 +1068,28 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleProlongation(const std::pai
     d_P_bc_op->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_P_cf_bdry_op->setPatchDataIndex(P_dst_idx);
 
+    // Use the schedule that was created with data of the ghost cell widths of dst_idxs.
+    const bool dst_is_wide = U_dst_idx != d_side_scratch_idx && !d_prolongation_wide_refine_algorithm.isNull();
+    const Pointer<RefineAlgorithm<NDIM>>& algorithm =
+        dst_is_wide ? d_prolongation_wide_refine_algorithm : d_prolongation_refine_algorithm;
+    Pointer<RefineSchedule<NDIM>>& schedule =
+        dst_is_wide ? d_prolongation_wide_refine_schedules[dst_ln] : d_prolongation_refine_schedules[dst_ln];
+    if (schedule.isNull()) // a wide schedule that is used for the first time
+    {
+        schedule = algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
+                                             Pointer<PatchLevel<NDIM>>(),
+                                             dst_ln - 1,
+                                             d_hierarchy,
+                                             d_prolongation_refine_patch_strategy.getPointer());
+    }
     RefineAlgorithm<NDIM> refine_alg;
     refine_alg.registerRefine(
         U_dst_idx, U_src_idx, U_dst_idx, d_U_prolongation_refine_operator, d_U_op_stencil_fill_pattern);
     refine_alg.registerRefine(
         P_dst_idx, P_src_idx, P_dst_idx, d_P_prolongation_refine_operator, d_P_op_stencil_fill_pattern);
-    refine_alg.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
-    d_prolongation_refine_schedules[dst_ln]->fillData(d_new_time);
-    d_prolongation_refine_algorithm->resetSchedule(d_prolongation_refine_schedules[dst_ln]);
+    refine_alg.resetSchedule(schedule);
+    schedule->fillData(d_new_time);
+    algorithm->resetSchedule(schedule);
     return;
 } // xeqScheduleProlongation
 
@@ -1008,12 +1104,23 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleRestriction(const std::pair
     const int P_dst_idx = dst_idxs.second;
     const int P_src_idx = src_idxs.second;
 
+    // Use the schedule that was created with data of the ghost cell widths of src_idxs.
+    const bool src_is_scratch = U_src_idx == d_side_scratch_idx && !d_restriction_scratch_coarsen_algorithm.isNull();
+    const Pointer<CoarsenAlgorithm<NDIM>>& algorithm =
+        src_is_scratch ? d_restriction_scratch_coarsen_algorithm : d_restriction_coarsen_algorithm;
+    Pointer<CoarsenSchedule<NDIM>>& schedule =
+        src_is_scratch ? d_restriction_scratch_coarsen_schedules[dst_ln] : d_restriction_coarsen_schedules[dst_ln];
+    if (schedule.isNull()) // a scratch schedule that is used for the first time
+    {
+        schedule =
+            algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_hierarchy->getPatchLevel(dst_ln + 1));
+    }
     CoarsenAlgorithm<NDIM> coarsen_alg;
     coarsen_alg.registerCoarsen(U_dst_idx, U_src_idx, d_U_restriction_coarsen_operator);
     coarsen_alg.registerCoarsen(P_dst_idx, P_src_idx, d_P_restriction_coarsen_operator);
-    coarsen_alg.resetSchedule(d_restriction_coarsen_schedules[dst_ln]);
-    d_restriction_coarsen_schedules[dst_ln]->coarsenData();
-    d_restriction_coarsen_algorithm->resetSchedule(d_restriction_coarsen_schedules[dst_ln]);
+    coarsen_alg.resetSchedule(schedule);
+    schedule->coarsenData();
+    algorithm->resetSchedule(schedule);
     return;
 } // xeqScheduleRestriction
 
@@ -1029,14 +1136,25 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const std
     d_P_bc_op->setPatchDataIndex(P_dst_idx);
     d_P_bc_op->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
 
+    // Use the schedule that was created with data of the ghost cell widths of dst_idxs.
+    const bool dst_is_scratch =
+        U_dst_idx == d_side_scratch_idx && !d_ghostfill_nocoarse_scratch_refine_algorithm.isNull();
+    const Pointer<RefineAlgorithm<NDIM>>& algorithm =
+        dst_is_scratch ? d_ghostfill_nocoarse_scratch_refine_algorithm : d_ghostfill_nocoarse_refine_algorithm;
+    Pointer<RefineSchedule<NDIM>>& schedule = dst_is_scratch ? d_ghostfill_nocoarse_scratch_refine_schedules[dst_ln] :
+                                                               d_ghostfill_nocoarse_refine_schedules[dst_ln];
+    if (schedule.isNull()) // a scratch schedule that is used for the first time
+    {
+        schedule = algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op);
+    }
     RefineAlgorithm<NDIM> refine_alg;
     refine_alg.registerRefine(
         U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM>>(), d_U_op_stencil_fill_pattern);
     refine_alg.registerRefine(
         P_dst_idx, P_dst_idx, P_dst_idx, Pointer<RefineOperator<NDIM>>(), d_P_op_stencil_fill_pattern);
-    refine_alg.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
-    d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_new_time);
-    d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
+    refine_alg.resetSchedule(schedule);
+    schedule->fillData(d_new_time);
+    algorithm->resetSchedule(schedule);
     return;
 } // xeqScheduleGhostFillNoCoarse
 

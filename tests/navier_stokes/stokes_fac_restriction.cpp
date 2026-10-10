@@ -68,12 +68,13 @@ main(int argc, char* argv[])
     Pointer<CellVariable<NDIM, double>> p_var = new CellVariable<NDIM, double>("p");
     Pointer<CellVariable<NDIM, double>> f_p_var = new CellVariable<NDIM, double>("f_p");
     Pointer<CellVariable<NDIM, double>> r_p_var = new CellVariable<NDIM, double>("r_p");
-    const int u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVector<NDIM>(1));
-    const int f_u_idx = var_db->registerVariableAndContext(f_u_var, ctx, IntVector<NDIM>(1));
-    const int r_u_idx = var_db->registerVariableAndContext(r_u_var, ctx, IntVector<NDIM>(1));
-    const int p_idx = var_db->registerVariableAndContext(p_var, ctx, IntVector<NDIM>(1));
-    const int f_p_idx = var_db->registerVariableAndContext(f_p_var, ctx, IntVector<NDIM>(1));
-    const int r_p_idx = var_db->registerVariableAndContext(r_p_var, ctx, IntVector<NDIM>(1));
+    const IntVector<NDIM> gcw(input_db->getIntegerWithDefault("vector_ghost_cell_width", 1));
+    const int u_idx = var_db->registerVariableAndContext(u_var, ctx, gcw);
+    const int f_u_idx = var_db->registerVariableAndContext(f_u_var, ctx, gcw);
+    const int r_u_idx = var_db->registerVariableAndContext(r_u_var, ctx, gcw);
+    const int p_idx = var_db->registerVariableAndContext(p_var, ctx, gcw);
+    const int f_p_idx = var_db->registerVariableAndContext(f_p_var, ctx, gcw);
+    const int r_p_idx = var_db->registerVariableAndContext(r_p_var, ctx, gcw);
     for (int ln = 0; ln <= 1; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
