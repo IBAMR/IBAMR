@@ -498,7 +498,7 @@ StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVec
 
 bool
 StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                             const SAMRAIVectorReal<NDIM, double>& residual,
+                                                             SAMRAIVectorReal<NDIM, double>& residual,
                                                              int coarsest_ln)
 {
 #if !defined(NDEBUG)
@@ -546,7 +546,7 @@ StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<ND
 
 void
 StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                          const SAMRAIVectorReal<NDIM, double>& solution,
+                                                          SAMRAIVectorReal<NDIM, double>& solution,
                                                           const SAMRAIVectorReal<NDIM, double>& rhs,
                                                           int coarsest_level_num,
                                                           int finest_level_num)

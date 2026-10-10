@@ -120,7 +120,7 @@ public:
      *performed
      */
     void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
