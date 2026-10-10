@@ -21,10 +21,7 @@
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/StokesSpecifications.h>
 
-#include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/CCPoissonPointRelaxationFACOperator.h>
-#include <ibtk/FACPreconditioner.h>
-#include <ibtk/FACPreconditionerStrategy.h>
+#include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
@@ -45,6 +42,7 @@
 
 #include <tbox/Array.h>
 #include <tbox/MathUtilities.h>
+#include <tbox/MemoryDatabase.h>
 #include <tbox/PIO.h>
 #include <tbox/RestartManager.h>
 #include <tbox/Timer.h>
@@ -236,70 +234,26 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
     if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
 
-    // Setup the cell centered Poisson Solver needed for projection.
+    // Set up the boundary conditions, coefficients, and default databases of
+    // the velocity correction projection solver, which uses homogeneous
+    // Neumann boundary conditions.
     if (d_needs_div_free_projection)
     {
-        const std::string velcorrection_projection_prefix = "cIB_";
-        // Setup the various solver components.
         for (int d = 0; d < NDIM; ++d)
         {
             d_velcorrection_projection_bc_coef.setBoundarySlope(2 * d, 0.0);
             d_velcorrection_projection_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
         }
-
         d_velcorrection_projection_spec.reset(
             new PoissonSpecifications(d_object_name + "::ConstraintIBMethodProjection::Spec"));
-        d_velcorrection_projection_op =
-            new CCLaplaceOperator(d_object_name + "ConstraintIBMethodProjection::PoissonOperator",
-                                  /*input_db*/ nullptr,
-                                  /*homogeneous_bc*/ true);
-        d_velcorrection_projection_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
-        d_velcorrection_projection_op->setPhysicalBcCoef(&d_velcorrection_projection_bc_coef);
-
-        d_velcorrection_projection_solver =
-            new PETScKrylovPoissonSolver(d_object_name + "ConstraintIBMethodProjection::PoissonKrylovSolver",
-                                         Pointer<Database>(nullptr),
-                                         velcorrection_projection_prefix);
-        d_velcorrection_projection_solver->setInitialGuessNonzero(false);
-        d_velcorrection_projection_solver->setOperator(d_velcorrection_projection_op);
-
-        if (d_velcorrection_projection_fac_pc_db.isNull())
+        if (!d_velcorrection_projection_solver_db)
         {
-            TBOX_WARNING(d_object_name << "::ConstraintIBMethod():\n"
-                                       << " ConstraintIBMethodProjection:: Poisson "
-                                          "FAC PC solver database is null."
-                                       << std::endl);
+            d_velcorrection_projection_solver_db = new MemoryDatabase("projection_solver_db");
         }
-
-        d_velcorrection_projection_fac_op = new CCPoissonPointRelaxationFACOperator(
-            d_object_name + ":: ConstraintIBMethodProjection::PoissonFACOperator",
-            d_velcorrection_projection_fac_pc_db,
-            "");
-        d_velcorrection_projection_fac_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
-        d_velcorrection_projection_fac_pc =
-            new IBTK::FACPreconditioner(d_object_name + "::ConstraintIBMethodProjection::PoissonPreconditioner",
-                                        d_velcorrection_projection_fac_op,
-                                        d_velcorrection_projection_fac_pc_db,
-                                        "");
-        d_velcorrection_projection_solver->setPreconditioner(d_velcorrection_projection_fac_pc);
-
-        // Set some default options.
-        d_velcorrection_projection_solver->setKSPType("gmres");
-        d_velcorrection_projection_solver->setAbsoluteTolerance(1.0e-12);
-        d_velcorrection_projection_solver->setRelativeTolerance(1.0e-08);
-        d_velcorrection_projection_solver->setMaxIterations(25);
-
-        // NOTE: We always use homogeneous Neumann boundary conditions for the
-        // velocity correction projection Poisson solver.
-        d_velcorrection_projection_solver->setNullSpace(true);
-    }
-    else
-    {
-        d_velcorrection_projection_spec = nullptr;
-        d_velcorrection_projection_op = nullptr;
-        d_velcorrection_projection_fac_op = nullptr;
-        d_velcorrection_projection_fac_pc = nullptr;
-        d_velcorrection_projection_solver = nullptr;
+        if (!d_velcorrection_projection_precond_db)
+        {
+            d_velcorrection_projection_precond_db = new MemoryDatabase("projection_precond_db");
+        }
     }
 
     // Do printing operation for processor 0 only.
@@ -638,6 +592,41 @@ ConstraintIBMethod::initializeHierarchyOperatorsandData()
     d_wgt_sc_idx = getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
     d_volume = getHierarchyMathOps()->getVolumeOfPhysicalDomain();
 
+    // Setup the cell centered Poisson solver needed for projection.
+    if (d_needs_div_free_projection)
+    {
+        if (d_velcorrection_projection_solver_type == CCPoissonSolverManager::UNDEFINED)
+        {
+            d_velcorrection_projection_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
+            d_velcorrection_projection_solver_db->putString("ksp_type", "gmres");
+            d_velcorrection_projection_solver_db->putDouble("abs_residual_tol", 1.0e-12);
+            d_velcorrection_projection_solver_db->putDouble("rel_residual_tol", 1.0e-8);
+            d_velcorrection_projection_solver_db->putInteger("max_iterations", 25);
+        }
+        if (d_velcorrection_projection_precond_type == CCPoissonSolverManager::UNDEFINED)
+        {
+            const int max_levels = d_gridding_alg->getMaxLevels();
+            if (max_levels == 1)
+            {
+                d_velcorrection_projection_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
+            }
+            else
+            {
+                d_velcorrection_projection_precond_type = CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
+            }
+            d_velcorrection_projection_precond_db->putInteger("max_iterations", 1);
+        }
+        d_velcorrection_projection_solver =
+            CCPoissonSolverManager::getManager()->allocateSolver(d_velcorrection_projection_solver_type,
+                                                                 d_object_name + "::projection_solver",
+                                                                 d_velcorrection_projection_solver_db,
+                                                                 "cIB_",
+                                                                 d_velcorrection_projection_precond_type,
+                                                                 d_object_name + "::projection_precond",
+                                                                 d_velcorrection_projection_precond_db,
+                                                                 "cIB_pc_");
+    }
+
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (!from_restart) calculateVolumeElement();
     setInitialLagrangianVelocity();
@@ -778,6 +767,22 @@ ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_res
 {
     // Read in control parameters from input database.
     d_needs_div_free_projection = input_db->getBoolWithDefault("needs_divfree_projection", d_needs_div_free_projection);
+    if (input_db->keyExists("projection_solver_type"))
+    {
+        d_velcorrection_projection_solver_type = input_db->getString("projection_solver_type");
+        if (input_db->keyExists("projection_solver_db"))
+        {
+            d_velcorrection_projection_solver_db = input_db->getDatabase("projection_solver_db");
+        }
+    }
+    if (input_db->keyExists("projection_precond_type"))
+    {
+        d_velcorrection_projection_precond_type = input_db->getString("projection_precond_type");
+        if (input_db->keyExists("projection_precond_db"))
+        {
+            d_velcorrection_projection_precond_db = input_db->getDatabase("projection_precond_db");
+        }
+    }
     input_db->getDoubleArray("rho_solid", &d_rho_solid[0], d_no_structures);
     d_rho_fluid = input_db->getDoubleWithDefault("rho_fluid", d_rho_fluid);
     d_calculate_structure_linear_mom =
@@ -2018,20 +2023,20 @@ ConstraintIBMethod::applyProjection()
         d_velcorrection_projection_spec->setDConstant(-1.0 / d_rho_fluid);
     }
 
-    d_velcorrection_projection_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
-    d_velcorrection_projection_op->setPhysicalBcCoef(&d_velcorrection_projection_bc_coef);
-    d_velcorrection_projection_op->setHomogeneousBc(true);
-    d_velcorrection_projection_op->setHierarchyMathOps(getHierarchyMathOps());
-
-    d_velcorrection_projection_fac_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
-    d_velcorrection_projection_fac_op->setPhysicalBcCoef(&d_velcorrection_projection_bc_coef);
-
-    d_velcorrection_projection_solver->setInitialGuessNonzero(false);
-    d_velcorrection_projection_solver->setOperator(d_velcorrection_projection_op);
+    d_velcorrection_projection_solver->setPoissonSpecifications(*d_velcorrection_projection_spec);
+    d_velcorrection_projection_solver->setPhysicalBcCoef(&d_velcorrection_projection_bc_coef);
+    d_velcorrection_projection_solver->setHomogeneousBc(true);
+    d_velcorrection_projection_solver->setHierarchyMathOps(getHierarchyMathOps());
 
     // NOTE: We always use homogeneous Neumann boundary conditions for the
     // velocity correction projection Poisson solver.
-    d_velcorrection_projection_solver->setNullSpace(true);
+    auto p_velcorrection_projection_solver =
+        dynamic_cast<LinearSolver*>(d_velcorrection_projection_solver.getPointer());
+    if (p_velcorrection_projection_solver)
+    {
+        p_velcorrection_projection_solver->setInitialGuessNonzero(false);
+        p_velcorrection_projection_solver->setNullSpace(true);
+    }
 
     // Solve the projection Poisson problem.
     d_velcorrection_projection_solver->initializeSolverState(sol_vec, rhs_vec);
