@@ -1000,6 +1000,9 @@ protected:
     /// Pointer to object used to accumulate forces during spreading.
     std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_ghost_data_accumulator;
 
+    /// Pointer to the object that accumulates fluid sources during spreading.
+    std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_source_ghost_data_accumulator;
+
     /*!
      * Schedules for prolonging data during spreading. The keys are the level
      * number, the patch data index for the coarse level data, and the patch

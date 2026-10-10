@@ -1,0 +1,3 @@
+Fixed: IBAMR::IBFEMethod::spreadFluidSource() and IBAMR::IIMethod::spreadForce() sum values spread into patch ghost cells into the patches that own them, so that fluid sources and forces no longer depend on the patch layout.
+<br>
+(Boyce Griffith, 2026/10/06)

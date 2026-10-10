@@ -23,7 +23,9 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/SAMRAIDataCache.h>
+#include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
 
@@ -79,6 +81,8 @@
 #include <CellData.h>
 #include <CellIndex.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchyDataOpsManager.h>
+#include <HierarchyDataOpsReal.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <LoadBalancer.h>
@@ -90,6 +94,8 @@
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideIndex.h>
+#include <Variable.h>
+#include <VariableDatabase.h>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -217,6 +223,7 @@ IIMethod::IIMethod(const std::string& object_name,
 
 IIMethod::~IIMethod()
 {
+    d_ghost_data_accumulator.reset();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         delete d_equation_systems[part];
@@ -3075,6 +3082,18 @@ IIMethod::spreadForce(const int f_data_idx,
 
     batch_vec_ghost_update(vec_collection_update, INSERT_VALUES, SCATTER_FORWARD);
 
+    // Spread into a zeroed scratch index. The forces spread into patch ghost
+    // regions are then summed into the patches that own those cells before the
+    // result is added to f_data_idx. The ghost values of f_data_idx itself are
+    // not used since they are not initialized on entry.
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const auto f_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+    Pointer<hier::Variable<NDIM>> f_var;
+    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
+    auto f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    f_data_ops->resetLevels(0, finest_ln);
+    f_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         PetscVector<double>* X_vec = nullptr;
@@ -3095,15 +3114,50 @@ IIMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
-        d_fe_data_managers[part]->spread(
-            f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
-        PetscVector<double>* P_jump_vec;
+        d_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
+    }
+
+    // Apply the transpose of the physical boundary fill to the forces spread
+    // outside the physical domain. This must precede the accumulation, which
+    // ignores ghost cells that do not correspond to degrees of freedom.
+    if (f_phys_bdry_op)
+    {
+        f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
+        for (int ln = 0; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_scratch_data_idx);
+                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+            }
+        }
+        f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+    }
+
+    // Sum the forces spread into patch ghost regions into the owning patches.
+    if (!d_ghost_data_accumulator)
+    {
+        // Use the ghost width that the data actually has, since it may be wider
+        // than the one required by this class.
+        const Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(finest_ln);
+        const IntVector<NDIM> gcw =
+            level->getPatchDescriptor()->getPatchDataFactory(f_scratch_data_idx)->getGhostCellWidth();
+        d_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(d_hierarchy, f_var, gcw, 0, finest_ln);
+    }
+    d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
+    f_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
+
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* P_jump_ghost_vec = nullptr;
         std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec;
         std::array<PetscVector<double>*, NDIM> DU_jump_vec;
         if (d_use_pressure_jump_conditions)
         {
-            P_jump_vec = d_P_jump_half_vecs[part];
+            PetscVector<double>* P_jump_vec = d_P_jump_half_vecs[part];
             P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
             P_jump_vec->localize(*P_jump_ghost_vec);
         }
@@ -3459,7 +3513,8 @@ IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                   Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
-    // intentionally blank
+    // clear data that is specific to the current patch hierarchy
+    d_ghost_data_accumulator.reset();
     IBAMR_TIMER_STOP(t_begin_data_redistribution);
     return;
 } // beginDataRedistribution
