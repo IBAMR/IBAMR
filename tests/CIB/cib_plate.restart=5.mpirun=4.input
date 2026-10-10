@@ -151,7 +151,6 @@ CIBStaggeredStokesSolver
         }
         velocity_precond_db
         {
-            ghost_cell_width = 4
             num_pre_sweeps  = 0
             num_post_sweeps = 3
             prolongation_method = "CONSTANT_REFINE"
@@ -228,7 +227,6 @@ CIBStaggeredStokesSolver
         }
         velocity_precond_db
         {
-            ghost_cell_width = 4
             num_pre_sweeps  = 0
             num_post_sweeps = 3
             prolongation_method = "CONSTANT_REFINE"

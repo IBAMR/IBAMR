@@ -1,0 +1,3 @@
+Changed: IBTK::PoissonFACPreconditionerStrategy and its derived classes accept solution and right-hand-side vectors that share any ghost cell width of at least one, and the input key ghost_cell_width is removed.
+<br>
+(Boyce Griffith, 2026/10/04)

@@ -236,7 +236,7 @@ CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             Pointer<CellData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
             Pointer<CellData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
-            TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
             TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
             scratch_data->getArrayData().copy(
@@ -261,7 +261,7 @@ CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     Pointer<CellData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
                     Pointer<CellData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
-                    TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
+                    TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
                     TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
                     error_data->getArrayData().copy(scratch_data->getArrayData(),
