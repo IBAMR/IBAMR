@@ -1,0 +1,3 @@
+Fixed: IBAMR::INSStaggeredHierarchyIntegrator re-initializes its velocity, pressure, and Stokes solvers when the BDF2 coefficient of the discrete time derivative changes, which happens after the first time step and in the step after a change of time step size. The solvers set up in the first time step were otherwise used for the whole run, and a restarted run did not reproduce the uninterrupted one.
+<br>
+(Boyce Griffith, 2026/10/09)
