@@ -75,7 +75,9 @@ public:
      * which physical boundary conditions are not present, default "LINEAR"
      *
      * <code>bdry_interp_type<\code>: String that specifies how to fill ghost cells at physical boundaries at which
-     * physical boundary conditions are present, default "LINEAR"
+     * physical boundary conditions are present, default "LINEAR".  TRACTION conditions at a boundary at which the
+     * normal velocity is not prescribed require "LINEAR"; see
+     * StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm()
      *
      * <code>use_cf_interpolation<\code>: Bool that specifies whether to use interpolation involving both coarse and
      * fine components, default TRUE
@@ -125,7 +127,9 @@ public:
                                     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
     /*!
-     * \brief Set the physical boundary condition helper object.
+     * \brief Set the physical boundary condition helper object.  It is required to impose TRACTION conditions where the
+     * normal velocity is not prescribed: it is an error to apply the operator without it if the velocity boundary
+     * conditions are TRACTION conditions and the domain is not periodic in every direction.
      */
     virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 

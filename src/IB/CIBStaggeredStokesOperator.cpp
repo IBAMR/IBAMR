@@ -179,6 +179,14 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     d_hier_math_ops->grad(A_U_idx, A_U_sc_var, /*cf_bdry_synch*/ false, 1.0, P_idx, P_cc_var, d_no_fill, half_time);
     d_hier_math_ops->laplace(
         A_U_idx, A_U_sc_var, d_U_problem_coefs, U_idx, U_sc_var, d_no_fill, half_time, 1.0, A_U_idx, A_U_sc_var);
+    // Add the part of the viscous term that imposes TRACTION conditions where the normal velocity is not prescribed.
+    d_bc_helper->addNormalTractionViscousTerm(A_U_idx,
+                                              U_idx,
+                                              d_U_problem_coefs.getDConstant(),
+                                              d_U_bc_coefs,
+                                              d_bdry_interp_type == "LINEAR",
+                                              u_p.getCoarsestLevelNumber(),
+                                              u_p.getFinestLevelNumber());
 
     d_cib_strategy->setConstraintForce(L, half_time, -1.0 * d_scale_spread);
     ib_method_ops->spreadForce(A_U_idx, nullptr, std::vector<Pointer<RefineSchedule<NDIM>>>(), half_time);
