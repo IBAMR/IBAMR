@@ -165,6 +165,8 @@ SETUP_2D(navier_stokes stokes_operator.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 SETUP_2D(navier_stokes stokes_operator_open_boundary.cpp)
 SETUP_2D(navier_stokes traction_corner_accuracy.cpp)
+SETUP_2D(navier_stokes divergence_free_phys_bdry_op.cpp)
+SETUP_3D(navier_stokes divergence_free_phys_bdry_op.cpp)
 SETUP_2D(navier_stokes stokes_fac_restriction.cpp)
 
 # physical_boundary:

@@ -1,0 +1,7 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+(y, E u)   = 4.12332245784
+(E^T y, u) = 4.12332245784
+max error beyond prescribed-velocity boundaries = 0.087890625
+max error beyond traction boundaries            = 9.15527343759e-05
