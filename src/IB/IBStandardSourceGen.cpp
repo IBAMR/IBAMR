@@ -270,7 +270,10 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 #endif
     const int s_num_sources_sz = static_cast<int>(s_num_sources.size());
     db->putInteger("s_num_sources.size()", s_num_sources_sz);
-    db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources_sz);
+    if (s_num_sources_sz > 0)
+    {
+        db->putIntegerArray("s_num_sources", s_num_sources.data(), s_num_sources_sz);
+    }
     for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
     {
         for (int n = 0; n < s_num_sources[ln]; ++n)
@@ -283,7 +286,10 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 
     const int d_n_src_sz = static_cast<int>(d_n_src.size());
     db->putInteger("finest_hier_level", d_n_src_sz - 1);
-    db->putIntegerArray("d_n_src", &d_n_src[0], d_n_src_sz);
+    if (d_n_src_sz > 0)
+    {
+        db->putIntegerArray("d_n_src", d_n_src.data(), d_n_src_sz);
+    }
     for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
     {
         for (int n = 0; n < d_n_src[ln]; ++n)
@@ -323,7 +329,10 @@ IBStandardSourceGen::getFromRestart()
     s_num_sources.resize(s_num_sources_size);
     s_source_names.resize(s_num_sources_size);
     s_source_radii.resize(s_num_sources_size);
-    db->getIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources_size);
+    if (s_num_sources_size > 0)
+    {
+        db->getIntegerArray("s_num_sources", s_num_sources.data(), s_num_sources_size);
+    }
     for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
     {
         s_source_names[ln].resize(s_num_sources[ln]);
@@ -343,7 +352,10 @@ IBStandardSourceGen::getFromRestart()
     d_num_perimeter_nodes.resize(finest_hier_level + 1);
     d_Q_src.resize(finest_hier_level + 1);
     d_P_src.resize(finest_hier_level + 1);
-    db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level + 1);
+    if (finest_hier_level >= 0)
+    {
+        db->getIntegerArray("d_n_src", d_n_src.data(), finest_hier_level + 1);
+    }
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
         d_source_names[ln].resize(d_n_src[ln]);
