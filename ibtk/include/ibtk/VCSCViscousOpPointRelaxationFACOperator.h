@@ -90,6 +90,34 @@ public:
     } // allocate
 
     /*!
+     * \name Functions for configuring the solver.
+     */
+    //\{
+
+    /*!
+     * \brief Specify the smoother type.
+     *
+     * Select from:
+     * - \c "PATCH_GAUSS_SEIDEL"
+     * - \c "PROCESSOR_GAUSS_SEIDEL"
+     *
+     * Any other value is an error. In particular, \c "RED_BLACK_GAUSS_SEIDEL" is not supported: the update of one
+     * velocity component reads the other components at points of the same color, so the result of a color pass
+     * depends on the patch layout.
+     */
+    void setSmootherType(const std::string& smoother_type) override;
+
+    /*!
+     * \brief Specify the coarse level solver.
+     *
+     * As SCPoissonPointRelaxationFACOperator::setCoarseSolverType(), except that it is an error to specify
+     * \c "RED_BLACK_GAUSS_SEIDEL"; see setSmootherType().
+     */
+    void setCoarseSolverType(const std::string& coarse_solver_type) override;
+
+    //\}
+
+    /*!
      * \name Implementation of FACPreconditionerStrategy interface.
      */
     //\{

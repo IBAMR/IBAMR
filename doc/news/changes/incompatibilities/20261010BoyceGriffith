@@ -1,0 +1,3 @@
+Removed: IBTK::VCSCViscousOpPointRelaxationFACOperator no longer supports red-black smoothing; specifying it as the smoother type or the coarse solver type is an error.
+<br>
+(Boyce Griffith, 2026/10/10)
