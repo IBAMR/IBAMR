@@ -238,6 +238,14 @@ private:
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
+     * edge-centered quantities.
+     */
+    void setPhysicalBoundaryConditions_edge(
+        SAMRAI::hier::Patch<NDIM>& patch,
+        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int>>>& bdry_fill_boxes);
+
+    /*!
+     * \brief The implementation of setPhysicalBoundaryConditions() for
      * face-centered quantities.
      */
     void setPhysicalBoundaryConditions_face(
