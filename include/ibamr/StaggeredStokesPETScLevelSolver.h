@@ -63,10 +63,36 @@ namespace IBAMR
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
  *
- * On a level that has a coarse-fine boundary, the values of the velocity and of the pressure that the solution vector
- * holds just outside the level across the boundary are boundary data. The degrees of freedom of the level have no
- * matrix entries for them, and their terms are moved to the right-hand side. The velocity and pressure data of the
- * vectors must then have a ghost cell width of at least one.
+ * <b>Contract of solveSystem().</b> The interior values of \a x are the
+ * initial guess if initial_guess_nonzero is TRUE and are ignored (taken as
+ * zero) if it is FALSE, which is the default.  On return the interior values
+ * of \a x hold the solution.  The solver treats the ghost values of \a x as
+ * follows.
+ * <ul>
+ * <li>Velocity ghost values that lie in other patches of the level, including
+ * across periodic boundaries.  The velocity boundary condition objects read
+ * the velocity in \a x as the target velocity, which at a traction boundary
+ * is the normal velocity at two adjacent positions along the boundary.  Those
+ * positions include sides that lie in other patches of the level, so at the
+ * start of each solve the solver overwrites these ghost values with the
+ * interior values of the velocity in those patches, as \a x holds them at that
+ * time, whether or not initial_guess_nonzero is TRUE.  On return they still
+ * hold those values, not the solution.</li>
+ * <li>Velocity and pressure ghost values just outside the level across a
+ * coarse-fine boundary.  They are boundary data: the degrees of freedom of the
+ * level have no matrix entries for them, and the solver solves for the
+ * interior values with those ghost values fixed, by moving their terms to the
+ * right-hand side.  The velocity and pressure data of the vectors must have a
+ * ghost cell width of at least one, and a caller that wants homogeneous data
+ * there sets those ghost values to zero.  They are as the caller gave them on
+ * return.</li>
+ * <li>Pressure ghost values in cells that lie in other patches of the level,
+ * including across periodic boundaries.  They are not read and are as the
+ * caller gave them on return.</li>
+ * <li>Ghost values outside a physical boundary.  Physical boundary conditions
+ * come from the boundary condition objects and setHomogeneousBc(), not from
+ * these ghost values, which are as the caller gave them on return.</li>
+ * </ul>
  *
  * \see INSStaggeredHierarchyIntegrator
  */

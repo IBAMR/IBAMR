@@ -1,0 +1,60 @@
+// Four patches side by side along a traction boundary of a refined level that is periodic in the direction along the boundary.
+solver_db {
+   ksp_type = "gmres"
+   pc_type = "asm"
+   subdomain_box_size = 4, 4
+   subdomain_overlap_size = 1, 1
+   rel_residual_tol = 1.0e-12
+   max_iterations = 200
+}
+petsc_settings_contract {
+   sub_ksp_type = "preonly"
+   sub_pc_type = "svd"
+}
+INSStaggeredHierarchyIntegrator {
+   mu = 1.0
+   rho = 1.0
+}
+test {
+   ghost_width = 1
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+}
+N = 12
+CartesianGeometry {
+   domain_boxes = [(0, 0), (N - 1, N - 1)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 1, 0
+}
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = N, N
+      level_1 = 6, 2*N
+   }
+   smallest_patch_size {
+      level_0 = N, N
+      level_1 = 6, 4
+   }
+   efficiency_tolerance = 0.99
+   combine_efficiency = 0.99
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0, 0), (N - 1, N / 2 - 1)]
+   }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

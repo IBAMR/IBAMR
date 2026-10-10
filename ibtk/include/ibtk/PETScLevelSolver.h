@@ -60,16 +60,16 @@ namespace IBTK
  * HREF="http://www.mcs.anl.gov/petsc/petsc-as">PETSc</A>.
  *
  * <b>Contract of solveSystem().</b> The interior values of \a x are the
- * initial guess if initial_guess_nonzero is TRUE, which is the default, and are
- * ignored (taken as zero) if it is FALSE.  On return the interior values of
- * \a x hold the solution.
+ * initial guess if initial_guess_nonzero is TRUE and are ignored (taken as
+ * zero) if it is FALSE, which is the default.  On return the interior values of
+ * \a x hold the solution.  Subclasses state what they do with the ghost values.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
  options_prefix = ""           // see setOptionsPrefix()
  ksp_type = "gmres"            // see setKSPType()
- initial_guess_nonzero = TRUE  // see setInitialGuessNonzero()
+ initial_guess_nonzero = FALSE // see setInitialGuessNonzero()
  rel_residual_tol = 1.0e-5     // see setRelativeTolerance()
  abs_residual_tol = 1.0e-50    // see setAbsoluteTolerance()
  max_iterations = 10000        // see setMaxIterations()

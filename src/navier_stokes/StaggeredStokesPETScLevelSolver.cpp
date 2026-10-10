@@ -23,6 +23,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PETScLevelSolver.h>
+#include <ibtk/PETScVecUtilities.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/PoissonUtilities.h>
 
@@ -46,6 +47,8 @@
 #include <PatchGeometry.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
+#include <RefineAlgorithm.h>
+#include <RefineClasses.h>
 #include <RefineSchedule.h>
 #include <SAMRAIVectorReal.h>
 #include <SideData.h>
@@ -281,7 +284,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
     d_data_synch_sched = StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, d_level);
-    d_ghost_fill_sched = StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(u_idx, p_idx, d_level);
+    d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(u_idx, d_level);
     return;
 } // initializeSolverStateSpecialized
 
@@ -309,8 +312,14 @@ StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
-    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
-        petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, d_level, d_data_synch_sched, d_ghost_fill_sched);
+    StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(petsc_x,
+                                                            u_idx,
+                                                            d_u_dof_index_idx,
+                                                            p_idx,
+                                                            d_p_dof_index_idx,
+                                                            d_level,
+                                                            d_data_synch_sched,
+                                                            /*ghost_fill_sched*/ nullptr);
     return;
 } // copyFromPETScVec
 
@@ -320,10 +329,27 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                               SAMRAIVectorReal<NDIM, double>& x,
                                               SAMRAIVectorReal<NDIM, double>& b)
 {
-    if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
-    const bool level_zero = (d_level_num == 0);
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
+
+    // Fill the ghost values of the velocity in x that lie in other patches of the level, including across periodic
+    // boundaries, because the velocity boundary condition objects read x as the target velocity: at a traction
+    // boundary they read the normal velocity at two adjacent positions along the boundary, which at the end of a
+    // patch includes a side beyond the patch. Nothing else reads a same-level ghost value of x: the pressure boundary
+    // condition object is not evaluated, and the coarse-fine adjustments read only the velocity in sides and the
+    // pressure in cells that are not sides and cells of the level.
+    Pointer<RefineClasses<NDIM>> ghost_fill_config = d_ghost_fill_sched->getEquivalenceClasses();
+    RefineAlgorithm<NDIM> ghost_fill_alg;
+    ghost_fill_alg.registerRefine(u_idx, u_idx, u_idx, nullptr);
+    ghost_fill_alg.resetSchedule(d_ghost_fill_sched);
+    d_ghost_fill_sched->fillData(0.0);
+    d_ghost_fill_sched->reset(ghost_fill_config);
+
+    if (d_initial_guess_nonzero)
+    {
+        copyToPETScVec(petsc_x, x);
+    }
+    const bool level_zero = (d_level_num == 0);
     const int f_idx = b.getComponentDescriptorIndex(0);
     const int h_idx = b.getComponentDescriptorIndex(1);
     const auto f_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_idx);

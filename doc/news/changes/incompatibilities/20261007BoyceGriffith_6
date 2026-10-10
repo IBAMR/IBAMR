@@ -1,0 +1,5 @@
+Changed: The PETSc level solvers (IBTK::PETScLevelSolver and its subclasses) no longer fill the ghost values of the solution on return, which now holds the solution only in its interior values, as for the hypre level solvers. IBAMR::StaggeredStokesPETScLevelSolver instead fills the ghost values of the solution that lie in other patches of the level at the start of a solve, because its boundary conditions read them.
+<br>
+Changed: The default of initial_guess_nonzero in IBTK::PETScLevelSolver is now FALSE, as for the hypre level solvers.
+<br>
+(Boyce Griffith, 2026/10/07)
