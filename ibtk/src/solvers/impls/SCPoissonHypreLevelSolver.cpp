@@ -29,11 +29,13 @@
 
 #include <BoundaryBox.h>
 #include <Box.h>
-#include <CartesianGridGeometry.h>
+#include <BoxList.h>
 #include <CartesianPatchGeometry.h>
 #include <CoarseFineBoundary.h>
+#include <GridGeometry.h>
 #include <Patch.h>
 #include <PatchHierarchy.h>
+#include <PatchLevel.h>
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideIndex.h>
@@ -67,6 +69,65 @@ static Timer* t_solve_system;
 static Timer* t_solve_system_hypre;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
+
+// Return the period to give hypre in the periodic direction d of a level, which is the period of the physical domain on
+// the level if the level wraps around the periodic boundary and zero if it does not.
+//
+// hypre assumes that a periodic grid spans the period: it drops the faces on the upper end of the bounding box of the
+// cells, taking them for the periodic images of the faces on the lower end. That is correct only if every cell of the
+// level in the layer of the domain on the upper end has a cell of the level at the same position in the layer on the
+// lower end, and conversely. If the level has no cells in one of the two layers, then it does not wrap and its sides on
+// the periodic boundary are sides of the level that have no image. A level that has cells in both layers, but not at
+// the same positions, can be represented neither with the period nor without it.
+int
+get_hypre_period(const PatchLevel<NDIM>& level, const std::string& object_name, const unsigned int d)
+{
+    const int period = level.getGridGeometry()->getPeriodicShift(level.getRatio())(d);
+    if (period == 0)
+    {
+        return 0;
+    }
+    const Box<NDIM> domain = level.getPhysicalDomain().getBoundingBox();
+    Box<NDIM> lower_layer = domain;
+    lower_layer.upper(d) = domain.lower(d);
+    Box<NDIM> upper_layer = domain;
+    upper_layer.lower(d) = domain.upper(d);
+    IntVector<NDIM> to_lower_layer(0);
+    to_lower_layer(d) = domain.lower(d) - domain.upper(d);
+
+    // The cells of the level in the two layers, with the cells in the upper layer shifted across the domain to the
+    // lower layer, so that cells that are on the two sides of a face on the periodic boundary are at the same position.
+    BoxList<NDIM> lower_cells, upper_cells;
+    for (int n = 0; n < level.getBoxes().getNumberOfBoxes(); ++n)
+    {
+        const Box<NDIM> lower_box = level.getBoxes()[n] * lower_layer;
+        if (!lower_box.empty())
+        {
+            lower_cells.appendItem(lower_box);
+        }
+        const Box<NDIM> upper_box = level.getBoxes()[n] * upper_layer;
+        if (!upper_box.empty())
+        {
+            upper_cells.appendItem(Box<NDIM>::shift(upper_box, to_lower_layer));
+        }
+    }
+    if (lower_cells.isEmpty() || upper_cells.isEmpty())
+    {
+        return 0;
+    }
+    BoxList<NDIM> upper_only(upper_cells);
+    upper_only.removeIntersections(lower_cells);
+    BoxList<NDIM> lower_only(lower_cells);
+    lower_only.removeIntersections(upper_cells);
+    if (!upper_only.isEmpty() || !lower_only.isEmpty())
+    {
+        TBOX_ERROR(object_name << "::initializeSolverState()\n"
+                               << "  a level that wraps around a periodic boundary on part of the seam only is not "
+                                  "supported by SCPoissonHypreLevelSolver"
+                               << std::endl);
+    }
+    return period;
+}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -281,10 +342,6 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid and variables and assemble the grid.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geometry = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_level->getRatio();
-    const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift(ratio);
-
     HYPRE_SStructGridCreate(communicator, NDIM, NPARTS, &d_grid);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
@@ -297,7 +354,7 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     std::array<HYPRE_Int, 3> hypre_periodic_shift;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        hypre_periodic_shift[d] = periodic_shift(d);
+        hypre_periodic_shift[d] = get_hypre_period(*d_level, d_object_name, d);
     }
     for (int d = NDIM; d < 3; ++d)
     {
