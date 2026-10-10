@@ -143,6 +143,10 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_n
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
         if (input_db->keyExists("rel_change")) d_rel_change = input_db->getInteger("rel_change");
+        if (input_db->keyExists("diag_remove_sol_mean"))
+        {
+            d_diag_remove_sol_mean = input_db->getBool("diag_remove_sol_mean"); // TEMPORARY diagnostic
+        }
         if (input_db->keyExists("diag_remove_rhs_mean"))
         {
             d_diag_remove_rhs_mean = input_db->getBool("diag_remove_rhs_mean"); // TEMPORARY diagnostic
@@ -1253,6 +1257,42 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CellData<NDIM, double>> x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vecs, patch_box);
+    }
+
+    // TEMPORARY diagnostic: subtract the mean of the solution over the level.
+    if (d_diag_remove_sol_mean)
+    {
+        std::vector<double> x_mean(d_depth, 0.0);
+        double n_cells = 0.0;
+        for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double>> x_data = patch->getPatchData(x_idx);
+            n_cells += static_cast<double>(patch_box.size());
+            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            {
+                for (unsigned int k = 0; k < d_depth; ++k)
+                {
+                    x_mean[k] += (*x_data)(ic(), k);
+                }
+            }
+        }
+        n_cells = IBTK_MPI::sumReduction(n_cells);
+        IBTK_MPI::sumReduction(x_mean.data(), static_cast<int>(d_depth));
+        for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double>> x_data = patch->getPatchData(x_idx);
+            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            {
+                for (unsigned int k = 0; k < d_depth; ++k)
+                {
+                    (*x_data)(ic(), k) -= x_mean[k] / n_cells;
+                }
+            }
+        }
     }
 
     // During initialization we may call this function with zero vectors for
