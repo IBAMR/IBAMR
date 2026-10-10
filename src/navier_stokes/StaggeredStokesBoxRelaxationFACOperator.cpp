@@ -313,9 +313,7 @@ modifyRhsForBcs(Vec& v,
                 const hier::Index<NDIM> u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
-                    // The box operator's matrix coefficient for this off-box neighbor is +D/dx^2 (see
-                    // buildBoxOperator() above), so moving its known value to the right-hand side requires
-                    // subtracting, not adding, its contribution.
+                    // Move the off-box neighbor's term, +D/dx^2 times its value, to the right-hand side.
                     ierr = VecSetValue(v,
                                        idx,
                                        -D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
@@ -614,9 +612,8 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             }
         }
 
-        // d_box_op[level_num] is a single, shared, translation-invariant local operator and so cannot
-        // special-case a boundary row; enforce the Dirichlet normal-velocity condition after each sweep instead,
-        // exactly as StaggeredStokesOperator::imposeSolBcs() does for the same purpose elsewhere.
+        // The box operator is the same for every box and has no boundary rows, so enforce the normal velocity
+        // boundary conditions after each sweep.
         if (d_bc_helper)
         {
             StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(

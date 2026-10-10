@@ -60,9 +60,8 @@ namespace IBAMR
  * StaggeredStokesFACPreconditionerStrategy implementing a box relaxation
  * (Vanka-type) smoother for use as a multigrid preconditioner.
  *
- * Hierarchies with physical boundaries require setPhysicalBoundaryHelper() before
- * initialization. The helper must have cached boundary data for the hierarchy.
- * A helper is not required when the hierarchy has no physical boundaries.
+ * If the hierarchy has physical boundaries, setPhysicalBoundaryHelper() must be called before initialization with a
+ * helper that has cached boundary data for the hierarchy.
  */
 class StaggeredStokesBoxRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {

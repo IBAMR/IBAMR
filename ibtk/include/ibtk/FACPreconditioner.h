@@ -96,10 +96,7 @@ public:
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      *
-     * \note FACPreconditioner implements only the FAC correction scheme, which is
-     * always subject to homogeneous boundary conditions; see
-     * FACPreconditionerStrategy::ALWAYS_HOMOGENEOUS_BC. Calling this with \c
-     * false triggers a TBOX_ERROR.
+     * \note FACPreconditioner solves the error equation, so passing \c false is an error.
      */
     void setHomogeneousBc(bool homogeneous_bc) override;
 

@@ -881,12 +881,8 @@ VCSCViscousOpPointRelaxationFACOperator::restrictResidual(const SAMRAIVectorReal
     const int src_idx = src.getComponentDescriptorIndex(0);
     const int dst_idx = dst.getComponentDescriptorIndex(0);
 
-    // Stage the level dst_ln + 1 values of src, rescaled, in the scratch data on that level. The restriction below
-    // then writes dst only on level dst_ln.
-    //
-    // An empty d_A_scale (only ever populated by setOperatorScaling()) means no scaling; a non-empty d_A_scale
-    // must have one entry per hierarchy level (see
-    // INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator()), so indexing past its end is an error.
+    // Rescale the fine-level residual in the scratch data before restricting it. An empty d_A_scale means no
+    // scaling; otherwise it must have an entry for every level.
     const bool A_scale_is_set = d_A_scale.size() > 0;
     if (A_scale_is_set && dst_ln + 1 >= d_A_scale.size())
     {
