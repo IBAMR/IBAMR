@@ -147,6 +147,8 @@ public:
      * Select from:
      * - \c "PATCH_GAUSS_SEIDEL"
      * - \c "PROCESSOR_GAUSS_SEIDEL"
+     *
+     * Any other value is an error.
      */
     void setSmootherType(const std::string& smoother_type) override;
 
