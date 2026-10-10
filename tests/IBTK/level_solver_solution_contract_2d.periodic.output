@@ -1,0 +1,7 @@
+number_of_patches = 4
+cell_values = 256
+cell_solution_min = 2
+cell_solution_max = 2
+side_values = 576
+side_solution_min = 2
+side_solution_max = 2
