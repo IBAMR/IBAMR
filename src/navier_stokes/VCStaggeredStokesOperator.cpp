@@ -120,7 +120,6 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_idx);
 
     // Compute the action of the operator:
     //
@@ -160,6 +159,16 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 1.0,
                                 A_U_idx,
                                 A_U_sc_var);
+    // Add the part of the viscous term that imposes TRACTION and PSEUDO_TRACTION conditions where the normal velocity
+    // is not prescribed.
+    d_bc_helper->addNormalTractionViscousTerm(A_U_idx,
+                                              U_idx,
+                                              d_U_problem_coefs.getDPatchDataId(),
+                                              d_D_interp_type,
+                                              d_U_bc_coefs,
+                                              d_bdry_interp_type == "LINEAR",
+                                              x.getCoarsestLevelNumber(),
+                                              x.getFinestLevelNumber());
     d_hier_math_ops->div(A_P_idx,
                          A_P_cc_var,
                          -1.0,

@@ -23,8 +23,6 @@
 #include <ibamr/StokesBcCoefStrategy.h>
 #include <ibamr/ibamr_enums.h>
 
-#include <ibtk/ibtk_enums.h>
-
 #include <tbox/Pointer.h>
 
 #include <IntVector.h>
@@ -73,6 +71,13 @@ namespace IBAMR
  * conditions are interpreted as prescribed traction (stress) boundary
  * conditions.  These are translated into Neumann and generalized Dirichlet
  * boundary conditions, respectively, for the pressure.
+ *
+ * An open boundary is a boundary face at which the normal velocity is not
+ * prescribed.  At an open boundary the pressure boundary value is
+ * \f$ p = -g \f$, scaled by the operator scale factor of the patch level, in
+ * which \f$ g \f$ is the normal traction data evaluated at the time set by
+ * setSolutionTime().  The viscous part of the condition is imposed through the
+ * viscous term and not through the pressure.
  */
 class INSVCStaggeredPressureBcCoef : public StokesBcCoefStrategy
 {
@@ -99,7 +104,8 @@ public:
     void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
-     * \brief Set the time at which the solution is to be evaluated.
+     * \brief Set the time at which the pressure is defined, at which the
+     * normal traction data are evaluated.
      */
     void setSolutionTime(double solution_time);
 
@@ -233,12 +239,6 @@ public:
 
     //\}
 
-    /*!
-     * \brief Set the interpolation type to bring cell centered viscosity
-     * to side centers
-     */
-    void setViscosityInterpolationType(IBTK::VCInterpType mu_interp_type);
-
 protected:
 private:
     /*!
@@ -279,9 +279,9 @@ private:
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 
     /*
-     * The type of interpolation to bring cell centered viscosity to side centers.
+     * The time at which the pressure is defined.
      */
-    IBTK::VCInterpType d_mu_interp_type;
+    double d_solution_time = 0.0;
 };
 } // namespace IBAMR
 

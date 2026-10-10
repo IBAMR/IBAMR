@@ -21,6 +21,7 @@
 #include <ibamr/config.h>
 
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
 
@@ -151,6 +152,46 @@ public:
                                       double viscous_coef,
                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                       bool linear_pressure_extrapolation) const;
+
+    /*!
+     * \brief Add the part of the variable-coefficient viscous term that imposes TRACTION and PSEUDO_TRACTION conditions
+     * at the boundary faces where the normal velocity is not prescribed.
+     *
+     * The viscous term is \f$ \nabla \cdot D (\nabla u + \nabla u^T) \f$, as computed by
+     * IBTK::HierarchyMathOps::vc_laplace(), in which the coefficient \f$ D \f$ is the node-centered (two dimensions) or
+     * edge-centered (three dimensions) data \a viscous_coef_data_idx and \a viscous_coef_interp_type selects the
+     * average that gives its cell-centered values.  At each boundary face at which the normal velocity is not
+     * prescribed and for which the entry of \a u_bc_coefs for the normal component is a StokesBcCoefStrategy, this
+     * function adds
+     * \f[ 2 (D_I (u_I - u_B) + D_G (u_B - u_G)) / h^2 \f]
+     * to the normal component of \a f_data_idx at the boundary face, and for PSEUDO_TRACTION conditions it also
+     * subtracts \f$ D_B (u_I - u_{div}) / h^2 \f$.  Here \f$ u_B \f$, \f$ u_I \f$, and \f$ u_G \f$ are the normal
+     * velocities on the boundary face and on the next faces inside and outside the domain, \f$ u_{div} \f$ is the
+     * normal velocity on the next face outside the domain that makes the discrete divergence of \a u_data_idx vanish
+     * in the ghost cell, \f$ D_I \f$ and \f$ D_G \f$ are the cell-centered coefficients in the cell abutting the
+     * boundary and in the ghost cell, \f$ D_B \f$ is the average of the coefficient over the boundary face, and
+     * \f$ h \f$ is the grid spacing normal to the boundary.  Nothing is added at other boundary faces, and
+     * \a u_data_idx is not modified.
+     *
+     * The data \a f_data_idx must already hold the viscous term evaluated with the velocity ghost values set by the
+     * velocity boundary conditions and with the same ghost values of \a viscous_coef_data_idx.  Together with the
+     * pressure boundary value \f$ p = -g \f$, the result imposes
+     * \f$ -p + 2 \mu \partial u_n / \partial x_n = g \f$ for TRACTION conditions and
+     * \f$ -p + \mu \partial u_n / \partial x_n = g \f$ for PSEUDO_TRACTION conditions.
+     *
+     * The added term is exact only if the pressure ghost value at the boundary is the linear extrapolation
+     * \f$ p_G = 2 p_b - p_I \f$.  Set \a linear_pressure_extrapolation to indicate whether the pressure ghost values
+     * are filled that way.  It is an error for it to be false if there is a boundary face to which this function
+     * applies.
+     */
+    void addNormalTractionViscousTerm(int f_data_idx,
+                                      int u_data_idx,
+                                      int viscous_coef_data_idx,
+                                      IBTK::VCInterpType viscous_coef_interp_type,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      bool linear_pressure_extrapolation,
+                                      int coarsest_ln = IBTK::invalid_level_number,
+                                      int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
      * \brief Setup physical boundary condition specification objects for

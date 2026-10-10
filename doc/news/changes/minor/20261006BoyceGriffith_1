@@ -1,0 +1,3 @@
+Fixed: TRACTION and PSEUDO_TRACTION open boundary conditions in the variable-coefficient staggered-grid Stokes solver.
+<br>
+(Boyce Griffith, 2026/10/06)
