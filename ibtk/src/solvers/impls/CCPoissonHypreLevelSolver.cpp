@@ -34,6 +34,7 @@
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 #include <CellDataFactory.h>
+#include <CellIterator.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
 #include <PatchDescriptor.h>
@@ -142,6 +143,10 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_n
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
         if (input_db->keyExists("rel_change")) d_rel_change = input_db->getInteger("rel_change");
+        if (input_db->keyExists("diag_remove_rhs_mean"))
+        {
+            d_diag_remove_rhs_mean = input_db->getBool("diag_remove_rhs_mean"); // TEMPORARY diagnostic
+        }
 
         if (d_solver_type == "SMG" || d_precond_type == "SMG" || d_solver_type == "PFMG" || d_precond_type == "PFMG")
         {
@@ -1050,6 +1055,33 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         }
     }
 
+    // TEMPORARY diagnostic: the mean of the right-hand side over the level.
+    std::vector<double> b_mean(d_depth, 0.0);
+    if (d_diag_remove_rhs_mean)
+    {
+        double n_cells = 0.0;
+        for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double>> b_data = patch->getPatchData(b_idx);
+            n_cells += static_cast<double>(patch_box.size());
+            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            {
+                for (unsigned int k = 0; k < d_depth; ++k)
+                {
+                    b_mean[k] += (*b_data)(ic(), k);
+                }
+            }
+        }
+        n_cells = IBTK_MPI::sumReduction(n_cells);
+        IBTK_MPI::sumReduction(b_mean.data(), static_cast<int>(d_depth));
+        for (double& m : b_mean)
+        {
+            m /= n_cells;
+        }
+    }
+
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
@@ -1075,10 +1107,20 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
-        if (at_physical_bdry || at_cf_bdry)
+        if (at_physical_bdry || at_cf_bdry || d_diag_remove_rhs_mean)
         {
             CellData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
+            if (d_diag_remove_rhs_mean)
+            {
+                for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+                {
+                    for (unsigned int k = 0; k < d_depth; ++k)
+                    {
+                        b_adj_data(ic(), k) -= b_mean[k];
+                    }
+                }
+            }
             if (at_physical_bdry)
             {
                 PoissonUtilities::adjustRHSAtPhysicalBoundary(

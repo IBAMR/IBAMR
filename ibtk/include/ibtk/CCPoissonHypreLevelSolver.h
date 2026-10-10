@@ -333,6 +333,7 @@ private:
     int d_rap_type;
     int d_relax_type;
     int d_skip_relax = 1;
+    bool d_diag_remove_rhs_mean = false; // TEMPORARY diagnostic
     int d_two_norm = 1;
     //\}
 };
