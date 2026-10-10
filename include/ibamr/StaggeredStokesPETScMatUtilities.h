@@ -80,6 +80,16 @@ public:
                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
+     * \brief Return the coefficient of the pressure of a cell next to a velocity side in the row of that side of the
+     * matrix constructed by constructPatchLevelMACStokesOp().
+     *
+     * The row of a side contains the pressure gradient across the side, which is the pressure of the cell on the upper
+     * side of the side minus the pressure of the cell on the lower side of the side, divided by \a dx, the grid
+     * spacing normal to the side.
+     */
+    static double getPressureGradientCoefficient(double dx, bool upper_cell);
+
+    /*!
      * \brief Partition the patch level into subdomains suitable to be used for
      * additive Schwarz method.
      */

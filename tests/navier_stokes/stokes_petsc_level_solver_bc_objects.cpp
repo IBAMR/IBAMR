@@ -22,7 +22,9 @@
 
 #include <tbox/Database.h>
 
+#include <CartesianPatchGeometry.h>
 #include <CellData.h>
+#include <CellIndex.h>
 #include <CellVariable.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <PoissonSpecifications.h>
@@ -33,6 +35,7 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -44,11 +47,13 @@
 // Solve a Stokes problem on the finest level of a hierarchy with the Stokes PETSc level solver and the velocity and
 // boundary condition objects of the Navier-Stokes integrator, which read the solution vector as the target velocity
 // whenever they are evaluated. The lower boundary of the first coordinate direction has a traction condition with zero
-// data and the other boundaries have Dirichlet conditions with a constant value for each velocity component. The finest
-// level touches the traction boundary, and a coarse-fine boundary of the level ends at it. A velocity that has the
-// constant value of the Dirichlet data in each component, with zero pressure, solves the problem. The solution vector
-// holds that velocity in all of its values and a pressure of one, and the solution must have zero pressure and the
-// velocity.
+// data and the other boundaries have Dirichlet conditions with a constant value for each velocity component. A velocity
+// that has the constant value of the Dirichlet data in each component, with a pressure that is a constant plus a
+// linear function of the position and the matching body force, solves the problem. The pressure vanishes along the
+// traction boundary in the inputs of levels that touch that boundary. The level has a coarse-fine boundary, whose
+// ghost cells are not degrees of freedom of the level: the solution vector holds the velocity and the pressure of the
+// solution in the ghost cells, and these values are boundary data of the solve. It holds the velocity of the solution
+// in the interior sides and a pressure of one in the interior cells, and the solver must replace them by the solution.
 int
 main(int argc, char* argv[])
 {
@@ -108,6 +113,27 @@ main(int argc, char* argv[])
     Pointer<StaggeredStokesPhysicalBoundaryHelper> helper = new StaggeredStokesPhysicalBoundaryHelper();
     helper->cacheBcCoefData(physical_bcs, 0.0, hierarchy);
 
+    // The pressure of the solution is a constant plus a linear function of the position.
+    Pointer<Database> test_db = input_db->getDatabase("test");
+    const double pressure_constant = test_db->getDoubleWithDefault("pressure_constant", 0.0);
+    std::array<double, NDIM> pressure_gradient;
+    pressure_gradient.fill(0.0);
+    if (test_db->keyExists("pressure_gradient"))
+    {
+        test_db->getDoubleArray("pressure_gradient", pressure_gradient.data(), NDIM);
+    }
+    const auto exact_pressure = [&](const Pointer<Patch<NDIM>>& patch, const CellIndex<NDIM>& i)
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        double value = pressure_constant;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            const double x = pgeom->getXLower()[d] + pgeom->getDx()[d] * (i(d) - patch->getBox().lower(d) + 0.5);
+            value += pressure_gradient[d] * x;
+        }
+        return value;
+    };
+
     PoissonSpecifications coefficients("coefficients");
     coefficients.setCConstant(1.0);
     coefficients.setDConstant(-1.0);
@@ -118,9 +144,10 @@ main(int argc, char* argv[])
     solver.setPhysicalBoundaryHelper(helper);
     solver.setHomogeneousBc(false);
 
-    // The velocity component axis has the constant value axis + 1, which solves -Laplace(u) + u + grad(p) = u with
-    // p = 0, so the force equals the velocity. The solution vector holds the velocity in all of its values, which the
-    // boundary condition objects read at the traction boundary, and a pressure of one.
+    // The velocity component axis has the constant value axis + 1, which solves -Laplace(u) + u + grad(p) = f with
+    // f = axis + 1 + the gradient of the pressure component axis. The solution vector holds the velocity in all of its
+    // values, which the boundary condition objects read at the traction boundary. It holds the pressure of the solution
+    // in the ghost cells and a pressure of one in the interior.
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = level->getPatch(p());
@@ -128,15 +155,19 @@ main(int argc, char* argv[])
         Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_idx);
         Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
         Pointer<CellData<NDIM, double>> h_data = patch->getPatchData(h_idx);
-        p_data->fillAll(1.0);
         h_data->fillAll(0.0);
+        for (Box<NDIM>::Iterator it(p_data->getGhostBox()); it; it++)
+        {
+            const CellIndex<NDIM> i(it());
+            (*p_data)(i) = patch->getBox().contains(i) ? 1.0 : exact_pressure(patch, i);
+        }
         for (int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator it(u_data->getArrayData(axis).getBox()); it; it++)
             {
                 const SideIndex<NDIM> i(it(), axis, SideIndex<NDIM>::Lower);
                 (*u_data)(i) = axis + 1.0;
-                (*f_data)(i) = axis + 1.0;
+                (*f_data)(i) = axis + 1.0 + pressure_gradient[axis];
             }
         }
     }
@@ -153,7 +184,7 @@ main(int argc, char* argv[])
     }
     solver.deallocateSolverState();
 
-    double velocity_error = 0.0, pressure_error = 0.0;
+    double velocity_error = 0.0, pressure_error = 0.0, pressure_min = 1.0e300, pressure_max = -1.0e300;
     int number_of_sides = 0;
     bool solution_is_finite = true;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -174,13 +205,19 @@ main(int argc, char* argv[])
         }
         for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
         {
-            const double pressure_value = (*p_data)(CellIndex<NDIM>(it()));
-            solution_is_finite = solution_is_finite && std::isfinite(pressure_value);
-            pressure_error = std::max(pressure_error, std::abs(pressure_value));
+            const CellIndex<NDIM> i(it());
+            const double exact = exact_pressure(patch, i);
+            const double pressure_difference = std::abs((*p_data)(i)-exact);
+            solution_is_finite = solution_is_finite && std::isfinite(pressure_difference);
+            pressure_error = std::max(pressure_error, pressure_difference);
+            pressure_min = std::min(pressure_min, exact);
+            pressure_max = std::max(pressure_max, exact);
         }
     }
     velocity_error = IBTK_MPI::maxReduction(velocity_error);
     pressure_error = IBTK_MPI::maxReduction(pressure_error);
+    pressure_min = IBTK_MPI::minReduction(pressure_min);
+    pressure_max = IBTK_MPI::maxReduction(pressure_max);
     number_of_sides = IBTK_MPI::sumReduction(number_of_sides);
     if (!solution_is_finite)
     {
@@ -197,5 +234,6 @@ main(int argc, char* argv[])
 
     plog << "number_of_patches = " << level->getNumberOfPatches() << '\n';
     plog << "number_of_sides = " << number_of_sides << '\n';
+    plog << "pressure_range = " << pressure_max - pressure_min << '\n';
     return 0;
 }
