@@ -37,6 +37,12 @@ LDataManager::getGhostCellWidth() const
     return d_ghost_width;
 } // getGhostCellWidth
 
+inline void
+LDataManager::setAccumulateActivePatchesOnly(const bool active_patches_only)
+{
+    d_accumulate_active_patches_only = active_patches_only;
+} // setAccumulateActivePatchesOnly
+
 inline const std::string&
 LDataManager::getDefaultInterpKernelFunction() const
 {

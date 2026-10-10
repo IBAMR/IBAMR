@@ -169,6 +169,7 @@ IBMethod::IBMethod(std::string object_name, Pointer<Database> input_db, bool reg
                                                 d_ghosts,
                                                 d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
+    d_l_data_manager->setAccumulateActivePatchesOnly(d_accumulate_active_patches_only);
 
     // Create the instrument panel object.
     d_instrument_panel =
@@ -2094,6 +2095,10 @@ IBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
     TBOX_ASSERT(LEInteractor::isKnownKernel(d_spread_kernel_fcn));
     if (db->keyExists("error_if_points_leave_domain"))
         d_error_if_points_leave_domain = db->getBool("error_if_points_leave_domain");
+    if (db->keyExists("accumulate_active_patches_only"))
+    {
+        d_accumulate_active_patches_only = db->getBool("accumulate_active_patches_only");
+    }
     if (db->keyExists("force_jac_mffd")) d_force_jac_mffd = db->getBool("force_jac_mffd");
     if (db->keyExists("do_log"))
         d_do_log = db->getBool("do_log");

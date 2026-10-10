@@ -1,7 +1,8 @@
-// Walls on all boundaries.
+// TRACTION conditions on the lower boundaries and walls on the upper boundaries, with the divergence-free velocity
+// extension and the markers displaced by 0.9 grid cells.
 N = 16
 MAX_LEVELS = 1
-marker_displacement = 0.0   // in grid cells along each axis, toward the center of the domain
+marker_displacement = 0.9   // markers lie outside the patches that hold them
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -9,14 +10,14 @@ VelocityInitialConditions {
 }
 
 VelocityBcCoefs_0 {
-   acoef_function_0 = "1.0"
+   acoef_function_0 = "0.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
+   acoef_function_2 = "0.0"
    acoef_function_3 = "1.0"
 
-   bcoef_function_0 = "0.0"
+   bcoef_function_0 = "1.0"
    bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
+   bcoef_function_2 = "1.0"
    bcoef_function_3 = "0.0"
 
    gcoef_function_0 = "0.0"
@@ -26,14 +27,14 @@ VelocityBcCoefs_0 {
 }
 
 VelocityBcCoefs_1 {
-   acoef_function_0 = "1.0"
+   acoef_function_0 = "0.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
+   acoef_function_2 = "0.0"
    acoef_function_3 = "1.0"
 
-   bcoef_function_0 = "0.0"
+   bcoef_function_0 = "1.0"
    bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
+   bcoef_function_2 = "1.0"
    bcoef_function_3 = "0.0"
 
    gcoef_function_0 = "0.0"
@@ -43,6 +44,7 @@ VelocityBcCoefs_1 {
 }
 
 IBHierarchyIntegrator {
+   divergence_free_velocity_extension = TRUE
    start_time     = 0.0
    end_time       = 0.01
    dt_max         = 0.01
@@ -65,6 +67,7 @@ INSStaggeredHierarchyIntegrator {
    start_time              = 0.0
    end_time                = 0.01
    dt_max                  = 0.01
+   traction_bc_type        = "TRACTION"
    enable_logging          = FALSE
 }
 
