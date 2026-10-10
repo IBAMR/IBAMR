@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesPETScLevelSolver, IBAMR::StaggeredStokesBoxRelaxationFACOperator, and the residual of IBAMR::StaggeredStokesFACPreconditionerStrategy include the viscous normal-stress term of TRACTION conditions at physical boundaries at which the normal velocity is not prescribed, as IBAMR::StaggeredStokesOperator does.
+<br>
+(Boyce Griffith, 2026/10/09)

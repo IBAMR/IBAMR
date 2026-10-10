@@ -63,6 +63,14 @@ namespace IBAMR
  * Hierarchies with physical boundaries require setPhysicalBoundaryHelper() before
  * initialization. The helper must have cached boundary data for the hierarchy.
  * A helper is not required when the hierarchy has no physical boundaries.
+ *
+ * The box operator does not contain boundary conditions: the ghost values that they define enter the smoother as known
+ * values. With TRACTION conditions the smoother also moves two terms of the equations for the normal velocity on the
+ * boundary to the right-hand side, evaluated with the error before the smoother sweeps a patch. At a face at which the
+ * normal velocity is not prescribed, it adds the part of the viscous term that
+ * StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm() computes. At a face at which the normal
+ * velocity is prescribed, the equation is the velocity, and the smoother keeps the value of the momentum equation that
+ * the box operator contains.
  */
 class StaggeredStokesBoxRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {

@@ -79,6 +79,12 @@ public:
      * the pressure in the adjacent interior cell and h is the grid spacing
      * normal to the boundary, and the matrix includes the term with p_I.  If
      * \a p_bc_coef is null, the matrix does not include the ghost pressure.
+     *
+     * For an entry of \a u_bc_coefs for the normal velocity that is a StokesBcCoefStrategy with TRACTION conditions,
+     * the momentum equation for the normal velocity at such a boundary face also contains the viscous normal-stress
+     * term of StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(), and the matrix includes its
+     * dependence on the velocity, in which the ghost values of the tangential velocities are those of the boundary
+     * conditions for the tangential components.
      */
     static void constructPatchLevelMACStokesOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,

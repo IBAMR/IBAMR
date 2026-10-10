@@ -562,6 +562,86 @@ accumulate_from_traction_bc_coefs(SideData<NDIM, double>& u_data,
     return;
 } // accumulate_from_traction_bc_coefs
 
+double
+get_divergence_free_ghost_value(const SideData<NDIM, double>& u_data,
+                                const hier::Index<NDIM>& i_g,
+                                const unsigned int normal_axis,
+                                const bool is_lower,
+                                const double* const dx)
+{
+    double div_u_g = 0.0;
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        const SideIndex<NDIM> i_g_s_upper(i_g, axis, SideIndex<NDIM>::Upper);
+        const SideIndex<NDIM> i_g_s_lower(i_g, axis, SideIndex<NDIM>::Lower);
+        double u_upper = u_data(i_g_s_upper);
+        double u_lower = u_data(i_g_s_lower);
+        if (axis == normal_axis)
+        {
+            (is_lower ? u_lower : u_upper) = 0.0;
+        }
+        div_u_g += (u_upper - u_lower) * dx[normal_axis] / dx[axis];
+    }
+    return (is_lower ? +1.0 : -1.0) * div_u_g;
+} // get_divergence_free_ghost_value
+
+std::vector<std::pair<SideIndex<NDIM>, double>>
+get_divergence_free_ghost_value_stencil(const hier::Index<NDIM>& i_g,
+                                        const unsigned int normal_axis,
+                                        const bool is_lower,
+                                        const double* const dx)
+{
+    const double sign = is_lower ? +1.0 : -1.0;
+    std::vector<std::pair<SideIndex<NDIM>, double>> stencil;
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        const SideIndex<NDIM> i_g_s_upper(i_g, axis, SideIndex<NDIM>::Upper);
+        const SideIndex<NDIM> i_g_s_lower(i_g, axis, SideIndex<NDIM>::Lower);
+        const double weight = sign * dx[normal_axis] / dx[axis];
+        if (axis == normal_axis)
+        {
+            // The face of i_g that is farther from the boundary is not read.
+            if (is_lower)
+            {
+                stencil.emplace_back(i_g_s_upper, weight);
+            }
+            else
+            {
+                stencil.emplace_back(i_g_s_lower, -weight);
+            }
+        }
+        else
+        {
+            stencil.emplace_back(i_g_s_upper, weight);
+            stencil.emplace_back(i_g_s_lower, -weight);
+        }
+    }
+    return stencil;
+} // get_divergence_free_ghost_value_stencil
+
+std::vector<std::pair<SideIndex<NDIM>, double>>
+get_normal_stress_stencil(const hier::Index<NDIM>& i,
+                          const unsigned int bdry_normal_axis,
+                          const bool bdry_is_lower,
+                          const double* const dx)
+{
+    hier::Index<NDIM> i_g = i;
+    if (bdry_is_lower)
+    {
+        i_g(bdry_normal_axis) -= 1;
+    }
+    const SideIndex<NDIM> i_s_boundary(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    SideIndex<NDIM> i_s_inside = i_s_boundary;
+    i_s_inside(bdry_normal_axis) += bdry_is_lower ? 1 : -1;
+    std::vector<std::pair<SideIndex<NDIM>, double>> stencil;
+    stencil.emplace_back(i_s_inside, 1.0);
+    for (const auto& entry : get_divergence_free_ghost_value_stencil(i_g, bdry_normal_axis, bdry_is_lower, dx))
+    {
+        stencil.emplace_back(entry.first, -entry.second);
+    }
+    return stencil;
+} // get_normal_stress_stencil
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace traction_stencil

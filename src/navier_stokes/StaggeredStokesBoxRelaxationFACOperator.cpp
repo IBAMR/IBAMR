@@ -285,10 +285,50 @@ buildBoxOperator(Mat& A,
     return;
 } // buildBoxOperator
 
+// Return in momentum_row_data the left-hand side of the momentum equation at each face of the box, evaluated with the
+// values of U_data and P_data, including their ghost values.
+void
+computeMomentumRows(SideData<NDIM, double>& momentum_row_data,
+                    const SideData<NDIM, double>& U_data,
+                    const CellData<NDIM, double>& P_data,
+                    const PoissonSpecifications& U_problem_coefs,
+                    const Box<NDIM>& box,
+                    const double* const dx)
+{
+    const double C = (U_problem_coefs.cIsZero() ? 0.0 : U_problem_coefs.getCConstant());
+    const double D = U_problem_coefs.getDConstant();
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(box, axis)); b; b++)
+        {
+            const hier::Index<NDIM>& i = b();
+            const SideIndex<NDIM> s_i(i, axis, SideIndex<NDIM>::Lower);
+            double value = C * U_data(s_i);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                hier::Index<NDIM> shift = 0;
+                shift(d) = 1;
+                const SideIndex<NDIM> s_left(i - shift, axis, SideIndex<NDIM>::Lower);
+                const SideIndex<NDIM> s_rght(i + shift, axis, SideIndex<NDIM>::Lower);
+                value += D * (U_data(s_left) - 2.0 * U_data(s_i) + U_data(s_rght)) / (dx[d] * dx[d]);
+            }
+            hier::Index<NDIM> shift = 0;
+            shift(axis) = 1;
+            value += (P_data(i) - P_data(i - shift)) / dx[axis];
+            momentum_row_data(s_i) = value;
+        }
+    }
+    return;
+} // computeMomentumRows
+
+// Move the contributions of the values outside the box to the right-hand side: the neighboring velocities and
+// pressures, which include the ghost values that the boundary conditions define. If boundary_data is not null, the
+// values that it holds at the faces of the box are subtracted from the right-hand side as well.
 void
 modifyRhsForBcs(Vec& v,
                 const SideData<NDIM, double>& U_data,
                 const CellData<NDIM, double>& P_data,
+                const SideData<NDIM, double>* const boundary_data,
                 const PoissonSpecifications& U_problem_coefs,
                 const Box<NDIM>& box,
                 const Box<NDIM>& ghost_box,
@@ -347,6 +387,16 @@ modifyRhsForBcs(Vec& v,
             {
                 ierr = VecSetValue(v, idx, -P_data(p_rght) / dx[axis], ADD_VALUES);
                 IBTK_CHKERRQ(ierr);
+            }
+
+            if (boundary_data)
+            {
+                const double value = (*boundary_data)(SideIndex<NDIM>(i, axis, SideIndex<NDIM>::Lower));
+                if (value != 0.0)
+                {
+                    ierr = VecSetValue(v, idx, -value, ADD_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
             }
         }
     }
@@ -601,13 +651,50 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
+
+            // With TRACTION conditions, the box operator does not contain two terms of the equations for the normal
+            // velocity on the boundary. At a face at which the normal velocity is not prescribed, it is the part of the
+            // viscous term that imposes the TRACTION conditions, which depends on the ghost values of the tangential
+            // velocities. At a face at which the normal velocity is prescribed, the equation of the operator is the
+            // velocity, and the box operator contains the momentum equation, whose value is not zero next to a boundary
+            // where the ghost values of the tangential velocity depend on the normal velocity on the boundary. Both are
+            // evaluated with the error before the sweep over the patch.
+            Pointer<SideData<NDIM, double>> boundary_data;
+            if (d_has_traction_conditions && d_bc_helper && pgeom->getTouchesRegularBoundary())
+            {
+                boundary_data = new SideData<NDIM, double>(patch_box, 1, IntVector<NDIM>(0));
+                boundary_data->fillAll(0.0);
+                d_bc_helper->addNormalTractionViscousTerm(boundary_data,
+                                                          U_error_data,
+                                                          patch,
+                                                          d_U_problem_coefs.getDConstant(),
+                                                          d_U_bc_coefs,
+                                                          /*linear_pressure_extrapolation*/ true);
+                Pointer<SideData<NDIM, double>> momentum_row_data =
+                    new SideData<NDIM, double>(patch_box, 1, IntVector<NDIM>(0));
+                Pointer<SideData<NDIM, double>> prescribed_row_data =
+                    new SideData<NDIM, double>(patch_box, 1, IntVector<NDIM>(0));
+                momentum_row_data->fillAll(0.0);
+                prescribed_row_data->fillAll(0.0);
+                computeMomentumRows(*momentum_row_data, *U_error_data, *P_error_data, d_U_problem_coefs, patch_box, dx);
+                d_bc_helper->copyDataAtDirichletBoundaries(prescribed_row_data, momentum_row_data, patch);
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+                    {
+                        const SideIndex<NDIM> s_i(b(), axis, SideIndex<NDIM>::Lower);
+                        (*boundary_data)(s_i) -= (*prescribed_row_data)(s_i);
+                    }
+                }
+            }
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
                 const hier::Index<NDIM>& i = b();
                 const Box<NDIM> box(i, i);
                 copyToVec(e, *U_error_data, *P_error_data, box, box);
                 copyToVec(r, *U_residual_data, *P_residual_data, box, box);
-                modifyRhsForBcs(r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
+                modifyRhsForBcs(
+                    r, *U_error_data, *P_error_data, boundary_data.getPointer(), d_U_problem_coefs, box, box, dx);
                 ierr = KSPSolve(ksp, r, e);
                 IBTK_CHKERRQ(ierr);
                 copyFromVec(e, *U_error_data, *P_error_data, box, box);

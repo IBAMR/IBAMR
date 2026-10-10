@@ -99,6 +99,11 @@ namespace IBAMR
  coarse
  level solver
  \endverbatim
+ *
+ * With TRACTION conditions, the residual that computeResidual() computes is that of StaggeredStokesOperator: at a
+ * physical boundary face at which the normal velocity is not prescribed it includes the part of the viscous term that
+ * StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm() computes, and at a face at which the normal
+ * velocity is prescribed it is the velocity, which is the row of the operator at that face.
 */
 class StaggeredStokesFACPreconditionerStrategy : public IBTK::FACPreconditionerStrategy
 {
@@ -391,6 +396,12 @@ protected:
      * Boundary condition helper object.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+
+    /*
+     * Whether any of the velocity boundary condition objects imposes TRACTION conditions.  It is set when the
+     * operator is initialized, and the terms that only TRACTION conditions require are evaluated only if it is true.
+     */
+    bool d_has_traction_conditions = false;
 
     /*
      * Ghost cell width.

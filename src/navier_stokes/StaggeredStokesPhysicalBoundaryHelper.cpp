@@ -48,6 +48,8 @@
 #include <utility>
 #include <vector>
 
+#include "./ins_staggered_traction_stencil.h"
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 // FORTRAN ROUTINES
@@ -81,33 +83,6 @@ namespace IBAMR
 {
 namespace
 {
-// Return the normal velocity on the ghost face of the ghost cell i_g that makes the discrete divergence of u_data
-// vanish in that cell.  The ghost face is the face of i_g normal to normal_axis that is farther from the physical
-// boundary: the lower face if is_lower is true and the upper face otherwise.  The value of u_data on the ghost face is
-// not read; the other faces of i_g are.
-double
-divergence_free_normal_ghost_value(const SideData<NDIM, double>& u_data,
-                                   const hier::Index<NDIM>& i_g,
-                                   const unsigned int normal_axis,
-                                   const bool is_lower,
-                                   const double* const dx)
-{
-    double div_u_g = 0.0;
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        const SideIndex<NDIM> i_g_s_upper(i_g, axis, SideIndex<NDIM>::Upper);
-        const SideIndex<NDIM> i_g_s_lower(i_g, axis, SideIndex<NDIM>::Lower);
-        double u_upper = u_data(i_g_s_upper);
-        double u_lower = u_data(i_g_s_lower);
-        if (axis == normal_axis)
-        {
-            (is_lower ? u_lower : u_upper) = 0.0;
-        }
-        div_u_g += (u_upper - u_lower) * dx[normal_axis] / dx[axis];
-    }
-    return (is_lower ? +1.0 : -1.0) * div_u_g;
-}
-
 // The data centering of the coefficient of the variable-coefficient viscous term, and the numbers of its values on a
 // cell and on a face.
 #if (NDIM == 2)
@@ -400,7 +375,8 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
                     // the velocity field is zero in the ghost cell.
                     SideIndex<NDIM> i_g_s(
                         i_g, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
-                    (*u_data)(i_g_s) = divergence_free_normal_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
+                    (*u_data)(i_g_s) =
+                        traction_stencil::get_divergence_free_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
                 }
             }
         }
@@ -549,7 +525,8 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
                 SideIndex<NDIM> i_s_inside = i_s_boundary;
                 i_s_inside(bdry_normal_axis) += is_lower ? 1 : -1;
                 const double u_inside = (*u_data)(i_s_inside);
-                const double u_div = divergence_free_normal_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
+                const double u_div =
+                    traction_stencil::get_divergence_free_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
                 (*f_data)(i_s_boundary) += viscous_coef * (u_inside - u_div) / (h * h);
             }
         }
@@ -677,8 +654,8 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
                     {
                         const double coef_boundary =
                             face_viscous_coef(*coef_data, i, bdry_normal_axis, viscous_coef_interp_type);
-                        const double u_div =
-                            divergence_free_normal_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
+                        const double u_div = traction_stencil::get_divergence_free_ghost_value(
+                            *u_data, i_g, bdry_normal_axis, is_lower, dx);
                         term -= coef_boundary * (u_inside - u_div);
                     }
                     (*f_data)(i_s_boundary) += term / (h * h);
