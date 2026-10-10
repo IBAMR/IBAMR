@@ -38,10 +38,12 @@
 #include <tbox/Utilities.h>
 
 #include <ArrayData.h>
+#include <BoundaryBox.h>
 #include <Box.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
+#include <CoarseFineBoundary.h>
 #include <CoarsenOperator.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <MultiblockDataTranslator.h>
@@ -56,6 +58,7 @@
 #include <VariableDatabase.h>
 #include <VariableFillPattern.h>
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -477,7 +480,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
             scratch_data->getArrayData().copy(
-                error_data->getArrayData(), d_patch_bc_box_overlap[level_num][patch_counter], IntVector<NDIM>(0));
+                error_data->getArrayData(), d_patch_cf_bdry_ghost_boxes[level_num][patch_counter], IntVector<NDIM>(0));
         }
     }
 
@@ -504,7 +507,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
 #endif
                     error_data->getArrayData().copy(scratch_data->getArrayData(),
-                                                    d_patch_bc_box_overlap[level_num][patch_counter],
+                                                    d_patch_cf_bdry_ghost_boxes[level_num][patch_counter],
                                                     IntVector<NDIM>(0));
                 }
 
@@ -980,21 +983,32 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     // Setup fill pattern spec objects.
     d_op_stencil_fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ true);
 
-    // Get overlap information for setting patch boundary conditions.
-    d_patch_bc_box_overlap.resize(d_finest_ln + 1);
-    for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
+    // Find the ghost cells along the coarse-fine interface of each patch.
+    d_patch_cf_bdry_ghost_boxes.resize(d_finest_ln + 1);
+    for (int ln = std::max(coarsest_reset_ln, d_coarsest_ln + 1); ln <= finest_reset_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
-        d_patch_bc_box_overlap[ln].resize(num_local_patches);
+        d_patch_cf_bdry_ghost_boxes[ln].assign(num_local_patches, BoxList<NDIM>());
+        const CoarseFineBoundary<NDIM> cf_boundary(*d_hierarchy, ln, IntVector<NDIM>(1));
         int patch_counter = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Box<NDIM>& ghost_box = Box<NDIM>::grow(patch_box, 1);
-            d_patch_bc_box_overlap[ln][patch_counter] = BoxList<NDIM>(ghost_box);
-            d_patch_bc_box_overlap[ln][patch_counter].removeIntersections(patch_box);
+            const Array<BoundaryBox<NDIM>>& cf_bdry_codim1_boxes =
+                cf_boundary.getBoundaries(patch->getPatchNumber(), /*boundary type*/ 1);
+            for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
+            {
+                const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
+
+                // Keep the cells of the boundary box that lie along the patch face; the corner cells are not part
+                // of the interface. The location index is 2 * (axis normal to the face) + side.
+                const int bdry_axis = bdry_box.getLocationIndex() / 2;
+                Box<NDIM> face_box = patch_box;
+                face_box.grow(bdry_axis, 1);
+                d_patch_cf_bdry_ghost_boxes[ln][patch_counter].addItem(bdry_box.getBox() * face_box);
+            }
         }
     }
 
@@ -1037,7 +1051,7 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const in
 
     if (!d_in_initialize_operator_state)
     {
-        d_patch_bc_box_overlap.clear();
+        d_patch_cf_bdry_ghost_boxes.clear();
         d_patch_neighbor_overlap.clear();
         if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
     }
