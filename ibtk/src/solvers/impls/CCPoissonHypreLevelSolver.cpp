@@ -463,9 +463,12 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     {
         HYPRE_StructVectorCreate(communicator, d_grid, &d_sol_vecs[k]);
         HYPRE_StructVectorInitialize(d_sol_vecs[k]);
+        // TEMPORARY diagnostic: set every entry, including the ghost layers that copyToHypre() never writes.
+        HYPRE_StructVectorSetConstantValues(d_sol_vecs[k], 0.0);
 
         HYPRE_StructVectorCreate(communicator, d_grid, &d_rhs_vecs[k]);
         HYPRE_StructVectorInitialize(d_rhs_vecs[k]);
+        HYPRE_StructVectorSetConstantValues(d_rhs_vecs[k], 0.0);
     }
     return;
 } // allocateHypreData
