@@ -138,7 +138,10 @@ main(int argc, char* argv[])
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
-        time_integrator->registerVelocityInitialConditions(u_init);
+        if (input_db->getBoolWithDefault("REGISTER_VELOCITY_INITIAL_CONDITIONS", true))
+        {
+            time_integrator->registerVelocityInitialConditions(u_init);
+        }
         Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         time_integrator->registerPressureInitialConditions(p_init);

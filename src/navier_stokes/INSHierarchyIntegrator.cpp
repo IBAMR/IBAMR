@@ -141,6 +141,7 @@ INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<Rob
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     d_bc_coefs = bc_coefs;
+    setSolverPhysicalBcCoefs(SolverPhysicalBcCoefs::REGISTERED);
     return;
 } // registerPhysicalBoundaryConditions
 
@@ -511,11 +512,15 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
 
     // Setup physical boundary conditions objects.
     d_U_star_bc_coefs.resize(NDIM);
+    d_intermediate_velocity_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d, d_bc_coefs);
+        d_intermediate_velocity_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d, d_bc_coefs);
+        d_U_star_bc_coefs[d] = d_intermediate_velocity_bc_coefs[d];
     }
-    d_Phi_bc_coef = std::make_unique<INSProjectionBcCoef>(d_bc_coefs);
+    auto Phi_bc_coef = std::make_unique<INSProjectionBcCoef>(d_bc_coefs);
+    d_projection_bc_coef = Phi_bc_coef.get();
+    d_Phi_bc_coef = std::move(Phi_bc_coef);
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -669,6 +674,37 @@ INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, con
     }
     return;
 }
+
+std::vector<RobinBcCoefStrategy<NDIM>*>
+INSHierarchyIntegrator::getSolverPhysicalBcCoefs(const SolverPhysicalBcCoefs bc_coefs)
+{
+    if (bc_coefs == SolverPhysicalBcCoefs::HOMOGENEOUS)
+    {
+        return std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_bc_coefs);
+    }
+    return d_bc_coefs;
+} // getSolverPhysicalBcCoefs
+
+void
+INSHierarchyIntegrator::setSolverPhysicalBcCoefs(const SolverPhysicalBcCoefs bc_coefs)
+{
+    const std::vector<RobinBcCoefStrategy<NDIM>*> physical_bc_coefs = getSolverPhysicalBcCoefs(bc_coefs);
+    for (const auto& U_star_bc_coef : d_intermediate_velocity_bc_coefs)
+    {
+        U_star_bc_coef->setPhysicalBcCoefs(physical_bc_coefs);
+    }
+    if (d_projection_bc_coef)
+    {
+        d_projection_bc_coef->setPhysicalBcCoefs(physical_bc_coefs);
+    }
+    return;
+} // setSolverPhysicalBcCoefs
+
+bool
+INSHierarchyIntegrator::usePhysicalBcCoefsBeforeFirstTimeStep() const
+{
+    return d_U_init || RestartManager::getManager()->isFromRestart();
+} // usePhysicalBcCoefsBeforeFirstTimeStep
 
 double
 INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()

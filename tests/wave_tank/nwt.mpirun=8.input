@@ -68,16 +68,8 @@ LevelSetInitialConditions {
 DELTA_FUNCTION = "IB_4"
 SIGMA = 0.0 //0.0728
 
-U = "0.0"
-V = "0.0"
-
 ProbePoints {
   output = 1.5 * WAVELENGTH , DEPTH + 2 * Hy	// 1 probe data as output
-}
-
-VelocityInitialConditions {
-   function_0 = U
-   function_1 = V
 }
 
 VelocityBcCoefs_0 {
