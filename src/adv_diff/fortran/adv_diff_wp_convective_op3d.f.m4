@@ -130,17 +130,26 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       REAL r_data_2(FACE3d2(ilower,iupper,r_gcw),0:1)
 
       INTEGER i0, i1, i2
+      INTEGER i
+      REAL QQ_WENO(-2:2)
       REAL WENO5_interp
 c
 c     Prevent compiler warning about unused variables.
 c
       k = k
 
+c
+c     WENO5_interp() takes five values that are contiguous in memory.
+c     Copy the values of a stencil that is reversed or that runs along
+c     the second or third index.
+c
 c     X-Direction
       do i2 = ilower2, iupper2; do i1 = ilower1, iupper1
         do i0=ilower0,iupper0+1
-          r_data_0(i0,i1,i2,1) =
-     &       WENO5_interp(q_data(i0+2:i0-2:-1,i1,i2))
+          do i = -2,2
+            QQ_WENO(i) = q_data(i0-i,i1,i2)
+          enddo
+          r_data_0(i0,i1,i2,1) = WENO5_interp(QQ_WENO)
           r_data_0(i0,i1,i2,0) =
      &       WENO5_interp(q_data(i0-3:i0+1,i1,i2))
         enddo
@@ -151,10 +160,14 @@ c       Y DIRECTION
 c     Interpolate in other direction
       do i2 = ilower2, iupper2; do i1 = ilower1, iupper1+1
         do i0=ilower0,iupper0
-          r_data_1(i1,i2,i0,1) =
-     &       WENO5_interp(q_data(i0,i1+2:i1-2:-1,i2))
-          r_data_1(i1,i2,i0,0) =
-     &       WENO5_interp(q_data(i0,i1-3:i1+1,i2))
+          do i = -2,2
+            QQ_WENO(i) = q_data(i0,i1-i,i2)
+          enddo
+          r_data_1(i1,i2,i0,1) = WENO5_interp(QQ_WENO)
+          do i = -2,2
+            QQ_WENO(i) = q_data(i0,i1-1+i,i2)
+          enddo
+          r_data_1(i1,i2,i0,0) = WENO5_interp(QQ_WENO)
         enddo
       enddo; enddo
 
@@ -163,10 +176,14 @@ c       Z DIRECTION
 c     Interpolate in other direction
       do i2 = ilower2, iupper2+1; do i1 = ilower1, iupper1
         do i0=ilower0,iupper0
-          r_data_2(i2,i0,i1,1) =
-     &       WENO5_interp(q_data(i0,i1,i2+2:i2-2:-1))
-          r_data_2(i2,i0,i1,0) =
-     &       WENO5_interp(q_data(i0,i1,i2-3:i2+1))
+          do i = -2,2
+            QQ_WENO(i) = q_data(i0,i1,i2-i)
+          enddo
+          r_data_2(i2,i0,i1,1) = WENO5_interp(QQ_WENO)
+          do i = -2,2
+            QQ_WENO(i) = q_data(i0,i1,i2-1+i)
+          enddo
+          r_data_2(i2,i0,i1,0) = WENO5_interp(QQ_WENO)
         enddo
       enddo; enddo
       endsubroutine
