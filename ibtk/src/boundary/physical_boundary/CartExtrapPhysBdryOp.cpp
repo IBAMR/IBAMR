@@ -87,45 +87,41 @@ compute_linear_extrap(D& patch_data, const I& i, const I& i_intr, const IntVecto
     return ret_val;
 } // compute_linear_extrap
 
+// Extrapolate quadratically to the index i outside the patch along each direction normal to the boundary, using the
+// three values nearest to the boundary in that direction, and return the mean over those directions. At a boundary of
+// codimension 2 or 3, the values used along one normal direction lie outside the patch in the other normal directions,
+// so they must already have been set at the boundaries of lower codimension.
 template <typename D, typename I>
 inline double
-compute_quadratic_extrap(D& patch_data,
-                         const I& i,
-                         const I& i_intr,
-                         const IntVector<NDIM>& i_shft,
-                         const int depth,
-                         const int codim)
+compute_quadratic_extrap(D& patch_data, const I& i, const I& i_intr, const IntVector<NDIM>& i_shft, const int depth)
 {
-    if (codim == 1)
+    double sum = 0.0;
+    int n_normal_directions = 0;
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
-        for (unsigned int d = 0; d < NDIM; ++d)
+        if (i_shft(d) != 0)
         {
-            if (i_shft(d) != 0)
-            {
-                const I& i_intr0 = i_intr;
+            I i_intr0 = i;
+            i_intr0(d) = i_intr(d);
 
-                I i_intr1 = i_intr;
-                i_intr1(d) += i_shft(d);
+            I i_intr1 = i_intr0;
+            i_intr1(d) += i_shft(d);
 
-                I i_intr2 = i_intr1;
-                i_intr2(d) += i_shft(d);
+            I i_intr2 = i_intr1;
+            i_intr2(d) += i_shft(d);
 
-                const double& f0 = patch_data(i_intr0, depth);
-                const double& f1 = patch_data(i_intr1, depth);
-                const double& f2 = patch_data(i_intr2, depth);
+            const double& f0 = patch_data(i_intr0, depth);
+            const double& f1 = patch_data(i_intr1, depth);
+            const double& f2 = patch_data(i_intr2, depth);
 
-                const double x = std::abs(i(d) - i_intr(d));
+            const double x = std::abs(i(d) - i_intr(d));
 
-                return (1.0 / 2.0 * f2 - f1 + 1.0 / 2.0 * f0) * x * x +
-                       (1.0 / 2.0 * f2 - 2.0 * f1 + 3.0 / 2.0 * f0) * x + f0;
-            }
+            sum +=
+                (1.0 / 2.0 * f2 - f1 + 1.0 / 2.0 * f0) * x * x + (1.0 / 2.0 * f2 - 2.0 * f1 + 3.0 / 2.0 * f0) * x + f0;
+            ++n_normal_directions;
         }
     }
-    else
-    {
-        return compute_linear_extrap(patch_data, i, i_intr, i_shft, depth);
-    }
-    return 0.0; // this statement should not be reached
+    return sum / n_normal_directions;
 } // compute_quadratic_extrap
 } // namespace
 
@@ -211,9 +207,32 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
 
     std::vector<std::pair<Box<NDIM>, std::pair<int, int>>> bdry_fill_boxes;
 
+    // Compute the boundary fill boxes in order of increasing co-dimension. Quadratic extrapolation at a boundary of
+    // co-dimension 2 or 3 uses the values set at the boundaries of lower co-dimension.
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+    for (int n = 0; n < n_physical_codim1_boxes; ++n)
+    {
+        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const int codim = 1;
+        bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
+    }
 #if (NDIM > 1)
+    const Array<BoundaryBox<NDIM>> physical_codim2_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
+    const int n_physical_codim2_boxes = physical_codim2_boxes.size();
+    for (int n = 0; n < n_physical_codim2_boxes; ++n)
+    {
+        const BoundaryBox<NDIM>& bdry_box = physical_codim2_boxes[n];
+        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const int codim = 2;
+        bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
+    }
 #if (NDIM > 2)
-    // Compute the co-dimension three boundary fill boxes.
     const Array<BoundaryBox<NDIM>> physical_codim3_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
     const int n_physical_codim3_boxes = physical_codim3_boxes.size();
@@ -226,31 +245,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
         bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
     }
 #endif
-    // Compute the co-dimension two boundary fill boxes.
-    const Array<BoundaryBox<NDIM>> physical_codim2_boxes =
-        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
-    const int n_physical_codim2_boxes = physical_codim2_boxes.size();
-    for (int n = 0; n < n_physical_codim2_boxes; ++n)
-    {
-        const BoundaryBox<NDIM>& bdry_box = physical_codim2_boxes[n];
-        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
-        const unsigned int location_index = bdry_box.getLocationIndex();
-        const int codim = 2;
-        bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
-    }
 #endif
-    // Compute the co-dimension one boundary fill boxes.
-    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
-        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
-    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    for (int n = 0; n < n_physical_codim1_boxes; ++n)
-    {
-        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
-        const unsigned int location_index = bdry_box.getLocationIndex();
-        const int codim = 1;
-        bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
-    }
 
     // Set the boundary values.
     setPhysicalBoundaryConditions_cell(patch, bdry_fill_boxes);
@@ -378,8 +373,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
                         (*patch_data)(i, depth) = compute_linear_extrap(*patch_data, i, i_intr, i_shft, depth);
                         break;
                     case 2:
-                        (*patch_data)(i, depth) =
-                            compute_quadratic_extrap(*patch_data, i, i_intr, i_shft, depth, codim);
+                        (*patch_data)(i, depth) = compute_quadratic_extrap(*patch_data, i, i_intr, i_shft, depth);
                         break;
                     }
                 }
@@ -483,8 +477,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
                             (*patch_data)(i, depth) = compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
                             break;
                         case 2:
-                            (*patch_data)(i, depth) =
-                                compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth, codim);
+                            (*patch_data)(i, depth) = compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth);
                             break;
                         }
                     }
@@ -582,8 +575,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
                         (*patch_data)(i, depth) = compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
                         break;
                     case 2:
-                        (*patch_data)(i, depth) =
-                            compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth, codim);
+                        (*patch_data)(i, depth) = compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth);
                         break;
                     }
                 }
@@ -687,8 +679,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
                             (*patch_data)(i, depth) = compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
                             break;
                         case 2:
-                            (*patch_data)(i, depth) =
-                                compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth, codim);
+                            (*patch_data)(i, depth) = compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth);
                             break;
                         }
                     }

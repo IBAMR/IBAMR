@@ -167,6 +167,7 @@ SETUP_2D(navier_stokes stokes_fac_restriction.cpp)
 
 # physical_boundary:
 SETUP(physical_boundary extrapolation_01.cpp IBAMR2d)
+SETUP_3D(physical_boundary extrapolation_01.cpp)
 SETUP_2D(physical_boundary 01.cpp)
 SETUP_3D(physical_boundary 01.cpp)
 SETUP_2D(physical_boundary staggered_helper.cpp)
