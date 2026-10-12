@@ -616,8 +616,8 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_physical_bdry || at_cf_bdry)
         {
-            SideData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
-            b_adj_data.copy(*b_data);
+            SideData<NDIM, double> b_adj_data(patch_box, b_data->getDepth(), IntVector<NDIM>(0));
+            b_adj_data.copyOnBox(*b_data, patch_box);
             if (at_physical_bdry)
             {
                 PoissonUtilities::adjustRHSAtPhysicalBoundary(

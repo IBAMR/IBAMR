@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/LinearOperator.h>
-#include <ibtk/SAMRAIScopedVectorCopy.h>
 #include <ibtk/SAMRAIScopedVectorDuplicate.h>
 
 #include <tbox/Pointer.h>
@@ -56,7 +55,7 @@ LinearOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
     // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
     // inhomogeneous boundary conditions.
     SAMRAIScopedVectorDuplicate<double> x(y);
-    SAMRAIScopedVectorCopy<double> b(y);
+    SAMRAIScopedVectorDuplicate<double> b(y);
     apply(x, b);
     y.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&y, false), b);
     return;
