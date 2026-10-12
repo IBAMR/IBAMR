@@ -1,0 +1,3 @@
+Fixed: examples/CIB/ex1 and tests/CIB/cib_double_shell read the inner control volume of the hydrodynamic force evaluator and its torque origin from InitHydroForceBox_1. They read the outer box for both control volumes.
+<br>
+(Boyce Griffith, 2026/10/10)
