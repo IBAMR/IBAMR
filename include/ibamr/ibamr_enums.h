@@ -452,7 +452,6 @@ enum_to_string<StochasticStressTensorType>(StochasticStressTensorType val)
  */
 enum MobilityMatrixType
 {
-    READ_FROM_FILE,
     RPY,
     EMPIRICAL,
     UNKNOWN_MOBILITY_MATRIX_TYPE = -1
@@ -462,7 +461,6 @@ template <>
 inline MobilityMatrixType
 string_to_enum<MobilityMatrixType>(const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "READ_FROM_FILE") == 0) return READ_FROM_FILE;
     if (strcasecmp(val.c_str(), "RPY") == 0) return RPY;
     if (strcasecmp(val.c_str(), "EMPIRICAL") == 0) return EMPIRICAL;
     return UNKNOWN_MOBILITY_MATRIX_TYPE;
@@ -472,7 +470,6 @@ template <>
 inline std::string
 enum_to_string<MobilityMatrixType>(MobilityMatrixType val)
 {
-    if (val == READ_FROM_FILE) return "READ_FROM_FILE";
     if (val == RPY) return "RPY";
     if (val == EMPIRICAL) return "EMPIRICAL";
     return "UNKNOWN_MOBILITY_MATRIX_TYPE";

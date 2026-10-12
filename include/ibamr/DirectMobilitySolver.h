@@ -82,9 +82,6 @@ public:
      *
      * \param inv_type Inversion method to be used for the mobility and body-mobility matrix.
      *
-     * \param filename If the mobility matrix is to be read from an input file.
-     * \note The current implementation supports only binary files from PETSc I/O.
-     *
      * \param scale Scale for improving the conditioning number of dense mobility
      * matrix. The matrix is scaled as \f$ [MM] = \alpha*[MM] + \beta*[I]. \f$
      *
@@ -95,7 +92,6 @@ public:
                              MobilityMatrixType mat_type,
                              std::pair<MobilityMatrixInverseType, MobilityMatrixInverseType> inv_type,
                              const int managing_proc = 0,
-                             const std::string& filename = "",
                              std::pair<double, double> scale = std::pair<double, double>(1.0, 0.0));
 
     /*!
@@ -112,9 +108,6 @@ public:
      *
      * \param inv_type Inversion method to be used for the mobility and body-mobility matrix.
      *
-     * \param filename If the mobility matrix is to be read from an input file.
-     * \note The current implementation supports only binary files from PETSc I/O.
-     *
      * \param scale Scale for improving the conditioning number of dense mobility
      * matrix. The matrix is scaled as \f$ [MM] = \alpha*[MM] + \beta*[I]. \f$
      *
@@ -125,7 +118,6 @@ public:
                              MobilityMatrixType mat_type,
                              std::pair<MobilityMatrixInverseType, MobilityMatrixInverseType> inv_type,
                              const int managing_proc = 0,
-                             const std::string& filename = "",
                              std::pair<double, double> scale = std::pair<double, double>(1.0, 0.0));
 
     /*!
@@ -262,7 +254,6 @@ private:
     std::map<std::string, unsigned int> d_mat_nodes_map;
     std::map<std::string, unsigned int> d_mat_parts_map;
     std::map<std::string, std::pair<double, double>> d_mat_scale_map;
-    std::map<std::string, std::string> d_mat_filename_map;
     std::map<std::string, std::pair<std::vector<int>, std::vector<int>>> d_ipiv_map; // permutation matrices for LU
 
     // PETSc representation of matrices.
@@ -280,9 +271,6 @@ private:
 
     // Whether initializeSolverState() must (re)build the mobility matrices.
     bool d_recreate_mobility_matrices = true;
-
-    // Whether the matrix at each position of d_petsc_mat_map has been read from its file.
-    std::vector<bool> d_read_files;
 
     double d_svd_replace_value = 0.0, d_svd_eps = 0.0;
 

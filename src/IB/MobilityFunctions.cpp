@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <limits>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -361,18 +362,35 @@ InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta)
     return;
 } // InterpolateConstants
 
+// Returns the viscous CFL number beta = mu dt / (rho dx^2). A fluid of zero
+// density has no inertia: beta is unbounded and the steady Stokes fits are
+// used, which require a positive viscosity. An inviscid fluid has beta = 0.
+double
+get_viscous_cfl_number(const double MU, const double rho, const double Dt, const double DX)
+{
+    if (rho <= 0.0)
+    {
+        if (MU <= 0.0)
+        {
+            TBOX_ERROR("MobilityFunctions: the viscosity must be positive when the density is zero, but mu = "
+                       << MU << " and rho = " << rho << ".\n");
+        }
+        return std::numeric_limits<double>::infinity();
+    }
+    if (MU <= 0.0)
+    {
+        return 0.0;
+    }
+    return MU * Dt / (rho * DX * DX);
+} // get_viscous_cfl_number
+
 // Sets the fitting constants and returns the normalization factor of the
 // mobility components.
 double
 InitializeAllConstants(const char* IBKernelName, const double MU, const double rho, const double Dt, const double DX)
 {
     KERNEL_TYPES CurrentKernelType = GetKernelType(IBKernelName);
-    double beta;
-    // finding beta
-    if (MU <= 0.0)
-        beta = 0.0; // invisid case
-    else
-        beta = MU * Dt / (rho * DX * DX);
+    const double beta = get_viscous_cfl_number(MU, rho, Dt, DX);
 
     double mob_fit_factor;
 #if (NDIM == 3)
@@ -532,12 +550,7 @@ getEmpiricalMobilityComponents(const double mob_fit_factor,
                                double* F_MobilityValue,
                                double* G_Mobilityvalue)
 {
-    double beta;
-    // finding beta
-    if (MU <= 0.0)
-        beta = 0.0; // invisid case
-    else
-        beta = MU * Dt / (rho * DX * DX);
+    const double beta = get_viscous_cfl_number(MU, rho, Dt, DX);
 
     if (rho <= 0.0)
     {
