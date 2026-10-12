@@ -203,12 +203,6 @@ private:
      * \return A reference to this object.
      */
     SCLaplaceOperator& operator=(const SCLaplaceOperator& that) = delete;
-
-    /*!
-     * \brief Set u to the prescribed values, or to zero if homogeneous_bc is true, on the sides on the physical
-     * boundary at which Dirichlet conditions are prescribed.
-     */
-    void imposeDirichletBoundaryValues(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u, bool homogeneous_bc);
 };
 } // namespace IBTK
 
