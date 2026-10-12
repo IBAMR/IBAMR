@@ -47,9 +47,9 @@ public:
      *
      * \param num_nodes Number of Lagrangian markers.
      *
-     * \param reset_constants Boolean indicating whether all constants
-     * are to be reset if beta (the viscous CFL number) is changed (otherwise
-     * will use the previous beta for fitting formula).
+     * \param reset_constants Unused. The constants of the fitting formulas are
+     * always computed for the kernel, fluid properties, time step size, and
+     * grid spacing of each call.
      *
      * \param periodic_correction Input parameter for incorporating
      * periodic domain correction. Set it to zero if not needed.

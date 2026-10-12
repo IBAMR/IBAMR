@@ -277,6 +277,13 @@ private:
     // Parameters used in this class.
     double d_f_periodic_corr = 0.0;
     bool d_recompute_mob_mat = false;
+
+    // Whether initializeSolverState() must (re)build the mobility matrices.
+    bool d_recreate_mobility_matrices = true;
+
+    // Whether the matrix at each position of d_petsc_mat_map has been read from its file.
+    std::vector<bool> d_read_files;
+
     double d_svd_replace_value = 0.0, d_svd_eps = 0.0;
 
 }; // DirectMobilitySolver
