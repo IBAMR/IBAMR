@@ -1,0 +1,5 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+At beginning of timestep # 1
+1 -0.25
+-1 0.25
+IBRedundantInitializer:  Deallocating initialization data.
