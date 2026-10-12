@@ -72,7 +72,7 @@ public:
      * \param patch_data_index  Patch data index requiring ghost cell filling.
      * \param extrap_type       Type of extrapolation to perform: \p "CONSTANT" specifies
      * constant extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
-     * quadratic extrapolation. At codim 2 or 3 boundaries, "QUADRATIC" reduces to "LINEAR" extrapolation.
+     * quadratic extrapolation.
      */
     CartExtrapPhysBdryOp(int patch_data_index, const std::string& extrap_type = "CONSTANT");
 
@@ -83,7 +83,7 @@ public:
      * filling.
      * \param extrap_type         Type of extrapolation to perform: \p "CONSTANT" specifies constant
      * extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
-     * quadratic extrapolation. At codim 2 or 3 boundaries, "QUADRATIC" reduces to "LINEAR" extrapolation.
+     * quadratic extrapolation.
      */
     CartExtrapPhysBdryOp(const std::set<int>& patch_data_indices, const std::string& extrap_type = "CONSTANT");
 
@@ -94,7 +94,7 @@ public:
      * filling.
      * \param extrap_type         Type of extrapolation to perform: \p "CONSTANT" specifies
      * constant extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
-     * quadratic extrapolation. At codim 2 or 3 boundaries, "QUADRATIC" reduces to "LINEAR" extrapolation.
+     * quadratic extrapolation.
      */
     CartExtrapPhysBdryOp(const SAMRAI::hier::ComponentSelector& patch_data_indices,
                          const std::string& extrap_type = "CONSTANT");
@@ -124,7 +124,7 @@ public:
      *
      * \param extrap_type  Type of extrapolation to perform: \p "CONSTANT" specifies constant
      * extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
-     * quadratic extrapolation. At codim 2 or 3 boundaries, "QUADRATIC" reduces to "LINEAR" extrapolation.
+     * quadratic extrapolation.
      */
     void setExtrapolationType(const std::string& extrap_type);
 

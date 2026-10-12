@@ -1,0 +1,3 @@
+Fixed: IBTK::CartExtrapPhysBdryOp extrapolates quadratically where two or three physical boundaries meet when "QUADRATIC" extrapolation is selected. It previously used linear extrapolation there.
+<br>
+(Boyce Griffith, 2026/10/12)

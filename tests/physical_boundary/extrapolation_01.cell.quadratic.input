@@ -1,8 +1,5 @@
 N = 8
 
-// Note that QUADRATIC only uses quadratic interpolation at
-// codim 1 boundaries. At all other boundaries, we use
-// LINEAR extrapolation
 EXTRAP_TYPE = "QUADRATIC"
 VAR_CENTERING = "CELL"
 

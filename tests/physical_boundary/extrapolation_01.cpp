@@ -62,6 +62,11 @@ quadratic_f(const double* const x)
     {
         val += static_cast<double>(d + 1) * x[d] * x[d];
     }
+    // Include products of different coordinates, which the extrapolation at the corners of the domain must reproduce.
+    for (int d = 0; d < NDIM - 1; ++d)
+    {
+        val += x[d] * x[d + 1];
+    }
     return val;
 }
 
