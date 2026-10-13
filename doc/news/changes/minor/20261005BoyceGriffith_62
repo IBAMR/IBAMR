@@ -1,0 +1,3 @@
+Improved: IBTK::SAMRAIGhostDataAccumulator sums ghost values with SAMRAI communication instead of a PETSc vector, delivers the values at the outermost layer of ghost sides to every patch that owns the side, and has a new accumulateGhostData() call that includes the transpose of the physical boundary fill. The one-argument accumulateGhostData() is deprecated. The values in ghost regions are unspecified after an accumulation, and an accumulation emits an error for a level with patches narrower than the ghost cell width, which affects IBAMR::IBFEMethod and IBAMR::IBFESurfaceMethod.
+<br>
+(Boyce Griffith, 2026/10/05)
