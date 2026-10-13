@@ -31,18 +31,15 @@
 #include <Box.h>
 #include <BoxArray.h>
 #include <CartesianPatchGeometry.h>
-#include <GridGeometry.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <Patch.h>
 #include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
-#include <SideGeometry.h>
 #include <SideIndex.h>
 
 #include <algorithm>
-#include <array>
 #include <limits>
 #include <memory>
 #include <ostream>
@@ -70,9 +67,6 @@ namespace IBAMR
 
 namespace
 {
-using traction_stencil::compute_physical_domain;
-using traction_stencil::get_normal_velocity_stencil;
-using traction_stencil::NormalVelocityStencil;
 using traction_stencil::ShiftedPatchGeometry;
 } // namespace
 
@@ -226,13 +220,6 @@ INSStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double>&
         return;
     }
 
-    const Box<NDIM>& bc_coef_box = gcoef_data.getBox();
-    Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-    Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-    Pointer<ArrayData<NDIM, double>> gcoef_unused;
-    d_bc_coefs[d_comp_idx]->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_unused, Pointer<Variable<NDIM>>(), patch, bdry_box, fill_time);
-
     // Accumulate the transpose of the normal velocity term of gamma, which
     // setBcCoefs() sets, into the target velocity.
     Pointer<SideData<NDIM, double>> u_target_data;
@@ -247,54 +234,17 @@ INSStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double>&
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_target_data);
 #endif
-    const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
-    const Box<NDIM> target_side_box = SideGeometry<NDIM>::toSideBox(ghost_box, bdry_normal_axis);
-    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
-    const double* const dx = pgeom->getDx();
-    const bool is_lower = location_index % 2 == 0;
-    const double sgn = is_lower ? -1.0 : +1.0;
-    const BoxArray<NDIM>* domain = nullptr;
-    std::unique_ptr<ShiftedPatchGeometry> normal_geometry;
-    const auto get_stencil = [&](const hier::Index<NDIM>& i_face)
-    {
-        return get_normal_velocity_stencil(i_face,
-                                           bdry_normal_axis,
-                                           is_lower,
-                                           d_comp_idx,
-                                           d_bc_coefs[bdry_normal_axis],
-                                           d_homogeneous_bc,
-                                           patch,
-                                           normal_geometry,
-                                           *domain,
-                                           ghost_box,
-                                           fill_time);
-    };
-    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
-    {
-        const hier::Index<NDIM>& i = it();
-        if (!IBTK::rel_equal_eps((*bcoef_data)(i, 0), 1.0))
-        {
-            continue;
-        }
-        if (!domain)
-        {
-            domain = &getPhysicalDomain(patch);
-        }
-        hier::Index<NDIM> i_lower(i);
-        i_lower(d_comp_idx) -= 1;
-        const NormalVelocityStencil u_lower = get_stencil(i_lower);
-        const NormalVelocityStencil u_upper = get_stencil(i);
-        const double du_transpose = sgn * gcoef_data(i, 0) / dx[d_comp_idx];
-        for (unsigned int k = 0; k < 2; ++k)
-        {
-#if !defined(NDEBUG)
-            TBOX_ASSERT(target_side_box.contains(u_upper.idx[k]));
-            TBOX_ASSERT(target_side_box.contains(u_lower.idx[k]));
-#endif
-            (*u_target_data)(u_upper.idx[k]) -= u_upper.weight[k] * du_transpose;
-            (*u_target_data)(u_lower.idx[k]) += u_lower.weight[k] * du_transpose;
-        }
-    }
+    traction_stencil::accumulate_from_traction_bc_coefs(*u_target_data,
+                                                        gcoef_data,
+                                                        d_comp_idx,
+                                                        d_bc_coefs[d_comp_idx],
+                                                        d_bc_coefs[bdry_normal_axis],
+                                                        d_homogeneous_bc,
+                                                        patch,
+                                                        bdry_box,
+                                                        d_physical_domain,
+                                                        d_fluid_solver->getPatchHierarchy(),
+                                                        fill_time);
     return;
 } // accumulateFromBcCoefs
 
@@ -356,26 +306,11 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
-    const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
     const BoxArray<NDIM>* domain = nullptr;
     std::unique_ptr<ShiftedPatchGeometry> normal_geometry;
-    const auto get_stencil = [&](const hier::Index<NDIM>& i_face)
-    {
-        return get_normal_velocity_stencil(i_face,
-                                           bdry_normal_axis,
-                                           is_lower,
-                                           d_comp_idx,
-                                           d_bc_coefs[bdry_normal_axis],
-                                           d_homogeneous_bc,
-                                           patch,
-                                           normal_geometry,
-                                           *domain,
-                                           ghost_box,
-                                           fill_time);
-    };
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
@@ -419,17 +354,19 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
                     {
                         domain = &getPhysicalDomain(patch);
                     }
-                    hier::Index<NDIM> i_lower(i);
-                    i_lower(d_comp_idx) -= 1;
-                    const NormalVelocityStencil u_lower = get_stencil(i_lower);
-                    const NormalVelocityStencil u_upper = get_stencil(i);
-                    double du_norm = u_upper.offset - u_lower.offset;
-                    for (int k = 0; k < 2; ++k)
-                    {
-                        du_norm += u_upper.weight[k] * (*u_target_data)(u_upper.idx[k]) -
-                                   u_lower.weight[k] * (*u_target_data)(u_lower.idx[k]);
-                    }
-                    const double du_norm_dx_tan = du_norm / dx[d_comp_idx];
+                    const double du_norm_dx_tan =
+                        traction_stencil::get_normal_velocity_difference(*u_target_data,
+                                                                         i,
+                                                                         bdry_normal_axis,
+                                                                         is_lower,
+                                                                         d_comp_idx,
+                                                                         d_bc_coefs[bdry_normal_axis],
+                                                                         d_homogeneous_bc,
+                                                                         patch,
+                                                                         normal_geometry,
+                                                                         *domain,
+                                                                         fill_time) /
+                        dx[d_comp_idx];
 
                     // Correct the boundary condition value.
                     alpha = 0.0;
@@ -487,25 +424,8 @@ INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 const BoxArray<NDIM>&
 INSStaggeredVelocityBcCoef::getPhysicalDomain(const Patch<NDIM>& patch) const
 {
-    const Pointer<PatchHierarchy<NDIM>> hierarchy = d_fluid_solver->getPatchHierarchy();
-    if (!hierarchy)
-    {
-        TBOX_ERROR("INSStaggeredVelocityBcCoef::getPhysicalDomain():\n"
-                   << "  the fluid solver has no patch hierarchy\n"
-                   << "  a TRACTION boundary condition needs it to locate the corners of the physical boundary\n");
-    }
-    const IntVector<NDIM>& ratio = patch.getPatchGeometry()->getRatio();
-    std::array<int, NDIM> key;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        key[d] = ratio(d);
-    }
-    auto it = d_physical_domain.find(key);
-    if (it == d_physical_domain.end())
-    {
-        it = d_physical_domain.emplace(key, compute_physical_domain(hierarchy->getGridGeometry(), ratio)).first;
-    }
-    return it->second;
+    return traction_stencil::get_physical_domain(
+        d_physical_domain, d_fluid_solver->getPatchHierarchy(), patch.getPatchGeometry()->getRatio());
 } // getPhysicalDomain
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
