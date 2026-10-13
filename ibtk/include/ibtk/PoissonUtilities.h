@@ -190,6 +190,20 @@ public:
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
      * side-centered discretization of the Laplacian.
      *
+     * For each side of the patch, this function subtracts from the right-hand side the contribution of each stencil
+     * neighbor that is not a side of any patch of the level, using the ghost values in sol_data; neighbors across a
+     * physical boundary contribute nothing. It modifies only rhs_data in the side box of the patch, so rhs_data needs
+     * no ghost cells.
+     *
+     * A ghost cell that touches the patch only along an edge or a corner belongs to the level if either of the two
+     * ghost cells that it neighbors toward the patch does. This is exact unless two patches of the level touch only at
+     * an isolated corner or edge.
+     *
+     * \note This function also modifies the entries of the sides on a physical boundary at which a Dirichlet condition
+     * is imposed on the normal component, which have identity rows in the matrix. On a level with physical boundary
+     * conditions, use the version that takes the boundary boxes of codimension 2 and the boundary condition
+     * coefficients.
+     *
      * \note This function simply uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
      * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
      * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
@@ -200,6 +214,27 @@ public:
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                   const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry);
+
+    /*!
+     * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
+     * side-centered discretization of the Laplacian, as in the version of this function that takes only the boundary
+     * boxes of codimension 1, but exactly for any layout of the patches of the level.
+     *
+     * The boundary boxes of codimension 2 (the corner cells in 2D and the edge cells in 3D) determine which ghost cells
+     * that touch the patch only along an edge or a corner belong to the level. This function does not modify the
+     * entries of the sides on a physical boundary normal to their component at which the coefficient b of bc_coefs is
+     * exactly zero, because such an entry is the Dirichlet value. It evaluates the coefficients as
+     * adjustRHSAtPhysicalBoundary() does.
+     */
+    static void adjustRHSAtCoarseFineBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+                                              const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                              const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                              const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry,
+                                              const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type2_cf_bdry,
+                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                              double data_time,
+                                              bool homogeneous_bc);
 
     /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a

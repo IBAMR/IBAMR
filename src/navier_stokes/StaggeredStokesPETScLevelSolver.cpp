@@ -303,13 +303,29 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                              Array<BoundaryBox<NDIM>>() :
                                                              d_cf_boundary->getBoundaries(patch->getPatchNumber(),
                                                                                           /* boundary type */ 1);
+        const Array<BoundaryBox<NDIM>>& type_2_cf_bdry = level_zero ?
+                                                             Array<BoundaryBox<NDIM>>() :
+                                                             d_cf_boundary->getBoundaries(patch->getPatchNumber(),
+                                                                                          /* boundary type */ 2);
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)
         {
-            PoissonUtilities::adjustRHSAtCoarseFineBoundary(
-                *f_adj_data, *u_data, patch, d_U_problem_coefs, type_1_cf_bdry);
+            // enforceNormalVelocityBoundaryConditions() resets the targets of the boundary condition objects, and the
+            // adjustment evaluates them.
+            StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+                d_U_bc_coefs, d_P_bc_coef, u_idx, p_idx, d_homogeneous_bc);
+            PoissonUtilities::adjustRHSAtCoarseFineBoundary(*f_adj_data,
+                                                            *u_data,
+                                                            patch,
+                                                            d_U_problem_coefs,
+                                                            type_1_cf_bdry,
+                                                            type_2_cf_bdry,
+                                                            d_U_bc_coefs,
+                                                            d_solution_time,
+                                                            d_homogeneous_bc);
         }
     }
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
 
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx, d_p_dof_index_idx, d_level);
