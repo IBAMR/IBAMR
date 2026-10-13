@@ -62,6 +62,10 @@ namespace IBAMR
  *
  * If the hierarchy has physical boundaries, setPhysicalBoundaryHelper() must be called before initialization with a
  * helper that has cached boundary data for the hierarchy.
+ *
+ * The box operator does not contain boundary conditions: the ghost values that they define enter the smoother as known
+ * values. With TRACTION conditions, the smoother also moves the terms of the equations for the normal velocity on the
+ * boundary that the box operator lacks to the right-hand side.
  */
 class StaggeredStokesBoxRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {

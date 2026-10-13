@@ -76,6 +76,11 @@ public:
      * ghost pressure p_G = -((a*h - 2*b)/(a*h + 2*b))*p_I + 2*h*g/(a*h + 2*b)
      * (p_I is the adjacent interior pressure, h the grid spacing normal to the
      * boundary), and the matrix includes the term with p_I.
+     *
+     * For an entry of \a u_bc_coefs for the normal velocity that is a
+     * StokesBcCoefStrategy with TRACTION conditions, the matrix also includes
+     * the dependence on the velocity of the viscous normal-stress term of
+     * StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm().
      */
     static void constructPatchLevelMACStokesOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,

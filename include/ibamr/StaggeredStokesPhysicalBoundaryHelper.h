@@ -160,6 +160,18 @@ public:
                                       int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
+     * \brief At the boundary faces at which the normal velocity is prescribed, set \a r_data_idx to \a f_data_idx
+     * minus \a u_data_idx over the specified range of levels in the patch hierarchy.
+     *
+     * The row of StaggeredStokesOperator at such a face is the velocity.  The data at other faces are not modified.
+     */
+    void setResidualAtDirichletBoundaries(int r_data_idx,
+                                          int f_data_idx,
+                                          int u_data_idx,
+                                          int coarsest_ln = IBTK::invalid_level_number,
+                                          int finest_ln = IBTK::invalid_level_number) const;
+
+    /*!
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
      */
