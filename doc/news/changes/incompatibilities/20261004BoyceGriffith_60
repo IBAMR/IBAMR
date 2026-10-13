@@ -1,0 +1,3 @@
+Changed: The PETSc level, patch, and coarse solvers that the FAC preconditioner strategies allocate default to a fixed number of Richardson iterations with no convergence test, and IBTK::PETScLevelSolver defaults to block Jacobi on more than one process.
+<br>
+(Boyce Griffith, 2026/10/04)
