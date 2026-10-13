@@ -442,6 +442,9 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                     }
                 }
 
+                // Synchronize the copies of the values on shared faces, which differ after a patch sweep.
+                xeqScheduleDataSynch(error_idx, level_num);
+
                 // Fill the non-coarse-fine interface ghost cell values.
                 xeqScheduleGhostFillNoCoarse(error_idx, level_num);
             }
@@ -459,6 +462,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
         }
         else if (isweep > 0)
         {
+            xeqScheduleDataSynch(error_idx, level_num);
             xeqScheduleGhostFillNoCoarse(error_idx, level_num);
         }
 

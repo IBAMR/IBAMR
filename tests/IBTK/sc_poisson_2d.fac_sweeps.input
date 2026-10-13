@@ -1,0 +1,69 @@
+// Constant-coefficient side-centered Helmholtz solve on a single-level periodic grid of 4 x 4 patches, preconditioned
+// by the point-relaxation FAC operator with two Gauss-Seidel sweeps on the level. The solve is limited to 8 iterations,
+// so the result is not converged and depends on the preconditioner; it must not depend on the number of processes, and
+// the one- and two-process cases have the same expected output.
+
+u {
+   function = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))"
+}
+
+C = 1.0                             // damping term
+D = -1.0                            // diffusion coefficient
+
+solver_type = "PETSC_KRYLOV_SOLVER"
+solver_db {
+   max_iterations   = 8             // the iteration limit ends the solve
+   rel_residual_tol = 1.0e-30
+   abs_residual_tol = 1.0e-50
+}
+
+precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   smoother_type       = "PATCH_GAUSS_SEIDEL"
+   coarse_solver_type  = "PATCH_GAUSS_SEIDEL"       // the single level is solved by the smoother
+   coarse_solver_rel_residual_tol = 1.0e-30
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations   = 2               // more than one sweep per smoothing step
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 16
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0      // lower end of computational domain.
+   x_up               = 1, 1      // upper end of computational domain.
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // Maximum number of levels in hierarchy.
+
+   largest_patch_size {
+      level_0 = 4, 4              // equal to the smallest patch size, so that the patch boxes are fixed
+   }
+
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]     // not used: the hierarchy has one level
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

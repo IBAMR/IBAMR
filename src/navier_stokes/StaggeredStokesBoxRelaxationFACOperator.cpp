@@ -550,6 +550,9 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                                                       IntVector<NDIM>(0));
                 }
 
+                // Synchronize the copies of the values on shared faces, which differ after a patch sweep.
+                xeqScheduleDataSynch(U_error_idx, level_num);
+
                 // Fill the non-coarse-fine interface ghost cell values.
                 const std::pair<int, int> error_idxs = std::make_pair(U_error_idx, P_error_idx);
                 xeqScheduleGhostFillNoCoarse(error_idxs, level_num);
@@ -570,6 +573,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
         }
         else if (isweep > 0)
         {
+            xeqScheduleDataSynch(U_error_idx, level_num);
             const std::pair<int, int> error_idxs = std::make_pair(U_error_idx, P_error_idx);
             xeqScheduleGhostFillNoCoarse(error_idxs, level_num);
         }
