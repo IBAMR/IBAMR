@@ -11,6 +11,22 @@
   stream-style formatting. Avoid C++ exceptions and catch-and-rethrow/translate
   scaffolding unless an existing external interface requires that boundary.
   Retain `TBOX_ERROR()` for invalid external input that must fail in Release.
+- Make an error or warning look like the other errors and warnings of the same
+  class, then of its sibling classes: prefix, line breaks and indentation,
+  capitalization, punctuation, and length. Where they give no lead, write
+  `TBOX_ERROR(d_object_name << "::functionName():\n" << "  message" << std::endl);`
+  with a literal class or function name in static and free functions, and the
+  message in lower case without a final period.
+- An error or warning says what is wrong and names the offending input key and
+  value, in one line. A second line may say what is allowed or what to do. Do not
+  explain the method or why the check exists. If the user could still fix the
+  problem without a sentence, remove it.
+- Report a warning with `TBOX_WARNING()`, in the same form, not by writing
+  `"WARNING"` to `pout`. Warn only about a condition the user can act on, and at
+  most once per object for a condition that recurs.
+- Write per-step diagnostics to `plog` under the class's logging flag, usually
+  `d_enable_logging`, as `d_object_name << "::functionName(): message\n"`. Use
+  `pout` only for output every user must see.
 - Use `noexcept` when required by an interface or when it has a concrete
   performance benefit, such as enabling standard-library containers to move
   elements instead of copying them. Verify that all operations performed support
