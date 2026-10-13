@@ -284,8 +284,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             // grad p
             for (int d = 0; d < NDIM; ++d)
             {
-                up_matrix_coefs.getArrayData(d).fill(-1.0 / dx[d], 0);
-                up_matrix_coefs.getArrayData(d).fill(+1.0 / dx[d], 1);
+                up_matrix_coefs.getArrayData(d).fill(getPressureGradientCoefficient(dx[d], false), 0);
+                up_matrix_coefs.getArrayData(d).fill(getPressureGradientCoefficient(dx[d], true), 1);
             }
 
             // -div u
@@ -605,6 +605,12 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     IBTK_CHKERRQ(ierr);
     return;
 } // constructPatchLevelMACStokesOp
+
+double
+StaggeredStokesPETScMatUtilities::getPressureGradientCoefficient(const double dx, const bool upper_cell)
+{
+    return (upper_cell ? +1.0 : -1.0) / dx;
+} // getPressureGradientCoefficient
 
 void
 StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<std::set<int>>& is_overlap,
