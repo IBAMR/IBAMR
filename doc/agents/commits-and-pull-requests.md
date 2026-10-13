@@ -79,7 +79,9 @@ API incompatibilities, stack dependencies/base, or an unusual validation limit.
 Keep logs and detailed test reports in the task report. Check every claim against
 the final diff and evidence, and update stale text within authorized PR work.
 
-State the change itself, not the history of the defect or of the branch. Do not
+State the change itself, not the history of the defect or of the branch. Write
+titles, descriptions, commit messages, and review replies directly and clearly,
+as [Comments and class documentation](documentation.md) describes. Do not
 list or describe the tests in the body, because the checklist covers them; the
 exception is a sentence giving the reason for a new test executable. For a
 stacked PR, end the opening text with `Stacked on #N.`, naming the PR it is based
