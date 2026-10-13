@@ -29,6 +29,7 @@
 #include <iosfwd>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -117,6 +118,17 @@ public:
      * \brief Get the current time step size.
      */
     virtual double getDt() const;
+
+    /*!
+     * \brief Set the nullspace of the linear system that the
+     * FACPreconditioner approximates the inverse of.
+     *
+     * FACPreconditioner::setNullSpace() calls this function. The default
+     * implementation does nothing.
+     */
+    virtual void setNullSpace(bool nullspace_contains_constant_vec,
+                              const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>&
+                                  nullspace_basis_vecs = {});
 
     /*!
      * \brief Zero all components of the provided vector on the specified

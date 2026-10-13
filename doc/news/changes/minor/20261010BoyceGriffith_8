@@ -1,0 +1,3 @@
+Fixed: The null space of a singular pressure problem is passed from a Krylov solver to its preconditioner and from a Poisson FAC preconditioner to its coarse solver, and IBTK::CCPoissonHypreLevelSolver and IBTK::SCPoissonHypreLevelSolver remove the constant component of the right-hand side when told to.
+<br>
+(Boyce Griffith, 2026/10/10)

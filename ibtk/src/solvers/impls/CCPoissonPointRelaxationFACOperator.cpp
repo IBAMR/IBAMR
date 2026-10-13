@@ -828,7 +828,11 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, d
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
         auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
-        if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
+        if (p_coarse_solver)
+        {
+            setCoarseSolverNullSpace(*p_coarse_solver);
+            p_coarse_solver->setInitialGuessNonzero(true);
+        }
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
                                      *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
     }
