@@ -20,6 +20,11 @@
   may rely on. An implementation comment is normally one or two lines. Put
   reasoning that only a reviewer needs in the commit message or PR description.
   The same applies to comments in test sources and input files.
+- Write directly and clearly: use the active voice, put statements in positive
+  form, use definite, specific, concrete language, and omit needless words. State
+  the fact or requirement itself, with its actor as the subject ("the solver
+  subtracts the mean of the right-hand side"). This applies equally to comments,
+  error messages, commit messages, PR descriptions, and review replies.
 - Do not carry working vocabulary from the development of a change into
   comments, names, input keys, file names, or messages: for example `parity`
   for agreement between two code paths, `live`, `pin`, `probe`, or the labels
