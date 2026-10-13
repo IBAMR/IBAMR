@@ -87,10 +87,8 @@ compute_linear_extrap(D& patch_data, const I& i, const I& i_intr, const IntVecto
     return ret_val;
 } // compute_linear_extrap
 
-// Extrapolate quadratically to the index i outside the patch along each direction normal to the boundary, using the
-// three values nearest to the boundary in that direction, and return the mean over those directions. At a boundary of
-// codimension 2 or 3, the values used along one normal direction lie outside the patch in the other normal directions,
-// so they must already have been set at the boundaries of lower codimension.
+// Extrapolate quadratically along each direction normal to the boundary and return the mean. At a boundary of
+// codimension 2 or 3, this uses the values already set at the boundaries of lower codimension.
 template <typename D, typename I>
 inline double
 compute_quadratic_extrap(D& patch_data, const I& i, const I& i_intr, const IntVector<NDIM>& i_shft, const int depth)
@@ -207,8 +205,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
 
     std::vector<std::pair<Box<NDIM>, std::pair<int, int>>> bdry_fill_boxes;
 
-    // Compute the boundary fill boxes in order of increasing co-dimension. Quadratic extrapolation at a boundary of
-    // co-dimension 2 or 3 uses the values set at the boundaries of lower co-dimension.
+    // Compute the boundary fill boxes in order of increasing co-dimension; see compute_quadratic_extrap().
     const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();

@@ -39,10 +39,8 @@ namespace IBTK
  * \brief Class AppInitializer provides functionality to simplify the
  * initialization code in an application code.
  *
- * PETSc options may be supplied by `petsc_settings` or `petsc_settings_<tag>`
- * databases placed anywhere in the input file, usually beside the component
- * configuration they support. Their location is only organizational. For
- * example,
+ * PETSc options may be set in `petsc_settings` or `petsc_settings_<tag>`
+ * databases anywhere in the input file. For example,
  *
  * @code
  * Main {
@@ -59,18 +57,15 @@ namespace IBTK
  * }
  * @endcode
  *
- * The untagged entries produce `-ksp_type` and `-rtol`, while the tagged
- * entries produce `-SP_ksp_max_it` and `-SP_monitor`: the tag becomes a
- * literal prefix and the enclosing database name does not contribute one.
- * Values may be scalar Boolean, integer, float, double, or string values.
- * Following PETSc conventions, command-line options take precedence over
- * settings in the input file.
+ * sets `-ksp_type`, `-rtol`, `-SP_ksp_max_it`, and `-SP_monitor`: the tag is
+ * the option prefix, and the enclosing database adds none. Values are scalar
+ * Booleans, integers, floats, doubles, or strings. Command-line options take
+ * precedence.
  *
- * As a mutually exclusive alternative to inline settings, the top-level
- * `PETSC_OPTIONS_FILE` or `petsc_options_file` key may name an options file;
- * `PETSC_OPTIONS_FILE` takes precedence when both spellings are present. The
- * file is sought first at the path as written and then relative to the
- * directory containing the input file.
+ * Alternatively, the top-level key `PETSC_OPTIONS_FILE` (or
+ * `petsc_options_file`; the former wins if both are present) names an options
+ * file, sought at the path as written and then relative to the directory of
+ * the input file. It cannot be combined with inline settings.
  */
 class AppInitializer : public SAMRAI::tbox::DescribedClass
 {

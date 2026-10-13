@@ -388,9 +388,8 @@ StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorRea
     const int P_dst_idx = dst.getComponentDescriptorIndex(1);
     const std::pair<int, int> dst_idxs = std::make_pair(U_dst_idx, P_dst_idx);
 
-    // Fill the fine ghosts on a copy: the fine level has no DOFs beyond its coarse-fine boundary, so those ghosts are
-    // zero, and filling physical-boundary ghosts in place would overwrite the values of src on boundary sides with
-    // prescribed normal velocity.
+    // Fill the fine ghosts on a copy, because filling physical-boundary ghosts in place would overwrite the values of
+    // src on boundary sides with prescribed normal velocity.
     std::pair<int, int> restriction_src_idxs = src_idxs;
     if (d_U_restriction_coarsen_operator->getStencilWidth().max() > 0 ||
         d_P_restriction_coarsen_operator->getStencilWidth().max() > 0)
