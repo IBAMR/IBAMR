@@ -1,5 +1,5 @@
 Main {
-    petsc_settings_poisson {
+    petsc_settings_POISSON {
         ksp_type = "cg"
     }
 }

@@ -35,6 +35,8 @@
 
 #include <VisItDataWriter.h>
 
+#include <algorithm>
+#include <cctype>
 #include <charconv>
 #include <cstddef>
 #include <filesystem>
@@ -134,6 +136,17 @@ insert_petsc_options(const std::string& options_file, int argc, char* argv[])
     IBTK_CHKERRQ(ierr);
 }
 
+// PETSc compares option names without regard to case.
+std::string
+to_lower_case(std::string name)
+{
+    std::transform(name.begin(),
+                   name.end(),
+                   name.begin(),
+                   [](const unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return name;
+}
+
 bool
 insert_petsc_settings(Pointer<Database> input_db, std::set<std::string>& option_names)
 {
@@ -188,7 +201,7 @@ insert_petsc_settings(Pointer<Database> input_db, std::set<std::string>& option_
             }
 
             const std::string name = "-" + prefix + key;
-            if (!option_names.insert(name).second)
+            if (!option_names.insert(to_lower_case(name)).second)
                 TBOX_ERROR("PETSc option '" << name << "' is defined more than once in inline settings\n");
             int ierr = PetscOptionsSetValue(nullptr, name.c_str(), value.c_str());
             IBTK_CHKERRQ(ierr);
