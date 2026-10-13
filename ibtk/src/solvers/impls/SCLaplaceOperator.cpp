@@ -264,6 +264,29 @@ SCLaplaceOperator::deallocateOperatorState()
     return;
 } // deallocateOperatorState
 
+void
+SCLaplaceOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
+{
+    LaplaceOperator::modifyRhsForBcs(y);
+    for (int comp = 0; comp < d_ncomp; ++comp)
+    {
+        d_bc_helpers[comp]->setDataAtDirichletBoundaries(
+            y.getComponentDescriptorIndex(comp), d_bc_coefs, d_solution_time, /*homogeneous_bc*/ true);
+    }
+    return;
+} // modifyRhsForBcs
+
+void
+SCLaplaceOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
+{
+    for (int comp = 0; comp < d_ncomp; ++comp)
+    {
+        d_bc_helpers[comp]->setDataAtDirichletBoundaries(
+            u.getComponentDescriptorIndex(comp), d_bc_coefs, d_solution_time, d_homogeneous_bc);
+    }
+    return;
+} // imposeSolBcs
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

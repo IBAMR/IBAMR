@@ -100,6 +100,18 @@ public:
                                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
 
     /*!
+     * \brief Set the data at Dirichlet boundaries to the values prescribed by
+     * u_bc_coefs at time fill_time, or to zero if homogeneous_bc is true, over
+     * the specified range of levels in the patch hierarchy.
+     */
+    void setDataAtDirichletBoundaries(int u_data_idx,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      double fill_time,
+                                      bool homogeneous_bc,
+                                      int coarsest_ln = invalid_level_number,
+                                      int finest_ln = invalid_level_number) const;
+
+    /*!
      * \brief Setup a masking function over the specified range of levels in the
      * patch hierarchy.
      */

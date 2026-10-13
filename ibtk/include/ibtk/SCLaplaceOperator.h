@@ -124,6 +124,28 @@ public:
      */
     void deallocateOperatorState() override;
 
+    /*!
+     * \brief Modify the right-hand side vector to account for physical
+     * boundary conditions.
+     *
+     * Set the right-hand side to zero at Dirichlet boundaries.
+     *
+     * \see initializeOperatorState
+     *
+     * \param y right-hand side vector
+     */
+    void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+
+    /*!
+     * \brief Set the solution vector to the prescribed values at Dirichlet
+     * boundaries.
+     *
+     * \see initializeOperatorState
+     *
+     * \param u solution vector
+     */
+    void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
+
     //\}
 
 protected:
