@@ -1,0 +1,3 @@
+Fixed: IBTK::CartExtrapPhysBdryOp extrapolates edge-centered data at physical boundaries. It previously left the ghost values of edge-centered data unset.
+<br>
+(Boyce Griffith, 2026/10/09)
