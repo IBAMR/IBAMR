@@ -123,7 +123,7 @@ PETScLevelSolver::PETScLevelSolver()
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
-    d_initial_guess_nonzero = true;
+    d_initial_guess_nonzero = false;
     d_enable_logging = false;
     d_box_size = 2;
     d_overlap_size = 1;

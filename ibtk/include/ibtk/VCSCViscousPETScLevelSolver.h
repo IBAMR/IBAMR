@@ -70,6 +70,16 @@ namespace IBTK
  *    in SAMRAI::solv::SAMRAIVectorReal objects corresponding to \f$u\f$ and
  *    \f$f\f$.
  *
+ * <b>Contract of solveSystem().</b> The interior values of \a x are the
+ * initial guess if initial_guess_nonzero is TRUE and are ignored (taken as
+ * zero) if it is FALSE, which is the default.  The ghost values of \a x at
+ * coarse-fine boundaries are boundary data that the solver holds fixed, and a
+ * caller that wants homogeneous data there sets them to zero.  Physical
+ * boundary conditions come from the boundary condition objects and
+ * setHomogeneousBc(), not from ghost values of \a x.  On return the interior
+ * values of \a x hold the solution and every ghost value is as the caller gave
+ * it.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 

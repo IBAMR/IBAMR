@@ -82,15 +82,14 @@ namespace IBTK
  *    \f$f\f$.
  *
  * <b>Contract of solveSystem().</b> The interior values of \a x are the
- * initial guess if initial_guess_nonzero is TRUE, which is the default, and are
- * ignored (taken as zero) if it is FALSE.  The ghost values of \a x at
+ * initial guess if initial_guess_nonzero is TRUE and are ignored (taken as
+ * zero) if it is FALSE, which is the default.  The ghost values of \a x at
  * coarse-fine boundaries are boundary data that the solver holds fixed, and a
  * caller that wants homogeneous data there sets them to zero.  Physical
  * boundary conditions come from the boundary condition objects and
  * setHomogeneousBc(), not from ghost values of \a x.  On return the interior
- * values of \a x hold the solution, the ghost values that lie in other patches
- * of the level, including across periodic boundaries, hold the solution there,
- * and every other ghost value is as the caller gave it.
+ * values of \a x hold the solution and every ghost value is as the caller gave
+ * it.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
@@ -178,7 +177,7 @@ protected:
     std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched;
     //\}
 
 private:

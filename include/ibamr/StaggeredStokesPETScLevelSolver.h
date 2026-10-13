@@ -63,9 +63,20 @@ namespace IBAMR
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
  *
- * The velocity and pressure that the solution vector holds in the ghost cells just outside the level across a
- * coarse-fine boundary are boundary data of the solve. The velocity and pressure data of the vectors need a ghost cell
- * width of at least one.
+ * <b>Contract of solveSystem().</b> The interior values of \a x are the
+ * initial guess if initial_guess_nonzero is TRUE and are ignored (taken as
+ * zero) if it is FALSE, which is the default.  The velocity and pressure ghost
+ * values at coarse-fine boundaries are boundary data that the solver holds
+ * fixed, and a caller that wants homogeneous data there sets them to zero; the
+ * velocity and pressure data of the vectors need a ghost cell width of at least
+ * one.  Physical boundary conditions come from the boundary condition objects
+ * and setHomogeneousBc(), not from ghost values of \a x.  The velocity boundary
+ * condition objects read the velocity in \a x as their target, so at the start
+ * of each solve the solver sets the velocity ghost values that lie in other
+ * patches of the level, including across periodic boundaries, to the interior
+ * values of those patches.  On return the interior values of \a x hold the
+ * solution, those velocity ghost values hold the values they were set to, and
+ * every other ghost value is as the caller gave it.
  *
  * \see INSStaggeredHierarchyIntegrator
  */
