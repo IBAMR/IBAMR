@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesPETScLevelSolver imposes the pressure boundary condition at physical boundaries at which the normal velocity is not prescribed, in its matrix and its right-hand side, as IBAMR::StaggeredStokesOperator does.
+<br>
+(Boyce Griffith, 2026/10/08)

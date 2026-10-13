@@ -69,6 +69,13 @@ public:
      * \brief Construct a parallel PETSc Mat object corresponding to a MAC
      * discretization of the time-dependent incompressible Stokes equations on a
      * single SAMRAI::hier::PatchLevel.
+     *
+     * The matrix is for homogeneous boundary conditions.  If \a p_bc_coef is
+     * not null, the momentum equation for the normal velocity at a physical
+     * boundary at which the normal velocity is not prescribed contains the
+     * ghost pressure p_G = -((a*h - 2*b)/(a*h + 2*b))*p_I + 2*h*g/(a*h + 2*b)
+     * (p_I is the adjacent interior pressure, h the grid spacing normal to the
+     * boundary), and the matrix includes the term with p_I.
      */
     static void constructPatchLevelMACStokesOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,
@@ -77,7 +84,8 @@ public:
                                                const std::vector<int>& num_dofs_per_proc,
                                                int u_dof_index_idx,
                                                int p_dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                               SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef = nullptr);
 
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for

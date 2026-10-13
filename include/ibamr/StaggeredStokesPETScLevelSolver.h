@@ -63,6 +63,11 @@ namespace IBAMR
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
  *
+ * The solver defines the ghost values at physical boundaries as linear
+ * extrapolations of the interior values that the boundary conditions give,
+ * including the ghost pressure that enters the momentum equation for the normal
+ * velocity at a boundary at which the normal velocity is not prescribed.
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public StaggeredStokesSolver
