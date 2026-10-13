@@ -1,0 +1,3 @@
+Fixed: IBTK::SCPoissonHypreLevelSolver now solves correctly on a level that does not extend across a periodic boundary of the domain.
+<br>
+(Boyce Griffith, 2026/10/10)
