@@ -1,0 +1,3 @@
+Improved: The point-relaxation FAC operators save and restore only the coarse-fine interface ghost values between smoothing sweeps.
+<br>
+(Boyce Griffith, 2026/10/01)

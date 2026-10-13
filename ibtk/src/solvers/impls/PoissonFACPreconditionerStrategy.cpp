@@ -319,17 +319,13 @@ PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<
     }
     xeqScheduleProlongation(d_scratch_idx, src_idx, dst_ln);
 
-    // Add the prolonged correction into dst's interior only; the fine level's ghost cells are replaced by the
-    // prolonged ghost values below, not added to whatever they held before this call, since
-    // CartCellDoubleQuadraticCFInterpolation::computeNormalExtension() (et al.) treats a ghost's current value
-    // as the coarse-side contribution to its quadratic extrapolation, and a stale extrapolated value plus this
-    // correction is not a valid fresh coarse-side value.
+    // Correct the interior values and overwrite the ghost values with the prolonged correction. Coarse-fine
+    // interpolation requires the coarse-fine ghost values to hold data interpolated from the coarse level alone.
     d_level_data_ops[dst_ln]->add(dst_idx, dst_idx, d_scratch_idx, /*interior_only*/ true);
     Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
     copy_ghost_region(*level, dst_idx, d_scratch_idx);
 
-    // Refill the physical-boundary and same-level ghost cells from the corrected interior; the coarse-fine ghost
-    // cells keep the (coarse-only) prolonged values set above.
+    // Refill the physical-boundary and same-level ghost cells; the coarse-fine ghost cells keep the prolonged values.
     xeqScheduleGhostFillNoCoarse(dst_idx, dst_ln);
 
     IBTK_TIMER_STOP(t_prolong_error_and_correct);
@@ -634,6 +630,24 @@ PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const 
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);
     return;
 } // xeqScheduleDataSynch
+
+void
+PoissonFACPreconditionerStrategy::negatePoissonSpecifications(PoissonSpecifications& negated_spec) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_poisson_spec.dIsConstant() && !d_poisson_spec.cIsVariable());
+#endif
+    negated_spec.setDConstant(-d_poisson_spec.getDConstant());
+    if (d_poisson_spec.cIsZero())
+    {
+        negated_spec.setCZero();
+    }
+    else
+    {
+        negated_spec.setCConstant(-d_poisson_spec.getCConstant());
+    }
+    return;
+} // negatePoissonSpecifications
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

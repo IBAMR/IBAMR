@@ -189,7 +189,9 @@ public:
      *
      * The vectors must not alias. \a rhs is not modified. Ghost values of
      * \a solution, and its values on coarse cells covered by finer levels,
-     * may be overwritten. Ghost values of \a residual are unspecified.
+     * may be overwritten. Ghost values of \a residual, and its values on coarse
+     * sides on a coarse-fine interface (which restrictResidual() overwrites),
+     * are unspecified.
      */
     virtual void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,

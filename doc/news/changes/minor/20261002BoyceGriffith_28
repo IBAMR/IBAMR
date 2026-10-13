@@ -1,0 +1,3 @@
+Improved: The FAC preconditioner strategies evaluate residuals without a separate subtraction pass.
+<br>
+(Boyce Griffith, 2026/10/02)

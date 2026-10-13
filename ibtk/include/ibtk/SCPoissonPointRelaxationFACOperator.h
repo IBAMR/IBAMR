@@ -215,9 +215,14 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
+     * Ghost sides of each component along the coarse-fine interface of each local patch, empty for a patch without
+     * one; smoothError() saves and restores them between sweeps.
+     */
+    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM>>> d_patch_cf_bdry_ghost_boxes;
+
+    /*
      * Patch overlap data.
      */
-    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM>>> d_patch_bc_box_overlap;
     std::vector<std::vector<std::array<std::map<int, SAMRAI::hier::Box<NDIM>>, NDIM>>> d_patch_neighbor_overlap;
 
     /*
