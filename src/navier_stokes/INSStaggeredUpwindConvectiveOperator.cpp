@@ -384,6 +384,9 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
 
+    // Refresh the cached boundary data, because the boundary condition types may depend on time.
+    d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
+
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -409,6 +412,9 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, nullptr);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
+
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx, d_coarsest_ln, d_finest_ln);
+    d_bc_helper->clearBcCoefData();
 
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
