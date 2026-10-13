@@ -164,17 +164,10 @@ public:
      * interval [\p x_lower, \p x_upper) that the computational domain
      * occupies in one coordinate direction.
      *
-     * Cells are half-open: a point on the lower boundary of the domain lies in
-     * the first cell and is returned unchanged, whereas getCellIndex() assigns
-     * a point on the upper boundary to a ghost cell. A coordinate below
-     * \p x_lower is therefore moved to \p x_lower, and a coordinate that is
+     * A coordinate below \p x_lower is moved to \p x_lower. A coordinate
      * above \p x_upper, or within the square root of machine epsilon times
      * the length of the domain of it, is moved to that distance below
-     * \p x_upper. The distance is relative to the length of the domain so
-     * that it does not depend on the units. If that distance is too small to
-     * change \p x_upper in floating-point arithmetic, the coordinate is moved
-     * to the largest floating-point value below \p x_upper instead, so the
-     * returned coordinate is always in [\p x_lower, \p x_upper).
+     * \p x_upper.
      *
      * This function does not shift points on periodic domains. It is up to the
      * caller to shift \p x with respect to periodicity before calling this
@@ -267,10 +260,6 @@ public:
     /*!
      * \brief Map a SAMRAI variable's array index to an application-ordering
      * integer.
-     *
-     * The (i,j,k,d) index of a DOF on a particular patch level maps to a
-     * nonnegative integer, which is useful for creating an application ordering
-     * (AO) between SAMRAI and PETSc data structures.
      *
      * \param i AMR index representing the (i,j,k) array data index for a
      * variable on particular patch level.

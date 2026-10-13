@@ -190,18 +190,13 @@ void tagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hi
  * update the target before a later correction. The half-width is half_width
  * times the geometric mean cell spacing on each patch.
  *
- * The volume tolerance is abs_tol + rel_tol*abs(target). The default rel_tol
- * is 1e-12; omitted abs_tol means 64 machine epsilons times the current fluid
- * capacity. Require finite 0 <= rel_tol < 1 and nonnegative finite abs_tol.
- * max_its (default 64) is a positive trial-evaluation budget, excluding the
- * initial check, at most two bracket endpoints, and final field verification.
- * A safeguarded Newton/bisection solve either accepts a finite field within
- * tolerance or reports TBOX_ERROR before changing the corrected interiors.
+ * The volume tolerance is abs_tol + rel_tol*abs(target), with default rel_tol
+ * 1e-12 and default abs_tol 64 machine epsilons times the current fluid
+ * capacity. max_its (default 64) bounds the trial evaluations. The correction
+ * either reaches the tolerance or stops with an error before changing the field.
  *
- * Restart restores the initial volume, target, and half-width. Logging state
- * is transient; interval, iteration budget, and tolerances use current input
- * or defaults. correction_interval must be positive. With interval two, the
- * callbacks correct pre-advance steps 0 and 2 (the first and third advances).
+ * Restart restores the initial volume, target, and half-width; the other
+ * settings come from the current input.
  */
 class LevelSetMassLossFixer : public SAMRAI::tbox::Serializable
 {
@@ -293,12 +288,10 @@ public:
     } // enableLogging
 
     /*!
-     * \brief Correct NEW-context interiors at a due correction event.
+     * \brief Correct the NEW-context level set if a correction is due.
      *
-     * All ranks participate with identical controls. NEW data must be allocated.
-     * three_phase selects liquid volume with the second level set demarcating
-     * solid; otherwise correct gas volume using the first level set alone.
-     * A skipped event leaves the field and last-correction logging unchanged.
+     * three_phase selects the liquid volume, with the second level set marking
+     * the solid; otherwise the gas volume is corrected.
      */
     void correctVolume(double new_time, bool three_phase);
 

@@ -26,8 +26,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Coarsen side-centered data via the adjoint of RT0 interpolation.
 c
-c     Fine ghost values outside the fine level must be zero.  Sides on a
-c     physical boundary are reset by the boundary routine.
+c     Sides on a physical boundary are reset by the boundary routine.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c

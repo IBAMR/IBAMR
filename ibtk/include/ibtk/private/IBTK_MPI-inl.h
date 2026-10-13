@@ -80,14 +80,9 @@ template <typename T>
 inline void
 IBTK_MPI::minMaxReduction(T* x_min, T* x_max, const int n)
 {
-    // The maximum of x is recovered from the minimum of an order-reversing
-    // transformation of x, so reduce the minima together with the transformed
-    // maxima. Negation reverses the order of floating-point values by
-    // reflecting them about zero, the middle of their range. The middle of an
-    // integer range is not zero, so negation overflows for the most negative
-    // value and is not available for unsigned types. Integers are reflected
-    // about the middle of their own range instead: lowest + max - x lies in
-    // the range for every x in it, so it cannot overflow.
+    // The maxima are reduced as minima of an order-reversing map: negation for
+    // floating-point values, and lowest + max - x for integers, which cannot
+    // overflow.
     const auto reverse = [](const T x) -> T
     {
         if constexpr (std::is_integral<T>::value)

@@ -76,8 +76,7 @@ FACPreconditioner::FACPreconditioner(std::string object_name,
                                      const std::string& /*default_options_prefix*/)
     : d_fac_strategy(fac_strategy)
 {
-    // Setup default options. FACPreconditioner implements only the FAC correction
-    // scheme, which requires homogeneous boundary conditions; see setHomogeneousBc().
+    // Setup default options.
     GeneralSolver::init(std::move(object_name), FACPreconditionerStrategy::ALWAYS_HOMOGENEOUS_BC);
     d_initial_guess_nonzero = false;
     d_rel_residual_tol = 1.0e-5;

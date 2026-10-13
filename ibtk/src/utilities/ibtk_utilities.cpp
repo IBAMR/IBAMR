@@ -72,8 +72,7 @@ copy_ghost_region(const PatchLevel<NDIM>& patch_level, const int dst_idx, const 
             descriptor->getPatchDataFactory(dst_idx)->getBoxGeometry(patch->getBox());
         Pointer<BoxGeometry<NDIM>> src_geometry =
             descriptor->getPatchDataFactory(src_idx)->getBoxGeometry(patch->getBox());
-        // Not overwriting the interior makes the overlap the part of dst's ghost box (restricted to src's ghost box)
-        // that lies outside dst's interior, in the data's own centering.
+        // Without overwriting the interior, the overlap is the ghost region of dst.
         Pointer<BoxOverlap<NDIM>> overlap = dst_geometry->calculateOverlap(
             *src_geometry, src_data->getGhostBox(), /*overwrite_interior*/ false, IntVector<NDIM>(0));
         if (!overlap)

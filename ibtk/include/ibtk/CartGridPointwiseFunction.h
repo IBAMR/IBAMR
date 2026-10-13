@@ -62,38 +62,24 @@ inline std::string enum_to_string<TensorStorage>(TensorStorage value);
 /*!
  * \brief Initialize or transform Cartesian patch-interior values with a functor.
  *
- * Data must be CellData, NodeData, SideData, FaceData, or EdgeData with
- * dimension NDIM and scalar type double. Each object supports that centering;
- * data indices supplied at evaluation must refer to allocated data of the
- * corresponding type. This precondition is checked in Debug builds; Release
- * builds use an unchecked static_cast.
+ * Data must be CellData, NodeData, SideData, FaceData, or EdgeData of doubles.
+ * Value must be double, VectorNd, VectorXd, or MatrixNd: a double callback is
+ * evaluated for every depth, VectorNd requires depth NDIM, VectorXd uses the
+ * complete depth vector, and MatrixNd requires a TensorStorage and the
+ * corresponding depth.
  *
- * Value must be double, VectorNd, VectorXd, or MatrixNd. A double callback is
- * evaluated independently for every depth. VectorNd requires depth NDIM;
- * VectorXd uses the complete depth vector. MatrixNd requires an explicit
- * TensorStorage and the corresponding depth. Symmetric tensor callbacks must
- * return symmetric matrices (checked with Eigen::isApprox()).
- *
- * Function must support exactly one of these signatures. Scalar results must
- * be convertible to double; vector/tensor results may be Value or compatible
- * Eigen expressions:
+ * Function must support exactly one of these signatures:
  * \code
  * Value(const VectorNd& x, double time, int depth, int axis);
  * Value(const Value& q, const VectorNd& x, double time, int depth, int axis);
  * \endcode
- * The first signature initializes data without reading its previous contents.
- * The second transforms initialized data in place. The inherited initial_time
- * argument does not change which signature is invoked.
- *
- * depth is the scalar depth index, or zero for whole-vector/tensor callbacks.
+ * The first initializes data; the second transforms initialized data in place.
+ * depth is the scalar depth index, or zero for vector and tensor callbacks.
  * axis is the orientation for side-, face-, and edge-centered data, or
- * invalid_index for cell- and node-centered data. All supported centerings
- * permit collocated values stored across their depths. Components at different
- * staggered locations are never reconstructed into a vector or tensor.
+ * invalid_index for cell- and node-centered data.
  *
- * Ghost values are neither read nor modified. Shared patch-boundary values are
- * evaluated on each patch holding them; no synchronization is performed.
- * Callbacks must not modify other patch values through captured references.
+ * Ghost values are neither read nor modified, and values shared between
+ * patches are evaluated on each patch that holds them.
  *
  * \see make_cart_grid_pointwise_function()
  */
@@ -199,16 +185,9 @@ private:
 /*!
  * \brief Construct a scalar or vector pointwise function, deducing the functor type.
  *
- * var must be nonnull. Its patch-data factory selects the centering at
- * construction and must allocate double-precision cell, node, side, face, or
- * edge data.
- * The variable is not retained. The returned function may be applied to other
- * variables or contexts with the same data type and a compatible depth.
- * Side directions and data depth are taken from each patch at evaluation.
- *
- * The functor is copied from an lvalue or moved from an rvalue. Move-only
- * functors are supported. Reference captures retain their usual lifetime
- * requirements. MatrixNd functions require the overload with TensorStorage.
+ * The patch-data factory of var selects the centering. var is not retained,
+ * and the returned function may be applied to other variables of the same
+ * data type. MatrixNd functions require the overload with TensorStorage.
  *
  * \code
  * const double factor = 2.0;
