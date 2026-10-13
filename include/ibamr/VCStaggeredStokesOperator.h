@@ -56,6 +56,10 @@ namespace IBAMR
  * This class is intended to be used with an iterative (Krylov or Newton-Krylov)
  * incompressible flow solver.
  *
+ * This class requires the physical boundary condition helper object.  TRACTION
+ * and PSEUDO_TRACTION conditions for the normal velocity require the boundary
+ * interpolation type "LINEAR".
+ *
  * \see INSVCStaggeredHierarchyIntegrator
  */
 class VCStaggeredStokesOperator : public IBAMR::StaggeredStokesOperator
