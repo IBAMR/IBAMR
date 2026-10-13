@@ -807,14 +807,16 @@ INSStaggeredDivergenceFreePhysBdryOp::TapeBuilder::getRule(const unsigned int ax
     }
     const double alpha = (*it->second.acoef_data)(index, 0);
     const double beta = (*it->second.bcoef_data)(index, 0);
-    const bool velocity_bc = IBTK::rel_equal_eps(alpha, 1.0);
-    const bool traction_bc = IBTK::rel_equal_eps(beta, 1.0);
-    if (velocity_bc == traction_bc)
+    const bool velocity_bc = (alpha == 1.0 && beta == 0.0);
+    const bool traction_bc = (alpha == 0.0 && beta == 1.0);
+    if (!velocity_bc && !traction_bc)
     {
         TBOX_ERROR("INSStaggeredDivergenceFreePhysBdryOp::TapeBuilder::getRule():\n"
                    << "  the boundary condition of component " << axis << " on the boundary " << loc
-                   << " at the boundary face " << index << " has a = " << alpha << " and b = " << beta << "\n"
-                   << "  use either a = 1 or b = 1" << std::endl);
+                   << " at the boundary face " << index << " has unsupported coefficients (a, b) = (" << alpha << ", "
+                   << beta << ")\n"
+                   << "  use (a, b) = (1, 0) to prescribe the velocity or (0, 1) to prescribe the traction"
+                   << std::endl);
     }
     if (velocity_bc)
     {

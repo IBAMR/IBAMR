@@ -125,8 +125,8 @@ c     Set F to enforce div u = 0.
 c
             do k = ilower2,iupper2
                do j = ilower1,iupper1
-                  if ( abs(acoef(i_s,j,k)       ) .lt. 1.0d-12 .or.
-     &                 abs(bcoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 ) then
+                  if ( acoef(i_s,j,k) .eq. 0.d0 .and.
+     &                 bcoef(i_s,j,k) .eq. 1.d0 ) then
                      F =  (0.25d0/dx(1))*(
      &                    + U(i_intr,j+1,k,1)
      &                    - U(i_intr,j-1,k,1)
@@ -148,8 +148,8 @@ c     Set F to enforce t * sigma * n = 0.
 c
             do k = ilower2,iupper2
                do j = ilower1,iupper1
-                  if ( abs(acoef(i_s,j,k)       ) .lt. 1.0d-12 .or.
-     &                 abs(bcoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 ) then
+                  if ( acoef(i_s,j,k) .eq. 0.d0 .and.
+     &                 bcoef(i_s,j,k) .eq. 1.d0 ) then
                      F = (0.25d0/dx(1))*(
      &                    + U(i_intr,j+1,k,bdry_normal_axis)
      &                    - U(i_intr,j-1,k,bdry_normal_axis)
@@ -166,8 +166,8 @@ c     Set F to enforce t * sigma * n = 0.
 c
             do k = ilower2,iupper2
                do j = ilower1,iupper1
-                  if ( abs(acoef(i_s,j,k)       ) .lt. 1.0d-12 .or.
-     &                 abs(bcoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 ) then
+                  if ( acoef(i_s,j,k) .eq. 0.d0 .and.
+     &                 bcoef(i_s,j,k) .eq. 1.d0 ) then
                      F = (0.25d0/dx(2))*(
      &                    + U(i_intr,j,k+1,bdry_normal_axis)
      &                    - U(i_intr,j,k-1,bdry_normal_axis)
@@ -201,8 +201,8 @@ c     Set F to enforce t * sigma * n = 0.
 c
             do k = ilower2,iupper2
                do i = ilower0,iupper0
-                  if ( abs(acoef(i,j_s,k)       ) .lt. 1.0d-12 .or.
-     &                 abs(bcoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 ) then
+                  if ( acoef(i,j_s,k) .eq. 0.d0 .and.
+     &                 bcoef(i,j_s,k) .eq. 1.d0 ) then
                      F = (0.25d0/dx(0))*(
      &                    + U(i+1,j_intr,k,bdry_normal_axis)
      &                    - U(i-1,j_intr,k,bdry_normal_axis)
@@ -219,8 +219,8 @@ c     Set F to enforce div u = 0.
 c
             do k = ilower2,iupper2
                do i = ilower0,iupper0
-                  if ( abs(acoef(i,j_s,k)       ) .lt. 1.0d-12 .or.
-     &                 abs(bcoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 ) then
+                  if ( acoef(i,j_s,k) .eq. 0.d0 .and.
+     &                 bcoef(i,j_s,k) .eq. 1.d0 ) then
                      F =  (0.25d0/dx(0))*(
      &                    + U(i+1,j_intr,k,0)
      &                    - U(i-1,j_intr,k,0)
@@ -242,8 +242,8 @@ c     Set F to enforce t * sigma * n = 0.
 c
             do k = ilower2,iupper2
                do i = ilower0,iupper0
-                  if ( abs(acoef(i,j_s,k)       ) .lt. 1.0d-12 .or.
-     &                 abs(bcoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 ) then
+                  if ( acoef(i,j_s,k) .eq. 0.d0 .and.
+     &                 bcoef(i,j_s,k) .eq. 1.d0 ) then
                      F = (0.25d0/dx(2))*(
      &                    + U(i,j_intr,k+1,bdry_normal_axis)
      &                    - U(i,j_intr,k-1,bdry_normal_axis)
@@ -277,8 +277,8 @@ c     Set F to enforce t * sigma * n = 0.
 c
             do j = ilower1,iupper1
                do i = ilower0,iupper0
-                  if ( abs(acoef(i,j,k_s)       ) .lt. 1.0d-12 .or.
-     &                 abs(bcoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 ) then
+                  if ( acoef(i,j,k_s) .eq. 0.d0 .and.
+     &                 bcoef(i,j,k_s) .eq. 1.d0 ) then
                      F = (0.25d0/dx(0))*(
      &                    + U(i+1,j,k_intr,bdry_normal_axis)
      &                    - U(i-1,j,k_intr,bdry_normal_axis)
@@ -295,8 +295,8 @@ c     Set F to enforce t * sigma * n = 0.
 c
             do j = ilower1,iupper1
                do i = ilower0,iupper0
-                  if ( abs(acoef(i,j,k_s)       ) .lt. 1.0d-12 .or.
-     &                 abs(bcoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 ) then
+                  if ( acoef(i,j,k_s) .eq. 0.d0 .and.
+     &                 bcoef(i,j,k_s) .eq. 1.d0 ) then
                      F = (0.25d0/dx(1))*(
      &                    + U(i,j+1,k_intr,bdry_normal_axis)
      &                    - U(i,j-1,k_intr,bdry_normal_axis)
@@ -313,8 +313,8 @@ c     Set F to enforce div u = 0.
 c
             do j = ilower1,iupper1
                do i = ilower0,iupper0
-                  if ( abs(acoef(i,j,k_s)       ) .lt. 1.0d-12 .or.
-     &                 abs(bcoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 ) then
+                  if ( acoef(i,j,k_s) .eq. 0.d0 .and.
+     &                 bcoef(i,j,k_s) .eq. 1.d0 ) then
                      F =  (0.25d0/dx(0))*(
      &                    + U(i+1,j,k_intr,0)
      &                    - U(i-1,j,k_intr,0)
@@ -436,8 +436,8 @@ c
 
          do k = ilower2,iupper2
             do j = ilower1,iupper1
-               if ( abs(acoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 .or.
-     &              abs(bcoef(i_s,j,k)       ) .lt. 1.0d-12 ) then
+               if ( acoef(i_s,j,k) .eq. 1.d0 .and.
+     &              bcoef(i_s,j,k) .eq. 0.d0 ) then
 
                   if (comp_idx .eq. 1) then
                      grad_Phi = (0.5d0/dx(1))*(
@@ -486,8 +486,8 @@ c
 
          do k = ilower2,iupper2
             do i = ilower0,iupper0
-               if ( abs(acoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 .or.
-     &              abs(bcoef(i,j_s,k)       ) .lt. 1.0d-12 ) then
+               if ( acoef(i,j_s,k) .eq. 1.d0 .and.
+     &              bcoef(i,j_s,k) .eq. 0.d0 ) then
 
                   if (comp_idx .eq. 0) then
                      grad_Phi = (0.5d0/dx(0))*(
@@ -536,8 +536,8 @@ c
 
          do j = ilower1,iupper1
             do i = ilower0,iupper0
-               if ( abs(acoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 .or.
-     &              abs(bcoef(i,j,k_s)       ) .lt. 1.0d-12 ) then
+               if ( acoef(i,j,k_s) .eq. 1.d0 .and.
+     &              bcoef(i,j,k_s) .eq. 0.d0 ) then
 
                   if (comp_idx .eq. 0) then
                      grad_Phi = (0.5d0/dx(0))*(
@@ -733,8 +733,8 @@ c
 
          do k = ilower2,iupper2
             do j = ilower1,iupper1
-               if ( abs(acoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 .or.
-     &              abs(bcoef(i_s,j,k)       ) .lt. 1.0d-12 ) then
+               if ( acoef(i_s,j,k) .eq. 1.d0 .and.
+     &              bcoef(i_s,j,k) .eq. 0.d0 ) then
                   if (using_pressure_increment .eq. 1) then
                      gcoef(i_s,j,k) = P_bdry(i_s,j,k) -
      &                    0.5d0*(P(i_intr,j,k)+P(i_bdry,j,k))
@@ -765,8 +765,8 @@ c
 
          do k = ilower2,iupper2
             do i = ilower0,iupper0
-               if ( abs(acoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 .or.
-     &              abs(bcoef(i,j_s,k)       ) .lt. 1.0d-12 ) then
+               if ( acoef(i,j_s,k) .eq. 1.d0 .and.
+     &              bcoef(i,j_s,k) .eq. 0.d0 ) then
                   if (using_pressure_increment .eq. 1) then
                      gcoef(i,j_s,k) = P_bdry(i,j_s,k) -
      &                    0.5d0*(P(i,j_intr,k)+P(i,j_bdry,k))
@@ -797,8 +797,8 @@ c
 
          do j = ilower1,iupper1
             do i = ilower0,iupper0
-               if ( abs(acoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 .or.
-     &              abs(bcoef(i,j,k_s)       ) .lt. 1.0d-12 ) then
+               if ( acoef(i,j,k_s) .eq. 1.d0 .and.
+     &              bcoef(i,j,k_s) .eq. 0.d0 ) then
                   if (using_pressure_increment .eq. 1) then
                      gcoef(i,j,k_s) = P_bdry(i,j,k_s) -
      &                    0.5d0*(P(i,j,k_intr)+P(i,j,k_bdry))
@@ -921,8 +921,8 @@ c
 
          do k = ilower2,iupper2
             do j = ilower1,iupper1
-               if ( abs(acoef(i_s,j,k) - 1.d0) .lt. 1.0d-12 .or.
-     &              abs(bcoef(i_s,j,k)       ) .lt. 1.0d-12 ) then
+               if ( acoef(i_s,j,k) .eq. 1.d0 .and.
+     &              bcoef(i_s,j,k) .eq. 0.d0 ) then
                   if (using_pressure_increment .eq. 1) then
                      gcoef(i_s,j,k) = P_bdry(i_s,j,k) -
      &                    0.5d0*(P(i_intr,j,k)+P(i_bdry,j,k))
@@ -953,8 +953,8 @@ c
 
          do k = ilower2,iupper2
             do i = ilower0,iupper0
-               if ( abs(acoef(i,j_s,k) - 1.d0) .lt. 1.0d-12 .or.
-     &              abs(bcoef(i,j_s,k)       ) .lt. 1.0d-12 ) then
+               if ( acoef(i,j_s,k) .eq. 1.d0 .and.
+     &              bcoef(i,j_s,k) .eq. 0.d0 ) then
                   if (using_pressure_increment .eq. 1) then
                      gcoef(i,j_s,k) = P_bdry(i,j_s,k) -
      &                    0.5d0*(P(i,j_intr,k)+P(i,j_bdry,k))
@@ -985,8 +985,8 @@ c
 
          do j = ilower1,iupper1
             do i = ilower0,iupper0
-               if ( abs(acoef(i,j,k_s) - 1.d0) .lt. 1.0d-12 .or.
-     &              abs(bcoef(i,j,k_s)       ) .lt. 1.0d-12 ) then
+               if ( acoef(i,j,k_s) .eq. 1.d0 .and.
+     &              bcoef(i,j,k_s) .eq. 0.d0 ) then
                   if (using_pressure_increment .eq. 1) then
                      gcoef(i,j,k_s) = P_bdry(i,j,k_s) -
      &                    0.5d0*(P(i,j,k_intr)+P(i,j,k_bdry))

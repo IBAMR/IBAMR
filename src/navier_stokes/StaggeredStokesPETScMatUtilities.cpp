@@ -385,11 +385,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const hier::Index<NDIM>& i = bc();
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
-                    const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
-                    const bool traction_bc = (b == 1.0 || IBTK::rel_equal_eps(b, 1.0));
-#if !defined(NDEBUG)
-                    TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
+                    const bool velocity_bc = (a == 1.0 && b == 0.0);
+                    const bool traction_bc = (a == 0.0 && b == 1.0);
                     hier::Index<NDIM> i_intr = i;
                     if (is_lower)
                     {
@@ -433,9 +430,11 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     else
                     {
                         TBOX_ERROR(
-                            "StaggeredStokesPETScMatUtilities::"
-                            "constructPatchLevelMACStokesOp(): Unknown BC type for "
-                            "tangential velocity specified.");
+                            "StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp():\n"
+                            << "  unsupported velocity boundary condition coefficients (a, b) = (" << a << ", " << b
+                            << ")\n"
+                            << "  use (a, b) = (1, 0) to prescribe the velocity or (0, 1) to prescribe the traction"
+                            << std::endl);
                     }
                 }
             }
@@ -489,11 +488,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
-                    const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
-                    const bool traction_bc = (b == 1.0 || IBTK::rel_equal_eps(b, 1.0));
-#if !defined(NDEBUG)
-                    TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
+                    const bool velocity_bc = (a == 1.0 && b == 0.0);
+                    const bool traction_bc = (a == 0.0 && b == 1.0);
                     if (velocity_bc)
                     {
                         uu_matrix_coefs(i_s, 0) = 1.0;
@@ -524,9 +520,11 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     else
                     {
                         TBOX_ERROR(
-                            "StaggeredStokesPETScMatUtilities::"
-                            "constructPatchLevelMACStokesOp(): Unknown BC type for "
-                            "normal velocity specified.");
+                            "StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp():\n"
+                            << "  unsupported velocity boundary condition coefficients (a, b) = (" << a << ", " << b
+                            << ")\n"
+                            << "  use (a, b) = (1, 0) to prescribe the velocity or (0, 1) to prescribe the traction"
+                            << std::endl);
                     }
                 }
             }
