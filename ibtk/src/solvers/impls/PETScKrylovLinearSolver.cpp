@@ -515,6 +515,20 @@ PETScKrylovLinearSolver::resetKSPOptions()
     IBTK_CHKERRQ(ierr);
     ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations);
     IBTK_CHKERRQ(ierr);
+
+    // Skip the convergence test of a one-iteration Richardson solve.
+    if (d_managing_petsc_ksp)
+    {
+        PetscBool norm_type_in_options;
+        ierr = PetscOptionsHasName(nullptr, d_options_prefix.c_str(), "-ksp_norm_type", &norm_type_in_options);
+        IBTK_CHKERRQ(ierr);
+        if (!norm_type_in_options)
+        {
+            const bool skip_convergence_test = (d_ksp_type == KSPRICHARDSON && d_max_iterations == 1);
+            ierr = KSPSetNormType(d_petsc_ksp, skip_convergence_test ? KSP_NORM_NONE : KSP_NORM_DEFAULT);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
     return;
 } // resetKSPOptions
 
