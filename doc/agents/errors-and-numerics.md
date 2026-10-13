@@ -18,9 +18,10 @@
   with a literal class or function name in static and free functions, and the
   message in lower case without a final period.
 - An error or warning says what is wrong and names the offending input key and
-  value, in one line. A second line may say what is allowed or what to do. Do not
-  explain the method or why the check exists. If the user could still fix the
-  problem without a sentence, remove it.
+  value, in one line. Where possible, a second line says how to fix the problem
+  or what is allowed; when changing an existing message, add that if it is
+  missing. Do not explain the method or why the check exists. If the user could
+  still fix the problem without a sentence, remove it.
 - Report a warning with `TBOX_WARNING()`, in the same form, not by writing
   `"WARNING"` to `pout`. Warn only about a condition the user can act on, and at
   most once per object for a condition that recurs.
