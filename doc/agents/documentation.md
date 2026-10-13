@@ -56,6 +56,10 @@
   wording or length; extra detail should explain genuine differences. If siblings
   need the same explanation, consider putting it in the base class. This does not
   require rewriting every sibling.
+- Match the documentation of neighboring members in the same file: the Doxygen
+  commands they use, a one-sentence brief followed by details where the file does
+  that, and its line width. When shortening a comment, keep what its neighbors
+  consistently carry, such as their `\see` or `\param` lines.
 - Document member functions. A concise Doxygen sentence is enough for most;
   documenting every member does not mean repeating class documentation. Private
   members may be documented in groups: every private member belongs to a

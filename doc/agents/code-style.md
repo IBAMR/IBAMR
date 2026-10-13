@@ -10,6 +10,13 @@
   configuration. Reuse compatible dependency installations and build environments
   when available, or configure them for the current environment. Do not assume
   another developer's paths or an old copied command are current.
+- New code should look like similar code in the same header or implementation
+  file or, for a new file, in similar files: naming, structure, member order, the
+  Doxygen commands used (`\brief`, `\param`, `\return`, `\see`), and the level of
+  detail of comments. A reader should not be able to tell from style which parts
+  of a file are new. This does not justify a comment longer than
+  [Comments and class documentation](documentation.md) allows, and it does not
+  authorize restyling existing code.
 - Follow established naming in the same class, struct, or namespace. That local
   convention takes precedence over the defaults: static member functions and free
   functions use `snake_case()`, including private static helpers and function
