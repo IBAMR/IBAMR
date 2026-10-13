@@ -46,6 +46,9 @@ namespace IBTK
  * Robin boundary conditions may be specified at physical boundaries; see class
  * SAMRAI::solv::RobinBcCoefStrategy.
  *
+ * The supported smoother types are \c "PATCH_GAUSS_SEIDEL" and \c "PROCESSOR_GAUSS_SEIDEL". It is an error for the
+ * input database to specify any other smoother type, or \c "RED_BLACK_GAUSS_SEIDEL" as the coarse solver type.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
