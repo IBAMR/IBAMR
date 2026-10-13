@@ -1,0 +1,3 @@
+Changed: The protected member IBTK::FACPreconditioner::FACVCycleNoPreSmoothing() is removed. This is part of a fix to IBTK::FACPreconditioner W-cycles, which improve the correction on each coarser level with a second visit.
+<br>
+(Boyce Griffith, 2026/09/25)
