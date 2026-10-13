@@ -22,10 +22,12 @@
 #include <ibtk/PETScMatLOWrapper.h>
 #include <ibtk/PETScPCLSWrapper.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
+#include <ibtk/SAMRAIScopedVectorDuplicate.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/solver_utilities.h>
 
 #include <tbox/Database.h>
+#include <tbox/PIO.h>
 #include <tbox/Pointer.h>
 #include <tbox/Timer.h>
 #include <tbox/Utilities.h>
@@ -44,9 +46,14 @@
 #include <mpi.h>
 
 #include <algorithm>
+#include <array>
+#include <cstdlib>
 #include <cstring>
+#include <iomanip>
 #include <ostream>
+#include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -64,6 +71,22 @@ namespace
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
+
+// Largest relative additivity defect for which a preconditioner is regarded as a fixed linear operator.
+constexpr double PRECONDITIONER_LINEARITY_TOL = 1.0e-8;
+
+// Krylov methods that tolerate a preconditioner that is not a fixed linear operator. The literal "none" is used because
+// older PETSc versions do not define KSPNONE.
+constexpr std::array<std::string_view, 11> VARYING_PC_KSP_TYPES = { KSPFGMRES,     KSPPIPEFGMRES, KSPGCR,   KSPPIPEGCR,
+                                                                    KSPFCG,        KSPPIPEFCG,    KSPFBCGS, KSPFBCGSR,
+                                                                    KSPRICHARDSON, KSPPREONLY,    "none" };
+
+bool
+ksp_tolerates_varying_preconditioner(const std::string& ksp_type)
+{
+    return std::find(VARYING_PC_KSP_TYPES.begin(), VARYING_PC_KSP_TYPES.end(), std::string_view(ksp_type)) !=
+           VARYING_PC_KSP_TYPES.end();
+}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -94,6 +117,10 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(std::string object_name,
         if (input_db->keyExists("initial_guess_nonzero"))
             d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
+        if (input_db->keyExists("check_preconditioner_linearity"))
+        {
+            d_check_preconditioner_linearity = input_db->getBool("check_preconditioner_linearity");
+        }
     }
 
     // Common constructor functionality.
@@ -223,6 +250,12 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportPETScKSPConvergedReason(d_object_name, reason, plog);
 
+    if (d_check_preconditioner_linearity && !d_checked_preconditioner_linearity)
+    {
+        checkPreconditionerLinearity();
+        d_checked_preconditioner_linearity = true;
+    }
+
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
 
@@ -347,11 +380,18 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
     IBTK_CHKERRQ(ierr);
 
+    PetscBool check_preconditioner_linearity = d_check_preconditioner_linearity ? PETSC_TRUE : PETSC_FALSE;
+    ierr = PetscOptionsGetBool(
+        nullptr, nullptr, "-ibtk_check_preconditioner_linearity", &check_preconditioner_linearity, nullptr);
+    IBTK_CHKERRQ(ierr);
+    d_check_preconditioner_linearity = (check_preconditioner_linearity == PETSC_TRUE);
+
     // Configure the nullspace object.
     resetMatNullSpace();
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
+    d_checked_preconditioner_linearity = false;
     d_is_initialized = true;
 
     IBTK_TIMER_STOP(t_initialize_solver_state);
@@ -623,6 +663,110 @@ PETScKrylovLinearSolver::resetKSPPC()
 } // resetKSPPC
 
 void
+PETScKrylovLinearSolver::applyPreconditioner(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+{
+    // Indicate that the initial guess should be zero.
+    const bool pc_initial_guess_nonzero = d_pc_solver->getInitialGuessNonzero();
+    d_pc_solver->setInitialGuessNonzero(false);
+
+    // Apply the preconditioner.
+    d_pc_solver->solveSystem(y, x);
+
+    // Reset the configuration of the preconditioner object.
+    d_pc_solver->setInitialGuessNonzero(pc_initial_guess_nonzero);
+    return;
+} // applyPreconditioner
+
+void
+PETScKrylovLinearSolver::checkPreconditionerLinearity()
+{
+    // Only a preconditioner that the KSP applies through PCApply_SAMRAI() is checked.
+    PC petsc_pc;
+    int ierr = KSPGetPC(d_petsc_ksp, &petsc_pc);
+    IBTK_CHKERRQ(ierr);
+    PetscBool is_shell;
+    ierr = PetscObjectTypeCompare(reinterpret_cast<PetscObject>(petsc_pc), PCSHELL, &is_shell);
+    IBTK_CHKERRQ(ierr);
+    if (!d_pc_solver || !d_user_provided_pc || !is_shell)
+    {
+        return;
+    }
+
+    SAMRAIScopedVectorDuplicate<double> x_vec(d_x, d_object_name + "::linearity_x");
+    SAMRAIScopedVectorDuplicate<double> y_vec(d_x, d_object_name + "::linearity_y");
+    SAMRAIScopedVectorDuplicate<double> xy_vec(d_x, d_object_name + "::linearity_xy");
+    SAMRAIScopedVectorDuplicate<double> Bx_vec(d_x, d_object_name + "::linearity_Bx");
+    SAMRAIScopedVectorDuplicate<double> By_vec(d_x, d_object_name + "::linearity_By");
+    SAMRAIScopedVectorDuplicate<double> Bxy_vec(d_x, d_object_name + "::linearity_Bxy");
+    Pointer<SAMRAIVectorReal<NDIM, double>> x = x_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> y = y_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> xy = xy_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> Bx = Bx_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> By = By_vec;
+    Pointer<SAMRAIVectorReal<NDIM, double>> Bxy = Bxy_vec;
+
+    // Draw x and y with a fixed seed of drand48(), and restore its state afterwards.
+    std::array<unsigned short, 3> seed = { 0x330E, 0xABCD, 0x1234 };
+    std::array<unsigned short, 3> saved_state;
+    std::copy_n(seed48(seed.data()), saved_state.size(), saved_state.begin());
+    x->setRandomValues(2.0, -1.0);
+    y->setRandomValues(2.0, -1.0);
+    seed48(saved_state.data());
+
+    // Remove the null space of the operator, if any, from x and y and from each result, as the KSP does.
+    Mat petsc_mat = nullptr;
+    ierr = KSPGetOperators(d_petsc_ksp, &petsc_mat, nullptr);
+    IBTK_CHKERRQ(ierr);
+    MatNullSpace petsc_nullsp = nullptr;
+    ierr = MatGetNullSpace(petsc_mat, &petsc_nullsp);
+    IBTK_CHKERRQ(ierr);
+    auto remove_null_space = [&](const Pointer<SAMRAIVectorReal<NDIM, double>>& vec)
+    {
+        if (petsc_nullsp)
+        {
+            Vec petsc_vec = PETScSAMRAIVectorReal::createPETScVector(vec, d_petsc_comm);
+            int ierr = MatNullSpaceRemove(petsc_nullsp, petsc_vec);
+            IBTK_CHKERRQ(ierr);
+            PETScSAMRAIVectorReal::destroyPETScVector(petsc_vec);
+        }
+    };
+    remove_null_space(x);
+    remove_null_space(y);
+    xy->add(x, y);
+    applyPreconditioner(*x, *Bx);
+    applyPreconditioner(*y, *By);
+    applyPreconditioner(*xy, *Bxy);
+    remove_null_space(Bx);
+    remove_null_space(By);
+    remove_null_space(Bxy);
+
+    // Compute the relative additivity defect |B(x+y) - B(x) - B(y)| / |B(x+y)| in the weighted L2 norm.
+    const double Bxy_norm = Bxy->L2Norm();
+    Bxy->subtract(Bxy, Bx);
+    Bxy->subtract(Bxy, By);
+    const double defect_norm = Bxy->L2Norm();
+    const double defect = Bxy_norm > 0.0 ? defect_norm / Bxy_norm : defect_norm;
+
+    std::ostringstream defect_stream;
+    defect_stream << std::scientific << std::setprecision(3) << defect;
+    plog << d_object_name << "::solveSystem(): KSP type " << d_ksp_type
+         << ", relative additivity defect of the preconditioner = " << defect_stream.str() << "\n";
+
+    // The negated comparison also reports a defect that is not a number.
+    if (!(defect <= PRECONDITIONER_LINEARITY_TOL) && !ksp_tolerates_varying_preconditioner(d_ksp_type))
+    {
+        TBOX_WARNING(d_object_name << "::solveSystem()\n"
+                                   << "  the preconditioner is not linear (relative additivity defect "
+                                   << defect_stream.str() << "), but KSP type " << d_ksp_type
+                                   << " requires a linear preconditioner\n"
+                                   << "  use a flexible Krylov method such as fgmres, or richardson, or make the "
+                                      "preconditioner linear"
+                                   << std::endl);
+    }
+    return;
+} // checkPreconditionerLinearity
+
+void
 PETScKrylovLinearSolver::resetMatNullSpace()
 {
     if (!d_petsc_ksp) return;
@@ -754,20 +898,13 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(PC pc, Vec x, Vec y)
     TBOX_ASSERT(krylov_solver->d_pc_solver);
 #endif
 
-    // Indicate that the initial guess should be zero.
-    const bool pc_initial_guess_nonzero = krylov_solver->d_pc_solver->getInitialGuessNonzero();
-    krylov_solver->d_pc_solver->setInitialGuessNonzero(false);
-
     // Apply the preconditioner.
     Pointer<SAMRAIVectorReal<NDIM, double>> samrai_x, samrai_y;
     PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
     PETScSAMRAIVectorReal::getSAMRAIVector(y, &samrai_y);
-    krylov_solver->d_pc_solver->solveSystem(*samrai_y, *samrai_x);
+    krylov_solver->applyPreconditioner(*samrai_x, *samrai_y);
     PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(x, &samrai_x);
     PETScSAMRAIVectorReal::restoreSAMRAIVector(y, &samrai_y);
-
-    // Reset the configuration of the preconditioner object.
-    krylov_solver->d_pc_solver->setInitialGuessNonzero(pc_initial_guess_nonzero);
     PetscFunctionReturn(0);
 } // PCApply_SAMRAI
 

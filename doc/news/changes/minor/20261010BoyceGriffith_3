@@ -1,0 +1,3 @@
+New: IBTK::PETScKrylovLinearSolver can check that its preconditioner is linear (input key check_preconditioner_linearity).
+<br>
+(Boyce Griffith, 2026/10/10)
