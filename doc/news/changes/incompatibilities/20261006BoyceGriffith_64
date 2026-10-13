@@ -1,0 +1,3 @@
+Changed: IBAMR::StaggeredStokesOperator, IBAMR::CIBStaggeredStokesOperator, and IBAMR::INSStaggeredHierarchyIntegrator report an error for TRACTION open boundaries with "QUADRATIC" boundary interpolation, and IBAMR::StaggeredStokesOperator for TRACTION conditions without setPhysicalBoundaryHelper().
+<br>
+(Boyce Griffith, 2026/10/06)

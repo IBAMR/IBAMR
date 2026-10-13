@@ -127,8 +127,9 @@ VelocityBcCoefs_0 {
     bcoef_function_2 = "0.0"
     bcoef_function_3 = "0.0"
 
-    gcoef_function_0 = "( X1 < (X1_lower + X0*tan(theta)) ? 0.0 : ( (X1 > (X1_upper + X0*tan(theta))) ? 0.0 : -(-2.*p_e*(X0/cos(theta) + (X1-X1_lower-X0*tan(theta))*sin(theta))/(L/cos(theta) + D*tan(theta)) + p_e)))"
-    gcoef_function_1 = "( X1 < (X1_lower + X0*tan(theta)) ? 0.0 : ( (X1 > (X1_upper + X0*tan(theta))) ? 0.0 : -(-2.*p_e*(X0/cos(theta) + (X1-X1_lower-X0*tan(theta))*sin(theta))/(L/cos(theta) + D*tan(theta)) + p_e)))"
+    // normal traction of the exact solution, -p + 2*mu*du/dx
+    gcoef_function_0 = "( X1 < (X1_lower + X0*tan(theta)) ? 0.0 : ( (X1 > (X1_upper + X0*tan(theta))) ? 0.0 : (-(-2.*p_e*(X0/cos(theta) + (X1-X1_lower-X0*tan(theta))*sin(theta))/(L/cos(theta) + D*tan(theta)) + p_e) - 2.*mu*sin(theta)*cos(theta)*(p_e*D/(mu*(L/cos(theta)+D*tan(theta))))*(1.0-2.0*((X1-X1_lower-X0*tan(theta))*cos(theta))/D))))"
+    gcoef_function_1 = "( X1 < (X1_lower + X0*tan(theta)) ? 0.0 : ( (X1 > (X1_upper + X0*tan(theta))) ? 0.0 : (-(-2.*p_e*(X0/cos(theta) + (X1-X1_lower-X0*tan(theta))*sin(theta))/(L/cos(theta) + D*tan(theta)) + p_e) - 2.*mu*sin(theta)*cos(theta)*(p_e*D/(mu*(L/cos(theta)+D*tan(theta))))*(1.0-2.0*((X1-X1_lower-X0*tan(theta))*cos(theta))/D))))"
     gcoef_function_2 = "0.0"
     gcoef_function_3 = "0.0"
 }

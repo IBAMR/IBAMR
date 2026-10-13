@@ -1,0 +1,3 @@
+Removed: IBAMR::INSStaggeredHierarchyIntegrator and IBAMR::INSVCStaggeredHierarchyIntegrator no longer set up d_P_bdry_bc_fill_op, which they never used.
+<br>
+(Boyce Griffith, 2026/10/05)
