@@ -1,0 +1,86 @@
+// Velocity prescribed at x = 0 and y = 1, TRACTION at x = 1 and y = 0, in the domain [0,2] x [0,1].
+
+N = 16
+extension_ghost_width = 3
+
+ExactVelocity {
+   function_0 = "(0.2)+(1.8)*X_1^2+(0.7)*X_0^1+(-0.6)*X_0^1*X_1^2+(1)*X_0^2*X_1^1+(0.3)*X_0^3"
+   function_1 = "(-0.1)+(-0.7)*X_1^1+(0.2)*X_1^3+(-0.8)*X_0^1+(-1)*X_0^1*X_1^2+(-0.9)*X_0^2*X_1^1"
+}
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "(0.2)+(1.8)*X_1^2+(0.7)*X_0^1+(-0.6)*X_0^1*X_1^2+(1)*X_0^2*X_1^1+(0.3)*X_0^3"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "(-0.8)+(3.6)*X_1^1+(-1)*X_1^2+(-3)*X_0^1*X_1^1+(1)*X_0^2"
+   gcoef_function_3 = "(0.2)+(1.8)*X_1^2+(0.7)*X_0^1+(-0.6)*X_0^1*X_1^2+(1)*X_0^2*X_1^1+(0.3)*X_0^3"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "(-0.1)+(-0.7)*X_1^1+(0.2)*X_1^3+(-0.8)*X_0^1+(-1)*X_0^1*X_1^2+(-0.9)*X_0^2*X_1^1"
+   gcoef_function_1 = "(-0.8)+(3.6)*X_1^1+(-1)*X_1^2+(-3)*X_0^1*X_1^1+(1)*X_0^2"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "(-0.1)+(-0.7)*X_1^1+(0.2)*X_1^3+(-0.8)*X_0^1+(-1)*X_0^1*X_1^2+(-0.9)*X_0^2*X_1^1"
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                      = 1.0
+   rho                     = 1.0
+   start_time              = 0.0
+   end_time                = 0.01
+   dt_max                  = 0.01
+   traction_bc_type        = "TRACTION"
+   convective_op_type      = "PPM"
+   enable_logging          = FALSE
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = 2.0,1.0
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 4,4
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {}
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
