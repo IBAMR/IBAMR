@@ -52,6 +52,8 @@ namespace IBAMR
 {
 class BrinkmanPenalizationStrategy;
 class ConvectiveOperator;
+class INSVCStaggeredPressureBcCoef;
+class INSVCStaggeredVelocityBcCoef;
 } // namespace IBAMR
 namespace IBTK
 {
@@ -735,7 +737,19 @@ protected:
      */
     unsigned int d_mu_adv_diff_idx = 0;
 
+    /*!
+     * Set the physical boundary conditions used by the solver boundary
+     * condition objects.
+     */
+    void setSolverPhysicalBcCoefs(SolverPhysicalBcCoefs bc_coefs) override;
+
 private:
+    /*!
+     * The objects in d_U_bc_coefs and d_P_bc_coef, with their own types.
+     */
+    std::vector<INSVCStaggeredVelocityBcCoef*> d_vc_velocity_bc_coefs;
+    INSVCStaggeredPressureBcCoef* d_vc_pressure_bc_coef = nullptr;
+
     /*!
      * \brief Default constructor.
      *

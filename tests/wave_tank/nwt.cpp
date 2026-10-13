@@ -241,9 +241,12 @@ main(int argc, char* argv[])
                                                                static_cast<void*>(&ls_tagger));
 
         // Create Eulerian initial condition specification objects.
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-            "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
-        time_integrator->registerVelocityInitialConditions(u_init);
+        if (input_db->keyExists("VelocityInitialConditions"))
+        {
+            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+                "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
+            time_integrator->registerVelocityInitialConditions(u_init);
+        }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {

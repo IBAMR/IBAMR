@@ -41,6 +41,7 @@
 namespace IBAMR
 {
 class ConvectiveOperator;
+class INSCollocatedVelocityBcCoef;
 } // namespace IBAMR
 namespace IBTK
 {
@@ -223,7 +224,18 @@ protected:
      */
     void regridProjection(const bool initial_time) override;
 
+    /*!
+     * Set the physical boundary conditions used by the solver boundary
+     * condition objects.
+     */
+    void setSolverPhysicalBcCoefs(SolverPhysicalBcCoefs bc_coefs) override;
+
 private:
+    /*!
+     * The objects in d_U_bc_coefs, with their own type.
+     */
+    std::vector<INSCollocatedVelocityBcCoef*> d_collocated_velocity_bc_coefs;
+
     /*!
      * \brief Default constructor.
      *

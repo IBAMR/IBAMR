@@ -46,6 +46,8 @@
 namespace IBAMR
 {
 class ConvectiveOperator;
+class INSStaggeredPressureBcCoef;
+class INSStaggeredVelocityBcCoef;
 } // namespace IBAMR
 namespace IBTK
 {
@@ -319,7 +321,19 @@ protected:
      */
     void regridProjection(const bool initial_time) override;
 
+    /*!
+     * Set the physical boundary conditions used by the solver boundary
+     * condition objects.
+     */
+    void setSolverPhysicalBcCoefs(SolverPhysicalBcCoefs bc_coefs) override;
+
 private:
+    /*!
+     * The objects in d_U_bc_coefs and d_P_bc_coef, with their own types.
+     */
+    std::vector<INSStaggeredVelocityBcCoef*> d_staggered_velocity_bc_coefs;
+    INSStaggeredPressureBcCoef* d_staggered_pressure_bc_coef = nullptr;
+
     /*!
      * \brief Default constructor.
      *

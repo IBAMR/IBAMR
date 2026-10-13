@@ -57,6 +57,11 @@ template <int DIM>
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
+namespace IBAMR
+{
+class INSIntermediateVelocityBcCoef;
+class INSProjectionBcCoef;
+} // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -463,6 +468,39 @@ protected:
     void tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx);
 
     /*!
+     * The physical boundary conditions used by the solver boundary condition
+     * objects: those registered with the integrator, or homogeneous Dirichlet
+     * conditions.
+     */
+    enum class SolverPhysicalBcCoefs
+    {
+        REGISTERED,
+        HOMOGENEOUS
+    };
+
+    /*!
+     * Return the physical boundary conditions selected by \p bc_coefs.
+     */
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getSolverPhysicalBcCoefs(SolverPhysicalBcCoefs bc_coefs);
+
+    /*!
+     * Set the physical boundary conditions used by the solver boundary
+     * condition objects. A derived class overrides this function to set the
+     * objects that it owns and calls this implementation.
+     */
+    virtual void setSolverPhysicalBcCoefs(SolverPhysicalBcCoefs bc_coefs);
+
+    /*!
+     * Return whether the solver boundary condition objects use the registered
+     * physical boundary conditions before the first time step: true if
+     * velocity initial conditions are registered or the integrator is
+     * restarted. Otherwise the velocity is zero, which need not satisfy the
+     * registered conditions, and the objects use homogeneous conditions until
+     * the first time step.
+     */
+    bool usePhysicalBcCoefsBeforeFirstTimeStep() const;
+
+    /*!
      * Return the maximum stable time step size.
      */
     double getMaximumTimeStepSizeSpecialized() override;
@@ -637,6 +675,12 @@ protected:
         d_regrid_projection_sub_precond_db;
 
 private:
+    /*!
+     * The objects in d_U_star_bc_coefs and d_Phi_bc_coef, with their own types.
+     */
+    std::vector<INSIntermediateVelocityBcCoef*> d_intermediate_velocity_bc_coefs;
+    INSProjectionBcCoef* d_projection_bc_coef = nullptr;
+
     /*!
      * \brief Default constructor.
      *
