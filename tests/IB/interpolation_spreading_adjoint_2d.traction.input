@@ -1,6 +1,7 @@
 // TRACTION conditions on the lower boundaries and walls on the upper boundaries.
 N = 16
 MAX_LEVELS = 1
+marker_displacement = 0.0   // in grid cells along each axis, toward the center of the domain
 
 VelocityInitialConditions {
    function_0 = "0.0"

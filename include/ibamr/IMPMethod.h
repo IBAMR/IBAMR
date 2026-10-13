@@ -38,6 +38,7 @@
 #include <PatchHierarchy.h>
 
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -50,6 +51,7 @@ namespace IBTK
 {
 class LData;
 class LDataManager;
+class SAMRAIGhostDataAccumulator;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -366,6 +368,12 @@ protected:
     IBTK::LDataManager* d_l_data_manager = nullptr;
     bool d_error_if_points_leave_domain = false;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
+
+    /*
+     * Object that sums the force values that spreadForce() puts in ghost regions into the patches that own them; valid
+     * for one configuration of the patches.
+     */
+    std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_ghost_data_accumulator;
 
     /*
      * Functions used to compute the first Piola-Kirchhoff stress tensor.

@@ -105,7 +105,8 @@ public:
      * homogeneous boundary conditions, and set them to zero.
      *
      * The caller combines the contributions to ghost cells inside the domain with those of the patches that own them.
-     * A ghost value that depends on a face outside the ghost box of the patch data is left unchanged.
+     * A ghost value that depends on a face outside the ghost box of the patch data cannot be transposed: the function
+     * emits an error if such a value is not zero.
      */
     void accumulateFromPhysicalBoundaryData(SAMRAI::hier::Patch<NDIM>& patch,
                                             double fill_time,
