@@ -328,6 +328,7 @@ CCPoissonLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, d
     auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
     if (p_coarse_solver)
     {
+        setCoarseSolverNullSpace(*p_coarse_solver);
         bool initial_guess_nonzero = true;
         auto p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
         auto p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
