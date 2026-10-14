@@ -45,6 +45,7 @@
 #include <CellData.h>
 #include <CellDataFactory.h>
 #include <CellVariable.h>
+#include <HierarchyDataOpsReal.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
 #include <PatchDescriptor.h>
@@ -430,8 +431,10 @@ CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     {
         d_level_math_ops[finest_level_num]->laplace(
             res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
-        hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
+        for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
+        {
+            d_level_data_ops[ln]->axpy(res_idx, -1.0, res_idx, rhs_idx, false);
+        }
     }
 
     IBTK_TIMER_STOP(t_compute_residual);

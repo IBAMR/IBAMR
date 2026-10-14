@@ -453,6 +453,26 @@ public:
                  int n = 0) const;
 
     /*!
+     * \brief Computes dst = alpha L src1 + beta src1 + gamma grad src2 + delta src3.
+     *
+     * Uses the standard 5 point stencil in 2D (7 point stencil in 3D) for L and
+     * centered differences for grad.
+     *
+     * \note src2 and src3 are required, and dst must differ from src1 and src3.
+     * The terms gamma grad src2 and delta src3 are evaluated even when gamma or
+     * delta is zero.
+     */
+    void laplace_grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> dst,
+                      double alpha,
+                      double beta,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> src1,
+                      double gamma,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> src2,
+                      double delta,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> src3,
+                      SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch) const;
+
+    /*!
      * \brief Computes dst_l = div alpha grad src1_m + beta src1_m + gamma
      * src2_n.
      *

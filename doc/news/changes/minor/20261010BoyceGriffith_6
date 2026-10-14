@@ -1,0 +1,3 @@
+New: IBTK::HierarchyMathOps::laplace_grad() evaluates the side-centered Laplacian plus the gradient of a cell-centered quantity in one pass.
+<br>
+(Boyce Griffith, 2026/10/10)
