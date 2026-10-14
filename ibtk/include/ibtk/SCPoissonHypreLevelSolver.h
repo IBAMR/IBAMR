@@ -97,6 +97,15 @@ namespace IBTK
  * values of \a x hold the solution and every ghost value is as the caller gave
  * it.
  *
+ * <b>Periodic domains.</b>  On the coarsest level, a periodic direction of the
+ * domain is a periodic direction of the hypre grid.  A finer level need not
+ * extend across a periodic boundary: if the level has no patch adjacent to the
+ * lower periodic boundary, or none adjacent to the upper one, its hypre grid is
+ * not periodic in that direction, and a periodic boundary that the level
+ * touches is a coarse-fine interface.  If the level has patches adjacent to
+ * both periodic boundaries, they must be periodic images of each other;
+ * otherwise the solver emits an error.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
