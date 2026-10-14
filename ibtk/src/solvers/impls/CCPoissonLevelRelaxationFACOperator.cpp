@@ -56,7 +56,6 @@
 #include <VariableFillPattern.h>
 
 #include <algorithm>
-#include <cstring>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -349,7 +348,7 @@ CCPoissonLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, d
             KSPType ksp_type;
             KSPGetType(petsc_ksp, &ksp_type);
 
-            if (!std::strcmp(ksp_type, KSPPREONLY)) initial_guess_nonzero = false;
+            if (std::string_view(ksp_type) == KSPPREONLY) initial_guess_nonzero = false;
         }
         p_coarse_solver->setInitialGuessNonzero(initial_guess_nonzero);
     }
