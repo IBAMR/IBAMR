@@ -2692,12 +2692,10 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     {
                         if (d == axis)
                         {
-                            const double x_lower_bound = x_lower[d] +
-                                                         (static_cast<double>(i_s(d) - patch_lower[d]) - 0.5) * dx[d] -
-                                                         std::sqrt(std::numeric_limits<double>::epsilon());
-                            const double x_upper_bound = x_lower[d] +
-                                                         (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d] +
-                                                         std::sqrt(std::numeric_limits<double>::epsilon());
+                            const double x_lower_bound =
+                                x_lower[d] + (static_cast<double>(i_s(d) - patch_lower[d]) - 0.5) * dx[d] - TOL * dx[d];
+                            const double x_upper_bound =
+                                x_lower[d] + (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d] + TOL * dx[d];
                             TBOX_ASSERT(x_lower_bound <= x(d) && x(d) <= x_upper_bound);
                         }
                         else
@@ -2705,10 +2703,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             const double x_intersection =
                                 x_lower[d] + (static_cast<double>(i_s(d) - patch_lower[d]) + 0.5) * dx[d];
                             const double x_interp = x(d);
-                            const double rel_diff =
-                                std::abs(x_intersection - x_interp) /
-                                std::max(1.0, std::max(std::abs(x_intersection), std::abs(x_interp)));
-                            TBOX_ASSERT(rel_diff <= std::sqrt(std::numeric_limits<double>::epsilon()));
+                            TBOX_ASSERT(std::abs(x_intersection - x_interp) <= TOL * dx[d]);
                         }
                     }
 #endif
