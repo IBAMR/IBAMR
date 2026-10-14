@@ -47,9 +47,9 @@
 #include <SideGeometry.h>
 
 #include <algorithm>
-#include <cstring>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -128,7 +128,7 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
                                                        int level_num,
                                                        int num_sweeps,
                                                        bool /*performing_pre_sweeps*/,
-                                                       bool /*performing_post_sweeps*/)
+                                                       bool performing_post_sweeps)
 {
     if (num_sweeps == 0) return;
 
@@ -248,7 +248,18 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
                     p_petsc_solver ? p_petsc_solver->getPETScKSP() : p_petsc_level_solver->getPETScKSP();
                 KSPType ksp_type;
                 KSPGetType(petsc_ksp, &ksp_type);
-                if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+                if (std::string_view(ksp_type) == KSPPREONLY)
+                {
+                    // The solve starts from zero, which would discard the correction that post-smoothing keeps.
+                    if (performing_post_sweeps)
+                    {
+                        TBOX_ERROR(d_object_name << "::smoothError():\n"
+                                                 << "  post-smoothing with a level solver of KSP type preonly discards "
+                                                    "the coarse-grid correction\n"
+                                                 << "  use KSP type richardson" << std::endl);
+                    }
+                    initial_guess_nonzero = false;
+                }
             }
             p_level_solver->setInitialGuessNonzero(initial_guess_nonzero);
         }
