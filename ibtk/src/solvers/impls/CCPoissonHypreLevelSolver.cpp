@@ -196,14 +196,6 @@ CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    // Ensure the initial guess is zero when appropriate.  (hypre does not
-    // reliably honor the SetZeroGuess settings.)  Ghost values hold boundary
-    // data and are left alone.
-    if (!d_initial_guess_nonzero)
-    {
-        x.setToScalar(0.0, /*interior_only*/ true);
-    }
-
     // Solve the system using the hypre solver.
     static const int comp = 0;
     const int x_idx = x.getComponentDescriptorIndex(comp);
@@ -1042,6 +1034,16 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     }
     const bool norms_recorded = d_rel_residual_tol > 0.0 && d_max_iterations > 0;
 
+    // The initial guess is zero if initial_guess_nonzero is FALSE, without
+    // reading the solution data.  Ghost values are never part of it.
+    if (!d_initial_guess_nonzero)
+    {
+        for (unsigned int k = 0; k < d_depth; ++k)
+        {
+            HYPRE_StructVectorSetConstantValues(d_sol_vecs[k], 0.0);
+        }
+    }
+
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
@@ -1050,9 +1052,13 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
-        // Copy the solution data into the hypre vector.
+        // Copy the solution data into the hypre vector, unless the initial
+        // guess is zero.
         Pointer<CellData<NDIM, double>> x_data = patch->getPatchData(x_idx);
-        copyToHypre(d_sol_vecs, *x_data, patch_box);
+        if (d_initial_guess_nonzero)
+        {
+            copyToHypre(d_sol_vecs, *x_data, patch_box);
+        }
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
