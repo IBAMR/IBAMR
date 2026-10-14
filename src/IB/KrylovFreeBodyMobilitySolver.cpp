@@ -358,7 +358,7 @@ KrylovFreeBodyMobilitySolver::resetKSPPC()
         pc_type = std::string(pc_type_str);
     }
 
-    if (!(pc_type == "none" || pc_type == "shell"))
+    if (!(pc_type == PCNONE || pc_type == PCSHELL))
     {
         TBOX_ERROR(d_object_name << "::resetKSPPC()\n"
                                  << "  valid values for -" << d_options_prefix << "pc_type are: none, shell"
@@ -367,11 +367,11 @@ KrylovFreeBodyMobilitySolver::resetKSPPC()
 
     PC petsc_pc;
     KSPGetPC(d_petsc_ksp, &petsc_pc);
-    if (pc_type == "none")
+    if (pc_type == PCNONE)
     {
         PCSetType(petsc_pc, PCNONE);
     }
-    else if (pc_type == "shell")
+    else if (pc_type == PCSHELL)
     {
         PCSetType(petsc_pc, PCSHELL);
         PCShellSetContext(petsc_pc, static_cast<void*>(this));

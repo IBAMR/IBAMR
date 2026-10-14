@@ -623,13 +623,13 @@ PETScKrylovLinearSolver::resetKSPPC()
     PetscBool flg;
     ierr = PetscOptionsGetString(nullptr, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     IBTK_CHKERRQ(ierr);
-    std::string pc_type = "shell";
+    std::string pc_type = PCSHELL;
     if (flg)
     {
         pc_type = std::string(pc_type_str);
     }
 
-    if (!(pc_type == "none" || pc_type == "shell"))
+    if (!(pc_type == PCNONE || pc_type == PCSHELL))
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  valid values for -" << d_options_prefix << "pc_type are: none, shell"
@@ -639,12 +639,12 @@ PETScKrylovLinearSolver::resetKSPPC()
     PC petsc_pc;
     ierr = KSPGetPC(d_petsc_ksp, &petsc_pc);
     IBTK_CHKERRQ(ierr);
-    if (pc_type == "none" || !d_pc_solver)
+    if (pc_type == PCNONE || !d_pc_solver)
     {
         ierr = PCSetType(petsc_pc, PCNONE);
         IBTK_CHKERRQ(ierr);
     }
-    else if (pc_type == "shell" && d_pc_solver)
+    else if (pc_type == PCSHELL && d_pc_solver)
     {
         ierr = PCSetType(petsc_pc, PCSHELL);
         IBTK_CHKERRQ(ierr);

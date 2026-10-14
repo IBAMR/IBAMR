@@ -59,6 +59,8 @@
 #include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
 
+#include <petscksp.h>
+
 #include <ArrayData.h>
 #include <BasePatchHierarchy.h>
 #include <BasePatchLevel.h>
@@ -756,7 +758,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     if (d_stokes_solver_type == StaggeredStokesSolverManager::UNDEFINED)
     {
         d_stokes_solver_type = StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER;
-        d_stokes_solver_db->putString("ksp_type", "fgmres");
+        d_stokes_solver_db->putString("ksp_type", KSPFGMRES);
     }
 
     if (d_stokes_precond_type == StaggeredStokesSolverManager::UNDEFINED)
@@ -768,7 +770,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     if (d_velocity_solver_type == SCPoissonSolverManager::UNDEFINED)
     {
         d_velocity_solver_type = SCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-        d_velocity_solver_db->putString("ksp_type", "richardson");
+        d_velocity_solver_db->putString("ksp_type", KSPRICHARDSON);
         d_velocity_solver_db->putInteger("max_iterations", 10);
         d_velocity_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }
@@ -790,7 +792,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     if (d_pressure_solver_type == CCPoissonSolverManager::UNDEFINED)
     {
         d_pressure_solver_type = CCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-        d_pressure_solver_db->putString("ksp_type", "richardson");
+        d_pressure_solver_db->putString("ksp_type", KSPRICHARDSON);
         d_pressure_solver_db->putInteger("max_iterations", 10);
         d_pressure_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }

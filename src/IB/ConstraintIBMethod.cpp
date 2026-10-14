@@ -49,6 +49,7 @@
 #include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
+#include <petscksp.h>
 #include <petscvec.h>
 
 #include <ArrayData.h>
@@ -597,7 +598,7 @@ ConstraintIBMethod::initializeHierarchyOperatorsandData()
         if (d_velcorrection_projection_solver_type == CCPoissonSolverManager::UNDEFINED)
         {
             d_velcorrection_projection_solver_type = CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER;
-            d_velcorrection_projection_solver_db->putString("ksp_type", "gmres");
+            d_velcorrection_projection_solver_db->putString("ksp_type", KSPGMRES);
             d_velcorrection_projection_solver_db->putDouble("abs_residual_tol", 1.0e-12);
             d_velcorrection_projection_solver_db->putDouble("rel_residual_tol", 1.0e-8);
             d_velcorrection_projection_solver_db->putInteger("max_iterations", 25);

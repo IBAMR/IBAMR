@@ -375,7 +375,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty()) setupNullSpace();
 
     // Setup the preconditioner.
-    if (d_pc_type == "asm")
+    if (d_pc_type == PCASM)
     {
         // Generate user-defined subdomains.
         std::vector<std::set<int>> overlap_is, nonoverlap_is;
@@ -405,7 +405,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
     }
 
-    if (d_pc_type == "fieldsplit")
+    if (d_pc_type == PCFIELDSPLIT)
     {
         std::vector<std::set<int>> field_is;
         std::vector<std::string> field_name;
@@ -436,7 +436,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
     }
 
-    if (d_pc_type == "shell")
+    if (d_pc_type == PCSHELL)
     {
         Mat diagonal_mat_block;
         ierr = MatGetDiagonalBlock(d_petsc_mat, &diagonal_mat_block);
@@ -675,7 +675,7 @@ PETScLevelSolver::deallocateSolverState()
     IBTK_CHKERRQ(ierr);
 
     // Deallocate PETSc objects for shell preconditioner.
-    if (d_pc_type == "shell")
+    if (d_pc_type == PCSHELL)
     {
         for (int i = 0; i < d_n_local_subdomains; ++i)
         {

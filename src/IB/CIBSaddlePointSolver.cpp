@@ -165,7 +165,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
     if (!stokes_solver_db)
     {
         stokes_solver_db = new MemoryDatabase("stokes_solver_db");
-        stokes_solver_db->putString("ksp_type", "fgmres");
+        stokes_solver_db->putString("ksp_type", KSPFGMRES);
     }
 
     std::string stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
@@ -191,7 +191,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
     if (!velocity_solver_db)
     {
         velocity_solver_db = new MemoryDatabase("velocity_solver_db");
-        velocity_solver_db->putString("ksp_type", "richardson");
+        velocity_solver_db->putString("ksp_type", KSPRICHARDSON);
         velocity_solver_db->putInteger("max_iterations", 10);
         velocity_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }
@@ -220,7 +220,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
     if (!pressure_solver_db)
     {
         pressure_solver_db = new MemoryDatabase("pressure_solver_db");
-        pressure_solver_db->putString("ksp_type", "richardson");
+        pressure_solver_db->putString("ksp_type", KSPRICHARDSON);
         pressure_solver_db->putInteger("max_iterations", 10);
         pressure_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }
@@ -863,7 +863,7 @@ CIBSaddlePointSolver::resetKSPPC()
         pc_type = std::string(pc_type_str);
     }
 
-    if (!(pc_type == "none" || pc_type == "shell"))
+    if (!(pc_type == PCNONE || pc_type == PCSHELL))
     {
         TBOX_ERROR(d_object_name << "::resetKSPPC()\n"
                                  << "  valid values for -" << d_options_prefix << "pc_type are: none, shell"
@@ -872,11 +872,11 @@ CIBSaddlePointSolver::resetKSPPC()
 
     PC petsc_pc;
     KSPGetPC(d_petsc_ksp, &petsc_pc);
-    if (pc_type == "none")
+    if (pc_type == PCNONE)
     {
         PCSetType(petsc_pc, PCNONE);
     }
-    else if (pc_type == "shell")
+    else if (pc_type == PCSHELL)
     {
         PCSetType(petsc_pc, PCSHELL);
         PCShellSetContext(petsc_pc, static_cast<void*>(this));
@@ -1030,7 +1030,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     }
 
     // Solve using previous u_p as a guess for Krylov solvers.
-    if (solver->d_ksp_type == "preonly")
+    if (solver->d_ksp_type == KSPPREONLY)
     {
         dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setInitialGuessNonzero(false);
     }
