@@ -302,6 +302,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
     }
 
     // Configure the coarse level solver.
+    setSmootherType(d_smoother_type);
     setCoarseSolverType(d_coarse_solver_type);
 
     // Construct a variable to store any needed masking data.
@@ -335,6 +336,14 @@ SCPoissonPointRelaxationFACOperator::~SCPoissonPointRelaxationFACOperator()
 void
 SCPoissonPointRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
 {
+    if (get_smoother_type(smoother_type) == UNKNOWN)
+    {
+        TBOX_ERROR(d_object_name << "::setSmootherType():\n"
+                                 << "  unsupported smoother type: " << smoother_type << "\n"
+                                 << "  supported types: PATCH_GAUSS_SEIDEL, PROCESSOR_GAUSS_SEIDEL, "
+                                    "RED_BLACK_GAUSS_SEIDEL"
+                                 << std::endl);
+    }
     d_smoother_type = smoother_type;
     return;
 } // setSmootherType
