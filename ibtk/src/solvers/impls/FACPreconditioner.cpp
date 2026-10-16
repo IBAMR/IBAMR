@@ -30,6 +30,7 @@
 #include <ostream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -128,6 +129,15 @@ FACPreconditioner::setTimeInterval(const double current_time, const double new_t
     d_fac_strategy->setTimeInterval(current_time, new_time);
     return;
 } // setTimeInterval
+
+void
+FACPreconditioner::setNullSpace(const bool nullspace_contains_constant_vec,
+                                const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& nullspace_basis_vecs)
+{
+    LinearSolver::setNullSpace(nullspace_contains_constant_vec, nullspace_basis_vecs);
+    d_fac_strategy->setNullSpace(d_nullspace_contains_constant_vec, d_nullspace_basis_vecs);
+    return;
+} // setNullSpace
 
 bool
 FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)

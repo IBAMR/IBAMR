@@ -47,6 +47,7 @@ namespace IBTK
 {
 class HierarchyGhostCellInterpolation;
 class HierarchyMathOps;
+class LinearSolver;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -90,6 +91,13 @@ namespace IBTK
  * The parameter ghost_cell_width is the necessary ghost cell width for all operations required by this class and
  derived classes. Such operations includes restricting, prolongation, computing residuals, and smoothing error. The
  patch indices in the RHS vector must have ghost cell widths that are equal to this parameter.
+ *
+ * This class uses only the constant vector of a null space.  If the null space
+ * contains the constant vector and the coarsest level covers the physical
+ * domain, the class sets that on the coarse level solver and gives it the
+ * HierarchyMathOps object of the coarsest level, which supplies the
+ * control-volume weights of the level.  It never sets the constant vector on a
+ * level solver that smooths a finer level.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
@@ -184,6 +192,16 @@ public:
      * Poisson specifications changes.
      */
     void setResetLevels(int coarsest_ln, int finest_ln);
+
+    /*!
+     * \brief Set whether the null space of the operator contains the constant
+     * vector.
+     *
+     * The basis vectors are not used.
+     */
+    void setNullSpace(bool nullspace_contains_constant_vec,
+                      const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>&
+                          nullspace_basis_vecs) override;
 
     /*!
      * \brief Specify the smoother type.
@@ -330,6 +348,16 @@ protected:
     virtual void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) = 0;
 
     /*!
+     * \brief Set whether the constant vector is in the null space of the coarse level solver.
+     *
+     * The constant vector is in the null space if setNullSpace() was called with \a true and the coarsest level covers
+     * the physical domain. In that case, this function also gives the solver the HierarchyMathOps object of the
+     * coarsest level. Call this function before each coarse solve: setNullSpace() can change the answer after the
+     * operator state is initialized.
+     */
+    void setCoarseSolverNullSpace(LinearSolver& coarse_solver);
+
+    /*!
      * \name Methods for executing, caching, and resetting communication
      * schedules.
      */
@@ -447,6 +475,16 @@ protected:
     double d_coarse_solver_rel_residual_tol = 1.0e-5;
     double d_coarse_solver_abs_residual_tol = 1.0e-50;
     int d_coarse_solver_max_iterations = 10;
+
+    /*
+     * Whether the null space of the operator contains the constant vector.
+     */
+    bool d_nullspace_contains_constant_vec = false;
+
+    /*
+     * Whether the coarsest level covers the physical domain, set when the operator state is initialized.
+     */
+    bool d_coarsest_level_covers_domain = false;
 
     //\}
 

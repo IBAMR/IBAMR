@@ -1,0 +1,13 @@
+number_of_patches = 1
+number_of_cells = 256
+use_1_depth = 1
+use_1_rhs_mean_0 = 0.5
+use_1_solution_max_norm_0 = 0.012573
+use_2_depth = 2
+use_2_rhs_mean_0 = 0.5
+use_2_solution_max_norm_0 = 0.012573
+use_2_rhs_mean_1 = 2
+use_2_solution_max_norm_1 = 0.00971208
+use_3_depth = 1
+use_3_rhs_mean_0 = 0.5
+use_3_solution_max_norm_0 = 0.012573

@@ -67,6 +67,9 @@ namespace IBTK
  * strategy is linear.  A nonlinear preconditioner requires a flexible Krylov
  * method such as FGMRES, or Richardson iteration.
  *
+ * The null space set with setNullSpace() is passed on to the
+ * FACPreconditionerStrategy.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
@@ -113,6 +116,14 @@ public:
      * \brief Set the current time interval.
      */
     void setTimeInterval(double current_time, double new_time) override;
+
+    /*!
+     * \brief Set the nullspace of the linear system and give it to the FAC
+     * strategy.
+     */
+    void setNullSpace(bool nullspace_contains_constant_vec,
+                      const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>&
+                          nullspace_basis_vecs = {}) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.

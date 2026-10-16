@@ -97,6 +97,16 @@ namespace IBTK
  * values of \a x hold the solution and every ghost value is as the caller gave
  * it.
  *
+ * <b>Null space.</b> If setNullSpace() is called with the argument
+ * \a nullspace_contains_constant_vec equal to TRUE, solveSystem() subtracts the
+ * control-volume-weighted mean over the level, in each depth component, from
+ * the right-hand side that it gives to hypre; the solution is then determined
+ * up to a constant, which is whatever hypre returns.  The weights come from the
+ * HierarchyMathOps object given to setHierarchyMathOps() if that object covers
+ * only this level, and otherwise from an object that the solver creates.  Only
+ * the constant vector is used.  The caller sets the flag only if the problem on
+ * the level is singular, for example with periodic or Neumann boundaries only.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
@@ -294,6 +304,32 @@ private:
     void deallocateHypreData();
 
     /*!
+     * \brief Allocate the scratch data for removing the mean of the right-hand side.
+     */
+    void allocateNullSpaceData();
+
+    /*!
+     * \brief Deallocate the data allocated by allocateNullSpaceData().
+     */
+    void deallocateNullSpaceData();
+
+    /*!
+     * \brief Return the HierarchyMathOps object that supplies the weights: the given one if it covers only this
+     * level, and otherwise one that this solver creates.
+     */
+    SAMRAI::tbox::Pointer<HierarchyMathOps> getNullSpaceMathOps();
+
+    /*!
+     * \brief Deallocate the weights of the HierarchyMathOps object that this solver created, and release it.
+     */
+    void deallocateOwnMathOps();
+
+    /*!
+     * \brief Remove the control-volume-weighted mean over the level from the right-hand-side data.
+     */
+    void removeMeanFromRhs();
+
+    /*!
      * \brief Associated hierarchy.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
@@ -304,6 +340,14 @@ private:
     int d_level_num = IBTK::invalid_level_number;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary;
+
+    /*!
+     * \brief Scratch data for removing the mean of the right-hand side, allocated if the null space contains the
+     * constant vector, and the HierarchyMathOps object that this solver created, if it uses no given one.
+     */
+    int d_rhs_idx = IBTK::invalid_index;
+    int d_rhs_component_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_level_math_ops;
 
     /*!
      * \name Problem specification.
