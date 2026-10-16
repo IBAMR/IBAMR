@@ -25,8 +25,11 @@
 
 #include <tbox/Pointer.h>
 
+#include <BoxArray.h>
 #include <IntVector.h>
 
+#include <array>
+#include <map>
 #include <vector>
 
 namespace IBAMR
@@ -170,6 +173,15 @@ public:
      */
     void setHomogeneousBc(bool homogeneous_bc) override;
 
+    /*!
+     * \brief Accumulate the transpose of the dependence of \f$ \gamma \f$ on
+     * the normal velocity.
+     */
+    void accumulateFromBcCoefs(const SAMRAI::pdat::ArrayData<NDIM, double>& gcoef_data,
+                               const SAMRAI::hier::Patch<NDIM>& patch,
+                               const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                               double fill_time) const override;
+
     //\}
 
     /*!
@@ -279,6 +291,17 @@ private:
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    /*
+     * Return the physical domain of the level of patch, including its periodic
+     * images.
+     */
+    const SAMRAI::hier::BoxArray<NDIM>& getPhysicalDomain(const SAMRAI::hier::Patch<NDIM>& patch) const;
+
+    /*
+     * The physical domain, with its periodic images, by refinement ratio.
+     */
+    mutable std::map<std::array<int, NDIM>, SAMRAI::hier::BoxArray<NDIM>> d_physical_domain;
 };
 } // namespace IBAMR
 
