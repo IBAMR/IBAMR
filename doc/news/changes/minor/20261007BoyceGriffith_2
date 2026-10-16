@@ -1,0 +1,3 @@
+Fixed: IBTK::PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary() corrects the right-hand side for exactly the couplings that the level matrix drops, including at concave corners, and IBTK::VCSCViscousPETScLevelSolver no longer reads past the end of the coarse-fine boundary data.
+<br>
+(Boyce Griffith, 2026/10/07)
