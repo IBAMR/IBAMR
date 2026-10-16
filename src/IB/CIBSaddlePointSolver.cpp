@@ -639,8 +639,10 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     const int finest_ln = sol_vec.getFinestLevelNumber();
 
     // Set the nullspace of the LInv and subdomain solvers
-    const double rho = d_ins_integrator->getStokesSpecifications()->getRho();
-    const bool has_velocity_nullspace = d_normalize_velocity && IBTK::abs_equal_eps(rho, 0.0);
+    const PoissonSpecifications& U_problem_coefs = d_A->getVelocityPoissonSpecifications();
+    const bool has_velocity_nullspace =
+        d_normalize_velocity &&
+        (U_problem_coefs.cIsZero() || (U_problem_coefs.cIsConstant() && U_problem_coefs.getCConstant() == 0.0));
     const bool has_pressure_nullspace = d_normalize_pressure;
 
     for (const auto& nul_vec : d_nul_vecs)
