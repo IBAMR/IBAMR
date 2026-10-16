@@ -1,0 +1,3 @@
+Improved: The Gauss-Seidel point smoothers traverse each patch in a wavefront, which lets the processor execute four updates concurrently; results are unchanged.
+<br>
+(Boyce Griffith, 2026/10/02)
