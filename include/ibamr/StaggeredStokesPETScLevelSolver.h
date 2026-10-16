@@ -69,9 +69,11 @@ namespace IBAMR
  * velocity at a boundary at which the normal velocity is not prescribed.
  *
  * With TRACTION boundary conditions, the matrix contains the dependence of the ghost value of a tangential velocity on
- * the normal velocity on the boundary, and the solution vector is read only as the initial guess and for coarse-fine
- * ghost values. The solver omits the viscous normal-stress term that StaggeredStokesOperator adds at a boundary with
- * TRACTION conditions at which the normal velocity is not prescribed, so there it solves a different problem.
+ * the normal velocity on the boundary, and the solver reads the solution vector only as the initial guess and for
+ * coarse-fine ghost values. Where TRACTION conditions are imposed and the normal velocity is not prescribed, the matrix
+ * also contains the dependence of the viscous normal-stress term that
+ * StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm() computes, and the right-hand side contains its
+ * boundary data.
  *
  * \see INSStaggeredHierarchyIntegrator
  */

@@ -48,6 +48,8 @@
 #include <utility>
 #include <vector>
 
+#include "./ins_staggered_traction_stencil.h"
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 // FORTRAN ROUTINES
@@ -81,31 +83,6 @@ namespace IBAMR
 {
 namespace
 {
-// Return the normal velocity on the face of the ghost cell i_g that is farther from the physical boundary and makes
-// the discrete divergence of u_data vanish in i_g.
-double
-divergence_free_normal_ghost_value(const SideData<NDIM, double>& u_data,
-                                   const hier::Index<NDIM>& i_g,
-                                   const unsigned int normal_axis,
-                                   const bool is_lower,
-                                   const double* const dx)
-{
-    double div_u_g = 0.0;
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        const SideIndex<NDIM> i_g_s_upper(i_g, axis, SideIndex<NDIM>::Upper);
-        const SideIndex<NDIM> i_g_s_lower(i_g, axis, SideIndex<NDIM>::Lower);
-        double u_upper = u_data(i_g_s_upper);
-        double u_lower = u_data(i_g_s_lower);
-        if (axis == normal_axis)
-        {
-            (is_lower ? u_lower : u_upper) = 0.0;
-        }
-        div_u_g += (u_upper - u_lower) * dx[normal_axis] / dx[axis];
-    }
-    return (is_lower ? +1.0 : -1.0) * div_u_g;
-}
-
 #if (NDIM == 2)
 using ViscousCoefData = NodeData<NDIM, double>;
 constexpr int NUM_CELL_COEFS = 4;
@@ -394,7 +371,8 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
                     // the velocity field is zero in the ghost cell.
                     SideIndex<NDIM> i_g_s(
                         i_g, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
-                    (*u_data)(i_g_s) = divergence_free_normal_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
+                    (*u_data)(i_g_s) =
+                        traction_stencil::get_divergence_free_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
                 }
             }
         }
@@ -497,7 +475,8 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
                 SideIndex<NDIM> i_s_inside = i_s_boundary;
                 i_s_inside(bdry_normal_axis) += is_lower ? 1 : -1;
                 const double u_inside = (*u_data)(i_s_inside);
-                const double u_div = divergence_free_normal_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
+                const double u_div =
+                    traction_stencil::get_divergence_free_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
                 (*f_data)(i_s_boundary) += viscous_coef * (u_inside - u_div) / (h * h);
             }
         }
@@ -599,8 +578,8 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
                     {
                         const double coef_boundary =
                             face_viscous_coef(*coef_data, i, bdry_normal_axis, viscous_coef_interp_type);
-                        const double u_div =
-                            divergence_free_normal_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
+                        const double u_div = traction_stencil::get_divergence_free_ghost_value(
+                            *u_data, i_g, bdry_normal_axis, is_lower, dx);
                         term -= coef_boundary * (u_inside - u_div);
                     }
                     (*f_data)(i_s_boundary) += term / (h * h);
@@ -610,6 +589,54 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
     }
     return;
 } // addNormalTractionViscousTerm
+
+void
+StaggeredStokesPhysicalBoundaryHelper::setResidualAtDirichletBoundaries(const int r_data_idx,
+                                                                        const int f_data_idx,
+                                                                        const int u_data_idx,
+                                                                        const int coarsest_ln,
+                                                                        const int finest_ln) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hierarchy);
+#endif
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+    for (int ln = (coarsest_ln == IBTK::invalid_level_number ? 0 : coarsest_ln);
+         ln <= (finest_ln == IBTK::invalid_level_number ? finest_hier_level : finest_ln);
+         ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            if (!patch->getPatchGeometry()->getTouchesRegularBoundary())
+            {
+                continue;
+            }
+            Pointer<SideData<NDIM, double>> r_data = patch->getPatchData(r_data_idx);
+            Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_data_idx);
+            const Array<BoundaryBox<NDIM>>& physical_codim1_boxes =
+                d_physical_codim1_boxes[ln].find(patch->getPatchNumber())->second;
+            const std::vector<Pointer<ArrayData<NDIM, bool>>>& dirichlet_bdry_locs =
+                d_dirichlet_bdry_locs[ln].find(patch->getPatchNumber())->second;
+            for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+            {
+                const unsigned int bdry_normal_axis = physical_codim1_boxes[n].getLocationIndex() / 2;
+                const ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
+                for (Box<NDIM>::Iterator it(bdry_locs_data.getBox()); it; it++)
+                {
+                    const hier::Index<NDIM>& i = it();
+                    if (bdry_locs_data(i, 0))
+                    {
+                        const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                        (*r_data)(i_s) = (*f_data)(i_s) - (*u_data)(i_s);
+                    }
+                }
+            }
+        }
+    }
+} // setResidualAtDirichletBoundaries
 
 void
 StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,

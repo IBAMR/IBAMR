@@ -82,6 +82,8 @@
 #include <utility>
 #include <vector>
 
+#include "./ins_staggered_traction_stencil.h"
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -659,8 +661,37 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                             1.0,
                                             P_rhs_idx,
                                             P_rhs_cc_var);
+    setBoundaryMomentumResidual(U_res_idx, U_sol_idx, U_rhs_idx, coarsest_level_num, finest_level_num);
     return;
 } // computeResidual
+
+void
+StaggeredStokesFACPreconditionerStrategy::setBoundaryMomentumResidual(const int U_res_idx,
+                                                                      const int U_sol_idx,
+                                                                      const int U_rhs_idx,
+                                                                      const int coarsest_ln,
+                                                                      const int finest_ln)
+{
+    if (!d_bc_helper)
+    {
+        return;
+    }
+
+    // StaggeredStokesOperator adds the viscous term that imposes the TRACTION condition at a boundary face at which
+    // the normal velocity is not prescribed; the helper adds it to the residual.
+    if (d_has_traction_conditions)
+    {
+        d_bc_helper->addNormalTractionViscousTerm(U_res_idx,
+                                                  U_sol_idx,
+                                                  -d_U_problem_coefs.getDConstant(),
+                                                  d_U_bc_coefs,
+                                                  /*linear_pressure_extrapolation*/ true,
+                                                  coarsest_ln,
+                                                  finest_ln);
+    }
+
+    d_bc_helper->setResidualAtDirichletBoundaries(U_res_idx, U_rhs_idx, U_sol_idx, coarsest_ln, finest_ln);
+} // setBoundaryMomentumResidual
 
 void
 StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
@@ -694,6 +725,9 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_hierarchy = solution.getPatchHierarchy();
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln = solution.getFinestLevelNumber();
+
+    // Determine whether any velocity boundary condition object imposes TRACTION conditions.
+    d_has_traction_conditions = traction_stencil::has_traction_conditions(d_U_bc_coefs);
 
     // Setup boundary condition handling objects.
     d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
