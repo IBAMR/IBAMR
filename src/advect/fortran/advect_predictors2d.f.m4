@@ -128,7 +128,10 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute the sign of the input, returning zero if the absolute
-c     value of x is less than a specified tolerance epsilon.
+c     value of x is at most a specified tolerance epsilon.
+c
+c     The sign of a velocity that is zero up to rounding errors must
+c     not choose the upwind state.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -146,7 +149,7 @@ c
       REAL x
 c
 c     Compute the sign of the input, returning zero if the absolute
-c     value of x is less than a tolerance epsilon.
+c     value of x is at most a tolerance epsilon.
 c
       if (dabs(x) .le. EPSILON) then
          sign_eps =  0.d0
