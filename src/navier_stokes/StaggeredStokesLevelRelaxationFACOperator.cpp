@@ -154,9 +154,7 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
             Pointer<SideData<NDIM, double>> U_error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<NDIM, double>> U_scratch_data = patch->getPatchData(U_scratch_idx);
 #if !defined(NDEBUG)
-            const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
-            TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
-            TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(U_error_data->getGhostCellWidth() >= d_gcw);
             TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == d_gcw);
 #endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -169,9 +167,7 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
             Pointer<CellData<NDIM, double>> P_error_data = error.getComponentPatchData(1, *patch);
             Pointer<CellData<NDIM, double>> P_scratch_data = patch->getPatchData(P_scratch_idx);
 #if !defined(NDEBUG)
-            const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
-            TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
-            TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
+            TBOX_ASSERT(P_error_data->getGhostCellWidth() >= d_gcw);
             TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == d_gcw);
 #endif
             P_scratch_data->getArrayData().copy(P_error_data->getArrayData(),

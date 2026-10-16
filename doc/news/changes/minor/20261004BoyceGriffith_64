@@ -1,0 +1,3 @@
+Changed: IBAMR::StaggeredStokesBoxRelaxationFACOperator and IBAMR::StaggeredStokesLevelRelaxationFACOperator accept solution and right-hand-side vectors with more than one ghost cell.
+<br>
+(Boyce Griffith, 2026/10/04)

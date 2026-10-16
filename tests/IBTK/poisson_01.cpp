@@ -78,8 +78,9 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> e_cc_var = new CellVariable<NDIM, double>("e_cc");
         Pointer<CellVariable<NDIM, double>> r_cc_var = new CellVariable<NDIM, double>("r_cc");
 
-        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
-        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
+        const IntVector<NDIM> gcw(input_db->getIntegerWithDefault("vector_ghost_cell_width", 1));
+        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, gcw);
+        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, gcw);
         const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
         const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector<NDIM>(1));
 

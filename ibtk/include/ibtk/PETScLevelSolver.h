@@ -101,7 +101,8 @@ public:
      * \brief Set the KSP norm type.
      *
      * With KSP_NORM_NONE a solve applies max_iterations iterations with no convergence test. The setting is ignored
-     * when the PETSc options database selects the KSP type or the norm type.
+     * when the PETSc options database selects the KSP type or the norm type. A Richardson solve limited to one
+     * iteration uses KSP_NORM_NONE unless the PETSc options database selects the norm type.
      */
     void setKSPNormType(KSPNormType ksp_norm_type);
 

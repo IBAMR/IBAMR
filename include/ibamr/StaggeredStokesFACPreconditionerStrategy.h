@@ -90,6 +90,9 @@ namespace IBAMR
  * smoothers for staggered-grid (MAC) discretizations of the incompressible
  * Stokes equations and related problems.
  *
+ * The velocity components of the solution and right-hand-side vectors must have the same ghost cell width, and likewise
+ * their pressure components; each width must be at least the ghost cell width given to the constructor.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
@@ -326,7 +329,9 @@ public:
      *
      * - hierarchy configuration (hierarchy pointer and level range)
      * - number, type and alignment of vector component data
-     * - ghost cell width of data in the solution (or solution-like) vector
+     * - ghost cell width of data in the solution (or solution-like) and right-hand-side vectors
+     *
+     * An unrecoverable error will occur if the vector ghost cell widths differ or are less than the constructor's.
      *
      * \param solution solution vector u
      * \param rhs right hand side vector f
@@ -367,22 +372,32 @@ protected:
 
     /*!
      * \brief Execute a refinement schedule for prolonging data.
+     *
+     * \a dst_idxs are either the scratch data or have the ghost cell widths of the solution vector, and \a src_idxs
+     * have the ghost cell widths of the solution vector.
      */
     void xeqScheduleProlongation(const std::pair<int, int>& dst_idxs, const std::pair<int, int>& src_idxs, int dst_ln);
 
     /*!
      * \brief Execute schedule for restricting solution or residual to the
      * specified level.
+     *
+     * \a dst_idxs have the ghost cell widths of the right-hand-side vector, and \a src_idxs are either the scratch data
+     * or have the ghost cell widths of the right-hand-side vector.
      */
     void xeqScheduleRestriction(const std::pair<int, int>& dst_idxs, const std::pair<int, int>& src_idxs, int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.
+     *
+     * \a dst_idxs are either the scratch data or have the ghost cell widths of the solution vector.
      */
     void xeqScheduleGhostFillNoCoarse(const std::pair<int, int>& dst_idxs, int dst_ln);
 
     /*!
      * \brief Execute schedule for synchronizing data on the specified level.
+     *
+     * \a dst_idx has the ghost cell width of the solution vector.
      */
     void xeqScheduleDataSynch(int dst_idx, int dst_ln);
 
@@ -564,30 +579,40 @@ private:
     SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_U_P_bc_op;
 
     /*
-     * Error prolongation (refinement) operator.
+     * Error prolongation (refinement) operator. The wide schedules prolong into data with the ghost cell widths of the
+     * solution vector. Schedules are created on first use and discarded when the operator state is reset.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_U_prolongation_refine_operator,
         d_P_prolongation_refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_prolongation_refine_patch_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_prolongation_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_prolongation_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_prolongation_refine_algorithm,
+        d_prolongation_wide_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_prolongation_refine_schedules,
+        d_prolongation_wide_refine_schedules;
 
     /*
-     * Residual restriction (coarsening) operator.
+     * Residual restriction (coarsening) operator. The scratch schedules restrict from the scratch data. Schedules are
+     * created on first use and discarded when the operator state is reset.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM>> d_U_restriction_coarsen_operator,
         d_P_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_restriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_restriction_coarsen_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_restriction_coarsen_algorithm,
+        d_restriction_scratch_coarsen_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_restriction_coarsen_schedules,
+        d_restriction_scratch_coarsen_schedules;
 
     /*
-     * Refine operator for side and cell data from same level.
+     * Refine operator for side and cell data from same level. The scratch schedules fill the scratch data. Schedules
+     * are created on first use and discarded when the operator state is reset.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_ghostfill_nocoarse_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_ghostfill_nocoarse_refine_algorithm,
+        d_ghostfill_nocoarse_scratch_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_ghostfill_nocoarse_refine_schedules,
+        d_ghostfill_nocoarse_scratch_refine_schedules;
 
     /*
-     * Operator for side data synchronization on same level.
+     * Operator for side data synchronization on same level. Schedules are created on first use and discarded when the
+     * operator state is reset.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_synch_refine_algorithm;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_synch_refine_schedules;
