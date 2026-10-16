@@ -225,10 +225,8 @@ private:
             d_bcoef_data[location_index] = bcoef_data;
             return;
         }
-        TBOX_ERROR(
-            "PoissonUtilities::adjustRHSAtCoarseFineBoundary():\n"
-            "  the patch has no physical boundary box at location index "
-            << location_index << "\n");
+        TBOX_ERROR("DirichletRowClassifier::evaluate():\n"
+                   << "  the patch has no physical boundary box at location index " << location_index << "\n");
     }
 
     Pointer<Patch<NDIM>> d_patch;
@@ -1625,6 +1623,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
+    DirichletRowClassifier dirichlet_rows(patch, bc_coefs, data_time, homogeneous_bc);
     Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -1736,6 +1735,14 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
                     i_intr(bdry_normal_axis) -= 1;
                 }
                 const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
+
+                // The row of a Dirichlet side normal to its boundary is an identity row: its entry stays the boundary
+                // value.
+                if (dirichlet_rows.isDirichletBoundary(i_intr, axis))
+                {
+                    continue;
+                }
+
                 rhs_data(i_s) += (D / h) * (-2.0 * g) / (2.0 * b + h * a);
             }
         }
@@ -1856,6 +1863,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
+    DirichletRowClassifier dirichlet_rows(patch, bc_coefs, data_time, homogeneous_bc);
     Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -1968,6 +1976,13 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 }
                 const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
 
+                // The row of a Dirichlet side normal to its boundary is an identity row: its entry stays the boundary
+                // value.
+                if (dirichlet_rows.isDirichletBoundary(i_intr, axis))
+                {
+                    continue;
+                }
+
                 const hier::Index<NDIM> shift_bdry_normal = get_shift(bdry_normal_axis, 1);
 #if (NDIM == 2)
                 const double mu_upper = mu_array_data(i_intr + shift_bdry_normal, 0);
@@ -2078,6 +2093,13 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                     const double& hd = dx[comp];
 
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+
+                    // The row of a Dirichlet side normal to its boundary is an identity row: its entry stays the
+                    // boundary value.
+                    if (dirichlet_rows.isDirichletBoundary(i, axis))
+                    {
+                        continue;
+                    }
 
                     const hier::Index<NDIM> shift_d = get_shift(comp, 1);
 #if (NDIM == 2)
