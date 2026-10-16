@@ -76,10 +76,10 @@
 #include <VariableFillPattern.h>
 
 #include <algorithm>
-#include <cstring>
 #include <memory>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -545,7 +545,7 @@ StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<ND
                 KSPType ksp_type;
                 KSPGetType(petsc_ksp, &ksp_type);
 
-                if (!std::strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+                if (std::string_view(ksp_type) == KSPPREONLY) initial_guess_nonzero = false;
             }
             p_coarse_solver->setInitialGuessNonzero(initial_guess_nonzero);
         }

@@ -223,7 +223,7 @@ private:
     //\}
 
     // Solver stuff
-    std::string d_object_name, d_ksp_type = KSPGMRES, d_pc_type = "shell";
+    std::string d_object_name, d_ksp_type = KSPGMRES, d_pc_type = PCSHELL;
     bool d_is_initialized = false;
     bool d_reinitializing_solver = false;
     Vec d_petsc_b = nullptr, d_petsc_temp_v = nullptr, d_petsc_temp_f = nullptr;

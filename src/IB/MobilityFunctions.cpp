@@ -19,9 +19,9 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
 #include <limits>
+#include <string_view>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -68,9 +68,9 @@ static double Z_s[3];
 KERNEL_TYPES
 GetKernelType(const char* IBKernelName)
 {
-    if (!std::strcmp(IBKernelName, "IB_3")) return IB3;
-    if (!std::strcmp(IBKernelName, "IB_4")) return IB4;
-    if (!std::strcmp(IBKernelName, "IB_6")) return IB6;
+    if (std::string_view(IBKernelName) == "IB_3") return IB3;
+    if (std::string_view(IBKernelName) == "IB_4") return IB4;
+    if (std::string_view(IBKernelName) == "IB_6") return IB6;
 
     std::cerr << "IBEmpiricalMobility: Unknown interpolation kernel type.\n";
     std::exit(EXIT_FAILURE);
