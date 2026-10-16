@@ -175,6 +175,12 @@ public:
      * extrapolate the ghost cell values.  This function can be used to
      * construct the adjoint of linear operators that use ghost cell data.
      *
+     * The function adds into every value of the patch data, in the patch
+     * interior or in its ghost region inside the physical domain, that the
+     * corresponding ghost fill reads. A caller that keeps only the interior
+     * values must sum the values added in ghost regions into the patches that
+     * own them, for example with IBTK::SAMRAIGhostDataAccumulator.
+     *
      * \note A default implementation is provided that emits an error message.
      *
      * \param patch                Patch on which to fill boundary data.
