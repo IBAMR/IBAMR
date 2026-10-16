@@ -1,0 +1,3 @@
+Fixed: IBTK::NodeDataSynchronization and IBTK::EdgeDataSynchronization synchronize values shared by three or more patches consistently, independent of the number of processors.
+<br>
+(Boyce Griffith, 2026/10/04)
