@@ -103,23 +103,45 @@ generate_markers(const unsigned int& /*strct_num*/,
     return;
 } // generate_markers
 
+// Register and allocate velocity data on the level with the ghost width that the IB integrator registers, and return
+// its patch data index.
+int
+allocate_velocity_data(Pointer<PatchLevel<NDIM>> level,
+                       Pointer<INSHierarchyIntegrator> ins_integrator,
+                       Pointer<IBHierarchyIntegrator> ib_integrator,
+                       Pointer<IBMethod> ib_method_ops,
+                       const bool divergence_free_extension,
+                       const double time)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const Pointer<Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
+    IntVector<NDIM> ghost_width = ib_method_ops->getMinimumGhostCellWidth();
+    if (divergence_free_extension)
+    {
+        ghost_width += ib_integrator->getVelocityPhysBdryOp()->getRefineOpStencilWidth();
+    }
+    const int u_idx =
+        var_db->registerVariableAndContext(u_var, var_db->getContext("interpolation_spreading_adjoint"), ghost_width);
+    level->allocatePatchData(u_idx, time);
+    return u_idx;
+} // allocate_velocity_data
+
 // With homogeneous velocity boundary conditions, check (F, J u) = (S F, u) for velocity interpolation J and force
 // spreading S, where the Eulerian inner product weights each degree of freedom once by the cell volume.
 void
 check_interpolation_spreading_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                       Pointer<INSHierarchyIntegrator> ins_integrator,
                                       Pointer<IBHierarchyIntegrator> ib_integrator,
-                                      Pointer<IBMethod> ib_method_ops)
+                                      Pointer<IBMethod> ib_method_ops,
+                                      const bool divergence_free_extension)
 {
     const int ln = patch_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
     const double time = ib_integrator->getIntegratorTime();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const Pointer<Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
-    const int u_idx = var_db->registerVariableAndContext(
-        u_var, var_db->getContext("interpolation_spreading_adjoint"), ib_method_ops->getMinimumGhostCellWidth());
-    const int f_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
-    level->allocatePatchData(u_idx, time);
+    const int u_idx =
+        allocate_velocity_data(level, ins_integrator, ib_integrator, ib_method_ops, divergence_free_extension, time);
+    const int f_idx = VariableDatabase<NDIM>::getDatabase()->registerClonedPatchDataIndex(
+        ins_integrator->getVelocityVariable(), u_idx);
     level->allocatePatchData(f_idx, time);
 
     RobinPhysBdryPatchStrategy* bdry_op = ib_integrator->getVelocityPhysBdryOp();
@@ -130,7 +152,8 @@ check_interpolation_spreading_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierar
     std::vector<Pointer<RefineSchedule<NDIM>>> ghost_fill_scheds(ln + 1);
     ghost_fill_scheds[ln] = ghost_fill_alg->createSchedule(level, bdry_op);
 
-    // Set a velocity that depends only on position; a ghost fill zeroes its prescribed boundary values.
+    // Set a velocity that depends only on position and fill its ghost values with the homogeneous boundary
+    // conditions.
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = level->getPatch(p());
@@ -268,6 +291,8 @@ main(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
+        const bool divergence_free_extension = app_initializer->getComponentDatabase("IBHierarchyIntegrator")
+                                                   ->getBoolWithDefault("divergence_free_velocity_extension", false);
         MarkerParameters marker_params{ input_db->getInteger("MAX_LEVELS") - 1, input_db->getInteger("N") };
         Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
@@ -300,7 +325,8 @@ main(int argc, char* argv[])
         const double current_time = ib_integrator->getIntegratorTime();
         ib_integrator->preprocessIntegrateHierarchy(
             current_time, current_time + ib_integrator->getMaximumTimeStepSize(), 1);
-        check_interpolation_spreading_adjoint(patch_hierarchy, ins_integrator, ib_integrator, ib_method_ops);
+        check_interpolation_spreading_adjoint(
+            patch_hierarchy, ins_integrator, ib_integrator, ib_method_ops, divergence_free_extension);
 
         for (unsigned int d = 0; d < NDIM; ++d)
         {

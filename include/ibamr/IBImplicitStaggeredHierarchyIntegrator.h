@@ -75,6 +75,9 @@ namespace IBAMR
  * \brief Class IBImplicitStaggeredHierarchyIntegrator is an implementation of a
  * formally second-order accurate, nonlinearly-implicit version of the immersed
  * boundary method.
+ *
+ * The option <code>divergence_free_velocity_extension = TRUE</code> of
+ * IBHierarchyIntegrator is not supported.
  */
 class IBImplicitStaggeredHierarchyIntegrator : public IBHierarchyIntegrator
 {
