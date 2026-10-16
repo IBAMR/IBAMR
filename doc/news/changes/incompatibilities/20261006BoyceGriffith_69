@@ -1,0 +1,3 @@
+Changed: The incompressible Navier-Stokes boundary condition classes require velocity boundary coefficients (a, b) that are exactly (1, 0) or (0, 1), and report an error otherwise. Dirichlet conditions are identified exactly (b == 0 and a != 0) throughout IBTK and IBAMR.
+<br>
+(Boyce Griffith, 2026/10/06)
