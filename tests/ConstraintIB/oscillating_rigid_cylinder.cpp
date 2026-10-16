@@ -244,6 +244,9 @@ main(int argc, char* argv[])
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
+        // Set physical boundary operator used in interpolation and spreading.
+        ib_method_ops->setVelocityPhysBdryOp(time_integrator->getVelocityPhysBdryOp());
+
         // Create ConstraintIBKinematics objects
         vector<Pointer<ConstraintIBKinematics>> ibkinematics_ops_vec;
         Pointer<ConstraintIBKinematics> ib_kinematics_op;
