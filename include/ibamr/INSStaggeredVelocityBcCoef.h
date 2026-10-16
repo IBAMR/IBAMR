@@ -27,9 +27,11 @@
 
 #include <BoxArray.h>
 #include <IntVector.h>
+#include <SideIndex.h>
 
 #include <array>
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace IBAMR
@@ -183,6 +185,24 @@ public:
                                double fill_time) const override;
 
     //\}
+
+    /*!
+     * \brief Return the dependence of \f$ \gamma \f$ on the normal velocity at one location of a boundary.
+     *
+     * The function returns the normal velocity values that \f$ \gamma \f$ depends on at the location \a i, each with
+     * the derivative of \f$ \gamma \f$ with respect to it. The result is empty unless this object imposes TRACTION
+     * conditions on a component tangential to the boundary.
+     *
+     * \param i  Location, in the index space of the Robin coefficients, at which the traction is prescribed.
+     * \param patch  Patch with the geometry that setBcCoefs() requires.
+     * \param ghost_box  Ghost box of the data that the returned side indices refer to.
+     */
+    std::vector<std::pair<SAMRAI::pdat::SideIndex<NDIM>, double>>
+    getNormalVelocityStencil(const SAMRAI::hier::Index<NDIM>& i,
+                             const SAMRAI::hier::Patch<NDIM>& patch,
+                             const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                             const SAMRAI::hier::Box<NDIM>& ghost_box,
+                             double fill_time) const;
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
