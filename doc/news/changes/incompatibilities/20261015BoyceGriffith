@@ -1,0 +1,3 @@
+Removed: The overload of IBTK::PoissonUtilities::adjustRHSAtCoarseFineBoundary() for side-centered data that takes only the coarse-fine boundary boxes of codimension 1 is gone. Callers use the overload that also takes the boxes of codimension 2 and the boundary condition coefficients.
+<br>
+(Boyce Griffith, 2026/10/15)
