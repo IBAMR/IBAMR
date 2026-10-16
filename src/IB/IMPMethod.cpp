@@ -30,6 +30,7 @@
 #include <ibtk/LSetData.h>
 #include <ibtk/LSiloDataWriter.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
+#include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/libmesh_utilities.h>
 
 #include <tbox/Array.h>
@@ -192,6 +193,7 @@ IMPMethod::IMPMethod(std::string object_name, Pointer<Database> input_db, bool r
 
 IMPMethod::~IMPMethod()
 {
+    d_ghost_data_accumulator.reset();
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
@@ -805,6 +807,18 @@ IMPMethod::spreadForce(const int f_data_idx,
     *X_needs_ghost_fill = false;
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
+    Pointer<PatchLevel<NDIM>> coarsest_level = d_hierarchy->getPatchLevel(coarsest_ln);
+    const IntVector<NDIM> gcw =
+        coarsest_level->getPatchDescriptor()->getPatchDataFactory(f_data_idx)->getGhostCellWidth();
+    const int min_gcw = LEInteractor::getMinimumGhostWidth(KERNEL_FCN);
+    if (gcw.min() < min_gcw)
+    {
+        TBOX_ERROR("IMPMethod::spreadForce():\n"
+                   << "  the data with patch data index " << f_data_idx << " has ghost cell width " << gcw << "\n"
+                   << "  the kernel function " << KERNEL_FCN << " requires a ghost cell width of at least " << min_gcw
+                   << std::endl);
+    }
+    std::vector<std::vector<int>> active_patch_nums(finest_ln - coarsest_ln + 1);
     Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -817,16 +831,24 @@ IMPMethod::spreadForce(const int f_data_idx,
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            if (idx_data->getInteriorLocalPETScIndices().empty())
+            {
+                continue;
+            }
+            active_patch_nums[ln - coarsest_ln].push_back(patch->getPatchNumber());
             const Box<NDIM>& patch_box = patch->getBox();
             Box<NDIM> side_boxes[NDIM];
-            for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                side_boxes[d] = SideGeometry<NDIM>::toSideBox(f_data->getGhostBox(), d);
+            }
             const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
             double dV_c = 1.0;
             for (unsigned int d = 0; d < NDIM; ++d) dV_c *= dx[d];
-            for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
+            for (LNodeSetData::CellIterator it(patch_box); it; it++)
             {
                 const hier::Index<NDIM>& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
@@ -899,13 +921,17 @@ IMPMethod::spreadForce(const int f_data_idx,
                     }
                 }
             }
-            if (f_phys_bdry_op)
-            {
-                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
-            }
         }
     }
+
+    // Apply the transpose of the physical boundary fill and sum the values spread into ghost cells into the patches
+    // that own them.
+    if (!d_ghost_data_accumulator)
+    {
+        d_ghost_data_accumulator =
+            std::make_unique<SAMRAIGhostDataAccumulator>(d_hierarchy, f_var, gcw, coarsest_ln, finest_ln);
+    }
+    d_ghost_data_accumulator->accumulateGhostData(f_data_idx, f_phys_bdry_op, data_time, &active_patch_nums);
 
     // Accumulate data.
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
@@ -977,6 +1003,8 @@ void
 IMPMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                    Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
+    // The patches of the levels may change.
+    d_ghost_data_accumulator.reset();
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution
