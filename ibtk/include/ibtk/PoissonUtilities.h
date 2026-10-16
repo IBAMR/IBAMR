@@ -145,6 +145,9 @@ public:
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a side-centered discretization of the
      * Laplacian.
+     *
+     * This function does not modify the entry of a side on a physical boundary, normal to its component, at which the
+     * Robin coefficient b is exactly zero (a Dirichlet condition): the entry holds the boundary value.
      */
     static void adjustRHSAtPhysicalBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
@@ -157,6 +160,9 @@ public:
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a side-centered discretization of the
      * variable-coefficient viscous operator.
+     *
+     * This function does not modify the entry of a side on a physical boundary, normal to its component, at which the
+     * Robin coefficient b is exactly zero (a Dirichlet condition): the entry holds the boundary value.
      *
      * \note The scaling factors of \f$ D \f$ variable in the PoissonSpecification object
      * is passed separately and is denoted \f$ \alpha \f$.
