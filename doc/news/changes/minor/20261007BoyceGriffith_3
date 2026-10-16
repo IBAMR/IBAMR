@@ -1,0 +1,3 @@
+Fixed: IBTK::CCPoissonHypreLevelSolver and IBTK::SCPoissonHypreLevelSolver now solve correctly on a level with a coarse-fine boundary: they ignored boundary data in the ghost values of the solution by default, and hypre's multigrid solvers diverged because the matrices coupled to cells or sides outside the level.
+<br>
+(Boyce Griffith, 2026/10/07)
