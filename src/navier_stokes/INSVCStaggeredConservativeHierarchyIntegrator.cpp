@@ -498,7 +498,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 
         // Set the velocities used to update the density and the previous time step
         // size
-        if (IBTK::rel_equal_eps(d_integrator_time, d_start_time))
+        if (d_integrator_step == 0)
         {
             d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                 /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ -1);
@@ -626,7 +626,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchySpecialized(con
             d_rho_p_integrator->setDensityPatchDataIndex(d_rho_sc_current_idx);
 
             // Set the velocities used to update the density
-            if (IBTK::rel_equal_eps(d_integrator_time, d_start_time))
+            if (d_integrator_step == 0)
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                     /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
@@ -1142,7 +1142,7 @@ void
 INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const double current_time,
                                                                          const double new_time)
 {
-    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
+    const bool initial_time = d_integrator_step == 0;
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     const double mu = d_mu_is_const ? d_problem_coefs.getMu() : -1.0;
