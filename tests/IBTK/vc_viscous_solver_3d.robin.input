@@ -1,0 +1,150 @@
+// Non-periodic domain with the Robin condition u + du/dn = g for each velocity component on every boundary.
+
+// Scalar parameters
+C = 0.0
+
+u {
+   function_0 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"     // x-component
+   function_1 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"     // y-component
+   function_2 = "cos(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2)"     // z-component
+}
+
+mu {
+   function = "1.0 + sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+}
+
+f {
+   function_0 = "1/2*PI^2*(cos(2*PI*X_1)^2*(-2 + 10*cos(4*PI*X_0) - 7*cos(4*PI*(X_0 - X_2)) + 6*cos(4*PI*X_2) - 7*cos(4*PI*(X_0 + X_2))) - 4*cos(2*PI*X_2)^2 *sin(2*PI*X_0)^2*sin(4*PI*X_1) - 8*(4*cos(2*PI*X_1)*sin(2*PI*X_0) + (cos(2*PI*X_0) - sin(2*PI*X_0))*sin(2*PI*X_1))*sin(2*PI*X_2) + 4*(-sin(4*PI*X_0)*sin(4*PI*X_1) + sin(2*PI*X_0)^2*(2*sin(2*PI*X_1)^2 + sin(4*PI*X_1)))*sin(2*PI*X_2)^2)"
+   function_1 = "PI^2*(-4*cos(2*PI*X_1)*(cos(2*PI*X_0) + 4*sin(2*PI*X_0))*sin(2*PI*X_2) - 4*sin(2*PI*X_1)*sin(2*PI*X_2)*(cos(2*PI*X_0) + 2*cos(2*PI*(X_0 + X_1))*sin(2*PI*X_0)*sin(2*PI*X_2)) + cos(2*PI*X_1)^2*(-2 + 4*cos(4*PI*X_0) - 3*cos(4*PI*(X_0 - X_2)) + 4*cos(4*PI*X_2) - 3*cos(4*PI*(X_0 + X_2)) + sin(4*PI*(X_0 - X_2)) + sin(4*PI*(X_0 + X_2))))"
+   function_2 = "4*PI^2*cos(2*PI*X_2)*(cos(2*PI*(X_0 + X_1)) + 2*sin(2*PI*(X_0 - X_1)) - 2*sin(2*PI*(X_0 + X_1)))*(1 + 2*cos(2*PI*X_1)*sin(2*PI*X_0)*sin(2*PI*X_2))"
+}
+
+// Boundary functions 0 and 1 are the lower and upper x boundaries, 2 and 3 the y boundaries, 4 and 5 the z boundaries.
+VelocityBcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
+
+   gcoef_function_0 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) - 2*PI*cos(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+   gcoef_function_1 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) + 2*PI*cos(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+   gcoef_function_2 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) + 2*PI*sin(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)"
+   gcoef_function_3 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) - 2*PI*sin(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)"
+   gcoef_function_4 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) - 2*PI*sin(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*X_2)"
+   gcoef_function_5 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) + 2*PI*sin(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*X_2)"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
+
+   gcoef_function_0 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) - 2*PI*cos(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+   gcoef_function_1 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) + 2*PI*cos(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2)"
+   gcoef_function_2 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) + 2*PI*sin(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)"
+   gcoef_function_3 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) - 2*PI*sin(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)"
+   gcoef_function_4 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) - 2*PI*sin(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*X_2)"
+   gcoef_function_5 = "sin(2*PI*X_0)*cos(2*PI*X_1)*sin(2*PI*X_2) + 2*PI*sin(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*X_2)"
+}
+
+VelocityBcCoefs_2 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
+
+   gcoef_function_0 = "cos(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2) + 2*PI*sin(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2)"
+   gcoef_function_1 = "cos(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2) - 2*PI*sin(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2)"
+   gcoef_function_2 = "cos(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2) - 2*PI*cos(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*X_2)"
+   gcoef_function_3 = "cos(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2) + 2*PI*cos(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*X_2)"
+   gcoef_function_4 = "cos(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2) + 2*PI*cos(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)"
+   gcoef_function_5 = "cos(2*PI*X_0)*sin(2*PI*X_1)*cos(2*PI*X_2) - 2*PI*cos(2*PI*X_0)*sin(2*PI*X_1)*sin(2*PI*X_2)"
+}
+
+solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+solver_db {
+   ksp_type          = "fgmres"
+   pc_type           = "shell"
+   rel_residual_tol  = 1.0e-12
+   abs_residual_tol  = 1.0e-15
+   initial_guess_nonzero = TRUE
+}
+
+precond_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+precond_db {
+   ksp_type          = "gmres"
+   pc_type           = "bjacobi"
+   rel_residual_tol  = 1.0e-14
+   abs_residual_tol  = 1.0e-15
+   initial_guess_nonzero = FALSE
+}
+
+Main {
+// log file parameters
+   log_file_name = "VCSCViscousOpSolverTester3d.log"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz3d"
+   visit_number_procs_per_file = 1
+}
+
+N = 16
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = 0, 0, 0      // lower end of computational domain.
+   x_up               = 1, 1, 1      // upper end of computational domain.
+   periodic_dimension = 0, 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1                    // Maximum number of levels in hierarchy.
+
+   largest_patch_size {
+      level_0 = 512, 512, 512          // largest patch allowed in hierarchy
+   }
+
+   smallest_patch_size {
+      level_0 =   4, 4, 4         // smallest patch allowed in hierarchy
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {}
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
