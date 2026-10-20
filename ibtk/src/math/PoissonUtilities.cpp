@@ -430,6 +430,52 @@ get_shift(int dir, int shift)
     iv(dir) = shift;
     return iv;
 } // get_shift
+
+// The stencil maps of the matrix of the variable-coefficient viscous operator (one in 2D, one for each axis in 3D) take
+// the index offset of a stencil entry of a side to its position in the list of coefficients of the side.
+std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder>>
+make_vcsc_stencil_maps()
+{
+    std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder>> stencil_map_vec;
+    const unsigned int n_maps = NDIM == 2 ? 1 : NDIM;
+    for (unsigned int m = 0; m < n_maps; ++m)
+    {
+        std::map<hier::Index<NDIM>, int, IndexFortranOrder> stencil_map;
+        int k = 0;
+        stencil_map[hier::Index<NDIM>(0)] = k++;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            stencil_map[get_shift(d, +1)] = k++;
+            stencil_map[get_shift(d, -1)] = k++;
+        }
+#if (NDIM == 2)
+        for (int s = -1; s <= 1; s += 2)
+        {
+            for (int t = -1; t <= 1; t += 2)
+            {
+                stencil_map[get_shift(0, s) + get_shift(1, t)] = k++;
+            }
+        }
+#elif (NDIM == 3)
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (d == m)
+            {
+                continue;
+            }
+            for (int s = -1; s <= 1; s += 2)
+            {
+                for (int t = -1; t <= 1; t += 2)
+                {
+                    stencil_map[get_shift(m, s) + get_shift(d, t)] = k++;
+                }
+            }
+        }
+#endif
+        stencil_map_vec.push_back(stencil_map);
+    }
+    return stencil_map_vec;
+}
 } // namespace
 
 void
@@ -2304,197 +2350,101 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                                                              const PoissonSpecifications& poisson_spec,
                                                              double alpha,
                                                              const Array<BoundaryBox<NDIM>>& type1_cf_bdry,
+                                                             const Array<BoundaryBox<NDIM>>& type2_cf_bdry,
+                                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                             double data_time,
                                                              VCInterpType mu_interp_type)
 {
-#if (NDIM == 2)
-    Pointer<NodeData<NDIM, double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
-#elif (NDIM == 3)
-    Pointer<EdgeData<NDIM, double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
-#endif
-
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!mu_data.isNull());
-#endif
-
-#if (NDIM == 2)
-    const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
-#endif
-
-    // Modify the rhs entries to account for coarse-fine interface boundary conditions.
-    const int n_cf_bdry_boxes = type1_cf_bdry.size();
-    const IntVector<NDIM> ghost_width_to_fill(1);
-
+    TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
     const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
-    const double* const dx = pgeom->getDx();
+    const LevelCellClassifier cells(*patch, type1_cf_bdry, type2_cf_bdry);
 
-    // Modify the rhs entries to account for inhomogeneous Dirichelt boundary
-    // conditions along boundaries which ARE NOT aligned with the data axis.
+    // The coefficient of a stencil entry whose side is not a degree of freedom of the level is the coefficient of the
+    // term that the matrix of the level solver drops.
+    static const std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder>> stencil_map_vec =
+        make_vcsc_stencil_maps();
+    const int stencil_sz = static_cast<int>(stencil_map_vec[0].size());
+    SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
+    computeVCSCViscousOpMatrixCoefficients(matrix_coefs,
+                                           patch,
+                                           stencil_map_vec,
+                                           poisson_spec,
+                                           alpha,
+                                           /*beta*/ 0.0,
+                                           bc_coefs,
+                                           data_time,
+                                           mu_interp_type);
+
+    // A side is a degree of freedom of the level if either of the two cells that it separates belongs to the level.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (int n = 0; n < n_cf_bdry_boxes; ++n)
+        const std::map<hier::Index<NDIM>, int, IndexFortranOrder>& stencil_map = stencil_map_vec[NDIM == 2 ? 0 : axis];
+        for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
         {
-            const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
-            const unsigned int location_index = bdry_box.getLocationIndex();
-            const unsigned int bdry_normal_axis = location_index / 2;
-            const bool is_lower = location_index % 2 == 0;
-
-            if (bdry_normal_axis == axis) continue;
-
-            const Box<NDIM> bc_fill_box =
-                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-            const BoundaryBox<NDIM> trimmed_bdry_box =
-                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-            const Box<NDIM> bc_coef_box = compute_tangential_extension(
-                PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
-
-            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            const hier::Index<NDIM>& cc = b();
+            const SideIndex<NDIM> i_s(cc, axis, SideIndex<NDIM>::Lower);
+            for (const auto& entry : stencil_map)
             {
-                const hier::Index<NDIM>& i = bc();
-                const double& h = dx[bdry_normal_axis];
-                hier::Index<NDIM> i_intr = i, i_bdry = i;
-                if (is_lower)
+                const hier::Index<NDIM>& offset = entry.first;
+
+                // The side of the stencil entry is a side of the same component, or a side of the component along the
+                // other axis of the offset. It is located by the cell on its upper side.
+                int n_nonzero = 0;
+                unsigned int other_axis = axis;
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    i_intr(bdry_normal_axis) += 0;
-                    i_bdry(bdry_normal_axis) -= 1;
+                    if (offset(d) != 0)
+                    {
+                        ++n_nonzero;
+                        if (d != axis)
+                        {
+                            other_axis = d;
+                        }
+                    }
+                }
+                if (n_nonzero == 0)
+                {
+                    continue;
+                }
+                unsigned int comp = axis;
+                hier::Index<NDIM> upper_cell = cc;
+                if (n_nonzero == 1)
+                {
+                    upper_cell += offset;
                 }
                 else
                 {
-                    i_intr(bdry_normal_axis) -= 1;
-                    i_bdry(bdry_normal_axis) += 0;
-                }
-                const SideIndex<NDIM> i_s_intr(i_intr, axis, SideIndex<NDIM>::Lower);
-                const SideIndex<NDIM> i_s_bdry(i_bdry, axis, SideIndex<NDIM>::Lower);
-
-                const hier::Index<NDIM> shift_bdry_normal = get_shift(bdry_normal_axis, 1);
-#if (NDIM == 2)
-                const double mu_upper = mu_array_data(i_intr + shift_bdry_normal, 0);
-                const double mu_lower = mu_array_data(i_intr, 0);
-#elif (NDIM == 3)
-                const int perp = 2 * (bdry_normal_axis + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
-                const double mu_upper = get_mu_edge(i_intr + shift_bdry_normal, perp, mu_data);
-                const double mu_lower = get_mu_edge(i_intr, perp, mu_data);
-#endif
-
-                const double D = is_lower ? mu_lower : mu_upper;
-                rhs_data(i_s_intr) -= alpha * (D / h) * sol_data(i_s_bdry) / h;
-            }
-        }
-    }
-
-    // Modify the rhs entries to account for inhomogeneous boundary conditions
-    // for other components of velocity along boundaries which ARE aligned with
-    // the data axis.
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        for (int n = 0; n < n_cf_bdry_boxes; ++n)
-        {
-            const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
-            const unsigned int location_index = bdry_box.getLocationIndex();
-            const unsigned int bdry_normal_axis = location_index / 2;
-            const bool is_lower = location_index % 2 == 0;
-
-            if (bdry_normal_axis != axis) continue;
-
-            const Box<NDIM> bc_fill_box =
-                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-            const BoundaryBox<NDIM> trimmed_bdry_box =
-                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-            const Box<NDIM> side_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-
-            for (unsigned int comp = 0; comp < NDIM; ++comp)
-            {
-                if (comp == axis) continue;
-
-                for (Box<NDIM>::Iterator bc(side_box); bc; bc++)
-                {
-                    const hier::Index<NDIM>& i = bc();
-                    const double& h = dx[bdry_normal_axis];
-                    const double& hd = dx[comp];
-
-                    const hier::Index<NDIM> shift_d = get_shift(comp, 1);
-#if (NDIM == 2)
-                    const double mu_upper = mu_array_data(i + shift_d, 0);
-                    const double mu_lower = mu_array_data(i, 0);
-#elif (NDIM == 3)
-                    const int perp = 2 * (comp + axis) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
-                    const double mu_upper = get_mu_edge(i + shift_d, perp, mu_data);
-                    const double mu_lower = get_mu_edge(i, perp, mu_data);
-#endif
-
-                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-                    if (is_lower)
+                    comp = other_axis;
+                    if (offset(axis) < 0)
                     {
-                        const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
-                        const SideIndex<NDIM> sw(i + shift_axis_minus, comp, SideIndex<NDIM>::Lower);
-                        const SideIndex<NDIM> nw(i + shift_axis_minus, comp, SideIndex<NDIM>::Upper);
-
-                        rhs_data(i_s) -= alpha * (mu_lower / (h * hd)) * sol_data(sw);
-                        rhs_data(i_s) += alpha * (mu_upper / (h * hd)) * sol_data(nw);
+                        upper_cell(axis) -= 1;
                     }
-                    else
+                    if (offset(comp) > 0)
                     {
-                        const SideIndex<NDIM> se(i, comp, SideIndex<NDIM>::Lower);
-                        const SideIndex<NDIM> ne(i, comp, SideIndex<NDIM>::Upper);
-
-                        rhs_data(i_s) += alpha * (mu_lower / (h * hd)) * sol_data(se);
-                        rhs_data(i_s) -= alpha * (mu_upper / (h * hd)) * sol_data(ne);
+                        upper_cell(comp) += 1;
                     }
                 }
-            }
-        }
-    }
-
-    // Modify the rhs entries to account for inhomogeneous boundary conditions
-    // along boundaries which ARE aligned with the data axis.
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        for (int n = 0; n < n_cf_bdry_boxes; ++n)
-        {
-            const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
-            const unsigned int location_index = bdry_box.getLocationIndex();
-            const unsigned int bdry_normal_axis = location_index / 2;
-            const bool is_lower = location_index % 2 == 0;
-
-            if (bdry_normal_axis != axis) continue;
-
-            const Box<NDIM> bc_fill_box =
-                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-            const BoundaryBox<NDIM> trimmed_bdry_box =
-                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-
-            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
-            {
-                const hier::Index<NDIM>& i = bc();
-                const double& h = dx[bdry_normal_axis];
-
-                const hier::Index<NDIM> shift_axis_minus = get_shift(bdry_normal_axis, -1);
-                const hier::Index<NDIM> shift_axis_plus = get_shift(bdry_normal_axis, 1);
-
-                const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                const SideIndex<NDIM> i_s_bdry(
-                    i + (is_lower ? shift_axis_minus : shift_axis_plus), bdry_normal_axis, SideIndex<NDIM>::Lower);
-
-                double mu_upper = std::numeric_limits<double>::quiet_NaN();
-                double mu_lower = std::numeric_limits<double>::quiet_NaN();
-                if (mu_interp_type == VC_AVERAGE_INTERP)
+                hier::Index<NDIM> lower_cell = upper_cell;
+                lower_cell(comp) -= 1;
+                if (patch_box.contains(upper_cell) || patch_box.contains(lower_cell))
                 {
-                    mu_upper = compute_mu_avg(i, *mu_data);
-                    mu_lower = compute_mu_avg(i + shift_axis_minus, *mu_data);
+                    continue;
                 }
-                else if (mu_interp_type == VC_HARMONIC_INTERP)
+                if (cells.isLevelCell(upper_cell) || cells.isLevelCell(lower_cell))
                 {
-                    mu_upper = compute_mu_harmonic_avg(i, *mu_data);
-                    mu_lower = compute_mu_harmonic_avg(i + shift_axis_minus, *mu_data);
+                    continue;
                 }
-                else
+                if (cells.isOutsideDomain(upper_cell) && cells.isOutsideDomain(lower_cell))
                 {
-                    TBOX_ERROR("this statement should not be reached");
+                    continue;
                 }
-                const double D = is_lower ? mu_lower : mu_upper;
 
-                rhs_data(i_s) -= (2.0 * alpha) * (D / h) * sol_data(i_s_bdry) / h;
+                const double coef = matrix_coefs(i_s, entry.second);
+                if (coef == 0.0)
+                {
+                    continue;
+                }
+                rhs_data(i_s) -= coef * sol_data(SideIndex<NDIM>(upper_cell, comp, SideIndex<NDIM>::Lower));
             }
         }
     }

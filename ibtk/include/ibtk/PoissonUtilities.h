@@ -225,6 +225,12 @@ public:
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
      * side-centered discretization of the variable coefficient viscous operator.
      *
+     * For each side of the patch, this function subtracts from rhs_data the contribution of each stencil entry that the
+     * matrix of the level solver does not contain, using the ghost values in sol_data. It modifies only rhs_data in the
+     * side box of the patch and leaves the entries of Dirichlet identity rows unchanged. The boundary boxes of
+     * codimension 2 (the corner cells in 2D and the edge cells in 3D) tell which ghost cells that touch the patch only
+     * along an edge or corner belong to the level; bc_coefs are evaluated at data_time.
+     *
      * \note This function simply uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
      * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
      * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
@@ -239,6 +245,9 @@ public:
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         double alpha,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type2_cf_bdry,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
 protected:
