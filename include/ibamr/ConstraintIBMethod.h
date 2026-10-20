@@ -556,10 +556,9 @@ private:
     bool d_calculate_structure_linear_mom = false, d_calculate_structure_rotational_mom = false;
 
     /*!
-     * Number of the current time step, counted from one, and the number of time
-     * steps between outputs.
+     * Number of time steps between outputs.
      */
-    int d_timestep_counter = 0, d_output_interval = 1;
+    int d_output_interval = 1;
 
     /*!
      * Whether the output files are written in the current call to
