@@ -92,6 +92,12 @@ namespace IBTK
  * homogeneous data there sets them to zero.  On return, the interior values of
  * \a x contain the solution.
  *
+ * In a periodic direction the hypre grid of a level is periodic only if the
+ * level has patches adjacent to both periodic boundaries, and the solver stops
+ * with an error unless these patches are periodic images of each other.
+ * Otherwise a periodic boundary that the level touches is a coarse-fine
+ * boundary.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
