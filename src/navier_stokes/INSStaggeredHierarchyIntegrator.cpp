@@ -2448,7 +2448,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
 
     // The solvers also depend on K1, which for BDF2 changes with the ratio of
     // successive time step sizes.
-    if (!IBTK::rel_equal_eps(K1, d_K1_previous))
+    if (!d_K1_previous || !IBTK::rel_equal_eps(K1, *d_K1_previous))
     {
         d_velocity_solver_needs_init = true;
         d_pressure_solver_needs_init = true;
