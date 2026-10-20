@@ -40,6 +40,7 @@
 #include <SAMRAIVectorReal.h>
 #include <SideVariable.h>
 
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -435,6 +436,12 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_stokes_solver_db, d_stokes_precond_db, d_stokes_sub_precond_db;
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     bool d_stokes_solver_needs_init;
+
+    /*!
+     * The coefficient of the discrete time derivative of the velocity,
+     * relative to rho / dt, for which the solvers were last set up.
+     */
+    double d_K1_previous = std::numeric_limits<double>::quiet_NaN();
 
     /*!
      * Fluid solver variables.
