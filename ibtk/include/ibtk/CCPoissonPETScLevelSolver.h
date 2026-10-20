@@ -83,15 +83,12 @@ namespace IBTK
  *    in SAMRAI::solv::SAMRAIVectorReal objects corresponding to \f$u\f$ and
  *    \f$f\f$.
  *
- * On return the ghost values of \a x that lie in other patches of the level,
- * including across periodic boundaries, hold the solution there.
- *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
  options_prefix = ""           // see setOptionsPrefix()
  ksp_type = "gmres"            // see setKSPType()
- initial_guess_nonzero = TRUE  // see setInitialGuessNonzero()
+ initial_guess_nonzero = FALSE // see setInitialGuessNonzero()
  rel_residual_tol = 1.0e-5     // see setRelativeTolerance()
  abs_residual_tol = 1.0e-50    // see setAbsoluteTolerance()
  max_iterations = 10000        // see setMaxIterations()
@@ -201,7 +198,7 @@ private:
     std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched;
     //\}
 };
 } // namespace IBTK
