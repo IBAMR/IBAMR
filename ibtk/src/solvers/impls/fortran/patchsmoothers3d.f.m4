@@ -18,6 +18,69 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Wavefront traversal of a box.
+c
+c     WAVEFRONT_3D(lower0,upper0,lower1,upper1,lower2,upper2,body)
+c     executes body for every cell (i0,i1,i2) of the box, with i0, i1
+c     and i2 set to the cell before each execution.  The result is the
+c     same as that of a lexicographic sweep (planes in order of
+c     increasing i2, rows in order of increasing i1, each row in order
+c     of increasing i0).
+c
+c     The caller declares the integers i0, i1, i2, s0, b1, r and i1end.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+define(WAVEFRONT_3D,`if (($2)-($1)+1 .ge. 4) then
+         i1end = ($3) + 4*((($4)-($3)+1)/4) - 1
+      else
+         i1end = ($3) - 1
+      endif
+
+      do i2 = $5,$6
+         do b1 = $3,i1end,4
+c           Ramp up.
+            do s0 = $1,($1)+2
+               do r = 0,s0-($1)
+                  i0 = s0 - r
+                  i1 = b1 + r
+                  $7
+               enddo
+            enddo
+c           All four rows active.
+            do s0 = ($1)+3,$2
+               i0 = s0
+               i1 = b1
+               $7
+               i0 = s0 - 1
+               i1 = b1 + 1
+               $7
+               i0 = s0 - 2
+               i1 = b1 + 2
+               $7
+               i0 = s0 - 3
+               i1 = b1 + 3
+               $7
+            enddo
+c           Ramp down.
+            do s0 = ($2)+1,($2)+3
+               do r = s0-($2),3
+                  i0 = s0 - r
+                  i1 = b1 + r
+                  $7
+               enddo
+            enddo
+         enddo
+
+         do i1 = i1end+1,$4
+            do i0 = $1,$2
+               $7
+            enddo
+         enddo
+      enddo')dnl
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Perform a single Gauss-Seidel sweep for F = D div grad U +
 c     C U. Both D and C coefficients are constant.
 c
@@ -58,6 +121,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1,i2
+      INTEGER s0,b1,r,i1end
       REAL    fac0,fac1,fac2,fac
 c
 c     Perform a single Gauss-Seidel sweep.
@@ -67,17 +131,13 @@ c
       fac2 = D/(dx(2)*dx(2))
       fac = 0.5d0/(fac0+fac1+fac2-0.5d0*C)
 
-      do i2 = ilower2,iupper2
-         do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
+      WAVEFRONT_3D(ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,`
                U(i0,i1,i2) = fac*(
      &              fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
      &              fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
      &              fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
      &              F(i0,i1,i2))
-            enddo
-         enddo
-      enddo
+')
 c
       return
       end
@@ -206,6 +266,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1,i2
+      INTEGER s0,b1,r,i1end
       REAL    fac0,fac1,fac2,fac
 c
 c     Perform a single Gauss-Seidel sweep.
@@ -215,9 +276,7 @@ c
       fac2 = alpha/(dx(2)*dx(2))
       fac = 0.5d0/(fac0+fac1+fac2-0.5d0*beta)
 
-      do i2 = ilower2,iupper2
-         do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
+      WAVEFRONT_3D(ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,`
                if (mask(i0,i1,i2) .eq. 0) then
                   U(i0,i1,i2) = fac*(
      &                 fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
@@ -225,9 +284,7 @@ c
      &                 fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
      &                 F(i0,i1,i2))
                endif
-            enddo
-         enddo
-      enddo
+')
 c
       return
       end
@@ -361,6 +418,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1,i2
+      INTEGER s0,b1,r,i1end
       REAL    fac0,fac1,fac2,fac
 c
 c     Perform a single Gauss-Seidel sweep.
@@ -369,18 +427,14 @@ c
       fac1 = D/(dx(1)*dx(1))
       fac2 = D/(dx(2)*dx(2))
 
-      do i2 = ilower2,iupper2
-         do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
+      WAVEFRONT_3D(ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,`
                fac = 0.5d0/(fac0+fac1+fac2-0.5d0*C(i0,i1,i2))
                U(i0,i1,i2) = fac*(
      &              fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
      &              fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
      &              fac2*(U(i0,i1,i2-1)+U(i0,i1,i2+1)) -
      &              F(i0,i1,i2))
-            enddo
-         enddo
-      enddo
+')
 c
       return
       end
@@ -508,6 +562,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1,i2
+      INTEGER s0,b1,r,i1end
       REAL    hx,hy,hz
       REAL    facu0,facl0
       REAL    facu1,facl1
@@ -520,9 +575,7 @@ c
       hy = dx(1)
       hz = dx(2)
 
-      do i2 = ilower2,iupper2
-         do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
+      WAVEFRONT_3D(ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,`
                facu0 = D0(i0+1,i1,i2)/(hx*hx)
                facl0 = D0(i0,i1,i2)/(hx*hx)
                facu1 = D1(i0,i1+1,i2)/(hy*hy)
@@ -538,9 +591,7 @@ c
      &             facu2*U(i0,i1,i2+1) +
      &             facl2*U(i0,i1,i2-1) -
      &             F(i0,i1,i2))
-            enddo
-         enddo
-      enddo
+')
 c
       return
       end
@@ -687,6 +738,7 @@ c
 c     Local variables.
 c
       INTEGER i0,i1,i2
+      INTEGER s0,b1,r,i1end
       REAL    hx,hy,hz
       REAL    facu0,facl0
       REAL    facu1,facl1
@@ -699,9 +751,7 @@ c
       hy = dx(1)
       hz = dx(2)
 
-      do i2 = ilower2,iupper2
-         do i1 = ilower1,iupper1
-            do i0 = ilower0,iupper0
+      WAVEFRONT_3D(ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,`
                facu0 = D0(i0+1,i1,i2)/(hx*hx)
                facl0 = D0(i0,i1,i2)/(hx*hx)
                facu1 = D1(i0,i1+1,i2)/(hy*hy)
@@ -718,9 +768,7 @@ c
      &             facu2*U(i0,i1,i2+1) +
      &             facl2*U(i0,i1,i2-1) -
      &             F(i0,i1,i2))
-            enddo
-         enddo
-      enddo
+')
 c
       return
       end
@@ -882,7 +930,8 @@ c
       INTEGER i0,i1,i2
       REAL fac0,fac1,fac2,fac,nmr,dnr,mu_lower,mu_upper,c
 c
-c     Perform a single Gauss-Seidel sweep.
+c     Perform a single Gauss-Seidel sweep.  The sweep is lexicographic
+c     because a wavefront traversal is slower for this kernel.
 c
       fac0 = 1.d0/(dx(0))
       fac1 = 1.d0/(dx(1))
@@ -1160,7 +1209,8 @@ c
       INTEGER i0,i1,i2
       REAL fac0,fac1,fac2,fac,nmr,dnr,mu_lower,mu_upper,c
 c
-c     Perform a single Gauss-Seidel sweep.
+c     Perform a single Gauss-Seidel sweep.  The sweep is lexicographic
+c     because a wavefront traversal is slower for this kernel.
 c
       fac0 = 1.d0/(dx(0))
       fac1 = 1.d0/(dx(1))
