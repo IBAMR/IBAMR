@@ -1,0 +1,32 @@
+// Four patches, periodic in x
+N = 8
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 1, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+
+   largest_patch_size {
+      level_0 = 4, 4
+   }
+
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+}
+
+StandardTagAndInitialize {
+}
+
+LoadBalancer {
+}
