@@ -1,3 +1,3 @@
-Fixed: IBAMR::INSStaggeredUpwindConvectiveOperator and the upwind stabilization of IBAMR::INSStaggeredStabilizedPPMConvectiveOperator choose the upwind value from the sign of the advection velocity, whatever its magnitude.
+Fixed: IBAMR::INSStaggeredUpwindConvectiveOperator and the upwind stabilization of IBAMR::INSStaggeredStabilizedPPMConvectiveOperator use the centered value where the magnitude of the advection velocity is at most 1.0e-8, as the advection predictors do, and the upwind value elsewhere. Small positive velocities previously took the downwind value.
 <br>
 (Boyce Griffith, 2026/10/04)
