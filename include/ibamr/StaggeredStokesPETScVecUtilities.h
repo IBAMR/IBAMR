@@ -79,8 +79,7 @@ public:
                                       int p_data_idx,
                                       int p_dof_index_idx,
                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
-                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> data_synch_sched,
-                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> ghost_fill_sched);
+                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> data_synch_sched);
 
     /*!
      * \brief Construct a RefineSchedule to synchronize shared values that can
@@ -91,15 +90,6 @@ public:
      */
     static SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>
     constructDataSynchSchedule(int u_data_idx,
-                               int p_data_idx,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
-
-    /*!
-     * \brief Construct a RefineSchedule to fill ghost cell values that can be
-     * used in conjunction with copyFromPatchLevelVec().
-     */
-    static SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>
-    constructGhostFillSchedule(int u_data_idx,
                                int p_data_idx,
                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
