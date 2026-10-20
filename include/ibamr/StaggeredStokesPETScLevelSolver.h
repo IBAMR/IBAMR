@@ -63,6 +63,10 @@ namespace IBAMR
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
  *
+ * The velocity and pressure that the solution vector holds in the ghost cells just outside the level across a
+ * coarse-fine boundary are boundary data of the solve. The velocity and pressure data of the vectors need a ghost cell
+ * width of at least one.
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public StaggeredStokesSolver

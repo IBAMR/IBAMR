@@ -23,6 +23,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PETScLevelSolver.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/PoissonUtilities.h>
 
 #include <tbox/Array.h>
@@ -33,7 +34,10 @@
 #include <petscvec.h>
 
 #include <BoundaryBox.h>
+#include <Box.h>
+#include <CartesianPatchGeometry.h>
 #include <CellData.h>
+#include <CellIndex.h>
 #include <CellVariable.h>
 #include <CoarseFineBoundary.h>
 #include <IntVector.h>
@@ -45,6 +49,7 @@
 #include <RefineSchedule.h>
 #include <SAMRAIVectorReal.h>
 #include <SideData.h>
+#include <SideIndex.h>
 #include <SideVariable.h>
 #include <Variable.h>
 #include <VariableContext.h>
@@ -68,6 +73,49 @@ namespace
 static const int CELLG = 1;
 static const int SIDEG = 1;
 static const int NOGHOST = 0;
+
+// Subtract from the right-hand side of each velocity side on a coarse-fine interface the term of the pressure in the
+// cell across the interface, which has no degree of freedom.
+void
+adjust_rhs_for_pressure_at_cf_boundary(SideData<NDIM, double>& rhs_data,
+                                       const CellData<NDIM, double>& p_data,
+                                       const CellData<NDIM, int>& p_dof_index_data,
+                                       Pointer<Patch<NDIM>> patch,
+                                       const Array<BoundaryBox<NDIM>>& type_1_cf_bdry)
+{
+    TBOX_ASSERT(p_data.getGhostCellWidth().min() >= 1);
+    const Box<NDIM>& patch_box = patch->getBox();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    for (int n = 0; n < type_1_cf_bdry.size(); ++n)
+    {
+        const BoundaryBox<NDIM>& bdry_box = type_1_cf_bdry[n];
+        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(trimmed_bdry_box, patch_box, IntVector<NDIM>(1));
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const unsigned int axis = location_index / 2;
+        const bool is_upper = location_index % 2 == 1;
+
+        // The pressure gradient is +1/dx from the upper cell of a side and -1/dx from the lower cell (see
+        // constructPatchLevelMACStokesOp()).
+        const double coef = (is_upper ? +1.0 : -1.0) / dx[axis];
+        for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
+        {
+            const CellIndex<NDIM> i_c_bdry(b());
+            if (p_dof_index_data(i_c_bdry) >= 0)
+            {
+                continue;
+            }
+            hier::Index<NDIM> i_s = b();
+            if (!is_upper)
+            {
+                i_s(axis) += 1;
+            }
+            rhs_data(SideIndex<NDIM>(i_s, axis, SideIndex<NDIM>::Lower)) -= coef * p_data(i_c_bdry);
+        }
+    }
+    return;
+} // adjust_rhs_for_pressure_at_cf_boundary
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -282,6 +330,8 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
         Pointer<PatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
         Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+        Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
+        Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(d_p_dof_index_idx);
         Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_idx);
         Pointer<CellData<NDIM, double>> h_data = patch->getPatchData(h_idx);
         Pointer<SideData<NDIM, double>> f_adj_data = patch->getPatchData(f_adj_idx);
@@ -323,6 +373,7 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                             d_U_bc_coefs,
                                                             d_solution_time,
                                                             d_homogeneous_bc);
+            adjust_rhs_for_pressure_at_cf_boundary(*f_adj_data, *p_data, *p_dof_index_data, patch, type_1_cf_bdry);
         }
     }
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
