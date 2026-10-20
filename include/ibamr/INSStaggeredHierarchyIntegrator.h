@@ -40,7 +40,7 @@
 #include <SAMRAIVectorReal.h>
 #include <SideVariable.h>
 
-#include <limits>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -441,7 +441,7 @@ private:
      * The coefficient of the discrete time derivative of the velocity,
      * relative to rho / dt, for which the solvers were last set up.
      */
-    double d_K1_previous = std::numeric_limits<double>::quiet_NaN();
+    std::optional<double> d_K1_previous;
 
     /*!
      * Fluid solver variables.
