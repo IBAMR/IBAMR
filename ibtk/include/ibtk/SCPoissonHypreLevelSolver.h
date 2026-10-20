@@ -87,6 +87,11 @@ namespace IBTK
  *    in SAMRAI::solv::SAMRAIVectorReal objects corresponding to \f$u\f$ and
  *    \f$f\f$.
  *
+ * The solver treats the ghost values of \a x at coarse-fine interfaces as
+ * Dirichlet data: it reads them and does not change them.  A caller that wants
+ * homogeneous data there sets them to zero.  On return, the interior values of
+ * \a x contain the solution.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
