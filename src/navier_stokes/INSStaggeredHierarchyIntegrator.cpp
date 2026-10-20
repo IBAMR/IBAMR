@@ -2446,6 +2446,16 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         d_stokes_solver_needs_init = true;
     }
 
+    // The solvers also depend on K1, which for BDF2 changes with the ratio of
+    // successive time step sizes.
+    if (!IBTK::rel_equal_eps(K1, d_K1_previous))
+    {
+        d_velocity_solver_needs_init = true;
+        d_pressure_solver_needs_init = true;
+        d_stokes_solver_needs_init = true;
+    }
+    d_K1_previous = K1;
+
     // Setup solver vectors.
     const bool has_velocity_nullspace = d_normalize_velocity && IBTK::abs_equal_eps(rho, 0.0);
     const bool has_pressure_nullspace = d_normalize_pressure;
