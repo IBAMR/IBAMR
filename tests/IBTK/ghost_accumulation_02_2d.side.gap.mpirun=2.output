@@ -1,0 +1,7 @@
+number of levels: 2
+number of patches on level 0: 4
+number of patches on level 1: 4
+number of ghost sides owned by a patch that shares no cell with the ghost region: 32
+number of values compared: 2032
+sum of accumulated values: -7.952777149
+number of active patches: 4
