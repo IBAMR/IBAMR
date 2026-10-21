@@ -162,6 +162,10 @@ struct INSStaggeredDivergenceFreePhysBdryOp::Extension
     // Apply the transpose of apply() with zero data points to the patch data u.
     void applyTranspose(const std::array<double*, NDIM>& u) const;
 
+    // Return the index in faces of a face whose ghost value is not computable and whose value in the patch data u is
+    // not zero, if there is one.
+    std::optional<int> findNonzeroNotComputableFace(const std::array<double*, NDIM>& u) const;
+
     std::vector<Face> faces;
     int num_temporaries = 0;
     std::vector<Assignment> assignments;
@@ -1010,6 +1014,19 @@ INSStaggeredDivergenceFreePhysBdryOp::Extension::applyTranspose(const std::array
     }
 }
 
+std::optional<int>
+INSStaggeredDivergenceFreePhysBdryOp::Extension::findNonzeroNotComputableFace(const std::array<double*, NDIM>& u) const
+{
+    for (const int id : not_computable_faces)
+    {
+        if (u[faces[id].axis][faces[id].offset] != 0.0)
+        {
+            return id;
+        }
+    }
+    return std::nullopt;
+}
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredDivergenceFreePhysBdryOp::INSStaggeredDivergenceFreePhysBdryOp(
@@ -1102,6 +1119,16 @@ INSStaggeredDivergenceFreePhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<N
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             u[axis] = data->getPointer(axis, 0);
+        }
+        if (const std::optional<int> id = extension->findNonzeroNotComputableFace(u))
+        {
+            const Extension::Face& face = extension->faces[*id];
+            TBOX_ERROR(
+                "INSStaggeredDivergenceFreePhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
+                << "  patch " << patch.getPatchNumber() << " (box " << patch.getBox() << ") has the value "
+                << u[face.axis][face.offset] << " at the face "
+                << data->getArrayData(face.axis).getBox().index(face.offset) << " with axis " << face.axis << "\n"
+                << "  the extension needs values outside the patch data there, so the value must be zero" << std::endl);
         }
         extension->applyTranspose(u);
     }
