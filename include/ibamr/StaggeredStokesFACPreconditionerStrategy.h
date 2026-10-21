@@ -116,7 +116,10 @@ namespace IBAMR
  * A Krylov coarse solver or smoother, a coarse solver that stops on a convergence tolerance, or a slope-limiting
  * prolongation method (for example CONSERVATIVE_LINEAR_REFINE) makes the preconditioner nonlinear; see
  * IBTK::FACPreconditioner.
-*/
+ *
+ * The momentum residual that computeResidual() computes agrees with that of StaggeredStokesOperator at the faces on the
+ * physical boundary.
+ */
 class StaggeredStokesFACPreconditionerStrategy : public IBTK::FACPreconditionerStrategy
 {
 public:
@@ -418,6 +421,11 @@ protected:
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     /*
+     * Whether any of the velocity boundary condition objects imposes TRACTION conditions.
+     */
+    bool d_has_traction_conditions = false;
+
+    /*
      * Ghost cell width.
      */
     const int d_gcw;
@@ -572,6 +580,12 @@ private:
      * \return A reference to this object.
      */
     StaggeredStokesFACPreconditionerStrategy& operator=(const StaggeredStokesFACPreconditionerStrategy& that) = delete;
+
+    /*!
+     * \brief Set the momentum residual \a U_res_idx at the faces on the physical boundary to that of
+     * StaggeredStokesOperator, after computeResidual() has evaluated it.
+     */
+    void setBoundaryMomentumResidual(int U_res_idx, int U_sol_idx, int U_rhs_idx, int coarsest_ln, int finest_ln);
 
     /*
      * Combined U & P physical boundary operator.

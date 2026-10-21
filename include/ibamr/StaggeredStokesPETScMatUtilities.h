@@ -73,6 +73,9 @@ public:
      * The matrix is for homogeneous boundary conditions. If \a p_bc_coef is not null, the normal-velocity equations at
      * physical boundaries without a prescribed normal velocity include the dependence of the ghost pressure on the
      * adjacent interior pressure.
+     *
+     * For an entry of \a u_bc_coefs that is a StokesBcCoefStrategy with TRACTION conditions, the matrix also includes
+     * the viscous normal-stress term where the normal velocity is not prescribed.
      */
     static void constructPatchLevelMACStokesOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,

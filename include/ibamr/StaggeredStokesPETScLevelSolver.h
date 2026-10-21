@@ -63,9 +63,9 @@ namespace IBAMR
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
  *
- * With TRACTION conditions, the solver reads the solution vector only as the initial guess and for coarse-fine ghost
- * values. It omits the viscous normal-stress term that StaggeredStokesOperator adds where the normal velocity is not
- * prescribed.
+ * With TRACTION conditions, the matrix and right-hand side include the viscous normal-stress term where the normal
+ * velocity is not prescribed, and the solver reads the solution vector only as the initial guess and for coarse-fine
+ * ghost values.
  *
  * \see INSStaggeredHierarchyIntegrator
  */
