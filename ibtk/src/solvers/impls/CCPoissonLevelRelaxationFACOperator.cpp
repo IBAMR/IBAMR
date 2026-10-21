@@ -418,18 +418,48 @@ CCPoissonLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
                                  coarsest_level_num,
                                  finest_level_num);
     }
+    Pointer<CellDataFactory<NDIM, double>> res_pdat_fac = res_var->getPatchDataFactory();
+    const int res_depth = res_pdat_fac->getDefaultDepth();
     if (d_poisson_spec.dIsConstant() && !d_poisson_spec.cIsVariable())
     {
         // Negating the coefficients and passing f as the additive source gives f - A*u.
         PoissonSpecifications negated_spec(d_object_name + "::negated_spec");
         negatePoissonSpecifications(negated_spec);
-        d_level_math_ops[finest_level_num]->laplace(
-            res_idx, res_var, negated_spec, sol_idx, sol_var, nullptr, d_solution_time, 1.0, rhs_idx, rhs_var);
+        for (int depth = 0; depth < res_depth; ++depth)
+        {
+            d_level_math_ops[finest_level_num]->laplace(res_idx,
+                                                        res_var,
+                                                        negated_spec,
+                                                        sol_idx,
+                                                        sol_var,
+                                                        nullptr,
+                                                        d_solution_time,
+                                                        1.0,
+                                                        rhs_idx,
+                                                        rhs_var,
+                                                        depth,
+                                                        depth,
+                                                        depth);
+        }
     }
     else
     {
-        d_level_math_ops[finest_level_num]->laplace(
-            res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
+        for (int depth = 0; depth < res_depth; ++depth)
+        {
+            d_level_math_ops[finest_level_num]->laplace(res_idx,
+                                                        res_var,
+                                                        d_poisson_spec,
+                                                        sol_idx,
+                                                        sol_var,
+                                                        nullptr,
+                                                        d_solution_time,
+                                                        0.0,
+                                                        invalid_index,
+                                                        nullptr,
+                                                        depth,
+                                                        depth,
+                                                        depth);
+        }
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
             d_level_data_ops[ln]->axpy(res_idx, -1.0, res_idx, rhs_idx, false);

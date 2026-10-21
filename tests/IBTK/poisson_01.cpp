@@ -21,6 +21,7 @@
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CellIterator.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
@@ -30,12 +31,58 @@
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
+
+#include <algorithm>
+#include <cmath>
+#include <string>
+#include <vector>
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
 // Verify output for the Poisson example program in IBTK.
+
+namespace
+{
+// Print the norms of each component of a cell-centered quantity.
+void
+print_component_norms(const std::string& name,
+                      const int data_idx,
+                      const int wgt_idx,
+                      Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                      const int depth)
+{
+    for (int d = 0; d < depth; ++d)
+    {
+        double norm_oo = 0.0, norm_2 = 0.0, norm_1 = 0.0;
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
+                Pointer<CellData<NDIM, double>> wgt = patch->getPatchData(wgt_idx);
+                for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+                {
+                    const double w = (*wgt)(ci());
+                    if (w > 0.0) norm_oo = std::max(norm_oo, std::abs((*data)(ci(), d)));
+                    norm_2 += w * std::pow((*data)(ci(), d), 2);
+                    norm_1 += w * std::abs((*data)(ci(), d));
+                }
+            }
+        }
+        norm_oo = IBTK_MPI::maxReduction(norm_oo);
+        norm_2 = std::sqrt(IBTK_MPI::sumReduction(norm_2));
+        norm_1 = IBTK_MPI::sumReduction(norm_1);
+        plog << "|" << name << "[" << d << "]|_oo = " << norm_oo << "\n";
+        plog << "|" << name << "[" << d << "]|_2  = " << norm_2 << "\n";
+        plog << "|" << name << "[" << d << "]|_1  = " << norm_1 << "\n";
+    }
+}
+} // namespace
 
 int
 main(int argc, char* argv[])
@@ -73,10 +120,11 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc");
-        Pointer<CellVariable<NDIM, double>> f_cc_var = new CellVariable<NDIM, double>("f_cc");
-        Pointer<CellVariable<NDIM, double>> e_cc_var = new CellVariable<NDIM, double>("e_cc");
-        Pointer<CellVariable<NDIM, double>> r_cc_var = new CellVariable<NDIM, double>("r_cc");
+        const int depth = input_db->getIntegerWithDefault("depth", 1);
+        Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc", depth);
+        Pointer<CellVariable<NDIM, double>> f_cc_var = new CellVariable<NDIM, double>("f_cc", depth);
+        Pointer<CellVariable<NDIM, double>> e_cc_var = new CellVariable<NDIM, double>("e_cc", depth);
+        Pointer<CellVariable<NDIM, double>> r_cc_var = new CellVariable<NDIM, double>("r_cc", depth);
 
         const IntVector<NDIM> gcw(input_db->getIntegerWithDefault("vector_ghost_cell_width", 1));
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, gcw);
@@ -142,10 +190,10 @@ main(int argc, char* argv[])
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCZero();
         poisson_spec.setDConstant(-1.0);
-        RobinBcCoefStrategy<NDIM>* bc_coef = nullptr;
+        const std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(depth, nullptr);
         CCLaplaceOperator laplace_op("laplace_op");
         laplace_op.setPoissonSpecifications(poisson_spec);
-        laplace_op.setPhysicalBcCoef(bc_coef);
+        laplace_op.setPhysicalBcCoefs(bc_coefs);
         laplace_op.initializeOperatorState(u_vec, f_vec);
 
         string solver_type = input_db->getString("solver_type");
@@ -155,7 +203,7 @@ main(int argc, char* argv[])
         Pointer<PoissonSolver> poisson_solver = CCPoissonSolverManager::getManager()->allocateSolver(
             solver_type, "poisson_solver", solver_db, "", precond_type, "poisson_precond", precond_db, "");
         poisson_solver->setPoissonSpecifications(poisson_spec);
-        poisson_solver->setPhysicalBcCoef(bc_coef);
+        poisson_solver->setPhysicalBcCoefs(bc_coefs);
         poisson_solver->initializeSolverState(u_vec, f_vec);
 
         // Solve -L*u = f.
@@ -168,6 +216,7 @@ main(int argc, char* argv[])
         plog << "|e|_oo = " << e_vec.maxNorm() << "\n";
         plog << "|e|_2  = " << e_vec.L2Norm() << "\n";
         plog << "|e|_1  = " << e_vec.L1Norm() << "\n";
+        if (depth > 1) print_component_norms("e", e_cc_idx, h_cc_idx, patch_hierarchy, depth);
 
         // Compute the residual and print residual norms.
         laplace_op.apply(u_vec, r_vec);
@@ -176,6 +225,7 @@ main(int argc, char* argv[])
         plog << "|r|_oo = " << r_vec.maxNorm() << "\n";
         plog << "|r|_2  = " << r_vec.L2Norm() << "\n";
         plog << "|r|_1  = " << r_vec.L1Norm() << "\n";
+        if (depth > 1) print_component_norms("r", r_cc_idx, h_cc_idx, patch_hierarchy, depth);
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.
