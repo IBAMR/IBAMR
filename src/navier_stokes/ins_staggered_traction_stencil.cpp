@@ -193,9 +193,10 @@ struct NormalVelocity
     double offset;
 };
 
-// Return the normal velocity that the TRACTION condition takes at the boundary face i_face: beyond a corner whose
-// adjacent boundary prescribes the normal velocity u_b (zero if homogeneous_bc), 2*u_b - u, with u the nearest face on
-// the boundary.
+// Return the normal velocity that the TRACTION condition takes at the boundary face i_face. If the face is beyond a
+// corner and the adjacent boundary prescribes the normal velocity u_b (zero if homogeneous_bc), the value is 2*u_b -
+// q_0, where q_0 is the nearest face on the boundary, or (8/3)*u_b - 2*q_0 + q_1/3 if quadratic_tangential is true and
+// the boundary has a second face q_1.
 NormalVelocity
 get_normal_velocity(const hier::Index<NDIM>& i_face,
                     const unsigned int bdry_normal_axis,
@@ -207,6 +208,7 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
                     const ShiftedPatchGeometry& normal_geometry,
                     const BoxArray<NDIM>& domain,
                     const Box<NDIM>& ghost_box,
+                    const bool quadratic_tangential,
                     const double fill_time)
 {
     NormalVelocity u = {
@@ -223,8 +225,8 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
                                                                                   fill_time);
         if (u_prescribed)
         {
-            u.stencil.useAdjacentBoundaryValue();
-            u.offset = homogeneous_bc ? 0.0 : 2.0 * *u_prescribed;
+            u.stencil.useAdjacentBoundaryValue(quadratic_tangential);
+            u.offset = homogeneous_bc ? 0.0 : u.stencil.prescribed_weight * *u_prescribed;
         }
     }
     return u;
@@ -234,12 +236,22 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-NormalVelocityStencil::useAdjacentBoundaryValue()
+NormalVelocityStencil::useAdjacentBoundaryValue(const bool quadratic_tangential)
 {
     TBOX_ASSERT(beyond_corner);
+    uses_adjacent_boundary_value = true;
+
+    // The weight of the second face is zero if the boundary has only one face.
+    if (quadratic_tangential && weight[1] != 0.0)
+    {
+        idx[2] = idx[0];
+        weight = { -2.0, 1.0 / 3.0, 0.0 };
+        prescribed_weight = 8.0 / 3.0;
+        return;
+    }
     idx.fill(idx[0]);
     weight = { -1.0, 0.0, 0.0 };
-    uses_adjacent_boundary_value = true;
+    prescribed_weight = 2.0;
 } // useAdjacentBoundaryValue
 
 NormalVelocityStencil
@@ -295,6 +307,7 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
                                const Patch<NDIM>& patch,
                                const ShiftedPatchGeometry& normal_geometry,
                                const BoxArray<NDIM>& domain,
+                               const bool quadratic_tangential,
                                const double fill_time)
 {
     const Box<NDIM>& ghost_box = u_data.getGhostBox();
@@ -312,6 +325,7 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
                                    normal_geometry,
                                    domain,
                                    ghost_box,
+                                   quadratic_tangential,
                                    fill_time);
     };
     const NormalVelocity u_lower = get_u(i_lower);
@@ -354,6 +368,7 @@ get_traction_stencil(const hier::Index<NDIM>& i,
                                    normal_geometry,
                                    domain,
                                    ghost_box,
+                                   /*quadratic_tangential*/ false,
                                    fill_time)
             .stencil;
     };
@@ -384,6 +399,7 @@ accumulate_from_traction_bc_coefs(SideData<NDIM, double>& u_data,
                                   const Patch<NDIM>& patch,
                                   const BoundaryBox<NDIM>& bdry_box,
                                   const Pointer<PatchHierarchy<NDIM>>& hierarchy,
+                                  const bool quadratic_tangential,
                                   const double fill_time)
 {
     const Box<NDIM>& bc_coef_box = gcoef_data.getBox();
@@ -431,6 +447,7 @@ accumulate_from_traction_bc_coefs(SideData<NDIM, double>& u_data,
                                        *normal_geometry,
                                        *domain,
                                        ghost_box,
+                                       quadratic_tangential,
                                        fill_time)
                 .stencil;
         };

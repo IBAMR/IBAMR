@@ -102,6 +102,8 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
         d_coarsen_type = input_db->getStringWithDefault("coarsen_type", d_coarsen_type);
         d_bdry_extrap_type = input_db->getStringWithDefault("bdry_extrap_type", d_bdry_extrap_type);
         d_bdry_interp_type = input_db->getStringWithDefault("bdry_interp_type", d_bdry_interp_type);
+        d_tangential_bdry_interp_type =
+            input_db->getStringWithDefault("tangential_bdry_interp_type", d_tangential_bdry_interp_type);
         d_use_cf_interpolation = input_db->getBoolWithDefault("use_cf_interpolation", d_use_cf_interpolation);
         d_consistent_type_2_bdry = input_db->getBoolWithDefault("consistent_type_2_bdry", d_consistent_type_2_bdry);
     }
@@ -179,6 +181,13 @@ StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysic
 } // setPhysicalBoundaryHelper
 
 void
+StaggeredStokesOperator::setTangentialBdryInterpType(const std::string& tangential_bdry_interp_type)
+{
+    d_tangential_bdry_interp_type = tangential_bdry_interp_type;
+    return;
+} // setTangentialBdryInterpType
+
+void
 StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     IBAMR_TIMER_START(t_apply);
@@ -205,7 +214,8 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                                                              d_consistent_type_2_bdry,
                                                              d_U_bc_coefs,
                                                              d_U_fill_pattern,
-                                                             d_bdry_interp_type);
+                                                             d_bdry_interp_type,
+                                                             d_tangential_bdry_interp_type);
     transaction_comps[1] = InterpolationTransactionComponent(P_idx,
                                                              d_refine_type,
                                                              d_use_cf_interpolation,
@@ -292,7 +302,8 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
                                                                d_consistent_type_2_bdry,
                                                                d_U_bc_coefs,
                                                                d_U_fill_pattern,
-                                                               d_bdry_interp_type);
+                                                               d_bdry_interp_type,
+                                                               d_tangential_bdry_interp_type);
     d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1),
                                                                d_refine_type,
                                                                d_use_cf_interpolation,

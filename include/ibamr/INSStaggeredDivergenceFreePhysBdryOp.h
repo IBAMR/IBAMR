@@ -51,11 +51,13 @@ namespace IBAMR
  * physical boundaries of a rectangular domain so that the discrete divergence vanishes in every ghost cell there.
  *
  * The operator reads the boundary conditions registered with the fluid solver: (a, b) = (1, 0) prescribes the velocity
- * g and (0, 1) the traction (or pseudo-traction) g; other values are an error. It ignores the conditions on the normal
- * component, and setPhysicalBcCoef() and setPhysicalBcCoefs() emit an error. The domain must be a single box and the
- * patch data must have depth one. To fill ghost width w, the patch data need ghost width w + 1 and the domain must be
- * at least that wide along each non-periodic direction. A ghost value that depends on a face outside the ghost box is
- * set to quiet NaN. The caller fills the values inside the domain that a patch stores in its ghost cells before
+ * g and (0, 1) the traction (or pseudo-traction) g; other values are an error. At a boundary that prescribes the
+ * velocity, the ghost values of the tangential components are reflections of the interior values, or quadratic
+ * extrapolations if the fluid solver's getTangentialBdryInterpType() is "QUADRATIC". It ignores the conditions on the
+ * normal component, and setPhysicalBcCoef() and setPhysicalBcCoefs() emit an error. The domain must be a single box and
+ * the patch data must have depth one. To fill ghost width w, the patch data need ghost width w + 1 and the domain must
+ * be at least that wide along each non-periodic direction. A ghost value that depends on a face outside the ghost box
+ * is set to quiet NaN. The caller fills the values inside the domain that a patch stores in its ghost cells before
  * setPhysicalBoundaryConditions().
  */
 class INSStaggeredDivergenceFreePhysBdryOp : public IBTK::RobinPhysBdryPatchStrategy

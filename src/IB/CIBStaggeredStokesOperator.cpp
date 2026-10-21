@@ -151,7 +151,8 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                                                              d_consistent_type_2_bdry,
                                                              d_U_bc_coefs,
                                                              d_U_fill_pattern,
-                                                             d_bdry_interp_type);
+                                                             d_bdry_interp_type,
+                                                             d_tangential_bdry_interp_type);
     transaction_comps[1] = InterpolationTransactionComponent(P_idx,
                                                              d_refine_type,
                                                              d_use_cf_interpolation,
@@ -266,7 +267,8 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
                                                                d_consistent_type_2_bdry,
                                                                d_U_bc_coefs,
                                                                d_U_fill_pattern,
-                                                               d_bdry_interp_type);
+                                                               d_bdry_interp_type,
+                                                               d_tangential_bdry_interp_type);
     d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1),
                                                                d_refine_type,
                                                                d_use_cf_interpolation,
@@ -368,7 +370,8 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
                                                                    d_consistent_type_2_bdry,
                                                                    d_U_bc_coefs,
                                                                    d_U_fill_pattern,
-                                                                   d_bdry_interp_type);
+                                                                   d_bdry_interp_type,
+                                                                   d_tangential_bdry_interp_type);
         Pointer<HierarchyGhostCellInterpolation> U_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
         U_bdry_fill->initializeOperatorState(U_transaction_comps, x->getPatchHierarchy());
         U_bdry_fill->setHomogeneousBc(d_homogeneous_bc);

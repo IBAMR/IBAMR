@@ -103,7 +103,8 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                                              d_consistent_type_2_bdry,
                                                              d_U_bc_coefs,
                                                              d_U_fill_pattern,
-                                                             d_bdry_interp_type);
+                                                             d_bdry_interp_type,
+                                                             d_tangential_bdry_interp_type);
     transaction_comps[1] = InterpolationTransactionComponent(P_idx,
                                                              d_refine_type,
                                                              d_use_cf_interpolation,

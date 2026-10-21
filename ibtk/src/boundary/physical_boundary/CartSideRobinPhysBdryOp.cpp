@@ -467,12 +467,14 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp() : RobinPhysBdryPatchStrategy(
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const int patch_data_index,
                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                  const bool homogeneous_bc,
-                                                 std::string type)
-    : RobinPhysBdryPatchStrategy(), d_type(std::move(type))
+                                                 std::string type,
+                                                 std::string tangential_type)
+    : RobinPhysBdryPatchStrategy(), d_type(std::move(type)), d_tangential_type(std::move(tangential_type))
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!bc_coefs.empty() && bc_coefs.size() % NDIM == 0);
     TBOX_ASSERT(d_type == "LINEAR" || d_type == "QUADRATIC");
+    TBOX_ASSERT(d_tangential_type == "LINEAR" || d_tangential_type == "QUADRATIC");
 #endif
     setPatchDataIndex(patch_data_index);
     setPhysicalBcCoefs(bc_coefs);
@@ -483,12 +485,14 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const int patch_data_index,
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const std::set<int>& patch_data_indices,
                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                  const bool homogeneous_bc,
-                                                 std::string type)
-    : RobinPhysBdryPatchStrategy(), d_type(std::move(type))
+                                                 std::string type,
+                                                 std::string tangential_type)
+    : RobinPhysBdryPatchStrategy(), d_type(std::move(type)), d_tangential_type(std::move(tangential_type))
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!bc_coefs.empty() && bc_coefs.size() % NDIM == 0);
     TBOX_ASSERT(d_type == "LINEAR" || d_type == "QUADRATIC");
+    TBOX_ASSERT(d_tangential_type == "LINEAR" || d_tangential_type == "QUADRATIC");
 #endif
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
@@ -499,12 +503,14 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const std::set<int>& patch_data
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const ComponentSelector& patch_data_indices,
                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                  const bool homogeneous_bc,
-                                                 std::string type)
-    : RobinPhysBdryPatchStrategy(), d_type(std::move(type))
+                                                 std::string type,
+                                                 std::string tangential_type)
+    : RobinPhysBdryPatchStrategy(), d_type(std::move(type)), d_tangential_type(std::move(tangential_type))
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!bc_coefs.empty() && bc_coefs.size() % NDIM == 0);
     TBOX_ASSERT(d_type == "LINEAR" || d_type == "QUADRATIC");
+    TBOX_ASSERT(d_tangential_type == "LINEAR" || d_tangential_type == "QUADRATIC");
 #endif
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
@@ -596,6 +602,11 @@ CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
     if (d_type == "QUADRATIC")
     {
         TBOX_ERROR("Accumulating from physical boundaries not currently supported for QUADRATIC interpolation.");
+    }
+    if (d_tangential_type == "QUADRATIC")
+    {
+        TBOX_ERROR(
+            "Accumulating from physical boundaries not currently supported for QUADRATIC tangential interpolation.");
     }
 
     // Ensure the target patch data corresponds to a side centered variable and
@@ -890,6 +901,13 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                                                              Patch<NDIM>& patch,
                                                              const bool adjoint_op)
 {
+    const bool quadratic_tangential = d_tangential_type == "QUADRATIC";
+    if (!quadratic_tangential && d_tangential_type != "LINEAR")
+    {
+        TBOX_ERROR("CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse():\n"
+                   << "  unsupported tangential interpolation type " << d_tangential_type << "\n"
+                   << "  use LINEAR or QUADRATIC" << std::endl);
+    }
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     if (n_physical_codim1_boxes == 0) return;
 
@@ -985,7 +1003,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                     // Set the boundary values.
                     if (location_index == 0 || location_index == 1)
                     {
-                        if (d_type == "LINEAR")
+                        if (d_type == "LINEAR" && !quadratic_tangential)
                         {
                             CC_ROBIN_PHYS_BDRY_OP_1_X_FC(patch_data->getPointer(axis, d),
                                                          patch_data_gcw,
@@ -1010,7 +1028,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                                                          dx,
                                                          adjoint_op ? 1 : 0);
                         }
-                        else if (d_type == "QUADRATIC")
+                        else if (d_type == "QUADRATIC" || quadratic_tangential)
                         {
                             CC_ROBIN_PHYS_BDRY_QUAD_OP_1_X_FC(patch_data->getPointer(axis, d),
                                                               patch_data_gcw,
@@ -1041,7 +1059,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                     }
                     else if (location_index == 2 || location_index == 3)
                     {
-                        if (d_type == "LINEAR")
+                        if (d_type == "LINEAR" && !quadratic_tangential)
                         {
                             CC_ROBIN_PHYS_BDRY_OP_1_Y_FC(patch_data->getPointer(axis, d),
                                                          patch_data_gcw,
@@ -1066,7 +1084,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                                                          dx,
                                                          adjoint_op ? 1 : 0);
                         }
-                        else if (d_type == "QUADRATIC")
+                        else if (d_type == "QUADRATIC" || quadratic_tangential)
                         {
                             CC_ROBIN_PHYS_BDRY_QUAD_OP_1_Y_FC(patch_data->getPointer(axis, d),
                                                               patch_data_gcw,
@@ -1098,7 +1116,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
 #if (NDIM == 3)
                     else if (location_index == 4 || location_index == 5)
                     {
-                        if (d_type == "LINEAR")
+                        if (d_type == "LINEAR" && !quadratic_tangential)
                         {
                             CC_ROBIN_PHYS_BDRY_OP_1_Z_FC(patch_data->getPointer(axis, d),
                                                          patch_data_gcw,
@@ -1119,7 +1137,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                                                          dx,
                                                          adjoint_op ? 1 : 0);
                         }
-                        else if (d_type == "QUADRATIC")
+                        else if (d_type == "QUADRATIC" || quadratic_tangential)
                         {
                             CC_ROBIN_PHYS_BDRY_QUAD_OP_1_Z_FC(patch_data->getPointer(axis, d),
                                                               patch_data_gcw,

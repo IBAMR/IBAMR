@@ -272,6 +272,7 @@ private:
     Patch<NDIM>& d_patch;
     Pointer<Variable<NDIM>> d_var;
     TractionBcType d_traction_bc_type;
+    bool d_quadratic_tangential;
     double d_fill_time;
 
     // The data and the geometry.
@@ -301,6 +302,7 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::ExtensionBuilder(
       d_patch(patch),
       d_var(var),
       d_traction_bc_type(fluid_solver.getTractionBcType()),
+      d_quadratic_tangential(fluid_solver.getTangentialBdryInterpType() == "QUADRATIC"),
       d_fill_time(fill_time),
       d_extension(std::make_shared<Extension>())
 {
@@ -631,8 +633,28 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::setTangentialValue(const
     switch (getRule(axis, loc, boundary_face))
     {
     case TangentialRule::PRESCRIBED:
-        add_term(value.terms, *mirror_id, -1.0);
-        add_data_term(value.data_terms, getDataPoint(axis, loc, boundary_face, false), 2.0);
+        if (d_quadratic_tangential)
+        {
+            // The quadratic through the boundary value and the interior values at distances (k + 1/2)*dx and
+            // (k + 3/2)*dx from the boundary.
+            hier::Index<NDIM> mirror_next = mirror;
+            mirror_next(normal_axis) += is_upper ? -1 : +1;
+            const std::optional<int> mirror_next_id = getValue(axis, mirror_next);
+            if (!mirror_next_id)
+            {
+                return false;
+            }
+            add_term(value.terms, *mirror_id, -(2.0 * k + 2.0));
+            add_term(value.terms, *mirror_next_id, (2.0 * k + 1.0) * (2.0 * k + 1.0) / (2.0 * k + 3.0));
+            add_data_term(value.data_terms,
+                          getDataPoint(axis, loc, boundary_face, false),
+                          4.0 * (2.0 * k + 2.0) / (2.0 * k + 3.0));
+        }
+        else
+        {
+            add_term(value.terms, *mirror_id, -1.0);
+            add_data_term(value.data_terms, getDataPoint(axis, loc, boundary_face, false), 2.0);
+        }
         break;
     case TangentialRule::PSEUDO_TRACTION:
         add_term(value.terms, *mirror_id, 1.0);
@@ -676,7 +698,8 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::addNormalVelocity(Linear
 
     // A face that is not beyond a corner has its value. A face one cell beyond a corner, across a boundary not in the
     // region, has the corner value: 2*u_b - u if the adjacent boundary prescribes the normal velocity u_b, with u the
-    // nearest face on B, and otherwise the extrapolation along B.
+    // nearest face on B, (8/3)*u_b - 2*u + u'/3 with u' the second face if the tangential extrapolation is quadratic,
+    // and otherwise the extrapolation along B.
     if (count_boundaries(extra) == 0)
     {
         const std::optional<int> id = getValue(normal_axis, f);
@@ -712,7 +735,7 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::addNormalVelocity(Linear
     adjacent_boundary_face(axis) = stencil.adjacent_location_index % 2 == 1 ? d_upper[axis] + 1 : d_lower[axis];
     if (getRule(normal_axis, stencil.adjacent_location_index, adjacent_boundary_face) == TangentialRule::PRESCRIBED)
     {
-        stencil.useAdjacentBoundaryValue();
+        stencil.useAdjacentBoundaryValue(d_quadratic_tangential);
     }
     for (std::size_t n = 0; n < stencil.weight.size(); ++n)
     {
@@ -731,7 +754,7 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::addNormalVelocity(Linear
     {
         add_data_term(value.data_terms,
                       getDataPoint(normal_axis, stencil.adjacent_location_index, adjacent_boundary_face, false),
-                      2.0 * weight);
+                      stencil.prescribed_weight * weight);
     }
     return true;
 }

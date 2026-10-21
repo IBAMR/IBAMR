@@ -490,6 +490,8 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     }
     d_vc_pressure_bc_coef = new INSVCStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
     d_P_bc_coef = d_vc_pressure_bc_coef;
+    d_tangential_bdry_interp_type =
+        input_db->getStringWithDefault("tangential_bdry_interp_type", d_tangential_bdry_interp_type);
 
     // Get coarsen and refine operator types.
     if (input_db->keyExists("N_coarsen_type")) d_N_coarsen_type = input_db->getString("N_coarsen_type");
@@ -1080,7 +1082,11 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             {
                 p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
                 Pointer<VCStaggeredStokesOperator> p_vc_stokes_op = p_stokes_krylov_solver->getOperator();
-                if (p_vc_stokes_op) p_vc_stokes_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
+                if (p_vc_stokes_op)
+                {
+                    p_vc_stokes_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
+                    p_vc_stokes_op->setTangentialBdryInterpType(d_tangential_bdry_interp_type);
+                }
             }
         }
         if (p_stokes_block_pc)
@@ -1724,6 +1730,21 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      d_U_bc_coefs);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+
+    // The fill that evaluates the viscous term on the right-hand side uses the tangential interpolation type of the
+    // Stokes operator.
+    InterpolationTransactionComponent U_rhs_bc_component(d_U_scratch_idx,
+                                                         DATA_REFINE_TYPE,
+                                                         USE_CF_INTERPOLATION,
+                                                         DATA_COARSEN_TYPE,
+                                                         d_bdry_extrap_type, // TODO: update variable name
+                                                         CONSISTENT_TYPE_2_BDRY,
+                                                         d_U_bc_coefs,
+                                                         nullptr,
+                                                         "LINEAR",
+                                                         d_tangential_bdry_interp_type);
+    d_U_rhs_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_U_rhs_bdry_bc_fill_op->initializeOperatorState(U_rhs_bc_component, d_hierarchy);
 
     if (d_Q_fcn)
     {

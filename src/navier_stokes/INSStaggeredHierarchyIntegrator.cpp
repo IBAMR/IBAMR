@@ -25,6 +25,7 @@
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
+#include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/StaggeredStokesSolverManager.h>
@@ -573,6 +574,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     d_staggered_pressure_bc_coef = new INSStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
     d_P_bc_coef = d_staggered_pressure_bc_coef;
     d_U_P_bdry_interp_type = input_db->getStringWithDefault("U_P_bdry_interp_type", d_U_P_bdry_interp_type);
+    d_tangential_bdry_interp_type =
+        input_db->getStringWithDefault("tangential_bdry_interp_type", d_tangential_bdry_interp_type);
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -1048,7 +1051,15 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         if (!p_stokes_block_pc)
         {
             Pointer<KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
-            if (p_stokes_krylov_solver) p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
+            if (p_stokes_krylov_solver)
+            {
+                p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
+                Pointer<StaggeredStokesOperator> p_stokes_op = p_stokes_krylov_solver->getOperator();
+                if (p_stokes_op)
+                {
+                    p_stokes_op->setTangentialBdryInterpType(d_tangential_bdry_interp_type);
+                }
+            }
             if (!p_stokes_block_pc)
             {
                 KrylovLinearSolver* p_stokes_krylov_precond =
@@ -1212,7 +1223,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
                                                                   d_U_scratch_idx,
                                                                   /*P_data_idx*/ -1,
                                                                   /*homogeneous_bc*/ false);
-        d_U_bdry_bc_fill_op->fillData(current_time);
+        d_U_rhs_bdry_bc_fill_op->fillData(current_time);
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                                   /*P_bc_coef*/ nullptr);
         d_hier_math_ops->laplace(
@@ -1991,6 +2002,21 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      d_U_P_bdry_interp_type);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+
+    // The fill that evaluates the viscous term on the right-hand side uses the tangential interpolation type of the
+    // Stokes operator.
+    InterpolationTransactionComponent U_rhs_bc_component(d_U_scratch_idx,
+                                                         DATA_REFINE_TYPE,
+                                                         USE_CF_INTERPOLATION,
+                                                         DATA_COARSEN_TYPE,
+                                                         d_bdry_extrap_type, // TODO: update variable name
+                                                         CONSISTENT_TYPE_2_BDRY,
+                                                         d_U_bc_coefs,
+                                                         nullptr,
+                                                         d_U_P_bdry_interp_type,
+                                                         d_tangential_bdry_interp_type);
+    d_U_rhs_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_U_rhs_bdry_bc_fill_op->initializeOperatorState(U_rhs_bc_component, d_hierarchy);
 
     if (d_Q_fcn)
     {
@@ -2951,6 +2977,12 @@ INSStaggeredHierarchyIntegrator::getPressureTime(const double current_time, cons
     return is_bdf_time_stepping_type(d_viscous_time_stepping_type) ? new_time :
                                                                      current_time + 0.5 * (new_time - current_time);
 } // getPressureTime
+
+const std::string&
+INSStaggeredHierarchyIntegrator::getTangentialBdryInterpType() const
+{
+    return d_tangential_bdry_interp_type;
+} // getTangentialBdryInterpType
 
 double
 INSStaggeredHierarchyIntegrator::getTimeStepSizeRatio() const

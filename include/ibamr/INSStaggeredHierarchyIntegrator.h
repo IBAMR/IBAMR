@@ -151,6 +151,14 @@ public:
     double getPressureTime(double current_time, double new_time) const override;
 
     /*!
+     * Return the interpolation type of the velocity components tangential to physical boundaries, "LINEAR" or
+     * "QUADRATIC", read from the input key <code>tangential_bdry_interp_type<\code>.  "QUADRATIC" extrapolates the
+     * ghost values of the Stokes operator, the traction condition at corners, and the divergence-free velocity
+     * extension quadratically at boundaries at which the velocity is prescribed.  The default is "LINEAR".
+     */
+    const std::string& getTangentialBdryInterpType() const;
+
+    /*!
      * Indicate that the Stokes solver should be (re-)initialized before the
      * next time step.
      */
@@ -480,6 +488,8 @@ private:
     std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
     std::string d_U_P_bdry_interp_type = "LINEAR";
+    std::string d_tangential_bdry_interp_type = "LINEAR";
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_rhs_bdry_bc_fill_op;
 
     /*!
      * Variables for graphical output.
