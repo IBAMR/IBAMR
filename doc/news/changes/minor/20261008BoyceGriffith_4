@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesPETScLevelSolver now imposes tangential TRACTION conditions correctly.
+<br>
+(Boyce Griffith, 2026/10/08)

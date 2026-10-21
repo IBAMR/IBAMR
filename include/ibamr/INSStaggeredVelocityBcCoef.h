@@ -26,7 +26,9 @@
 #include <tbox/Pointer.h>
 
 #include <IntVector.h>
+#include <SideIndex.h>
 
+#include <utility>
 #include <vector>
 
 namespace IBAMR
@@ -34,12 +36,18 @@ namespace IBAMR
 class INSStaggeredHierarchyIntegrator;
 class StokesSpecifications;
 } // namespace IBAMR
+namespace IBTK
+{
+class ShiftedPatchGeometry;
+} // namespace IBTK
 namespace SAMRAI
 {
 namespace hier
 {
 template <int DIM>
 class BoundaryBox;
+template <int DIM>
+class BoxArray;
 template <int DIM>
 class Patch;
 template <int DIM>
@@ -180,6 +188,26 @@ public:
                                double fill_time) const override;
 
     //\}
+
+    /*!
+     * \brief Return the normal velocity values that \f$ \gamma \f$ depends on at the location \a i, each with the
+     * derivative of \f$ \gamma \f$ with respect to it. The result is empty unless this object imposes TRACTION
+     * conditions on a tangential component.
+     *
+     * \param i  Location, in the index space of the Robin coefficients, at which the traction is prescribed.
+     * \param patch  Patch with the geometry that setBcCoefs() requires.
+     * \param normal_geometry  Geometry of \a patch at the locations of the velocity component normal to the boundary.
+     * \param domain  Physical domain of the level of \a patch with its periodic images.
+     * \param ghost_box  Ghost box of the data that the returned side indices refer to.
+     */
+    std::vector<std::pair<SAMRAI::pdat::SideIndex<NDIM>, double>>
+    getNormalVelocityStencil(const SAMRAI::hier::Index<NDIM>& i,
+                             const SAMRAI::hier::Patch<NDIM>& patch,
+                             const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                             const IBTK::ShiftedPatchGeometry& normal_geometry,
+                             const SAMRAI::hier::BoxArray<NDIM>& domain,
+                             const SAMRAI::hier::Box<NDIM>& ghost_box,
+                             double fill_time) const;
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.

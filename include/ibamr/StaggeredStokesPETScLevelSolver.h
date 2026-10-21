@@ -63,6 +63,10 @@ namespace IBAMR
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
  *
+ * With TRACTION conditions, the solver reads the solution vector only as the initial guess and for coarse-fine ghost
+ * values. It omits the viscous normal-stress term that StaggeredStokesOperator adds where the normal velocity is not
+ * prescribed.
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public StaggeredStokesSolver
@@ -173,8 +177,10 @@ private:
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
     int d_u_nullspace_idx = IBTK::invalid_index, d_p_nullspace_idx = IBTK::invalid_index;
+    int d_u_bc_target_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int>> d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_nullspace_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_bc_target_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;

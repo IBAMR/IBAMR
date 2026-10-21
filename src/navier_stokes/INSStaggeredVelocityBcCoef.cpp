@@ -240,6 +240,33 @@ INSStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double>&
     return;
 } // accumulateFromBcCoefs
 
+std::vector<std::pair<SideIndex<NDIM>, double>>
+INSStaggeredVelocityBcCoef::getNormalVelocityStencil(const hier::Index<NDIM>& i,
+                                                     const Patch<NDIM>& patch,
+                                                     const BoundaryBox<NDIM>& bdry_box,
+                                                     const ShiftedPatchGeometry& normal_geometry,
+                                                     const BoxArray<NDIM>& domain,
+                                                     const Box<NDIM>& ghost_box,
+                                                     const double fill_time) const
+{
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index / 2;
+    if (d_traction_bc_type != TRACTION || d_comp_idx == bdry_normal_axis)
+    {
+        return {};
+    }
+    return traction_stencil::get_traction_stencil(i,
+                                                  bdry_normal_axis,
+                                                  location_index % 2 == 0,
+                                                  d_comp_idx,
+                                                  d_bc_coefs[bdry_normal_axis],
+                                                  patch,
+                                                  normal_geometry,
+                                                  domain,
+                                                  ghost_box,
+                                                  fill_time);
+} // getNormalVelocityStencil
+
 void
 INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
                                        Pointer<ArrayData<NDIM, double>>& bcoef_data,
