@@ -1,12 +1,13 @@
-// TRACTION boundaries at x = 0 and x = 1 and a smooth velocity field. The lower y boundary is a wall, which
-// prescribes the velocity; the upper y boundary is a TRACTION boundary.
+// TRACTION boundaries at x = 0 and x = 1 and a smooth divergence-free velocity. The lower y boundary is a wall,
+// which prescribes the velocity; the upper y boundary is a TRACTION boundary.
 
 N = 16
 
 ExactVelocity {
    error_bound = 5.0e-2
-   function_0 = "sin(1.1*X_0+0.3)*cos(0.7*X_1)+X_1*X_1+0.5*X_1"
-   function_1 = "cos(0.9*X_0)*sin(1.3*X_1+0.2)+X_0*X_1"
+   stress_error_bound = 3.0
+   function_0 = "1.0+1.7*sin(1.3*X_0+0.2)*cos(1.7*X_1+0.4)+0.4*X_0*X_0"
+   function_1 = "1.0-1.3*cos(1.3*X_0+0.2)*sin(1.7*X_1+0.4)-0.8*X_0*X_1"
 }
 
 VelocityBcCoefs_0 {
@@ -22,8 +23,8 @@ VelocityBcCoefs_0 {
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
-   gcoef_function_2 = "sin(1.1*X_0+0.3)*cos(0.7*X_1)+X_1*X_1+0.5*X_1"
-   gcoef_function_3 = "-0.7*sin(1.1*X_0+0.3)*sin(0.7*X_1)+2*X_1+0.5-0.9*sin(0.9*X_0)*sin(1.3*X_1+0.2)+X_1"
+   gcoef_function_2 = "1.0+1.7*sin(1.3*X_0+0.2)*cos(1.7*X_1+0.4)+0.4*X_0*X_0"
+   gcoef_function_3 = "-1.2*sin(1.3*X_0+0.2)*sin(1.7*X_1+0.4)-0.8*X_1"
 }
 
 VelocityBcCoefs_1 {
@@ -37,9 +38,9 @@ VelocityBcCoefs_1 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "-0.7*sin(1.1*X_0+0.3)*sin(0.7*X_1)+2*X_1+0.5-0.9*sin(0.9*X_0)*sin(1.3*X_1+0.2)+X_1"
-   gcoef_function_1 = "-0.7*sin(1.1*X_0+0.3)*sin(0.7*X_1)+2*X_1+0.5-0.9*sin(0.9*X_0)*sin(1.3*X_1+0.2)+X_1"
-   gcoef_function_2 = "cos(0.9*X_0)*sin(1.3*X_1+0.2)+X_0*X_1"
+   gcoef_function_0 = "-1.2*sin(1.3*X_0+0.2)*sin(1.7*X_1+0.4)-0.8*X_1"
+   gcoef_function_1 = "-1.2*sin(1.3*X_0+0.2)*sin(1.7*X_1+0.4)-0.8*X_1"
+   gcoef_function_2 = "1.0-1.3*cos(1.3*X_0+0.2)*sin(1.7*X_1+0.4)-0.8*X_0*X_1"
    gcoef_function_3 = "0.0"
 }
 

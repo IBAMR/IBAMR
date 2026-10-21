@@ -1,0 +1,3 @@
+Fixed: The TRACTION condition for the tangential velocity is second-order accurate at corners where two TRACTION boundaries meet: the normal velocity beyond the corner is extrapolated quadratically along the boundary.
+<br>
+(Boyce Griffith, 2026/10/13)
