@@ -22,14 +22,17 @@
 
 #include <ibtk/ShiftedPatchGeometry.h>
 
-#include <Box.h>
+#include <tbox/Pointer.h>
+
+#include <ArrayData.h>
+#include <BoundaryBox.h>
 #include <BoxArray.h>
 #include <Index.h>
+#include <IntVector.h>
 #include <Patch.h>
+#include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
-#include <SideIndex.h>
-
-#include <array>
+#include <SideData.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -38,25 +41,54 @@ namespace IBAMR
 {
 namespace traction_stencil
 {
-// The normal velocity used by the TRACTION condition: weight[0]*u(idx[0]) + weight[1]*u(idx[1]) + offset.
-struct NormalVelocityStencil
-{
-    std::array<SAMRAI::pdat::SideIndex<NDIM>, 2> idx;
-    std::array<double, 2> weight;
-    double offset;
-};
+/*!
+ * Return the physical domain of hierarchy refined by ratio, with its periodic images.
+ */
+SAMRAI::hier::BoxArray<NDIM>
+get_physical_domain(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy,
+                    const SAMRAI::hier::IntVector<NDIM>& ratio);
 
-NormalVelocityStencil get_normal_velocity_stencil(SAMRAI::hier::Index<NDIM> i_face,
-                                                  unsigned int bdry_normal_axis,
-                                                  bool bdry_is_lower,
-                                                  unsigned int tangential_axis,
-                                                  SAMRAI::solv::RobinBcCoefStrategy<NDIM>* normal_bc_coef,
-                                                  bool homogeneous_bc,
-                                                  const SAMRAI::hier::Patch<NDIM>& patch,
-                                                  const IBTK::ShiftedPatchGeometry& normal_geometry,
-                                                  const SAMRAI::hier::BoxArray<NDIM>& domain,
-                                                  const SAMRAI::hier::Box<NDIM>& ghost_box,
-                                                  double fill_time);
+/*!
+ * Return the geometry of patch centered on the velocity component bdry_normal_axis, given that the geometry of patch is
+ * centered on the velocity component tangential_axis.
+ */
+IBTK::ShiftedPatchGeometry get_normal_velocity_geometry(const SAMRAI::hier::Patch<NDIM>& patch,
+                                                        unsigned int bdry_normal_axis,
+                                                        unsigned int tangential_axis);
+
+/*!
+ * Return the difference along tangential_axis of the normal velocity that the TRACTION condition for velocity component
+ * tangential_axis uses at i on the boundary normal to bdry_normal_axis. Beyond a corner, normal_bc_coef decides whether
+ * the adjacent boundary prescribes the normal velocity (zero if homogeneous_bc). The geometry of patch must be centered
+ * on the tangential component; normal_geometry is get_normal_velocity_geometry() of patch.
+ */
+double get_normal_velocity_difference(const SAMRAI::pdat::SideData<NDIM, double>& u_data,
+                                      const SAMRAI::hier::Index<NDIM>& i,
+                                      unsigned int bdry_normal_axis,
+                                      bool bdry_is_lower,
+                                      unsigned int tangential_axis,
+                                      SAMRAI::solv::RobinBcCoefStrategy<NDIM>* normal_bc_coef,
+                                      bool homogeneous_bc,
+                                      const SAMRAI::hier::Patch<NDIM>& patch,
+                                      const IBTK::ShiftedPatchGeometry& normal_geometry,
+                                      const SAMRAI::hier::BoxArray<NDIM>& domain,
+                                      double fill_time);
+
+/*!
+ * Add the transpose of the dependence of the TRACTION condition for velocity component tangential_axis on the normal
+ * velocity to u_data: for each location of gcoef_data where tangential_bc_coef prescribes the traction, gcoef_data
+ * times the derivative of the inhomogeneous Robin coefficient with respect to each normal velocity value.
+ */
+void accumulate_from_traction_bc_coefs(SAMRAI::pdat::SideData<NDIM, double>& u_data,
+                                       const SAMRAI::pdat::ArrayData<NDIM, double>& gcoef_data,
+                                       unsigned int tangential_axis,
+                                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* tangential_bc_coef,
+                                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* normal_bc_coef,
+                                       bool homogeneous_bc,
+                                       const SAMRAI::hier::Patch<NDIM>& patch,
+                                       const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                       const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy,
+                                       double fill_time);
 } // namespace traction_stencil
 } // namespace IBAMR
 
