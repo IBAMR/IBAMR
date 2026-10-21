@@ -49,6 +49,7 @@
 #include <vector>
 
 #include "./ins_staggered_traction_stencil.h"
+#include "./ins_velocity_bc.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -327,17 +328,8 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);
-        const bool velocity_bc = IBTK::rel_equal_eps(alpha, 1.0);
-        const bool traction_bc = IBTK::rel_equal_eps(beta, 1.0);
-#if !defined(NDEBUG)
-        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
-        if (velocity_bc)
-        {
-            alpha = 1.0;
-            beta = 0.0;
-        }
-        else if (traction_bc)
+        if (velocity_bc::get_type(alpha, beta, "INSVCStaggeredVelocityBcCoef::setBcCoefs()") ==
+            velocity_bc::Type::TRACTION)
         {
             const bool mu_data_exists = mu_data;
             if (d_comp_idx == bdry_normal_axis)
@@ -467,10 +459,6 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                 }
                 }
             }
-        }
-        else
-        {
-            TBOX_ERROR("this statement should not be reached!\n");
         }
     }
     return;

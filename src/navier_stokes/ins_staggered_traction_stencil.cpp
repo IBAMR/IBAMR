@@ -40,6 +40,7 @@
 #include <optional>
 
 #include "./ins_staggered_traction_stencil.h"
+#include "./ins_velocity_bc.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -146,7 +147,9 @@ get_prescribed_normal_velocity(const hier::Index<NDIM>& i_face,
     }
     const hier::Index<NDIM>& i_coef = adj_coef_box.lower();
     const double alpha = (*acoef_data)(i_coef, 0);
-    if (alpha != 1.0)
+    const double beta = (*bcoef_data)(i_coef, 0);
+    if (velocity_bc::get_type(alpha, beta, "traction_stencil::get_prescribed_normal_velocity()") !=
+        velocity_bc::Type::VELOCITY)
     {
         return std::nullopt;
     }
@@ -330,7 +333,9 @@ accumulate_from_traction_bc_coefs(SideData<NDIM, double>& u_data,
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
-        if ((*bcoef_data)(i, 0) != 1.0)
+        if (velocity_bc::get_type(
+                (*acoef_data)(i, 0), (*bcoef_data)(i, 0), "traction_stencil::accumulate_from_traction_bc_coefs()") !=
+            velocity_bc::Type::TRACTION)
         {
             continue;
         }
