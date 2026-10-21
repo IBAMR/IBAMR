@@ -976,6 +976,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     solver->d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     solver->d_hier_bdry_fill->fillData(half_time);
     solver->d_hier_bdry_fill->resetTransactionComponents(solver->d_transaction_comps);
+    solver->d_cib_strategy->fillVelocityPhysBdryGhostValues(u_data_idx, homogeneous_bc, half_time);
 
     // 2b) U = J u + W.
     solver->d_cib_strategy->setInterpolatedVelocityVector(U, half_time);

@@ -208,6 +208,7 @@ ENDIF()
 
 # CIB:
 SETUP(CIB cib_plate.cpp IBAMR2d)
+SETUP(CIB cib_coupling_adjoint.cpp IBAMR2d)
 SETUP(CIB cib_double_shell.cpp IBAMR3d)
 
 # ConstraintIB:
@@ -219,6 +220,8 @@ SETUP(IB explicit_ex1.cpp IBAMR2d)
 SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)
 SETUP_2D(IB interpolation_spreading_adjoint.cpp)
+SETUP_2D(IB interpolated_velocity_divergence.cpp)
+SETUP_3D(IB interpolated_velocity_divergence.cpp)
 
 # IBFE:
 IF(${IBAMR_HAVE_LIBMESH})

@@ -934,7 +934,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
         {
             Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
             d_ghostfill_scheds[ghostfill_alg.first][ln] = ghostfill_alg.second->createSchedule(
-                level, ln - 1, hierarchy, d_ghostfill_strategies[ghostfill_alg.first].get());
+                level, ln - 1, hierarchy, d_ghostfill_strategies[ghostfill_alg.first]);
         }
     }
 
@@ -1535,7 +1535,20 @@ HierarchyIntegrator::registerGhostfillRefineAlgorithm(
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
 #endif
     d_ghostfill_algs[name] = ghostfill_alg;
-    d_ghostfill_strategies[name] = std::move(ghostfill_patch_strategy);
+    d_owned_ghostfill_strategies[name] = std::move(ghostfill_patch_strategy);
+    d_ghostfill_strategies[name] = d_owned_ghostfill_strategies[name].get();
+} // registerGhostfillRefineAlgorithm
+
+void
+HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
+                                                      Pointer<RefineAlgorithm<NDIM>> ghostfill_alg,
+                                                      RefinePatchStrategy<NDIM>* const ghostfill_patch_strategy)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
+#endif
+    d_ghostfill_algs[name] = ghostfill_alg;
+    d_ghostfill_strategies[name] = ghostfill_patch_strategy;
 } // registerGhostfillRefineAlgorithm
 
 void

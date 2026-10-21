@@ -24,6 +24,7 @@
 #include <ibtk/LMesh.h>
 #include <ibtk/LNode.h>
 #include <ibtk/LSiloDataWriter.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
@@ -46,6 +47,7 @@
 #include <IntVector.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
+#include <PatchDescriptor.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <RefineAlgorithm.h>
@@ -53,6 +55,9 @@
 #include <SideData.h>
 #include <SideIterator.h>
 #include <VariableContext.h>
+#include <VariableDatabase.h>
+
+#include "./ib_velocity_ghost_fill.h"
 
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
@@ -90,6 +95,24 @@ class RefineSchedule;
 
 namespace IBAMR
 {
+namespace
+{
+void
+check_ghost_cell_width(const std::string& method, const int data_idx, const IntVector<NDIM>& required_gcw)
+{
+    const IntVector<NDIM>& gcw =
+        VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor()->getPatchDataFactory(data_idx)->getGhostCellWidth();
+    if (!(gcw >= required_gcw))
+    {
+        TBOX_ERROR(method << ":\n"
+                          << "  the Eulerian data have ghost cell width " << gcw << ", less than " << required_gcw
+                          << "\n"
+                          << "  allocate them with the width returned by IBStrategy::getEulerianGhostCellWidth()\n");
+    }
+    return;
+} // check_ghost_cell_width
+} // namespace
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CIBMethod::CIBMethod(std::string object_name,
@@ -633,6 +656,7 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
 #if !defined(NDEBUG)
         TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 #endif
+        check_ghost_cell_width("CIBMethod::interpolateVelocity()", u_data_idx, getEulerianGhostCellWidth());
         std::vector<Pointer<LData>>*U_half_data, *X_half_data;
         bool* X_half_needs_ghost_fill;
         getVelocityData(&U_half_data, d_half_time);
@@ -658,6 +682,7 @@ CIBMethod::spreadForce(
 #if !defined(NDEBUG)
         TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 #endif
+        check_ghost_cell_width("CIBMethod::spreadForce()", f_data_idx, getEulerianGhostCellWidth());
         if (f_phys_bdry_op == nullptr)
         {
             IBMethod::spreadForce(f_data_idx, d_u_phys_bdry_op, f_prolongation_scheds, data_time);
@@ -1103,6 +1128,16 @@ CIBMethod::getInterpolatedVelocity(Vec V, const double data_time, const double s
 
     return;
 } // getInterpolatedVelocity
+
+void
+CIBMethod::fillVelocityPhysBdryGhostValues(const int u_data_idx, const bool homogeneous_bc, const double fill_time)
+{
+    if (d_u_phys_bdry_op)
+    {
+        fill_velocity_phys_bdry_ghost_values(*d_u_phys_bdry_op, u_data_idx, d_hierarchy, homogeneous_bc, fill_time);
+    }
+    return;
+} // fillVelocityPhysBdryGhostValues
 
 void
 CIBMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
