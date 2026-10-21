@@ -71,6 +71,10 @@ namespace IBAMR
  * conditions are interpreted as prescribed traction (stress) boundary
  * conditions.  These are translated into Neumann and generalized Dirichlet
  * boundary conditions, respectively, for the pressure.
+ *
+ * Where the normal velocity is not prescribed, this class sets the pressure
+ * boundary value to \f$ p = -g \f$, in which \f$ g \f$ is the normal traction
+ * data at the time that setSolutionTime() sets.
  */
 class INSStaggeredPressureBcCoef : public StokesBcCoefStrategy
 {
@@ -97,7 +101,7 @@ public:
     void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
-     * \brief Set the time at which the solution is to be evaluated.
+     * \brief Set the time at which to evaluate the normal traction data.
      */
     void setSolutionTime(double solution_time);
 
@@ -269,6 +273,11 @@ private:
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    /*
+     * The time at which the pressure is defined.
+     */
+    double d_solution_time = 0.0;
 };
 } // namespace IBAMR
 

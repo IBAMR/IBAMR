@@ -111,6 +111,33 @@ public:
                                                   short int bdry_tag = NORMAL_TRACTION_BDRY) const;
 
     /*!
+     * \brief Add the viscous term that imposes TRACTION conditions at boundary faces where the normal velocity is not
+     * prescribed.
+     *
+     * Call this function after IBTK::HierarchyMathOps::laplace() with the same \a u_data_idx and \a viscous_coef. It
+     * is an error to pass \a linear_pressure_extrapolation = false and a nonzero \a viscous_coef if the term applies
+     * at some boundary face.
+     */
+    void addNormalTractionViscousTerm(int f_data_idx,
+                                      int u_data_idx,
+                                      double viscous_coef,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      bool linear_pressure_extrapolation,
+                                      int coarsest_ln = IBTK::invalid_level_number,
+                                      int finest_ln = IBTK::invalid_level_number) const;
+
+    /*!
+     * \brief Add the part of the viscous term that imposes TRACTION conditions on one patch; see the version for a
+     * patch hierarchy.
+     */
+    void addNormalTractionViscousTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> f_data,
+                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_data,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                      double viscous_coef,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      bool linear_pressure_extrapolation) const;
+
+    /*!
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
      */

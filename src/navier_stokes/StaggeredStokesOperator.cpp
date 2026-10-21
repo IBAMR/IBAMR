@@ -15,6 +15,8 @@
 
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
+#include <ibamr/StokesBcCoefStrategy.h>
+#include <ibamr/ibamr_enums.h>
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/CellNoCornersFillPattern.h>
@@ -57,6 +59,21 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int SIDEG = 1;
+
+// Return whether any of the velocity boundary condition objects reports TRACTION conditions.
+bool
+has_traction_conditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
+{
+    for (const auto& U_bc_coef : U_bc_coefs)
+    {
+        const auto stokes_U_bc_coef = dynamic_cast<const StokesBcCoefStrategy*>(U_bc_coef);
+        if (stokes_U_bc_coef && stokes_U_bc_coef->getTractionBcType() == TRACTION)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 // Timers.
 static Timer* t_apply;
@@ -232,6 +249,17 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                           P_cc_var,
                           d_no_fill,
                           d_new_time);
+    // Add the traction term before laplace(), whose coarse-fine synchronization restricts the complete fine value.
+    if (d_bc_helper)
+    {
+        d_bc_helper->addNormalTractionViscousTerm(A_U_idx,
+                                                  U_idx,
+                                                  d_U_problem_coefs.getDConstant(),
+                                                  d_U_bc_coefs,
+                                                  d_bdry_interp_type == "LINEAR",
+                                                  x.getCoarsestLevelNumber(),
+                                                  x.getFinestLevelNumber());
+    }
     d_hier_math_ops->laplace(
         A_U_idx, A_U_sc_var, d_U_problem_coefs, U_idx, U_sc_var, d_no_fill, d_new_time, 1.0, A_U_idx, A_U_sc_var);
     d_hier_math_ops->div(A_P_idx,
@@ -256,6 +284,15 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
 
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
+
+    if (!d_bc_helper && has_traction_conditions(d_U_bc_coefs) &&
+        in.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() == 0)
+    {
+        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
+                                 << "  the velocity boundary conditions are TRACTION conditions and the domain is not "
+                                    "periodic in every direction\n"
+                                 << "  call setPhysicalBoundaryHelper() to impose them" << std::endl);
+    }
 
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, /*overwrite_interior*/ false);
