@@ -268,6 +268,133 @@ mdot_arrays(const ArrayData<NDIM, double>& x,
     }
 }
 
+// Apply y = a[i] * x[i] + y for i = 0, ..., N - 1 in order to one row, for coefficients other than 0 and +/-1.
+template <int N>
+void
+maxpy_row_general(double* __restrict__ const y, const double* const a, const double* const* const x, const int n)
+{
+    const double* xp[N];
+    double alpha[N];
+    for (int i = 0; i < N; ++i)
+    {
+        xp[i] = x[i];
+        alpha[i] = a[i];
+    }
+    for (int k = 0; k < n; ++k)
+    {
+        double val = y[k];
+        for (int i = 0; i < N; ++i)
+        {
+            val = alpha[i] * xp[i][k] + val;
+        }
+        y[k] = val;
+    }
+}
+
+// Call maxpy_row_general() with the block size nx, which is at most N.
+template <int N>
+void
+maxpy_row_dispatch(double* const y, const double* const a, const double* const* const x, const int nx, const int n)
+{
+    if constexpr (N > 0)
+    {
+        if (nx == N)
+        {
+            maxpy_row_general<N>(y, a, x, n);
+        }
+        else
+        {
+            maxpy_row_dispatch<N - 1>(y, a, x, nx, n);
+        }
+    }
+}
+
+// Apply y = a * x + y to one row as ArrayDataBasicOps::axpy() does, including its special cases.
+void
+axpy_row(double* __restrict__ const y, const double a, const double* __restrict__ const x, const int n)
+{
+    if (a == 0.0)
+    {
+        return;
+    }
+    if (a == 1.0)
+    {
+        for (int k = 0; k < n; ++k)
+        {
+            y[k] = x[k] + y[k];
+        }
+    }
+    else if (a == -1.0)
+    {
+        for (int k = 0; k < n; ++k)
+        {
+            y[k] = y[k] - x[k];
+        }
+    }
+    else
+    {
+        for (int k = 0; k < n; ++k)
+        {
+            y[k] = a * x[k] + y[k];
+        }
+    }
+}
+
+// Compute y += sum_i alpha[i] * x[i] over box, applying the terms to each value in order as ArrayDataBasicOps::axpy()
+// would. All x arrays must share y's box and depth.
+void
+maxpy_arrays(ArrayData<NDIM, double>& y,
+             const std::vector<double>& alpha,
+             const std::vector<const ArrayData<NDIM, double>*>& x,
+             const Box<NDIM>& box)
+{
+    const int nx = static_cast<int>(x.size());
+    const Box<NDIM>& y_box = y.getBox();
+    const Box<NDIM> ibox = box * y_box * y_box * y_box;
+    if (ibox.empty())
+    {
+        return;
+    }
+    std::vector<const double*> x_row(nx);
+    for (int d = 0; d < y.getDepth(); ++d)
+    {
+        const int depth_offset = d * y.getOffset();
+        for_each_row(ibox,
+                     y_box,
+                     y_box,
+                     [&](const int offset, const int /*other_offset*/, const int n)
+                     {
+                         double* const y_row = y.getPointer() + depth_offset + offset;
+                         for (int i = 0; i < nx; ++i)
+                         {
+                             x_row[i] = x[i]->getPointer() + depth_offset + offset;
+                         }
+                         int i = 0;
+                         while (i < nx)
+                         {
+                             const int block = std::min(FUSED_BLOCK, nx - i);
+                             bool general = true;
+                             for (int j = i; j < i + block; ++j)
+                             {
+                                 general = general && alpha[j] != 0.0 && alpha[j] != 1.0 && alpha[j] != -1.0;
+                             }
+                             if (general)
+                             {
+                                 maxpy_row_dispatch<FUSED_BLOCK>(y_row, alpha.data() + i, x_row.data() + i, block, n);
+                             }
+                             else
+                             {
+                                 for (int j = i; j < i + block; ++j)
+                                 {
+                                     axpy_row(y_row, alpha[j], x_row[j], n);
+                                 }
+                             }
+                             i += block;
+                         }
+                     });
+    }
+}
+
 // Return whether the data of component c of each vector in vecs have the same ghost box and depth as those of ref on
 // every patch, where the data are of centering C. The control volume of ref, if any, must be of centering C with depth
 // one or the depth of the data, and must allocate every direction that the data allocate.
@@ -462,6 +589,70 @@ fused_local_mdot(const SAMRAIVectorReal<NDIM, double>& x,
     }
 }
 
+// Apply y.axpy(alpha_group[i], x[begin + i], y) for each i in order to component c of y over its ghost boxes, where the
+// data are of centering C: on each patch, for each coordinate direction that the data of y allocate.
+template <DataCentering C>
+void
+maxpy_component(SAMRAIVectorReal<NDIM, double>& y,
+                const std::vector<double>& alpha_group,
+                const std::vector<SAMRAIVectorReal<NDIM, double>*>& x,
+                const int begin,
+                const int c)
+{
+    using Traits = CartesianCentering<C>;
+    using Data = typename Traits::template Data<double>;
+    Pointer<PatchHierarchy<NDIM>> hierarchy = y.getPatchHierarchy();
+    const int nx = static_cast<int>(alpha_group.size());
+    const int y_idx = y.getComponentDescriptorIndex(c);
+    std::vector<const ArrayData<NDIM, double>*> x_arrays(nx);
+    for (int ln = y.getCoarsestLevelNumber(); ln <= y.getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<Data> y_data = patch->getPatchData(y_idx);
+            const Box<NDIM> box = y_data->getGhostBox();
+            for (int axis = 0; axis < Traits::num_axes(); ++axis)
+            {
+                if (!Traits::template has_axis<double>(*y_data, axis))
+                {
+                    continue;
+                }
+                for (int i = 0; i < nx; ++i)
+                {
+                    Pointer<Data> x_data = patch->getPatchData(x[begin + i]->getComponentDescriptorIndex(c));
+                    x_arrays[i] = &Traits::template array_data<double>(*x_data, axis);
+                }
+                maxpy_arrays(Traits::template array_data<double>(*y_data, axis),
+                             alpha_group,
+                             x_arrays,
+                             Traits::index_box(box, axis));
+            }
+        }
+    }
+}
+
+// Compute y.axpy(alpha[i], x[i], y) for each i in order over ghost boxes, bitwise identical to the sequence of calls.
+// The data must satisfy can_fuse().
+void
+fused_maxpy(SAMRAIVectorReal<NDIM, double>& y,
+            const PetscScalar* alpha,
+            const std::vector<SAMRAIVectorReal<NDIM, double>*>& x)
+{
+    const int nv = static_cast<int>(x.size());
+    for (int begin = 0; begin < nv; begin += FUSED_GROUP_SIZE)
+    {
+        const int nx = std::min(FUSED_GROUP_SIZE, nv - begin);
+        const std::vector<double> alpha_group(alpha + begin, alpha + begin + nx);
+        for (int c = 0; c < y.getNumberOfComponents(); ++c)
+        {
+            dispatch_data_centering(*find_component_centering(y.getComponentDescriptorIndex(c)),
+                                    [&]<DataCentering C>() { maxpy_component<C>(y, alpha_group, x, begin, c); });
+        }
+    }
+}
+
 // The way multi-vector operations are carried out, selected by the option -ibtk_vec_fusion.
 enum class FusionMode
 {
@@ -519,6 +710,32 @@ compute_local_mdot(const Pointer<SAMRAIVectorReal<NDIM, double>>& x_vec,
         return;
     }
     fused_local_mdot(*x_vec, y_ptrs, val);
+}
+
+// Compute y_vec.axpy(alpha[i], x_vecs[i], y_vec) for each i in order, with the fused kernel unless fusion is disabled,
+// y_vec is one of the x_vecs, or the data do not allow it, in which case SAMRAIVectorReal::axpy() is used for each i.
+void
+compute_maxpy(const Pointer<SAMRAIVectorReal<NDIM, double>>& y_vec,
+              const PetscScalar* alpha,
+              const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& x_vecs)
+{
+    static const bool interior_only = false;
+    const PetscInt nv = static_cast<PetscInt>(x_vecs.size());
+    std::vector<SAMRAIVectorReal<NDIM, double>*> x_ptrs(nv);
+    for (PetscInt i = 0; i < nv; ++i)
+    {
+        x_ptrs[i] = x_vecs[i].getPointer();
+    }
+    const bool y_in_x = std::find(x_ptrs.begin(), x_ptrs.end(), y_vec.getPointer()) != x_ptrs.end();
+    if (get_fusion_mode() == FusionMode::NONE || y_in_x || !can_fuse(*y_vec, x_ptrs))
+    {
+        for (PetscInt i = 0; i < nv; ++i)
+        {
+            y_vec->axpy(alpha[i], x_vecs[i], y_vec, interior_only);
+        }
+        return;
+    }
+    fused_maxpy(*y_vec, alpha, x_ptrs);
 }
 
 #define PSVR_CAST1(v) (static_cast<PETScSAMRAIVectorReal*>(v->data))
@@ -924,11 +1141,12 @@ PETScSAMRAIVectorReal::VecMAXPY_SAMRAI(Vec y, PetscInt nv, const PetscScalar* al
     PetscFunctionBeginUser;
     PSVR_CHECK1(y);
     PSVR_CHECKN(x, nv);
-    static const bool interior_only = false;
+    std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>> x_vecs(nv);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        PSVR_CAST2(y)->axpy(alpha[i], PSVR_CAST2(x[i]), PSVR_CAST2(y), interior_only);
+        x_vecs[i] = PSVR_CAST2(x[i]);
     }
+    compute_maxpy(PSVR_CAST2(y), alpha, x_vecs);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_maxpy);
