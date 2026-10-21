@@ -1,0 +1,3 @@
+Fixed: IBAMR::INSStaggeredHierarchyIntegrator and IBAMR::StaggeredStokesOperator now impose TRACTION open boundary conditions correctly, including with BDF2 viscous time stepping.
+<br>
+(Boyce Griffith, 2026/10/01)

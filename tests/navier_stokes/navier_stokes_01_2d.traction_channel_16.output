@@ -1,0 +1,61 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+
+At end       of timestep # 0
+Simulation time is 10000
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 10000
+
+At end       of timestep # 1
+Simulation time is 20000
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 2
+Simulation time is 20000
+
+At end       of timestep # 2
+Simulation time is 30000
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 3
+Simulation time is 30000
+
+At end       of timestep # 3
+Simulation time is 40000
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 4
+Simulation time is 40000
+
+At end       of timestep # 4
+Simulation time is 50000
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+Computing error norms.
+
+Error in u at time 50000:
+  L1-norm:  0.003906249998
+  L2-norm:  0.003906249998
+  max-norm: 0.00390625
+Error in p at time 45000:
+  L1-norm:  1.147121474e-14
+  L2-norm:  1.719856248e-14
+  max-norm: 8.083811398e-14
++++++++++++++++++++++++++++++++++++++++++++++++++++
