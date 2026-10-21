@@ -98,7 +98,7 @@ jobs:
         id: build-tests
         run: |
           cd build
-          ninja -j4 tests-CIB
+          ninja -j4 tests
           ccache --show-stats
       - name: Test IBAMR
         id: test
