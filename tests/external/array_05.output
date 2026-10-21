@@ -1,0 +1,4 @@
+size of an array of -1 elements: 0
+size after resizing to -1 elements: 0
+bytes in a full stream after packing no values: 16
+bytes in an empty stream: 0
