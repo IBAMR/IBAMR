@@ -1,0 +1,55 @@
+cell depth 1:
+  L1 norm = 0.399487961085
+  L2 norm = 0.50500819472
+  max norm = 1.24999207331
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+node depth 1:
+  L1 norm = 2549.53271589
+  L2 norm = 50.8416453977
+  max norm = 1.24999207331
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+side depth 1:
+  L1 norm = 2.8423929735
+  L2 norm = 1.72904352676
+  max norm = 1.24999207331
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+face depth 1:
+  L1 norm = 2337.39107002
+  L2 norm = 36.2907657627
+  max norm = 1.21988981085
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+edge depth 1:
+  L1 norm = 4332.21582835
+  L2 norm = 55.9636917665
+  max norm = 1.24999598689
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+cell depth 2:
+  L1 norm = 1.21929212378
+  L2 norm = 0.898902949096
+  max norm = 1.24999598689
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+node depth 2:
+  L1 norm = 3800.42063882
+  L2 norm = 56.8750482859
+  max norm = 1.24999598689
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+side depth 2:
+  L1 norm = 4.96661554091
+  L2 norm = 2.21533917646
+  max norm = 1.24999598689
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+face depth 2:
+  L1 norm = 9422.47720059
+  L2 norm = 94.9217438251
+  max norm = 1.24999598689
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+edge depth 2:
+  L1 norm = 7958.99620644
+  L2 norm = 77.4033458642
+  max norm = 1.24999598689
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
+all centerings, depth 1:
+  L1 norm = 9222.3814952
+  L2 norm = 83.8872577172
+  max norm = 1.24999598689
+  agree with SAMRAIVectorReal to a relative difference below 1e-12: yes
