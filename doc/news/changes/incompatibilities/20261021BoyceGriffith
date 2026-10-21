@@ -1,0 +1,3 @@
+Changed: IBAMR::StaggeredStokesLevelRelaxationFACOperator gives each level solver its own PETSc options prefix, `<prefix>level_<ln>_`, as IBTK::CCPoissonLevelRelaxationFACOperator and IBAMR::StaggeredStokesIBLevelRelaxationFACOperator do. PETSc options for its level solvers must include the level number.
+<br>
+(Boyce Griffith, 2026/10/21)
