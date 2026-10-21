@@ -177,6 +177,8 @@ public:
      * \brief Set what rigid DOFs need to be solved for this
      * particular structure.
      *
+     * By default, no DOFs are solved for: all are prescribed.
+     *
      * \param part The rigid body for which we are setting the free DOFs.
      */
     void setSolveRigidBodyVelocity(const unsigned int part, const IBTK::FreeRigidDOFVector& solve_rigid_dofs);
