@@ -135,6 +135,24 @@ public:
     virtual void setInterpolatedVelocityVector(Vec V, const double data_time);
 
     /*!
+     * \brief Set the ghost values of the velocity with patch data index
+     * \p u_data_idx outside the physical boundaries with the boundary
+     * operator that this object uses to spread forces, so that interpolation
+     * is the transpose of spreading. The ghost values inside the domain must
+     * already be filled.
+     *
+     * \param u_data_idx Patch data index of the velocity, which must have the
+     * ghost cell width returned by IBStrategy::getEulerianGhostCellWidth().
+     *
+     * \param homogeneous_bc Whether to use homogeneous boundary conditions.
+     *
+     * \param fill_time Time at which the boundary conditions are evaluated.
+     *
+     * \note A default implementation is provided that does nothing.
+     */
+    virtual void fillVelocityPhysBdryGhostValues(int u_data_idx, bool homogeneous_bc, double fill_time);
+
+    /*!
      * \brief Get the interpolated velocity from the Eulerian grid at the specified time.
      *
      * \param V Vector that should contain the interpolated velocity.

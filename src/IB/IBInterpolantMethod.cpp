@@ -197,12 +197,13 @@ IBInterpolantMethod::~IBInterpolantMethod()
 void
 IBInterpolantMethod::registerEulerianVariables()
 {
-    const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
+    const IntVector<NDIM> eulerian_ghosts = getEulerianGhostCellWidth();
     for (auto& q_pair : d_q_interp_idx)
     {
         const std::string& var_name = q_pair.first;
         q_pair.second = -1;
-        registerVariable(q_pair.second, d_q_var[var_name], ib_ghosts, nullptr /*d_ib_solver->getScratchContext()*/);
+        registerVariable(
+            q_pair.second, d_q_var[var_name], eulerian_ghosts, nullptr /*d_ib_solver->getScratchContext()*/);
     }
 
     return;

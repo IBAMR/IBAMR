@@ -115,7 +115,7 @@ GeneralizedIBMethod::registerEulerianVariables()
 {
     IBMethod::registerEulerianVariables();
 
-    const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
+    const IntVector<NDIM> eulerian_ghosts = getEulerianGhostCellWidth();
     const IntVector<NDIM> no_ghosts = 0;
 
     Pointer<Variable<NDIM>> u_var = d_ib_solver->getVelocityVariable();
@@ -139,8 +139,8 @@ GeneralizedIBMethod::registerEulerianVariables()
                                  << "  unsupported velocity data centering" << std::endl);
     }
     registerVariable(d_f_idx, d_f_var, no_ghosts, d_ib_solver->getScratchContext());
-    registerVariable(d_w_idx, d_w_var, ib_ghosts, d_ib_solver->getScratchContext());
-    registerVariable(d_n_idx, d_n_var, ib_ghosts, d_ib_solver->getScratchContext());
+    registerVariable(d_w_idx, d_w_var, eulerian_ghosts, d_ib_solver->getScratchContext());
+    registerVariable(d_n_idx, d_n_var, eulerian_ghosts, d_ib_solver->getScratchContext());
     return;
 } // registerEulerianVariables
 

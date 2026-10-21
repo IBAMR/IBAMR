@@ -19,6 +19,7 @@
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
 #include <ibamr/INSStaggeredConvectiveOperatorManager.h>
+#include <ibamr/INSStaggeredDivergenceFreePhysBdryOp.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
@@ -110,6 +111,7 @@
 #include <cmath>
 #include <deque>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -732,6 +734,17 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
     return d_stokes_solver;
 } // getStokesSolver
 
+IBTK::RobinPhysBdryPatchStrategy*
+INSStaggeredHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()
+{
+    if (!d_divergence_free_velocity_phys_bdry_op)
+    {
+        d_divergence_free_velocity_phys_bdry_op =
+            std::make_unique<INSStaggeredDivergenceFreePhysBdryOp>(this, /*homogeneous_bc*/ false);
+    }
+    return d_divergence_free_velocity_phys_bdry_op.get();
+} // getDivergenceFreeVelocityPhysBdryOp
+
 void
 INSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
 {
@@ -1135,6 +1148,10 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
 
     // Cache BC data.
     d_bc_helper->cacheBcCoefData(d_bc_coefs, new_time, d_hierarchy);
+    if (d_divergence_free_velocity_phys_bdry_op)
+    {
+        d_divergence_free_velocity_phys_bdry_op->clearCache();
+    }
 
     // Initialize the right-hand side terms.
     const double rho = d_problem_coefs.getRho();
@@ -1944,6 +1961,12 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     NULL_USE(finest_level);
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
+
+    // Discard the cached data of the divergence-free velocity boundary operator.
+    if (d_divergence_free_velocity_phys_bdry_op)
+    {
+        d_divergence_free_velocity_phys_bdry_op->clearCache();
+    }
 
     // Reset the hierarchy operations objects for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);

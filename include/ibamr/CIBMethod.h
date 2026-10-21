@@ -376,6 +376,13 @@ public:
      */
     void getInterpolatedVelocity(Vec V, const double data_time, const double scale = 1.0) override;
 
+    // \see CIBStrategy::fillVelocityPhysBdryGhostValues() method
+    /*!
+     * \brief Set the velocity ghost values outside the physical boundaries
+     * with the operator set by setVelocityPhysBdryOp(), if there is one.
+     */
+    void fillVelocityPhysBdryGhostValues(int u_data_idx, bool homogeneous_bc, double fill_time) override;
+
     // \see CIBStrategy::computeMobilityRegularization method
     /*!
      * \brief Compute regularization vector for the mobility problem.

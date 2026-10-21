@@ -42,6 +42,10 @@
 #include <string>
 #include <vector>
 
+namespace IBTK
+{
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
 namespace SAMRAI
 {
 namespace hier
@@ -191,6 +195,13 @@ public:
      * Get the interpretation of traction boundary conditions on the velocity.
      */
     TractionBcType getTractionBcType() const;
+
+    /*!
+     * Get the operator that fills the velocity ghost values outside the physical boundaries so that the discrete
+     * divergence vanishes there, or a null pointer if the integrator provides none. The integrator owns it; the
+     * caller sets its patch data index and homogeneous flag before each use.
+     */
+    virtual IBTK::RobinPhysBdryPatchStrategy* getDivergenceFreeVelocityPhysBdryOp();
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.

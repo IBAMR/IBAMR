@@ -158,6 +158,16 @@ public:
     virtual const SAMRAI::hier::IntVector<NDIM>& getMinimumGhostCellWidth() const = 0;
 
     /*!
+     * Return the ghost cell width of the Eulerian velocity and force data on
+     * which this object interpolates and spreads. It is at least the minimum
+     * ghost cell width.
+     *
+     * \note The IBHierarchyIntegrator must have been registered and
+     * initialized.
+     */
+    const SAMRAI::hier::IntVector<NDIM>& getEulerianGhostCellWidth() const;
+
+    /*!
      * Setup the tag buffer.
      *
      * A default implementation is provided that sets the tag buffer to be at

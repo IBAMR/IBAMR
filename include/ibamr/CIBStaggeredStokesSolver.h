@@ -56,6 +56,10 @@ namespace IBAMR
  * field \f$ \vec{\lambda} \f$ which imposes the rigidity constraint and solves
  * for rigid body velocity (if it is freely-moving) along with the fluid
  * velocity and pressure.
+ *
+ * The solver is initialized after the IBHierarchyIntegrator because its
+ * velocity and force data have the ghost cell width returned by
+ * IBStrategy::getEulerianGhostCellWidth().
  */
 class CIBStaggeredStokesSolver : public StaggeredStokesSolver
 {
@@ -168,6 +172,12 @@ private:
      */
     CIBStaggeredStokesSolver& operator=(const CIBStaggeredStokesSolver& that) = delete;
 
+    /*!
+     * \brief Register the wide velocity and force patch data with the given
+     * ghost cell width, replacing any registered with another width.
+     */
+    void registerWideData(const SAMRAI::hier::IntVector<NDIM>& ghost_width);
+
     // Pointer to the constraint IB strategy.
     SAMRAI::tbox::Pointer<CIBStrategy> d_cib_strategy;
 
@@ -181,6 +191,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_wide_u_var, d_wide_f_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_wide_ctx;
     int d_wide_u_idx = IBTK::invalid_index, d_wide_f_idx = IBTK::invalid_index;
+    SAMRAI::hier::IntVector<NDIM> d_wide_ghost_width = SAMRAI::hier::IntVector<NDIM>(0);
 
     // SVR for holding widened u/f.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_x_wide, d_b_wide;
