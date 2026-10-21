@@ -1,0 +1,3 @@
+Fixed: IB force spreading now accounts for TRACTION velocity boundary conditions of IBAMR::INSStaggeredHierarchyIntegrator correctly.
+<br>
+(Boyce Griffith, 2026/10/01)
