@@ -20,6 +20,7 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/ShiftedPatchGeometry.h>
 
 #include <tbox/MathUtilities.h>
 #include <tbox/Pointer.h>
@@ -28,21 +29,26 @@
 #include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
+#include <BoxArray.h>
 #include <CartesianPatchGeometry.h>
 #include <EdgeData.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <NodeData.h>
 #include <Patch.h>
+#include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
 #include <SideIndex.h>
 
 #include <algorithm>
 #include <limits>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "./ins_staggered_traction_stencil.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -198,6 +204,45 @@ INSVCStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
+INSVCStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double>& gcoef_data,
+                                                    const Patch<NDIM>& patch,
+                                                    const BoundaryBox<NDIM>& bdry_box,
+                                                    const double fill_time) const
+{
+    // Only a TRACTION condition on a tangential component depends on the velocity.
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index / 2;
+    if (d_traction_bc_type != TRACTION || d_comp_idx == bdry_normal_axis)
+    {
+        return;
+    }
+
+    // Accumulate the transpose of the normal velocity term of gamma, which
+    // setBcCoefs() sets, into the target velocity.
+    Pointer<SideData<NDIM, double>> u_target_data;
+    if (d_u_target_data_idx >= 0)
+    {
+        u_target_data = patch.getPatchData(d_u_target_data_idx);
+    }
+    else if (d_target_data_idx >= 0)
+    {
+        u_target_data = patch.getPatchData(d_target_data_idx);
+    }
+    TBOX_ASSERT(u_target_data);
+    traction_stencil::accumulate_from_traction_bc_coefs(*u_target_data,
+                                                        gcoef_data,
+                                                        d_comp_idx,
+                                                        d_bc_coefs[d_comp_idx],
+                                                        d_bc_coefs[bdry_normal_axis],
+                                                        d_homogeneous_bc,
+                                                        patch,
+                                                        bdry_box,
+                                                        d_fluid_solver->getPatchHierarchy(),
+                                                        fill_time);
+    return;
+} // accumulateFromBcCoefs
+
+void
 INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
                                          Pointer<ArrayData<NDIM, double>>& bcoef_data,
                                          Pointer<ArrayData<NDIM, double>>& gcoef_data,
@@ -258,6 +303,8 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
     const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
+    std::optional<BoxArray<NDIM>> domain;
+    std::optional<ShiftedPatchGeometry> normal_geometry;
 
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
 #if (NDIM == 2)
@@ -314,13 +361,28 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                 {
                     // Compute the tangential derivative of the normal
                     // component of the velocity at the boundary.
-                    hier::Index<NDIM> i_lower(i), i_upper(i);
-                    i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
+                    hier::Index<NDIM> i_upper(i);
                     i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-                    const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                    if (!domain)
+                    {
+                        domain = traction_stencil::get_physical_domain(d_fluid_solver->getPatchHierarchy(),
+                                                                       pgeom->getRatio());
+                        normal_geometry.emplace(
+                            traction_stencil::get_normal_velocity_geometry(patch, bdry_normal_axis, d_comp_idx));
+                    }
                     const double du_norm_dx_tan =
-                        ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) / dx[d_comp_idx];
+                        traction_stencil::get_normal_velocity_difference(*u_target_data,
+                                                                         i,
+                                                                         bdry_normal_axis,
+                                                                         is_lower,
+                                                                         d_comp_idx,
+                                                                         d_bc_coefs[bdry_normal_axis],
+                                                                         d_homogeneous_bc,
+                                                                         patch,
+                                                                         *normal_geometry,
+                                                                         *domain,
+                                                                         fill_time) /
+                        dx[d_comp_idx];
 
                     if (!d_fluid_solver->muIsConstant())
                     {
