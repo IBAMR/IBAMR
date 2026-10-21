@@ -1,0 +1,3 @@
+New: INSStaggeredDivergenceFreePhysBdryOp fills velocity ghost values outside physical boundaries so that the discrete divergence vanishes there.
+<br>
+(Boyce Griffith, 2026/10/01)

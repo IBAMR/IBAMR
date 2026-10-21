@@ -33,6 +33,9 @@
 #include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
+#include <SideIndex.h>
+
+#include <array>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -42,11 +45,43 @@ namespace IBAMR
 namespace traction_stencil
 {
 /*!
+ * The normal velocity that the TRACTION condition uses at a face on a boundary: weight[0]*u(idx[0]) +
+ * weight[1]*u(idx[1]). At a face beyond a corner, the stencil extrapolates linearly from the nearest faces; if the
+ * adjacent boundary (adjacent_location_index) prescribes the normal velocity u_b, the caller calls
+ * useAdjacentBoundaryValue() and adds 2*u_b.
+ */
+struct NormalVelocityStencil
+{
+    std::array<SAMRAI::pdat::SideIndex<NDIM>, 2> idx;
+    std::array<double, 2> weight;
+
+    bool beyond_corner = false;
+    unsigned int adjacent_location_index = 0;
+    bool uses_adjacent_boundary_value = false;
+
+    /*!
+     * Replace the weighted sum by minus the value at the nearest face. The face must be beyond a corner.
+     */
+    void useAdjacentBoundaryValue();
+};
+
+/*!
  * Return the physical domain of hierarchy refined by ratio, with its periodic images.
  */
 SAMRAI::hier::BoxArray<NDIM>
 get_physical_domain(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy,
                     const SAMRAI::hier::IntVector<NDIM>& ratio);
+
+/*!
+ * Return the stencil of the normal velocity at the face i_face beyond a corner of the boundary normal to
+ * bdry_normal_axis, where the boundary segment ends along tangential_axis. The nearest face on the boundary is at
+ * i_face + step along tangential_axis; the second nearest is used if can_extrapolate is true.
+ */
+NormalVelocityStencil get_corner_normal_velocity_stencil(SAMRAI::hier::Index<NDIM> i_face,
+                                                         unsigned int bdry_normal_axis,
+                                                         unsigned int tangential_axis,
+                                                         int step,
+                                                         bool can_extrapolate);
 
 /*!
  * Return the geometry of patch centered on the velocity component bdry_normal_axis, given that the geometry of patch is
