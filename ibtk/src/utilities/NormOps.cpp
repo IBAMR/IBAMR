@@ -14,10 +14,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/CartesianCentering.h>
+#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/NormOps.h>
 
 #include <tbox/Pointer.h>
+
+#include <petscsys.h>
 
 #include <Box.h>
 #include <IntVector.h>
@@ -33,6 +36,7 @@
 #include <cmath>
 #include <functional>
 #include <numeric>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -119,11 +123,18 @@ for_each_component_patch(const SAMRAIVectorReal<NDIM, double>* const samrai_vect
 }
 } // namespace
 
+std::optional<bool> NormOps::s_sorted_summation;
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 double
 NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
 {
+    if (!getSortedSummation())
+    {
+        const double L1_norm_local = L1Norm_local_unsorted(samrai_vector);
+        return local_only ? L1_norm_local : IBTK_MPI::sumReduction(L1_norm_local);
+    }
     const double L1_norm_local = L1Norm_local(samrai_vector);
     if (local_only) return L1_norm_local;
 
@@ -137,6 +148,10 @@ NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const
 double
 NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
 {
+    if (!getSortedSummation())
+    {
+        return L2NormFromSumOfSquares(L2NormSquared_local_unsorted(samrai_vector), local_only);
+    }
     const double L2_norm_local = L2Norm_local(samrai_vector);
     if (local_only) return L2_norm_local;
 
@@ -152,6 +167,39 @@ NormOps::maxNorm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, cons
 {
     return samrai_vector->maxNorm(local_only);
 } // maxNorm
+
+void
+NormOps::setSortedSummation(const bool sorted_summation)
+{
+    s_sorted_summation = sorted_summation;
+} // setSortedSummation
+
+bool
+NormOps::getSortedSummation()
+{
+    if (!s_sorted_summation.has_value())
+    {
+        // The option cannot be read before PETSc is initialized; use the default and read the option on a later call.
+        PetscBool petsc_initialized = PETSC_FALSE;
+        int ierr = PetscInitialized(&petsc_initialized);
+        IBTK_CHKERRQ(ierr);
+        if (!petsc_initialized)
+        {
+            return false;
+        }
+        PetscBool sorted_summation = PETSC_FALSE;
+        ierr = PetscOptionsGetBool(nullptr, nullptr, "-ibtk_sorted_norm_summation", &sorted_summation, nullptr);
+        IBTK_CHKERRQ(ierr);
+        s_sorted_summation = sorted_summation == PETSC_TRUE;
+    }
+    return *s_sorted_summation;
+} // getSortedSummation
+
+double
+NormOps::L2NormFromSumOfSquares(const double local_sum_of_squares, const bool local_only)
+{
+    return std::sqrt(local_only ? local_sum_of_squares : IBTK_MPI::sumReduction(local_sum_of_squares));
+} // L2NormFromSumOfSquares
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -176,6 +224,26 @@ NormOps::L2Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
                              { L2_norm_local_patch.push_back(patch_ops.L2Norm(data, patch_box, cvol)); });
     return std::sqrt(accurate_sum_of_squares(L2_norm_local_patch));
 } // L2Norm_local
+
+double
+NormOps::L1Norm_local_unsorted(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
+{
+    double L1_norm = 0.0;
+    for_each_component_patch(samrai_vector,
+                             [&](const auto& patch_ops, const auto& data, const Box<NDIM>& patch_box, const auto& cvol)
+                             { L1_norm += patch_ops.L1Norm(data, patch_box, cvol); });
+    return L1_norm;
+} // L1Norm_local_unsorted
+
+double
+NormOps::L2NormSquared_local_unsorted(const SAMRAIVectorReal<NDIM, double>* const samrai_vector)
+{
+    double sum_of_squares = 0.0;
+    for_each_component_patch(samrai_vector,
+                             [&](const auto& patch_ops, const auto& data, const Box<NDIM>& patch_box, const auto& cvol)
+                             { sum_of_squares += patch_ops.dot(data, data, patch_box, cvol); });
+    return sum_of_squares;
+} // L2NormSquared_local_unsorted
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
