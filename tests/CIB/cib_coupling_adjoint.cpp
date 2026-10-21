@@ -255,6 +255,26 @@ check_coupling_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
         TBOX_ERROR("(L, J u) = " << L_dot_Ju << " and (S L, u) = " << SL_dot_u << " do not agree\n");
     }
     pout << "patches on the level = " << level->getNumberOfPatches() << '\n';
+    {
+        std::vector<Pointer<LData>>* X_half_data;
+        bool* X_half_needs_ghost_fill;
+        ib_method_ops->getPositionData(&X_half_data, &X_half_needs_ghost_fill, IBTK::TimePoint::HALF_TIME);
+        Vec X_half_vec = (*X_half_data)[finest_ln]->getVec();
+        const double* X_array;
+        const double* Ju_array;
+        VecGetArrayRead(X_half_vec, &X_array);
+        VecGetArrayRead(Ju, &Ju_array);
+        for (const auto& node : l_data_manager->getLMesh(finest_ln)->getLocalNodes())
+        {
+            const int lag_idx = node->getLagrangianIndex();
+            const int petsc_idx = node->getLocalPETScIndex();
+            pout << std::setprecision(15) << "node " << lag_idx << " X_half = " << X_array[petsc_idx * NDIM] << " "
+                 << X_array[petsc_idx * NDIM + 1] << " Ju = " << Ju_array[petsc_idx * NDIM] << " "
+                 << Ju_array[petsc_idx * NDIM + 1] << '\n';
+        }
+        VecRestoreArrayRead(Ju, &Ju_array);
+        VecRestoreArrayRead(X_half_vec, &X_array);
+    }
     pout << std::setprecision(12) << "(L, J u) = " << L_dot_Ju << '\n' << "(S L, u) = " << SL_dot_u << '\n';
 
     // Cleanup.

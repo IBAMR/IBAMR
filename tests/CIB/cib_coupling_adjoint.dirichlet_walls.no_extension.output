@@ -1,0 +1,37 @@
+IBStandardInitializer:  Reading from input files.
+  base filename: plate2d
+  assigned to level 0 of the Cartesian grid patch hierarchy
+  NOTE: UNIFORM spring stiffnesses are being employed for the structure named plate2d
+
+IBStandardInitializer:  processing vertex data from ASCII input file named plate2d.vertex
+  on MPI process 0
+IBStandardInitializer:  read 10 vertices from ASCII input file named plate2d.vertex
+  on MPI process 0
+IBStandardInitializer:   file plate2d.spring on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file plate2d.xspring on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file plate2d.beam on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file plate2d.rod on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file plate2d.target on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file plate2d.anchor on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file plate2d.mass on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file plate2d.director on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   Either file plate2d.inst on MPI process 0 does not exist or instrumentation is disabled : skipping read.
+IBStandardInitializer:   Either file plate2d.source on MPI process 0 does not exist or sources are disabled : skipping read.
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+patches on the level = 4
+node 0 X_half = 0 0 Ju = 0 0
+node 1 X_half = 0 0 Ju = 0 0
+node 2 X_half = 0 0 Ju = 0 0
+node 3 X_half = 0 0 Ju = 0 0
+node 4 X_half = 0 0 Ju = 0 0
+node 5 X_half = 0 0 Ju = 0 0
+node 6 X_half = 0 0 Ju = 0 0
+node 7 X_half = 0 0 Ju = 0 0
+node 8 X_half = 0 0 Ju = 0 0
+node 9 X_half = 0 0 Ju = 0 0
+(L, J u) = -0.598646253926
+(S L, u) = -0.598646253926
+IBStandardInitializer:  Deallocating initialization data.
+IBStandardInitializer:  Deallocating initialization data.

@@ -21,6 +21,16 @@ IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 patches on the level = 4
+node 0 X_half = 0 0 Ju = 0 0
+node 1 X_half = 0 0 Ju = 0 0
+node 2 X_half = 0 0 Ju = 0 0
+node 3 X_half = 0 0 Ju = 0 0
+node 4 X_half = 0 0 Ju = 0 0
+node 5 X_half = 0 0 Ju = 0 0
+node 6 X_half = 0 0 Ju = 0 0
+node 7 X_half = 0 0 Ju = 0 0
+node 8 X_half = 0 0 Ju = 0 0
+node 9 X_half = 0 0 Ju = 0 0
 (L, J u) = -0.598646253926
 (S L, u) = -0.598646253926
 IBStandardInitializer:  Deallocating initialization data.

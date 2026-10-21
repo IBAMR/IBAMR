@@ -1,0 +1,111 @@
+// Diagnostic: no extension, the plate in the middle of the domain in x.
+N = 16
+MAX_LEVELS = 1
+
+IBHierarchyIntegrator {
+   divergence_free_velocity_extension = FALSE
+   start_time          = 0.0
+   end_time            = 0.01
+   dt_max              = 0.01
+   enable_logging      = FALSE
+   time_stepping_type  = "MIDPOINT_RULE"
+}
+
+num_structures = 1
+CIBMethod {
+   delta_fcn             = "IB_6"
+   enable_logging        = FALSE
+   lambda_dump_interval  = 0
+}
+
+IBStandardInitializer {
+   posn_shift      = -9.5, -9.89
+   max_levels      = MAX_LEVELS
+   structure_names = "plate2d"
+
+   plate2d {
+      level_number = MAX_LEVELS - 1
+      uniform_spring_stiffness = 0.0
+   }
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                            = 0.05
+   rho                           = 1.0
+   start_time                    = 0.0
+   end_time                      = 0.01
+   viscous_time_stepping_type    = "BACKWARD_EULER"
+   convective_time_stepping_type = "ADAMS_BASHFORTH"
+   convective_op_type            = "PPM"
+   convective_difference_form    = "ADVECTIVE"
+   dt_max                        = 0.01
+   creeping_flow                 = TRUE
+   traction_bc_type              = "TRACTION"
+   enable_logging                = FALSE
+   init_convective_time_stepping_type = "FORWARD_EULER"
+}
+
+Main {
+   log_file_name  = "output"
+   log_all_nodes  = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),( N - 1, N - 1) ]
+   x_lo = 0, 0
+   x_up = 1, 1
+   periodic_dimension = 0, 0
+}
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   largest_patch_size {
+      level_0 = 8, 8
+   }
+   smallest_patch_size {
+      level_0 = 8, 8
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
