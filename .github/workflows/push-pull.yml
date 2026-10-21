@@ -26,7 +26,7 @@ jobs:
   # build IBAMR with CMake and run tests
   build_ibamr_cmake_016:
     runs-on: ubuntu-latest
-    name: Build IBAMR and run tests (0.19 dependencies ${{ matrix.name }})
+    name: Build IBAMR and run tests (0.20 dependencies ${{ matrix.name }})
     strategy:
       matrix:
         include:
@@ -40,14 +40,14 @@ jobs:
             cmake_flags: "-DSILO_ROOT=/petsc"
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
-          - name: "Ubuntu 24.04, with libMesh"
+          - name: "Ubuntu 22.04, with libMesh"
             key: "ubuntu-cmake-libmesh"
             cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=OPT"
             cxx_flags: ""
             os: "ubuntu"
 
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.19-dependencies-${{ matrix.os }}'
+      image: 'docker://wellsd2/ibamr:ibamr-0.20-dependencies-${{ matrix.os }}'
     env:
       CCACHE_MAXSIZE: 250M
       CCACHE_DIR: /compilationcache
@@ -288,7 +288,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Basic header checks
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.19-dependencies-archlinux'
+      image: 'docker://wellsd2/ibamr:ibamr-0.20-dependencies-archlinux'
     steps:
       - name: Checkout Source
         uses: actions/checkout@v6

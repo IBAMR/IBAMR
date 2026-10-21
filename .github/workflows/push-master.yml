@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Compile and deploy doxygen documentation
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.19-dependencies-ubuntu'
+      image: 'docker://wellsd2/ibamr:ibamr-0.20-dependencies-ubuntu'
     steps:
       - name: Checkout Source
         uses: actions/checkout@v6
@@ -70,7 +70,7 @@ jobs:
   # build IBAMR with CMake and update the cache
   build_ibamr_cmake_016:
     runs-on: ubuntu-latest
-    name: Build IBAMR (0.19 dependencies ${{ matrix.name }})
+    name: Build IBAMR (0.20 dependencies ${{ matrix.name }})
     strategy:
       matrix:
         include:
@@ -86,7 +86,7 @@ jobs:
             cmake_flags: ""
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
-          - name: "Ubuntu 24.04, with libMesh"
+          - name: "Ubuntu 22.04, with libMesh"
             key: "ubuntu-cmake-libmesh"
             # no-op since this version of ccache does not support --evict-older-than
             ccache_eviction_flags: "--version"
@@ -95,7 +95,7 @@ jobs:
             os: "ubuntu"
 
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.19-dependencies-${{ matrix.os }}'
+      image: 'docker://wellsd2/ibamr:ibamr-0.20-dependencies-${{ matrix.os }}'
     env:
       CCACHE_MAXSIZE: 250M
       CCACHE_DIR: /compilationcache
