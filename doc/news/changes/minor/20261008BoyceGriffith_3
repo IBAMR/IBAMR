@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesPETScLevelSolver now imposes the pressure boundary condition at open boundaries correctly.
+<br>
+(Boyce Griffith, 2026/10/08)
