@@ -1,0 +1,5 @@
+Improved: VecMDot and VecMTDot on IBTK::PETScSAMRAIVectorReal vectors now
+traverse the data once for several vectors; the option -ibtk_vec_fusion none
+restores the previous loops.
+<br>
+(Boyce Griffith, 2026/10/01)
