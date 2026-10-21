@@ -509,7 +509,9 @@ main(int argc, char* argv[])
                  << "Computing error norms.\n\n";
 
             u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
-            p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
+            const double p_time = navier_stokes_integrator->getPressureTime(loop_time - dt, loop_time);
+
+            p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, p_time);
 
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
             hier_math_ops.setPatchHierarchy(patch_hierarchy);
@@ -543,7 +545,7 @@ main(int argc, char* argv[])
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
-            pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
+            pout << "Error in p at time " << p_time << ":\n"
                  << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
                  << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx) << "\n"
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n"
