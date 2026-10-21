@@ -182,6 +182,17 @@ public:
     virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getVelocityBoundaryConditions() const;
 
     /*!
+     * Get the velocity boundary condition specification objects supplied to
+     * registerPhysicalBoundaryConditions(), unchanged.
+     */
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getPhysicalBoundaryConditions() const;
+
+    /*!
+     * Get the interpretation of traction boundary conditions on the velocity.
+     */
+    TractionBcType getTractionBcType() const;
+
+    /*!
      * Get a pointer to the pressure boundary condition specification object.
      *
      * \note Implementations may return a nullptr pointer.
