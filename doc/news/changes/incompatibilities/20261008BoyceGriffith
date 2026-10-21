@@ -1,0 +1,3 @@
+Changed: The second template parameter of IBTK::CartGridPointwiseFunction is now an IBTK::DataCentering value instead of a SAMRAI patch data type. For example, IBTK::CartGridPointwiseFunction<double, SAMRAI::pdat::CellData<NDIM, double>, Functor> becomes IBTK::CartGridPointwiseFunction<double, IBTK::DataCentering::CELL, Functor>; SideData, NodeData, FaceData, and EdgeData become DataCentering::SIDE, NODE, FACE, and EDGE. Code that creates these objects with IBTK::make_cart_grid_pointwise_function() is unaffected.
+<br>
+(Boyce Griffith, 2026/10/08)
