@@ -17,27 +17,31 @@
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
+#include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 
 #include <tbox/Database.h>
 
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
 #include <CellData.h>
 #include <CellVariable.h>
+#include <LoadBalancer.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <PoissonSpecifications.h>
 #include <SAMRAIVectorReal.h>
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideVariable.h>
+#include <StandardTagAndInitialize.h>
 #include <VariableDatabase.h>
 
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <memory>
 #include <vector>
-
-#include "../tests.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -50,10 +54,23 @@ int
 main(int argc, char* argv[])
 {
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
-    Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
+    Pointer<AppInitializer> app = new AppInitializer(argc, argv, "INS.log");
     Pointer<Database> input_db = app->getInputDatabase();
-    const auto hierarchy_data = setup_hierarchy<NDIM>(app);
-    Pointer<PatchHierarchy<NDIM>> hierarchy = std::get<0>(hierarchy_data);
+
+    // The boundary condition objects of the integrator need its patch hierarchy.
+    Pointer<INSStaggeredHierarchyIntegrator> integrator = new INSStaggeredHierarchyIntegrator(
+        "INSStaggeredHierarchyIntegrator", input_db->getDatabase("INSStaggeredHierarchyIntegrator"), false);
+    Pointer<CartesianGridGeometry<NDIM>> grid_geometry =
+        new CartesianGridGeometry<NDIM>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+    Pointer<PatchHierarchy<NDIM>> hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+    Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
+        "StandardTagAndInitialize", integrator, input_db->getDatabase("StandardTagAndInitialize"));
+    Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+    Pointer<LoadBalancer<NDIM>> load_balancer =
+        new LoadBalancer<NDIM>("LoadBalancer", input_db->getDatabase("LoadBalancer"));
+    Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm = new GriddingAlgorithm<NDIM>(
+        "GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+    integrator->initializePatchHierarchy(hierarchy, gridding_algorithm);
     const int ln = hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
 
@@ -72,9 +89,7 @@ main(int argc, char* argv[])
         level->allocatePatchData(idx);
     }
 
-    // The boundary condition objects of the integrator. A Neumann condition on the velocity is a traction condition.
-    Pointer<INSStaggeredHierarchyIntegrator> integrator = new INSStaggeredHierarchyIntegrator(
-        "INSStaggeredHierarchyIntegrator", input_db->getDatabase("INSStaggeredHierarchyIntegrator"), false);
+    // A Neumann condition on the velocity is a traction condition.
     std::vector<std::unique_ptr<LocationIndexRobinBcCoefs<NDIM>>> physical_storage;
     std::vector<RobinBcCoefStrategy<NDIM>*> physical_bcs(NDIM, nullptr);
     for (int axis = 0; axis < NDIM; ++axis)
@@ -192,7 +207,11 @@ main(int argc, char* argv[])
         TBOX_ERROR("The error in the pressure is " << pressure_error << ".\n");
     }
 
-    plog << "number_of_patches = " << level->getNumberOfPatches() << '\n';
-    plog << "number_of_sides = " << number_of_sides << '\n';
+    if (IBTK_MPI::getRank() == 0)
+    {
+        std::ofstream out("output");
+        out << "number_of_patches = " << level->getNumberOfPatches() << '\n';
+        out << "number_of_sides = " << number_of_sides << '\n';
+    }
     return 0;
 }

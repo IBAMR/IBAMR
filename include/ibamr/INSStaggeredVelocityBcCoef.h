@@ -25,6 +25,7 @@
 
 #include <tbox/Pointer.h>
 
+#include <BoxArray.h>
 #include <IntVector.h>
 
 #include <vector>
@@ -279,6 +280,12 @@ private:
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    /*
+     * Return the physical domain of the level of patch, including its periodic
+     * images.
+     */
+    SAMRAI::hier::BoxArray<NDIM> getPhysicalDomain(const SAMRAI::hier::Patch<NDIM>& patch) const;
 };
 } // namespace IBAMR
 

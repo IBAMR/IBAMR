@@ -9,11 +9,8 @@ INSStaggeredHierarchyIntegrator {
    mu = 1.0
    rho = 1.0
 }
-test {
-   ghost_width = 1
-}
 Main {
-   log_file_name = "output"
+   log_file_name = "INS.log"
    log_all_nodes = FALSE
    viz_writer = "VisIt"
    viz_dump_dirname = "viz2d"
