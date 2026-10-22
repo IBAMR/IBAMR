@@ -2,6 +2,6 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): ta
 INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 tangential ghost values checked outside the x boundaries = 102
-largest error in those ghost values = 3.685705e-02
-(f, E u)   = 124.3215840031
-(E^T f, u) = 124.3215840031
+largest error in those ghost values = 9.058598e-03
+(f, E u)   = 135.8258925419
+(E^T f, u) = 135.8258925419

@@ -36,6 +36,7 @@
 #include <SideIndex.h>
 
 #include <array>
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -47,15 +48,18 @@ namespace IBAMR
 namespace traction_stencil
 {
 /*!
- * The normal velocity that the TRACTION condition uses at a face on a boundary: weight[0]*u(idx[0]) +
- * weight[1]*u(idx[1]). At a face beyond a corner, the stencil extrapolates linearly from the nearest faces; if the
- * adjacent boundary (adjacent_location_index) prescribes the normal velocity u_b, the caller calls
- * useAdjacentBoundaryValue() and adds 2*u_b.
+ * The normal velocity that the TRACTION condition uses at a face on a boundary: the sum over k of weight[k]*u(idx[k]).
+ * An entry that is not used has weight 0 and the index idx[0]. At a face beyond a corner, the stencil extrapolates from
+ * the nearest faces on the boundary: quadratically from three faces, linearly from two, and with the value of the
+ * nearest face if the boundary has one; if the adjacent boundary (adjacent_location_index) prescribes the normal
+ * velocity u_b, the caller calls useAdjacentBoundaryValue() and adds 2*u_b.
  */
 struct NormalVelocityStencil
 {
-    std::array<SAMRAI::pdat::SideIndex<NDIM>, 2> idx;
-    std::array<double, 2> weight;
+    static constexpr std::size_t NUM_FACES = 3;
+
+    std::array<SAMRAI::pdat::SideIndex<NDIM>, NUM_FACES> idx;
+    std::array<double, NUM_FACES> weight;
 
     bool beyond_corner = false;
     unsigned int adjacent_location_index = 0;
@@ -77,13 +81,15 @@ get_physical_domain(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDI
 /*!
  * Return the stencil of the normal velocity at the face i_face beyond a corner of the boundary normal to
  * bdry_normal_axis, where the boundary segment ends along tangential_axis. The nearest face on the boundary is at
- * i_face + step along tangential_axis; the second nearest is used if can_extrapolate is true.
+ * i_face + step along tangential_axis, and num_boundary_faces is the number of faces of the boundary from there to its
+ * end: the stencil extrapolates quadratically from the nearest three faces if num_boundary_faces is at least 3,
+ * linearly if it is 2, and takes the value of the nearest face if it is 1.
  */
 NormalVelocityStencil get_corner_normal_velocity_stencil(SAMRAI::hier::Index<NDIM> i_face,
                                                          unsigned int bdry_normal_axis,
                                                          unsigned int tangential_axis,
                                                          int step,
-                                                         bool can_extrapolate);
+                                                         int num_boundary_faces);
 
 /*!
  * Return the geometry of patch centered on the velocity component bdry_normal_axis, given that the geometry of patch is

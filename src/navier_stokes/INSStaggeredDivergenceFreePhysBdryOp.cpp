@@ -676,7 +676,7 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::addNormalVelocity(Linear
 
     // A face that is not beyond a corner has its value. A face one cell beyond a corner, across a boundary not in the
     // region, has the corner value: 2*u_b - u if the adjacent boundary prescribes the normal velocity u_b, with u the
-    // nearest face on B, and otherwise the linear extrapolation along B.
+    // nearest face on B, and otherwise the extrapolation along B.
     if (count_boundaries(extra) == 0)
     {
         const std::optional<int> id = getValue(normal_axis, f);
@@ -698,18 +698,23 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::addNormalVelocity(Linear
     }
     const int step = is_only_extra(adj_loc_lower) ? +1 : -1;
 
-    // A boundary segment of one face has no second face to extrapolate from.
-    const int j_next = f(axis) + 2 * step;
-    const bool can_extrapolate = j_next >= d_lower[axis] && j_next <= d_upper[axis];
+    // Count the faces of B from the nearest one, up to the number that the stencil holds.
+    int num_boundary_faces = 1;
+    while (num_boundary_faces < static_cast<int>(traction_stencil::NormalVelocityStencil::NUM_FACES) &&
+           f(axis) + (num_boundary_faces + 1) * step >= d_lower[axis] &&
+           f(axis) + (num_boundary_faces + 1) * step <= d_upper[axis])
+    {
+        ++num_boundary_faces;
+    }
     traction_stencil::NormalVelocityStencil stencil =
-        traction_stencil::get_corner_normal_velocity_stencil(f, normal_axis, axis, step, can_extrapolate);
+        traction_stencil::get_corner_normal_velocity_stencil(f, normal_axis, axis, step, num_boundary_faces);
     hier::Index<NDIM> adjacent_boundary_face = f;
     adjacent_boundary_face(axis) = stencil.adjacent_location_index % 2 == 1 ? d_upper[axis] + 1 : d_lower[axis];
     if (getRule(normal_axis, stencil.adjacent_location_index, adjacent_boundary_face) == TangentialRule::PRESCRIBED)
     {
         stencil.useAdjacentBoundaryValue();
     }
-    for (int n = 0; n < 2; ++n)
+    for (std::size_t n = 0; n < stencil.weight.size(); ++n)
     {
         if (stencil.weight[n] == 0.0)
         {

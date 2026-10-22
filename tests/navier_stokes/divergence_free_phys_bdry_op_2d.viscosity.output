@@ -1,5 +1,5 @@
 INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
-(y, E u)   = 67.0331958322
-(E^T y, u) = 67.0331958322
+(y, E u)   = 66.6548484625
+(E^T y, u) = 66.6548484625

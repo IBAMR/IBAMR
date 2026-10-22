@@ -3,5 +3,5 @@ INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 IBRedundantInitializer:  Deallocating initialization data.
 patches on the level = 16
-(F, J u) = -0.480072622257
-(S F, u) = -0.480072622257
+(F, J u) = -0.48608589809
+(S F, u) = -0.48608589809
