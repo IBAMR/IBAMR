@@ -1,0 +1,3 @@
+Fixed: IBAMR::INSStaggeredPPMConvectiveOperator and the other staggered convective operators now use a divergence-free normal velocity ghost value at open boundaries.
+<br>
+(Boyce Griffith, 2026/10/01)
