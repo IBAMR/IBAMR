@@ -452,7 +452,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                                               d_U_scratch_idx,
                                                               /*P_data_idx*/ -1,
                                                               /*homogeneous_bc*/ false);
-    d_U_bdry_bc_fill_op->fillData(current_time);
+    d_U_rhs_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ nullptr);
     // RHS^n = (C_rhs*I + L(D_rhs))*U^n

@@ -78,6 +78,10 @@ public:
      * physical boundary conditions are present, default "LINEAR".  TRACTION conditions for the normal velocity
      * require "LINEAR"
      *
+     * <code>tangential_bdry_interp_type<\code>: String that specifies how to fill ghost cells of the velocity
+     * components tangential to physical boundaries at which physical boundary conditions are present, default
+     * "LINEAR".  "QUADRATIC" extrapolates the ghost values quadratically.
+     *
      * <code>use_cf_interpolation<\code>: Bool that specifies whether to use interpolation involving both coarse and
      * fine components, default TRUE
      *
@@ -130,6 +134,12 @@ public:
      * conditions are TRACTION conditions and the domain is not periodic in every direction.
      */
     virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+
+    /*!
+     * \brief Set the interpolation type for the velocity components tangential to physical boundaries, "LINEAR" or
+     * "QUADRATIC".  It takes effect at the next call to initializeOperatorState().
+     */
+    void setTangentialBdryInterpType(const std::string& tangential_bdry_interp_type);
 
     /*!
      * \name Linear operator functionality.
@@ -242,6 +252,7 @@ protected:
     std::string d_coarsen_type = "CUBIC_COARSEN";
     std::string d_bdry_extrap_type = "LINEAR";
     std::string d_bdry_interp_type = "LINEAR";
+    std::string d_tangential_bdry_interp_type = "LINEAR";
     bool d_consistent_type_2_bdry = false;
     bool d_use_cf_interpolation = true;
 

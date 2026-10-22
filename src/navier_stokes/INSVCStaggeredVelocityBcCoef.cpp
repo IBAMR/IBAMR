@@ -239,6 +239,7 @@ INSVCStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double
                                                         patch,
                                                         bdry_box,
                                                         d_fluid_solver->getPatchHierarchy(),
+                                                        d_fluid_solver->getTangentialBdryInterpType() == "QUADRATIC",
                                                         fill_time);
     return;
 } // accumulateFromBcCoefs
@@ -304,6 +305,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
     const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
+    const bool quadratic_tangential = d_fluid_solver->getTangentialBdryInterpType() == "QUADRATIC";
     std::optional<BoxArray<NDIM>> domain;
     std::optional<ShiftedPatchGeometry> normal_geometry;
 
@@ -373,6 +375,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                                                                          patch,
                                                                          *normal_geometry,
                                                                          *domain,
+                                                                         quadratic_tangential,
                                                                          fill_time) /
                         dx[d_comp_idx];
 

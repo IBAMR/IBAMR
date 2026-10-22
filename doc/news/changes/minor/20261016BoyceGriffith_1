@@ -1,0 +1,3 @@
+New: The input key tangential_bdry_interp_type = "QUADRATIC" of the staggered Navier-Stokes integrators, StaggeredStokesOperator, and SCLaplaceOperator extrapolates the ghost values of the velocity components tangential to a boundary quadratically where the velocity is prescribed, which makes the pressure second-order accurate at corners.
+<br>
+(Boyce Griffith, 2026/10/16)

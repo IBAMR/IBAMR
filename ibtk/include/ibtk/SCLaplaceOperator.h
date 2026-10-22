@@ -55,6 +55,10 @@ public:
     /*!
      * \brief Constructor for class SCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
+     *
+     * The optional input database may set <code>tangential_bdry_interp_type<\code>: String that specifies how to
+     * fill ghost cells of the components tangential to physical boundaries, default "LINEAR".  "QUADRATIC"
+     * extrapolates the ghost values quadratically.
      */
     SCLaplaceOperator(std::string object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
@@ -64,6 +68,12 @@ public:
      * \brief Destructor.
      */
     ~SCLaplaceOperator();
+
+    /*!
+     * \brief Set the interpolation type for the components tangential to physical boundaries, "LINEAR" or
+     * "QUADRATIC".  It takes effect at the next call to initializeOperatorState().
+     */
+    void setTangentialBdryInterpType(const std::string& tangential_bdry_interp_type);
 
     /*!
      * \name Linear operator functionality.
@@ -172,6 +182,9 @@ protected:
 
     // Type of extrapolation to use at physical boundaries.
     std::string d_bdry_extrap_type = "LINEAR";
+
+    // Type of interpolation to use for the components tangential to physical boundaries.
+    std::string d_tangential_bdry_interp_type = "LINEAR";
 
     // Whether to enforce consistent interpolated values at Type 2 coarse-fine interface ghost cells.
     bool d_use_consistent_type_2_bdry = false;

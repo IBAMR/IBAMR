@@ -354,6 +354,17 @@ public:
     }
 
     /*!
+     * \brief Get the interpolation type of the velocity components tangential to physical boundaries, "LINEAR" or
+     * "QUADRATIC", read from the input key <code>tangential_bdry_interp_type<\code>.  "QUADRATIC" extrapolates the
+     * ghost values of the Stokes operator and the traction condition at corners quadratically at boundaries at which
+     * the velocity is prescribed.  The default is "LINEAR".
+     */
+    inline const std::string& getTangentialBdryInterpType() const
+    {
+        return d_tangential_bdry_interp_type;
+    }
+
+    /*!
      * \brief Get the cell-centered viscosity patch data index, which will always be the newest one used in the linear
      * operator.
      *
@@ -543,6 +554,7 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_rho_bdry_bc_fill_op, d_mu_bdry_bc_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_rhs_bdry_bc_fill_op;
 
     /*!
      * Double precision values are (optional) factors used to rescale the
@@ -619,6 +631,8 @@ protected:
 
     std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
+    std::string d_tangential_bdry_interp_type = "LINEAR";
 
     std::string d_mu_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_mu_refine_type = "CONSERVATIVE_LINEAR_REFINE";

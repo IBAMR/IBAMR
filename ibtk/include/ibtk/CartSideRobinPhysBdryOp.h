@@ -63,6 +63,9 @@ namespace IBTK
  * field, with the object for component \p axis of field \p k stored at index
  * NDIM * k + axis.
  *
+ * \note "QUADRATIC" interpolation reads the values one and two cells inside the boundary.  On a patch one cell wide
+ * normal to the boundary, the second value is a ghost value that the same-level ghost cell fill must have set.
+ *
  * \warning Presently, this class only supports pure Dirichlet or pure Neumann
  * boundary conditions for the normal component of the vector field.  Mixed
  * (Robin) boundary conditions are \em not supported in the normal direction.
@@ -97,11 +100,15 @@ public:
      * conditions.
      * \param type              Type of interpolation to use. Valid options are "LINEAR"
      * or "QUADRATIC". Defaults to "LINEAR".
+     * \param tangential_type   Type of interpolation to use for components tangential to the boundary.
+     * Valid options are "LINEAR" or "QUADRATIC". Defaults to "LINEAR". These components use "QUADRATIC" whenever
+     * \a type is "QUADRATIC".
      */
     CartSideRobinPhysBdryOp(int patch_data_index,
                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                             bool homogeneous_bc = false,
-                            std::string type = "LINEAR");
+                            std::string type = "LINEAR",
+                            std::string tangential_type = "LINEAR");
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
@@ -115,11 +122,15 @@ public:
      * conditions.
      * \param type              Type of interpolation to use. Valid options are "LINEAR"
      * or "QUADRATIC". Defaults to "LINEAR".
+     * \param tangential_type   Type of interpolation to use for components tangential to the boundary.
+     * Valid options are "LINEAR" or "QUADRATIC". Defaults to "LINEAR". These components use "QUADRATIC" whenever
+     * \a type is "QUADRATIC".
      */
     CartSideRobinPhysBdryOp(const std::set<int>& patch_data_indices,
                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                             bool homogeneous_bc = false,
-                            std::string type = "LINEAR");
+                            std::string type = "LINEAR",
+                            std::string tangential_type = "LINEAR");
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
@@ -133,11 +144,15 @@ public:
      * conditions.
      * \param type              Type of interpolation to use. Valid options are "LINEAR"
      * or "QUADRATIC". Defaults to "LINEAR".
+     * \param tangential_type   Type of interpolation to use for components tangential to the boundary.
+     * Valid options are "LINEAR" or "QUADRATIC". Defaults to "LINEAR". These components use "QUADRATIC" whenever
+     * \a type is "QUADRATIC".
      */
     CartSideRobinPhysBdryOp(const SAMRAI::hier::ComponentSelector& patch_data_indices,
                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                             bool homogeneous_bc = false,
-                            std::string type = "LINEAR");
+                            std::string type = "LINEAR",
+                            std::string tangential_type = "LINEAR");
 
     /*!
      * \brief Destructor.
@@ -256,6 +271,7 @@ private:
 #endif
 
     std::string d_type = "LINEAR";
+    std::string d_tangential_type = "LINEAR";
 };
 } // namespace IBTK
 

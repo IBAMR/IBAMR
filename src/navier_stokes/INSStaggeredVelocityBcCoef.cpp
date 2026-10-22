@@ -236,6 +236,7 @@ INSStaggeredVelocityBcCoef::accumulateFromBcCoefs(const ArrayData<NDIM, double>&
                                                         patch,
                                                         bdry_box,
                                                         d_fluid_solver->getPatchHierarchy(),
+                                                        d_fluid_solver->getTangentialBdryInterpType() == "QUADRATIC",
                                                         fill_time);
     return;
 } // accumulateFromBcCoefs
@@ -255,6 +256,7 @@ INSStaggeredVelocityBcCoef::getNormalVelocityStencil(const hier::Index<NDIM>& i,
     {
         return {};
     }
+    // The stencil serves the assembled matrices, which keep the reflection at corners.
     return traction_stencil::get_traction_stencil(i,
                                                   bdry_normal_axis,
                                                   location_index % 2 == 0,
@@ -328,6 +330,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
+    const bool quadratic_tangential = d_fluid_solver->getTangentialBdryInterpType() == "QUADRATIC";
     std::optional<BoxArray<NDIM>> domain;
     std::optional<ShiftedPatchGeometry> normal_geometry;
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
@@ -378,6 +381,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
                                                                          patch,
                                                                          *normal_geometry,
                                                                          *domain,
+                                                                         quadratic_tangential,
                                                                          fill_time) /
                         dx[d_comp_idx];
 

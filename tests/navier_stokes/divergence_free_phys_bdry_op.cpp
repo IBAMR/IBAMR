@@ -84,8 +84,8 @@ check_divergence_free_extension(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                 const int extension_ghost_width)
 {
     // Fill the ghost values of a multi-patch level and check the divergence in the ghost cells, the agreement of the
-    // patches, the transpose identity (y, E u) = (E^T y, u), and that the extension reproduces a linear divergence-free
-    // velocity. The velocity has ghost width G + 1 so that width G is computable.
+    // patches, the transpose identity (y, E u) = (E^T y, u), and that the extension reproduces the exact velocity. The
+    // velocity has ghost width G + 1 so that width G is computable.
     if (IBTK_MPI::getNodes() > 1 || patch_hierarchy->getFinestLevelNumber() > 0)
     {
         TBOX_ERROR(
@@ -234,7 +234,7 @@ check_divergence_free_extension(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
         const auto rough_value = [&](const Patch<NDIM>&, const unsigned int axis, const hier::Index<NDIM>& i)
         { return rough(axis, i, 1.0); };
 
-        // Linear divergence-free velocity and boundary data.
+        // Exact divergence-free velocity and boundary data.
         const auto exact = [&](const Patch<NDIM>& patch, const unsigned int axis, const hier::Index<NDIM>& i)
         {
             Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
@@ -370,7 +370,7 @@ check_divergence_free_extension(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     if (!(exact_error_max <= 1.0e-12 * IBTK_MPI::maxReduction(ghost_scale)))
     {
         TBOX_ERROR(
-            "check_divergence_free_extension: the extension of a linear divergence-free velocity differs from it by "
+            "check_divergence_free_extension: the extension of the exact divergence-free velocity differs from it by "
             << exact_error_max << ".\n");
     }
     pout << std::setprecision(12) << "(y, E u)   = " << y_dot_Eu_sum << '\n'

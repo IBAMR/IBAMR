@@ -332,7 +332,10 @@ main(int argc, char* argv[])
 #elif (NDIM == 3)
         vc_vel_spec.setDPatchDataId(mu_ec_idx);
 #endif
+        const std::string tangential_bdry_interp_type =
+            input_db->getStringWithDefault("tangential_bdry_interp_type", "LINEAR");
         VCSCViscousOperator viscous_op("viscous_op");
+        viscous_op.setTangentialBdryInterpType(tangential_bdry_interp_type);
         viscous_op.setPoissonSpecifications(vc_vel_spec);
         viscous_op.setPhysicalBcCoefs(u_bc_coefs);
         viscous_op.initializeOperatorState(u_vec, f_vec);
@@ -370,6 +373,15 @@ main(int argc, char* argv[])
         poisson_solver->setPoissonSpecifications(vc_vel_spec);
         poisson_solver->setPhysicalBcCoefs(u_bc_coefs);
         poisson_solver->setSolutionTime(0.0);
+        Pointer<PETScKrylovLinearSolver> p_krylov_solver = poisson_solver;
+        if (p_krylov_solver)
+        {
+            Pointer<VCSCViscousOperator> p_viscous_op = p_krylov_solver->getOperator();
+            if (p_viscous_op)
+            {
+                p_viscous_op->setTangentialBdryInterpType(tangential_bdry_interp_type);
+            }
+        }
 
         // Remove nullspace from RHS
         HierarchySideDataOpsReal<NDIM, double> sc_data_ops(patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());

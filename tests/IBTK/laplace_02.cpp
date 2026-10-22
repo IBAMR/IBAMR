@@ -173,7 +173,7 @@ main(int argc, char* argv[])
         poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
         std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, nullptr);
-        SCLaplaceOperator laplace_op("laplace op");
+        SCLaplaceOperator laplace_op("laplace op", input_db);
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoefs(bc_coefs);
         laplace_op.initializeOperatorState(u_vec, f_vec);
