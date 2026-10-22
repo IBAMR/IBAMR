@@ -69,6 +69,17 @@ public:
      */
     virtual void setHomogeneousBc(bool homogeneous_bc);
 
+    /*!
+     * \brief Add to the target patch data the transpose of its contribution to \f$ \gamma \f$ on \p bdry_box.
+     *
+     * \p gcoef_data holds the derivative of a linear functional of the ghost values with respect to \f$ \gamma \f$.
+     * The default implementation does nothing.
+     */
+    virtual void accumulateFromBcCoefs(const SAMRAI::pdat::ArrayData<NDIM, double>& gcoef_data,
+                                       const SAMRAI::hier::Patch<NDIM>& patch,
+                                       const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                       double fill_time) const;
+
     //\}
 
 protected:
