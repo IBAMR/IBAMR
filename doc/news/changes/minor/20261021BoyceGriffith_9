@@ -1,0 +1,3 @@
+Fixed: IBAMR::CIBStrategy no longer leaves its free rigid-body degrees of freedom and net generalized forces uninitialized. All degrees of freedom are prescribed unless IBAMR::CIBStrategy::setSolveRigidBodyVelocity() frees them.
+<br>
+(Boyce Griffith, 2026/10/21)

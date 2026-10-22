@@ -61,8 +61,8 @@ CIBStrategy::CIBStrategy(const unsigned int parts) : d_num_rigid_parts(parts)
     d_rot_vel_half.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
     d_rot_vel_new.resize(d_num_rigid_parts, Eigen::Vector3d::Zero());
 
-    d_net_rigid_generalized_force.resize(d_num_rigid_parts);
-    d_solve_rigid_vel.resize(d_num_rigid_parts);
+    d_net_rigid_generalized_force.resize(d_num_rigid_parts, RigidDOFVector::Zero());
+    d_solve_rigid_vel.resize(d_num_rigid_parts, FreeRigidDOFVector::Zero());
     d_free_dofs_map.resize(d_num_rigid_parts, std::make_pair(-1, -1));
     d_free_dofs_map_updated = false;
 
