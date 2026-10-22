@@ -100,6 +100,7 @@ SET(CXX_SRC
   navier_stokes/INSStaggeredDivergenceFreePhysBdryOp.cpp
   navier_stokes/INSStaggeredVelocityBcCoef.cpp
   navier_stokes/ins_staggered_traction_stencil.cpp
+  navier_stokes/ins_velocity_bc.cpp
   navier_stokes/INSStaggeredCUIConvectiveOperator.cpp
   navier_stokes/INSCollocatedPPMConvectiveOperator.cpp
   navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp

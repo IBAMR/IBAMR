@@ -140,6 +140,8 @@ public:
 
     /*!
      * \brief Cache boundary coefficient data.
+     *
+     * A location is a Dirichlet location if and only if b == 0 and a != 0.
      */
     void cacheBcCoefData(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                          double fill_time,
