@@ -1,0 +1,3 @@
+Fixed: IBTK::VCSCViscousPETScLevelSolver now solves correctly at coarse-fine boundaries, including at corners of the refined region.
+<br>
+(Boyce Griffith, 2026/10/07)

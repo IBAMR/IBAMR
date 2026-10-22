@@ -14,11 +14,13 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/VCSCViscousPETScLevelSolver.h>
 
 #include <tbox/Database.h>
 
 #include <CartesianPatchGeometry.h>
+#include <CoarseFineBoundary.h>
 #if (NDIM == 2)
 #include <NodeData.h>
 #include <NodeGeometry.h>
@@ -47,7 +49,8 @@
 #include <ibtk/app_namespaces.h>
 
 // Solve a side-centered problem with variable viscosity on the finest level of a hierarchy. The solution is a constant,
-// which the solver reproduces only if the identity rows at Dirichlet sides hold the boundary values.
+// which the solver reproduces only if the correction at coarse-fine boundaries is exact and the identity rows hold the
+// boundary values.
 int
 main(int argc, char* argv[])
 {
@@ -164,6 +167,31 @@ main(int argc, char* argv[])
         }
     }
 
+    // The correction of the right-hand side at the coarse-fine boundary, for a right-hand side without ghost cells.
+    CoarseFineBoundary<NDIM> cf_boundary(*hierarchy, ln, IntVector<NDIM>(1));
+    double correction_l1 = 0.0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+        const SAMRAI::tbox::Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+            cf_boundary.getBoundaries(patch->getPatchNumber(), 1);
+        const SAMRAI::tbox::Array<BoundaryBox<NDIM>>& type_2_cf_bdry =
+            cf_boundary.getBoundaries(patch->getPatchNumber(), 2);
+        SideData<NDIM, double> correction(patch->getBox(), 1, IntVector<NDIM>(0));
+        correction.fillAll(0.0);
+        PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(
+            correction, *u_data, patch, poisson_spec, 1.0, type_1_cf_bdry, type_2_cf_bdry, bc_coefs, 0.0);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis)); b; b++)
+            {
+                correction_l1 += std::abs(correction(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)));
+            }
+        }
+    }
+    correction_l1 = IBTK_MPI::sumReduction(correction_l1);
+
     VCSCViscousPETScLevelSolver solver("solver", input_db->getDatabase("solver_db"), "solver_");
     solver.setPoissonSpecifications(poisson_spec);
     solver.setPhysicalBcCoefs(bc_coefs);
@@ -207,5 +235,9 @@ main(int argc, char* argv[])
     }
 
     plog << "number_of_patches = " << level->getNumberOfPatches() << '\n';
+    if (ln > 0)
+    {
+        plog << "correction_l1 = " << correction_l1 << '\n';
+    }
     return 0;
 }
