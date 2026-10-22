@@ -17,6 +17,7 @@
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
+#include <ibtk/ShiftedPatchGeometry.h>
 
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
@@ -858,8 +859,6 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
     const Box<NDIM>& patch_box = patch.getBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const double* const patch_x_lower = pgeom->getXLower();
-    const double* const patch_x_upper = pgeom->getXUpper();
     Pointer<SideData<NDIM, double>> patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -883,19 +882,6 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
         side_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
     }
 
-    const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
-    Array<Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        touches_regular_bdry[axis].resizeArray(2);
-        touches_periodic_bdry[axis].resizeArray(2);
-        for (int upperlower = 0; upperlower < 2; ++upperlower)
-        {
-            touches_regular_bdry[axis][upperlower] = pgeom->getTouchesRegularBoundary(axis, upperlower);
-            touches_periodic_bdry[axis][upperlower] = pgeom->getTouchesPeriodicBoundary(axis, upperlower);
-        }
-    }
-
     // Set the boundary condition coefficients and then set the ghost cell
     // values.
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
@@ -916,42 +902,31 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                 Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
                 Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
-                // Temporarily reset the patch geometry object associated with
-                // the patch so that boundary conditions are set at the correct
-                // spatial locations.
-                std::array<double, NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    shifted_patch_x_lower[d] = patch_x_lower[d];
-                    shifted_patch_x_upper[d] = patch_x_upper[d];
-                }
-                shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
-                shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                Pointer<CartesianPatchGeometry<NDIM>> shifted_pgeom =
-                    new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                     touches_regular_bdry,
-                                                     touches_periodic_bdry,
-                                                     dx,
-                                                     shifted_patch_x_lower.data(),
-                                                     shifted_patch_x_upper.data());
+                // Shift the patch geometry object associated with the patch so
+                // that boundary conditions are set at the correct spatial
+                // locations.
+                std::array<double, NDIM> shift;
+                shift.fill(0.0);
+                shift[axis] = -0.5 * dx[axis];
+                const ShiftedPatchGeometry shifted_pgeom(patch, shift);
 
                 // Set the boundary condition coefficients.
                 for (int d = 0; d < patch_data_depth; ++d)
                 {
-                    patch.setPatchGeometry(shifted_pgeom);
-                    RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[NDIM * d + axis];
-                    auto const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
-                    if (extended_bc_coef)
                     {
-                        extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
-                        extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
+                        const ShiftedPatchGeometry::Scope scope(patch, shifted_pgeom);
+                        RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[NDIM * d + axis];
+                        auto const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
+                        if (extended_bc_coef)
+                        {
+                            extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
+                            extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
+                        }
+                        bc_coef->setBcCoefs(
+                            acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
+                        if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+                        if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
                     }
-                    bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
-                    if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
-                    if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
-
-                    // Restore the original patch geometry object.
-                    patch.setPatchGeometry(pgeom);
 
                     // Set the boundary values.
                     if (location_index == 0 || location_index == 1)

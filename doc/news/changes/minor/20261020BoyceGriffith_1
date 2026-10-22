@@ -1,0 +1,3 @@
+New: IBTK::ShiftedPatchGeometry now shifts the geometry of a patch for a scope, and IBTK::PhysicalBoundaryUtilities now returns the periodic physical domain and tests whether a face lies on its boundary.
+<br>
+(Boyce Griffith, 2026/10/20)

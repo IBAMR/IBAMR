@@ -1,0 +1,7 @@
+sum over patches of the shift of the lower corner along axis 0, in cells = -2
+sum over patches of the shift of the lower corner along axis 1, in cells = -2
+number of cells in the periodic physical domain = 192
+faces on the lower boundary normal to axis 0 = 8
+faces on the upper boundary normal to axis 0 = 8
+faces on the lower boundary normal to axis 1 = 24
+faces on the upper boundary normal to axis 1 = 24
