@@ -53,54 +53,6 @@ namespace traction_stencil
 
 namespace
 {
-// The normal velocity used by the TRACTION condition at a face on a boundary: weight[0]*u(idx[0]) +
-// weight[1]*u(idx[1]). At a face beyond a corner, the stencil extrapolates linearly from the nearest faces. If the
-// adjacent boundary, with location index adjacent_location_index, prescribes the normal velocity u_b, the caller calls
-// useAdjacentBoundaryValue() and adds 2*u_b.
-struct NormalVelocityStencil
-{
-    std::array<SideIndex<NDIM>, 2> idx;
-    std::array<double, 2> weight;
-
-    bool beyond_corner = false;
-    unsigned int adjacent_location_index = 0;
-
-    // Replace the weighted sum by minus the value at the nearest face. The face must be beyond a corner.
-    void useAdjacentBoundaryValue();
-};
-
-void
-NormalVelocityStencil::useAdjacentBoundaryValue()
-{
-    TBOX_ASSERT(beyond_corner);
-    idx[1] = idx[0];
-    weight = { -1.0, 0.0 };
-} // useAdjacentBoundaryValue
-
-// Return the stencil of the normal velocity at the face i_face beyond a corner of the boundary normal to
-// bdry_normal_axis, where the boundary segment ends along tangential_axis. The nearest face on the boundary is at
-// i_face + step along tangential_axis; the second nearest is used if can_extrapolate is true.
-NormalVelocityStencil
-get_corner_normal_velocity_stencil(hier::Index<NDIM> i_face,
-                                   const unsigned int bdry_normal_axis,
-                                   const unsigned int tangential_axis,
-                                   const int step,
-                                   const bool can_extrapolate)
-{
-    const int j = i_face(tangential_axis);
-    hier::Index<NDIM> i_near = i_face, i_next = i_face;
-    i_near(tangential_axis) = j + step;
-    i_next(tangential_axis) = j + 2 * step;
-    const SideIndex<NDIM> near_idx(i_near, bdry_normal_axis, SideIndex<NDIM>::Lower);
-    const SideIndex<NDIM> next_idx(i_next, bdry_normal_axis, SideIndex<NDIM>::Lower);
-    NormalVelocityStencil stencil;
-    stencil.idx = { near_idx, can_extrapolate ? next_idx : near_idx };
-    stencil.weight = can_extrapolate ? std::array<double, 2>{ 2.0, -1.0 } : std::array<double, 2>{ 1.0, 0.0 };
-    stencil.beyond_corner = true;
-    stencil.adjacent_location_index = 2 * tangential_axis + (step < 0 ? 1 : 0);
-    return stencil;
-} // get_corner_normal_velocity_stencil
-
 // Return the stencil of the normal velocity at the face i_face on the boundary normal to bdry_normal_axis, for a
 // condition that differences the normal velocity along tangential_axis. A face beyond a corner is found from domain,
 // one outside ghost_box is extrapolated from the two nearest faces in ghost_box.
@@ -247,6 +199,36 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+void
+NormalVelocityStencil::useAdjacentBoundaryValue()
+{
+    TBOX_ASSERT(beyond_corner);
+    idx[1] = idx[0];
+    weight = { -1.0, 0.0 };
+    uses_adjacent_boundary_value = true;
+} // useAdjacentBoundaryValue
+
+NormalVelocityStencil
+get_corner_normal_velocity_stencil(hier::Index<NDIM> i_face,
+                                   const unsigned int bdry_normal_axis,
+                                   const unsigned int tangential_axis,
+                                   const int step,
+                                   const bool can_extrapolate)
+{
+    const int j = i_face(tangential_axis);
+    hier::Index<NDIM> i_near = i_face, i_next = i_face;
+    i_near(tangential_axis) = j + step;
+    i_next(tangential_axis) = j + 2 * step;
+    const SideIndex<NDIM> near_idx(i_near, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    const SideIndex<NDIM> next_idx(i_next, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    NormalVelocityStencil stencil;
+    stencil.idx = { near_idx, can_extrapolate ? next_idx : near_idx };
+    stencil.weight = can_extrapolate ? std::array<double, 2>{ 2.0, -1.0 } : std::array<double, 2>{ 1.0, 0.0 };
+    stencil.beyond_corner = true;
+    stencil.adjacent_location_index = 2 * tangential_axis + (step < 0 ? 1 : 0);
+    return stencil;
+} // get_corner_normal_velocity_stencil
 
 BoxArray<NDIM>
 get_physical_domain(const Pointer<PatchHierarchy<NDIM>>& hierarchy, const IntVector<NDIM>& ratio)
