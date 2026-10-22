@@ -15,8 +15,6 @@
 
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
-#include <ibamr/StokesBcCoefStrategy.h>
-#include <ibamr/ibamr_enums.h>
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/CellNoCornersFillPattern.h>
@@ -46,6 +44,8 @@
 #include <string>
 #include <vector>
 
+#include "./ins_staggered_traction_stencil.h"
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -59,21 +59,6 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int SIDEG = 1;
-
-// Return whether any of the velocity boundary condition objects reports TRACTION conditions.
-bool
-has_traction_conditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
-{
-    for (const auto& U_bc_coef : U_bc_coefs)
-    {
-        const auto stokes_U_bc_coef = dynamic_cast<const StokesBcCoefStrategy*>(U_bc_coef);
-        if (stokes_U_bc_coef && stokes_U_bc_coef->getTractionBcType() == TRACTION)
-        {
-            return true;
-        }
-    }
-    return false;
-}
 
 // Timers.
 static Timer* t_apply;
@@ -285,7 +270,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
-    if (!d_bc_helper && has_traction_conditions(d_U_bc_coefs) &&
+    if (!d_bc_helper && traction_stencil::has_traction_conditions(d_U_bc_coefs) &&
         in.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() == 0)
     {
         TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"

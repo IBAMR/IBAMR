@@ -158,6 +158,16 @@ public:
                                       int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
+     * \brief Set \a r_data_idx to \a f_data_idx minus \a u_data_idx at the boundary faces at which the normal velocity
+     * is prescribed, over the specified levels.
+     */
+    void setResidualAtDirichletBoundaries(int r_data_idx,
+                                          int f_data_idx,
+                                          int u_data_idx,
+                                          int coarsest_ln = IBTK::invalid_level_number,
+                                          int finest_ln = IBTK::invalid_level_number) const;
+
+    /*!
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
      */
