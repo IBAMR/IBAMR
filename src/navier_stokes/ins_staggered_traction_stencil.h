@@ -36,6 +36,8 @@
 #include <SideIndex.h>
 
 #include <array>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -108,6 +110,24 @@ double get_normal_velocity_difference(const SAMRAI::pdat::SideData<NDIM, double>
                                       const IBTK::ShiftedPatchGeometry& normal_geometry,
                                       const SAMRAI::hier::BoxArray<NDIM>& domain,
                                       double fill_time);
+
+/*!
+ * Return the normal velocity values on which the inhomogeneous Robin coefficient (+/-)(g/mu - d/h) of the TRACTION
+ * condition for tangential_axis at the location i depends, each with its derivative; a value may appear more than once
+ * and the derivatives add. The arguments are those of get_normal_velocity_difference(), except that ghost_box replaces
+ * u_data and there is no homogeneous_bc.
+ */
+std::vector<std::pair<SAMRAI::pdat::SideIndex<NDIM>, double>>
+get_traction_stencil(const SAMRAI::hier::Index<NDIM>& i,
+                     unsigned int bdry_normal_axis,
+                     bool bdry_is_lower,
+                     unsigned int tangential_axis,
+                     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* normal_bc_coef,
+                     const SAMRAI::hier::Patch<NDIM>& patch,
+                     const IBTK::ShiftedPatchGeometry& normal_geometry,
+                     const SAMRAI::hier::BoxArray<NDIM>& domain,
+                     const SAMRAI::hier::Box<NDIM>& ghost_box,
+                     double fill_time);
 
 /*!
  * Add the transpose of the dependence of the TRACTION condition for velocity component tangential_axis on the normal
