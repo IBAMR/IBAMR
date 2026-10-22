@@ -208,6 +208,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     // (c) Rigid body velocity constraint.
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
+    d_cib_strategy->fillVelocityPhysBdryGhostValues(U_idx, d_homogeneous_bc, d_solution_time);
     ib_method_ops->interpolateVelocity(
         U_idx, std::vector<Pointer<CoarsenSchedule<NDIM>>>(), std::vector<Pointer<RefineSchedule<NDIM>>>(), half_time);
 
@@ -372,6 +373,7 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         U_bdry_fill->initializeOperatorState(U_transaction_comps, x->getPatchHierarchy());
         U_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
         U_bdry_fill->fillData(d_solution_time);
+        d_cib_strategy->fillVelocityPhysBdryGhostValues(U_idx, d_homogeneous_bc, d_solution_time);
 
         d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
         ib_method_ops->interpolateVelocity(U_idx,

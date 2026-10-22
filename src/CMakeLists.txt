@@ -200,6 +200,7 @@ SET(CXX_SRC
   IB/IBBeamForceSpec.cpp
   IB/IBSpringForceSpec.cpp
   IB/CIBMethod.cpp
+  IB/ib_velocity_ghost_fill.cpp
   IB/IBLagrangianSourceStrategy.cpp
   IB/IBStandardSourceGen.cpp
 

@@ -308,6 +308,14 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
 {
     if (d_integrator_is_initialized) return;
 
+    if (d_divergence_free_velocity_extension)
+    {
+        TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                                 << "  divergence_free_velocity_extension = TRUE is not supported by "
+                                    "IBImplicitStaggeredHierarchyIntegrator\n"
+                                 << "  set divergence_free_velocity_extension = FALSE\n");
+    }
+
     // Register u and p DOF variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_u_dof_index_var = new SideVariable<NDIM, int>(d_object_name + "::u_dof_index");

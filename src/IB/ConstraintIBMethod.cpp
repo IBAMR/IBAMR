@@ -71,6 +71,8 @@
 #include <VariableDatabase.h>
 #include <VariableFillPattern.h>
 
+#include "./ib_velocity_ghost_fill.h"
+
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -516,7 +518,7 @@ ConstraintIBMethod::registerEulerianVariables()
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
     d_u_fluidSolve_idx = var_db->mapVariableAndContextToIndex(d_u_fluidSolve_var, u_new_ctx);
     d_u_fluidSolve_cib_idx =
-        var_db->registerVariableAndContext(d_u_fluidSolve_var, d_scratch_context, getMinimumGhostCellWidth());
+        var_db->registerVariableAndContext(d_u_fluidSolve_var, d_scratch_context, getEulerianGhostCellWidth());
 
     // Initialize  variables & variable contexts associated with projection step.
     if (d_needs_div_free_projection)
@@ -2392,21 +2394,8 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     // Set the ghost values at the physical boundaries with the velocity boundary conditions.
     if (d_u_phys_bdry_op)
     {
-        d_u_phys_bdry_op->setPatchDataIndex(copy_to_idx);
-        d_u_phys_bdry_op->setHomogeneousBc(false);
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                if (patch->getPatchGeometry()->getTouchesRegularBoundary())
-                {
-                    d_u_phys_bdry_op->setPhysicalBoundaryConditions(
-                        *patch, d_FuRMoRP_new_time, patch->getPatchData(copy_to_idx)->getGhostCellWidth());
-                }
-            }
-        }
+        fill_velocity_phys_bdry_ghost_values(
+            *d_u_phys_bdry_op, copy_to_idx, d_hierarchy, /*homogeneous_bc*/ false, d_FuRMoRP_new_time);
     }
 
     return;

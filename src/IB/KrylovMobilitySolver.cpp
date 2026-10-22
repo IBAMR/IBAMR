@@ -922,6 +922,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     solver->d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     solver->d_hier_bdry_fill->fillData(half_time);
     solver->d_hier_bdry_fill->resetTransactionComponents(solver->d_transaction_comps);
+    solver->d_cib_strategy->fillVelocityPhysBdryGhostValues(u_data_idx, homogeneous_bc, half_time);
 
     // 3b) Interpolate velocity
     solver->d_cib_strategy->setInterpolatedVelocityVector(y, half_time);

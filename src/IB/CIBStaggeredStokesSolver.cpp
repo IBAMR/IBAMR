@@ -87,13 +87,11 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_nam
 
     // Create widened variables for IB operations.
     Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
-    const IntVector<NDIM> ghost_width = ib_method_ops->getMinimumGhostCellWidth();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_wide_u_var = new SideVariable<NDIM, double>(d_object_name + "::wide_u_var", 1);
     d_wide_f_var = new SideVariable<NDIM, double>(d_object_name + "::wide_f_var", 1);
     d_wide_ctx = var_db->getContext(object_name + "::wide_ctx");
-    d_wide_u_idx = var_db->registerVariableAndContext(d_wide_u_var, d_wide_ctx, ghost_width);
-    d_wide_f_idx = var_db->registerVariableAndContext(d_wide_f_var, d_wide_ctx, ghost_width);
+    registerWideData(ib_method_ops->getMinimumGhostCellWidth());
 
     return;
 } // CIBStaggeredStokesSolver
@@ -143,6 +141,13 @@ CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, dou
     {
         d_reinitializing_solver = true;
         deallocateSolverState();
+    }
+
+    // The integrator determines the ghost cell width of the IB data when it is initialized.
+    Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
+    if (ib_method_ops->getEulerianGhostCellWidth() != d_wide_ghost_width)
+    {
+        registerWideData(ib_method_ops->getEulerianGhostCellWidth());
     }
 
     // Wrap Eulerian data into PETSc Vecs.
@@ -404,6 +409,24 @@ CIBStaggeredStokesSolver::deallocateSolverState()
 } // deallocateSolverState
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+CIBStaggeredStokesSolver::registerWideData(const IntVector<NDIM>& ghost_width)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    if (d_wide_u_idx != IBTK::invalid_index)
+    {
+        var_db->removePatchDataIndex(d_wide_u_idx);
+    }
+    if (d_wide_f_idx != IBTK::invalid_index)
+    {
+        var_db->removePatchDataIndex(d_wide_f_idx);
+    }
+    d_wide_u_idx = var_db->registerVariableAndContext(d_wide_u_var, d_wide_ctx, ghost_width);
+    d_wide_f_idx = var_db->registerVariableAndContext(d_wide_f_var, d_wide_ctx, ghost_width);
+    d_wide_ghost_width = ghost_width;
+    return;
+} // registerWideData
 
 //////////////////////////////////////////////////////////////////////////////
 

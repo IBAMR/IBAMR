@@ -92,6 +92,13 @@ IBStrategy::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
     return;
 } // registerIBHierarchyIntegrator
 
+const IntVector<NDIM>&
+IBStrategy::getEulerianGhostCellWidth() const
+{
+    TBOX_ASSERT(d_ib_solver);
+    return d_ib_solver->getEulerianGhostCellWidth();
+} // getEulerianGhostCellWidth
+
 void
 IBStrategy::registerEulerianVariables()
 {
