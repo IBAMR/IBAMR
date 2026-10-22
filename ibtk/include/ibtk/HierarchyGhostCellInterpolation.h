@@ -42,8 +42,10 @@
 
 namespace IBTK
 {
+class CartCellDoubleCubicCoarsen;
 class CartCellRobinPhysBdryOp;
 class CartExtrapPhysBdryOp;
+class CartSideDoubleCubicCoarsen;
 class CartSideRobinPhysBdryOp;
 } // namespace IBTK
 namespace SAMRAI
@@ -55,6 +57,8 @@ class RobinBcCoefStrategy;
 } // namespace solv
 namespace xfer
 {
+template <int DIM>
+class CoarsenOperator;
 template <int DIM>
 class CoarsenPatchStrategy;
 template <int DIM>
@@ -83,6 +87,14 @@ namespace IBTK
  * extends quadratically beyond physical boundaries, whatever the extrapolation
  * type of the transaction component; that type sets only the physical ghost
  * values of the data.
+ *
+ * \note Cubic coarsening ("CUBIC_COARSEN") of a level with a refinement ratio
+ * of 2 reads one layer of ghost values of the fine level.  For a component with
+ * the refine operator "NONE", fillData() copies the source data and the values
+ * of that layer that the level covers to scratch data, fills the rest of the
+ * layer by extrapolation from each patch, and coarsens the scratch data; it
+ * only reads the source data.  A component with another refine operator is
+ * coarsened by weighted averaging at that ratio.
  */
 class HierarchyGhostCellInterpolation : public SAMRAI::tbox::DescribedClass
 {
@@ -364,6 +376,26 @@ private:
      */
     HierarchyGhostCellInterpolation& operator=(const HierarchyGhostCellInterpolation& that) = delete;
 
+    // Return the coarsen operator of the component for the variable. The "CUBIC_COARSEN" operators of components that
+    // need cubic scratch data are the ones of this object, which read the ghost layer of their source data.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM>>
+    getCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>>& var,
+                       const InterpolationTransactionComponent& comp) const;
+
+    // Return true if the component coarsens cubically and its refine operator is "NONE".
+    bool needsCubicScratch(const InterpolationTransactionComponent& comp) const;
+
+    // Register the scratch data and the algorithms for the cubic coarsening of levels with a refinement ratio less
+    // than 4.
+    void setUpCubicScratch();
+
+    // Return true if cubic coarsening of the given level reads the ghost layer of its source.
+    bool usesCubicScratch(int ln) const;
+
+    // Allocate the scratch data on the level and fill them from the source data, and deallocate them.
+    void fillCubicScratch(int ln, double fill_time);
+    void deallocateCubicScratch(int ln);
+
     // Boolean indicating whether the operator is initialized.
     bool d_is_initialized = false;
 
@@ -383,6 +415,16 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_coarsen_alg;
     std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM>> d_coarsen_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_coarsen_scheds;
+
+    // The cubic coarsen operators, and the scratch data, algorithms, and schedules for coarsening a level with a
+    // refinement ratio less than 4: the scratch data hold a copy of the source data with a one-cell ghost layer
+    // that holds the values of the level where it covers the layer and the extrapolation from each patch elsewhere.
+    SAMRAI::tbox::Pointer<CartCellDoubleCubicCoarsen> d_cc_cubic_coarsen_op;
+    SAMRAI::tbox::Pointer<CartSideDoubleCubicCoarsen> d_sc_cubic_coarsen_op;
+    std::vector<int> d_cubic_scratch_idxs;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_scratch_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_scratch_fill_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_scratch_fill_scheds;
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_refine_alg;
     std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_refine_strategy;

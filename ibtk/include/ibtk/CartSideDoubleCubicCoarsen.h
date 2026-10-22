@@ -52,18 +52,23 @@ namespace IBTK
  * \note This coarsen operator requires that the refinement ratio between coarse
  * and fine index spaces is even.
  *
- * \note To avoid complicating the interpolation scheme at coarse-fine
- * interfaces, the use of cubic coarsening is restricted to cases where the
- * refinement ratio is at least 4.  For refinement ratios less than 4, a warning
- * is emitted and simple weighted averaging is used instead.
+ * \note Along an axis with refinement ratio 2, the cubic stencil reads one layer
+ * of fine values beyond each coarse cell.  An operator constructed with
+ * ghost_layer_valid = true reads that layer from the ghost cells of the source
+ * data, which the caller has filled with valid values; the operator does not
+ * write to the source data.  Otherwise, or if a ratio is odd, the operator emits
+ * a warning and uses simple weighted averaging on all axes when any ratio is
+ * less than 4.
  */
 class CartSideDoubleCubicCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
+     *
+     * \param ghost_layer_valid Whether the first ghost layer of the source data holds valid values.
      */
-    CartSideDoubleCubicCoarsen() = default;
+    explicit CartSideDoubleCubicCoarsen(bool ghost_layer_valid = false);
 
     /*!
      * \brief Destructor.
@@ -147,9 +152,14 @@ private:
     static const std::string s_op_name;
 
     /*!
-     * "Backup" coarsen operator for even refinement ratios less than 4.
+     * "Backup" coarsen operator for refinement ratios less than 4 without valid ghost layers.
      */
     SAMRAI::geom::CartesianSideDoubleWeightedAverage<NDIM> d_weighted_average_coarsen_op;
+
+    /*!
+     * Whether the first ghost layer of the source data holds valid values.
+     */
+    bool d_ghost_layer_valid;
 };
 } // namespace IBTK
 
