@@ -1,0 +1,3 @@
+Fixed: IBTK::NodeDataSynchronization and IBTK::EdgeDataSynchronization now synchronize values shared by three or more patches correctly.
+<br>
+(Boyce Griffith, 2026/10/04)
