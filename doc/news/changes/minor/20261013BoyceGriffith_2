@@ -1,0 +1,3 @@
+Fixed: IBTK::HierarchyGhostCellInterpolation extends the temporary coarse data of its coarse-fine interpolation quadratically beyond physical boundaries, whatever the extrapolation type of the transaction component. The fine ghost values within one coarse cell of a physical boundary are third-order accurate instead of second-order accurate, which removes a residual of order one in the viscous operator at the junction of a coarse-fine interface and a physical boundary.
+<br>
+(Boyce Griffith, 2026/10/13)

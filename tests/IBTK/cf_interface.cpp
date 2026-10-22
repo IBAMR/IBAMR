@@ -78,7 +78,14 @@ main(int argc, char* argv[])
         auto Q_fcn = [](const VectorNd& x) -> double
         {
             double val = 1.0;
-            for (int d = 0; d < NDIM; ++d) val += x[d] + x[d] * x[d];
+            for (int d = 0; d < NDIM; ++d)
+            {
+                val += x[d] + x[d] * x[d];
+                for (int e = d + 1; e < NDIM; ++e)
+                {
+                    val += x[d] * x[e];
+                }
+            }
             return val;
         };
 
@@ -148,11 +155,12 @@ main(int argc, char* argv[])
         }
 
         // Test out the filling of coarse fine interfaces. We only use the coarse fine interface operator, which fills
-        // one layer of ghost cells using quadratic interpolation.
+        // one layer of ghost cells using quadratic interpolation. The interface meets the physical boundary, where the
+        // fill extends the coarse data quadratically whatever the extrapolation type.
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_cell_comps(1);
         ghost_cell_comps[0] =
-            InterpolationTransactionComponent(Q_idx, "NONE", true, "NONE", "NONE", false, nullptr /*bdry_conds*/);
+            InterpolationTransactionComponent(Q_idx, "NONE", true, "NONE", "LINEAR", false, nullptr /*bdry_conds*/);
         HierarchyGhostCellInterpolation hier_ghost_cell;
         hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
         hier_ghost_cell.fillData(0.0);
@@ -175,14 +183,6 @@ main(int argc, char* argv[])
                 Box<NDIM> ghost_box = patch->getBox();
                 ghost_box.upper(0) = ghost_box.lower(0) + (ghost_cells(0) - 1);
                 ghost_box.shift(0, -ghost_cells(0));
-
-                // Shrink the box in other directions. CF-interfaces are only filled away from corners (where enough
-                // cells exist to perform interpolation)
-                for (int d = 1; d < NDIM; ++d)
-                {
-                    ghost_box.shorten(d, 2);
-                    ghost_box.shorten(d, -2);
-                }
 
                 if (Q_cc_data)
                 {

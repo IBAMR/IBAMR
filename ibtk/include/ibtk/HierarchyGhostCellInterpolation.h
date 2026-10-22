@@ -78,6 +78,11 @@ namespace IBTK
  * \note In cases where physical boundary conditions are set via extrapolation
  * from interior values, setting ghost cell values may require both coarsening
  * and refining.
+ *
+ * Coarse-fine interpolation reads temporary coarse data that this class
+ * extends quadratically beyond physical boundaries, whatever the extrapolation
+ * type of the transaction component; that type sets only the physical ghost
+ * values of the data.
  */
 class HierarchyGhostCellInterpolation : public SAMRAI::tbox::DescribedClass
 {
@@ -382,6 +387,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_refine_alg;
     std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_refine_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_refine_scheds;
+
+    // Extension of the temporary coarse data beyond physical boundaries for the coarse-fine interpolation.
+    class CoarseDataExtension;
+    std::unique_ptr<CoarseDataExtension> d_coarse_extension;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.
     std::vector<SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy>> d_cf_bdry_ops;
