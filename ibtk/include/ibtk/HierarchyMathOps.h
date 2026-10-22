@@ -205,6 +205,16 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> getPatchHierarchy() const;
 
+    /*!
+     * \brief Get the number of the coarsest patch level over which operations occur.
+     */
+    int getCoarsestLevelNumber() const;
+
+    /*!
+     * \brief Get the number of the finest patch level over which operations occur.
+     */
+    int getFinestLevelNumber() const;
+
     //\{ \name Mathematical operations.
 
     /*!

@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/GeneralSolver.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/SCPoissonHypreLevelSolver.h>
@@ -27,6 +28,8 @@
 #include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
+#include <ArrayDataBasicOps.h>
+#include <ArrayDataNormOpsReal.h>
 #include <BoundaryBox.h>
 #include <Box.h>
 #include <BoxList.h>
@@ -39,6 +42,9 @@
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideIndex.h>
+#include <SideVariable.h>
+#include <VariableContext.h>
+#include <VariableDatabase.h>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -50,6 +56,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <mpi.h>
 
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <numeric>
 #include <ostream>
@@ -317,6 +324,7 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
     // Deallocate the hypre data structures.
     destroyHypreSolver();
     deallocateHypreData();
+    deallocateNullSpaceData();
 
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
@@ -328,6 +336,116 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+SCPoissonHypreLevelSolver::allocateNullSpaceData()
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    if (d_rhs_idx == IBTK::invalid_index)
+    {
+        Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
+        const std::string name = d_object_name + "::side_rhs";
+        if (var_db->checkVariableExists(name))
+        {
+            Pointer<SideVariable<NDIM, double>> var = var_db->getVariable(name);
+            d_rhs_idx = var_db->mapVariableAndContextToIndex(var, context);
+        }
+        else
+        {
+            Pointer<SideVariable<NDIM, double>> var = new SideVariable<NDIM, double>(name, 1);
+            d_rhs_idx = var_db->registerVariableAndContext(var, context, IntVector<NDIM>(0));
+        }
+    }
+    if (!d_level->checkAllocated(d_rhs_idx))
+    {
+        d_level->allocatePatchData(d_rhs_idx);
+    }
+    return;
+} // allocateNullSpaceData
+
+void
+SCPoissonHypreLevelSolver::deallocateNullSpaceData()
+{
+    if (d_rhs_idx != IBTK::invalid_index && d_level->checkAllocated(d_rhs_idx))
+    {
+        d_level->deallocatePatchData(d_rhs_idx);
+    }
+    deallocateOwnMathOps();
+    return;
+} // deallocateNullSpaceData
+
+Pointer<HierarchyMathOps>
+SCPoissonHypreLevelSolver::getNullSpaceMathOps()
+{
+    // A given object provides the weights of this level only if its level range is this level.
+    if (d_hier_math_ops && d_hier_math_ops->getCoarsestLevelNumber() == d_level_num &&
+        d_hier_math_ops->getFinestLevelNumber() == d_level_num)
+    {
+        deallocateOwnMathOps();
+        return d_hier_math_ops;
+    }
+    if (!d_level_math_ops)
+    {
+        d_level_math_ops =
+            new HierarchyMathOps(d_object_name + "::hier_math_ops", d_hierarchy, d_level_num, d_level_num);
+    }
+    return d_level_math_ops;
+} // getNullSpaceMathOps
+
+void
+SCPoissonHypreLevelSolver::deallocateOwnMathOps()
+{
+    if (d_level_math_ops)
+    {
+        const int wgt_idx = d_level_math_ops->getSideWeightPatchDescriptorIndex();
+        if (d_level->checkAllocated(wgt_idx))
+        {
+            d_level->deallocatePatchData(wgt_idx);
+        }
+        d_level_math_ops.setNull();
+    }
+    return;
+} // deallocateOwnMathOps
+
+void
+SCPoissonHypreLevelSolver::removeMeanFromRhs()
+{
+    // The data operations of the hierarchy act on all the axes together, so use those of the arrays of each axis.
+    ArrayDataNormOpsReal<NDIM, double> norm_ops;
+    ArrayDataBasicOps<NDIM, double> basic_ops;
+    const int wgt_idx = getNullSpaceMathOps()->getSideWeightPatchDescriptorIndex();
+
+    // Sum, over the sides normal to each axis, the weighted values and the weights.
+    std::array<double, 2 * NDIM> sums;
+    sums.fill(0.0);
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<SideData<NDIM, double>> rhs_data = patch->getPatchData(d_rhs_idx);
+        Pointer<SideData<NDIM, double>> wgt_data = patch->getPatchData(wgt_idx);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
+            sums[axis] += norm_ops.integral(rhs_data->getArrayData(axis), wgt_data->getArrayData(axis), side_box);
+            sums[NDIM + axis] +=
+                norm_ops.sumControlVolumes(wgt_data->getArrayData(axis), wgt_data->getArrayData(axis), side_box);
+        }
+    }
+    IBTK_MPI::sumReduction(sums.data(), static_cast<int>(sums.size()));
+
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+        Pointer<SideData<NDIM, double>> rhs_data = patch->getPatchData(d_rhs_idx);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
+            basic_ops.addScalar(
+                rhs_data->getArrayData(axis), rhs_data->getArrayData(axis), -sums[axis] / sums[NDIM + axis], side_box);
+        }
+    }
+    return;
+} // removeMeanFromRhs
 
 void
 SCPoissonHypreLevelSolver::allocateHypreData()
@@ -640,13 +758,72 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
     const bool level_zero = (d_level_num == 0);
 
+    // Return whether the right-hand-side data of the patch is modified to account for the boundary conditions.
+    auto adjusts_rhs = [&](const Pointer<Patch<NDIM>>& patch) -> bool
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+        return pgeom->intersectsPhysicalBoundary() || type_1_cf_bdry.size() > 0;
+    };
+
+    // Modify rhs_data, a copy of the right-hand-side data of the patch, to account for any inhomogeneous boundary
+    // conditions.
+    auto adjust_rhs = [&](const Pointer<Patch<NDIM>>& patch, SideData<NDIM, double>& rhs_data) -> void
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        Pointer<SideData<NDIM, double>> x_data = patch->getPatchData(x_idx);
+        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+        const Array<BoundaryBox<NDIM>>& type_2_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 2);
+        if (pgeom->intersectsPhysicalBoundary())
+        {
+            PoissonUtilities::adjustRHSAtPhysicalBoundary(
+                rhs_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+        }
+        if (type_1_cf_bdry.size() > 0)
+        {
+            PoissonUtilities::adjustRHSAtCoarseFineBoundary(rhs_data,
+                                                            *x_data,
+                                                            patch,
+                                                            d_poisson_spec,
+                                                            type_1_cf_bdry,
+                                                            type_2_cf_bdry,
+                                                            d_bc_coefs,
+                                                            d_solution_time,
+                                                            d_homogeneous_bc);
+        }
+    };
+
+    // If the null space contains the constant vector, keep the right-hand side that hypre receives in scratch data and
+    // remove its mean in each axis.
+    if (d_nullspace_contains_constant_vec)
+    {
+        allocateNullSpaceData();
+        for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+            Pointer<SideData<NDIM, double>> b_data = patch->getPatchData(b_idx);
+            Pointer<SideData<NDIM, double>> rhs_data = patch->getPatchData(d_rhs_idx);
+            rhs_data->copy(*b_data);
+            if (adjusts_rhs(patch))
+            {
+                adjust_rhs(patch, *rhs_data);
+            }
+        }
+        removeMeanFromRhs();
+    }
+
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
         // The initial guess is zero if initial_guess_nonzero is FALSE, without
         // reading the solution data.  Ghost values are never part of it.
@@ -662,38 +839,18 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             copyToHypre(d_sol_vec, zero_data, patch_box);
         }
 
-        // Modify the right-hand-side data to account for any boundary
-        // conditions and copy the right-hand-side into the hypre vector.
+        // Copy the right-hand-side into the hypre vector.
         Pointer<SideData<NDIM, double>> b_data = patch->getPatchData(b_idx);
-        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM>>() :
-                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
-        const Array<BoundaryBox<NDIM>>& type_2_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM>>() :
-                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 2);
-        const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
-        const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
-        if (at_physical_bdry || at_cf_bdry)
+        if (d_nullspace_contains_constant_vec)
+        {
+            Pointer<SideData<NDIM, double>> rhs_data = patch->getPatchData(d_rhs_idx);
+            copyToHypre(d_rhs_vec, *rhs_data, patch_box);
+        }
+        else if (adjusts_rhs(patch))
         {
             SideData<NDIM, double> b_adj_data(patch_box, b_data->getDepth(), IntVector<NDIM>(0));
             b_adj_data.copyOnBox(*b_data, patch_box);
-            if (at_physical_bdry)
-            {
-                PoissonUtilities::adjustRHSAtPhysicalBoundary(
-                    b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
-            }
-            if (at_cf_bdry)
-            {
-                PoissonUtilities::adjustRHSAtCoarseFineBoundary(b_adj_data,
-                                                                *x_data,
-                                                                patch,
-                                                                d_poisson_spec,
-                                                                type_1_cf_bdry,
-                                                                type_2_cf_bdry,
-                                                                d_bc_coefs,
-                                                                d_solution_time,
-                                                                d_homogeneous_bc);
-            }
+            adjust_rhs(patch, b_adj_data);
             copyToHypre(d_rhs_vec, b_adj_data, patch_box);
         }
         else

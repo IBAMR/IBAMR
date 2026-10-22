@@ -47,6 +47,7 @@ namespace IBTK
 {
 class HierarchyGhostCellInterpolation;
 class HierarchyMathOps;
+class LinearSolver;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -89,6 +90,9 @@ namespace IBTK
  *
  * The solution and right-hand-side vectors must have the same ghost cell width, of at least the ghost cell width given
  * to the constructor.
+ *
+ * Only the constant vector of a null space is used: if the null space contains it and the coarsest level covers the
+ * physical domain, the class sets it on the coarse level solver, with the coarsest level's HierarchyMathOps object.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
@@ -183,6 +187,16 @@ public:
      * Poisson specifications changes.
      */
     void setResetLevels(int coarsest_ln, int finest_ln);
+
+    /*!
+     * \brief Set whether the null space of the operator contains the constant
+     * vector.
+     *
+     * The basis vectors are not used.
+     */
+    void setNullSpace(bool nullspace_contains_constant_vec,
+                      const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>&
+                          nullspace_basis_vecs = {}) override;
 
     /*!
      * \brief Specify the smoother type.
@@ -328,6 +342,15 @@ protected:
     virtual void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) = 0;
 
     /*!
+     * \brief Set the null space of the coarse level solver: the constant vector if setNullSpace() requested it and the
+     * coarsest level covers the physical domain.
+     *
+     * Call this function before each coarse solve, because setNullSpace() can be called after the operator state is
+     * initialized.
+     */
+    void setCoarseSolverNullSpace(LinearSolver& coarse_solver);
+
+    /*!
      * \name Methods for executing, caching, and resetting communication
      * schedules.
      */
@@ -455,6 +478,16 @@ protected:
     double d_coarse_solver_rel_residual_tol = 1.0e-5;
     double d_coarse_solver_abs_residual_tol = 1.0e-50;
     int d_coarse_solver_max_iterations = 10;
+
+    /*
+     * Whether the null space of the operator contains the constant vector.
+     */
+    bool d_nullspace_contains_constant_vec = false;
+
+    /*
+     * Whether the coarsest level covers the physical domain, set when the operator state is initialized.
+     */
+    bool d_coarsest_level_covers_domain = false;
 
     //\}
 

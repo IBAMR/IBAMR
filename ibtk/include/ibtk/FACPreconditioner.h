@@ -115,6 +115,14 @@ public:
     void setTimeInterval(double current_time, double new_time) override;
 
     /*!
+     * \brief Set the nullspace of the linear system and give it to the FAC
+     * strategy.
+     */
+    void setNullSpace(bool nullspace_contains_constant_vec,
+                      const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>&
+                          nullspace_basis_vecs = {}) override;
+
+    /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
      *
      * Before calling solveSystem(), the form of the solution \a x and

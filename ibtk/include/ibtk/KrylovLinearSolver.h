@@ -28,6 +28,8 @@
 #include <IntVector.h>
 #include <SAMRAIVectorReal.h>
 
+#include <vector>
+
 namespace IBTK
 {
 class HierarchyMathOps;
@@ -80,6 +82,14 @@ public:
      */
     void setTimeInterval(double current_time, double new_time) override;
 
+    /*!
+     * \brief Set the nullspace of the linear system and give it to the
+     * preconditioner, if there is one.
+     */
+    void setNullSpace(bool nullspace_contains_constant_vec,
+                      const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>>&
+                          nullspace_basis_vecs = {}) override;
+
     //\}
 
     /*!
@@ -102,6 +112,8 @@ public:
      * solving \f$Ax=b\f$.
      *
      * \note If the preconditioner is nullptr, no preconditioning is performed.
+     *
+     * \note If a nullspace has been set, it is also given to the preconditioner.
      */
     virtual void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = nullptr);
 

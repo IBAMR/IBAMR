@@ -32,6 +32,7 @@
 #include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/LinearSolver.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 #include <algorithm>
@@ -123,12 +124,14 @@ main(int argc, char* argv[])
         const int depth = input_db->getIntegerWithDefault("depth", 1);
         Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc", depth);
         Pointer<CellVariable<NDIM, double>> f_cc_var = new CellVariable<NDIM, double>("f_cc", depth);
+        Pointer<CellVariable<NDIM, double>> b_cc_var = new CellVariable<NDIM, double>("b_cc", depth);
         Pointer<CellVariable<NDIM, double>> e_cc_var = new CellVariable<NDIM, double>("e_cc", depth);
         Pointer<CellVariable<NDIM, double>> r_cc_var = new CellVariable<NDIM, double>("r_cc", depth);
 
         const IntVector<NDIM> gcw(input_db->getIntegerWithDefault("vector_ghost_cell_width", 1));
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, gcw);
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, gcw);
+        const int b_cc_idx = var_db->registerVariableAndContext(b_cc_var, ctx, gcw);
         const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
         const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector<NDIM>(1));
 
@@ -150,6 +153,7 @@ main(int argc, char* argv[])
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
+            level->allocatePatchData(b_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
             level->allocatePatchData(r_cc_idx, 0.0);
         }
@@ -160,11 +164,13 @@ main(int argc, char* argv[])
 
         SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM, double> b_vec("b", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM, double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
         u_vec.addComponent(u_cc_var, u_cc_idx, h_cc_idx);
         f_vec.addComponent(f_cc_var, f_cc_idx, h_cc_idx);
+        b_vec.addComponent(b_cc_var, b_cc_idx, h_cc_idx);
         e_vec.addComponent(e_cc_var, e_cc_idx, h_cc_idx);
         r_vec.addComponent(r_cc_var, r_cc_idx, h_cc_idx);
 
@@ -177,11 +183,12 @@ main(int argc, char* argv[])
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
         muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
 
-        u_fcn.setDataOnPatchHierarchy(e_cc_idx, e_cc_var, patch_hierarchy, 0.0);
         f_fcn.setDataOnPatchHierarchy(f_cc_idx, f_cc_var, patch_hierarchy, 0.0);
 
         // Ensure that the right-hand-side vector has no components in the
-        // nullspace of the operator.
+        // nullspace of the operator. Keep the right-hand side with its mean in b
+        // for a solver that is told the null space.
+        b_vec.copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false));
         f_vec.addScalar(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
                         -f_vec.dot(Pointer<SAMRAIVectorReal<NDIM, double>>(&r_vec, false)) /
                             r_vec.dot(Pointer<SAMRAIVectorReal<NDIM, double>>(&r_vec, false)));
@@ -204,28 +211,66 @@ main(int argc, char* argv[])
             solver_type, "poisson_solver", solver_db, "", precond_type, "poisson_precond", precond_db, "");
         poisson_solver->setPoissonSpecifications(poisson_spec);
         poisson_solver->setPhysicalBcCoefs(bc_coefs);
+
+        // With null_space = "AFTER_FIRST_SOLVE", the solver is told after a first solve that the null space of the
+        // operator contains the constant vector, and solves again. With null_space = "REINITIALIZE", it is told
+        // before it is initialized, and is deallocated and initialized again between two solves.
+        auto& linear_solver = dynamic_cast<LinearSolver&>(*poisson_solver);
+        const string null_space = input_db->getStringWithDefault("null_space", "");
+        if (null_space == "REINITIALIZE")
+        {
+            linear_solver.setNullSpace(true);
+        }
         poisson_solver->initializeSolverState(u_vec, f_vec);
 
-        // Solve -L*u = f.
-        u_vec.setToScalar(0.0);
-        poisson_solver->solveSystem(u_vec, f_vec);
+        const auto solve_and_print_norms = [&]()
+        {
+            // Solve -L*u = f. A solver that is told the null space gets the right-hand side with its mean, b. The
+            // residual below is that of f in either case.
+            u_vec.setToScalar(0.0);
+            if (linear_solver.getNullSpaceContainsConstantVector())
+            {
+                poisson_solver->solveSystem(u_vec, b_vec);
+            }
+            else
+            {
+                poisson_solver->solveSystem(u_vec, f_vec);
+            }
+            if (!null_space.empty())
+            {
+                plog << "iterations = " << linear_solver.getNumIterations() << "\n";
+            }
 
-        // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double>>(&u_vec, false));
-        plog << "|e|_oo = " << e_vec.maxNorm() << "\n";
-        plog << "|e|_2  = " << e_vec.L2Norm() << "\n";
-        plog << "|e|_1  = " << e_vec.L1Norm() << "\n";
-        if (depth > 1) print_component_norms("e", e_cc_idx, h_cc_idx, patch_hierarchy, depth);
+            // Compute error and print error norms.
+            u_fcn.setDataOnPatchHierarchy(e_cc_idx, e_cc_var, patch_hierarchy, 0.0);
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&e_vec, false),
+                           Pointer<SAMRAIVectorReal<NDIM, double>>(&u_vec, false));
+            plog << "|e|_oo = " << e_vec.maxNorm() << "\n";
+            plog << "|e|_2  = " << e_vec.L2Norm() << "\n";
+            plog << "|e|_1  = " << e_vec.L1Norm() << "\n";
+            if (depth > 1) print_component_norms("e", e_cc_idx, h_cc_idx, patch_hierarchy, depth);
 
-        // Compute the residual and print residual norms.
-        laplace_op.apply(u_vec, r_vec);
-        r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double>>(&r_vec, false));
-        plog << "|r|_oo = " << r_vec.maxNorm() << "\n";
-        plog << "|r|_2  = " << r_vec.L2Norm() << "\n";
-        plog << "|r|_1  = " << r_vec.L1Norm() << "\n";
-        if (depth > 1) print_component_norms("r", r_cc_idx, h_cc_idx, patch_hierarchy, depth);
+            // Compute the residual and print residual norms.
+            laplace_op.apply(u_vec, r_vec);
+            r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
+                           Pointer<SAMRAIVectorReal<NDIM, double>>(&r_vec, false));
+            plog << "|r|_oo = " << r_vec.maxNorm() << "\n";
+            plog << "|r|_2  = " << r_vec.L2Norm() << "\n";
+            plog << "|r|_1  = " << r_vec.L1Norm() << "\n";
+            if (depth > 1) print_component_norms("r", r_cc_idx, h_cc_idx, patch_hierarchy, depth);
+        };
+        solve_and_print_norms();
+        if (null_space == "AFTER_FIRST_SOLVE")
+        {
+            linear_solver.setNullSpace(true);
+            solve_and_print_norms();
+        }
+        else if (null_space == "REINITIALIZE")
+        {
+            poisson_solver->deallocateSolverState();
+            poisson_solver->initializeSolverState(u_vec, f_vec);
+            solve_and_print_norms();
+        }
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.

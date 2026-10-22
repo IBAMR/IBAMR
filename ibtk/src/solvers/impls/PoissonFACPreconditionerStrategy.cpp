@@ -18,6 +18,7 @@
 #include <ibtk/FACPreconditionerStrategy.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/LinearSolver.h>
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
@@ -30,6 +31,7 @@
 #include <tbox/Utilities.h>
 
 #include <Box.h>
+#include <BoxArray.h>
 #include <CartesianGridGeometry.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenOperator.h>
@@ -53,6 +55,7 @@
 #include <VariableFillPattern.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -204,6 +207,15 @@ PoissonFACPreconditionerStrategy::setResetLevels(const int coarsest_ln, const in
     }
     return;
 } // setResetLevels
+
+void
+PoissonFACPreconditionerStrategy::setNullSpace(
+    const bool nullspace_contains_constant_vec,
+    const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& /*nullspace_basis_vecs*/)
+{
+    d_nullspace_contains_constant_vec = nullspace_contains_constant_vec;
+    return;
+} // setNullSpace
 
 void
 PoissonFACPreconditionerStrategy::setCoarseSolverMaxIterations(int coarse_solver_max_iterations)
@@ -363,6 +375,21 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_hierarchy = solution.getPatchHierarchy();
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln = solution.getFinestLevelNumber();
+
+    // The coarsest level problem has no coarse-fine boundary, and so can be singular, only if the coarsest level covers
+    // the physical domain.
+    const auto count_cells = [](const BoxArray<NDIM>& boxes)
+    {
+        std::int64_t num_cells = 0;
+        for (int n = 0; n < boxes.getNumberOfBoxes(); ++n)
+        {
+            num_cells += static_cast<std::int64_t>(boxes[n].size());
+        }
+        return num_cells;
+    };
+    Pointer<PatchLevel<NDIM>> coarsest_level = d_hierarchy->getPatchLevel(d_coarsest_ln);
+    d_coarsest_level_covers_domain =
+        count_cells(coarsest_level->getBoxes()) == count_cells(coarsest_level->getPhysicalDomain());
 
     Pointer<PatchDescriptor<NDIM>> pd = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
     const IntVector<NDIM>& sol_gcw = pd->getPatchDataFactory(sol_idx)->getGhostCellWidth();
@@ -559,6 +586,7 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
     d_finest_reset_ln = invalid_level_number;
 
     // Indicate that the operator is not initialized.
+    d_coarsest_level_covers_domain = false;
     d_is_initialized = false;
 
     IBTK_TIMER_STOP(t_deallocate_operator_state);
@@ -566,6 +594,32 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
 } // deallocateOperatorState
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+PoissonFACPreconditionerStrategy::setCoarseSolverNullSpace(LinearSolver& coarse_solver)
+{
+    const bool contains_constant_vec = d_nullspace_contains_constant_vec && d_coarsest_level_covers_domain;
+    if (contains_constant_vec)
+    {
+        Pointer<HierarchyMathOps>& level_math_ops = d_level_math_ops[d_coarsest_ln];
+        if (!level_math_ops)
+        {
+            level_math_ops = new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(d_coarsest_ln),
+                                                  d_hierarchy,
+                                                  d_coarsest_ln,
+                                                  d_coarsest_ln);
+        }
+        if (coarse_solver.getHierarchyMathOps().getPointer() != level_math_ops.getPointer())
+        {
+            coarse_solver.setHierarchyMathOps(level_math_ops);
+        }
+    }
+    if (coarse_solver.getNullSpaceContainsConstantVector() != contains_constant_vec)
+    {
+        coarse_solver.setNullSpace(contains_constant_vec);
+    }
+    return;
+} // setCoarseSolverNullSpace
 
 void
 PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, const int src_idx, const int dst_ln)
