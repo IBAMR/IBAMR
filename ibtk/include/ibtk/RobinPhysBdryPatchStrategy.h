@@ -175,6 +175,11 @@ public:
      * extrapolate the ghost cell values.  This function can be used to
      * construct the adjoint of linear operators that use ghost cell data.
      *
+     * The function adds into every value, in the patch interior or in its
+     * ghost region inside the physical domain, that the corresponding ghost
+     * fill reads. A caller that keeps only the interior values must sum the
+     * ghost-region values into the patches that own them.
+     *
      * \note A default implementation is provided that emits an error message.
      *
      * \param patch                Patch on which to fill boundary data.

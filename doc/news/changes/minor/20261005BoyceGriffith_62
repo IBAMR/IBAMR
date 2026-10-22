@@ -1,0 +1,3 @@
+Improved: IBTK::SAMRAIGhostDataAccumulator now sums ghost values with SAMRAI communication and can apply the transpose of the physical boundary fill. Ghost values are unspecified after an accumulation, patches narrower than the ghost cell width are an error, and the one-argument accumulateGhostData() is deprecated.
+<br>
+(Boyce Griffith, 2026/10/05)
