@@ -92,9 +92,11 @@ class RobinBcCoefStrategy;
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define S_TO_C_INTERP_SPECIAL_FC IBTK_FC_FUNC(stocinterp2ndspecial2d, STOCINTERP2NDSPECIAL2D)
+#define FLUX_LAPLACE_FC IBTK_FC_FUNC(fluxlaplace2d, FLUXLAPLACE2D)
 #endif
 #if (NDIM == 3)
 #define S_TO_C_INTERP_SPECIAL_FC IBTK_FC_FUNC(stocinterp2ndspecial3d, STOCINTERP2NDSPECIAL3D)
+#define FLUX_LAPLACE_FC IBTK_FC_FUNC(fluxlaplace3d, FLUXLAPLACE3D)
 #endif
 
 // Function interfaces
@@ -123,6 +125,40 @@ extern "C"
                                   const int& iupper2
 #endif
     );
+
+    void FLUX_LAPLACE_FC(double* D,
+                         const int& D_gcw,
+                         const double& alpha,
+                         const double& beta,
+                         const double* U,
+                         const int& U_gcw,
+                         const double& gamma,
+                         const double* W,
+                         const int& W_gcw,
+                         const int& ilower0,
+                         const int& iupper0,
+                         const int& ilower1,
+                         const int& iupper1,
+#if (NDIM == 3)
+                         const int& ilower2,
+                         const int& iupper2,
+#endif
+                         const double* dx,
+                         double* FL0,
+                         double* FU0,
+                         double* FL1,
+                         double* FU1,
+#if (NDIM == 3)
+                         double* FL2,
+                         double* FU2,
+#endif
+                         double* gx,
+                         double* gy
+#if (NDIM == 3)
+                         ,
+                         double* gz
+#endif
+    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -130,6 +166,93 @@ extern "C"
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+// Computes dst = alpha div grad src1 + beta src1 + gamma src2 on a patch, evaluating each flux once, and stores the
+// fluxes on the outer sides of the patch box in os_data.  src2 is unused when gamma is zero.
+void
+flux_laplace(const Pointer<CellData<NDIM, double>> dst_data,
+             const double alpha,
+             const double beta,
+             const Pointer<CellData<NDIM, double>> src1_data,
+             const double gamma,
+             const Pointer<CellData<NDIM, double>> src2_data,
+             const Pointer<OutersideData<NDIM, double>> os_data,
+             const Pointer<Patch<NDIM>> patch,
+             const int dst_depth,
+             const int src1_depth,
+             const int src2_depth)
+{
+    const double* const dx = Pointer<CartesianPatchGeometry<NDIM>>(patch->getPatchGeometry())->getDx();
+    const Box<NDIM>& patch_box = patch->getBox();
+
+    double* const D = dst_data->getPointer(dst_depth);
+    const int D_ghosts = (dst_data->getGhostCellWidth()).max();
+    const double* const U = src1_data->getPointer(src1_depth);
+    const int U_ghosts = (src1_data->getGhostCellWidth()).max();
+    const double* const W = (gamma != 0.0) ? src2_data->getPointer(src2_depth) : U;
+    const int W_ghosts = (gamma != 0.0) ? (src2_data->getGhostCellWidth()).max() : U_ghosts;
+
+#if !defined(NDEBUG)
+    const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(src1_data->getGhostBox(), -1);
+    if (!U_box_shrunk.contains(patch_box.lower()) || !U_box_shrunk.contains(patch_box.upper()))
+    {
+        TBOX_ERROR("HierarchyMathOps::laplace():\n"
+                   << "  src1 has insufficient ghost cell width" << std::endl);
+    }
+#endif
+
+    // Scratch space for one row of fluxes in direction 0, two rows in direction 1, and (3D) two planes in direction 2.
+    const int n0 = patch_box.numberCells(0);
+#if (NDIM == 2)
+    std::vector<double> scratch(3 * n0 + 1);
+#endif
+#if (NDIM == 3)
+    std::vector<double> scratch(3 * n0 + 1 + 2 * n0 * patch_box.numberCells(1));
+#endif
+    double* const gx = scratch.data();
+    double* const gy = gx + n0 + 1;
+#if (NDIM == 3)
+    double* const gz = gy + 2 * n0;
+#endif
+
+    FLUX_LAPLACE_FC(D,
+                    D_ghosts,
+                    alpha,
+                    beta,
+                    U,
+                    U_ghosts,
+                    gamma,
+                    W,
+                    W_ghosts,
+                    patch_box.lower(0),
+                    patch_box.upper(0),
+                    patch_box.lower(1),
+                    patch_box.upper(1),
+#if (NDIM == 3)
+                    patch_box.lower(2),
+                    patch_box.upper(2),
+#endif
+                    dx,
+                    os_data->getPointer(0, 0),
+                    os_data->getPointer(0, 1),
+                    os_data->getPointer(1, 0),
+                    os_data->getPointer(1, 1),
+#if (NDIM == 3)
+                    os_data->getPointer(2, 0),
+                    os_data->getPointer(2, 1),
+#endif
+                    gx,
+                    gy
+#if (NDIM == 3)
+                    ,
+                    gz
+#endif
+    );
+    return;
+} // flux_laplace
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -2660,6 +2783,9 @@ HierarchyMathOps::laplace(const int dst_idx,
 #endif
     }
 
+    // The term gamma src2 is omitted when gamma is zero or src2_idx is invalid.
+    const bool use_src2 = src2_idx >= 0 && gamma != 0.0;
+
     if ((d_coarsest_ln == d_finest_ln) && (alpha_idx == invalid_index) && (!nonaligned_anisotropy))
     {
         // Compute dst = div alpha grad src1 + beta src1 + gamma src2.
@@ -2678,6 +2804,103 @@ HierarchyMathOps::laplace(const int dst_idx,
 
             d_patch_math_ops.laplace(
                 dst_data, alpha, beta, src1_data, gamma, src2_data, patch, dst_depth, src1_depth, src2_depth);
+        }
+    }
+    else if (alpha_idx == invalid_index && dst_idx != src1_idx && !(use_src2 && dst_idx == src2_idx))
+    {
+        // As in the general case below, except that the fluxes on the finest level are computed once, in the pass
+        // that takes their divergence, and only those on the outer sides of its patches are stored.
+        for (int ln = d_coarsest_ln; ln < d_finest_ln; ++ln)
+        {
+            d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_sc_idx);
+        }
+        for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
+        {
+            d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_os_idx);
+        }
+
+        // Compute the side centered normal flux of src1 on the coarser levels and extract the fluxes on the outer
+        // sides of their patches.
+        for (int ln = d_coarsest_ln; ln < d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<SideData<NDIM, double>> flux_data = patch->getPatchData(d_sc_idx);
+                Pointer<CellData<NDIM, double>> src1_data = patch->getPatchData(src1_idx);
+                d_patch_math_ops.grad(
+                    flux_data, alpha, src1_data, 0.0, Pointer<SideData<NDIM, double>>(), patch, src1_depth);
+                if (ln > d_coarsest_ln)
+                {
+                    Pointer<OutersideData<NDIM, double>> os_data = patch->getPatchData(d_os_idx);
+                    os_data->copy(*flux_data);
+                }
+            }
+        }
+
+        // Compute dst on the finest level.
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(d_finest_ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> dst_data = patch->getPatchData(dst_idx);
+                Pointer<CellData<NDIM, double>> src1_data = patch->getPatchData(src1_idx);
+                Pointer<CellData<NDIM, double>> src2_data =
+                    use_src2 ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM>>();
+                Pointer<OutersideData<NDIM, double>> os_data = patch->getPatchData(d_os_idx);
+                flux_laplace(dst_data,
+                             alpha,
+                             beta,
+                             src1_data,
+                             use_src2 ? gamma : 0.0,
+                             src2_data,
+                             os_data,
+                             patch,
+                             dst_depth,
+                             src1_depth,
+                             src2_depth);
+            }
+        }
+
+        // Synchronize the fluxes on the coarse-fine interfaces.
+        for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
+        {
+            xeqScheduleOutersideRestriction(d_sc_idx, d_os_idx, ln - 1);
+            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_os_idx);
+        }
+
+        // Compute dst on the coarser levels.
+        for (int ln = d_coarsest_ln; ln < d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double>> dst_data = patch->getPatchData(dst_idx);
+                Pointer<SideData<NDIM, double>> flux_data = patch->getPatchData(d_sc_idx);
+                Pointer<CellData<NDIM, double>> src1_data = patch->getPatchData(src1_idx);
+                Pointer<CellData<NDIM, double>> src2_data =
+                    use_src2 ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM>>();
+                d_patch_math_ops.div(dst_data,
+                                     1.0,
+                                     flux_data,
+                                     beta,
+                                     src1_data,
+                                     use_src2 ? gamma : 0.0,
+                                     src2_data,
+                                     patch,
+                                     dst_depth,
+                                     src1_depth,
+                                     src2_depth);
+            }
+        }
+
+        // Deallocate temporary data.
+        for (int ln = d_coarsest_ln; ln < d_finest_ln; ++ln)
+        {
+            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_sc_idx);
         }
     }
     else

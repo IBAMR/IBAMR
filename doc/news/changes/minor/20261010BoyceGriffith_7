@@ -1,0 +1,3 @@
+Improved: IBTK::HierarchyMathOps evaluates the cell-centered Laplacian with a constant diffusion coefficient on the finest level in one pass.
+<br>
+(Boyce Griffith, 2026/10/10)
