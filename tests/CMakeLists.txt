@@ -126,6 +126,7 @@ SETUP(external eelgenerator3d.cpp IBAMR2d)
 SETUP(external array_01.cpp IBAMR2d)
 SETUP(external array_02.cpp IBAMR2d)
 SETUP(external array_03.cpp IBAMR2d)
+SETUP(external patch_data_types.cpp IBAMR2d)
 
 # fe_mechanics:
 IF(${IBAMR_HAVE_LIBMESH})
