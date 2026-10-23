@@ -32,6 +32,9 @@
 
 #include <Box.h>
 #include <CartesianGridGeometry.h>
+#include <CellData.h>
+#include <CellDataFactory.h>
+#include <CellVariable.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenOperator.h>
 #include <CoarsenPatchStrategy.h>
@@ -47,6 +50,9 @@
 #include <RefineOperator.h>
 #include <RefinePatchStrategy.h>
 #include <RefineSchedule.h>
+#include <SideData.h>
+#include <SideDataFactory.h>
+#include <SideGeometry.h>
 #include <SideVariable.h>
 #include <Variable.h>
 #include <VariableDatabase.h>
@@ -57,6 +63,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "../coarsen_ops/CubicCoarsenLayer.h"
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -269,9 +277,14 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_coarsest_ln = coarsest_ln == invalid_level_number ? 0 : coarsest_ln;
     d_finest_ln = finest_ln == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln;
 
-    // Register the cubic coarsen operators with the grid geometry object.
+    // Register the cubic coarsen operators with the grid geometry object. They serve the objects that do not mark
+    // the invalid ghost values of their data.
     IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
                  d_grid_geom->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen()););
+
+    // Create the cubic coarsen operators of this object.
+    d_cc_cubic_coarsen_op = new CartCellDoubleCubicCoarsen(true);
+    d_sc_cubic_coarsen_op = new CartSideDoubleCubicCoarsen(true);
 
     // Setup cached coarsen algorithms and schedules.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -288,7 +301,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM>> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM>> coarsen_op = getCoarsenOperator(var, transaction_comp);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -299,14 +312,26 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 
     d_coarsen_strategy = nullptr;
 
+    setUpCubicScratch();
     d_coarsen_scheds.resize(d_finest_ln + 1);
+    d_scratch_fill_scheds.resize(d_finest_ln + 1);
     if (registered_coarsen_op)
     {
         for (int src_ln = std::max(1, d_coarsest_ln); src_ln <= d_finest_ln; ++src_ln)
         {
             Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(src_ln);
             Pointer<PatchLevel<NDIM>> coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
-            d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy.get());
+            if (usesCubicScratch(src_ln))
+            {
+                d_coarsen_scheds[src_ln] =
+                    d_scratch_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy.get());
+                d_scratch_fill_scheds[src_ln] = d_scratch_fill_alg->createSchedule(level);
+            }
+            else
+            {
+                d_coarsen_scheds[src_ln] =
+                    d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy.get());
+            }
         }
     }
 
@@ -518,7 +543,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM>> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM>> coarsen_op = getCoarsenOperator(var, transaction_comp);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -527,11 +552,26 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         }
     }
 
+    setUpCubicScratch();
     if (registered_coarsen_op)
     {
         for (int src_ln = std::max(1, d_coarsest_ln); src_ln <= d_finest_ln; ++src_ln)
         {
-            d_coarsen_alg->resetSchedule(d_coarsen_scheds[src_ln]);
+            if (usesCubicScratch(src_ln) != static_cast<bool>(d_scratch_fill_scheds[src_ln]))
+            {
+                TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():"
+                           << "  invalid reset operation.  attempting to change the cubic coarsening of a level "
+                              "with a refinement ratio less than 4.\n");
+            }
+            if (usesCubicScratch(src_ln))
+            {
+                d_scratch_coarsen_alg->resetSchedule(d_coarsen_scheds[src_ln]);
+                d_scratch_fill_alg->resetSchedule(d_scratch_fill_scheds[src_ln]);
+            }
+            else
+            {
+                d_coarsen_alg->resetSchedule(d_coarsen_scheds[src_ln]);
+            }
         }
     }
 
@@ -672,6 +712,12 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
     d_coarsen_alg.setNull();
     d_coarsen_strategy = nullptr;
     d_coarsen_scheds.clear();
+    d_scratch_coarsen_alg.setNull();
+    d_scratch_fill_alg.setNull();
+    d_scratch_fill_scheds.clear();
+    d_cubic_scratch_idxs.clear();
+    d_cc_cubic_coarsen_op.setNull();
+    d_sc_cubic_coarsen_op.setNull();
 
     d_refine_alg.setNull();
     d_refine_strategy = nullptr;
@@ -705,7 +751,15 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
     IBTK_TIMER_START(t_fill_data_coarsen);
     for (int src_ln = d_finest_ln; src_ln >= std::max(1, d_coarsest_ln); --src_ln)
     {
+        if (d_scratch_fill_scheds[src_ln])
+        {
+            fillCubicScratch(src_ln, fill_time);
+        }
         if (d_coarsen_scheds[src_ln]) d_coarsen_scheds[src_ln]->coarsenData();
+        if (d_scratch_fill_scheds[src_ln])
+        {
+            deallocateCubicScratch(src_ln);
+        }
     }
     IBTK_TIMER_STOP(t_fill_data_coarsen);
 
@@ -774,6 +828,216 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+Pointer<CoarsenOperator<NDIM>>
+HierarchyGhostCellInterpolation::getCoarsenOperator(const Pointer<Variable<NDIM>>& var,
+                                                    const InterpolationTransactionComponent& comp) const
+{
+    if (needsCubicScratch(comp))
+    {
+        Pointer<CellVariable<NDIM, double>> cc_var = var;
+        Pointer<SideVariable<NDIM, double>> sc_var = var;
+        if (cc_var)
+        {
+            return d_cc_cubic_coarsen_op;
+        }
+        if (sc_var)
+        {
+            return d_sc_cubic_coarsen_op;
+        }
+    }
+    return d_grid_geom->lookupCoarsenOperator(var, comp.d_coarsen_op_name);
+} // getCoarsenOperator
+
+bool
+HierarchyGhostCellInterpolation::needsCubicScratch(const InterpolationTransactionComponent& comp) const
+{
+    // An in-place fill with a refine operator overwrites the fine values that the ratio 2 stencil reads, so such
+    // components keep the registered operator.
+    return comp.d_coarsen_op_name == "CUBIC_COARSEN" && comp.d_refine_op_name == "NONE";
+} // needsCubicScratch
+
+void
+HierarchyGhostCellInterpolation::setUpCubicScratch()
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> ctx = var_db->getContext("IBTK::HierarchyGhostCellInterpolation::CUBIC_COARSEN");
+    d_scratch_coarsen_alg.setNull();
+    d_scratch_fill_alg.setNull();
+    d_cubic_scratch_idxs.assign(d_transaction_comps.size(), invalid_index);
+
+    // Register one scratch data index with a one-cell ghost layer for each source of cubic coarsening.
+    bool registered_scratch = false;
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    {
+        const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
+        if (!needsCubicScratch(d_transaction_comps[comp_idx]))
+        {
+            continue;
+        }
+        Pointer<Variable<NDIM>> var;
+        var_db->mapIndexToVariable(src_data_idx, var);
+        Pointer<CellVariable<NDIM, double>> cc_var = var;
+        Pointer<SideVariable<NDIM, double>> sc_var = var;
+        const std::string name = "IBTK::HierarchyGhostCellInterpolation::cubic_scratch_" + var->getName();
+        Pointer<PatchDataFactory<NDIM>> factory = var->getPatchDataFactory();
+        Pointer<CellDataFactory<NDIM, double>> cc_factory = factory;
+        Pointer<SideDataFactory<NDIM, double>> sc_factory = factory;
+        const int depth = cc_var ? cc_factory->getDefaultDepth() : sc_factory->getDefaultDepth();
+        Pointer<Variable<NDIM>> scratch_var = var_db->checkVariableExists(name) ? var_db->getVariable(name) : nullptr;
+        if (!scratch_var && cc_var)
+        {
+            scratch_var = new CellVariable<NDIM, double>(name, depth);
+        }
+        else if (!scratch_var && sc_var)
+        {
+            scratch_var = new SideVariable<NDIM, double>(name, depth);
+        }
+        if (!scratch_var)
+        {
+            continue;
+        }
+        d_cubic_scratch_idxs[comp_idx] = var_db->registerVariableAndContext(scratch_var, ctx, IntVector<NDIM>(1));
+        registered_scratch = true;
+    }
+    if (!registered_scratch)
+    {
+        return;
+    }
+
+    // Coarsen the scratch data in place of the source data. Fill the scratch data from the source data of the
+    // same level.
+    d_scratch_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_scratch_fill_alg = new RefineAlgorithm<NDIM>();
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    {
+        const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
+        if (coarsen_op_name == "NONE")
+        {
+            continue;
+        }
+        const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
+        const int scratch_idx = d_cubic_scratch_idxs[comp_idx];
+        Pointer<Variable<NDIM>> var;
+        var_db->mapIndexToVariable(src_data_idx, var);
+        Pointer<CoarsenOperator<NDIM>> coarsen_op = getCoarsenOperator(var, d_transaction_comps[comp_idx]);
+        if (scratch_idx == invalid_index)
+        {
+            d_scratch_coarsen_alg->registerCoarsen(src_data_idx, src_data_idx, coarsen_op);
+        }
+        else
+        {
+            d_scratch_coarsen_alg->registerCoarsen(src_data_idx, scratch_idx, coarsen_op);
+            d_scratch_fill_alg->registerRefine(scratch_idx, src_data_idx, scratch_idx, nullptr);
+        }
+    }
+    return;
+} // setUpCubicScratch
+
+bool
+HierarchyGhostCellInterpolation::usesCubicScratch(const int ln) const
+{
+    if (!d_scratch_coarsen_alg)
+    {
+        return false;
+    }
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+    return level->getRatioToCoarserLevel().min() < 4;
+} // usesCubicScratch
+
+void
+HierarchyGhostCellInterpolation::fillCubicScratch(const int ln, const double fill_time)
+{
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+    const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
+
+    // Mark the ghost layer of the scratch data as invalid. The schedule fills the patch interiors and the ghost values
+    // that other patches of the level cover.
+    for (const int scratch_idx : d_cubic_scratch_idxs)
+    {
+        if (scratch_idx == invalid_index)
+        {
+            continue;
+        }
+        if (!level->checkAllocated(scratch_idx))
+        {
+            level->allocatePatchData(scratch_idx, fill_time);
+        }
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double>> cc_scratch = patch->getPatchData(scratch_idx);
+            Pointer<SideData<NDIM, double>> sc_scratch = patch->getPatchData(scratch_idx);
+            if (cc_scratch)
+            {
+                mark_cubic_coarsen_layer(cc_scratch->getArrayData(), patch_box);
+            }
+            else
+            {
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    mark_cubic_coarsen_layer(sc_scratch->getArrayData(axis),
+                                             SideGeometry<NDIM>::toSideBox(patch_box, axis));
+                }
+            }
+        }
+    }
+    d_scratch_fill_scheds[ln]->fillData(fill_time, false);
+
+    // Replace the invalid values of the layer by the extrapolation from the patch.
+    for (const int scratch_idx : d_cubic_scratch_idxs)
+    {
+        if (scratch_idx == invalid_index)
+        {
+            continue;
+        }
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double>> cc_scratch = patch->getPatchData(scratch_idx);
+            Pointer<SideData<NDIM, double>> sc_scratch = patch->getPatchData(scratch_idx);
+            if (cc_scratch)
+            {
+                IntVector<NDIM> width(0);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    width(d) = ratio(d) < 4 ? 1 : 0;
+                }
+                extrapolate_cubic_coarsen_layer(cc_scratch->getArrayData(), patch_box, width);
+            }
+            else
+            {
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    IntVector<NDIM> width(0);
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        width(d) = (d != axis && ratio(d) < 4) ? 1 : 0;
+                    }
+                    extrapolate_cubic_coarsen_layer(
+                        sc_scratch->getArrayData(axis), SideGeometry<NDIM>::toSideBox(patch_box, axis), width);
+                }
+            }
+        }
+    }
+    return;
+} // fillCubicScratch
+
+void
+HierarchyGhostCellInterpolation::deallocateCubicScratch(const int ln)
+{
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+    for (const int scratch_idx : d_cubic_scratch_idxs)
+    {
+        if (scratch_idx != invalid_index && level->checkAllocated(scratch_idx))
+        {
+            level->deallocatePatchData(scratch_idx);
+        }
+    }
+    return;
+} // deallocateCubicScratch
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

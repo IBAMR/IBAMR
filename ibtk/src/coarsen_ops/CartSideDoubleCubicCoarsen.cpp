@@ -96,6 +96,13 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen(const bool ghost_layer_valid)
+    : d_ghost_layer_valid(ghost_layer_valid)
+{
+    // intentionally blank
+    return;
+} // CartSideDoubleCubicCoarsen
+
 bool
 CartSideDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM>>& var, const std::string& op_name) const
 {
@@ -131,11 +138,21 @@ CartSideDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
 {
     if (ratio.min() < 4)
     {
-        IBTK_DO_ONCE(TBOX_WARNING("CartSideDoubleCubicCoarsen::coarsen():\n"
-                                  << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
-                                  << "  reverting to weighted averaging." << std::endl););
-        d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
-        return;
+        bool even_ratios = true;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            even_ratios = even_ratios && ratio(d) % 2 == 0;
+        }
+        if (!even_ratios || !d_ghost_layer_valid)
+        {
+            IBTK_DO_ONCE(
+                TBOX_WARNING("CartSideDoubleCubicCoarsen::coarsen():\n"
+                             << "  cubic coarsening requires refinement ratios of 4 or larger, or even ratios with "
+                                "valid ghost cells.\n"
+                             << "  reverting to weighted averaging." << std::endl););
+            d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
+            return;
+        }
     }
     Pointer<SideData<NDIM, double>> cdata = coarse.getPatchData(dst_component);
     Pointer<SideData<NDIM, double>> fdata = fine.getPatchData(src_component);

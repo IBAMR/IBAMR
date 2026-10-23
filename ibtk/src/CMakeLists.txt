@@ -92,6 +92,7 @@ SET(CXX_SRC
   coarsen_ops/CartCellDoubleCubicCoarsen.cpp
   coarsen_ops/CartSideDoubleRT0Coarsen.cpp
   coarsen_ops/CartSideDoubleCubicCoarsen.cpp
+  coarsen_ops/CubicCoarsenLayer.cpp
 
   # lagrangian
   lagrangian/LDataManager.cpp
