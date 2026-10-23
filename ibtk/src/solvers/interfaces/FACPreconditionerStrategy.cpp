@@ -24,6 +24,7 @@
 #include <ostream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -92,6 +93,15 @@ FACPreconditionerStrategy::getDt() const
 {
     return d_new_time - d_current_time;
 } // getDt
+
+void
+FACPreconditionerStrategy::setNullSpace(
+    bool /*nullspace_contains_constant_vec*/,
+    const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& /*nullspace_basis_vecs*/)
+{
+    // intentionally blank
+    return;
+} // setNullSpace
 
 void
 FACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& /*solution*/,

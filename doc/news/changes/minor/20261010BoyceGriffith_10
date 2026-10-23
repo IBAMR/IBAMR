@@ -1,0 +1,3 @@
+Changed: IBTK::KrylovLinearSolver now passes its null space to its preconditioner, including a preconditioner set later, and IBTK::FACPreconditioner passes it on to its strategy through the new IBTK::FACPreconditionerStrategy::setNullSpace().
+<br>
+(Boyce Griffith, 2026/10/10)

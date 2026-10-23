@@ -1,0 +1,3 @@
+Fixed: With HYPRE 3, Poisson FAC preconditioners with a hypre coarse solver no longer slow down the solvers that use them when the solution is determined only up to a constant, as for the pressure with periodic or only Neumann boundary conditions.
+<br>
+(Boyce Griffith, 2026/10/10)

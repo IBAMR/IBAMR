@@ -66,6 +66,18 @@ KrylovLinearSolver::setTimeInterval(const double current_time, const double new_
 } // setTimeInterval
 
 void
+KrylovLinearSolver::setNullSpace(const bool nullspace_contains_constant_vec,
+                                 const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& nullspace_basis_vecs)
+{
+    LinearSolver::setNullSpace(nullspace_contains_constant_vec, nullspace_basis_vecs);
+    if (d_pc_solver)
+    {
+        d_pc_solver->setNullSpace(d_nullspace_contains_constant_vec, d_nullspace_basis_vecs);
+    }
+    return;
+} // setNullSpace
+
+void
 KrylovLinearSolver::setOperator(Pointer<LinearOperator> A)
 {
     Pointer<LinearOperator> A_old = d_A;
@@ -99,6 +111,10 @@ KrylovLinearSolver::setPreconditioner(Pointer<LinearSolver> pc_solver)
         d_pc_solver->setHomogeneousBc(true);
         d_pc_solver->setSolutionTime(d_solution_time);
         d_pc_solver->setTimeInterval(d_current_time, d_new_time);
+        if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())
+        {
+            d_pc_solver->setNullSpace(d_nullspace_contains_constant_vec, d_nullspace_basis_vecs);
+        }
         if (d_is_initialized && (d_pc_solver != pc_solver_old) && d_pc_solver)
         {
             d_pc_solver->initializeSolverState(*d_b, *d_b);

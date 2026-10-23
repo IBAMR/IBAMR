@@ -460,6 +460,18 @@ HierarchyMathOps::getPatchHierarchy() const
     return d_hierarchy;
 } // getPatchHierarchy
 
+int
+HierarchyMathOps::getCoarsestLevelNumber() const
+{
+    return d_coarsest_ln;
+} // getCoarsestLevelNumber
+
+int
+HierarchyMathOps::getFinestLevelNumber() const
+{
+    return d_finest_ln;
+} // getFinestLevelNumber
+
 void
 HierarchyMathOps::setCoarsenOperatorName(const std::string& coarsen_op_name)
 {

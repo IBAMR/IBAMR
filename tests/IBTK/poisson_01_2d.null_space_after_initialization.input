@@ -1,0 +1,61 @@
+// One-level Poisson problem on a periodic grid, solved by GMRES with a point-relaxation FAC preconditioner whose
+// coarse solver is hypre's PCG. The solver is told the null space of the operator after its first solve.
+
+u {
+   function = "sin(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+// The right-hand side has a nonzero mean only to show that the null space reaches the coarse solver, which removes it.
+f {
+   function = "(2*(2*PI)^2)*sin(2*PI*X_0)*sin(2*PI*X_1) + 1"
+}
+
+null_space = "AFTER_FIRST_SOLVE"
+
+solver_type = "PETSC_KRYLOV_SOLVER"
+solver_db {
+   // intentionally blank
+}
+
+precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   coarse_solver_type = "HYPRE_LEVEL_SOLVER"   // on a single level, the coarse solver solves the level
+   coarse_solver_max_iterations = 3            // so that the residual is not at roundoff level
+   coarse_solver_db {
+      solver_type  = "PCG"
+      precond_type = "PFMG"
+   }
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (15,15)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0), (0,0)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+}

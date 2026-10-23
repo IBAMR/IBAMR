@@ -15,6 +15,7 @@
 
 #include <ibtk/CCPoissonHypreLevelSolver.h>
 #include <ibtk/GeneralSolver.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/ibtk_utilities.h>
@@ -34,6 +35,9 @@
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 #include <CellDataFactory.h>
+#include <CellVariable.h>
+#include <HierarchyCellDataOpsReal.h>
+#include <IntVector.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
 #include <PatchDescriptor.h>
@@ -45,6 +49,7 @@
 #include <SideData.h>
 #include <SideDataFactory.h>
 #include <SideIndex.h>
+#include <VariableContext.h>
 #include <VariableDatabase.h>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
@@ -339,6 +344,7 @@ CCPoissonHypreLevelSolver::deallocateSolverState()
     // Deallocate the hypre data structures.
     destroyHypreSolver();
     deallocateHypreData();
+    deallocateNullSpaceData();
 
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
@@ -350,6 +356,132 @@ CCPoissonHypreLevelSolver::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+CCPoissonHypreLevelSolver::allocateNullSpaceData()
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
+    auto register_scratch_index = [&](const std::string& name, const unsigned int depth) -> int
+    {
+        if (var_db->checkVariableExists(name))
+        {
+            Pointer<CellVariable<NDIM, double>> var = var_db->getVariable(name);
+            const int idx = var_db->mapVariableAndContextToIndex(var, context);
+            Pointer<CellDataFactory<NDIM, double>> factory = var_db->getPatchDescriptor()->getPatchDataFactory(idx);
+            factory->setDefaultDepth(depth);
+            return idx;
+        }
+        Pointer<CellVariable<NDIM, double>> var = new CellVariable<NDIM, double>(name, depth);
+        return var_db->registerVariableAndContext(var, context, IntVector<NDIM>(0));
+    };
+    if (d_rhs_idx == IBTK::invalid_index)
+    {
+        d_rhs_idx = register_scratch_index(d_object_name + "::cell_rhs", d_depth);
+    }
+    if (d_depth > 1 && d_rhs_component_idx == IBTK::invalid_index)
+    {
+        d_rhs_component_idx = register_scratch_index(d_object_name + "::cell_rhs_component", 1);
+    }
+    if (!d_level->checkAllocated(d_rhs_idx))
+    {
+        // The registered index persists from one initialization to the next, and the solution can have a different
+        // depth at each, so the scratch data take the depth of the current solution.
+        Pointer<CellDataFactory<NDIM, double>> factory = var_db->getPatchDescriptor()->getPatchDataFactory(d_rhs_idx);
+        factory->setDefaultDepth(d_depth);
+        d_level->allocatePatchData(d_rhs_idx);
+    }
+    if (d_depth > 1 && !d_level->checkAllocated(d_rhs_component_idx))
+    {
+        d_level->allocatePatchData(d_rhs_component_idx);
+    }
+    return;
+} // allocateNullSpaceData
+
+void
+CCPoissonHypreLevelSolver::deallocateNullSpaceData()
+{
+    for (const int idx : { d_rhs_idx, d_rhs_component_idx })
+    {
+        if (idx != IBTK::invalid_index && d_level->checkAllocated(idx))
+        {
+            d_level->deallocatePatchData(idx);
+        }
+    }
+    deallocateOwnMathOps();
+    return;
+} // deallocateNullSpaceData
+
+Pointer<HierarchyMathOps>
+CCPoissonHypreLevelSolver::getNullSpaceMathOps()
+{
+    // A given object provides the weights of this level only if its level range is this level.
+    if (d_hier_math_ops && d_hier_math_ops->getCoarsestLevelNumber() == d_level_num &&
+        d_hier_math_ops->getFinestLevelNumber() == d_level_num)
+    {
+        deallocateOwnMathOps();
+        return d_hier_math_ops;
+    }
+    if (!d_level_math_ops)
+    {
+        d_level_math_ops =
+            new HierarchyMathOps(d_object_name + "::hier_math_ops", d_hierarchy, d_level_num, d_level_num);
+    }
+    return d_level_math_ops;
+} // getNullSpaceMathOps
+
+void
+CCPoissonHypreLevelSolver::deallocateOwnMathOps()
+{
+    if (d_level_math_ops)
+    {
+        const int wgt_idx = d_level_math_ops->getCellWeightPatchDescriptorIndex();
+        if (d_level->checkAllocated(wgt_idx))
+        {
+            d_level->deallocatePatchData(wgt_idx);
+        }
+        d_level_math_ops.setNull();
+    }
+    return;
+} // deallocateOwnMathOps
+
+void
+CCPoissonHypreLevelSolver::removeMeanFromRhs()
+{
+    HierarchyCellDataOpsReal<NDIM, double> level_ops(d_hierarchy, d_level_num, d_level_num);
+    const int wgt_idx = getNullSpaceMathOps()->getCellWeightPatchDescriptorIndex();
+    const double volume = level_ops.sumControlVolumes(wgt_idx, wgt_idx);
+
+    // The data operations act on all the depth components of data together, so for data with several depth components,
+    // remove the mean of each component from a copy of the component with a single depth component.
+    const int comp_idx = d_depth == 1 ? d_rhs_idx : d_rhs_component_idx;
+    for (unsigned int k = 0; k < d_depth; ++k)
+    {
+        if (d_depth > 1)
+        {
+            for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+                Pointer<CellData<NDIM, double>> rhs_data = patch->getPatchData(d_rhs_idx);
+                Pointer<CellData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
+                comp_data->copyDepth(0, *rhs_data, k);
+            }
+        }
+        const double mean = level_ops.integral(comp_idx, wgt_idx) / volume;
+        level_ops.addScalar(comp_idx, comp_idx, -mean);
+        if (d_depth > 1)
+        {
+            for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+                Pointer<CellData<NDIM, double>> rhs_data = patch->getPatchData(d_rhs_idx);
+                Pointer<CellData<NDIM, double>> comp_data = patch->getPatchData(comp_idx);
+                rhs_data->copyDepth(k, *comp_data, 0);
+            }
+        }
+    }
+    return;
+} // removeMeanFromRhs
 
 void
 CCPoissonHypreLevelSolver::allocateHypreData()
@@ -1044,13 +1176,61 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         }
     }
 
+    // Return whether the right-hand-side data of the patch is modified to account for the boundary conditions.
+    auto adjusts_rhs = [&](const Pointer<Patch<NDIM>>& patch) -> bool
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+        return pgeom->intersectsPhysicalBoundary() || type_1_cf_bdry.size() > 0;
+    };
+
+    // Modify rhs_data, a copy of the right-hand-side data of the patch, to account for any inhomogeneous boundary
+    // conditions.
+    auto adjust_rhs = [&](const Pointer<Patch<NDIM>>& patch, CellData<NDIM, double>& rhs_data) -> void
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        Pointer<CellData<NDIM, double>> x_data = patch->getPatchData(x_idx);
+        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+        if (pgeom->intersectsPhysicalBoundary())
+        {
+            PoissonUtilities::adjustRHSAtPhysicalBoundary(
+                rhs_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+        }
+        if (type_1_cf_bdry.size() > 0)
+        {
+            PoissonUtilities::adjustRHSAtCoarseFineBoundary(rhs_data, *x_data, patch, d_poisson_spec, type_1_cf_bdry);
+        }
+    };
+
+    // If the null space contains the constant vector, keep the right-hand side that hypre receives in scratch data and
+    // remove its mean.
+    if (d_nullspace_contains_constant_vec)
+    {
+        allocateNullSpaceData();
+        for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+            Pointer<CellData<NDIM, double>> b_data = patch->getPatchData(b_idx);
+            Pointer<CellData<NDIM, double>> rhs_data = patch->getPatchData(d_rhs_idx);
+            rhs_data->copy(*b_data);
+            if (adjusts_rhs(patch))
+            {
+                adjust_rhs(patch, *rhs_data);
+            }
+        }
+        removeMeanFromRhs();
+    }
+
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, unless the initial
         // guess is zero.
@@ -1060,29 +1240,18 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             copyToHypre(d_sol_vecs, *x_data, patch_box);
         }
 
-        // Modify the right-hand-side data to account for any inhomogeneous
-        // boundary conditions and copy the right-hand-side into the hypre
-        // vector.
+        // Copy the right-hand-side into the hypre vector.
         Pointer<CellData<NDIM, double>> b_data = patch->getPatchData(b_idx);
-        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM>>() :
-                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
-        const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
-        const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
-        if (at_physical_bdry || at_cf_bdry)
+        if (d_nullspace_contains_constant_vec)
+        {
+            Pointer<CellData<NDIM, double>> rhs_data = patch->getPatchData(d_rhs_idx);
+            copyToHypre(d_rhs_vecs, *rhs_data, patch_box);
+        }
+        else if (adjusts_rhs(patch))
         {
             CellData<NDIM, double> b_adj_data(patch_box, b_data->getDepth(), IntVector<NDIM>(0));
             b_adj_data.copyOnBox(*b_data, patch_box);
-            if (at_physical_bdry)
-            {
-                PoissonUtilities::adjustRHSAtPhysicalBoundary(
-                    b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
-            }
-            if (at_cf_bdry)
-            {
-                PoissonUtilities::adjustRHSAtCoarseFineBoundary(
-                    b_adj_data, *x_data, patch, d_poisson_spec, type_1_cf_bdry);
-            }
+            adjust_rhs(patch, b_adj_data);
             copyToHypre(d_rhs_vecs, b_adj_data, patch_box);
         }
         else
