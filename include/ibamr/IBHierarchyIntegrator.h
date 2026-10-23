@@ -333,6 +333,12 @@ protected:
      */
     bool d_error_on_dt_change = true, d_warn_on_dt_change = false;
 
+    /*!
+     * Flag indicating that the next call to preprocessIntegrateHierarchy() is
+     * this object's first, for which the time step size change check is skipped.
+     */
+    bool d_skip_check_for_dt_change = true;
+
     /*
      * The (optional) INSHierarchyIntegrator is used to provide time integration
      * capability for the incompressible Navier-Stokes equations.

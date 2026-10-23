@@ -27,7 +27,6 @@
 #include <ibtk/PoissonSolver.h>
 
 #include <tbox/Database.h>
-#include <tbox/MathUtilities.h>
 #include <tbox/MemoryDatabase.h>
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
@@ -176,7 +175,7 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    const bool initial_time = d_integrator_step == 0;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Allocate the scratch and new data.
@@ -201,7 +200,7 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 
         // Set the velocities used to update the density and the previous time step
         // size
-        if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+        if (d_integrator_step == 0)
         {
             d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                 /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ -1);
@@ -363,7 +362,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
         d_rho_p_integrator->setDensityPatchDataIndex(d_rho_current_idx);
 
         // Set the velocities used to update the density
-        if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+        if (d_integrator_step == 0)
         {
             d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                 /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ d_u_adv_new_idx);

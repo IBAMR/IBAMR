@@ -328,8 +328,7 @@ IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double start_time = d_ib_solver->getStartTime();
-    const bool initial_time = IBTK::rel_equal_eps(current_time, start_time);
+    const bool initial_time = d_ib_solver->getIntegratorStep() == 0;
 
     if (d_ib_force_fcn)
     {

@@ -498,7 +498,7 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    const bool initial_time = d_integrator_step == 0;
 
     // Indicate that all solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
