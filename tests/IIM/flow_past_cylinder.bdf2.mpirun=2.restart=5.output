@@ -22,8 +22,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.24836e-07
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.29104e-07
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.24847e-07
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.29102e-07
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 6.59198e-07
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 6.59198e-07
@@ -118,7 +118,7 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.53826e-06
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 3.31136e-06
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 9.91627e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 9.91628e-06
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -244,5 +244,5 @@ Simulation time is 0.00732422
 
 Writing restart files...
 
- Force components: 0.00167014	-2.34347e-05
- Traction components: 0.0393099	-0.000552699
+ Force components: 0.00167014	-2.34341e-05
+ Traction components: 0.0393099	-0.000552685

@@ -23,8 +23,8 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.24919e-07
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.29115e-07
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.24931e-07
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.29113e-07
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -47,7 +47,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.19025e-08
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.19022e-08
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -70,7 +70,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.20862e-08
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.20859e-08
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -139,7 +139,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.33098e-05
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.33097e-05
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -244,5 +244,5 @@ At end       of timestep # 9
 Simulation time is 0.00732422
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Force components: 0.00167551	-2.35441e-05
- Traction components: 0.0392396	-0.00055166
+ Force components: 0.00167551	-2.35436e-05
+ Traction components: 0.0392396	-0.000551647
