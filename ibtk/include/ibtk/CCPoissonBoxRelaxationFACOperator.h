@@ -93,10 +93,10 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_type = "PATCH_GAUSS_SEIDEL"         // see setSmootherType()
+ smoother_type = "PATCH_GAUSS_SEIDEL"         // or "PROCESSOR_GAUSS_SEIDEL"
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
- coarse_solver_type = "HYPRE_LEVEL_SOLVER"    // see setCoarseSolverType()
+ coarse_solver_type = "HYPRE_LEVEL_SOLVER"    // smoother or solver type for the coarsest level
  coarse_solver_rel_residual_tol = 1.0e-5      // see setCoarseSolverRelativeTolerance()
  coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
  coarse_solver_max_iterations = 1             // see setCoarseSolverMaxIterations()
@@ -108,6 +108,9 @@ namespace IBTK
  }
  petsc_options_prefix = "cc_poisson_fac_"     // PETSc options prefix of the patch solvers
  \endverbatim
+ *
+ * With \c "PROCESSOR_GAUSS_SEIDEL", a sweep reads values that neighboring patches on the same process updated
+ * earlier in that sweep, so results depend on the patch layout.
  *
  * By default, each smoothing sweep applies one Richardson iteration with an ILU preconditioner to each patch problem.
  * The PETSc options database, with the prefix \c petsc_options_prefix, selects other patch solvers, for example
@@ -140,27 +143,6 @@ public:
             object_name + "::CCPoissonBoxRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
-
-    /*!
-     * \name Functions for configuring the solver.
-     */
-    //\{
-
-    /*!
-     * \brief Specify the smoother type.
-     *
-     * Select from:
-     * - \c "PATCH_GAUSS_SEIDEL"
-     * - \c "PROCESSOR_GAUSS_SEIDEL"
-     */
-    void setSmootherType(const std::string& smoother_type) override;
-
-    /*!
-     * \brief Specify the coarse level solver.
-     */
-    void setCoarseSolverType(const std::string& coarse_solver_type) override;
-
-    //\}
 
     /*!
      * \name Implementation of FACPreconditionerStrategy interface.

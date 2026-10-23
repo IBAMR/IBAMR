@@ -88,12 +88,12 @@ namespace IBTK
  * SAMRAI::solv::RobinBcCoefStrategy.
  *
  * By default, the class is configured to solve the Poisson problem \f$
- * -\nabla^2 u = f \f$, subject to homogeneous Dirichlet boundary conditions.
+ * -\nabla^2 u = f \f$, subject to homogeneous Dirichlet boundary conditions. Each sweep applies the level solver
+ * selected by level_solver_type.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_type = "PATCH_GAUSS_SEIDEL"         // see setSmootherType()
  prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
  level_solver_type = "PETSC_LEVEL_SOLVER"
@@ -101,7 +101,7 @@ namespace IBTK
  level_solver_abs_residual_tol = 1.0e-50
  level_solver_max_iterations = 1
  level_solver_db { }                          // SAMRAI::tbox::Database for the level solvers
- coarse_solver_type = "PETSC_LEVEL_SOLVER"    // see setCoarseSolverType()
+ coarse_solver_type = "PETSC_LEVEL_SOLVER"    // solver type for the coarsest level
  coarse_solver_rel_residual_tol = 1.0e-5      // see setCoarseSolverRelativeTolerance()
  coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
  coarse_solver_max_iterations = 1             // see setCoarseSolverMaxIterations()
@@ -139,23 +139,6 @@ public:
             object_name + "::CCPoissonLevelRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
-
-    /*!
-     * \name Functions for configuring the solver.
-     */
-    //\{
-
-    /*!
-     * \brief Specify the level solver type.
-     */
-    void setSmootherType(const std::string& level_solver_type) override;
-
-    /*!
-     * \brief Specify the coarse level solver.
-     */
-    void setCoarseSolverType(const std::string& coarse_solver_type) override;
-
-    //\}
 
     /*!
      * \name Implementation of FACPreconditionerStrategy interface.

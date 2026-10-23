@@ -261,9 +261,6 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
     // Determine the smoother type.
     const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
     const SmootherType smoother_type = get_smoother_type(smoother_type_string);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(smoother_type != UNKNOWN);
-#endif
     // Only the processor Gauss-Seidel smoother reads updated values of neighboring patches within a pass.
     const bool update_local_data = smoother_type == PROCESSOR_GAUSS_SEIDEL;
 

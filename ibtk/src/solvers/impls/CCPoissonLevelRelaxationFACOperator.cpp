@@ -124,7 +124,6 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
     // Get values from the input database.
     if (input_db)
     {
-        if (input_db->keyExists("smoother_type")) d_smoother_type = input_db->getString("smoother_type");
         if (input_db->keyExists("prolongation_method"))
             d_prolongation_method = input_db->getString("prolongation_method");
         if (input_db->keyExists("restriction_method")) d_restriction_method = input_db->getString("restriction_method");
@@ -153,7 +152,11 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
     }
 
     // Configure the coarse level solver.
-    setCoarseSolverType(d_coarse_solver_type);
+    d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
+                                                                           d_object_name + "::coarse_solver",
+                                                                           d_coarse_solver_db,
+                                                                           d_coarse_solver_default_options_prefix);
+    set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
 
     // Setup Timers.
     IBTK_DO_ONCE(t_smooth_error =
@@ -168,43 +171,6 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
 CCPoissonLevelRelaxationFACOperator::~CCPoissonLevelRelaxationFACOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    return;
-}
-
-void
-CCPoissonLevelRelaxationFACOperator::setSmootherType(const std::string& level_solver_type)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setSmootherType():\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    if (d_level_solver_type != level_solver_type)
-    {
-        d_level_solvers.clear();
-    }
-    d_level_solver_type = level_solver_type;
-    return;
-}
-
-void
-CCPoissonLevelRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
-    d_coarse_solver_type = coarse_solver_type;
-    if (!d_coarse_solver)
-    {
-        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
-                                                                               d_object_name + "::coarse_solver",
-                                                                               d_coarse_solver_db,
-                                                                               d_coarse_solver_default_options_prefix);
-        set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
-    }
     return;
 }
 
