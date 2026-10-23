@@ -276,7 +276,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
             IBTK_CHKERRQ(ierr);
 
             StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
-                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr, nullptr);
+                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr);
             xeqScheduleDataSynch(U_res_idx, ln);
             xeqScheduleGhostFillNoCoarse(std::make_pair(U_res_idx, P_res_idx), ln);
 
@@ -327,7 +327,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
             IBTK_CHKERRQ(ierr);
 
             StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(
-                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr, nullptr);
+                residual_vec, U_res_idx, d_u_dof_index_idx, P_res_idx, d_p_dof_index_idx, level, nullptr);
             xeqScheduleDataSynch(U_res_idx, ln);
             xeqScheduleGhostFillNoCoarse(std::make_pair(U_res_idx, P_res_idx), ln);
 

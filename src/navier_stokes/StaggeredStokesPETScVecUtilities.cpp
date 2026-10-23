@@ -187,8 +187,7 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                                         const int p_data_idx,
                                                         const int p_dof_index_idx,
                                                         Pointer<PatchLevel<NDIM>> patch_level,
-                                                        Pointer<RefineSchedule<NDIM>> data_synch_sched,
-                                                        Pointer<RefineSchedule<NDIM>> ghost_fill_sched)
+                                                        Pointer<RefineSchedule<NDIM>> data_synch_sched)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM>> u_data_var;
@@ -226,16 +225,6 @@ StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                    << "  unsupported data centering types for variables " << u_data_var->getName() << " and "
                    << p_data_var->getName() << "\n");
     }
-    if (ghost_fill_sched)
-    {
-        Pointer<RefineClasses<NDIM>> ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
-        RefineAlgorithm<NDIM> ghost_fill_alg;
-        ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr);
-        ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, nullptr);
-        ghost_fill_alg.resetSchedule(ghost_fill_sched);
-        ghost_fill_sched->fillData(0.0);
-        ghost_fill_sched->reset(ghost_fill_config);
-    }
     return;
 } // copyFromPatchLevelVec
 
@@ -266,17 +255,6 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
     }
     return data_synch_sched;
 } // constructDataSynchSchedule
-
-Pointer<RefineSchedule<NDIM>>
-StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_idx,
-                                                             const int p_data_idx,
-                                                             Pointer<PatchLevel<NDIM>> patch_level)
-{
-    RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, nullptr);
-    ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, nullptr);
-    return ghost_fill_alg.createSchedule(patch_level);
-} // constructGhostFillSchedule
 
 void
 StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
