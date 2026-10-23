@@ -841,6 +841,13 @@ public:
      * the default spreading spec. This is a convenience overload of spread
      * where @p f_phys_bdry_op is used to correctly accumulate force values
      * spread outside the physical domain into it.
+     *
+     * @note On return the ghost cells of each patch that lie inside the
+     * physical domain hold the part of the density that was spread into them
+     * (added to the values they held on entry). This function does not sum
+     * these values into the patches that own those cells, so on a level with
+     * more than one patch the caller must do so, for example with
+     * IBTK::SAMRAIGhostDataAccumulator.
      */
     void spread(int f_data_idx,
                 libMesh::NumericVector<double>& F,
@@ -856,6 +863,10 @@ public:
      * specified spreading spec. This is a convenience overload of spread
      * where @p f_phys_bdry_op is used to correctly accumulate force values
      * spread outside the physical domain into it.
+     *
+     * @note The ghost cells hold the same values on return as for the
+     * overload that uses the default spreading spec: the caller must sum them
+     * into the owning patches.
      */
     void spread(int f_data_idx,
                 libMesh::NumericVector<double>& F,
