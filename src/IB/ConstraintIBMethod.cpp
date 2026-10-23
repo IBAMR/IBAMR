@@ -387,7 +387,10 @@ ConstraintIBMethod::postprocessSolveFluidEquations(double current_time, double n
 
     IBTK_TIMER_START(t_postprocessSolveFluidEquation);
 
-    setCounter();
+    // Output is written every d_output_interval time steps, after the last cycle of the time step.
+    const int timestep_number = d_ib_solver->getIntegratorStep() + 1;
+    d_write_output = d_print_output && cycle_num == d_ib_solver->getNumberOfCycles() - 1 &&
+                     (timestep_number % d_output_interval) == 0;
 
     IBTK_TIMER_START(t_calculateCOMandMOIOfStructures);
     calculateCOMandMOIOfStructures();
@@ -495,7 +498,7 @@ ConstraintIBMethod::calculateEulerianMomentum()
         free_vector_components(*wgt_sc_active);
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_write_output && d_output_eul_mom)
     {
         d_eulerian_mom_stream << d_FuRMoRP_new_time << '\t' << momentum[0] << '\t' << momentum[1] << '\t' << momentum[2]
                               << '\t' << std::endl;
@@ -693,7 +696,6 @@ ConstraintIBMethod::putToDatabase(Pointer<Database> db)
         db->putDoubleArray(
             "DELTA_THETA_STRUCT_" + struct_no_str, &d_incremented_angle_from_reference_axis[struct_no][0], 3);
     }
-    db->putDouble("TIMESTEP_COUNTER", d_timestep_counter);
     db->putDouble("FuRMoRP_CURRENT_TIME", d_FuRMoRP_new_time);
 
     return;
@@ -865,7 +867,6 @@ ConstraintIBMethod::getFromRestart()
         db->getDoubleArray(
             "DELTA_THETA_STRUCT_" + struct_no_str, &d_incremented_angle_from_reference_axis[struct_no][0], 3);
     }
-    d_timestep_counter = db->getDouble("TIMESTEP_COUNTER");
     d_FuRMoRP_current_time = db->getDouble("FuRMoRP_CURRENT_TIME");
 
     return;
@@ -1186,8 +1187,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     }
 
     // write the COM and MOI to the output file
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_COM_coordinates &&
-        (d_timestep_counter % d_output_interval) == 0 && d_ib_solver->getIntegratorStep() != 0)
+    if (!IBTK_MPI::getRank() && d_write_output && d_output_COM_coordinates && d_ib_solver->getIntegratorStep() != 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -1198,8 +1198,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_MOI && (d_timestep_counter % d_output_interval) == 0 &&
-        d_ib_solver->getIntegratorStep() != 0)
+    if (!IBTK_MPI::getRank() && d_write_output && d_output_MOI && d_ib_solver->getIntegratorStep() != 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -1609,7 +1608,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_trans_vel && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_write_output && d_output_trans_vel)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -1718,7 +1717,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_rot_vel && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_write_output && d_output_rot_vel)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2581,7 +2580,7 @@ ConstraintIBMethod::calculateDrag()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_write_output && d_output_drag)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2697,7 +2696,7 @@ ConstraintIBMethod::calculateTorque()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_torque && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_write_output && d_output_torque)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2784,7 +2783,7 @@ ConstraintIBMethod::calculatePower()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_write_output && d_output_drag)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
