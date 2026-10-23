@@ -30,6 +30,7 @@
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/SCPoissonSolverManager.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/solver_utilities.h>
@@ -121,6 +122,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     : d_object_name(std::move(object_name)),
       d_options_prefix(std::move(default_options_prefix)),
       d_petsc_comm(petsc_comm),
+      d_U_problem_coefs("U_problem_coefs"),
       d_samrai_temp(2, Pointer<SAMRAIVectorReal<NDIM, PetscScalar>>(nullptr)),
       d_ins_integrator(navier_stokes_integrator),
       d_cib_strategy(cib_strategy)
@@ -379,6 +381,7 @@ KrylovMobilitySolver::getStokesSolver() const
 void
 KrylovMobilitySolver::setVelocityPoissonSpecifications(const PoissonSpecifications& u_problem_coefs)
 {
+    d_U_problem_coefs = u_problem_coefs;
     d_LInv->setVelocityPoissonSpecifications(u_problem_coefs);
     d_velocity_solver->setPoissonSpecifications(u_problem_coefs);
 } // setVelocityPoissonSpecifications
@@ -593,8 +596,7 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     const int finest_ln = sol_vec.getFinestLevelNumber();
 
     // Set the nullspace of the LInv and subdomain solvers
-    const double rho = d_ins_integrator->getStokesSpecifications()->getRho();
-    const bool has_velocity_nullspace = d_normalize_velocity && IBTK::abs_equal_eps(rho, 0.0);
+    const bool has_velocity_nullspace = d_normalize_velocity && !PoissonUtilities::isDamped(d_U_problem_coefs);
     const bool has_pressure_nullspace = d_normalize_pressure;
 
     for (const auto& nul_vec : d_nul_vecs)

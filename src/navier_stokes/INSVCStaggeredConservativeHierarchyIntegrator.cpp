@@ -35,6 +35,7 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/SideDataSynchronization.h>
 #include <ibtk/ibtk_enums.h>
 
@@ -1270,8 +1271,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     }
 
     // Setup subdomain solvers.
-    const bool has_velocity_nullspace = d_normalize_velocity;
+    const bool has_velocity_nullspace = d_normalize_velocity && !PoissonUtilities::isDamped(U_problem_coefs);
     const bool has_pressure_nullspace = d_normalize_pressure;
+    updateNullSpaceVectors(current_time, has_velocity_nullspace, has_pressure_nullspace);
 
     if (d_velocity_solver)
     {

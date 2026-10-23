@@ -250,6 +250,11 @@ public:
         double data_time,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
+    /*!
+     * Return whether the operator has a damping term, i.e. C is not exactly zero.
+     */
+    static bool isDamped(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+
 protected:
 private:
     /*!
