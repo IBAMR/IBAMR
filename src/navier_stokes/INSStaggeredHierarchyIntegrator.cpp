@@ -1597,6 +1597,16 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_div_idx);
         d_hier_cc_data_ops->subtract(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
+        // The Stokes operator moves the prescribed boundary velocity to the right-hand side.
+        if (d_normalize_fluid_source && d_normalize_pressure)
+        {
+            normalizeFluidSource(
+                rhs_vec->getComponentDescriptorIndex(1),
+                d_bc_helper->computeNetBoundaryFlux(d_U_bc_coefs,
+                                                    sol_vec->getComponentDescriptorIndex(0),
+                                                    new_time,
+                                                    d_hier_math_ops->getCellWeightPatchDescriptorIndex()));
+        }
     }
 
     // Set solution components to equal most recent approximations to u(n+1) and

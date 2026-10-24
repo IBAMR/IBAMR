@@ -1,0 +1,3 @@
+New: IBAMR::INSHierarchyIntegrator and its derived classes accept the option normalize_fluid_source, which balances the discrete fluid source against the prescribed boundary flux when normalize_pressure is set.
+<br>
+(Boyce Griffith, 2026/10/24)

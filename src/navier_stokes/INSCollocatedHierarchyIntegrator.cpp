@@ -1255,12 +1255,10 @@ INSCollocatedHierarchyIntegrator::integrateHierarchySpecialized(const double cur
                          +div_fac,
                          d_Q_new_idx,
                          d_Q_var);
-    if (d_normalize_pressure)
+    if (d_normalize_fluid_source && d_normalize_pressure)
     {
-        const double Div_U_mean =
-            (1.0 / volume) * d_hier_cc_data_ops->integral(d_Phi_rhs_vec->getComponentDescriptorIndex(0), wgt_cc_idx);
-        d_hier_cc_data_ops->addScalar(
-            d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentDescriptorIndex(0), -Div_U_mean);
+        // The boundary fluxes are part of div u_ADV.
+        normalizeFluidSource(d_Phi_rhs_vec->getComponentDescriptorIndex(0), /*boundary_flux*/ 0.0);
     }
     if (cycle_num == 0)
     {

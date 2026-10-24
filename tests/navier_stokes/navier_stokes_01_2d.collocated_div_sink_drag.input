@@ -107,6 +107,7 @@ INSCollocatedHierarchyIntegrator {
    convective_op_type            = CONVECTIVE_OP_TYPE
    convective_difference_form    = CONVECTIVE_FORM
    normalize_pressure            = NORMALIZE_PRESSURE
+   normalize_fluid_source        = TRUE   // balance the discrete source against the boundary flux
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
    using_vorticity_tagging       = VORTICITY_TAGGING

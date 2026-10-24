@@ -86,6 +86,20 @@ public:
                                             int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
+     * \brief Return the net outward flux through the physical boundary of the
+     * normal velocity that \p u_bc_coefs prescribe at \p fill_time.
+     *
+     * \param u_data_idx Side-centered velocity data that the boundary condition
+     * objects take as their target.
+     * \param wgt_cc_idx Cell-centered composite-grid weights, which are zero on
+     * covered cells.
+     */
+    double computeNetBoundaryFlux(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                  int u_data_idx,
+                                  double fill_time,
+                                  int wgt_cc_idx) const;
+
+    /*!
      * \brief Set normal velocity ghost cell values to enforce discrete
      * divergence-free condition in the ghost cells abutting the physical boundary.
      *

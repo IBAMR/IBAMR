@@ -1443,6 +1443,16 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, half_time);
         d_hier_cc_data_ops->subtract(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
+        // The Stokes operator moves the prescribed boundary velocity to the right-hand side.
+        if (d_normalize_fluid_source && d_normalize_pressure)
+        {
+            normalizeFluidSource(
+                rhs_vec->getComponentDescriptorIndex(1),
+                d_bc_helper->computeNetBoundaryFlux(d_U_bc_coefs,
+                                                    sol_vec->getComponentDescriptorIndex(0),
+                                                    new_time,
+                                                    d_hier_math_ops->getCellWeightPatchDescriptorIndex()));
+        }
     }
 
     // Add Brinkman penalized velocity term.
