@@ -283,11 +283,11 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         Pointer<StaggeredStokesSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
-            level_solver =
-                StaggeredStokesSolverManager::getManager()->allocateSolver(d_level_solver_type,
-                                                                           d_object_name + "::level_solver",
-                                                                           d_level_solver_db,
-                                                                           d_level_solver_default_options_prefix);
+            level_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
+                d_level_solver_type,
+                d_object_name + "::level_solver",
+                d_level_solver_db,
+                d_level_solver_default_options_prefix + std::to_string(ln) + "_");
             set_fixed_iteration_ksp_defaults(level_solver.getPointer(), d_level_solver_db);
         }
 
