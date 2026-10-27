@@ -268,6 +268,122 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Computes D = alpha div grad U + beta U + gamma W, evaluating each
+c     flux once.  FLd and FUd return the fluxes on the patch box sides.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine fluxlaplace2d(
+     &     D,D_gcw,
+     &     alpha,beta,
+     &     U,U_gcw,
+     &     gamma,
+     &     W,W_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,
+     &     FL0,FU0,FL1,FU1,
+     &     gx,gy)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER D_gcw,U_gcw,W_gcw
+
+      REAL alpha,beta
+
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+
+      REAL gamma
+
+      REAL W(CELL2d(ilower,iupper,W_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL D(CELL2d(ilower,iupper,D_gcw))
+
+      REAL FL0(ilower1:iupper1),FU0(ilower1:iupper1)
+      REAL FL1(ilower0:iupper0),FU1(ilower0:iupper0)
+
+      REAL gx(ilower0:iupper0+1)
+      REAL gy(ilower0:iupper0,0:1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,jl,jh
+      REAL    fac0,fac1,dfac0,dfac1
+c
+c     Compute D.
+c
+      fac0 = alpha/dx(0)
+      fac1 = alpha/dx(1)
+      dfac0 = 1.d0/dx(0)
+      dfac1 = 1.d0/dx(1)
+
+      do i0 = ilower0,iupper0
+         gy(i0,0) = fac1*(U(i0,ilower1)-U(i0,ilower1-1))
+         FL1(i0) = gy(i0,0)
+      enddo
+      jh = 0
+      do i1 = ilower1,iupper1
+         jl = mod(i1-ilower1,2)
+         jh = 1-jl
+         do i0 = ilower0,iupper0+1
+            gx(i0) = fac0*(U(i0,i1)-U(i0-1,i1))
+         enddo
+         do i0 = ilower0,iupper0
+            gy(i0,jh) = fac1*(U(i0,i1+1)-U(i0,i1))
+         enddo
+         FL0(i1) = gx(ilower0)
+         FU0(i1) = gx(iupper0+1)
+         if (beta.eq.0.d0) then
+            if (gamma.eq.0.d0) then
+               do i0 = ilower0,iupper0
+                  D(i0,i1) =
+     &                 dfac0*(gx(i0+1)-gx(i0)) +
+     &                 dfac1*(gy(i0,jh)-gy(i0,jl))
+               enddo
+            else
+               do i0 = ilower0,iupper0
+                  D(i0,i1) =
+     &                 dfac0*(gx(i0+1)-gx(i0)) +
+     &                 dfac1*(gy(i0,jh)-gy(i0,jl)) +
+     &                 gamma*W(i0,i1)
+               enddo
+            endif
+         else
+            if (gamma.eq.0.d0) then
+               do i0 = ilower0,iupper0
+                  D(i0,i1) =
+     &                 dfac0*(gx(i0+1)-gx(i0)) +
+     &                 dfac1*(gy(i0,jh)-gy(i0,jl)) +
+     &                 beta*U(i0,i1)
+               enddo
+            else
+               do i0 = ilower0,iupper0
+                  D(i0,i1) =
+     &                 (dfac0*(gx(i0+1)-gx(i0)) +
+     &                  dfac1*(gy(i0,jh)-gy(i0,jl)) +
+     &                  beta*U(i0,i1)) +
+     &                 gamma*W(i0,i1)
+               enddo
+            endif
+         endif
+      enddo
+      do i0 = ilower0,iupper0
+         FU1(i0) = gy(i0,jh)
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Computes F = div alpha grad U.
 c
 c     Uses a five point stencil to compute the cell centered anisotropic
