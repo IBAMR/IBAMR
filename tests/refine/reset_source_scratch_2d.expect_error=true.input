@@ -1,0 +1,11 @@
+// A 16 x 16 domain of two patches; the reset must be rejected.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (15,15)]
+   x_lo         = 0, 0
+   x_up         = 1, 1
+}
