@@ -49,59 +49,61 @@
 
 #include <ibtk/app_namespaces.h>
 
-// Give every copy of each shared node and edge value a different mark,
-// synchronize, and check that every copy holds the mark of the owner: the copy
-// of the patch that contains the highest cell touching the value.
+// Set the node and edge values of each patch to numbers that identify the
+// patch, the axis and the index, synchronize, and check that every patch then
+// holds the number that the owner set: the owner of a value shared by several
+// patches is the patch that contains the highest cell touching it.
 
 namespace
 {
 const int RATIO = 2;
 // Larger than any index in the hierarchy.
-const double MARK_BASE = 64.0;
-const int MAX_PATCHES_TOUCHING_VALUE = NDIM == 2 ? 4 : 8;
+const double INDEX_BASE = 64.0;
+const int MAX_PATCHES_TOUCHING_VALUE = 1 << NDIM;
 
-// The index box of array n for data on the given box of cells.
+// The index box of the given axis for data on the given box of cells.
 using ArrayBoxFcn = std::function<Box<NDIM>(const Box<NDIM>&, int)>;
 
 ArrayData<NDIM, double>&
-get_array(NodeData<NDIM, double>& data, const int /*n*/)
+get_array(NodeData<NDIM, double>& data, const int /*axis*/)
 {
     return data.getArrayData();
 }
 
 ArrayData<NDIM, double>&
-get_array(EdgeData<NDIM, double>& data, const int n)
+get_array(EdgeData<NDIM, double>& data, const int axis)
 {
-    return data.getArrayData(n);
+    return data.getArrayData(axis);
 }
 
-// Identifies the copy that patch k holds of the value at index i of array n.
+// The value that patch k sets at index i of the given axis before
+// synchronizing; different patches, axes and indices give different values.
 double
-mark(const int k, const int n, const hier::Index<NDIM>& i)
+patch_value(const int k, const int axis, const hier::Index<NDIM>& i)
 {
-    double value = k * NDIM + n;
+    double value = k * NDIM + axis;
     for (int d = 0; d < NDIM; ++d)
     {
-        value = MARK_BASE * value + i(d);
+        value = INDEX_BASE * value + i(d);
     }
     return value;
 }
 
 // Return the number of patches, counting periodic images, that touch the value
-// at index i of array n, and the mark of the copy that owns it.
+// at index i of the given axis, and the value that its owner set there.
 std::pair<int, double>
-find_owner(Pointer<PatchLevel<NDIM>> level, const ArrayBoxFcn& array_box, const int n, const hier::Index<NDIM>& i)
+find_owner(Pointer<PatchLevel<NDIM>> level, const ArrayBoxFcn& array_box, const int axis, const hier::Index<NDIM>& i)
 {
     const BoxArray<NDIM>& boxes = level->getBoxes();
     const Box<NDIM>& domain = level->getPhysicalDomain()[0];
     const IntVector<NDIM> periodic_shift = level->getGridGeometry()->getPeriodicShift(level->getRatio());
     std::set<std::array<int, NDIM + 1>> touching_patches;
-    double owner_mark = 0.0;
+    double owner_value = 0.0;
     // The iterator visits the cells in increasing order, comparing the last
     // coordinate first, so the last cell that is in a patch is the highest.
     for (Box<NDIM>::Iterator c(Box<NDIM>(i - 1, i)); c; c++)
     {
-        if (!array_box(Box<NDIM>(c(), c()), n).contains(i))
+        if (!array_box(Box<NDIM>(c(), c()), axis).contains(i))
         {
             continue;
         }
@@ -123,21 +125,18 @@ find_owner(Pointer<PatchLevel<NDIM>> level, const ArrayBoxFcn& array_box, const 
                     patch_image[d + 1] = shift(d);
                 }
                 touching_patches.insert(patch_image);
-                owner_mark = mark(k, n, i - shift);
+                owner_value = patch_value(k, axis, i - shift);
             }
         }
     }
-    return { static_cast<int>(touching_patches.size()), owner_mark };
+    return { static_cast<int>(touching_patches.size()), owner_value };
 }
 
-// Synchronize, check every copy, and print the number of copies by the number
-// of patches that touch the value.
-template <class VariableType, class DataType, class SynchronizationType>
+// Synchronize, check the values of every patch, and print the number of values
+// by the number of patches that touch them.
+template <class VariableType, class DataType, class SynchronizationType, int N_AXES>
 void
-test_synchronization(const std::string& name,
-                     const int n_arrays,
-                     const ArrayBoxFcn& array_box,
-                     Pointer<PatchHierarchy<NDIM>> hierarchy)
+test_synchronization(const std::string& name, const ArrayBoxFcn& array_box, Pointer<PatchHierarchy<NDIM>> hierarchy)
 {
     auto* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableType> var = new VariableType(name);
@@ -150,11 +149,11 @@ test_synchronization(const std::string& name,
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<DataType> data = patch->getPatchData(idx);
-            for (int n = 0; n < n_arrays; ++n)
+            for (int axis = 0; axis < N_AXES; ++axis)
             {
-                for (Box<NDIM>::Iterator i(array_box(patch->getBox(), n)); i; i++)
+                for (Box<NDIM>::Iterator i(array_box(patch->getBox(), axis)); i; i++)
                 {
-                    get_array(*data, n)(i(), 0) = mark(p(), n, i());
+                    get_array(*data, axis)(i(), 0) = patch_value(p(), axis, i());
                 }
             }
         }
@@ -174,15 +173,15 @@ test_synchronization(const std::string& name,
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<DataType> data = patch->getPatchData(idx);
-            for (int n = 0; n < n_arrays; ++n)
+            for (int axis = 0; axis < N_AXES; ++axis)
             {
-                for (Box<NDIM>::Iterator i(array_box(patch->getBox(), n)); i; i++)
+                for (Box<NDIM>::Iterator i(array_box(patch->getBox(), axis)); i; i++)
                 {
-                    const std::pair<int, double> owner = find_owner(level, array_box, n, i());
-                    if (get_array(*data, n)(i(), 0) != owner.second)
+                    const std::pair<int, double> owner = find_owner(level, array_box, axis, i());
+                    if (get_array(*data, axis)(i(), 0) != owner.second)
                     {
-                        TBOX_ERROR(name << " data, level " << ln << ", patch " << p() << ": the copy at " << i()
-                                        << " does not hold the value of the owner\n");
+                        TBOX_ERROR(name << " data, level " << ln << ", patch " << p() << ": the value at " << i()
+                                        << " is not the one that its owner set\n");
                     }
                     ++n_copies[owner.first - 1];
                 }
@@ -227,8 +226,8 @@ main(int argc, char** argv)
         ratio *= RATIO;
     }
 
-    test_synchronization<NodeVariable<NDIM, double>, NodeData<NDIM, double>, NodeDataSynchronization>(
-        "Node", 1, [](const Box<NDIM>& box, const int /*n*/) { return NodeGeometry<NDIM>::toNodeBox(box); }, hierarchy);
-    test_synchronization<EdgeVariable<NDIM, double>, EdgeData<NDIM, double>, EdgeDataSynchronization>(
-        "Edge", NDIM, EdgeGeometry<NDIM>::toEdgeBox, hierarchy);
+    test_synchronization<NodeVariable<NDIM, double>, NodeData<NDIM, double>, NodeDataSynchronization, 1>(
+        "Node", [](const Box<NDIM>& box, const int /*axis*/) { return NodeGeometry<NDIM>::toNodeBox(box); }, hierarchy);
+    test_synchronization<EdgeVariable<NDIM, double>, EdgeData<NDIM, double>, EdgeDataSynchronization, NDIM>(
+        "Edge", EdgeGeometry<NDIM>::toEdgeBox, hierarchy);
 }
