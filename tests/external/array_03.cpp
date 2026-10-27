@@ -18,8 +18,8 @@
 #include <tbox/Array.h>
 
 #include <fstream>
+#include <set>
 #include <string>
-#include <vector>
 
 #include <ibtk/app_namespaces.h>
 
@@ -45,6 +45,15 @@ main()
             Array<Array<bool>> touches_regular_bdry_3 = touches_regular_bdry;
             Array<Array<bool>> touches_regular_bdry_4 = touches_regular_bdry;
             Array<Array<bool>> touches_regular_bdry_5 = touches_regular_bdry;
+
+            std::set<const Array<bool>*> arrays;
+            arrays.insert(touches_regular_bdry.getPointer());
+            arrays.insert(touches_regular_bdry_2.getPointer());
+            arrays.insert(touches_regular_bdry_3.getPointer());
+            arrays.insert(touches_regular_bdry_4.getPointer());
+            arrays.insert(touches_regular_bdry_5.getPointer());
+            // Verify that we set this up by reference counting
+            TBOX_ASSERT(arrays.size() == 1);
         }
     }
 
