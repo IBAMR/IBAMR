@@ -1,0 +1,3 @@
+Improved: IBAMR::StaggeredStokesOperator performs fewer communication steps across coarse-fine interfaces each time it applies the operator.
+<br>
+(Boyce Griffith, 2026/10/03)
