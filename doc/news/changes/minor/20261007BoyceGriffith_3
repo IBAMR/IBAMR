@@ -1,3 +1,3 @@
-Fixed: IBTK::CCPoissonHypreLevelSolver and IBTK::SCPoissonHypreLevelSolver now solve correctly on levels with coarse-fine boundaries.
+Fixed: IBTK::CCPoissonHypreLevelSolver and IBTK::SCPoissonHypreLevelSolver now solve correctly on levels with coarse-fine boundaries, and IBTK::SCPoissonHypreLevelSolver now converges with solver_type "Split".
 <br>
 (Boyce Griffith, 2026/10/07)
