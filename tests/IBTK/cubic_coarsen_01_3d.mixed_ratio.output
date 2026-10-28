@@ -1,0 +1,8 @@
+smooth cell-centered max error = 1.682e-03
+smooth side-centered max error = 1.555e-03
+smooth cell-centered max change by second fill = 0.000e+00
+smooth side-centered max change by second fill = 0.000e+00
+cubic cell-centered max error = 0.000e+00
+cubic side-centered max error = 0.000e+00
+cubic cell-centered max change by second fill = 0.000e+00
+cubic side-centered max change by second fill = 0.000e+00

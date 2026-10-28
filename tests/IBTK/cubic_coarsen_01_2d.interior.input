@@ -1,0 +1,54 @@
+// Refined box inside the domain, ratio 2, four fine patches; the fine ghost cells hold NaN
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+garbage_ghosts = TRUE
+ghost_width = 1
+function_names = "smooth", "cubic"
+smooth_sc {
+   function_0 = "sin(2*PI*(X_0+0.13))*cos(2*PI*(X_1+0.31))"
+   function_1 = "cos(2*PI*(X_0+0.21))*sin(2*PI*(X_1+0.17))"
+}
+smooth_cc {
+   function = "sin(2*PI*(X_0+0.13))*cos(2*PI*(X_1+0.31))"
+}
+
+cubic_sc {
+   function_0 = "1 + 0.3*X_0 - 0.5*X_1 + X_0^3 - 2*X_0^2*X_1 + 0.7*X_1^3 + X_0*X_1"
+   function_1 = "2 - 0.4*X_0 + 0.2*X_1 + 0.7*X_0^2*X_1 - 0.8*X_0*X_1^2 + 1.1*X_1^3 - X_0^3"
+}
+cubic_cc {
+   function = "1 + 0.3*X_0 - 0.5*X_1 + X_0^3 - 2*X_0^2*X_1 + 0.7*X_1^3 + X_0*X_1"
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (15,15)]
+   x_lo = 0,0
+   x_up = 1,1
+   periodic_dimension = 0,0
+}
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2,2
+   }
+   largest_patch_size {
+      level_0 = 8,8
+   }
+   smallest_patch_size {
+      level_0 = 2,2
+   }
+   efficiency_tolerance = 0.70e0
+   combine_efficiency = 0.85e0
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(4,4), (11,11)]
+   }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

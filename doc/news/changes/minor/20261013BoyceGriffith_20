@@ -1,0 +1,3 @@
+Fixed: IBTK::HierarchyGhostCellInterpolation coarsens with the cubic stencil on every axis of a level with a refinement ratio of 2 or more for components with the refine operator "NONE". A ratio of 2 on any axis made the cubic coarsen operators average on all axes, which left the coarse rows of composite side-centered operators next to a coarse-fine interface with a truncation error that did not decrease.
+<br>
+(Boyce Griffith, 2026/10/13)
