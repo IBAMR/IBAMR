@@ -83,6 +83,9 @@ namespace IBTK
  *    in SAMRAI::solv::SAMRAIVectorReal objects corresponding to \f$u\f$ and
  *    \f$f\f$.
  *
+ * On return the ghost values of \a x that lie in other patches of the level,
+ * including across periodic boundaries, hold the solution there.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 

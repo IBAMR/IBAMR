@@ -39,6 +39,15 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <array>
 #include <vector>
 
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+} // namespace SAMRAI
+
 namespace IBTK
 {
 class GeneralSolver;
@@ -130,6 +139,41 @@ void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
 void copyToHypre(HYPRE_SStructVector& vector,
                  SAMRAI::pdat::SideData<NDIM, double>& src_data,
                  const SAMRAI::hier::Box<NDIM>& box);
+
+/*!
+ * \brief Set to zero the entries of a cell-centered matrix that couple a cell of a patch to a cell of the physical
+ * domain that is not a cell of the patch level, which is a cell on the coarse side of a coarse-fine boundary.
+ *
+ * hypre's multigrid solvers form the matrices of the coarser grids from such entries and converge only if they are
+ * zero. Cells of other patches of the level, including across a periodic boundary, are cells of the level. Entries
+ * that couple to cells outside the physical domain are left to the boundary condition treatment. The diagonal entry is
+ * unchanged, and PoissonUtilities::adjustRHSAtCoarseFineBoundary() moves the dropped terms to the right-hand side.
+ * This function does nothing on the coarsest level.
+ *
+ * \param[in,out] matrix_coefficients Matrix coefficients on the box of a patch of \p level with one depth per entry of
+ * \p stencil and no ghost cells.
+ * \param[in] level Patch level that contains the patch.
+ * \param[in] stencil Offsets of the cells that the entries couple to.
+ */
+void clearOffLevelMatrixEntries(SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
+                                const SAMRAI::hier::PatchLevel<NDIM>& level,
+                                const std::vector<SAMRAI::hier::Index<NDIM>>& stencil);
+
+/*!
+ * \brief Set to zero the entries of a side-centered matrix that couple a side of a patch to a side of the same
+ * component that lies in the physical domain but is not a side of the patch level.
+ *
+ * The sides of the level are the sides of the cells of its patches, including the sides that patches share. See the
+ * cell-centered version for the reason.
+ *
+ * \param[in,out] matrix_coefficients Matrix coefficients on the sides of the box of a patch of \p level with one depth
+ * per entry of \p stencil and no ghost sides.
+ * \param[in] level Patch level that contains the patch.
+ * \param[in] stencil Offsets of the sides that the entries couple to, along the axes.
+ */
+void clearOffLevelMatrixEntries(SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
+                                const SAMRAI::hier::PatchLevel<NDIM>& level,
+                                const std::vector<SAMRAI::hier::Index<NDIM>>& stencil);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
