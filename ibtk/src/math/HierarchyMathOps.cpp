@@ -2857,7 +2857,7 @@ HierarchyMathOps::laplace(const int dst_idx,
         // Synchronize the fluxes on the coarse-fine interfaces.
         for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
         {
-            xeqScheduleOutersideRestriction(d_sc_idx, d_os_idx, ln - 1);
+            xeqScheduleOutersideRestriction({ d_sc_idx }, { d_os_idx }, ln - 1);
             d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_os_idx);
         }
 
