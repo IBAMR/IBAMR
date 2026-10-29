@@ -93,10 +93,10 @@ namespace IBTK
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_type = "DEFAULT"                    // see setSmootherType()
+ smoother_type = "DEFAULT"                    // smoother type; see the derived classes
  prolongation_method = "DEFAULT"              // see setProlongationMethod()
  restriction_method = "DEFAULT"               // see setRestrictionMethod()
- coarse_solver_type = "DEFAULT"               // see setCoarseSolverType()
+ coarse_solver_type = "DEFAULT"               // smoother or solver type for the coarsest level
  coarse_solver_rel_residual_tol = 1.0e-5      // see setCoarseSolverRelativeTolerance()
  coarse_solver_abs_residual_tol = 1.0e-50     // see setCoarseSolverAbsoluteTolerance()
  coarse_solver_max_iterations = 10            // see setCoarseSolverMaxIterations()
@@ -187,16 +187,6 @@ public:
      * Poisson specifications changes.
      */
     void setResetLevels(int coarsest_ln, int finest_ln);
-
-    /*!
-     * \brief Specify the smoother type.
-     */
-    virtual void setSmootherType(const std::string& smoother_type) = 0;
-
-    /*!
-     * \brief Specify the coarse level solver.
-     */
-    virtual void setCoarseSolverType(const std::string& coarse_solver_type) = 0;
 
     /*!
      * \brief Set the maximum number of iterations for the coarse level solve.

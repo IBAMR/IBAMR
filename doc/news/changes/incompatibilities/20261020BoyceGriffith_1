@@ -1,0 +1,3 @@
+Removed: IBTK::PoissonFACPreconditionerStrategy and IBAMR::StaggeredStokesFACPreconditionerStrategy and their derived classes no longer have the public functions setSmootherType() and setCoarseSolverType(); set smoother_type and coarse_solver_type in the input database instead. The Stokes FAC preconditioner strategies no longer read smoother_type, which had no effect.
+<br>
+(Boyce Griffith, 2026/10/20)

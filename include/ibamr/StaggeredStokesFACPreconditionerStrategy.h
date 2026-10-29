@@ -96,12 +96,11 @@ namespace IBAMR
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- smoother_type = "ADDITIVE"                     // see setSmootherType()
  U_prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethods()
  P_prolongation_method = "LINEAR_REFINE"        // see setProlongationMethods()
  U_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
  P_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
- coarse_solver_type = "LEVEL_SMOOTHER"          // see setCoarseSolverType()
+ coarse_solver_type = "LEVEL_SMOOTHER"          // or the type of a Stokes solver for the coarsest level
  coarse_solver_rel_residual_tol = 1.0e-5        // see setCoarseSolverRelativeTolerance()
  coarse_solver_abs_residual_tol = 1.0e-50       // see setCoarseSolverAbsoluteTolerance()
  coarse_solver_max_iterations = 10              // see setCoarseSolverMaxIterations()
@@ -195,16 +194,6 @@ public:
      * Poisson specifications changes.
      */
     void setResetLevels(int coarsest_ln, int finest_ln);
-
-    /*!
-     * \brief Specify the smoother type.
-     */
-    void setSmootherType(const std::string& smoother_type);
-
-    /*!
-     * \brief Specify the coarse level solver.
-     */
-    void setCoarseSolverType(const std::string& coarse_solver_type);
 
     /*!
      * \brief Set the maximum number of iterations for the coarse level solve.
@@ -468,11 +457,6 @@ protected:
      * \name Solver configuration variables.
      */
     //\{
-
-    /*
-     * The kind of smoothing to perform.
-     */
-    std::string d_smoother_type = "ADDITIVE";
 
     /*
      * The names of the refinement operators used to prolong the coarse grid

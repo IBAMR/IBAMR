@@ -379,8 +379,23 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(const s
         }
     }
 
-    // Configure the coarse level solver.
-    setCoarseSolverType(d_coarse_solver_type);
+    // Check the smoother type and configure the coarse level solver.
+    if (get_smoother_type(d_smoother_type) == UNKNOWN)
+    {
+        TBOX_ERROR(d_object_name << "::CCPoissonPointRelaxationFACOperator():\n"
+                                 << "  unsupported smoother type: " << d_smoother_type << "\n"
+                                 << "  supported types: PATCH_GAUSS_SEIDEL, PROCESSOR_GAUSS_SEIDEL, "
+                                    "RED_BLACK_GAUSS_SEIDEL"
+                                 << std::endl);
+    }
+    if (get_smoother_type(d_coarse_solver_type) == UNKNOWN)
+    {
+        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
+                                                                               d_object_name + "::coarse_solver",
+                                                                               d_coarse_solver_db,
+                                                                               d_coarse_solver_default_options_prefix);
+        set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
+    }
 
     // Setup Timers.
     IBTK_DO_ONCE(t_smooth_error =
@@ -397,37 +412,6 @@ CCPoissonPointRelaxationFACOperator::~CCPoissonPointRelaxationFACOperator()
     if (d_is_initialized) deallocateOperatorState();
     return;
 } // ~CCPoissonPointRelaxationFACOperator
-
-void
-CCPoissonPointRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(get_smoother_type(smoother_type) != UNKNOWN);
-#endif
-    d_smoother_type = smoother_type;
-    return;
-} // setSmootherType
-
-void
-CCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
-    d_coarse_solver_type = coarse_solver_type;
-    if (get_smoother_type(d_coarse_solver_type) == UNKNOWN && !d_coarse_solver)
-    {
-        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
-                                                                               d_object_name + "::coarse_solver",
-                                                                               d_coarse_solver_db,
-                                                                               d_coarse_solver_default_options_prefix);
-        set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
-    }
-    return;
-} // setCoarseSolverType
 
 void
 CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
@@ -448,9 +432,6 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
     // Determine the smoother type.
     const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
     const SmootherType smoother_type = get_smoother_type(smoother_type_string);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(smoother_type != UNKNOWN);
-#endif
     const bool red_black_ordering = use_red_black_ordering(smoother_type);
     const bool update_local_data = do_local_data_update(smoother_type);
 
@@ -820,9 +801,6 @@ CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, d
     }
     else
     {
-#if !defined(NDEBUG)
-        TBOX_ASSERT(get_smoother_type(d_coarse_solver_type) != UNKNOWN);
-#endif
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);

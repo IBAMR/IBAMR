@@ -63,7 +63,7 @@ namespace IBAMR
 /*!
  * \brief Class StaggeredStokesLevelRelaxationFACOperator is a concrete
  * StaggeredStokesFACPreconditionerStrategy implementing a level relaxation
- * smoother for use as a multigrid preconditioner.
+ * smoother for use as a multigrid preconditioner. Each sweep applies the level solver selected by level_solver_type.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
@@ -114,11 +114,6 @@ public:
      * \name Implementation of FACPreconditionerStrategy interface.
      */
     //\{
-
-    /*!
-     * \brief Specify the smoother type.
-     */
-    void setSmootherType(const std::string& level_solver_type);
 
     /*!
      * \brief Perform a given number of relaxations on the error.

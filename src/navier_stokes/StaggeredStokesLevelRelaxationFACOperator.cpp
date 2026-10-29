@@ -93,9 +93,6 @@ StaggeredStokesLevelRelaxationFACOperator::StaggeredStokesLevelRelaxationFACOper
         }
     }
 
-    // Configure the coarse level solver.
-    setCoarseSolverType(d_coarse_solver_type);
-
     // Setup Timers.
     IBAMR_DO_ONCE(t_smooth_error = TimerManager::getManager()->getTimer(
                       "IBAMR::StaggeredStokesLevelRelaxationFACOperator::smoothError()"););
@@ -107,20 +104,6 @@ StaggeredStokesLevelRelaxationFACOperator::~StaggeredStokesLevelRelaxationFACOpe
     if (d_is_initialized) deallocateOperatorState();
     return;
 } // ~StaggeredStokesLevelRelaxationFACOperator
-
-void
-StaggeredStokesLevelRelaxationFACOperator::setSmootherType(const std::string& level_solver_type)
-{
-    StaggeredStokesFACPreconditionerStrategy::setSmootherType(level_solver_type);
-
-    if (d_level_solver_type != level_solver_type)
-    {
-        d_level_solvers.clear();
-    }
-    d_level_solver_type = level_solver_type;
-
-    return;
-} // setSmootherType
 
 void
 StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
