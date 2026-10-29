@@ -26,8 +26,19 @@
 namespace IBAMR
 {
 
+auto get_shift = [](int dir, int shift)
+{
+    SAMRAI::hier::Index<NDIM> iv(0);
+    iv(dir) = shift;
+    return iv;
+};
+
+// Clamp function to limit values between 0 and 1
+auto clamp = [](double x, double lower, double upper) { return (x < lower) ? lower : (x > upper ? upper : x); };
+
 namespace VCINSVOFUtilities
 {
+
 double
 vof_alpha(const double& phi, const std::array<double, NDIM>& dPhi)
 {
@@ -46,9 +57,6 @@ vof_alpha(const double& phi, const std::array<double, NDIM>& dPhi)
 
     // Denominator used in quadratic pieces: phi_max^2 - phi_mid^2 = |Dx||Dy|
     const double denom = std::pow(phi_max, 2) - std::pow(phi_mid, 2);
-
-    // Clamp function to limit values between 0 and 1
-    auto clamp = [](double x, double lower, double upper) { return (x < lower) ? lower : (x > upper ? upper : x); };
 
     // Handle vertical/horizontal cut (denom==0): only linear+saturation remains
     if (tbox::MathUtilities<double>::equalEps(denom, 0.0))
@@ -97,8 +105,10 @@ vof_alpha(const double& phi, const std::array<double, NDIM>& dPhi)
 #endif
 }
 
+////////////////////////// VOFInitialConditionFromLevelSet ///////////////////
+
 VOFInitialConditionFromLevelSet::VOFInitialConditionFromLevelSet(const std::string& object_name,
-                                                                 SAMRAI::tbox::Pointer<IBTK::CartGridFunction> ls_ic)
+                                                                 Pointer<CartGridFunction> ls_ic)
     : d_object_name(object_name), d_ls_ic(ls_ic)
 {
     if (d_ls_ic.isNull())
@@ -106,7 +116,7 @@ VOFInitialConditionFromLevelSet::VOFInitialConditionFromLevelSet(const std::stri
         TBOX_ERROR(d_object_name << ": level set initial condition pointer is null.\n");
     }
 
-    // Register scratch storage used to ask the LS initial condition to write \phi on each patch.
+    // Register scratch storage used to ask the LS initial condition to write phi on each patch.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_phi_scratch_var = new CellVariable<NDIM, double>(d_object_name + "::phi_scratch");
     const IntVector<NDIM> no_ghosts = 0;
@@ -114,7 +124,17 @@ VOFInitialConditionFromLevelSet::VOFInitialConditionFromLevelSet(const std::stri
         d_phi_scratch_var, var_db->getContext(d_object_name + "::PHI_SCRATCH"), no_ghosts);
 
     return;
-}
+} // VOFInitialConditionFromLevelSet
+
+VOFInitialConditionFromLevelSet::~VOFInitialConditionFromLevelSet()
+{
+    if (d_phi_scratch_idx != IBTK::invalid_index)
+    {
+        VariableDatabase<NDIM>::getDatabase()->removePatchDataIndex(d_phi_scratch_idx);
+    }
+
+    return;
+} // ~VOFInitialConditionFromLevelSet
 
 bool
 VOFInitialConditionFromLevelSet::isTimeDependent() const
@@ -144,13 +164,6 @@ VOFInitialConditionFromLevelSet::setDataOnPatch(const int data_idx,
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(d_phi_scratch_idx);
     Pointer<CellData<NDIM, double>> vof_data = patch->getPatchData(data_idx);
-
-    auto get_shift = [](int dir, int shift)
-    {
-        SAMRAI::hier::Index<NDIM> iv(0);
-        iv(dir) = shift;
-        return iv;
-    };
 
     // We only have interior \phi values here (no ghost fill). Use one-sided differences near
     // patch boundaries and centered differences in the interior.
@@ -203,71 +216,78 @@ VOFInitialConditionFromLevelSet::setDataOnPatch(const int data_idx,
     patch->deallocatePatchData(d_phi_scratch_idx);
     return;
 }
-VOFFromLevelSetInitializer::VOFFromLevelSetInitializer(
-    const std::string& object_name,
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_integrator,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> vof_var)
-    : d_object_name(object_name), d_integrator(adv_diff_integrator), d_ls_var(ls_var), d_vof_var(vof_var)
+
+////////////////////////// LevelSetToVOFConverter ////////////////////////////
+
+LevelSetToVOFConverter::LevelSetToVOFConverter(const std::string& object_name,
+                                               Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                                               Pointer<CellVariable<NDIM, double>> ls_var,
+                                               Pointer<CellVariable<NDIM, double>> vof_var)
+    : d_object_name(object_name), d_adv_diff_solver(adv_diff_integrator), d_ls_var(ls_var), d_vof_var(vof_var)
 {
-    if (d_integrator.isNull())
+#if !defined(NDEBUG)
+    if (d_adv_diff_solver.isNull())
     {
         TBOX_ERROR(d_object_name << ": adv-diff integrator pointer is null.\n");
     }
-    if (d_ls_var.isNull() || d_vof_var.isNull())
+    if (d_ls_var.isNull())
     {
-        TBOX_ERROR(d_object_name << ": ls_var and/or vof_var pointer is null.\n");
+        TBOX_ERROR(d_object_name << ": ls_var pointer is null.\n");
     }
+    if (d_vof_var.isNull())
+    {
+        TBOX_ERROR(d_object_name << ": vof_var pointer is null.\n");
+    }
+#endif
+
     return;
-}
+} // LevelSetToVOFConverter
 
 void
-VOFFromLevelSetInitializer::registerIntegrateHierarchyCallback()
-{
-    d_integrator->registerIntegrateHierarchyCallback(&VOFFromLevelSetInitializer::integrateHierarchyCallback,
-                                                     static_cast<void*>(this));
-    return;
-}
-
-void
-VOFFromLevelSetInitializer::computeVOFFromLevelSet(const double time, const bool use_new_context)
+LevelSetToVOFConverter::computeVOFFromLevelSet(double time, double current_time, double new_time)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_idx = var_db->mapVariableAndContextToIndex(
-        d_ls_var, use_new_context ? d_integrator->getNewContext() : d_integrator->getCurrentContext());
-    const int vof_idx = var_db->mapVariableAndContextToIndex(
-        d_vof_var, use_new_context ? d_integrator->getNewContext() : d_integrator->getCurrentContext());
-    computeVOFInternal(time, ls_idx, vof_idx);
-    return;
-}
+    int vof_idx = IBTK::invalid_index;
+    if (IBTK::rel_equal_eps(time, current_time))
+    {
+        vof_idx = var_db->mapVariableAndContextToIndex(d_vof_var, d_adv_diff_solver->getCurrentContext());
+    }
+    else if (IBTK::rel_equal_eps(time, new_time))
+    {
+        vof_idx = var_db->mapVariableAndContextToIndex(d_vof_var, d_adv_diff_solver->getNewContext());
+    }
+    else
+    {
+        TBOX_ERROR("This statement should not be reached");
+    }
 
-void
-VOFFromLevelSetInitializer::integrateHierarchyCallback(double /*current_time*/,
-                                                       double new_time,
-                                                       int /*cycle_num*/,
-                                                       void* ctx)
-{
-    auto* self = static_cast<VOFFromLevelSetInitializer*>(ctx);
-    self->computeVOFFromLevelSet(new_time, /*use_new_context=*/true);
-    return;
-}
+    int ls_idx = IBTK::invalid_index;
+    if (IBTK::rel_equal_eps(time, current_time))
+    {
+        ls_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
+    }
+    else if (IBTK::rel_equal_eps(time, new_time))
+    {
+        ls_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getNewContext());
+    }
+    else
+    {
+        TBOX_ERROR("This statement should not be reached");
+    }
 
-void
-VOFFromLevelSetInitializer::computeVOFInternal(const double time, const int ls_idx, const int vof_idx)
-{
-    Pointer<PatchHierarchy<NDIM>> patch_hier = d_integrator->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hier = d_adv_diff_solver->getPatchHierarchy();
+    const int coarsest_ln = 0;
     const int finest_ln = patch_hier->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    // Fill LS ghost cells into a temporary scratch index so we can take centered differences.
-    RobinBcCoefStrategy<NDIM>* ls_bc_coef = d_integrator->getPhysicalBcCoefs(d_ls_var).front();
-    const IntVector<NDIM> cell_ghosts = 1;
-    const int ls_scratch_idx =
-        var_db->registerVariableAndContext(d_ls_var, var_db->getContext("LSToVOF::SCRATCH"), cell_ghosts);
-    for (int ln = 0; ln <= finest_ln; ++ln)
-    {
-        patch_hier->getPatchLevel(ln)->allocatePatchData(ls_scratch_idx, time);
-    }
+    // Fill LS ghost cells into its scratch index so we can take centered differences.
+    RobinBcCoefStrategy<NDIM>* ls_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_var).front();
+    const int ls_scratch_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getScratchContext());
+
+#if !defined(NDEBUG)
+    Pointer<PatchDataFactory<NDIM>> factory = var_db->getPatchDescriptor()->getPatchDataFactory(ls_scratch_idx);
+    const IntVector<NDIM>& ghost_width = factory->getGhostCellWidth();
+    TBOX_ASSERT(ghost_width.min() >= 1);
+#endif
 
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent ls_transaction(ls_scratch_idx,
@@ -282,14 +302,7 @@ VOFFromLevelSetInitializer::computeVOFInternal(const double time, const int ls_i
     hier_bdry_fill->initializeOperatorState(ls_transaction, patch_hier);
     hier_bdry_fill->fillData(time);
 
-    auto get_shift = [](int dir, int shift)
-    {
-        SAMRAI::hier::Index<NDIM> iv(0);
-        iv(dir) = shift;
-        return iv;
-    };
-
-    for (int ln = 0; ln <= finest_ln; ++ln)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -316,14 +329,10 @@ VOFFromLevelSetInitializer::computeVOFInternal(const double time, const int ls_i
         }
     }
 
-    for (int ln = 0; ln <= finest_ln; ++ln)
-    {
-        patch_hier->getPatchLevel(ln)->deallocatePatchData(ls_scratch_idx);
-    }
-    var_db->removePatchDataIndex(ls_scratch_idx);
     return;
-}
+} // computeVOFFromLevelSet
 
+////////////////////////// SetVOFBasedFluidProperties ////////////////////////
 void
 callSetVOFBasedDensity(int rho_idx,
                        Pointer<Variable<NDIM>> rho_var,
@@ -541,6 +550,8 @@ SetVOFBasedFluidProperties::setVOFBasedViscosityPatchData2PhaseFlows(
 
     return;
 } // setViscosityPatchData2PhaseFlows
+
+////////////////////////// VOFBasedGravityForcing ////////////////////////////
 
 VOFBasedGravityForcing::VOFBasedGravityForcing(const std::string& object_name,
                                                Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,

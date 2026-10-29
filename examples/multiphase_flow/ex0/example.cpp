@@ -29,9 +29,9 @@
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/LevelSetSurfaceTensionForceFunction.h>
-#include <ibamr/VOFSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/VOFSurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 #include <ibamr/vc_ins_vof_utilities.h>
 
@@ -173,17 +173,17 @@ main(int argc, char* argv[])
         circle.X0[2] = input_db->getDouble("ZCOM");
 #endif
 
-const string& ls_name = "level_set";
-Pointer<CellVariable<NDIM, double>> phi_var = new CellVariable<NDIM, double>(ls_name);
-adv_diff_integrator->registerTransportedQuantity(phi_var);
-adv_diff_integrator->setDiffusionCoefficient(phi_var, 0.0);
+        const string& ls_name = "level_set";
+        Pointer<CellVariable<NDIM, double>> phi_var = new CellVariable<NDIM, double>(ls_name);
+        adv_diff_integrator->registerTransportedQuantity(phi_var);
+        adv_diff_integrator->setDiffusionCoefficient(phi_var, 0.0);
 
-// Set the advection velocity of the bubble.
-adv_diff_integrator->setAdvectionVelocity(phi_var, time_integrator->getAdvectionVelocityVariable());
+        // Set the advection velocity of the bubble.
+        adv_diff_integrator->setAdvectionVelocity(phi_var, time_integrator->getAdvectionVelocityVariable());
 
-Pointer<CellVariable<NDIM, double>> vof_var = new CellVariable<NDIM, double>("vof_var");
-adv_diff_integrator->registerTransportedQuantity(vof_var);
-adv_diff_integrator->setDiffusionCoefficient(vof_var, 0.0);
+        Pointer<CellVariable<NDIM, double>> vof_var = new CellVariable<NDIM, double>("vof_var");
+        adv_diff_integrator->registerTransportedQuantity(vof_var);
+        adv_diff_integrator->setDiffusionCoefficient(vof_var, 0.0);
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
@@ -309,12 +309,12 @@ adv_diff_integrator->setDiffusionCoefficient(vof_var, 0.0);
         }
 
         // Set up the surface tension force
-        Pointer<SurfaceTensionForceFunction> surface_tension_force = new VOFSurfaceTensionForceFunction(
-            "SurfaceTensionForceFunction",
-            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-            adv_diff_integrator,
-            phi_var,
-            nullptr);
+        Pointer<SurfaceTensionForceFunction> surface_tension_force =
+            new VOFSurfaceTensionForceFunction("SurfaceTensionForceFunction",
+                                               app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+                                               adv_diff_integrator,
+                                               phi_var,
+                                               nullptr);
         time_integrator->registerBodyForceFunction(surface_tension_force);
 
         // Set up visualization plot file writers.

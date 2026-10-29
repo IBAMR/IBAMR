@@ -29,9 +29,9 @@
 
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
-#include <CellVariable.h>
 
 #include <CartesianGridGeometry.h>
+#include <CellVariable.h>
 #include <IntVector.h>
 #include <PatchLevel.h>
 
@@ -93,11 +93,11 @@ private:
     void computeAlphaFromLevelSetOnPatch(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch);
 
     void mollifyData(int C_idx,
-        int coarsest_ln,
-        int finest_ln,
-        double data_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
+                     int coarsest_ln,
+                     int finest_ln,
+                     double data_time,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
 
     void setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> F_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
@@ -110,7 +110,6 @@ private:
                             double data_time,
                             bool initial_time,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level);
-
 
     TimeSteppingType d_ts_type = MIDPOINT_RULE;
 
@@ -131,7 +130,6 @@ private:
     int d_alpha_idx = IBTK::invalid_index;
     int d_alpha_smooth_idx = IBTK::invalid_index;
 
-    
     double d_sigma = 1.0;
 
     int d_hf_column_half_width = 3;

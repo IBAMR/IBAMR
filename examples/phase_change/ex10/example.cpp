@@ -30,11 +30,11 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/LevelSetSurfaceTensionForceFunction.h>
-#include <ibamr/VOFSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/VOFSurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 #include <ibamr/vc_ins_vof_utilities.h>
 
@@ -624,12 +624,12 @@ main(int argc, char* argv[])
         time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
         // Register surface tension force.
-        Pointer<SurfaceTensionForceFunction> surface_tension_force = new VOFSurfaceTensionForceFunction(
-            "SurfaceTensionForceFunction",
-            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-            adv_diff_integrator,
-            nullptr,
-        pcm_vof_var);
+        Pointer<SurfaceTensionForceFunction> surface_tension_force =
+            new VOFSurfaceTensionForceFunction("SurfaceTensionForceFunction",
+                                               app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+                                               adv_diff_integrator,
+                                               nullptr,
+                                               pcm_vof_var);
 
         // Register callback function to multiply the surface tension term with the coefficient.
         MaskSurfaceTensionForceCtx mask_surface_tension_force_ctx;

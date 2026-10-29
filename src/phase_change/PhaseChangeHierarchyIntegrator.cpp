@@ -553,6 +553,18 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
                                       d_reset_specific_heat_fcns_ctx[k]);
     }
 
+    for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
+    {
+        d_reset_kappa_fcns[k](d_T_diffusion_coef_cc_current_idx,
+                              d_T_diffusion_coef_cc_var,
+                              d_hier_math_ops,
+                              -1,
+                              apply_time,
+                              current_time,
+                              new_time,
+                              d_reset_kappa_fcns_ctx[k]);
+    }
+
     if (d_solve_mass_conservation)
     {
         // Keep track of the time-lagged velocity.
@@ -579,6 +591,7 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
 
     d_hier_cc_data_ops->copyData(d_rho_new_idx, d_rho_current_idx);
     d_hier_cc_data_ops->copyData(d_specific_heat_new_idx, d_specific_heat_current_idx);
+    d_hier_cc_data_ops->copyData(d_T_diffusion_coef_cc_new_idx, d_T_diffusion_coef_cc_current_idx);
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
@@ -662,11 +675,30 @@ PhaseChangeHierarchyIntegrator::registerLiquidFractionGradientVariable(
 } // registerLiquidFractionGradientVariable
 
 void
+PhaseChangeHierarchyIntegrator::registerLevelSetVariable(Pointer<CellVariable<NDIM, double>> ls_var)
+{
+    d_ls_var = ls_var;
+    return;
+} // registerLevelSetVariable
+
+Pointer<CellVariable<NDIM, double>>
+PhaseChangeHierarchyIntegrator::getLevelSetVariable() const
+{
+    return d_ls_var;
+} // getLevelSetVariable
+
+void
 PhaseChangeHierarchyIntegrator::registerHeavisideVariable(Pointer<CellVariable<NDIM, double>> H_var)
 {
     d_H_var = H_var;
     return;
 } // registerHeavisideVariable
+
+Pointer<CellVariable<NDIM, double>>
+PhaseChangeHierarchyIntegrator::getHeavisideVariable() const
+{
+    return d_H_var;
+} // getHeavisideVariable
 
 void
 PhaseChangeHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVariable<NDIM, double>> T_var,
@@ -991,6 +1023,14 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSCHarmonicAveraging(int sc_idx, c
 
     return;
 } // interpolateCCTOSCHarmonicAveraging
+
+void
+PhaseChangeHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int /*F_scratch_idx*/, double /*dt*/)
+{
+    // A default function that does nothing. This function is meant to be overridden
+    // in derived classes to add additional terms to the RHS of the energy equation.
+    return;
+} // addTemporalAndLinearTermstoRHSOfEnergyEquation
 
 Pointer<PoissonSolver>
 PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzSolver(Pointer<CellVariable<NDIM, double>> T_var)

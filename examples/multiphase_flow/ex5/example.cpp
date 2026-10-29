@@ -29,9 +29,9 @@
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/LevelSetSurfaceTensionForceFunction.h>
-#include <ibamr/VOFSurfaceTensionForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/VOFSurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 #include <ibamr/vc_ins_vof_utilities.h>
 
@@ -144,7 +144,6 @@ main(int argc, char* argv[])
                                                    << "Valid options are: SEMI_IMPLICIT");
         }
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-
 
         Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
@@ -313,12 +312,12 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> grav_force =
             new IBAMR::VCINSUtilities::GravityForcing("GravityForcing", time_integrator, grav_const);
 
-        Pointer<SurfaceTensionForceFunction> surface_tension_force = new VOFSurfaceTensionForceFunction(
-            "SurfaceTensionForceFunction",
-            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-            adv_diff_integrator,
-            phi_var,
-        nullptr);
+        Pointer<SurfaceTensionForceFunction> surface_tension_force =
+            new VOFSurfaceTensionForceFunction("SurfaceTensionForceFunction",
+                                               app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+                                               adv_diff_integrator,
+                                               phi_var,
+                                               nullptr);
 
         Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(surface_tension_force);

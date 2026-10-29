@@ -251,11 +251,11 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
                     CellIndex<NDIM> ci(it());
-                    const double heaviside = (*H_data)(ci);
-                    const double liquid_fraction = (*lf_data)(ci);
+                    const double alpha_p = (*H_data)(ci);
+                    const double alpha_l = (*lf_data)(ci);
 
-                    (*rho_data)(ci) = (1.0 - heaviside) * d_rho_gas + liquid_fraction * d_rho_liquid +
-                                      (heaviside - liquid_fraction) * d_rho_solid;
+                    (*rho_data)(ci) =
+                        (1.0 - alpha_p) * d_rho_gas + alpha_l * d_rho_liquid + (alpha_p - alpha_l) * d_rho_solid;
                 }
             }
         }
@@ -315,16 +315,16 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                     for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
                     {
                         SideIndex<NDIM> si(it(), axis, 0);
-                        const double heaviside_lower = (*H_data)(si.toCell(0));
-                        const double heaviside_upper = (*H_data)(si.toCell(1));
-                        const double heaviside = 0.5 * (heaviside_lower + heaviside_upper);
+                        const double alpha_p_lower = (*H_data)(si.toCell(0));
+                        const double alpha_p_upper = (*H_data)(si.toCell(1));
+                        const double alpha_p = 0.5 * (alpha_p_lower + alpha_p_upper);
 
-                        const double liquid_fraction_lower = (*lf_data)(si.toCell(0));
-                        const double liquid_fraction_upper = (*lf_data)(si.toCell(1));
-                        const double liquid_fraction = 0.5 * (liquid_fraction_lower + liquid_fraction_upper);
+                        const double alpha_l_lower = (*lf_data)(si.toCell(0));
+                        const double alpha_l_upper = (*lf_data)(si.toCell(1));
+                        const double alpha_l = 0.5 * (alpha_l_lower + alpha_l_upper);
 
-                        (*rho_data)(si) = (1.0 - heaviside) * d_rho_gas + liquid_fraction * d_rho_liquid +
-                                          (heaviside - liquid_fraction) * d_rho_solid;
+                        (*rho_data)(si) =
+                            (1.0 - alpha_p) * d_rho_gas + alpha_l * d_rho_liquid + (alpha_p - alpha_l) * d_rho_solid;
                     }
                 }
             }
@@ -399,14 +399,13 @@ SetFluidProperties::setThermalConductivityPatchData(int kappa_idx,
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
-                const double heaviside = (*H_data)(ci);
-                const double liquid_fraction = (*lf_data)(ci);
-                // harmonic?
 
-                (*kappa_data)(ci) = (d_kappa_gas * d_kappa_liquid * d_kappa_solid) /
-                                    ((1.0 - heaviside) * d_kappa_liquid * d_kappa_solid +
-                                     liquid_fraction * d_kappa_gas * d_kappa_solid +
-                                     (heaviside - liquid_fraction) * d_kappa_gas * d_kappa_liquid);
+                const double alpha_p = (*H_data)(ci);
+                const double alpha_g = 1.0 - alpha_p;
+                const double alpha_l = (*lf_data)(ci);
+
+                (*kappa_data)(ci) =
+                    alpha_g * d_kappa_gas + alpha_l * d_kappa_liquid + (alpha_p - alpha_l) * d_kappa_solid;
             }
         }
     }
@@ -471,12 +470,11 @@ SetFluidProperties::setSpecificHeatPatchData(int specific_heat_idx,
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
-                const double heaviside = (*H_data)(ci);
-                const double liquid_fraction = (*lf_data)(ci);
+                const double alpha_p = (*H_data)(ci);
+                const double alpha_l = (*lf_data)(ci);
 
-                (*specific_heat_data)(ci) = (1.0 - heaviside) * d_specific_heat_gas +
-                                            liquid_fraction * d_specific_heat_liquid +
-                                            (heaviside - liquid_fraction) * d_specific_heat_solid;
+                (*specific_heat_data)(ci) = (1.0 - alpha_p) * d_specific_heat_gas + alpha_l * d_specific_heat_liquid +
+                                            (alpha_p - alpha_l) * d_specific_heat_solid;
             }
         }
     }
@@ -541,10 +539,9 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
-                const double heaviside = (*H_data)(ci);
-                const double liquid_fraction = (*lf_data)(ci);
-                (*mu_data)(ci) = (1.0 - heaviside) * d_mu_gas + liquid_fraction * d_mu_liquid +
-                                 (heaviside - liquid_fraction) * d_mu_solid;
+                const double alpha_p = (*H_data)(ci);
+                const double alpha_l = (*lf_data)(ci);
+                (*mu_data)(ci) = (1.0 - alpha_p) * d_mu_gas + alpha_l * d_mu_liquid + (alpha_p - alpha_l) * d_mu_solid;
             }
         }
     }

@@ -112,26 +112,26 @@ main(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
-        // register liquid fraction
+        // Register liquid fraction
         Pointer<CellVariable<NDIM, double>> lf_var = new CellVariable<NDIM, double>("lf_var");
         Pointer<EnthalpyHierarchyIntegrator> enthalpy_hier_integrator = time_integrator;
         enthalpy_hier_integrator->registerLiquidFractionVariable(lf_var, true);
 
-        // register liquid fraction gradient
+        // Register liquid fraction gradient
         Pointer<CellVariable<NDIM, double>> lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient_var", NDIM);
         enthalpy_hier_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
 
-        // register specific enthalpy
+        // Register specific enthalpy
         Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
         enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
-        // register pcm volume of fraction
+        // Register PCM volume of fraction
         Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
         time_integrator->registerTransportedQuantity(pcm_vof_var, true);
         time_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
         enthalpy_hier_integrator->registerHeavisideVariable(pcm_vof_var);
 
-        // register temperature
+        // Register temperature
         Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
         enthalpy_hier_integrator->registerTemperatureVariable(T_var, true);
 
@@ -142,10 +142,6 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
             "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);
         enthalpy_hier_integrator->setTemperatureInitialCondition(T_var, T_init);
-
-        Pointer<CartGridFunction> lf_init = new muParserCartGridFunction(
-            "lf_init", app_initializer->getComponentDatabase("LiquidFractionInitialConditions"), grid_geometry);
-        enthalpy_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
 
         Pointer<CellVariable<NDIM, double>> rho_cc_var = new CellVariable<NDIM, double>("rho_cc_var");
         enthalpy_hier_integrator->registerDensityVariable(rho_cc_var, true);

@@ -19,7 +19,7 @@ KAPPA_G = 61.0e-3
 CP_G    = 1.1e3
 MU_G    = 0.0
 
-KAPPA_M = 211.0 // thermal conductivity of the mushy zone
+KAPPA_M = KAPPA_M = 0.5*(KAPPA_L + KAPPA_S) // thermal conductivity of the mushy zone
 
 LATENT_HEAT = 3.8384e5
 
@@ -47,10 +47,6 @@ Nx = 640
 Ny = 32                                // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
-
-LiquidFractionInitialConditions{
-  function = "1.0"
-}
 
 TemperatureInitialConditions{
   function = "973.6"

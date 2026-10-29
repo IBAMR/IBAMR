@@ -38,7 +38,12 @@ namespace IBAMR
 namespace VCINSVOFUtilities
 {
 
+/*!
+ * \brief Compute volume fraction in a cell given level set value phi and its
+ * scaled slope dphi.
+ */
 double vof_alpha(const double& phi, const std::array<double, NDIM>& dPhi);
+
 /*!
  * \brief VOF initial condition derived from an existing level set initial condition.
  *
@@ -57,7 +62,7 @@ public:
     VOFInitialConditionFromLevelSet(const std::string& object_name,
                                     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> ls_ic);
 
-    ~VOFInitialConditionFromLevelSet() override = default;
+    ~VOFInitialConditionFromLevelSet() override;
 
     bool isTimeDependent() const override;
 
@@ -69,49 +74,38 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level) override;
 
 private:
+    VOFInitialConditionFromLevelSet() = delete;
+    VOFInitialConditionFromLevelSet(const VOFInitialConditionFromLevelSet&) = delete;
+    VOFInitialConditionFromLevelSet& operator=(const VOFInitialConditionFromLevelSet&) = delete;
+
     std::string d_object_name;
-
-    // Keep the LS initial condition alive for the duration of the run.
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_ls_ic;
-
-    // Scratch storage used to ask the LS IC to write \phi values on each patch.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_phi_scratch_var;
     int d_phi_scratch_idx = IBTK::invalid_index;
 };
 
-/*!\brief Helper that recomputes VOF from the transported level set field each time step.
- *
- * This is the "VOF initialization class" you were using as an advection-diffusion
- * integrate callback in the example. It lives here so the example stays clean.
+/*!
+ * \brief Class to compute VOF from the transported level set field.
  */
-class VOFFromLevelSetInitializer
+class LevelSetToVOFConverter
 {
 public:
-    VOFFromLevelSetInitializer(const std::string& object_name,
-                               SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
-                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> vof_var);
+    LevelSetToVOFConverter(const std::string& object_name,
+                           SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> vof_var);
 
-    ~VOFFromLevelSetInitializer() = default;
+    ~LevelSetToVOFConverter() = default;
 
-    /*!\brief Register the integrateHierarchy callback on the provided integrator. */
-    void registerIntegrateHierarchyCallback();
-
-    /*!\brief Manually compute VOF from LS at a given time.
+    /*!
+     * \brief Compute VOF from LS at a given time.
      *
-     * This is useful right after hierarchy initialization (t0) if you want VOF
-     * populated before the first time step.
      */
-    void computeVOFFromLevelSet(const double time, const bool use_new_context);
-
-    /*!\brief Static trampoline with the signature expected by AdvDiffHierarchyIntegrator. */
-    static void integrateHierarchyCallback(double current_time, double new_time, int cycle_num, void* ctx);
+    void computeVOFFromLevelSet(double time, double current_time, double new_time);
 
 private:
-    void computeVOFInternal(const double time, const int ls_idx, const int vof_idx);
-
     std::string d_object_name;
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_integrator;
+    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_vof_var;
 };
@@ -165,8 +159,6 @@ public:
                                const double rho_gas,
                                const double mu_liquid,
                                const double mu_gas);
-
-    // define multiple for liquid, solid, gas and other things
 
     /*!
      * Destructor for this class.

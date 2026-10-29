@@ -49,80 +49,80 @@
 extern "C"
 {
     void MOLLIFY_IB_4_FC(double* V,
-        const int& V_gcw,
-        const double* U,
-        const int& U_gcw,
+                         const int& V_gcw,
+                         const double* U,
+                         const int& U_gcw,
+                         const int& ilower0,
+                         const int& iupper0,
+                         const int& ilower1,
+                         const int& iupper1
+#if (NDIM == 3)
+                         ,
+                         const int& ilower2,
+                         const int& iupper2
+#endif
+    );
+
+    void CC_CURVATURE_FC(double* K,
+                         const int& K_gcw,
+                         const double* N00,
+                         const double* N01,
+#if (NDIM == 3)
+                         const double* N02,
+#endif
+                         const double* N10,
+                         const double* N11,
+#if (NDIM == 3)
+                         const double* N12,
+                         const double* N20,
+                         const double* N21,
+                         const double* N22,
+#endif
+                         const int& N_gcw,
+                         const int& ilower0,
+                         const int& iupper0,
+                         const int& ilower1,
+                         const int& iupper1,
+#if (NDIM == 3)
+                         const int& ilower2,
+                         const int& iupper2,
+#endif
+                         const double* dx);
+
+    void SC_SURFACE_TENSION_FORCE_FC(
+#if (NDIM == 2)
+        double* F0,
+        double* F1,
+        const int& F_gcw,
+        const double* K,
+        const int& K_gcw,
+        const double* N00,
+        const double* N11,
+        const int& N_gcw,
         const int& ilower0,
         const int& iupper0,
         const int& ilower1,
         const int& iupper1
+#endif
 #if (NDIM == 3)
-        ,
+        double* F0,
+        double* F1,
+        double* F2,
+        const int& F_gcw,
+        const double* K,
+        const int& K_gcw,
+        const double* N00,
+        const double* N11,
+        const double* N22,
+        const int& N_gcw,
+        const int& ilower0,
+        const int& iupper0,
+        const int& ilower1,
+        const int& iupper1,
         const int& ilower2,
         const int& iupper2
 #endif
-);
-
-void CC_CURVATURE_FC(double* K,
-    const int& K_gcw,
-    const double* N00,
-    const double* N01,
-#if (NDIM == 3)
-    const double* N02,
-#endif
-    const double* N10,
-    const double* N11,
-#if (NDIM == 3)
-    const double* N12,
-    const double* N20,
-    const double* N21,
-    const double* N22,
-#endif
-    const int& N_gcw,
-    const int& ilower0,
-    const int& iupper0,
-    const int& ilower1,
-    const int& iupper1,
-#if (NDIM == 3)
-    const int& ilower2,
-    const int& iupper2,
-#endif
-    const double* dx);
-
-void SC_SURFACE_TENSION_FORCE_FC(
-#if (NDIM == 2)
-double* F0,
-double* F1,
-const int& F_gcw,
-const double* K,
-const int& K_gcw,
-const double* N00,
-const double* N11,
-const int& N_gcw,
-const int& ilower0,
-const int& iupper0,
-const int& ilower1,
-const int& iupper1
-#endif
-#if (NDIM == 3)
-double* F0,
-double* F1,
-double* F2,
-const int& F_gcw,
-const double* K,
-const int& K_gcw,
-const double* N00,
-const double* N11,
-const double* N22,
-const int& N_gcw,
-const int& ilower0,
-const int& iupper0,
-const int& ilower1,
-const int& iupper1,
-const int& ilower2,
-const int& iupper2
-#endif
-);
+    );
 
     void HF_CURVATURE_FC(double* K,
                          double* K_valid,
@@ -170,23 +170,21 @@ const int& iupper2
 #endif
                       const double* dx);
 
-                      void SC_SURFACE_TENSION_FORCE_VOF_FC(
-                        double* F0,
-                        double* F1,
-                        const int& F_gcw,
-                        const double* K,
-                        const double* K_valid,
-                        const int& K_gcw,
-                        const double* C,
-                        const int& C_gcw,
-                        const double* N00,
-                        const double* N11,
-                        const int& N_gcw,
-                        const int& ilower0,
-                        const int& iupper0,
-                        const int& ilower1,
-                        const int& iupper1);
-    
+    void SC_SURFACE_TENSION_FORCE_VOF_FC(double* F0,
+                                         double* F1,
+                                         const int& F_gcw,
+                                         const double* K,
+                                         const double* K_valid,
+                                         const int& K_gcw,
+                                         const double* C,
+                                         const int& C_gcw,
+                                         const double* N00,
+                                         const double* N11,
+                                         const int& N_gcw,
+                                         const int& ilower0,
+                                         const int& iupper0,
+                                         const int& ilower1,
+                                         const int& iupper1);
 }
 // Okay, this is okay for a prototype
 namespace IBAMR
@@ -210,7 +208,6 @@ VOFSurfaceTensionForceFunction::VOFSurfaceTensionForceFunction(
             "VOFSurfaceTensionForceFunction: Neither level set nor VOF variable is provided. Please provide one.");
     }
 
-
     if (input_db)
     {
         if (input_db->keyExists("time_stepping_type"))
@@ -231,29 +228,28 @@ VOFSurfaceTensionForceFunction::VOFSurfaceTensionForceFunction(
         d_gradient_tol = input_db->getDoubleWithDefault("gradient_tol", d_gradient_tol);
     }
 
-
 #if (NDIM != 2)
     TBOX_ERROR("VOFSurfaceTensionForceFunction is only implemented for 2D problems.");
 #endif
 
-VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-d_alpha_scratch_var = new CellVariable<NDIM, double>(d_object_name + "::alpha_scratch", 1);
-d_alpha_idx = var_db->registerVariableAndContext(d_alpha_scratch_var,
-                                          var_db->getContext(d_object_name + "::alpha_scratch"),
-                                          IntVector<NDIM>(getAlphaGhostWidth()));
+    d_alpha_scratch_var = new CellVariable<NDIM, double>(d_object_name + "::alpha_scratch", 1);
+    d_alpha_idx = var_db->registerVariableAndContext(d_alpha_scratch_var,
+                                                     var_db->getContext(d_object_name + "::alpha_scratch"),
+                                                     IntVector<NDIM>(getAlphaGhostWidth()));
 
-d_alpha_smooth_var = new CellVariable<NDIM, double>(d_object_name + "::alpha_smooth", 1);
-d_alpha_smooth_idx = var_db->registerVariableAndContext(d_alpha_smooth_var,
-                                        var_db->getContext(d_object_name + "::alpha_smooth"),
-                                        IntVector<NDIM>(getAlphaGhostWidth()));
-if (!d_ls_var.isNull())
-{
-    Pointer<CellVariable<NDIM,double>> phi_cc_var = d_ls_var; 
-    TBOX_ASSERT(!phi_cc_var.isNull());
-    d_phi_idx = var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::Phi"), IntVector<NDIM>(getPhiGhostWidth()));
-}
-
+    d_alpha_smooth_var = new CellVariable<NDIM, double>(d_object_name + "::alpha_smooth", 1);
+    d_alpha_smooth_idx = var_db->registerVariableAndContext(d_alpha_smooth_var,
+                                                            var_db->getContext(d_object_name + "::alpha_smooth"),
+                                                            IntVector<NDIM>(getAlphaGhostWidth()));
+    if (!d_ls_var.isNull())
+    {
+        Pointer<CellVariable<NDIM, double>> phi_cc_var = d_ls_var;
+        TBOX_ASSERT(!phi_cc_var.isNull());
+        d_phi_idx = var_db->registerVariableAndContext(
+            phi_cc_var, var_db->getContext(d_object_name + "::Phi"), IntVector<NDIM>(getPhiGhostWidth()));
+    }
 
     // intentionally blank
     return;
@@ -262,8 +258,8 @@ if (!d_ls_var.isNull())
 int
 VOFSurfaceTensionForceFunction::getPhiGhostWidth() const
 {
-
-    return d_hf_column_half_width + 2;// +2 for the gradient computation ( since alpha is computed from phi). Can also make it return getAlphaGhostWidth() + 1;
+    return d_hf_column_half_width + 2; // +2 for the gradient computation ( since alpha is computed from phi). Can also
+                                       // make it return getAlphaGhostWidth() + 1;
 }
 
 int
@@ -299,17 +295,17 @@ VOFSurfaceTensionForceFunction::computeAlphaFromLevelSetOnPatch(SAMRAI::tbox::Po
         const SAMRAI::pdat::CellIndex<NDIM> ci(it());
         const double phi = (*Phi)(ci);
 
-        std::array<double, NDIM> dPhi{}; 
+        std::array<double, NDIM> dPhi{};
         SAMRAI::pdat::CellIndex<NDIM> ci_xplus(ci);
-    SAMRAI::pdat::CellIndex<NDIM> ci_xminus(ci);
-    SAMRAI::pdat::CellIndex<NDIM> ci_yplus(ci);
-    SAMRAI::pdat::CellIndex<NDIM> ci_yminus(ci);
+        SAMRAI::pdat::CellIndex<NDIM> ci_xminus(ci);
+        SAMRAI::pdat::CellIndex<NDIM> ci_yplus(ci);
+        SAMRAI::pdat::CellIndex<NDIM> ci_yminus(ci);
 
-    ci_xplus(0) += 1;
-ci_xminus(0) -= 1;
+        ci_xplus(0) += 1;
+        ci_xminus(0) -= 1;
 
-ci_yplus(1) += 1;
-ci_yminus(1) -= 1;
+        ci_yplus(1) += 1;
+        ci_yminus(1) -= 1;
         // This is strictly for 2D, it is okay for testing but not final implementation
         dPhi[0] = 0.5 * ((*Phi)(ci_xplus) - (*Phi)(ci_xminus)); // xplus, xminus
         dPhi[1] = 0.5 * ((*Phi)(ci_yplus) - (*Phi)(ci_yminus));
@@ -356,7 +352,8 @@ VOFSurfaceTensionForceFunction::setDataOnPatchHierarchy(
     const IntVector<NDIM> alpha_ghosts(getAlphaGhostWidth());
 
     // d_alpha_idx =
-    //     var_db->registerVariableAndContext(alpha_cc_var, var_db->getContext(d_object_name + "::alpha"), alpha_ghosts);
+    //     var_db->registerVariableAndContext(alpha_cc_var, var_db->getContext(d_object_name + "::alpha"),
+    //     alpha_ghosts);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -432,8 +429,6 @@ VOFSurfaceTensionForceFunction::setDataOnPatchHierarchy(
 
         phi_fill_op->fillData(data_time);
 
-
-
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
@@ -448,7 +443,8 @@ VOFSurfaceTensionForceFunction::setDataOnPatchHierarchy(
 
         // using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         // InterpolationTransactionComponent alpha_smooth_transaction(
-        //     d_alpha_smooth_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
+        //     d_alpha_smooth_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false,
+        //     phi_bc_coef);
         // Pointer<HierarchyGhostCellInterpolation> alpha_smooth_fill_op = new HierarchyGhostCellInterpolation();
         // alpha_smooth_fill_op->initializeOperatorState(alpha_smooth_transaction, hierarchy, coarsest_ln, finest_ln);
 
@@ -513,19 +509,18 @@ VOFSurfaceTensionForceFunction::setDataOnPatchHierarchy(
         alpha_fill_op->initializeOperatorState(alpha_transaction, hierarchy, coarsest_ln, finest_ln);
 
         alpha_fill_op->fillData(data_time);
-
-      
-
     }
-
-    
-
 
     TBOX_ASSERT(interface_bc_coef);
 
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent alpha_smooth_transaction(
-        d_alpha_smooth_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, interface_bc_coef);
+    InterpolationTransactionComponent alpha_smooth_transaction(d_alpha_smooth_idx,
+                                                               "CONSERVATIVE_LINEAR_REFINE",
+                                                               true,
+                                                               "CONSERVATIVE_COARSEN",
+                                                               "LINEAR",
+                                                               false,
+                                                               interface_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> alpha_smooth_fill_op = new HierarchyGhostCellInterpolation();
     alpha_smooth_fill_op->initializeOperatorState(alpha_smooth_transaction, hierarchy, coarsest_ln, finest_ln);
 
@@ -643,17 +638,15 @@ VOFSurfaceTensionForceFunction::setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI:
                                                    const bool,
                                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>)
 {
-TBOX_ASSERT(d_alpha_idx >= 0);
-TBOX_ASSERT(patch->checkAllocated(d_alpha_idx));
-TBOX_ASSERT(patch->checkAllocated(d_alpha_smooth_idx));
+    TBOX_ASSERT(d_alpha_idx >= 0);
+    TBOX_ASSERT(patch->checkAllocated(d_alpha_idx));
+    TBOX_ASSERT(patch->checkAllocated(d_alpha_smooth_idx));
 
-    // conditional directive
-    #if (NDIM == 2)
+// conditional directive
+#if (NDIM == 2)
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-
-
 
     Pointer<CellData<NDIM, double>> alpha = patch->getPatchData(d_alpha_idx);
     Pointer<CellData<NDIM, double>> alpha_smooth = patch->getPatchData(d_alpha_smooth_idx);
@@ -681,8 +674,6 @@ TBOX_ASSERT(patch->checkAllocated(d_alpha_smooth_idx));
                     d_pure_cell_tol,
                     d_gradient_tol);
 
-
-
     // SC_SURFACE_TENSION_FORCE_FC(F_data->getPointer(0), // Add here #if (NDIM == 2)
     //                             F_data->getPointer(1),
     //                             F_data->getGhostCellWidth().max(),
@@ -696,23 +687,23 @@ TBOX_ASSERT(patch->checkAllocated(d_alpha_smooth_idx));
     //                             patch_box.lower(1),
     //                             patch_box.upper(1));
 
-    SideData<NDIM, double> grad_alpha_smooth(patch_box, NDIM, IntVector<NDIM>(2)); // side centered surface tension force
+    SideData<NDIM, double> grad_alpha_smooth(patch_box, NDIM, IntVector<NDIM>(2)); // side centered surface tension
+                                                                                   // force
 
-SC_NORMAL_FC(grad_alpha_smooth.getPointer(0, 0), // Add here #if (NDIM == 2)
-grad_alpha_smooth.getPointer(0, 1),
-grad_alpha_smooth.getPointer(1, 0),
-             grad_alpha_smooth.getPointer(1, 1),
-             grad_alpha_smooth.getGhostCellWidth().max(),
-             alpha_smooth->getPointer(),
-             alpha_smooth->getGhostCellWidth().max(),
-             patch_box.lower(0),
-             patch_box.upper(0),
-             patch_box.lower(1),
-             patch_box.upper(1),
-             dx);
-             
+    SC_NORMAL_FC(grad_alpha_smooth.getPointer(0, 0), // Add here #if (NDIM == 2)
+                 grad_alpha_smooth.getPointer(0, 1),
+                 grad_alpha_smooth.getPointer(1, 0),
+                 grad_alpha_smooth.getPointer(1, 1),
+                 grad_alpha_smooth.getGhostCellWidth().max(),
+                 alpha_smooth->getPointer(),
+                 alpha_smooth->getGhostCellWidth().max(),
+                 patch_box.lower(0),
+                 patch_box.upper(0),
+                 patch_box.lower(1),
+                 patch_box.upper(1),
+                 dx);
 
-    CellData<NDIM, double> K_cv(patch_box, 1, IntVector<NDIM>(1));  // cell centered curvature
+    CellData<NDIM, double> K_cv(patch_box, 1, IntVector<NDIM>(1)); // cell centered curvature
 
     K_cv.fillAll(0.0);
 
@@ -721,17 +712,17 @@ grad_alpha_smooth.getPointer(1, 0),
                     grad_alpha_smooth.getPointer(0, 0),
                     grad_alpha_smooth.getPointer(0, 1),
 #if (NDIM == 3)
-grad_alpha_smooth.getPointer(0, 2),
+                    grad_alpha_smooth.getPointer(0, 2),
 #endif
-grad_alpha_smooth.getPointer(1, 0),
-grad_alpha_smooth.getPointer(1, 1),
+                    grad_alpha_smooth.getPointer(1, 0),
+                    grad_alpha_smooth.getPointer(1, 1),
 #if (NDIM == 3)
-grad_alpha_smooth.getPointer(1, 2),
-grad_alpha_smooth.getPointer(2, 0),
-grad_alpha_smooth.getPointer(2, 1),
-grad_alpha_smooth.getPointer(2, 2),
+                    grad_alpha_smooth.getPointer(1, 2),
+                    grad_alpha_smooth.getPointer(2, 0),
+                    grad_alpha_smooth.getPointer(2, 1),
+                    grad_alpha_smooth.getPointer(2, 2),
 #endif
-grad_alpha_smooth.getGhostCellWidth().max(),
+                    grad_alpha_smooth.getGhostCellWidth().max(),
                     patch_box.lower(0),
                     patch_box.upper(0),
                     patch_box.lower(1),
@@ -742,164 +733,155 @@ grad_alpha_smooth.getGhostCellWidth().max(),
 #endif
                     dx);
 
-Box<NDIM> K_box = patch_box;
-K_box.grow(IntVector<NDIM>(1));
+    Box<NDIM> K_box = patch_box;
+    K_box.grow(IntVector<NDIM>(1));
 
-for (Box<NDIM>::Iterator it(K_box); it; it++)
-{
-    const CellIndex<NDIM> ci(it());
-
-    const double a = (*alpha)(ci);
-
-    const bool interface_cell =
-        a > d_pure_cell_tol &&
-        a < 1.0 - d_pure_cell_tol;
-
-    if (interface_cell &&
-        K_valid(ci) < 0.5)
+    for (Box<NDIM>::Iterator it(K_box); it; it++)
     {
-        K_data(ci) = K_cv(ci);
+        const CellIndex<NDIM> ci(it());
 
-        /*
-         * From this point onward K_valid means that K_data contains
-         * usable curvature, either SHF or CV.
-         */
-        K_valid(ci) = 1.0;
+        const double a = (*alpha)(ci);
+
+        const bool interface_cell = a > d_pure_cell_tol && a < 1.0 - d_pure_cell_tol;
+
+        if (interface_cell && K_valid(ci) < 0.5)
+        {
+            K_data(ci) = K_cv(ci);
+
+            /*
+             * From this point onward K_valid means that K_data contains
+             * usable curvature, either SHF or CV.
+             */
+            K_valid(ci) = 1.0;
+        }
     }
-}
 
-SideData<NDIM, double> grad_alpha(patch_box, NDIM, IntVector<NDIM>(2)); // side centered surface tension force
+    SideData<NDIM, double> grad_alpha(patch_box, NDIM, IntVector<NDIM>(2)); // side centered surface tension force
 
-SC_NORMAL_FC(grad_alpha.getPointer(0, 0), // Add here #if (NDIM == 2)
-             grad_alpha.getPointer(0, 1),
-             grad_alpha.getPointer(1, 0),
-             grad_alpha.getPointer(1, 1),
-             grad_alpha.getGhostCellWidth().max(),
-             alpha->getPointer(),
-             alpha->getGhostCellWidth().max(),
-             patch_box.lower(0),
-             patch_box.upper(0),
-             patch_box.lower(1),
-             patch_box.upper(1),
-             dx);
+    SC_NORMAL_FC(grad_alpha.getPointer(0, 0), // Add here #if (NDIM == 2)
+                 grad_alpha.getPointer(0, 1),
+                 grad_alpha.getPointer(1, 0),
+                 grad_alpha.getPointer(1, 1),
+                 grad_alpha.getGhostCellWidth().max(),
+                 alpha->getPointer(),
+                 alpha->getGhostCellWidth().max(),
+                 patch_box.lower(0),
+                 patch_box.upper(0),
+                 patch_box.lower(1),
+                 patch_box.upper(1),
+                 dx);
 
-//         SC_SURFACE_TENSION_FORCE_FC(F_data->getPointer(0),
-//         F_data->getPointer(1),
-// #if (NDIM == 3)
-//         F_data->getPointer(2),
-// #endif
-//         F_data->getGhostCellWidth().max(),
-//         K.getPointer(),
-//         K.getGhostCellWidth().max(),
-//         N.getPointer(0, 0),
-//         N.getPointer(1, 1),
-// #if (NDIM == 3)
-//         N.getPointer(2, 2),
-// #endif
-//         N.getGhostCellWidth().max(),
-//         patch_box.lower(0),
-//         patch_box.upper(0),
-//         patch_box.lower(1),
-//         patch_box.upper(1)
-// #if (NDIM == 3)
-//             ,
-//         patch_box.lower(2),
-//         patch_box.upper(2)
-// #endif
-//     );
+    //         SC_SURFACE_TENSION_FORCE_FC(F_data->getPointer(0),
+    //         F_data->getPointer(1),
+    // #if (NDIM == 3)
+    //         F_data->getPointer(2),
+    // #endif
+    //         F_data->getGhostCellWidth().max(),
+    //         K.getPointer(),
+    //         K.getGhostCellWidth().max(),
+    //         N.getPointer(0, 0),
+    //         N.getPointer(1, 1),
+    // #if (NDIM == 3)
+    //         N.getPointer(2, 2),
+    // #endif
+    //         N.getGhostCellWidth().max(),
+    //         patch_box.lower(0),
+    //         patch_box.upper(0),
+    //         patch_box.lower(1),
+    //         patch_box.upper(1)
+    // #if (NDIM == 3)
+    //             ,
+    //         patch_box.lower(2),
+    //         patch_box.upper(2)
+    // #endif
+    //     );
 
+    //     CellData<NDIM, double> K(patch_box, 1, IntVector<NDIM>(1));
 
-//     CellData<NDIM, double> K(patch_box, 1, IntVector<NDIM>(1));
+    //     CC_CURVATURE_FC(K.getPointer(),
+    //                     K.getGhostCellWidth().max(),
+    //                     N.getPointer(0, 0),
+    //                     N.getPointer(0, 1),
+    // #if (NDIM == 3)
+    //                     N.getPointer(0, 2),
+    // #endif
+    //                     N.getPointer(1, 0),
+    //                     N.getPointer(1, 1),
+    // #if (NDIM == 3)
+    //                     N.getPointer(1, 2),
+    //                     N.getPointer(2, 0),
+    //                     N.getPointer(2, 1),
+    //                     N.getPointer(2, 2),
+    // #endif
+    //                     N.getGhostCellWidth().max(),
+    //                     patch_box.lower(0),
+    //                     patch_box.upper(0),
+    //                     patch_box.lower(1),
+    //                     patch_box.upper(1),
+    // #if (NDIM == 3)
+    //                     patch_box.lower(2),
+    //                     patch_box.upper(2),
+    // #endif
+    //                     dx);
 
-//     CC_CURVATURE_FC(K.getPointer(),
-//                     K.getGhostCellWidth().max(),
-//                     N.getPointer(0, 0),
-//                     N.getPointer(0, 1),
-// #if (NDIM == 3)
-//                     N.getPointer(0, 2),
-// #endif
-//                     N.getPointer(1, 0),
-//                     N.getPointer(1, 1),
-// #if (NDIM == 3)
-//                     N.getPointer(1, 2),
-//                     N.getPointer(2, 0),
-//                     N.getPointer(2, 1),
-//                     N.getPointer(2, 2),
-// #endif
-//                     N.getGhostCellWidth().max(),
-//                     patch_box.lower(0),
-//                     patch_box.upper(0),
-//                     patch_box.lower(1),
-//                     patch_box.upper(1),
-// #if (NDIM == 3)
-//                     patch_box.lower(2),
-//                     patch_box.upper(2),
-// #endif
-//                     dx);
+    //     Pointer<CellData<NDIM, double>> C = patch->getPatchData(d_C_idx);
+    //     // N = Grad C
+    //     SC_NORMAL_FC(N.getPointer(0, 0),
+    //                  N.getPointer(0, 1),
+    // #if (NDIM == 3)
+    //                  N.getPointer(0, 2),
+    // #endif
+    //                  N.getPointer(1, 0),
+    //                  N.getPointer(1, 1),
+    // #if (NDIM == 3)
+    //                  N.getPointer(1, 2),
+    //                  N.getPointer(2, 0),
+    //                  N.getPointer(2, 1),
+    //                  N.getPointer(2, 2),
+    // #endif
+    //                  N.getGhostCellWidth().max(),
+    //                  C->getPointer(),
+    //                  C->getGhostCellWidth().max(),
+    //                  patch_box.lower(0),
+    //                  patch_box.upper(0),
+    //                  patch_box.lower(1),
+    //                  patch_box.upper(1),
+    // #if (NDIM == 3)
+    //                  patch_box.lower(2),
+    //                  patch_box.upper(2),
+    // #endif
+    //                  dx);
 
-//     Pointer<CellData<NDIM, double>> C = patch->getPatchData(d_C_idx);
-//     // N = Grad C
-//     SC_NORMAL_FC(N.getPointer(0, 0),
-//                  N.getPointer(0, 1),
-// #if (NDIM == 3)
-//                  N.getPointer(0, 2),
-// #endif
-//                  N.getPointer(1, 0),
-//                  N.getPointer(1, 1),
-// #if (NDIM == 3)
-//                  N.getPointer(1, 2),
-//                  N.getPointer(2, 0),
-//                  N.getPointer(2, 1),
-//                  N.getPointer(2, 2),
-// #endif
-//                  N.getGhostCellWidth().max(),
-//                  C->getPointer(),
-//                  C->getGhostCellWidth().max(),
-//                  patch_box.lower(0),
-//                  patch_box.upper(0),
-//                  patch_box.lower(1),
-//                  patch_box.upper(1),
-// #if (NDIM == 3)
-//                  patch_box.lower(2),
-//                  patch_box.upper(2),
-// #endif
-//                  dx);
+    SC_SURFACE_TENSION_FORCE_VOF_FC(F_data->getPointer(0),
+                                    F_data->getPointer(1),
+                                    F_data->getGhostCellWidth().max(),
+                                    K_data.getPointer(),
+                                    K_valid.getPointer(),
+                                    K_data.getGhostCellWidth().max(),
+                                    alpha->getPointer(),
+                                    alpha->getGhostCellWidth().max(),
+                                    grad_alpha.getPointer(0, 0),
+                                    grad_alpha.getPointer(1, 1),
+                                    grad_alpha.getGhostCellWidth().max(),
+                                    patch_box.lower(0),
+                                    patch_box.upper(0),
+                                    patch_box.lower(1),
+                                    patch_box.upper(1));
 
-SC_SURFACE_TENSION_FORCE_VOF_FC(
-    F_data->getPointer(0),
-    F_data->getPointer(1),
-    F_data->getGhostCellWidth().max(),
-    K_data.getPointer(),
-    K_valid.getPointer(),
-    K_data.getGhostCellWidth().max(),
-    alpha->getPointer(),
-    alpha->getGhostCellWidth().max(),
-    grad_alpha.getPointer(0, 0),
-    grad_alpha.getPointer(1, 1),
-    grad_alpha.getGhostCellWidth().max(),
-    patch_box.lower(0),
-    patch_box.upper(0),
-    patch_box.lower(1),
-    patch_box.upper(1));
-
-    #else
+#else
     TBOX_ERROR("Only implemented for 2D");
-    #endif
+#endif
     return;
 }
 
-
-
 void
 VOFSurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
-                                                 int coarsest_ln,
-                                                 int finest_ln,
-                                                 double data_time,
-                                                 Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                                 Pointer<HierarchyGhostCellInterpolation> fill_op)
+                                            int coarsest_ln,
+                                            int finest_ln,
+                                            double data_time,
+                                            Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                            Pointer<HierarchyGhostCellInterpolation> fill_op)
 {
-   
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
@@ -918,22 +900,20 @@ VOFSurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
             const int V_gcw = (smooth_C_data->getGhostCellWidth()).max();
             const int U_gcw = (C_data.getGhostCellWidth()).max();
 
-
-                MOLLIFY_IB_4_FC(V,
-                                V_gcw,
-                                U,
-                                U_gcw,
-                                patch_box.lower(0),
-                                patch_box.upper(0),
-                                patch_box.lower(1),
-                                patch_box.upper(1)
+            MOLLIFY_IB_4_FC(V,
+                            V_gcw,
+                            U,
+                            U_gcw,
+                            patch_box.lower(0),
+                            patch_box.upper(0),
+                            patch_box.lower(1),
+                            patch_box.upper(1)
 #if (NDIM == 3)
-                                    ,
-                                patch_box.lower(2),
-                                patch_box.upper(2)
+                                ,
+                            patch_box.lower(2),
+                            patch_box.upper(2)
 #endif
-                );
-          
+            );
         }
     }
 
@@ -941,7 +921,6 @@ VOFSurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
 
     return;
 } // mollifyData
-
 
 void
 VOFSurfaceTensionForceFunction::registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx)

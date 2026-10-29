@@ -196,9 +196,24 @@ public:
         bool output_lf_gradient_var = true);
 
     /*!
-     * \brief Register Heaviside variable \f$ H \f$ maintained by AdvDiffHierarchyIntegrator.
+     * \brief Register the level set variable \f$ \phi \f$ maintained by AdvDiffHierarchyIntegrator with this class.
+     */
+    void registerLevelSetVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var);
+
+    /*!
+     * \brief Get level set variable maintained by AdvDiffHierarchyIntegrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> getLevelSetVariable() const;
+
+    /*!
+     * \brief Register the Heaviside variable \f$ H \f$ maintained by AdvDiffHierarchyIntegrator with this class.
      */
     void registerHeavisideVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> H_var);
+
+    /*!
+     * \brief Get Heaviside variable maintained by AdvDiffHierarchyIntegrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> getHeavisideVariable() const;
 
     /*!
      * \brief Register temperature variable \f$ T \f$.
@@ -236,7 +251,7 @@ public:
     /*!
      *  \brief Add the temporal and linear terms to the RHS of the energy equation.
      */
-    virtual void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt) = 0;
+    virtual void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt);
 
     /*!
      * \brief Get the solver of the energy equation.
@@ -361,6 +376,7 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_C_var, d_T_temp_rhs_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_specific_heat_var, d_rho_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_C_var, d_rho_vec_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_H_var, d_H_pre_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_D_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_updated_rho_var;

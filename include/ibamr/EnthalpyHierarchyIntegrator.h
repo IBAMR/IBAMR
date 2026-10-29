@@ -21,7 +21,9 @@
 #include <ibamr/config.h>
 
 #include <ibamr/CellConvectiveOperator.h>
+#include <ibamr/EnthalpyCorrectionBcCoefs.h>
 #include <ibamr/PhaseChangeHierarchyIntegrator.h>
+#include <ibamr/vc_ins_vof_utilities.h>
 
 namespace IBTK
 {
@@ -29,11 +31,6 @@ class CartGridFunction;
 class LaplaceOperator;
 class PoissonSolver;
 } // namespace IBTK
-
-namespace IBAMR
-{
-class CellConvectiveOperator;
-} // namespace IBAMR
 
 namespace SAMRAI
 {
@@ -111,11 +108,6 @@ public:
                                        int num_cycles = 1) override;
 
     /*!
-     * Add the temporal and linear terms to the RHS of the energy equation.
-     */
-    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt) override;
-
-    /*!
      * Compute the source term for the Div U equation.
      */
     void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, double new_time) override;
@@ -127,7 +119,11 @@ public:
                                                   bool output_h_var = true);
 
     /*!
-     * Set boundary conditions for \f$ h \f$ variable.
+     * \brief Set boundary conditions for \f$ h \f$ variable.
+     *
+     * Note: This boundary condition object is used only during the advection of enthalpy.
+     * The remaining boundary conditions for the enthalpy correction equation are set using the
+     * EnthalpyCorrectionBcCoefs class.
      */
     void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* h_bc_coef);
 
@@ -135,11 +131,6 @@ public:
      * Write out specialized object state to the given database.
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
-
-    /*!
-     * \brief Register LevelSet variable \f$ \phi \f$ maintained by AdvDiffHierarchyIntegrator.
-     */
-    void registerLevelSetVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> phi_var);
 
     /*!
      * \brief Register liquid fraction variable for extrapolation.
@@ -203,7 +194,7 @@ private:
     /*!
      * \brief Compute enthalpy based on (nonlinear) h-T relation.
      */
-    void computeEnthalpyBasedOnTemperature(int h_idx, int T_idx, int rho_idx, int lf_idx, int H_idx);
+    void computeEnthalpyBasedOnTemperature(int h_idx, int T_idx, int H_idx);
 
     /*!
      * \brief Compute temperature based on (nonlinear) h-T relation.
@@ -211,19 +202,24 @@ private:
     void computeTemperatureBasedOnEnthalpy(int T_idx, int h_idx, int H_idx);
 
     /*!
-     * \brief Update enthalpy using Taylor series \f$ h_{\rm new} = h_{\rm old} + dh/dt (\Delta T) \f$.
+     * \brief Compute temperature derivative \f$ \beta = \frac{\partial T}{\partial h} \f$ with respect to enthalpy.
      */
-    void updateEnthalpy(int h_idx, int T_new_idx, int T_pre_idx);
+    void computeTemperatureDerivative(int dT_dh_idx, int h_idx, int H_idx);
 
     /*!
-     * \brief compute dh/dT based on temperature.
+     * \brief Compute the residual of the enthalpy equation.
      */
-    void computeEnthalpyDerivative(int dh_dT_data, int T_idx, int H_idx);
+    void computeEnthalpyResidual(int h_residual_idx, double current_time, double new_time);
+
+    /*!
+     * \brief Convert the temperature boundary condition to the enthalpy correction boundary condition.
+     */
+    void updateEnthalpyCorrectionBoundaryCondition(double new_time);
 
     /*!
      * \brief Compute liquid fraction.
      */
-    void computeLiquidFraction(int lf_idx, int h_idx, int H_idx);
+    void computeLiquidFractionBasedOnEnthalpy(int lf_idx, int h_idx, int H_idx);
 
     /*!
      * \brief The surface tension force is multiplied by a liquid fraction to zero out the surface tension
@@ -247,15 +243,26 @@ private:
     SAMRAI::tbox::Pointer<CellConvectiveOperator> getLiquidFractionExtrapConvectiveOperator(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_extrap_var);
 
+    // Convert level set to VOF variable.
+    SAMRAI::tbox::Pointer<IBAMR::VCINSVOFUtilities::LevelSetToVOFConverter> d_ls_to_vof_converter;
+
     /*!
-     * Solver variables.
+     * Solver variables related to enthalpy.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_h_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_grad_T_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_pre_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_dh_dT_var;
-
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_delta_h_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_delta_h_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_h_residual_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_h_C_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_h_diffusion_coef_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_dT_dh_var;
+    SAMRAI::tbox::Pointer<EnthalpyCorrectionBcCoefs> d_h_correction_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_h_bc_coef = nullptr;
+
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_delta_h_sol;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_delta_h_rhs;
+
+    bool d_delta_h_solver_needs_init = true;
 
     /*!
      * Patch data descriptor indices for all "state" variables managed by the
@@ -271,9 +278,12 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_grad_T_idx = IBTK::invalid_index;
-    int d_T_pre_idx = IBTK::invalid_index;
-    int d_dh_dT_scratch_idx = IBTK::invalid_index;
+    int d_dT_dh_scratch_idx = IBTK::invalid_index;
+    int d_delta_h_idx = IBTK::invalid_index;
+    int d_delta_h_rhs_idx = IBTK::invalid_index;
+    int d_h_residual_idx = IBTK::invalid_index;
+    int d_h_C_idx = IBTK::invalid_index;
+    int d_h_diffusion_coef_idx = IBTK::invalid_index;
 
     /*!
      * Boolean to output the enthalpy in visit.
@@ -294,18 +304,16 @@ private:
     /*!
      * Inner iteration parameters.
      */
-    int d_max_inner_iterations = 15;
-    double d_lf_iteration_error_tolerance = 1e-8;
+    int d_max_newton_iterations = 15;
+    double d_newton_error_tolerance = 1e-8;
 
     /*!
      * Machineries related to constant extrapolation.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_lf_extrap_var, d_lf_extrap_rhs_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_phi_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> d_lf_extrap_interp_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> d_u_adv_fc_lf_extrap_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_adv_sc_lf_extrap_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_u_adv_cc_lf_extrap_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_normal_lf_extrap_var;
 
     int d_lf_extrap_current_idx = IBTK::invalid_index, d_lf_extrap_new_idx = IBTK::invalid_index,
@@ -313,7 +321,6 @@ private:
     int d_lf_extrap_interp_idx = IBTK::invalid_index;
     int d_u_adv_fc_lf_extrap_current_idx = IBTK::invalid_index;
     int d_u_adv_sc_lf_extrap_current_idx = IBTK::invalid_index;
-    int d_u_adv_cc_lf_extrap_current_idx = IBTK::invalid_index;
     int d_normal_lf_extrap_current_idx = IBTK::invalid_index;
     int d_lf_extrap_rhs_scratch_idx = IBTK::invalid_index;
 
