@@ -40,6 +40,7 @@
 
 #include <CellData.h>
 #include <FaceVariable.h>
+#include <HierarchyCellDataOpsReal.h>
 #include <IntVector.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <MultiblockDataTranslator.h>
@@ -725,6 +726,23 @@ INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, con
     return;
 }
 
+void
+INSHierarchyIntegrator::normalizeFluidSource(const int rhs_idx, const double boundary_flux)
+{
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, 0, d_hierarchy->getFinestLevelNumber());
+    const double integral = hier_cc_data_ops.integral(rhs_idx, d_hier_math_ops->getCellWeightPatchDescriptorIndex());
+    hier_cc_data_ops.addScalar(
+        rhs_idx, rhs_idx, -(integral + boundary_flux) / d_hier_math_ops->getVolumeOfPhysicalDomain());
+    if (d_enable_logging)
+    {
+        const double imbalance =
+            hier_cc_data_ops.integral(rhs_idx, d_hier_math_ops->getCellWeightPatchDescriptorIndex()) + boundary_flux;
+        plog << d_object_name << "::normalizeFluidSource(): net boundary flux             = " << boundary_flux << "\n";
+        plog << d_object_name << "::normalizeFluidSource(): imbalance after normalization = " << imbalance << "\n";
+    }
+    return;
+}
+
 std::vector<RobinBcCoefStrategy<NDIM>*>
 INSHierarchyIntegrator::getSolverPhysicalBcCoefs(const SolverPhysicalBcCoefs bc_coefs)
 {
@@ -1001,6 +1019,7 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     else if (db->keyExists("vorticity_abs_thresh"))
         d_Omega_abs_thresh = db->getDoubleArray("vorticity_abs_thresh");
     if (db->keyExists("normalize_pressure")) d_normalize_pressure = db->getBool("normalize_pressure");
+    if (db->keyExists("normalize_fluid_source")) d_normalize_fluid_source = db->getBool("normalize_fluid_source");
     if (db->keyExists("normalize_velocity")) d_normalize_velocity = db->getBool("normalize_velocity");
     if (db->keyExists("convective_op_type"))
         d_convective_op_type = db->getString("convective_op_type");

@@ -1590,6 +1590,16 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_div_idx);
         d_hier_cc_data_ops->subtract(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
+        // The Stokes operator moves the prescribed boundary velocity to the right-hand side.
+        if (d_normalize_fluid_source && d_normalize_pressure)
+        {
+            normalizeFluidSource(
+                rhs_vec->getComponentDescriptorIndex(1),
+                d_bc_helper->computeNetBoundaryFlux(d_U_bc_coefs,
+                                                    sol_vec->getComponentDescriptorIndex(0),
+                                                    new_time,
+                                                    d_hier_math_ops->getCellWeightPatchDescriptorIndex()));
+        }
     }
 
     // Set solution components to equal most recent approximations to u(n+1) and
@@ -2429,6 +2439,16 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         d_velocity_solver_needs_init = true;
         d_stokes_solver_needs_init = true;
     }
+
+    // The solvers also depend on K1, which for BDF2 changes with the ratio of
+    // successive time step sizes.
+    if (!d_K1_previous || !IBTK::rel_equal_eps(K1, *d_K1_previous))
+    {
+        d_velocity_solver_needs_init = true;
+        d_pressure_solver_needs_init = true;
+        d_stokes_solver_needs_init = true;
+    }
+    d_K1_previous = K1;
 
     // Setup solver vectors.
     const bool has_velocity_nullspace = d_normalize_velocity && !PoissonUtilities::isDamped(U_problem_coefs);

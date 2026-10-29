@@ -1,0 +1,3 @@
+Fixed: IBAMR::INSStaggeredHierarchyIntegrator now re-initializes its velocity, pressure, and Stokes solvers when the BDF2 coefficient of the time derivative changes.
+<br>
+(Boyce Griffith, 2026/10/09)

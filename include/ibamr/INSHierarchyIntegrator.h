@@ -469,6 +469,13 @@ protected:
     void tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx);
 
     /*!
+     * Subtract a constant from the cell-centered continuity right-hand side \p rhs_idx so that its composite integral
+     * plus \p boundary_flux, the net outward flux of the prescribed boundary velocity not contained in \p rhs_idx,
+     * vanishes. Callers check normalize_fluid_source and normalize_pressure.
+     */
+    void normalizeFluidSource(int rhs_idx, double boundary_flux);
+
+    /*!
      * The physical boundary conditions used by the solver boundary condition
      * objects: those registered with the integrator, or homogeneous Dirichlet
      * conditions.
@@ -590,6 +597,15 @@ protected:
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
     bool d_normalize_pressure = false;
+
+    /*!
+     * This boolean value determines whether the continuity right-hand side is
+     * shifted by a constant that balances the discrete fluid source against the
+     * prescribed boundary flux, so that the pressure problem has a solution.
+     *
+     * This parameter only affects the case in which d_normalize_pressure is set.
+     */
+    bool d_normalize_fluid_source = false;
 
     /*!
      * This boolean value determines whether the velocity is normalized to have

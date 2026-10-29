@@ -17,6 +17,7 @@
 #include <ibamr/StokesBcCoefStrategy.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 
 #include <tbox/Array.h>
@@ -27,6 +28,7 @@
 #include <BoundaryBox.h>
 #include <Box.h>
 #include <CartesianPatchGeometry.h>
+#include <CellData.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <Patch.h>
@@ -131,6 +133,74 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ nullptr);
     return;
 } // enforceNormalVelocityBoundaryConditions
+
+double
+StaggeredStokesPhysicalBoundaryHelper::computeNetBoundaryFlux(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                                              const int u_data_idx,
+                                                              const double fill_time,
+                                                              const int wgt_cc_idx) const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(u_bc_coefs.size() == NDIM);
+    TBOX_ASSERT(d_hierarchy);
+#endif
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+        u_bc_coefs, /*p_bc_coef*/ nullptr, u_data_idx, IBTK::invalid_index, /*homogeneous_bc*/ false);
+    double flux = 0.0;
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+    for (int ln = 0; ln <= finest_hier_level; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const int patch_num = p();
+            Pointer<Patch<NDIM>> patch = level->getPatch(patch_num);
+            Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+            if (pgeom->getTouchesRegularBoundary())
+            {
+                Pointer<CellData<NDIM, double>> wgt_data = patch->getPatchData(wgt_cc_idx);
+                const double* const dx = pgeom->getDx();
+                Box<NDIM> bc_coef_box;
+                BoundaryBox<NDIM> trimmed_bdry_box;
+                const Array<BoundaryBox<NDIM>>& physical_codim1_boxes =
+                    d_physical_codim1_boxes[ln].find(patch_num)->second;
+                const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+                for (int n = 0; n < n_physical_codim1_boxes; ++n)
+                {
+                    const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                    StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
+                    const unsigned int location_index = bdry_box.getLocationIndex();
+                    const unsigned int bdry_normal_axis = location_index / 2;
+                    const bool is_lower = location_index % 2 == 0;
+                    Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
+                                                             bcoef_data,
+                                                             gcoef_data,
+                                                             Pointer<Variable<NDIM>>(),
+                                                             *patch,
+                                                             trimmed_bdry_box,
+                                                             fill_time);
+                    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+                    {
+                        const hier::Index<NDIM>& i = it();
+                        if (IBTK::rel_equal_eps((*acoef_data)(i, 0), 1.0))
+                        {
+                            // The face i borders the interior cell i (lower) or i - e_axis (upper).
+                            hier::Index<NDIM> i_c = i;
+                            if (!is_lower) i_c(bdry_normal_axis) -= 1;
+                            flux += (is_lower ? -1.0 : +1.0) * (*gcoef_data)(i, 0) * (*wgt_data)(i_c) /
+                                    dx[bdry_normal_axis];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ nullptr);
+    return IBTK_MPI::sumReduction(flux);
+} // computeNetBoundaryFlux
 
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(const int u_data_idx,

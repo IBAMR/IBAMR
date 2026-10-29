@@ -112,8 +112,7 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                          const int data_idx,
                                          const int dof_index_idx,
                                          Pointer<PatchLevel<NDIM>> patch_level,
-                                         Pointer<RefineSchedule<NDIM>> data_synch_sched,
-                                         Pointer<RefineSchedule<NDIM>> ghost_fill_sched)
+                                         Pointer<RefineSchedule<NDIM>> data_synch_sched)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM>> data_var;
@@ -153,15 +152,6 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     {
         TBOX_ERROR("PETScVecUtilities::copyFromPatchLevelVec():\n"
                    << "  unsupported data centering type for variable " << data_var->getName() << "\n");
-    }
-    if (ghost_fill_sched)
-    {
-        Pointer<RefineClasses<NDIM>> ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
-        RefineAlgorithm<NDIM> ghost_fill_alg;
-        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, nullptr);
-        ghost_fill_alg.resetSchedule(ghost_fill_sched);
-        ghost_fill_sched->fillData(0.0);
-        ghost_fill_sched->reset(ghost_fill_config);
     }
     return;
 } // copyFromPatchLevelVec

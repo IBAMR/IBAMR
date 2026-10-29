@@ -237,12 +237,8 @@ main(int argc, char* argv[])
         // Copy PETSc Vec to SAMRAI vec
         Pointer<RefineSchedule<NDIM>> data_synch_sched =
             PETScVecUtilities::constructDataSynchSchedule(f_sc_idx, patch_hierarchy->getPatchLevel(finest_ln));
-        PETScVecUtilities::copyFromPatchLevelVec(Y,
-                                                 f_sc_idx,
-                                                 u_dof_index_idx,
-                                                 patch_hierarchy->getPatchLevel(finest_ln),
-                                                 data_synch_sched,
-                                                 Pointer<RefineSchedule<NDIM>>(nullptr));
+        PETScVecUtilities::copyFromPatchLevelVec(
+            Y, f_sc_idx, u_dof_index_idx, patch_hierarchy->getPatchLevel(finest_ln), data_synch_sched);
 
         // Setup SAMRAI vector objects.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);

@@ -109,7 +109,6 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
 
     // Setup SAMRAI communication objects.
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
-    d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, d_level);
     return;
 } // initializeSolverStateSpecialized
 
