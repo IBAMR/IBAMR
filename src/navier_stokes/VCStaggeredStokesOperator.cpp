@@ -117,6 +117,11 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
         d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
+
+    // Set the prescribed normal velocity before the fill, which interpolates from these values at coarse-fine
+    // interfaces.
+    d_bc_helper->enforceNormalVelocityBoundaryConditions(
+        U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc, x.getCoarsestLevelNumber(), x.getFinestLevelNumber());
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
