@@ -53,6 +53,10 @@ namespace IBTK
 /*!
  * \brief Class NodeDataSynchronization encapsulates the operations required to
  * "synchronize" node-centered values defined at patch boundaries.
+ *
+ * A node value shared by several patches of a level takes the value of
+ * the patch that contains the highest cell touching it, comparing the last
+ * coordinate first.
  */
 class NodeDataSynchronization : public SAMRAI::tbox::DescribedClass
 {

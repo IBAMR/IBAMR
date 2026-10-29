@@ -51,10 +51,13 @@ namespace IBTK
  * "synchronizing" edge-centered values in an axis-by-axis manner at patch
  * boundaries.
  *
- * \note We synchronize data one axis at a time because edge-centered values can
- * be shared by more than two patches.  For instance, to synchronize edge values
- * in three spatial dimensions, we first synchronize values in the x direction,
- * then in the y direction, and finally in the z direction.
+ * \note An edge value shared by several patches belongs to the patch that
+ * contains the highest cell touching it, comparing the last coordinate first.
+ * Where that cell is in the level, two patches can tell which of them owns the
+ * value, but at the border of a level it may be missing, and then the owner is
+ * the patch with the highest cell that is present.  We therefore synchronize
+ * one axis at a time: each pass compares two patches, and later passes
+ * override earlier ones.
  */
 class EdgeSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {

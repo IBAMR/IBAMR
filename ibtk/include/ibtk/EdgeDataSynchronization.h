@@ -53,6 +53,10 @@ namespace IBTK
 /*!
  * \brief Class EdgeDataSynchronization encapsulates the operations required to
  * "synchronize" edge-centered values defined at patch boundaries.
+ *
+ * An edge value shared by several patches of a level takes the value of
+ * the patch that contains the highest cell touching it, comparing the last
+ * coordinate first.
  */
 class EdgeDataSynchronization : public SAMRAI::tbox::DescribedClass
 {
