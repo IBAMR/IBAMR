@@ -34,6 +34,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
@@ -442,10 +443,6 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
     if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
     if (d_N_vec) free_vector_components(*d_N_vec);
     if (d_Phi_rhs_vec) free_vector_components(*d_Phi_rhs_vec);
-    for (const auto& U_nul_vec : d_U_nul_vecs)
-    {
-        if (U_nul_vec) free_vector_components(*U_nul_vec);
-    }
     return;
 } // ~INSCollocatedHierarchyIntegrator
 
@@ -1650,6 +1647,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_coarsest_reset_ln = coarsest_level;
     d_finest_reset_ln = finest_level;
     d_vectors_need_init = true;
+    d_nul_vecs_need_init = true;
     d_convective_op_needs_init = true;
     d_velocity_solver_needs_init = true;
     d_pressure_solver_needs_init = true;
@@ -1951,7 +1949,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
     }
 
     // Setup solver vectors.
-    const bool has_velocity_nullspace = d_normalize_velocity && IBTK::abs_equal_eps(rho, 0.0);
+    const bool has_velocity_nullspace = d_normalize_velocity && !PoissonUtilities::isDamped(U_problem_coefs);
     const bool has_pressure_nullspace = d_normalize_pressure;
     if (d_vectors_need_init)
     {
@@ -1973,36 +1971,13 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
         d_Phi_rhs_vec = d_Phi_vec->cloneVector(d_object_name + "::Phi_rhs_vec");
 
-        for (const auto& U_nul_vec : d_U_nul_vecs)
-        {
-            if (U_nul_vec) free_vector_components(*U_nul_vec);
-        }
-        const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
-        d_U_nul_vecs.resize(n_U_nul_vecs);
-
-        if (has_velocity_nullspace)
-        {
-            for (unsigned int k = 0; k < NDIM; ++k)
-            {
-                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name + "::U_nul_vec_U_" + std::to_string(k));
-                d_U_nul_vecs[k]->allocateVectorData(current_time);
-                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-                {
-                    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                    {
-                        Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                        Pointer<CellData<NDIM, double>> U_nul_data =
-                            patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        U_nul_data->fillAll(0.0);
-                        U_nul_data->fill(1.0, k);
-                    }
-                }
-            }
-        }
-
         d_vectors_need_init = false;
     }
+    updateNullSpaceVectors(current_time,
+                           has_velocity_nullspace,
+                           has_pressure_nullspace,
+                           d_U_scratch_vec,
+                           Pointer<SAMRAIVectorReal<NDIM, double>>());
 
     // Setup boundary conditions objects.
     setSolverPhysicalBcCoefs(SolverPhysicalBcCoefs::REGISTERED);
@@ -2047,7 +2022,13 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(true);
-                if (has_velocity_nullspace) p_velocity_solver->setNullSpace(false, d_U_nul_vecs);
+                if (has_velocity_nullspace)
+                {
+#if !defined(NDEBUG)
+                    TBOX_ASSERT(!d_nul_vecs_need_init);
+#endif
+                    p_velocity_solver->setNullSpace(false, d_U_nul_vecs);
+                }
             }
             d_velocity_solver->initializeSolverState(*d_U_scratch_vec, *d_U_rhs_vec);
             d_velocity_solver_needs_init = false;
