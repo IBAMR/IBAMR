@@ -29,11 +29,13 @@
 
 #include <BoundaryBox.h>
 #include <Box.h>
-#include <CartesianGridGeometry.h>
+#include <BoxList.h>
 #include <CartesianPatchGeometry.h>
 #include <CoarseFineBoundary.h>
+#include <GridGeometry.h>
 #include <Patch.h>
 #include <PatchHierarchy.h>
+#include <PatchLevel.h>
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideIndex.h>
@@ -67,6 +69,61 @@ static Timer* t_solve_system;
 static Timer* t_solve_system_hypre;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
+
+// Return the period to give hypre in direction d: the period of the domain if the level has cells at both ends of the
+// domain in that direction, else zero. hypre does not store the faces at the upper end of a periodic grid, so the grid
+// of a level that does not extend across the periodic boundary must not be periodic.
+int
+get_hypre_period(const PatchLevel<NDIM>& level, const std::string& object_name, const unsigned int d)
+{
+    const int period = level.getGridGeometry()->getPeriodicShift(level.getRatio())(d);
+    if (period == 0)
+    {
+        return 0;
+    }
+    const Box<NDIM> domain = level.getPhysicalDomain().getBoundingBox();
+    Box<NDIM> lower_end = domain;
+    lower_end.upper(d) = domain.lower(d);
+    Box<NDIM> upper_end = domain;
+    upper_end.lower(d) = domain.upper(d);
+    IntVector<NDIM> to_lower_end(0);
+    to_lower_end(d) = domain.lower(d) - domain.upper(d);
+
+    // The cells of the level at the lower and upper end of the domain, with the upper ones shifted to the lower end, so
+    // that the cells on the two sides of the periodic boundary coincide.
+    BoxList<NDIM> lower_cells, upper_cells;
+    for (int n = 0; n < level.getBoxes().getNumberOfBoxes(); ++n)
+    {
+        const Box<NDIM> lower_box = level.getBoxes()[n] * lower_end;
+        if (!lower_box.empty())
+        {
+            lower_cells.appendItem(lower_box);
+        }
+        const Box<NDIM> upper_box = level.getBoxes()[n] * upper_end;
+        if (!upper_box.empty())
+        {
+            upper_cells.appendItem(Box<NDIM>::shift(upper_box, to_lower_end));
+        }
+    }
+    if (lower_cells.isEmpty() || upper_cells.isEmpty())
+    {
+        return 0;
+    }
+    BoxList<NDIM> upper_only(upper_cells);
+    upper_only.removeIntersections(lower_cells);
+    BoxList<NDIM> lower_only(lower_cells);
+    lower_only.removeIntersections(upper_cells);
+    if (!upper_only.isEmpty() || !lower_only.isEmpty())
+    {
+        TBOX_ERROR(object_name << "::initializeSolverState():\n"
+                               << "  patches of level " << level.getLevelNumber()
+                               << " adjacent to the two periodic boundaries in direction " << d
+                               << " are not periodic images of each other\n"
+                               << "  the patches adjacent to the lower and upper boundary must be periodic images, or "
+                                  "one of the two boundaries must have no adjacent patch\n");
+    }
+    return period;
+}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -281,10 +338,6 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid and variables and assemble the grid.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geometry = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_level->getRatio();
-    const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift(ratio);
-
     HYPRE_SStructGridCreate(communicator, NDIM, NPARTS, &d_grid);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
@@ -297,7 +350,7 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     std::array<HYPRE_Int, 3> hypre_periodic_shift;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        hypre_periodic_shift[d] = periodic_shift(d);
+        hypre_periodic_shift[d] = get_hypre_period(*d_level, d_object_name, d);
     }
     for (int d = NDIM; d < 3; ++d)
     {
