@@ -89,6 +89,111 @@ static Timer* t_fill_data_refine;
 static Timer* t_fill_data_set_physical_bcs;
 } // namespace
 
+// Extends the temporary coarse data quadratically beyond physical boundaries before the coarse-fine interpolation reads
+// it.
+class HierarchyGhostCellInterpolation::CoarseDataExtension : public RefinePatchStrategy<NDIM>
+{
+public:
+    explicit CoarseDataExtension(const HierarchyGhostCellInterpolation& ghost_fill);
+
+    void setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const IntVector<NDIM>& ghost_width_to_fill) override;
+
+    IntVector<NDIM> getRefineOpStencilWidth() const override;
+
+    void preprocessRefine(Patch<NDIM>& fine,
+                          const Patch<NDIM>& coarse,
+                          const Box<NDIM>& fine_box,
+                          const IntVector<NDIM>& ratio) override;
+
+    void postprocessRefine(Patch<NDIM>& fine,
+                           const Patch<NDIM>& coarse,
+                           const Box<NDIM>& fine_box,
+                           const IntVector<NDIM>& ratio) override;
+
+private:
+    const HierarchyGhostCellInterpolation& d_ghost_fill;
+    CartExtrapPhysBdryOp d_extrap_op;
+};
+
+HierarchyGhostCellInterpolation::CoarseDataExtension::CoarseDataExtension(
+    const HierarchyGhostCellInterpolation& ghost_fill)
+    : d_ghost_fill(ghost_fill)
+{
+    d_extrap_op.setExtrapolationType("QUADRATIC");
+    return;
+} // CoarseDataExtension
+
+void
+HierarchyGhostCellInterpolation::CoarseDataExtension::setPhysicalBoundaryConditions(
+    Patch<NDIM>& /*patch*/,
+    const double /*fill_time*/,
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
+{
+    // intentionally blank
+    return;
+} // setPhysicalBoundaryConditions
+
+IntVector<NDIM>
+HierarchyGhostCellInterpolation::CoarseDataExtension::getRefineOpStencilWidth() const
+{
+    return 0;
+} // getRefineOpStencilWidth
+
+void
+HierarchyGhostCellInterpolation::CoarseDataExtension::preprocessRefine(Patch<NDIM>& /*fine*/,
+                                                                       const Patch<NDIM>& /*coarse*/,
+                                                                       const Box<NDIM>& /*fine_box*/,
+                                                                       const IntVector<NDIM>& /*ratio*/)
+{
+    // intentionally blank
+    return;
+} // preprocessRefine
+
+void
+HierarchyGhostCellInterpolation::CoarseDataExtension::postprocessRefine(Patch<NDIM>& fine,
+                                                                        const Patch<NDIM>& coarse,
+                                                                        const Box<NDIM>& /*fine_box*/,
+                                                                        const IntVector<NDIM>& /*ratio*/)
+{
+    // Only the patches of the hierarchy interpolate from coarse data at coarse-fine interfaces.
+    if (!fine.inHierarchy())
+    {
+        return;
+    }
+
+    // A coarse patch narrower than three cells normal to a physical boundary keeps the extension set by the
+    // extrapolation type of the transaction component.
+    Pointer<PatchGeometry<NDIM>> pgeom = coarse.getPatchGeometry();
+    if (!pgeom->getTouchesRegularBoundary())
+    {
+        return;
+    }
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        if ((pgeom->getTouchesRegularBoundary(d, 0) || pgeom->getTouchesRegularBoundary(d, 1)) &&
+            coarse.getBox().numberCells(d) < 3)
+        {
+            return;
+        }
+    }
+
+    // SAMRAI passes the temporary coarse patch as const; its data are scratch data of the schedule.
+    Patch<NDIM>& coarse_patch = const_cast<Patch<NDIM>&>(coarse);
+    for (unsigned int comp_idx = 0; comp_idx < d_ghost_fill.d_transaction_comps.size(); ++comp_idx)
+    {
+        if (d_ghost_fill.d_cf_bdry_ops[comp_idx])
+        {
+            const int data_idx = d_ghost_fill.d_transaction_comps[comp_idx].d_dst_data_idx;
+            d_extrap_op.setPatchDataIndex(data_idx);
+            d_extrap_op.setPhysicalBoundaryConditions(
+                coarse_patch, 0.0, coarse.getPatchData(data_idx)->getGhostCellWidth());
+        }
+    }
+    return;
+} // postprocessRefine
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
@@ -330,6 +435,15 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
     }
 
+    // The coarse data is extended before the coarse-fine interpolations read it.
+    d_coarse_extension = nullptr;
+    if (std::any_of(
+            d_cf_bdry_ops.begin(), d_cf_bdry_ops.end(), [](const auto& cf_bdry_op) { return !cf_bdry_op.isNull(); }))
+    {
+        d_coarse_extension = std::make_unique<CoarseDataExtension>(*this);
+        refine_patch_strategies.insert(refine_patch_strategies.begin(), d_coarse_extension.get());
+    }
+
     d_refine_strategy =
         std::make_unique<RefinePatchStrategySet>(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
 
@@ -561,6 +675,7 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
 
     d_refine_alg.setNull();
     d_refine_strategy = nullptr;
+    d_coarse_extension = nullptr;
     d_refine_scheds.clear();
 
     // Indicate that the operator is NOT initialized.
