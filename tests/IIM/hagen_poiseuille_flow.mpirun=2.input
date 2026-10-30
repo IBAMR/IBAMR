@@ -57,20 +57,20 @@ END_TIME                   = 10 * DT            // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 //VISCOUS_TS_TYPE = "BACKWARD_EULER"
-CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"      // convective time stepping type
-CONVECTIVE_OP_TYPE         = "STABILIZED_PPM"       // convective differencing discretization type
-CONVECTIVE_FORM            = "ADVECTIVE"            // how to compute the convective terms
-NORMALIZE_PRESSURE         = FALSE                   // whether to explicitly force the pressure to have mean zero
-ERROR_ON_DT_CHANGE         = TRUE                   // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL        = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U                   = TRUE
-OUTPUT_P                   = TRUE
-OUTPUT_F                   = TRUE
-OUTPUT_OMEGA               = TRUE
-OUTPUT_DIV_U               = TRUE
-ENABLE_LOGGING             = TRUE
+CONVECTIVE_TS_TYPE        = "ADAMS_BASHFORTH"      // convective time stepping type
+CONVECTIVE_OP_TYPE        = "STABILIZED_PPM"       // convective differencing discretization type
+CONVECTIVE_FORM           = "ADVECTIVE"            // how to compute the convective terms
+NORMALIZE_PRESSURE        = FALSE                   // whether to explicitly force the pressure to have mean zero
+ERROR_ON_DT_CHANGE        = TRUE                   // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING         = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                = 1                      // size of tag buffer used by grid generation algorithm
+REGRID_FLUID_CFL_INTERVAL = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U                  = TRUE
+OUTPUT_P                  = TRUE
+OUTPUT_F                  = TRUE
+OUTPUT_OMEGA              = TRUE
+OUTPUT_DIV_U              = TRUE
+ENABLE_LOGGING            = TRUE
 
 
 // Penalty parameter
@@ -217,14 +217,14 @@ VelocityBcCoefs_2 {
 }
 
 IBHierarchyIntegrator {
-   start_time          = START_TIME
-   end_time            = END_TIME
-   grow_dt             = GROW_DT
-   num_cycles          = NUM_CYCLES
-   regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT
-   error_on_dt_change  = ERROR_ON_DT_CHANGE
-   enable_logging      = ENABLE_LOGGING
+   start_time                       = START_TIME
+   end_time                         = END_TIME
+   grow_dt                          = GROW_DT
+   num_cycles                       = NUM_CYCLES
+   regrid_fluid_cfl_interval        = REGRID_FLUID_CFL_INTERVAL
+   dt_max                           = DT
+   error_on_dt_change               = ERROR_ON_DT_CHANGE
+   enable_logging                   = ENABLE_LOGGING
    enable_logging_solver_iterations = FALSE
 }
 

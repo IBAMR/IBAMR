@@ -19,29 +19,29 @@ DS0 = DX0
 DS = DX_FINEST
 
 // solver parameters
-DELTA_FUNCTION      = "IB_4"
-SOLVER_TYPE         = "STAGGERED"         // the fluid solver to use (STAGGERED or COLLOCATED)
-START_TIME          = 0.0e0               // initial simulation time
-END_TIME            = 500.0               // final simulation time
-GROW_DT             = 1.1e0               // growth factor for timesteps
-NUM_CYCLES          = 1                   // number of cycles of fixed-point iteration
-CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"   // convective time stepping type
-CONVECTIVE_OP_TYPE  = "PPM"               // convective differencing discretization type
-CONVECTIVE_FORM     = "ADVECTIVE"         // how to compute the convective terms
-NORMALIZE_PRESSURE  = FALSE               // whether to explicitly force the pressure to have mean zero
-CFL_MAX             = 0.15                // maximum CFL number
-DT_INIT             = 6.25e-1*DX_FINEST   // initial timestep size
-DT_MAX              = 100.0*DT_INIT       // maximum timestep size
-ERROR_ON_DT_CHANGE  = FALSE               // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING   = TRUE                // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER          = 1                   // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL = 0.8                 // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U            = TRUE
-OUTPUT_P            = TRUE
-OUTPUT_F            = FALSE
-OUTPUT_OMEGA        = TRUE
-OUTPUT_DIV_U        = TRUE
-ENABLE_LOGGING      = TRUE
+DELTA_FUNCTION            = "IB_4"
+SOLVER_TYPE               = "STAGGERED"         // the fluid solver to use (STAGGERED or COLLOCATED)
+START_TIME                = 0.0e0               // initial simulation time
+END_TIME                  = 500.0               // final simulation time
+GROW_DT                   = 1.1e0               // growth factor for timesteps
+NUM_CYCLES                = 1                   // number of cycles of fixed-point iteration
+CONVECTIVE_TS_TYPE        = "ADAMS_BASHFORTH"   // convective time stepping type
+CONVECTIVE_OP_TYPE        = "PPM"               // convective differencing discretization type
+CONVECTIVE_FORM           = "ADVECTIVE"         // how to compute the convective terms
+NORMALIZE_PRESSURE        = FALSE               // whether to explicitly force the pressure to have mean zero
+CFL_MAX                   = 0.15                // maximum CFL number
+DT_INIT                   = 6.25e-1*DX_FINEST   // initial timestep size
+DT_MAX                    = 100.0*DT_INIT       // maximum timestep size
+ERROR_ON_DT_CHANGE        = FALSE               // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING         = TRUE                // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                = 1                   // size of tag buffer used by grid generation algorithm
+REGRID_FLUID_CFL_INTERVAL = 0.8                 // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U                  = TRUE
+OUTPUT_P                  = TRUE
+OUTPUT_F                  = FALSE
+OUTPUT_OMEGA              = TRUE
+OUTPUT_DIV_U              = TRUE
+ENABLE_LOGGING            = TRUE
 
 VelocityBcCoefs_0 {
    t_half = 0.5
@@ -81,16 +81,16 @@ VelocityBcCoefs_1 {
 }
 
 IBHierarchyIntegrator {
-   start_time          = START_TIME
-   end_time            = END_TIME
-   grow_dt             = GROW_DT
-   num_cycles          = NUM_CYCLES
-   regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_init             = DT_INIT
-   dt_max              = DT_MAX
-   error_on_dt_change  = ERROR_ON_DT_CHANGE
-   tag_buffer          = TAG_BUFFER
-   enable_logging      = ENABLE_LOGGING
+   start_time                = START_TIME
+   end_time                  = END_TIME
+   grow_dt                   = GROW_DT
+   num_cycles                = NUM_CYCLES
+   regrid_fluid_cfl_interval = REGRID_FLUID_CFL_INTERVAL
+   dt_init                   = DT_INIT
+   dt_max                    = DT_MAX
+   error_on_dt_change        = ERROR_ON_DT_CHANGE
+   tag_buffer                = TAG_BUFFER
+   enable_logging            = ENABLE_LOGGING
 
    // Setting for implicit integrator
    eliminate_eulerian_vars    = FALSE
