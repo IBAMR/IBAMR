@@ -108,6 +108,15 @@ CellNoCornersFillPattern::setTargetPatchLevelNumber(const int level_num)
     return;
 } // setTargetPatchLevelNumber
 
+bool
+CellNoCornersFillPattern::computesSameOverlapsAs(const VariableFillPattern<NDIM>& other) const
+{
+    if (!VariableFillPattern<NDIM>::computesSameOverlapsAs(other)) return false;
+    const auto& other_pattern = static_cast<const CellNoCornersFillPattern&>(other);
+    return d_stencil_width == other_pattern.d_stencil_width &&
+           d_overwrite_interior == other_pattern.d_overwrite_interior;
+} // computesSameOverlapsAs
+
 IntVector<NDIM>&
 CellNoCornersFillPattern::getStencilWidth()
 {

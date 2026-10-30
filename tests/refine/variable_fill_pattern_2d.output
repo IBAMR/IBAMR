@@ -1,0 +1,12 @@
+one level, default registered first, default: face ghosts set 48 of 48, corner ghosts set 2 of 2
+one level, default registered first, no corners: face ghosts set 48 of 48, corner ghosts set 0 of 2
+one level, no corners registered first, default: face ghosts set 48 of 48, corner ghosts set 2 of 2
+one level, no corners registered first, no corners: face ghosts set 48 of 48, corner ghosts set 0 of 2
+one level, no corners, stencil width 1: face ghosts set 48 of 96, corner ghosts set 0 of 8
+one level, no corners, stencil width 2: face ghosts set 96 of 96, corner ghosts set 0 of 8
+one level, time interpolated, no corners: face ghosts set 48 of 48, corner ghosts set 0 of 2
+two levels, default: face ghosts set 64 of 64, corner ghosts set 4 of 4
+two levels, IBTK no corners: face ghosts set 64 of 64, corner ghosts set 4 of 4
+two levels, SAMRAI first layer no corners: face ghosts set 64 of 64, corner ghosts set 4 of 4
+one level, locally active, time interpolated: face ghosts set 48 of 48, corner ghosts set 2 of 2
+one level, locally active, time interpolated, second item: face ghosts set 48 of 48, corner ghosts set 2 of 2
