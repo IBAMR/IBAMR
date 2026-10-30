@@ -401,38 +401,55 @@ protected:
     /*
      * Advection velocity data.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>> d_u_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>, bool> d_u_is_div_free;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+        d_u_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
+             bool,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+        d_u_is_div_free;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::FaceVariable<NDIM, double>>>
         d_u_fcn;
     bool d_compute_init_velocity = true, d_compute_half_velocity = true, d_compute_final_velocity = true;
 
     /*
      * Source term data.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> d_F_var;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_F_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_F_fcn;
 
     /*
      * Transported quantities.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> d_Q_var;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_u_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>>
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_F_map;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, ConvectiveDifferencingType>
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             ConvectiveDifferencingType,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_difference_form;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_init;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>>
+             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_bc_coef;
 
     /*
@@ -440,7 +457,8 @@ protected:
      * the time integral of the advective flux corresponding to that quantity.
      */
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_flux_integral_var;
 
     /*
@@ -452,10 +470,12 @@ protected:
      * velocity is not discretely divergence free.
      */
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_q_integral_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::FaceVariable<NDIM, double>>>
         d_u_integral_var;
 
     /*

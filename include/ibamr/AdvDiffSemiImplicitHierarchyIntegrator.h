@@ -326,20 +326,34 @@ protected:
     /*!
      * Transported quantities.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> d_N_var, d_N_old_var;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_N_var, d_N_old_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>>
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_N_map, d_Q_N_old_map;
 
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, TimeSteppingType>
-        d_Q_convective_time_stepping_type, d_Q_init_convective_time_stepping_type;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, std::string> d_Q_convective_op_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>>
+             TimeSteppingType,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_convective_time_stepping_type, d_Q_init_convective_time_stepping_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             std::string,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_convective_op_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_convective_op_input_db;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, SAMRAI::tbox::Pointer<ConvectiveOperator>>
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<ConvectiveOperator>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_convective_op;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, bool> d_Q_convective_op_needs_init;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             bool,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_convective_op_needs_init;
 
 private:
     /*!

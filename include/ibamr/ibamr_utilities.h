@@ -66,6 +66,18 @@ struct less<SAMRAI::tbox::Pointer<T>>
 };
 } // namespace std
 
+namespace IBAMR
+{
+template <typename T>
+struct SAMRAIPointerLess
+{
+    inline bool operator()(const SAMRAI::tbox::Pointer<T>& k1, const SAMRAI::tbox::Pointer<T>& k2) const
+    {
+        return std::less<T*>{}(k1.getPointer(), k2.getPointer());
+    }
+};
+} // namespace IBAMR
+
 //////////////////////////////////////////////////////////////////////////////
 
 #endif // #ifndef included_IBAMR_ibamr_utilities

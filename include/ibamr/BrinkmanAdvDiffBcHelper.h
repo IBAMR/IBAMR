@@ -287,7 +287,10 @@ private:
     /*!
      * Map for storing transported variables and various registered BCs
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, std::vector<BCProperties>> d_Q_bc;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             std::vector<BCProperties>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_bc;
 
     /*!
      * Patch data required for computing additional forcing for inhomogeneous Neumann and Robin BCs

@@ -565,9 +565,13 @@ protected:
      * Advection velocity data.
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>> d_u_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>, bool> d_u_is_div_free;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
+             bool,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+        d_u_is_div_free;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::FaceVariable<NDIM, double>>>
         d_u_fcn;
 
     /*!
@@ -575,9 +579,13 @@ protected:
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> d_F_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_F_fcn;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, bool> d_F_output;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             bool,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_F_output;
 
     /*!
      * Diffusion coefficient data
@@ -585,10 +593,12 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>> d_diffusion_coef_var,
         d_diffusion_coef_rhs_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::SideVariable<NDIM, double>>>
         d_diffusion_coef_fcn;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>>
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::SideVariable<NDIM, double>>>
         d_diffusion_coef_rhs_map;
 
     /*!
@@ -596,44 +606,72 @@ protected:
      */
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> d_Q_var, d_Q_rhs_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>>
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_u_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>>
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_F_map, d_Q_Q_rhs_map;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, TimeSteppingType>
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             TimeSteppingType,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_diffusion_time_stepping_type;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, ConvectiveDifferencingType>
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             ConvectiveDifferencingType,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_difference_form;
 
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, double> d_Q_diffusion_coef;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>>
+             double,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_diffusion_coef;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_diffusion_coef_variable;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, bool> d_Q_is_diffusion_coef_variable;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, double> d_Q_damping_coef;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             bool,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_is_diffusion_coef_variable;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             double,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_damping_coef;
 
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>>
+             SAMRAI::tbox::Pointer<IBTK::CartGridFunction>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_init;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>>
+             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_bc_coef;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, bool> d_Q_output;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             bool,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_output;
 
     /*!
      * Objects to keep track of the resetting functions.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, std::vector<ResetPropertiesFcnPtr>>
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             std::vector<ResetPropertiesFcnPtr>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
         d_Q_reset_fcns;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, std::vector<void*>> d_Q_reset_fcns_ctx;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             std::vector<void*>,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_reset_fcns_ctx;
     std::vector<int> d_Q_reset_priority;
 
     /*!
      * Refine and coarsening types for Q.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>, std::string> d_Q_refine_map,
-        d_Q_coarsen_map;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>,
+             std::string,
+             IBAMR::SAMRAIPointerLess<SAMRAI::pdat::CellVariable<NDIM, double>>>
+        d_Q_refine_map, d_Q_coarsen_map;
 
     /*
      * Hierarchy operations objects.
