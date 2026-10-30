@@ -142,28 +142,28 @@ PhiBcCoefs {
 }
 
 // Simulation Parameters
-START_TIME           = 0.0e0
-END_TIME             = 65.0e0
-GROW_DT              = 2.0e0
-MAX_INTEGRATOR_STEPS = 1000000000
-CFL_MAX              = 0.5
-NUM_INS_CYCLES       = 1
-CONVECTIVE_FORM      = "CONSERVATIVE"
-NORMALIZE_PRESSURE   = TRUE
-VORTICITY_TAGGING    = TRUE
-TAG_BUFFER           = 2
-REGRID_CFL_INTERVAL  = 0.2       // REGRID_CFL_INTERVAL
-DT_MAX               = 0.0025
-OUTPUT_U             = TRUE
-OUTPUT_P             = TRUE
-OUTPUT_F             = TRUE
-OUTPUT_OMEGA         = TRUE
-OUTPUT_DIV_U         = TRUE
-OUTPUT_RHO           = TRUE
-OUTPUT_MU            = TRUE
-RHO_IS_CONST         = FALSE
-MU_IS_CONST          = FALSE
-ERROR_ON_DT_CHANGE   = FALSE
+START_TIME                = 0.0e0
+END_TIME                  = 65.0e0
+GROW_DT                   = 2.0e0
+MAX_INTEGRATOR_STEPS      = 1000000000
+CFL_MAX                   = 0.5
+NUM_INS_CYCLES            = 1
+CONVECTIVE_FORM           = "CONSERVATIVE"
+NORMALIZE_PRESSURE        = TRUE
+VORTICITY_TAGGING         = TRUE
+TAG_BUFFER                = 2
+REGRID_FLUID_CFL_INTERVAL = 0.2       // REGRID_FLUID_CFL_INTERVAL
+DT_MAX                    = 0.0025
+OUTPUT_U                  = TRUE
+OUTPUT_P                  = TRUE
+OUTPUT_F                  = TRUE
+OUTPUT_OMEGA              = TRUE
+OUTPUT_DIV_U              = TRUE
+OUTPUT_RHO                = TRUE
+OUTPUT_MU                 = TRUE
+RHO_IS_CONST              = FALSE
+MU_IS_CONST               = FALSE
+ERROR_ON_DT_CHANGE        = FALSE
 
 // Application
 PRECOND_REINIT_INTERVAL      = 1

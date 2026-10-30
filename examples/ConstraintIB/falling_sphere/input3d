@@ -13,27 +13,27 @@ L = 16.0                                  // width of computational domain
 DX_FINEST = L/NFINEST
 
 // solver parameters
-DELTA_FUNCTION       = "IB_4"
-SOLVER_TYPE          = "STAGGERED"                // the fluid solver to use (STAGGERED or COLLOCATED)
-START_TIME           = 0.0e0                      // initial simulation time
-END_TIME             = 100.0                      // final simulation time
-MAX_INTEGRATOR_STEPS = 10000000000000             // Max no of steps.
-GROW_DT              = 2.0e0                      // growth factor for timesteps
-NUM_CYCLES           = 1                          // number of cycles of fixed-point iteration
-CONVECTIVE_OP_TYPE   = "PPM"                      // convective differencing discretization type
-CONVECTIVE_FORM      = "ADVECTIVE"                // how to compute the convective terms
-NORMALIZE_PRESSURE   = FALSE                      // whether to explicitly force the pressure to have mean zero
-CFL_MAX              = 0.1                        // maximum CFL number
-DT_MAX               = 0.0001                     // maximum timestep size
-VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL  = 0.3                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U             = TRUE
-OUTPUT_P             = TRUE
-OUTPUT_F             = FALSE
-OUTPUT_OMEGA         = TRUE
-OUTPUT_DIV_U         = TRUE
-ENABLE_LOGGING       = TRUE
+DELTA_FUNCTION            = "IB_4"
+SOLVER_TYPE               = "STAGGERED"                // the fluid solver to use (STAGGERED or COLLOCATED)
+START_TIME                = 0.0e0                      // initial simulation time
+END_TIME                  = 100.0                      // final simulation time
+MAX_INTEGRATOR_STEPS      = 10000000000000             // Max no of steps.
+GROW_DT                   = 2.0e0                      // growth factor for timesteps
+NUM_CYCLES                = 1                          // number of cycles of fixed-point iteration
+CONVECTIVE_OP_TYPE        = "PPM"                      // convective differencing discretization type
+CONVECTIVE_FORM           = "ADVECTIVE"                // how to compute the convective terms
+NORMALIZE_PRESSURE        = FALSE                      // whether to explicitly force the pressure to have mean zero
+CFL_MAX                   = 0.1                        // maximum CFL number
+DT_MAX                    = 0.0001                     // maximum timestep size
+VORTICITY_TAGGING         = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                = 2                          // size of tag buffer used by grid generation algorithm
+REGRID_FLUID_CFL_INTERVAL = 0.3                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U                  = TRUE
+OUTPUT_P                  = TRUE
+OUTPUT_F                  = FALSE
+OUTPUT_OMEGA              = TRUE
+OUTPUT_DIV_U              = TRUE
+ENABLE_LOGGING            = TRUE
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -117,16 +117,16 @@ VelocityBcCoefs_2 {
 
 
 IBHierarchyIntegrator {
-   start_time           = START_TIME
-   end_time             = END_TIME
-   grow_dt              = GROW_DT
-   num_cycles           = NUM_CYCLES
-   regrid_cfl_interval  = REGRID_CFL_INTERVAL
-   dt_max               = DT_MAX
-   enable_logging       = ENABLE_LOGGING
-   max_integrator_steps = MAX_INTEGRATOR_STEPS
-   error_on_dt_change   = TRUE
-   warn_on_dt_change    = TRUE
+   start_time                = START_TIME
+   end_time                  = END_TIME
+   grow_dt                   = GROW_DT
+   num_cycles                = NUM_CYCLES
+   regrid_fluid_cfl_interval = REGRID_FLUID_CFL_INTERVAL
+   dt_max                    = DT_MAX
+   enable_logging            = ENABLE_LOGGING
+   max_integrator_steps      = MAX_INTEGRATOR_STEPS
+   error_on_dt_change        = TRUE
+   warn_on_dt_change         = TRUE
 }
 
 ConstraintIBMethod {
