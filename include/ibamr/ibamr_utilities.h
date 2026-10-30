@@ -22,6 +22,9 @@
 
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
+
+#include <functional>
+
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
 #define IBAMR_DO_ONCE(task)                                                                                            \
@@ -54,17 +57,19 @@ static const bool ENABLE_TIMERS = true;
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
 
-namespace std
+namespace SAMRAI
 {
+namespace tbox
+{
+// Order Pointers for std::map and std::set, which libc++ may compare with std::less<> instead of std::less<Key>.
 template <typename T>
-struct less<SAMRAI::tbox::Pointer<T>>
+inline bool
+operator<(const Pointer<T>& k1, const Pointer<T>& k2)
 {
-    inline bool operator()(const SAMRAI::tbox::Pointer<T>& k1, const SAMRAI::tbox::Pointer<T>& k2) const
-    {
-        return k1.getPointer() < k2.getPointer();
-    }
-};
-} // namespace std
+    return std::less<T*>()(k1.getPointer(), k2.getPointer());
+}
+} // namespace tbox
+} // namespace SAMRAI
 
 //////////////////////////////////////////////////////////////////////////////
 
