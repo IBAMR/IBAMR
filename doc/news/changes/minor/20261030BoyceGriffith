@@ -1,0 +1,3 @@
+Fixed: Maps and sets keyed by SAMRAI::tbox::Pointer now compile with recent versions of libc++.
+<br>
+(Boyce Griffith, 2026/10/30)
