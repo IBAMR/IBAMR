@@ -105,7 +105,7 @@ SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
     auto it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
-        TBOX_ERROR("CCPoissonSolverManager::allocateSolver():\n"
+        TBOX_ERROR("SCPoissonSolverManager::allocateSolver():\n"
                    << "  unrecognized solver type: " << solver_type << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
