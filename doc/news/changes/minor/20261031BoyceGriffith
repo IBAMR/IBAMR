@@ -1,0 +1,3 @@
+Fixed: The Stokes FAC preconditioners now use homogeneous Dirichlet velocity and homogeneous Neumann pressure conditions when given null boundary condition objects, and no longer require a boundary helper on fully periodic hierarchies.
+<br>
+(Boyce Griffith, 2026/10/31)

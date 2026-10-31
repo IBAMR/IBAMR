@@ -69,6 +69,9 @@ namespace IBAMR
  * condition objects read them; they keep these values on return.  The velocity
  * and pressure data of the vectors need a ghost cell width of at least one.
  *
+ * If the level has physical boundaries, setPhysicalBoundaryHelper() must be called before initialization with a
+ * helper that has cached boundary data for the hierarchy.
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public StaggeredStokesSolver
