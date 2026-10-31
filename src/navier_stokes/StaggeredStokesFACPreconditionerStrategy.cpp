@@ -158,6 +158,19 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
       d_gcw(ghost_cell_width),
       d_coarse_solver_default_options_prefix(default_options_prefix + "level_0_")
 {
+    // Setup a default boundary condition object that specifies homogeneous
+    // Dirichlet boundary conditions for the velocity and homogeneous Neumann
+    // boundary conditions for the pressure.
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        auto p_default_U_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_U_bc_coef);
+        p_default_U_bc_coef->setBoundaryValue(2 * d, 0.0);
+        p_default_U_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
+        auto p_default_P_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_P_bc_coef);
+        p_default_P_bc_coef->setBoundarySlope(2 * d, 0.0);
+        p_default_P_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
+    }
+
     // Get values from the input database.
     if (input_db)
     {
@@ -736,7 +749,10 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
         d_coarse_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
-        d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
+        if (d_bc_helper)
+        {
+            d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
+        }
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
