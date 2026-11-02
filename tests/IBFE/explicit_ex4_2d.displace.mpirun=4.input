@@ -47,7 +47,7 @@ NORMALIZE_PRESSURE         = FALSE                  // whether to explicitly for
 ERROR_ON_DT_CHANGE         = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL        = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+REGRID_FLUID_CFL_INTERVAL  = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U                   = FALSE
 OUTPUT_P                   = FALSE
 OUTPUT_F                   = FALSE
@@ -103,8 +103,8 @@ IBHierarchyIntegrator {
    enable_logging      = ENABLE_LOGGING
    enable_logging_solver_iterations = FALSE
 
-   regrid_structure_cfl_interval = REGRID_CFL_INTERVAL
-   regrid_fluid_cfl_interval = 9999
+   regrid_structure_cfl_interval = REGRID_FLUID_CFL_INTERVAL
+   regrid_fluid_cfl_interval     = 9999
 }
 
 IBFEMethod {

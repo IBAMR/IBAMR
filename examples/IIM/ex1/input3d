@@ -46,7 +46,7 @@ DT                           = 0.25*CFL_MAX*DX   // maximum timestep size
 ERROR_ON_DT_CHANGE           = TRUE              // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING            = TRUE              // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                   = 4                 // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL          = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+REGRID_FLUID_CFL_INTERVAL    = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U                     = TRUE
 OUTPUT_P                     = TRUE
 OUTPUT_F                     = TRUE
@@ -139,13 +139,13 @@ VelocityBcCoefs_2 {
 }
 
 IBHierarchyIntegrator {
-   start_time          = START_TIME
-   end_time            = END_TIME
-   grow_dt             = GROW_DT
-   regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT
-   error_on_dt_change  = ERROR_ON_DT_CHANGE
-   enable_logging      = ENABLE_LOGGING
+   start_time                = START_TIME
+   end_time                  = END_TIME
+   grow_dt                   = GROW_DT
+   regrid_fluid_cfl_interval = REGRID_FLUID_CFL_INTERVAL
+   dt_max                    = DT
+   error_on_dt_change        = ERROR_ON_DT_CHANGE
+   enable_logging            = ENABLE_LOGGING
 }
 
 IIMethod {

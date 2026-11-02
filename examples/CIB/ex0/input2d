@@ -21,30 +21,30 @@ L = N*DX                     // length of domain
 DT = VISC_CFL*DX^2/MU        // maximum timestep size
 
 // solver parameters
-petsc_options_file   = "petsc_options.dat"
-MOBILITY_SOLVER_TYPE = "DIRECT"              // options are "KRYLOV" or "DIRECT"
-DELTA_FUNCTION       = "IB_4"
-START_TIME           = 0.0e0                 // initial simulation time
-END_TIME             = DT                    // final simulation time
-GROW_DT              = 1.0e0                 // growth factor for timesteps
-NUM_CYCLES_INS       = 1                     // number of cycles of fixed-point iteration
-CREEPING_FLOW        = TRUE                  // turn convection (v.grad v) on/off in INS
-DIFFUSION_TIME_STEPPING = "BACKWARD_EULER"   // used both in INS and AdvDiff Solvers (for implicit Laplacian^n+1)
-ADVECTION_TIME_STEPPING = "FORWARD_EULER"    // used in AdvDiff Solver (for explicit form of (v.grad C)^n )
-CONVECTIVE_TS_TYPE      = "FORWARD_EULER"    // convective time stepping type used in INS solver
-CONVECTIVE_OP_TYPE  = "CENTERED"             // convective differencing discretization type; used in both INS and Adv-Diff solver
-CONVECTIVE_FORM     = "CONSERVATIVE"         // how to compute the convective terms; used in both INS and Adv-Diff solver
-CFL_MAX             = 0.1                    // maximum CFL number
-ERROR_ON_DT_CHANGE  = TRUE                   // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING   = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER          = 2                      // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U            = TRUE
-OUTPUT_P            = TRUE
-OUTPUT_F            = TRUE
-OUTPUT_OMEGA        = TRUE
-OUTPUT_DIV_U        = FALSE
-ENABLE_LOGGING      = FALSE
+petsc_options_file        = "petsc_options.dat"
+MOBILITY_SOLVER_TYPE      = "DIRECT"              // options are "KRYLOV" or "DIRECT"
+DELTA_FUNCTION            = "IB_4"
+START_TIME                = 0.0e0                 // initial simulation time
+END_TIME                  = DT                    // final simulation time
+GROW_DT                   = 1.0e0                 // growth factor for timesteps
+NUM_CYCLES_INS            = 1                     // number of cycles of fixed-point iteration
+CREEPING_FLOW             = TRUE                  // turn convection (v.grad v) on/off in INS
+DIFFUSION_TIME_STEPPING   = "BACKWARD_EULER"   // used both in INS and AdvDiff Solvers (for implicit Laplacian^n+1)
+ADVECTION_TIME_STEPPING   = "FORWARD_EULER"    // used in AdvDiff Solver (for explicit form of (v.grad C)^n )
+CONVECTIVE_TS_TYPE        = "FORWARD_EULER"    // convective time stepping type used in INS solver
+CONVECTIVE_OP_TYPE        = "CENTERED"             // convective differencing discretization type; used in both INS and Adv-Diff solver
+CONVECTIVE_FORM           = "CONSERVATIVE"         // how to compute the convective terms; used in both INS and Adv-Diff solver
+CFL_MAX                   = 0.1                    // maximum CFL number
+ERROR_ON_DT_CHANGE        = TRUE                   // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING         = FALSE                  // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                = 2                      // size of tag buffer used by grid generation algorithm
+REGRID_FLUID_CFL_INTERVAL = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U                  = TRUE
+OUTPUT_P                  = TRUE
+OUTPUT_F                  = TRUE
+OUTPUT_OMEGA              = TRUE
+OUTPUT_DIV_U              = FALSE
+ENABLE_LOGGING            = FALSE
 
 
 // AMR parameters
@@ -52,17 +52,17 @@ MAX_LEVELS = 1                            // maximum number of levels in locally
 REF_RATIO  = 4                            // refinement ratio between levels
 
 IBHierarchyIntegrator {
-   start_time          = START_TIME
-   end_time            = END_TIME
-   grow_dt             = GROW_DT
-   num_cycles          = NUM_CYCLES_INS
-   regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT
-   error_on_dt_change  = ERROR_ON_DT_CHANGE
-   warn_on_dt_change   = TRUE
-   tag_buffer          = TAG_BUFFER
-   enable_logging      = ENABLE_LOGGING
-   time_stepping_type  = "MIDPOINT_RULE"
+   start_time                = START_TIME
+   end_time                  = END_TIME
+   grow_dt                   = GROW_DT
+   num_cycles                = NUM_CYCLES_INS
+   regrid_fluid_cfl_interval = REGRID_FLUID_CFL_INTERVAL
+   dt_max                    = DT
+   error_on_dt_change        = ERROR_ON_DT_CHANGE
+   warn_on_dt_change         = TRUE
+   tag_buffer                = TAG_BUFFER
+   enable_logging            = ENABLE_LOGGING
+   time_stepping_type        = "MIDPOINT_RULE"
 }
 
 num_structures = 1

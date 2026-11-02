@@ -169,35 +169,35 @@ PhiBcCoefs {
 
 
 // Simulation Parameters
-DELTA_FUNCTION       = "IB_6"
-SOLVER_TYPE          = "STAGGERED"
-DISCRETIZATION_FORM  = "CONSERVATIVE"
-START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   10.0e0    // final simulation time
-GROW_DT              =   2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS =   10000000  // max number of simulation timesteps
-CFL_MAX              =   0.3   
-NUM_INS_CYCLES       =   2
+DELTA_FUNCTION                      = "IB_6"
+SOLVER_TYPE                         = "STAGGERED"
+DISCRETIZATION_FORM                 = "CONSERVATIVE"
+START_TIME                          = 0.0e0     // initial simulation time
+END_TIME                            = 10.0e0    // final simulation time
+GROW_DT                             = 2.0e0     // growth factor for timesteps
+MAX_INTEGRATOR_STEPS                = 10000000  // max number of simulation timesteps
+CFL_MAX                             = 0.3
+NUM_INS_CYCLES                      = 2
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "PPM"
-CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
-INIT_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"
-CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"    // convective time stepping type
-NORMALIZE_PRESSURE   = TRUE
-VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL  = 0.2                        // regrid whenever any material point could have moved 0.2 meshwidths since previous regrid
-DT_MAX               = 5e-5
-OUTPUT_U             = TRUE
-OUTPUT_P             = TRUE
-OUTPUT_F             = TRUE
-OUTPUT_OMEGA         = TRUE
-OUTPUT_DIV_U         = TRUE
-OUTPUT_RHO           = TRUE
-OUTPUT_MU            = TRUE
-RHO_IS_CONST         = FALSE
-MU_IS_CONST          = FALSE
-ERROR_ON_DT_CHANGE   = FALSE
-VORTICITY_REL_THRESH = 0.25
+CONVECTIVE_FORM                     = "CONSERVATIVE"                // how to compute the convective terms
+INIT_CONVECTIVE_TS_TYPE             = "MIDPOINT_RULE"
+CONVECTIVE_TS_TYPE                  = "MIDPOINT_RULE"    // convective time stepping type
+NORMALIZE_PRESSURE                  = TRUE
+VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
+REGRID_FLUID_CFL_INTERVAL           = 0.2                        // regrid whenever any material point could have moved 0.2 meshwidths since previous regrid
+DT_MAX                              = 5e-5
+OUTPUT_U                            = TRUE
+OUTPUT_P                            = TRUE
+OUTPUT_F                            = TRUE
+OUTPUT_OMEGA                        = TRUE
+OUTPUT_DIV_U                        = TRUE
+OUTPUT_RHO                          = TRUE
+OUTPUT_MU                           = TRUE
+RHO_IS_CONST                        = FALSE
+MU_IS_CONST                         = FALSE
+ERROR_ON_DT_CHANGE                  = FALSE
+VORTICITY_REL_THRESH                = 0.25
 
 // Application
 PRECOND_REINIT_INTERVAL = 1
@@ -220,11 +220,11 @@ ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"             // convective differencing discr
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 
 IBHierarchyIntegrator {
-   start_time            = START_TIME            // initial simulation time
-   end_time              = END_TIME              // final simulation time
-   grow_dt               = GROW_DT               // growth factor for timesteps
-   max_integrator_steps  = MAX_INTEGRATOR_STEPS   // max number of simulation timesteps
-   regrid_cfl_interval   = REGRID_CFL_INTERVAL
+   start_time                = START_TIME            // initial simulation time
+   end_time                  = END_TIME              // final simulation time
+   grow_dt                   = GROW_DT               // growth factor for timesteps
+   max_integrator_steps      = MAX_INTEGRATOR_STEPS   // max number of simulation timesteps
+   regrid_fluid_cfl_interval = REGRID_FLUID_CFL_INTERVAL
    
    dt_max             = DT_MAX 
    num_cycles         = NUM_INS_CYCLES

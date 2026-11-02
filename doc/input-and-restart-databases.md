@@ -40,14 +40,14 @@ to the application. Hence, finally, the input file might contain the following
 input database:
 ```
 IBHierarchyIntegrator {
-   start_time          = START_TIME
-   end_time            = END_TIME
-   grow_dt             = GROW_DT
-   num_cycles          = NUM_CYCLES
-   regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT
-   error_on_dt_change  = ERROR_ON_DT_CHANGE
-   enable_logging      = ENABLE_LOGGING
+   start_time                = START_TIME
+   end_time                  = END_TIME
+   grow_dt                   = GROW_DT
+   num_cycles                = NUM_CYCLES
+   regrid_fluid_cfl_interval = REGRID_FLUID_CFL_INTERVAL
+   dt_max                    = DT
+   error_on_dt_change        = ERROR_ON_DT_CHANGE
+   enable_logging            = ENABLE_LOGGING
 
    use_structure_predictor = FALSE
 }

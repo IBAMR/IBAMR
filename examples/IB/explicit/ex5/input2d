@@ -30,23 +30,23 @@ PERIODIC_Y = 1
 // ---------------------------------------------------------------------------
 
 // solver parameters
-DELTA_FUNCTION      = "IB_4"             // "IB_3","IB_4",or "IB_6"
-START_TIME          = 0.0e0              // initial simulation time
-END_TIME            = N_STEPS*DT         // final simulation time
-GROW_DT             = 1.0e0              // growth factor for timesteps
-NUM_CYCLES          = 1                  // number of cycles of fixed-point iteration
-IB_TS_TYPE          = "MIDPOINT_RULE"    // time stepping rule for IB points
-VISCOUS_TS_TYPE     = "CRANK_NICOLSON"   // viscous time stepping rule
-CREEPING_FLOW       = TRUE               // whether to use the creeping Stokes equations (no v*grad(v) term)
-CONVECTIVE_TS_TYPE  = "TRAPEZOIDAL_RULE" // convective time stepping rule (if NUM_CYCLES>1)
-CONVECTIVE_OP_TYPE  = "CENTERED"         // convective differencing discretization type
-CONVECTIVE_FORM     = "CONSERVATIVE"     // how to compute the convective terms
-NORMALIZE_PRESSURE  = TRUE               // whether to explicitly force the pressure to have mean zero
-CFL_MAX             = 0.5                // maximum CFL number
-ERROR_ON_DT_CHANGE  = TRUE               // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING   = FALSE              // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER          = 1                  // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL = 0.5                // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+DELTA_FUNCTION            = "IB_4"             // "IB_3","IB_4",or "IB_6"
+START_TIME                = 0.0e0              // initial simulation time
+END_TIME                  = N_STEPS*DT         // final simulation time
+GROW_DT                   = 1.0e0              // growth factor for timesteps
+NUM_CYCLES                = 1                  // number of cycles of fixed-point iteration
+IB_TS_TYPE                = "MIDPOINT_RULE"    // time stepping rule for IB points
+VISCOUS_TS_TYPE           = "CRANK_NICOLSON"   // viscous time stepping rule
+CREEPING_FLOW             = TRUE               // whether to use the creeping Stokes equations (no v*grad(v) term)
+CONVECTIVE_TS_TYPE        = "TRAPEZOIDAL_RULE" // convective time stepping rule (if NUM_CYCLES>1)
+CONVECTIVE_OP_TYPE        = "CENTERED"         // convective differencing discretization type
+CONVECTIVE_FORM           = "CONSERVATIVE"     // how to compute the convective terms
+NORMALIZE_PRESSURE        = TRUE               // whether to explicitly force the pressure to have mean zero
+CFL_MAX                   = 0.5                // maximum CFL number
+ERROR_ON_DT_CHANGE        = TRUE               // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING         = FALSE              // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                = 1                  // size of tag buffer used by grid generation algorithm
+REGRID_FLUID_CFL_INTERVAL = 0.5                // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 
 // ---------------------------------------------------------------------------
 
@@ -81,16 +81,16 @@ GriddingAlgorithm {
 }
 
 IBHierarchyIntegrator {
-   time_stepping_type  = IB_TS_TYPE
-   start_time          = START_TIME
-   end_time            = END_TIME
-   grow_dt             = GROW_DT
-   num_cycles          = NUM_CYCLES
-   regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT
-   error_on_dt_change  = ERROR_ON_DT_CHANGE
-   tag_buffer          = TAG_BUFFER
-   enable_logging      = ENABLE_LOGGING
+   time_stepping_type        = IB_TS_TYPE
+   start_time                = START_TIME
+   end_time                  = END_TIME
+   grow_dt                   = GROW_DT
+   num_cycles                = NUM_CYCLES
+   regrid_fluid_cfl_interval = REGRID_FLUID_CFL_INTERVAL
+   dt_max                    = DT
+   error_on_dt_change        = ERROR_ON_DT_CHANGE
+   tag_buffer                = TAG_BUFFER
+   enable_logging            = ENABLE_LOGGING
 }
 
 IBMethod {
