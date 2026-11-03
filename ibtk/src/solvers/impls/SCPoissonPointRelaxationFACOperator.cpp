@@ -275,21 +275,21 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
         }
         if (input_db->isDatabase("bottom_solver"))
         {
-            tbox::pout << "WARNING: ``bottom_solver'' input entry is no longer used by class "
-                          "SCPoissonPointRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver_db'' input entry instead.\n";
+            TBOX_WARNING(d_object_name << "::SCPoissonPointRelaxationFACOperator():\n"
+                                       << "  ``bottom_solver'' input entry is no longer used\n"
+                                       << "  use ``coarse_solver_db'' input entry instead" << std::endl);
         }
         if (input_db->isDatabase("hypre_solver"))
         {
-            tbox::pout << "WARNING: ``hypre_solver'' input entry is no longer used by class "
-                          "SCPoissonPointRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver_db'' input entry instead.\n";
+            TBOX_WARNING(d_object_name << "::SCPoissonPointRelaxationFACOperator():\n"
+                                       << "  ``hypre_solver'' input entry is no longer used\n"
+                                       << "  use ``coarse_solver_db'' input entry instead" << std::endl);
         }
         if (input_db->isDatabase("petsc_solver"))
         {
-            tbox::pout << "WARNING: ``petsc_solver'' input entry is no longer used by class "
-                          "SCPoissonPointRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver_db'' input entry instead.\n";
+            TBOX_WARNING(d_object_name << "::SCPoissonPointRelaxationFACOperator():\n"
+                                       << "  ``petsc_solver'' input entry is no longer used\n"
+                                       << "  use ``coarse_solver_db'' input entry instead" << std::endl);
         }
     }
 
@@ -718,10 +718,10 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
 
     if (solution_pdat_fac->getDefaultDepth() != rhs_pdat_fac->getDefaultDepth())
     {
-        TBOX_ERROR("SCPoissonPointRelaxationFACOperator::initializeOperatorState()\n"
-                   << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
-                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
+        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
+                                 << "  solution and rhs vectors must have the same data depths\n"
+                                 << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
+                                 << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

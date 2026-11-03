@@ -446,10 +446,10 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
 
     if (solution_pdat_fac->getDefaultDepth() != rhs_pdat_fac->getDefaultDepth())
     {
-        TBOX_ERROR("CCPoissonLevelRelaxationFACOperator::initializeOperatorState()\n"
-                   << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
-                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
+        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
+                                 << "  solution and rhs vectors must have the same data depths\n"
+                                 << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
+                                 << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

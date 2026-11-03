@@ -168,7 +168,7 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::~PoissonFACPreconditionerStrategy()\n"
+        TBOX_ERROR(d_object_name << "::~PoissonFACPreconditionerStrategy():\n"
                                  << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
     return;
@@ -247,7 +247,7 @@ PoissonFACPreconditionerStrategy::setProlongationMethod(const std::string& prolo
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setProlongationMethod()\n"
+        TBOX_ERROR(d_object_name << "::setProlongationMethod():\n"
                                  << "  cannot be called while operator state is initialized" << std::endl);
     }
     d_prolongation_method = prolongation_method;
@@ -259,7 +259,7 @@ PoissonFACPreconditionerStrategy::setRestrictionMethod(const std::string& restri
 {
     if (d_is_initialized)
     {
-        TBOX_ERROR(d_object_name << "::setRestrictionMethod()\n"
+        TBOX_ERROR(d_object_name << "::setRestrictionMethod():\n"
                                  << "  cannot be called while operator state is initialized" << std::endl);
     }
     d_restriction_method = restriction_method;
@@ -385,14 +385,14 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     const IntVector<NDIM>& rhs_gcw = pd->getPatchDataFactory(rhs_idx)->getGhostCellWidth();
     if (sol_gcw != rhs_gcw)
     {
-        TBOX_ERROR(d_object_name << "::initializeOperatorState()\n"
+        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
                                  << "  vectors " << solution.getName() << " and " << rhs.getName()
                                  << " have different ghost cell widths, " << sol_gcw << " and " << rhs_gcw
                                  << std::endl);
     }
     if (!(sol_gcw >= d_gcw))
     {
-        TBOX_ERROR(d_object_name << "::initializeOperatorState()\n"
+        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
                                  << "  vectors " << solution.getName() << " and " << rhs.getName()
                                  << " have ghost cell width " << sol_gcw
                                  << ", which is less than the required ghost cell width " << d_gcw << std::endl);

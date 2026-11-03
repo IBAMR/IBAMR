@@ -184,21 +184,21 @@ CCPoissonBoxRelaxationFACOperator::CCPoissonBoxRelaxationFACOperator(const std::
         }
         if (input_db->isDatabase("bottom_solver"))
         {
-            tbox::pout << "WARNING: ``bottom_solver'' input entry is no longer used by class "
-                          "CCPoissonBoxRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver_db'' input entry instead.\n";
+            TBOX_WARNING(d_object_name << "::CCPoissonBoxRelaxationFACOperator():\n"
+                                       << "  ``bottom_solver'' input entry is no longer used\n"
+                                       << "  use ``coarse_solver_db'' input entry instead" << std::endl);
         }
         if (input_db->isDatabase("hypre_solver"))
         {
-            tbox::pout << "WARNING: ``hypre_solver'' input entry is no longer used by class "
-                          "CCPoissonBoxRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver_db'' input entry instead.\n";
+            TBOX_WARNING(d_object_name << "::CCPoissonBoxRelaxationFACOperator():\n"
+                                       << "  ``hypre_solver'' input entry is no longer used\n"
+                                       << "  use ``coarse_solver_db'' input entry instead" << std::endl);
         }
         if (input_db->isDatabase("petsc_solver"))
         {
-            tbox::pout << "WARNING: ``petsc_solver'' input entry is no longer used by class "
-                          "CCPoissonBoxRelaxationFACOperator.\n"
-                       << "         use ``coarse_solver_db'' input entry instead.\n";
+            TBOX_WARNING(d_object_name << "::CCPoissonBoxRelaxationFACOperator():\n"
+                                       << "  ``petsc_solver'' input entry is no longer used\n"
+                                       << "  use ``coarse_solver_db'' input entry instead" << std::endl);
         }
         if (input_db->keyExists("petsc_options_prefix"))
             d_petsc_options_prefix = input_db->getString("petsc_options_prefix");
@@ -577,10 +577,10 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
 
     if (solution_pdat_fac->getDefaultDepth() != rhs_pdat_fac->getDefaultDepth())
     {
-        TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::initializeOperatorState()\n"
-                   << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
-                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
+        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
+                                 << "  solution and rhs vectors must have the same data depths\n"
+                                 << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
+                                 << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -827,7 +827,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
         C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
         if (!C_data)
         {
-            TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator()\n"
+            TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator():\n"
                        << "  to solve (C u + div D grad u) = f with non-constant C,\n"
                        << "  C must be cell-centered double precision data" << std::endl);
         }
@@ -847,7 +847,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
         D_data = patch->getPatchData(poisson_spec.getDPatchDataId());
         if (!D_data)
         {
-            TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator()\n"
+            TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator():\n"
                        << "  to solve C u + div D grad u = f with non-constant D,\n"
                        << "  D must be side-centered double precision data" << std::endl);
         }
@@ -871,7 +871,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     }
     else
     {
-        TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator()\n"
+        TBOX_ERROR("CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator():\n"
                    << "  D must be side-centered patch data with either 1 or NDIM components" << std::endl);
     }
     return;
