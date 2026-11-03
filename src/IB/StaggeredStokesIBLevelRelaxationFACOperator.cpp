@@ -635,7 +635,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         level_solver->setTimeInterval(d_current_time, d_new_time);
         level_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
         level_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
-        level_solver->setPhysicalBoundaryHelper(d_bc_helper);
+        if (d_bc_helper)
+        {
+            level_solver->setPhysicalBoundaryHelper(d_bc_helper);
+        }
         level_solver->setMaxIterations(d_level_solver_max_iterations);
         level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
         level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
@@ -696,7 +699,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
         d_coarse_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
         d_coarse_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
-        d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
+        if (d_bc_helper)
+        {
+            d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
+        }
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);

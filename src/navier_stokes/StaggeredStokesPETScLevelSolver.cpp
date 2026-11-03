@@ -214,6 +214,22 @@ void
 StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
                                                                   const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
+    // Physical boundary DOFs need the boundary helper. Fully periodic hierarchies
+    // do not require a boundary helper.
+    if (!d_bc_helper)
+    {
+        for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+            if (patch->getPatchGeometry()->getTouchesRegularBoundary())
+            {
+                TBOX_ERROR(d_object_name << "::initializeSolverStateSpecialized():\n"
+                                         << "  physical boundaries require a StaggeredStokesPhysicalBoundaryHelper "
+                                         << "provided via setPhysicalBoundaryHelper().\n");
+            }
+        }
+    }
+
     // Allocate DOF index data.
     if (!d_level->checkAllocated(d_u_dof_index_idx)) d_level->allocatePatchData(d_u_dof_index_idx);
     if (!d_level->checkAllocated(d_p_dof_index_idx)) d_level->allocatePatchData(d_p_dof_index_idx);
