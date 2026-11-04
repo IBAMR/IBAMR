@@ -567,7 +567,12 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
     // handled subsequently.
     if (!poisson_spec.cIsZero() && !poisson_spec.cIsConstant())
     {
-        diagonal.copy(*patch->getPatchData(poisson_spec.getCPatchDataId()));
+        // The coefficient C is shared by all components of the solution.
+        Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
+        for (int d = 0; d < depth; ++d)
+        {
+            diagonal.copyDepth(d, *C_data, 0);
+        }
     }
     else
     {

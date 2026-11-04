@@ -132,6 +132,10 @@ main(int argc, char* argv[])
         const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
         const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector<NDIM>(1));
 
+        const bool variable_c = input_db->isDatabase("C");
+        Pointer<CellVariable<NDIM, double>> c_cc_var = new CellVariable<NDIM, double>("c_cc");
+        const int c_cc_idx = var_db->registerVariableAndContext(c_cc_var, ctx, IntVector<NDIM>(1));
+
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         int tag_buffer = 1;
@@ -152,6 +156,7 @@ main(int argc, char* argv[])
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
             level->allocatePatchData(r_cc_idx, 0.0);
+            if (variable_c) level->allocatePatchData(c_cc_idx, 0.0);
         }
 
         // Setup vector objects.
@@ -180,6 +185,12 @@ main(int argc, char* argv[])
         u_fcn.setDataOnPatchHierarchy(e_cc_idx, e_cc_var, patch_hierarchy, 0.0);
         f_fcn.setDataOnPatchHierarchy(f_cc_idx, f_cc_var, patch_hierarchy, 0.0);
 
+        if (variable_c)
+        {
+            muParserCartGridFunction c_fcn("C", app_initializer->getComponentDatabase("C"), grid_geometry);
+            c_fcn.setDataOnPatchHierarchy(c_cc_idx, c_cc_var, patch_hierarchy, 0.0);
+        }
+
         // Ensure that the right-hand-side vector has no components in the
         // nullspace of the operator.
         f_vec.addScalar(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
@@ -188,7 +199,14 @@ main(int argc, char* argv[])
 
         // Setup the Poisson solver.
         PoissonSpecifications poisson_spec("poisson_spec");
-        poisson_spec.setCZero();
+        if (variable_c)
+        {
+            poisson_spec.setCPatchDataId(c_cc_idx);
+        }
+        else
+        {
+            poisson_spec.setCZero();
+        }
         poisson_spec.setDConstant(-1.0);
         const std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(depth, nullptr);
         CCLaplaceOperator laplace_op("laplace_op");
