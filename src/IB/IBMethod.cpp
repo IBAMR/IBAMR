@@ -281,7 +281,13 @@ IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>
     {
         const int data_ln = tag_ln + 1;
         const int can_be_refined = data_ln < finest_hier_ln;
-        if (!d_l_initializer->getLevelHasLagrangianData(data_ln, can_be_refined)) continue;
+        // The initializer does not process its data when the simulation is restarted. The data manager restores which
+        // levels hold Lagrangian data.
+        if (!d_l_initializer->getLevelHasLagrangianData(data_ln, can_be_refined) &&
+            !d_l_data_manager->levelContainsLagrangianData(data_ln))
+        {
+            continue;
+        }
         tag_buffer[tag_ln] = std::max(tag_buffer[tag_ln], gcw);
     }
     for (int ln = finest_hier_ln - 2; ln >= 0; --ln)
