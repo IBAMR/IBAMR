@@ -28,21 +28,29 @@
 #include <Box.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
+#include <CellDataFactory.h>
 #include <CellIndex.h>
 #include <EdgeData.h>
+#include <EdgeDataFactory.h>
 #include <EdgeIterator.h>
+#include <FaceDataFactory.h>
 #include <IntVector.h>
 #include <NodeData.h>
+#include <NodeDataFactory.h>
 #include <NodeIterator.h>
 #include <OutersideData.h>
 #include <Patch.h>
+#include <PatchDataFactory.h>
+#include <PatchDescriptor.h>
 #include <PatchGeometry.h>
 #include <PoissonSpecifications.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
+#include <SideDataFactory.h>
 #include <SideGeometry.h>
 #include <SideIndex.h>
 #include <Variable.h>
+#include <VariableDatabase.h>
 
 #include <array>
 #include <limits>
@@ -60,6 +68,22 @@ namespace IBTK
 
 namespace
 {
+// Return the depth of the registered cell, side, node, edge, or face data of type double with the given index, or -1
+// if there is none.
+int
+get_patch_data_depth(const int patch_data_idx)
+{
+    Pointer<PatchDescriptor<NDIM>> patch_descriptor = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
+    if (patch_data_idx < 0 || patch_data_idx >= patch_descriptor->getMaxNumberRegisteredComponents()) return -1;
+    Pointer<PatchDataFactory<NDIM>> factory = patch_descriptor->getPatchDataFactory(patch_data_idx);
+    if (Pointer<CellDataFactory<NDIM, double>> cell_factory = factory) return cell_factory->getDefaultDepth();
+    if (Pointer<SideDataFactory<NDIM, double>> side_factory = factory) return side_factory->getDefaultDepth();
+    if (Pointer<NodeDataFactory<NDIM, double>> node_factory = factory) return node_factory->getDefaultDepth();
+    if (Pointer<EdgeDataFactory<NDIM, double>> edge_factory = factory) return edge_factory->getDefaultDepth();
+    if (Pointer<FaceDataFactory<NDIM, double>> face_factory = factory) return face_factory->getDefaultDepth();
+    return -1;
+}
+
 inline Box<NDIM>
 compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 {
@@ -547,7 +571,12 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
     // handled subsequently.
     if (!poisson_spec.dIsConstant())
     {
-        off_diagonal.copy(*patch->getPatchData(poisson_spec.getDPatchDataId()));
+        // The coefficient D is shared by all components of the solution.
+        Pointer<SideData<NDIM, double>> D_patch_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+        for (int d = 0; d < depth; ++d)
+        {
+            off_diagonal.copyDepth(d, *D_patch_data, 0);
+        }
     }
     else
     {
@@ -1564,7 +1593,12 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
     OutersideData<NDIM, double> D_data(patch_box, depth);
     if (!poisson_spec.dIsConstant())
     {
-        D_data.copy(*patch->getPatchData(poisson_spec.getDPatchDataId()));
+        // The coefficient D is shared by all components of the solution.
+        Pointer<SideData<NDIM, double>> D_patch_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+        for (int d = 0; d < depth; ++d)
+        {
+            D_data.copyDepth(d, *D_patch_data, 0);
+        }
     }
     else
     {
@@ -2285,7 +2319,12 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs_data
     OutersideData<NDIM, double> D_data(patch_box, depth);
     if (!poisson_spec.dIsConstant())
     {
-        D_data.copy(*patch->getPatchData(poisson_spec.getDPatchDataId()));
+        // The coefficient D is shared by all components of the solution.
+        Pointer<SideData<NDIM, double>> D_patch_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+        for (int d = 0; d < depth; ++d)
+        {
+            D_data.copyDepth(d, *D_patch_data, 0);
+        }
     }
     else
     {
@@ -2461,6 +2500,39 @@ PoissonUtilities::isDamped(const PoissonSpecifications& poisson_spec)
 {
     return !(poisson_spec.cIsZero() || (poisson_spec.cIsConstant() && poisson_spec.getCConstant() == 0.0));
 } // isDamped
+
+void
+PoissonUtilities::checkCoefficientDepths(const PoissonSpecifications& poisson_spec, const std::string& object_name)
+{
+    const auto validate_data_depth = [&object_name](const char* const name, const int patch_data_idx)
+    {
+        const int depth = get_patch_data_depth(patch_data_idx);
+        if (depth < 0)
+        {
+            TBOX_ERROR(object_name << "::setPoissonSpecifications():\n"
+                                   << "  the patch data index " << patch_data_idx << " for " << name
+                                   << " is not registered as cell, side, node, edge, or face data of type double\n"
+                                   << "  register the variable for " << name << " before setting the specifications"
+                                   << std::endl);
+        }
+        // Reject C and D of depth other than one until the non-aligned tensor paths are repaired (#2276).
+        if (depth != 1)
+        {
+            TBOX_ERROR(object_name << "::setPoissonSpecifications():\n"
+                                   << "  the patch data for " << name << " has depth " << depth << "\n"
+                                   << "  C and D must have depth 1" << std::endl);
+        }
+    };
+    if (!(poisson_spec.cIsZero() || poisson_spec.cIsConstant()))
+    {
+        validate_data_depth("C", poisson_spec.getCPatchDataId());
+    }
+    if (!poisson_spec.dIsConstant())
+    {
+        validate_data_depth("D", poisson_spec.getDPatchDataId());
+    }
+    return;
+} // checkCoefficientDepths
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

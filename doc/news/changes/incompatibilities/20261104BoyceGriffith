@@ -1,0 +1,3 @@
+Changed: The IBTK Poisson solvers, FAC preconditioners, and Laplace operators now reject variable C or D coefficients of depth other than 1, including the non-aligned tensor D, which gave wrong results, until the non-aligned tensor path is repaired (#2276). Integrators such as BrinkmanAdvDiffSemiImplicitHierarchyIntegrator that give D the depth of a multi-component Q now stop with an error. A variable D of depth 1 now gives correct results for multi-component solutions.
+<br>
+(Boyce Griffith, 2026/11/04)

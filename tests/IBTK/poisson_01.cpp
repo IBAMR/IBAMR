@@ -34,10 +34,14 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 
+#include <tbox/Logger.h>
+
 #include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
+
+#include "../tests.h"
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
@@ -90,6 +94,10 @@ main(int argc, char* argv[])
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
+    // Do not print file names or line numbers to the output file.
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
+
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
     { // cleanup dynamically allocated objects prior to shutdown
@@ -136,6 +144,11 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> c_cc_var = new CellVariable<NDIM, double>("c_cc");
         const int c_cc_idx = var_db->registerVariableAndContext(c_cc_var, ctx, IntVector<NDIM>(1));
 
+        const bool variable_d = input_db->isDatabase("D");
+        const int D_depth = variable_d ? input_db->getDatabase("D")->getIntegerWithDefault("depth", 1) : 1;
+        Pointer<SideVariable<NDIM, double>> d_sc_var = new SideVariable<NDIM, double>("d_sc", D_depth);
+        const int d_sc_idx = var_db->registerVariableAndContext(d_sc_var, ctx, IntVector<NDIM>(1));
+
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         int tag_buffer = 1;
@@ -157,6 +170,7 @@ main(int argc, char* argv[])
             level->allocatePatchData(e_cc_idx, 0.0);
             level->allocatePatchData(r_cc_idx, 0.0);
             if (variable_c) level->allocatePatchData(c_cc_idx, 0.0);
+            if (variable_d) level->allocatePatchData(d_sc_idx, 0.0);
         }
 
         // Setup vector objects.
@@ -191,6 +205,12 @@ main(int argc, char* argv[])
             c_fcn.setDataOnPatchHierarchy(c_cc_idx, c_cc_var, patch_hierarchy, 0.0);
         }
 
+        if (variable_d)
+        {
+            muParserCartGridFunction d_fcn("D", app_initializer->getComponentDatabase("D"), grid_geometry);
+            d_fcn.setDataOnPatchHierarchy(d_sc_idx, d_sc_var, patch_hierarchy, 0.0);
+        }
+
         // Ensure that the right-hand-side vector has no components in the
         // nullspace of the operator.
         f_vec.addScalar(Pointer<SAMRAIVectorReal<NDIM, double>>(&f_vec, false),
@@ -207,7 +227,14 @@ main(int argc, char* argv[])
         {
             poisson_spec.setCZero();
         }
-        poisson_spec.setDConstant(-1.0);
+        if (variable_d)
+        {
+            poisson_spec.setDPatchDataId(d_sc_idx);
+        }
+        else
+        {
+            poisson_spec.setDConstant(-1.0);
+        }
         const std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(depth, nullptr);
         CCLaplaceOperator laplace_op("laplace_op");
         laplace_op.setPoissonSpecifications(poisson_spec);

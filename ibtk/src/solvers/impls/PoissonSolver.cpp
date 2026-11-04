@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/PoissonUtilities.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -38,6 +39,7 @@ namespace IBTK
 void
 PoissonSolver::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
+    PoissonUtilities::checkCoefficientDepths(poisson_spec, d_object_name);
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications

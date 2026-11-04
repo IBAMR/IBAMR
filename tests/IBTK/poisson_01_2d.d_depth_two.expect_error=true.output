@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    laplace_op::setPoissonSpecifications():
+  the patch data for D has depth 2
+  C and D must have depth 1
+

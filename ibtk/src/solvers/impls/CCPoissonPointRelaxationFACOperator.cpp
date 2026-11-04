@@ -614,10 +614,10 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                 }
                 else if (!D_is_constant && !C_is_var)
                 {
-                    const double* const D0 = D_data->getPointer(0, depth);
-                    const double* const D1 = D_data->getPointer(1, depth);
+                    const double* const D0 = D_data->getPointer(0);
+                    const double* const D1 = D_data->getPointer(1);
 #if (NDIM == 3)
-                    const double* const D2 = D_data->getPointer(2, depth);
+                    const double* const D2 = D_data->getPointer(2);
 #endif
                     const int D_ghosts = (D_data->getGhostCellWidth()).max();
                     if (red_black_ordering)
@@ -714,10 +714,10 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                 }
                 else if (!D_is_constant && C_is_var)
                 {
-                    const double* const D0 = D_data->getPointer(0, depth);
-                    const double* const D1 = D_data->getPointer(1, depth);
+                    const double* const D0 = D_data->getPointer(0);
+                    const double* const D1 = D_data->getPointer(1);
 #if (NDIM == 3)
-                    const double* const D2 = D_data->getPointer(2, depth);
+                    const double* const D2 = D_data->getPointer(2);
 #endif
                     const int D_ghosts = (D_data->getGhostCellWidth()).max();
                     if (red_black_ordering)
