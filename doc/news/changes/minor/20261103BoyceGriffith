@@ -1,0 +1,3 @@
+Fixed: CCPoissonPETScLevelSolver, and the level relaxation FAC operator that uses it, now give correct results for multi-component solutions with a variable C coefficient.
+<br>
+(Boyce Griffith, 2026/11/03)
