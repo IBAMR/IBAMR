@@ -21,7 +21,10 @@
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CellDoubleConstantRefine.h>
+#include <CellVariable.h>
 #include <LoadBalancer.h>
+#include <RefineOperator.h>
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -38,7 +41,48 @@
 #include <ibamr/app_namespaces.h>
 
 // Applications
+#include "../tests.h"
 #include "SetFluidProperties.cpp"
+
+// Constant refinement that reports a stencil width of 2, for testing mu_refine_type.
+class Stencil2Refine : public RefineOperator<NDIM>
+{
+public:
+    bool findRefineOperator(const Pointer<hier::Variable<NDIM>>& var, const std::string& op_name) const override
+    {
+        Pointer<CellVariable<NDIM, double>> cc_var = var;
+        return cc_var && op_name == getOperatorName();
+    }
+
+    const std::string& getOperatorName() const override
+    {
+        static const std::string name = "STENCIL_2_REFINE";
+        return name;
+    }
+
+    int getOperatorPriority() const override
+    {
+        return 0;
+    }
+
+    IntVector<NDIM> getStencilWidth() const override
+    {
+        return IntVector<NDIM>(2);
+    }
+
+    void refine(Patch<NDIM>& fine,
+                const Patch<NDIM>& coarse,
+                const int dst_component,
+                const int src_component,
+                const Box<NDIM>& fine_box,
+                const IntVector<NDIM>& ratio) const override
+    {
+        d_constant_refine.refine(fine, coarse, dst_component, src_component, fine_box, ratio);
+    }
+
+private:
+    CellDoubleConstantRefine<NDIM> d_constant_refine;
+};
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -63,6 +107,7 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    Logger::getInstance()->setAbortAppender(new TestAppender());
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -116,6 +161,7 @@ main(int argc, char* argv[])
 
         Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        grid_geometry->addSpatialRefineOperator(new Stencil2Refine());
         Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
@@ -294,13 +340,13 @@ main(int argc, char* argv[])
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-        const Pointer<Variable<NDIM>> u_var = time_integrator->getVelocityVariable();
+        const Pointer<hier::Variable<NDIM>> u_var = time_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const Pointer<Variable<NDIM>> p_var = time_integrator->getPressureVariable();
+        const Pointer<hier::Variable<NDIM>> p_var = time_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);

@@ -27,7 +27,7 @@
 
 void
 callSetFluidDensityCallbackFunction(int rho_idx,
-                                    Pointer<Variable<NDIM>> rho_var,
+                                    Pointer<hier::Variable<NDIM>> rho_var,
                                     Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                     const int cycle_num,
                                     const double time,
@@ -46,7 +46,7 @@ callSetFluidDensityCallbackFunction(int rho_idx,
 
 void
 callSetFluidViscosityCallbackFunction(int mu_idx,
-                                      Pointer<Variable<NDIM>> mu_var,
+                                      Pointer<hier::Variable<NDIM>> mu_var,
                                       Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                       const int cycle_num,
                                       const double time,
@@ -83,7 +83,7 @@ SetFluidProperties::~SetFluidProperties()
 
 void
 SetFluidProperties::setDensityPatchData(int rho_idx,
-                                        Pointer<Variable<NDIM>> rho_var,
+                                        Pointer<hier::Variable<NDIM>> rho_var,
                                         Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                         const int /*cycle_num*/,
                                         const double time,
@@ -99,7 +99,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
 
 void
 SetFluidProperties::setViscosityPatchData(int mu_idx,
-                                          Pointer<Variable<NDIM>> mu_var,
+                                          Pointer<hier::Variable<NDIM>> mu_var,
                                           Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                           const int /*cycle_num*/,
                                           const double time,

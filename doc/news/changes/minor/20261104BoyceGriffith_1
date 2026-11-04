@@ -1,0 +1,3 @@
+Fixed: INSVCStaggeredHierarchyIntegrator now stops with an error when mu_refine_type names a refine operator whose stencil is wider than one cell and the hierarchy can have more than one level. Regridding filled the viscosity on the coarser level only one cell wide, so such an operator read unset values.
+<br>
+(Boyce Griffith, 2026/11/04)

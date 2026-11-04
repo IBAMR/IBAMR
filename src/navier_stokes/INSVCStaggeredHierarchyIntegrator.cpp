@@ -896,6 +896,21 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         // variable.
         TBOX_ASSERT(d_mu_init_fcn || d_reset_mu_fcns.size() > 0);
 #endif
+        // The regrid fill puts mu in one refine class with P, and that class
+        // fills mu on the coarser level only to P's ghost width.
+        Pointer<RefineOperator<NDIM>> mu_refine_op = grid_geom->lookupRefineOperator(d_mu_var, d_mu_refine_type);
+        if (mu_refine_op && mu_refine_op->getStencilWidth().max() > CELLG && gridding_alg &&
+            gridding_alg->getMaxLevels() > 1)
+        {
+            TBOX_ERROR(
+                "INSVCStaggeredHierarchyIntegrator::"
+                "initializeHierarchyIntegrator():\n"
+                << "  mu_refine_type = " << d_mu_refine_type << " has stencil width " << mu_refine_op->getStencilWidth()
+                << ", but regridding fills the viscosity on the\n"
+                << "  coarser level only " << CELLG << " cell wide, so the operator would read unset values.\n"
+                << "  Use a refine operator with stencil width " << CELLG
+                << ", such as the default CONSERVATIVE_LINEAR_REFINE.\n");
+        }
         registerVariable(d_mu_current_idx,
                          d_mu_new_idx,
                          d_mu_scratch_idx,

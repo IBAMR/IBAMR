@@ -1,0 +1,7 @@
+Program abort called with error message
+
+    INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():
+  mu_refine_type = STENCIL_2_REFINE has stencil width (2,2), but regridding fills the viscosity on the
+  coarser level only 1 cell wide, so the operator would read unset values.
+  Use a refine operator with stencil width 1, such as the default CONSERVATIVE_LINEAR_REFINE.
+
