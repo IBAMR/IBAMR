@@ -722,14 +722,24 @@ protected:
     std::vector<std::vector<std::map<Edge, RodSpec, EdgeComp>>> d_rod_spec_data;
 
     /*
-     * Target point information.
+     * Target point information for the standard initializer.
      */
     std::vector<std::vector<std::vector<TargetSpec>>> d_target_spec_data;
 
     /*
-     * Anchor point information.
+     * Target point information for the redundant initializer.
+     */
+    std::vector<std::vector<std::map<int, TargetSpec>>> d_target_spec_map;
+
+    /*
+     * Anchor point information for the standard initializer.
      */
     std::vector<std::vector<std::vector<AnchorSpec>>> d_anchor_spec_data;
+
+    /*
+     * Anchor point information for the redundant initializer.
+     */
+    std::vector<std::vector<std::map<int, AnchorSpec>>> d_anchor_spec_map;
 
     /*
      * Mass information for the pIB method.
