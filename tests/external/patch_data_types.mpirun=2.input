@@ -1,0 +1,29 @@
+// Two patches on one level, one on each process.
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0, 0), (5, 4)]
+   x_lo               = 0, 0
+   x_up               = 6, 5
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size  { level_0 = 3, 5 }
+   smallest_patch_size { level_0 = 3, 5 }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {}
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
