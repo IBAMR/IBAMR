@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():
+  the coarse solver of the velocity preconditioner does not solve the variable-viscosity problem.
+  Use coarse_solver_type = VC_VELOCITY_PETSC_LEVEL_SOLVER, PATCH_GAUSS_SEIDEL, or PROCESSOR_GAUSS_SEIDEL.
+
