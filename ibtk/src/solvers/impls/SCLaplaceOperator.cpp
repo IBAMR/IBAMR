@@ -129,6 +129,18 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     }
 #endif
 
+    // Set the prescribed boundary values before the fill, which interpolates from these values at coarse-fine
+    // interfaces.
+    for (int comp = 0; comp < d_ncomp; ++comp)
+    {
+        d_bc_helpers[comp]->setDataAtDirichletBoundaries(x.getComponentDescriptorIndex(comp),
+                                                         d_bc_coefs,
+                                                         d_solution_time,
+                                                         d_homogeneous_bc,
+                                                         x.getCoarsestLevelNumber(),
+                                                         x.getFinestLevelNumber());
+    }
+
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;

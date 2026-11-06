@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesOperator, IBAMR::VCStaggeredStokesOperator, IBAMR::CIBStaggeredStokesOperator, IBTK::SCLaplaceOperator, and IBTK::VCSCViscousOperator set the prescribed boundary values of their input before filling ghost cells. The result of apply() does not depend on the boundary values of the input where a refined region meets a physical boundary with a prescribed velocity, and Krylov solves started from an initial guess with boundary values return solutions with the correct residual.
+<br>
+(Boyce Griffith, 2026/10/13)
