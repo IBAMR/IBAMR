@@ -143,6 +143,12 @@ public:
     void setTargetPatchLevelNumber(int level_num) override;
 
     /*!
+     * Return whether the given fill pattern is a CellNoCornersFillPattern with the
+     * same stencil width and overwrite_interior flag.
+     */
+    bool computesSameOverlapsAs(const SAMRAI::xfer::VariableFillPattern<NDIM>& other) const override;
+
+    /*!
      * Returns the stencil width.
      */
     SAMRAI::hier::IntVector<NDIM>& getStencilWidth() override;

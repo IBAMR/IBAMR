@@ -1,0 +1,3 @@
+Fixed: refine items whose IBTK::CellNoCornersFillPattern or IBTK::SideNoCornersFillPattern objects have different stencil widths or overwrite_interior flags no longer share overlaps. This needs an IBSAMRAI2 release with VariableFillPattern::computesSameOverlapsAs().
+<br>
+(Boyce Griffith, 2026/10/25)
