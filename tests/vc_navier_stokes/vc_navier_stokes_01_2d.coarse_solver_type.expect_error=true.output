@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():
+  the coarse_solver_type of the velocity preconditioner does not support variable viscosity
+  use VC_VELOCITY_PETSC_LEVEL_SOLVER, PATCH_GAUSS_SEIDEL, or PROCESSOR_GAUSS_SEIDEL
+
