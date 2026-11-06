@@ -1,0 +1,3 @@
+Fixed: INSVCStaggeredHierarchyIntegrator no longer dereferences a null pointer when the velocity preconditioner is not a FAC preconditioner or when its coarse solve is a smoother. It now stops with an error when the coarse solver is a level solver other than VC_VELOCITY_PETSC_LEVEL_SOLVER.
+<br>
+(Boyce Griffith, 2026/11/06)
