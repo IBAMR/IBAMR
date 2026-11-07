@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    tbox::Array: the size -1 is negative.
+If this array holds a patch's data, the number of values overflows an int.
+Use smaller patches.
+
