@@ -82,6 +82,11 @@
 - Order declarations `public`, `protected`, then `private`; keep definitions in
   declaration order. Avoid public member data. In declarations, omit top-level
   `const` on by-value parameters; definitions may use it for unchanged values.
+- End a line of streamed output with `"\n"`, not `std::endl`, which also flushes
+  the stream. The flush slows output in loops and does nothing in `TBOX_ERROR()`
+  and `TBOX_WARNING()`, which build their message in a string stream. Write
+  `std::flush` only where output must appear at that point (C++ Core Guidelines
+  SL.io.50).
 
 Assign directly to members rather than adding aliases such as `auto& dx = d_dx;`
 just to rename them. Spelling an explicit type for the same alias does not help:

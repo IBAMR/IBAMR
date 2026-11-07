@@ -89,8 +89,11 @@ HTML_FILE_EXTENSION    = .html
 # HTML_HEADER            = header.html
 # HTML_FOOTER            = footer.html
 USE_MATHJAX            = YES # TODO: set up local MathJax support
+@IBAMR_DOXYGEN_MATHJAX_VERSION@
 MATHJAX_RELPATH        =
-MATHJAX_EXTENSIONS     = TeX/AMSmath TeX/AMSsymbols
+MATHJAX_EXTENSIONS     = @IBAMR_DOXYGEN_MATHJAX_EXTENSIONS@
+# Notation macros: see the "Formula notation" section of doc/agents/documentation.md.
+FORMULA_MACROFILE      = @CMAKE_CURRENT_SOURCE_DIR@/formula-macros.tex
 HTML_COLORSTYLE_HUE    = 220
 HTML_COLORSTYLE_SAT    = 200
 # TODO: add custom CSS here

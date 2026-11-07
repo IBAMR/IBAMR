@@ -36,7 +36,12 @@ The script reports:
                output, and expected outputs identical to another added by the
                same change
   comments     added comment lines containing development history or working
-               shorthand, and added uses of typeid
+               shorthand, added comment blocks longer than six lines, and
+               added uses of typeid and std::endl
+  wording      constructions that the Language rules of
+               doc/agents/documentation.md rule out (data and geometry that
+               act, the first person, "will", filler words) in added comments,
+               commit messages, the title, and the description
 
 This is a screen, not a review. It cannot judge whether a comment is clear or
 whether a test case is needed, and a reported line may be legitimate. The exit
@@ -64,9 +69,47 @@ HISTORY = re.compile(
 SHORTHAND = re.compile(
     r"\bparity\b|\bpins?\b|\blive\b|\bprobe\b", re.IGNORECASE
 )
+# The Language rules of doc/agents/documentation.md: data and geometry that
+# act, code that decides or speaks, results that move, the first person,
+# future tense, and filler words.
+OBJECTS = (
+    r"(?:cells?|faces?|sides?|nodes?|edges?|box(?:es)?|data|values?|"
+    r"stencils?|patch(?:es)?|levels?|markers?)"
+)
+CODE = (
+    r"(?:solvers?|class(?:es)?|functions?|operators?|objects?|tests?|"
+    r"programs?|schedules?|integrators?|methods?)"
+)
+# An optional word between subject and verb, other than an auxiliary verb.
+ADVERB = r"(?:(?!(?:is|are|was|were|be|been)\b)\w+\s+)?"
+PEOPLE = r"(?<!user )(?<!users )(?<!caller )(?<!reviewer )"
+WORDING = re.compile(
+    r"\bhold(?:s|ing)?\s+(?:the|a|an|its|their|data|values?|copies|\d)|"
+    rf"{PEOPLE}\b(?:keeps|kept|keeping|retains?|retained)\b|"
+    rf"{PEOPLE}\bdecid(?:e|es|ed|ing)\b|"
+    r"(?<!the )\banswers?\b|"
+    r"(?<!message )(?<!comment )(?<!document )\b(?:says?|tells?)\b|"
+    rf"{PEOPLE}\b(?:asks?|knows?|wants?|expects?)\b|"
+    rf"\b{OBJECTS}\s+{ADVERB}"
+    r"(?:reads?(?!\s+(?:from|in)\b)|takes?(?!\s+\d)|needs?|lives?)\b|"
+    rf"\b{CODE}\s+{ADVERB}(?:needs?|lives?)\b|"
+    r"\b(?:outputs?|values?|norms?|results?|\w+_\w+)\s+mov(?:e|es|ed)\b|"
+    r"\b(?!(?:markers?|points?|bod(?:y|ies)|structures?)\b)\w+\s+"
+    r"mov(?:e|es|ed)\s+from\b|"
+    r"\b(?:Note that|simply|just|basically|of course)\b|"
+    r"\bwill\b(?!\s+be\s+removed)",
+    re.IGNORECASE,
+)
+FIRST_PERSON = re.compile(
+    r"\b(?:[Ww]e|[Oo]ur)\b|(?<!\d )\b[Uu]s\b|"
+    r"\bI\s+(?!(?:is|has|denotes)\b)[a-z]"
+)
+STRING_LITERAL = re.compile(r'"(?:\\.|[^"\\])*"')
+MAX_COMMENT_BLOCK = 6
 ATTRIBUTION = re.compile(r"Co-Authored-By|Generated with", re.IGNORECASE)
 FIX_TITLE = re.compile(r"(\[[^\]]*\]\s*)*Fix\b")
 DYNAMIC_TYPE = re.compile(r"typeid\s*\(")
+ENDL = re.compile(r"std::endl\b")
 
 SOURCE_SUFFIXES = (".h", ".cpp", ".m4", ".f", ".i")
 FORTRAN_SUFFIXES = (".m4", ".f", ".i")
@@ -79,11 +122,39 @@ def run(*command):
 
 
 def is_comment(path, text):
+    """Return whether the whole line is a comment."""
     stripped = text.strip()
     if path.endswith(FORTRAN_SUFFIXES):
         # Fixed-form comment lines have c or C in the first column.
-        return text[:1] in ("c", "C") or "!" in stripped
-    return "//" in stripped or stripped.startswith(("*", "/*"))
+        return text[:1] in ("c", "C") or stripped.startswith("!")
+    return bool(re.match(r"//|/\*|\*(?:\s|/|$)", stripped))
+
+
+def comment_part(path, text):
+    """Return the comment on a line, including a trailing comment."""
+    if is_comment(path, text):
+        return text.strip()
+    marker = "!" if path.endswith(FORTRAN_SUFFIXES) else "//"
+    code = STRING_LITERAL.sub('""', text)
+    return code[code.index(marker) :] if marker in code else ""
+
+
+def comment_lines(path, added):
+    """Yield (line_number, text, comment, whole) for added lines.
+
+    A line inside a C++ block comment is a comment even without a leading *.
+    """
+    in_block = False
+    for line_number, text in added:
+        stripped = text.strip()
+        if in_block:
+            yield line_number, text, stripped, True
+            in_block = "*/" not in stripped
+            continue
+        whole = is_comment(path, text)
+        yield line_number, text, comment_part(path, text), whole
+        if not path.endswith(FORTRAN_SUFFIXES) and stripped.startswith("/*"):
+            in_block = "*/" not in stripped[2:]
 
 
 def code_part(path, text):
@@ -197,22 +268,76 @@ def count_tests(files):
     return summary, notes
 
 
+def check_comment_blocks(path, added):
+    """Report runs of more than MAX_COMMENT_BLOCK added comment lines."""
+    notes = []
+    block = []
+    lines = list(comment_lines(path, added)) + [(None, "", "", False)]
+    for line_number, text, _, whole in lines:
+        if (
+            line_number is not None
+            and whole
+            and (not block or line_number == block[-1][0] + 1)
+        ):
+            block.append((line_number, text))
+            continue
+        # The license header of a new file is not reported.
+        if len(block) > MAX_COMMENT_BLOCK and not any(
+            "Copyright" in line for _, line in block
+        ):
+            notes.append(
+                f"{path}:{block[0][0]}: comment block of {len(block)} lines"
+            )
+        block = [(line_number, text)] if whole else []
+    return notes
+
+
+def check_wording(title, body, messages):
+    notes = []
+    texts = [("title", title or "")]
+    if body:
+        texts.append(("description", body.split("<!--")[0]))
+    texts += [(f"commit {sha[:10]}", message) for sha, message in messages]
+    for where, text in texts:
+        for line in text.splitlines():
+            match = WORDING.search(line) or FIRST_PERSON.search(line)
+            if match:
+                notes.append(
+                    f'{where}: "{match.group(0)}": {line.strip()[:80]}'
+                )
+    return notes
+
+
 def check_comments(files):
     notes = []
     for path, info in files.items():
+        if path.startswith("doc/news/changes/"):
+            for line_number, text in info["added"]:
+                match = WORDING.search(text) or FIRST_PERSON.search(text)
+                if match:
+                    notes.append(
+                        f'{path}:{line_number}: wording "{match.group(0)}"'
+                        f": {text.strip()[:80]}"
+                    )
+            continue
         if path.startswith("doc/") or not path.endswith(
             SOURCE_SUFFIXES + (".input",)
         ):
             continue
         in_library = not path.startswith(("tests/", "examples/"))
-        for line_number, text in info["added"]:
+        notes += check_comment_blocks(path, info["added"])
+        for line_number, text, comment, _ in comment_lines(
+            path, info["added"]
+        ):
             excerpt = text.strip()[:80]
-            if is_comment(path, text):
+            if comment:
                 for label, pattern in (
                     ("history", HISTORY),
                     ("shorthand", SHORTHAND),
+                    ("wording", WORDING),
+                    ("first person", FIRST_PERSON),
                 ):
-                    match = pattern.search(text)
+                    match = pattern.search(comment)
                     if match:
                         notes.append(
                             f'{path}:{line_number}: {label} "{match.group(0)}"'
@@ -220,6 +345,10 @@ def check_comments(files):
                         )
             if in_library and DYNAMIC_TYPE.search(code_part(path, text)):
                 notes.append(f"{path}:{line_number}: typeid: {excerpt}")
+            if not path.endswith(FORTRAN_SUFFIXES) and ENDL.search(
+                STRING_LITERAL.sub('""', code_part(path, text))
+            ):
+                notes.append(f"{path}:{line_number}: std::endl: {excerpt}")
     return notes
 
 
@@ -239,7 +368,7 @@ def main():
         pr = json.loads(
             run(
                 "gh", "pr", "view", str(args.pr), "--repo", args.repo,
-                "--json", "title,body,labels,baseRefName",
+                "--json", "title,body,labels,baseRefName,commits",
             )
         )
         title = pr["title"]
@@ -247,6 +376,10 @@ def main():
         labels = [label["name"] for label in pr["labels"]]
         base = pr["baseRefName"]
         diff = run("gh", "pr", "diff", str(args.pr), "--repo", args.repo)
+        messages = [
+            (c["oid"], c["messageHeadline"] + "\n" + c["messageBody"])
+            for c in pr["commits"]
+        ]
     else:
         title = args.title
         body = None
@@ -255,6 +388,12 @@ def main():
                 body = body_file.read()
         base = args.base
         diff = run("git", "diff", f"{base}...HEAD")
+        log = run("git", "log", "--format=%H%x00%B%x01", f"{base}..HEAD")
+        messages = [
+            tuple(entry.strip("\n").split("\0", 1))
+            for entry in log.split("\1")
+            if entry.strip()
+        ]
 
     files = parse_diff(diff)
     summary, test_notes = count_tests(files)
@@ -264,6 +403,7 @@ def main():
         ("description", check_description(title, body, labels, base)),
         ("tests", test_notes),
         ("comments", check_comments(files)),
+        ("wording", check_wording(title, body, messages)),
     ):
         for note in notes:
             print(f"{section}: {note}")
