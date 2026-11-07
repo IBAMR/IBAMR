@@ -12,7 +12,7 @@ categories:
 Each log entry should contain the names of the authors, the date, and a short
 description of the change, e.g.,
 ```
-New: We can now use the nine-point stencil.
+New: Add the nine-point stencil.
 <br>
 (John Doe, YYYY/MM/DD)
 ```

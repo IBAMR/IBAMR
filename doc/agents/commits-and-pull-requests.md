@@ -53,7 +53,7 @@ to add a trailer.
 
 - Check copyright starting years only for files created in the branch. Brand-new
   files use the current year; files copied and modified from an existing file
-  retain that file's starting year. For example, a new 2026 file uses `2026`, while
+  use that file's starting year. For example, a new 2026 file uses `2026`, while
   a modified copy of a file starting in 2018 uses `2018 - 2026`. Do not investigate
   history or repair starting years in existing files. End years are updated
   automatically when tagging a release; updating them on files actually modified
@@ -69,8 +69,8 @@ add source-code banners to `.input` or `.output` fixtures that do not use them.
 Use short imperative PR titles, at most 72 characters, that name the fix or
 addition. Start the title with `Fix`, after any tag, if and only if the change
 corrects behavior that is wrong, and give such a PR the `Bug` label. A title
-may begin with a bracketed tag that tells
-reviewers which area the PR belongs to, such as `[FAC]`, `[HYPRE]`, or `[MPI]`.
+may begin with a bracketed tag that names
+the area that the PR belongs to, such as `[FAC]`, `[HYPRE]`, or `[MPI]`.
 Use a tag that open or recently merged PRs already use, and ask before
 introducing a new one. The imperative title follows the tag. Begin the body
 with one or two imperative sentences that state the change, in about 60 words
@@ -81,8 +81,9 @@ the final diff and evidence, and update stale text within authorized PR work.
 
 State the change itself, not the history of the defect or of the branch. Write
 titles, descriptions, commit messages, and review replies directly and clearly,
-as [Comments and class documentation](documentation.md) describes. Do not
-list or describe the tests in the body, because the checklist covers them; the
+by the Language rules of [Comments and class documentation](documentation.md),
+including the rule on the first person: state what the change does or what
+was measured. Do not list or describe the tests in the body, because the checklist covers them; the
 exception is a sentence giving the reason for a new test executable. For a
 stacked PR, end the opening text with `Stacked on #N.`, naming the PR it is based
 on, and omit notes about stack position that a restack would invalidate. When a
@@ -125,7 +126,7 @@ account access.
 
 ## Draft and ready for review
 
-Marking a PR ready for review tells reviewers that the work is done. Mark a PR
+Ready for review means that the work is done. Mark a PR
 ready only when all of the following hold; otherwise open it, or keep it, as a
 draft:
 
@@ -154,7 +155,7 @@ and ready is a publication action: do it only within authorized PR work.
 Read [doc/news/changes/README.md](../../doc/news/changes/README.md) before writing an
 entry. It is the source of truth for categories, filenames, dates, and attribution.
 Choose a filename that the target branch does not already use, and check again
-after a rebase, since another merged PR may have taken it.
+after a rebase, since another merged PR may use it.
 Use the actual human contributor names, not an agent name or invented identity.
 Use an established prefix such as `Fixed:`, `Improved:`, or `New:`; for example,
 `Fixed: Preserve command-line PETSc option precedence.` Keep the entry very short,

@@ -29,6 +29,19 @@ CONFIGURE_FILE(
   )
 
 #
+# MathJax 4 draws the Unicode letters of formula-macros.tex with its own fonts;
+# MathJax 2 takes them from the reader's system fonts. Doxygen supports MathJax 4
+# from version 1.15.
+#
+IF(NOT (${DOXYGEN_VERSION} VERSION_LESS 1.15))
+  SET(IBAMR_DOXYGEN_MATHJAX_VERSION "MATHJAX_VERSION        = MathJax_4")
+  SET(IBAMR_DOXYGEN_MATHJAX_EXTENSIONS "ams")
+ELSE()
+  SET(IBAMR_DOXYGEN_MATHJAX_VERSION "")
+  SET(IBAMR_DOXYGEN_MATHJAX_EXTENSIONS "TeX/AMSmath TeX/AMSsymbols TeX/unicode")
+ENDIF()
+
+#
 # Doxygen configuration file:
 #
 CONFIGURE_FILE(
@@ -161,6 +174,7 @@ ADD_CUSTOM_COMMAND(
   DEPENDS
     ${_doxygen_dependencies}
     ${CMAKE_CURRENT_BINARY_DIR}/options.dox
+    ${CMAKE_CURRENT_SOURCE_DIR}/formula-macros.tex
     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/filter.pl
   COMMENT "Generating documentation via doxygen."
   VERBATIM
