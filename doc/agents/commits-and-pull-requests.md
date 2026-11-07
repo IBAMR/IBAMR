@@ -81,7 +81,9 @@ the final diff and evidence, and update stale text within authorized PR work.
 
 State the change itself, not the history of the defect or of the branch. Write
 titles, descriptions, commit messages, and review replies directly and clearly,
-as [Comments and class documentation](documentation.md) describes. Do not
+as [Comments and class documentation](documentation.md) describes. Do not use the
+first person ("I", "we", "our") in titles, descriptions, GitHub comments, or
+review replies: state what the change does or what was measured. Do not
 list or describe the tests in the body, because the checklist covers them; the
 exception is a sentence giving the reason for a new test executable. For a
 stacked PR, end the opening text with `Stacked on #N.`, naming the PR it is based
