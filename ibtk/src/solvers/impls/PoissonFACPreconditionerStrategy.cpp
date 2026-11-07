@@ -19,6 +19,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
@@ -177,6 +178,7 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
 void
 PoissonFACPreconditionerStrategy::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
+    PoissonUtilities::checkCoefficientDepths(poisson_spec, d_object_name);
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications

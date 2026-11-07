@@ -15,6 +15,7 @@
 
 #include <ibtk/LaplaceOperator.h>
 #include <ibtk/LinearOperator.h>
+#include <ibtk/PoissonUtilities.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -63,6 +64,7 @@ LaplaceOperator::LaplaceOperator(std::string object_name, bool homogeneous_bc)
 void
 LaplaceOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
+    PoissonUtilities::checkCoefficientDepths(poisson_spec, d_object_name);
     d_poisson_spec = poisson_spec;
     return;
 } // setPoissonSpecifications

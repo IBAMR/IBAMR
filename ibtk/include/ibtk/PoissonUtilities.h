@@ -29,6 +29,7 @@
 #include <PoissonSpecifications.h>
 
 #include <map>
+#include <string>
 #include <vector>
 
 namespace SAMRAI
@@ -254,6 +255,13 @@ public:
      * Return whether the operator has a damping term, i.e. C is not exactly zero.
      */
     static bool isDamped(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+
+    /*!
+     * Emit an error if C or D is patch data that is not registered or whose depth is not one.  C and D are shared by
+     * all components of the solution.  The error message begins with the given object name.
+     */
+    static void checkCoefficientDepths(const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                       const std::string& object_name);
 
 protected:
 private:
