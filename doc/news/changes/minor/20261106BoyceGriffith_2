@@ -1,0 +1,3 @@
+Improved: IBTK::CCPoissonLevelRelaxationFACOperator and IBAMR::StaggeredStokesLevelRelaxationFACOperator no longer build an unused level solver for the coarsest level.
+<br>
+(Boyce Griffith, 2026/11/06)

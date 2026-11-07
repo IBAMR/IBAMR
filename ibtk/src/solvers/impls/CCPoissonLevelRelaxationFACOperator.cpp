@@ -460,9 +460,9 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
     scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
 
-    // Initialize the fine level solvers when needed.
+    // Initialize the fine level solvers when needed. The coarse solver handles the coarsest level.
     d_level_solvers.resize(d_finest_ln + 1);
-    for (int ln = std::max(0, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
+    for (int ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
         Pointer<PoissonSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
