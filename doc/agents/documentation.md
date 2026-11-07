@@ -23,8 +23,9 @@
 - Write directly and clearly: use the active voice, put statements in positive
   form, use definite, specific, concrete language, and omit needless words. State
   the fact or requirement itself, with its actor as the subject ("the solver
-  subtracts the mean of the right-hand side"). This applies equally to comments,
-  error messages, commit messages, PR descriptions, and review replies.
+  subtracts the mean of the right-hand side"). Use American spelling and the
+  serial (Oxford) comma. This applies equally to comments, error messages, commit
+  messages, PR descriptions, and review replies.
 - Do not carry working vocabulary from the development of a change into
   comments, names, input keys, file names, or messages: for example `parity`
   for agreement between two code paths, `live`, `pin`, `probe`, or the labels
@@ -100,3 +101,51 @@ Verify mathematical and behavioral claims against the implementation or tests.
 Define specialized method terminology and cite the relevant method when needed.
 Document necessary preconditions that the code cannot check. Apply the same
 accuracy review to changelog entries and PR descriptions.
+
+## Dimensions
+
+In Doxygen comments and documentation pages, write the number of dimensions in
+words rather than as 1d, 2d, 3d, 1D, 2D, or 3D. For the dimension of space,
+write "one spatial dimension", "two spatial dimensions", or "three spatial
+dimensions". For any other dimension, such as that of a cell, a surface, or a
+quadrature rule, write "one-dimensional", "two-dimensional", or
+"three-dimensional". Do not call a dimension spatial unless it is the dimension
+of space. Identifiers, input keys, and test names such as `NDIM`, `SETUP_2D`, and
+`_2d` are unchanged.
+
+## Formula notation
+
+Formulas in Doxygen comments distinguish quantities by typeface:
+
+| Quantity | Typeface | Letters | Macro | Example |
+| --- | --- | --- | --- | --- |
+| Scalar | italic serif | any | none | `p`, `\mu` |
+| Vector | bold italic serif | any | `\vect{}` | `\vect{u}`, `\vect{\chi}` |
+| Second-order tensor | bold italic sans-serif | any | `\tens<letter>` | `\tensF`, `\tenssigma` |
+| Fourth-order tensor | blackboard bold | uppercase Latin | `\ftens{}` | `\ftens{C}` |
+| Matrix | bold upright sans-serif | uppercase Latin | `\mat{}` | `\mat{A}` |
+| Discrete vector | bold upright sans-serif | lowercase Latin | `\dvec{}` | `\dvec{x}` |
+
+1. The rules apply to every quantity, whether it is a function, a field, or a
+   constant: a fixed normal `\vect{n}` is a vector and the identity `\tensI` is a
+   tensor, while the identity matrix is `\mat{I}`.
+2. Write formulas in Doxygen comments with the macros, so that the typefaces can
+   be changed in one place. `doc/doxygen/scripts/make_formula_macros.py`
+   generates their definitions in `doc/doxygen/formula-macros.tex`; change the
+   script, not the generated file.
+3. Markdown files that Doxygen does not read, such as `README.md` and the files
+   in `doc/agents`, cannot use the macros. Write plain TeX there:
+   `\boldsymbol{}` for vectors, `\boldsymbol{\mathsf{}}` for matrices and discrete
+   vectors, and the Unicode character for a second-order tensor.
+4. Components of vectors and tensors are scalars: write `F_{iJ}` and
+   `\sigma_{ij}`.
+5. Labels in subscripts and superscripts are upright text, written with
+   `\mathrm{}`, as in `\mu_\mathrm{f}` and `\vect{u}_\mathrm{b}`. Indices and
+   variables stay italic, as in `u_i` and `\tensF_t`.
+6. An overbar or other accent goes on the base symbol only: write `\bar{I}_1`,
+   not `\overline{I_1}` or `\bar{I_1}`.
+7. The transpose is an upright sans-serif T: write `\tensF^\tran` and
+   `\tensF^\invtran`, not `^T` or `^{-T}`.
+
+Apply these rules to new and changed documentation; do not reword untouched
+documentation only to follow them.
