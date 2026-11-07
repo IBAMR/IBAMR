@@ -259,9 +259,10 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
-    // Initialize the fine level solvers when needed.
+    // Initialize the level solvers when needed. The coarsest level needs one only for a LEVEL_SMOOTHER coarse solve.
     d_level_solvers.resize(d_finest_ln + 1);
-    for (int ln = std::max(0, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
+    const int coarsest_level_solver_ln = d_coarse_solver_type == "LEVEL_SMOOTHER" ? d_coarsest_ln : d_coarsest_ln + 1;
+    for (int ln = std::max(coarsest_level_solver_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
         Pointer<StaggeredStokesSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
