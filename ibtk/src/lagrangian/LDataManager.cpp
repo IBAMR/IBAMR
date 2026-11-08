@@ -36,6 +36,7 @@
 #include <ibtk/ParallelSet.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/SAMRAIDataCache.h>
+#include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/compiler_hints.h>
 
 #include <tbox/Array.h>
@@ -106,14 +107,17 @@ IBTK_DISABLE_EXTRA_WARNINGS
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <map>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <ostream>
 #include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -601,51 +605,166 @@ LDataManager::spread(const int f_data_idx,
     }
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    if (cc_data || sc_data)
     {
-        // If there are coarser levels in the patch hierarchy, prolong data from
-        // the coarser levels before spreading data on this level.
-        if (ln > coarsest_ln && ln < static_cast<int>(f_prolongation_scheds.size()) && f_prolongation_scheds[ln])
+        // The points in each patch box are spread into the patch data, including ghost cells. The ghost values are then
+        // summed into their owners. The ghost cell width must cover the support of the kernel.
+        const IntVector<NDIM> gcw = var_db->getPatchDescriptor()->getPatchDataFactory(f_data_idx)->getGhostCellWidth();
+        const int min_gcw = LEInteractor::getMinimumGhostWidth(spread_kernel_fcn);
+        if (gcw.min() < min_gcw)
         {
-            f_prolongation_scheds[ln]->fillData(fill_data_time);
+            TBOX_ERROR(d_object_name << "::spread():\n"
+                                     << "  the data with patch data index " << f_data_idx << " has ghost cell width "
+                                     << gcw << "\n"
+                                     << "  the kernel function " << spread_kernel_fcn
+                                     << " requires a ghost cell width of at least " << min_gcw << "\n");
         }
 
-        if (!levelContainsLagrangianData(ln)) continue;
-
-        // Spread data onto the grid.
-        if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
-        if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        // The accumulation covers the levels from the first to the last that contain Lagrangian data.
+        int first_ln = invalid_level_number, last_ln = invalid_level_number;
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_data_idx);
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            const Box<NDIM>& box = idx_data->getGhostBox();
-            if (cc_data)
+            if (levelContainsLagrangianData(ln))
             {
-                Pointer<CellData<NDIM, double>> f_cc_data = f_data;
-                LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
+                if (first_ln == invalid_level_number)
+                {
+                    first_ln = ln;
+                }
+                last_ln = ln;
             }
-            if (ec_data)
+        }
+        const bool has_lagrangian_data = (first_ln != invalid_level_number);
+        std::vector<std::vector<int>> active_patch_nums(has_lagrangian_data ? last_ln - first_ln + 1 : 0);
+        if (has_lagrangian_data)
+        {
+            for (int ln = first_ln; ln <= last_ln; ++ln)
             {
-                Pointer<EdgeData<NDIM, double>> f_ec_data = f_data;
-                LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
+                if (!levelContainsLagrangianData(ln))
+                {
+                    continue;
+                }
+
+                if (F_data_ghost_node_update)
+                {
+                    F_data[ln]->endGhostUpdate();
+                }
+                if (X_data_ghost_node_update)
+                {
+                    X_data[ln]->endGhostUpdate();
+                }
+                Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+                    if (idx_data->getLocalPETScIndices().empty())
+                    {
+                        continue;
+                    }
+
+                    active_patch_nums[ln - first_ln].push_back(patch->getPatchNumber());
+                    Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_data_idx);
+                    const Box<NDIM>& box = patch->getBox();
+                    if (cc_data)
+                    {
+                        Pointer<CellData<NDIM, double>> f_cc_data = f_data;
+                        LEInteractor::spread(
+                            f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
+                    }
+                    else
+                    {
+                        Pointer<SideData<NDIM, double>> f_sc_data = f_data;
+                        LEInteractor::spread(
+                            f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
+                    }
+                }
+#if !defined(NDEBUG)
+                checkEachPointProcessedOnce("LDataManager::spread", ln, X_data[ln]);
+#endif
             }
-            if (nc_data)
+
+            getGhostDataAccumulator(f_var, gcw, first_ln, last_ln)
+                .accumulateGhostData(f_data_idx, f_phys_bdry_op, fill_data_time, &active_patch_nums);
+        }
+
+        // Prolong data from the coarser levels. Copy the values spread on a level and add them back afterward, because
+        // prolongation replaces them.
+        std::optional<SAMRAIDataCache::CachedPatchDataIndex> f_spread_data_idx;
+        Pointer<HierarchyDataOpsReal<NDIM, double>> f_level_data_ops;
+        for (int ln = coarsest_ln + 1; ln <= finest_ln; ++ln)
+        {
+            if (ln >= static_cast<int>(f_prolongation_scheds.size()) || !f_prolongation_scheds[ln])
             {
-                Pointer<NodeData<NDIM, double>> f_nc_data = f_data;
-                LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
+                continue;
             }
-            if (sc_data)
+
+            const bool spread_on_level = levelContainsLagrangianData(ln);
+            if (spread_on_level)
             {
-                Pointer<SideData<NDIM, double>> f_sc_data = f_data;
-                LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
+                if (!f_spread_data_idx)
+                {
+                    f_spread_data_idx.emplace(d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx));
+                    f_level_data_ops =
+                        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+                }
+                f_level_data_ops->resetLevels(ln, ln);
+                f_level_data_ops->copyData(*f_spread_data_idx, f_data_idx, /*interior_only*/ true);
             }
-            if (f_phys_bdry_op)
+            f_prolongation_scheds[ln]->fillData(fill_data_time);
+            if (spread_on_level)
             {
-                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
+                f_level_data_ops->add(f_data_idx, f_data_idx, *f_spread_data_idx, /*interior_only*/ true);
+            }
+        }
+    }
+    else
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            // If there are coarser levels in the patch hierarchy, prolong data from
+            // the coarser levels before spreading data on this level.
+            if (ln > coarsest_ln && ln < static_cast<int>(f_prolongation_scheds.size()) && f_prolongation_scheds[ln])
+            {
+                f_prolongation_scheds[ln]->fillData(fill_data_time);
+            }
+
+            if (!levelContainsLagrangianData(ln))
+            {
+                continue;
+            }
+
+            // Spread data onto the grid.
+            if (F_data_ghost_node_update)
+            {
+                F_data[ln]->endGhostUpdate();
+            }
+            if (X_data_ghost_node_update)
+            {
+                X_data[ln]->endGhostUpdate();
+            }
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_data_idx);
+                Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+                const Box<NDIM>& box = idx_data->getGhostBox();
+                if (ec_data)
+                {
+                    Pointer<EdgeData<NDIM, double>> f_ec_data = f_data;
+                    LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
+                }
+                if (nc_data)
+                {
+                    Pointer<NodeData<NDIM, double>> f_nc_data = f_data;
+                    LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
+                }
+                if (f_phys_bdry_op)
+                {
+                    f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+                    f_phys_bdry_op->accumulateFromPhysicalBoundaryData(
+                        *patch, fill_data_time, f_data->getGhostCellWidth());
+                }
             }
         }
     }
@@ -1597,6 +1716,9 @@ void
 LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest_ln_in)
 {
     IBTK_TIMER_START(t_begin_data_redistribution);
+
+    // The patches of the levels may change.
+    d_ghost_data_accumulators.clear();
 
     const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
@@ -2609,6 +2731,9 @@ LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM>
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
+    // The patches of the levels have changed.
+    d_ghost_data_accumulators.clear();
+
     // Reset the patch hierarchy and levels.
     setPatchHierarchy(hierarchy);
     setPatchLevels(0, finest_hier_level);
@@ -2982,6 +3107,9 @@ LDataManager::LDataManager(std::string object_name,
 
 LDataManager::~LDataManager()
 {
+    // The accumulators refer to the patch levels.
+    d_ghost_data_accumulators.clear();
+
     // Destroy any remaining AO objects.
     for (AO& ao : d_ao)
     {
@@ -2995,6 +3123,29 @@ LDataManager::~LDataManager()
 } // ~LDataManager
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+SAMRAIGhostDataAccumulator&
+LDataManager::getGhostDataAccumulator(const Pointer<Variable<NDIM>>& var,
+                                      const IntVector<NDIM>& gcw,
+                                      const int coarsest_ln,
+                                      const int finest_ln)
+{
+    std::array<int, NDIM> gcw_array;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        gcw_array[d] = gcw(d);
+    }
+    const auto key = std::make_tuple(var.getPointer(), gcw_array, coarsest_ln, finest_ln);
+    auto it = d_ghost_data_accumulators.find(key);
+    if (it == d_ghost_data_accumulators.end())
+    {
+        it = d_ghost_data_accumulators
+                 .emplace(key,
+                          std::make_unique<SAMRAIGhostDataAccumulator>(d_hierarchy, var, gcw, coarsest_ln, finest_ln))
+                 .first;
+    }
+    return *it->second;
+}
 
 void
 LDataManager::scatterData(Vec& lagrangian_vec, Vec& petsc_vec, const int level_number, ScatterMode mode) const

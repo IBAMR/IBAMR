@@ -30,6 +30,7 @@
 #include <ibtk/LSetData.h>
 #include <ibtk/LSiloDataWriter.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
+#include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/libmesh_utilities.h>
 
 #include <tbox/Array.h>
@@ -192,6 +193,7 @@ IMPMethod::IMPMethod(std::string object_name, Pointer<Database> input_db, bool r
 
 IMPMethod::~IMPMethod()
 {
+    d_ghost_data_accumulator.reset();
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
@@ -805,107 +807,142 @@ IMPMethod::spreadForce(const int f_data_idx,
     *X_needs_ghost_fill = false;
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
+    Pointer<PatchLevel<NDIM>> coarsest_level = d_hierarchy->getPatchLevel(coarsest_ln);
+    const IntVector<NDIM> gcw =
+        coarsest_level->getPatchDescriptor()->getPatchDataFactory(f_data_idx)->getGhostCellWidth();
+    const int min_gcw = LEInteractor::getMinimumGhostWidth(KERNEL_FCN);
+    if (gcw.min() < min_gcw)
+    {
+        TBOX_ERROR(d_object_name << "::spreadForce():\n"
+                                 << "  the data with patch data index " << f_data_idx << " has ghost cell width " << gcw
+                                 << "\n"
+                                 << "  the kernel function " << KERNEL_FCN
+                                 << " requires a ghost cell width of at least " << min_gcw << "\n");
+    }
+    std::vector<std::vector<int>> active_patch_nums(finest_ln - coarsest_ln + 1);
     Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getGhostedLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
+        std::vector<int> local_indices;
+        std::vector<double> periodic_shifts;
+        std::vector<const MaterialPointSpec*> mp_specs(X_array.shape()[0], nullptr);
+        for (const auto* const nodes :
+             { &d_l_data_manager->getLMesh(ln)->getLocalNodes(), &d_l_data_manager->getLMesh(ln)->getGhostNodes() })
+        {
+            for (const LNode* const node : *nodes)
+            {
+                mp_specs[node->getLocalPETScIndex()] = node->getNodeDataItem<MaterialPointSpec>();
+            }
+        }
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            if (idx_data->getLocalPETScIndices().empty())
+            {
+                continue;
+            }
+            active_patch_nums[ln - coarsest_ln].push_back(patch->getPatchNumber());
             const Box<NDIM>& patch_box = patch->getBox();
             Box<NDIM> side_boxes[NDIM];
-            for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                side_boxes[d] = SideGeometry<NDIM>::toSideBox(f_data->getGhostBox(), d);
+            }
             const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
             double dV_c = 1.0;
             for (unsigned int d = 0; d < NDIM; ++d) dV_c *= dx[d];
-            for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
+            // Spread the points whose current positions lie in the patch box, as LDataManager::spread() does.
+            LEInteractor::buildLocalIndices(
+                local_indices, periodic_shifts, patch_box, patch, X_array.data(), NDIM, idx_data);
+            for (std::size_t n = 0; n < local_indices.size(); ++n)
             {
-                const hier::Index<NDIM>& i = *it;
-                LNodeSet* const node_set = idx_data->getItem(i);
-                if (!node_set) continue;
-                for (const auto& node_idx : *node_set)
+                const int local_idx = local_indices[n];
+                const MaterialPointSpec* const mp_spec = mp_specs[local_idx];
+                if (!mp_spec) continue;
+                const double wgt = mp_spec->getWeight();
+                std::array<double, NDIM> X;
+                for (unsigned int d = 0; d < NDIM; ++d) X[d] = X_array[local_idx][d] + periodic_shifts[NDIM * n + d];
+                TensorValue<double> tau;
+                for (int i = 0; i < NDIM; ++i)
                 {
-                    auto mp_spec = node_idx->getNodeDataItem<MaterialPointSpec>();
-                    if (!mp_spec) continue;
-                    const double wgt = mp_spec->getWeight();
-                    const int local_idx = node_idx->getLocalPETScIndex();
-                    const double* const X = &X_array[local_idx][0];
-                    TensorValue<double> tau;
-                    for (int i = 0; i < NDIM; ++i)
+                    for (int j = 0; j < NDIM; ++j)
                     {
-                        for (int j = 0; j < NDIM; ++j)
-                        {
-                            tau(i, j) = tau_array[local_idx][NDIM * i + j];
-                        }
+                        tau(i, j) = tau_array[local_idx][NDIM * i + j];
                     }
+                }
 
-                    // Weight tau using a smooth kernel function evaluated about
-                    // X.
-                    Box<NDIM> stencil_box;
-                    const int stencil_size = LEInteractor::getStencilSize(KERNEL_FCN);
-                    std::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
+                // Weight tau using a smooth kernel function evaluated about
+                // X.
+                Box<NDIM> stencil_box;
+                const int stencil_size = LEInteractor::getStencilSize(KERNEL_FCN);
+                std::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    phi[d].resize(boost::extents[stencil_size]);
+                    dphi[d].resize(boost::extents[stencil_size]);
+                }
+                for (unsigned int component = 0; component < NDIM; ++component)
+                {
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        phi[d].resize(boost::extents[stencil_size]);
-                        dphi[d].resize(boost::extents[stencil_size]);
+                        kernel(X[d],
+                               x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
+                               x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0),
+                               dx[d],
+                               patch_box.lower(d),
+                               patch_box.upper(d) + (d == component ? 1 : 0),
+                               stencil_box.lower(d),
+                               stencil_box.upper(d),
+                               phi[d],
+                               dphi[d]);
                     }
-                    for (unsigned int component = 0; component < NDIM; ++component)
+                    for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
                     {
-                        for (unsigned int d = 0; d < NDIM; ++d)
+                        const hier::Index<NDIM>& i = b();
+                        const hier::Index<NDIM> i_shift = i - stencil_box.lower();
+                        const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
+                        double f = 0.0;
+                        for (unsigned int k = 0; k < NDIM; ++k)
                         {
-                            kernel(X[d],
-                                   x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
-                                   x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0),
-                                   dx[d],
-                                   patch_box.lower(d),
-                                   patch_box.upper(d) + (d == component ? 1 : 0),
-                                   stencil_box.lower(d),
-                                   stencil_box.upper(d),
-                                   phi[d],
-                                   dphi[d]);
-                        }
-                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
-                        {
-                            const hier::Index<NDIM>& i = b();
-                            const hier::Index<NDIM> i_shift = i - stencil_box.lower();
-                            const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
-                            double f = 0.0;
-                            for (unsigned int k = 0; k < NDIM; ++k)
+                            double dw_dx_k = 1.0;
+                            for (unsigned int d = 0; d < NDIM; ++d)
                             {
-                                double dw_dx_k = 1.0;
-                                for (unsigned int d = 0; d < NDIM; ++d)
+                                if (d == k)
                                 {
-                                    if (d == k)
-                                    {
-                                        dw_dx_k *= dphi[d][i_shift(d)] / dx[d];
-                                    }
-                                    else
-                                    {
-                                        dw_dx_k *= phi[d][i_shift(d)];
-                                    }
+                                    dw_dx_k *= dphi[d][i_shift(d)] / dx[d];
                                 }
-                                f += tau(component, k) * dw_dx_k;
+                                else
+                                {
+                                    dw_dx_k *= phi[d][i_shift(d)];
+                                }
                             }
-                            (*f_data)(i_s) += f * wgt / dV_c;
+                            f += tau(component, k) * dw_dx_k;
                         }
+                        (*f_data)(i_s) += f * wgt / dV_c;
                     }
                 }
             }
-            if (f_phys_bdry_op)
-            {
-                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
-            }
         }
+        (*X_data)[ln]->restoreArrays();
+        d_tau_data[ln]->restoreArrays();
     }
+
+    // Apply the transpose of the physical boundary fill, then sum the ghost values into the patches that own them.
+    if (!d_ghost_data_accumulator)
+    {
+        d_ghost_data_accumulator =
+            std::make_unique<SAMRAIGhostDataAccumulator>(d_hierarchy, f_var, gcw, coarsest_ln, finest_ln);
+    }
+    d_ghost_data_accumulator->accumulateGhostData(f_data_idx, f_phys_bdry_op, data_time, &active_patch_nums);
 
     // Accumulate data.
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
@@ -977,6 +1014,8 @@ void
 IMPMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                    Pointer<GriddingAlgorithm<NDIM>> /*gridding_alg*/)
 {
+    // Destroy the accumulator, which is valid for one configuration of the patches.
+    d_ghost_data_accumulator.reset();
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution

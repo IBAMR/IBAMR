@@ -1064,26 +1064,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         }
     }
 
-    // Deal with force values spread outside the physical domain. Since these
-    // are spread into ghost regions that don't correspond to actual degrees
-    // of freedom they are ignored by the accumulation step - we have to
-    // handle this before we do that.
-    if (f_phys_bdry_op)
-    {
-        for (int ln = getCoarsestPatchLevelNumber(); ln <= getFinestPatchLevelNumber(); ++ln)
-        {
-            f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
-            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                const Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_scratch_data_idx);
-                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
-            }
-        }
-    }
-
-    // Accumulate forces spread into patch ghost regions.
+    // Apply the transpose of the physical boundary fill, then sum the ghost values into the patches that own them.
     {
         if (!d_ghost_data_accumulator)
         {
@@ -1095,11 +1076,10 @@ IBFEMethod::spreadForce(const int f_data_idx,
             const IntVector<NDIM> gcw =
                 level->getPatchDescriptor()->getPatchDataFactory(f_scratch_data_idx)->getGhostCellWidth();
 
-            // TODO - SAMRAIGhostDataAccumulator has not been tested with multiple levels
             d_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(
                 hierarchy, f_var, gcw, getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber());
         }
-        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, nullptr, 0.0);
+        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, f_phys_bdry_op, data_time);
     }
 
     // Prolong forces spread onto coarser levels onto finer levels.
@@ -1317,26 +1297,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
             q_scratch_data_idx, *Q_IB_ghost_vecs[part], *X_IB_ghost_vecs[part], getSourceSystemName());
     }
 
-    // Apply the transpose of the physical boundary fill to the values spread
-    // outside the physical domain. This must precede the accumulation, which
-    // ignores ghost cells that do not correspond to degrees of freedom.
-    if (q_phys_bdry_op)
-    {
-        q_phys_bdry_op->setPatchDataIndex(q_scratch_data_idx);
-        for (int ln = getCoarsestPatchLevelNumber(); ln <= getFinestPatchLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                const Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<PatchData<NDIM>> q_data = patch->getPatchData(q_scratch_data_idx);
-                q_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, q_data->getGhostCellWidth());
-            }
-        }
-        q_phys_bdry_op->setPatchDataIndex(q_data_idx);
-    }
-
-    // Sum the sources spread into patch ghost regions into the owning patches.
+    // Apply the transpose of the physical boundary fill, then sum the ghost values into the patches that own them.
     if (!d_source_ghost_data_accumulator)
     {
         // Use the ghost width that the data actually has, since it may be wider
@@ -1347,7 +1308,8 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
         d_source_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(
             hierarchy, q_var, gcw, getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber());
     }
-    d_source_ghost_data_accumulator->accumulateGhostData(q_scratch_data_idx, nullptr, 0.0);
+    d_source_ghost_data_accumulator->accumulateGhostData(q_scratch_data_idx, q_phys_bdry_op, data_time);
+    if (q_phys_bdry_op) q_phys_bdry_op->setPatchDataIndex(q_data_idx);
 
     if (d_use_scratch_hierarchy)
     {
