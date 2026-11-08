@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator():
+  creeping_flow == true is not supported by the conservative integrator
+  use INSVCStaggeredNonConservativeHierarchyIntegrator for creeping flow
+

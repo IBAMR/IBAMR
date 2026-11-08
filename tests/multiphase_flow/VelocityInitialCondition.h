@@ -91,7 +91,7 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int /*data_idx*/,
-                                 SAMRAI::tbox::Pointer<Variable<NDIM>> /*var*/,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> /*var*/,
                                  SAMRAI::tbox::Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
                                  const double /*data_time*/,
                                  const bool /*initial_time*/,
@@ -106,7 +106,7 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<Variable<NDIM>> /*var*/,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> /*var*/,
                         SAMRAI::tbox::Pointer<Patch<NDIM>> patch,
                         const double /*data_time*/,
                         const bool initial_time,

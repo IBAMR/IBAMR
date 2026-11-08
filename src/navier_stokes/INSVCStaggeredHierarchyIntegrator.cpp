@@ -1345,6 +1345,18 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
 {
     INSHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
+    // Only the registered reset functions set a registered viscosity variable at the new time. d_mu_var is null if an
+    // advection-diffusion integrator maintains the viscosity.
+    if (!d_mu_is_const && d_mu_var && d_reset_mu_fcns.empty())
+    {
+        TBOX_ERROR(d_object_name
+                   << "::preprocessIntegrateHierarchy():\n"
+                   << "  mu_is_const == false with a registered viscosity variable requires a function that sets "
+                      "the viscosity at the new time\n"
+                   << "  register one with registerResetFluidViscosityFcn(), or let an advection-diffusion "
+                      "integrator maintain the viscosity with setTransportedViscosityVariable()\n");
+    }
+
     // The types of the boundary conditions may change in time.
     if (d_divergence_free_velocity_phys_bdry_op)
     {
