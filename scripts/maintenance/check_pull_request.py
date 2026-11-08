@@ -110,7 +110,7 @@ def code_part(path, text):
 def parse_diff(diff):
     """Return {path: {"new": bool, "added": [(line_number, text)]}}.
 
-    A symbolic link adds no lines: its diff holds only the path of its target.
+    A symbolic link adds no lines: its diff contains only its target's path.
     """
     files = collections.OrderedDict()
     path = None
@@ -245,7 +245,7 @@ def check_comments(files):
 
 # The warning flags of the hosted builds for each compiler family. Warnings are
 # reported, not promoted to errors, so that every one is listed.
-COMPILER_FLAGS = {
+WARNING_FLAGS = {
     "GCC": ("-Wall", "-Wextra", "-Wpedantic", "-Wno-deprecated-declarations"),
     "Clang": ("-Wall", "-Wextra", "-Wpedantic", "-Wmost", "-Wmove", "-Wunused"),
 }
@@ -258,8 +258,8 @@ COMPILER_NAMES = {
 def compiler_family(compiler):
     """Return "GCC", "Clang", or None for a compiler or compiler wrapper.
 
-    The name does not decide: g++ is Clang on macOS, and an MPI wrapper can be
-    either.
+    The family is read from the version output, since g++ is Clang on macOS and
+    an MPI wrapper can wrap either compiler.
     """
     path = shutil.which(compiler)
     if path is None:
@@ -281,22 +281,34 @@ def command_tokens(entry):
 
 
 def other_compiler(entries):
-    """Return (compiler, family) of the family the build does not use."""
+    """Return (compiler, family, None) of the family the build does not use.
+
+    If the build's compiler is neither GCC nor Clang, or no compiler of the
+    other family is found, return (None, None, reason).
+    """
     build_family = None
     for token in command_tokens(entries[0])[:3]:
         if token.startswith("-"):
             break
         build_family = compiler_family(token) or build_family
     if build_family is None:
-        return None, "the compiler of the build directory is neither GCC nor Clang"
+        return (
+            None,
+            None,
+            "the compiler of the build directory is neither GCC nor Clang",
+        )
     family = "Clang" if build_family == "GCC" else "GCC"
     for name in COMPILER_NAMES[family]:
         if compiler_family(name) == family:
-            return shutil.which(name), family
-    return None, f"the build uses {build_family} and no {family} compiler was found"
+            return shutil.which(name), family, None
+    return (
+        None,
+        None,
+        f"the build uses {build_family} and no {family} compiler was found",
+    )
 
 
-def compiler_arguments(entry, top, build_directory):
+def compiler_arguments(entry, top_directory, build_directory):
     """Return the definitions and include paths of one compilation command.
 
     Warning and code generation options are dropped because they were written
@@ -306,7 +318,7 @@ def compiler_arguments(entry, top, build_directory):
     """
     tokens = command_tokens(entry)
     arguments = []
-    label = ""
+    ndim_definition = ""
     index = 1
     while index < len(tokens):
         token = tokens[index]
@@ -324,14 +336,14 @@ def compiler_arguments(entry, top, build_directory):
         if token == "-I":
             path = os.path.normpath(os.path.join(entry["directory"], value))
             ours = (
-                path.startswith(top + os.sep) and "contrib" not in path
+                path.startswith(top_directory + os.sep) and "contrib" not in path
             ) or path.startswith(build_directory + os.sep)
             arguments += ["-I" if ours else "-isystem", path]
         else:
             arguments += [token, value]
             if token == "-D" and value.startswith("NDIM="):
-                label = value
-    return arguments, label
+                ndim_definition = value
+    return arguments, ndim_definition
 
 
 def check_compiler(files, build_directory, compiler):
@@ -340,11 +352,11 @@ def check_compiler(files, build_directory, compiler):
     database = os.path.join(build_directory, "compile_commands.json")
     if not os.path.exists(database):
         return [], f"{database} does not exist"
-    top = run("git", "rev-parse", "--show-toplevel").strip()
+    top_directory = run("git", "rev-parse", "--show-toplevel").strip()
     sources = {
-        os.path.join(top, path): path
+        os.path.join(top_directory, path): path
         for path in files
-        if path.endswith(".cpp") and os.path.exists(os.path.join(top, path))
+        if path.endswith(".cpp") and os.path.exists(os.path.join(top_directory, path))
     }
     if not sources:
         return [], None
@@ -357,9 +369,9 @@ def check_compiler(files, build_directory, compiler):
     if not entries:
         return [], f"{database} lists none of the changed C++ sources"
     if compiler is None:
-        compiler, family = other_compiler(entries)
+        compiler, family, skip_reason = other_compiler(entries)
         if compiler is None:
-            return [], family
+            return [], skip_reason
     else:
         family = compiler_family(compiler)
         if family is None:
@@ -369,18 +381,24 @@ def check_compiler(files, build_directory, compiler):
     seen = set()
     for entry in entries:
         source = os.path.normpath(os.path.join(entry["directory"], entry["file"]))
-        arguments, label = compiler_arguments(entry, top, build_directory)
-        if (source, label) in seen:
+        arguments, ndim_definition = compiler_arguments(
+            entry, top_directory, build_directory
+        )
+        if (source, ndim_definition) in seen:
             continue
-        seen.add((source, label))
+        seen.add((source, ndim_definition))
         result = subprocess.run(
-            [compiler, "-fsyntax-only", *COMPILER_FLAGS[family], *arguments, source],
+            [compiler, "-fsyntax-only", *WARNING_FLAGS[family], *arguments, source],
             capture_output=True, text=True,
         )
         for line in result.stderr.splitlines():
             if " error: " in line or " warning: " in line:
-                where = f" ({family}, {label})" if label else f" ({family})"
-                notes.append(line.replace(top + os.sep, "") + where)
+                note_suffix = (
+                    f" ({family}, {ndim_definition})"
+                    if ndim_definition
+                    else f" ({family})"
+                )
+                notes.append(line.replace(top_directory + os.sep, "") + note_suffix)
     missing = sorted(set(sources.values()) - {sources[s] for s, _ in seen})
     for path in missing:
         notes.append(f"{path}: not in {database}, so not compiled")
@@ -435,13 +453,16 @@ def main():
     compiler_notes = []
     if args.compiler_check is not None:
         if args.pr is not None:
-            skipped = "it needs the branch checked out; do not use --pr"
+            skip_reason = (
+                "--compiler-check requires a checked-out branch and cannot be "
+                "used with --pr"
+            )
         else:
-            compiler_notes, skipped = check_compiler(
+            compiler_notes, skip_reason = check_compiler(
                 files, args.compiler_check, args.compiler
             )
-        if skipped is not None:
-            print(f"compiler: skipped: {skipped}")
+        if skip_reason is not None:
+            print(f"compiler: skipped: {skip_reason}")
     failed = False
     for section, notes in (
         ("description", check_description(title, body, labels, base)),
