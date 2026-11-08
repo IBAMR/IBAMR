@@ -18,6 +18,7 @@
 #include <ibamr/StokesBcCoefStrategy.h>
 #include <ibamr/StokesSpecifications.h>
 #include <ibamr/ibamr_enums.h>
+#include <ibamr/private/ins_velocity_bc.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/ibtk_enums.h>
@@ -229,26 +230,17 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
         double& gamma = gcoef_data ? (*gcoef_data)(i, 0) : dummy_val;
-        const bool velocity_bc = IBTK::rel_equal_eps(alpha, 1.0);
-        const bool traction_bc = IBTK::rel_equal_eps(beta, 1.0);
-#if !defined(NDEBUG)
-        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
-        if (velocity_bc)
+        if (detail::classify_velocity_bc(alpha, beta) == detail::VelocityBcType::VELOCITY)
         {
             alpha = 0.0;
             beta = 1.0;
             gamma = 0.0;
         }
-        else if (traction_bc)
+        else
         {
             alpha = 1.0;
             beta = 0.0;
             gamma = -gamma * p_scale;
-        }
-        else
-        {
-            TBOX_ERROR("this statement should not be reached!\n");
         }
     }
     return;
