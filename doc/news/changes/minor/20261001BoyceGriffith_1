@@ -1,0 +1,3 @@
+Changed: Fill the velocity ghost values outside physical boundaries in the staggered convective operators and the conservative variable-coefficient mass and momentum integrators with IBAMR::INSStaggeredDivergenceFreePhysBdryOp, in place of the Robin fill and the overwrite of the normal velocity that followed it.
+<br>
+(Boyce Griffith, 2026/10/01)

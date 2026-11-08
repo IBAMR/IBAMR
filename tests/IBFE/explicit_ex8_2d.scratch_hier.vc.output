@@ -36,12 +36,12 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): 
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
 INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
-INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.03733e-14
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.03721e-14
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
 INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
-INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.99728e-15
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.15981e-15
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -52,12 +52,12 @@ IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 J_min = 1
 J_max = 1
 t      = 7.8125e-05
-A_in   = 3.04289e-11
-A_disp = 1.95484e-12
-A_diff = 2.84741e-11
-Q_in   = 3.8949e-07
-Q_disp = 2.5022e-08
-Q_diff = 3.64468e-07
+A_in   = 3.0534e-11
+A_disp = 1.92557e-12
+A_diff = 2.86084e-11
+Q_in   = 3.90835e-07
+Q_disp = 2.46473e-08
+Q_diff = 3.66187e-07
 l_def  = 1
 
 At end       of timestep # 0
@@ -78,7 +78,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): 
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
 INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
-INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 7.05067e-15
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 7.04891e-15
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -89,12 +89,12 @@ IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 J_min = 1
 J_max = 1
 t      = 0.000234375
-A_in   = 2.03613e-10
-A_disp = 3.74917e-11
-A_diff = 1.66122e-10
-Q_in   = 1.82727e-06
-Q_disp = 4.2985e-07
-Q_diff = 1.39742e-06
+A_in   = 2.04112e-10
+A_disp = 3.74416e-11
+A_diff = 1.66671e-10
+Q_in   = 1.83097e-06
+Q_disp = 4.29957e-07
+Q_diff = 1.40101e-06
 l_def  = 1
 
 At end       of timestep # 1
@@ -115,7 +115,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): 
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
 INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
-INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.49452e-14
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.49354e-14
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -126,12 +126,12 @@ IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 J_min = 1
 J_max = 1
 t      = 0.000390625
-A_in   = 6.93488e-10
-A_disp = 2.11818e-10
-A_diff = 4.81669e-10
-Q_in   = 4.44312e-06
-Q_disp = 1.80153e-06
-Q_diff = 2.64159e-06
+A_in   = 6.94663e-10
+A_disp = 2.11939e-10
+A_diff = 4.82724e-10
+Q_in   = 4.44809e-06
+Q_disp = 1.80361e-06
+Q_diff = 2.64448e-06
 l_def  = 1
 
 At end       of timestep # 2

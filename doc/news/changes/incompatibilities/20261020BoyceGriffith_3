@@ -1,0 +1,3 @@
+Changed: Pass the operator from INSHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp(), which fills the velocity ghost values at physical boundaries, to the constructors of the INSStaggered convective operators, INSStaggeredConvectiveOperatorManager::allocateOperator() and its OperatorMaker signature, and INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredVelocityBoundaryConditions(), in place of the Robin boundary condition objects. A null operator is an error. The protected members STSMassFluxIntegrator::d_bc_helper and d_u_bc_coefs are removed.
+<br>
+(Boyce Griffith, 2026/10/20)

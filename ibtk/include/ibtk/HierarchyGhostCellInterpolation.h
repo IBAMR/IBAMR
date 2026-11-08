@@ -45,6 +45,7 @@ namespace IBTK
 class CartCellRobinPhysBdryOp;
 class CartExtrapPhysBdryOp;
 class CartSideRobinPhysBdryOp;
+class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -224,7 +225,8 @@ public:
               d_consistent_type_2_bdry(from.d_consistent_type_2_bdry),
               d_robin_bc_coefs(from.d_robin_bc_coefs),
               d_fill_pattern(from.d_fill_pattern),
-              d_phys_bdry_type(from.d_phys_bdry_type)
+              d_phys_bdry_type(from.d_phys_bdry_type),
+              d_sc_phys_bdry_op(from.d_sc_phys_bdry_op)
         {
             // intentionally blank
             return;
@@ -251,6 +253,7 @@ public:
                 d_robin_bc_coefs = that.d_robin_bc_coefs;
                 d_fill_pattern = that.d_fill_pattern;
                 d_phys_bdry_type = that.d_phys_bdry_type;
+                d_sc_phys_bdry_op = that.d_sc_phys_bdry_op;
             }
             return *this;
         } // operator=
@@ -274,6 +277,14 @@ public:
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_robin_bc_coefs;
         SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_fill_pattern;
         std::string d_phys_bdry_type;
+
+        /*!
+         * Operator, owned by another object, that sets the physical boundary values of side-centered data in the last
+         * step of fillData(). If null (the default), fillData() uses the Robin boundary conditions. fillData() sets the
+         * patch data index of the operator to d_dst_data_idx and its homogeneous flag to that of the
+         * HierarchyGhostCellInterpolation object.
+         */
+        RobinPhysBdryPatchStrategy* d_sc_phys_bdry_op = nullptr;
     };
 
     /*!

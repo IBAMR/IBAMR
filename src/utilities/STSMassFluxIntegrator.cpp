@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <ibamr/STSMassFluxIntegrator.h>
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/CartGridFunction.h>
@@ -86,7 +85,7 @@ static Timer* t_deallocate_integrator;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 STSMassFluxIntegrator::STSMassFluxIntegrator(std::string object_name, Pointer<Database> input_db)
-    : d_object_name(std::move(object_name)), d_u_bc_coefs(NDIM), d_rho_bc_coefs(NDIM)
+    : d_object_name(std::move(object_name)), d_rho_bc_coefs(NDIM)
 {
     if (input_db)
     {

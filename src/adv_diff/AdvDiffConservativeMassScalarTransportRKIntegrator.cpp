@@ -1198,11 +1198,10 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::deallocateSTSIntegrator()
 
     IBAMR_TIMER_START(t_deallocate_integrator);
 
-    // Deallocate the communications operators and BC helpers.
+    // Deallocate the communications operators.
     d_hier_rho_bdry_fill.setNull();
     d_hier_gamma_bdry_fill.setNull();
     d_hier_Q_bdry_fill.setNull();
-    d_bc_helper.setNull();
 
     // Deallocate data.
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)

@@ -61,15 +61,6 @@
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
-namespace SAMRAI
-{
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
-} // namespace SAMRAI
-
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define CONVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
@@ -1250,16 +1241,12 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                                                                            "CONSERVATIVE_COARSEN",
                                                                            d_velocity_bdry_extrap_type,
                                                                            false,
-                                                                           d_u_bc_coefs } });
+                                                                           nullptr } });
+    v_transaction_comps[0].d_sc_phys_bdry_op = d_u_phys_bdry_op;
     d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
     d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_v_bdry_fill->fillData(d_current_time);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-        d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
     enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_bc_coefs, nullptr);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
     // Compute the old mass
@@ -1306,16 +1293,12 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                                                                                       "CONSERVATIVE_COARSEN",
                                                                                       d_velocity_bdry_extrap_type,
                                                                                       false,
-                                                                                      d_u_bc_coefs } });
+                                                                                      nullptr } });
+        v_update_transaction_comps[0].d_sc_phys_bdry_op = d_u_phys_bdry_op;
         d_hier_v_bdry_fill->resetTransactionComponents(v_update_transaction_comps);
-        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-            d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
         d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
         d_hier_v_bdry_fill->fillData(eval_time);
-        d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-            d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
         enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-        StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_bc_coefs, nullptr);
         d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
     }
 
@@ -1476,6 +1459,13 @@ void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeSTSIntegrator(
     Pointer<BasePatchHierarchy<NDIM>> base_hierarchy)
 {
+    if (!d_u_phys_bdry_op)
+    {
+        TBOX_ERROR(d_object_name << "::initializeSTSIntegrator():\n"
+                                 << "  the velocity boundary operator is not set\n"
+                                 << "  call setSideCenteredVelocityBoundaryConditions()\n");
+    }
+
     IBAMR_TIMER_START(t_initialize_integrator);
 
     // Get the hierarchy configuration.
@@ -1508,17 +1498,14 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeSTSIntegrator(
                                                                  "CONSERVATIVE_COARSEN",
                                                                  d_velocity_bdry_extrap_type,
                                                                  false,
-                                                                 d_u_bc_coefs);
+                                                                 nullptr);
+    d_v_transaction_comps[0].d_sc_phys_bdry_op = d_u_phys_bdry_op;
 
     // Initialize the interpolation operators.
     d_hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
     d_hier_rho_bdry_fill->initializeOperatorState(d_rho_transaction_comps, d_hierarchy);
     d_hier_v_bdry_fill = new HierarchyGhostCellInterpolation();
     d_hier_v_bdry_fill->initializeOperatorState(d_v_transaction_comps, d_hierarchy);
-
-    // Initialize the BC helper.
-    d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
-    d_bc_helper->cacheBcCoefData(d_u_bc_coefs, d_solution_time, d_hierarchy);
 
     // Create the coarse-fine boundary boxes.
     d_cf_boundary.resize(d_finest_ln + 1);
@@ -1571,7 +1558,6 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateSTSIntegrator()
     // Deallocate the communications operators and BC helpers.
     d_hier_rho_bdry_fill.setNull();
     d_hier_v_bdry_fill.setNull();
-    d_bc_helper.setNull();
 
     // Deallocate data.
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
@@ -1600,12 +1586,15 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateSTSIntegrator()
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredVelocityBoundaryConditions(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    RobinPhysBdryPatchStrategy* const u_phys_bdry_op)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(u_bc_coefs.size() == NDIM);
-#endif
-    d_u_bc_coefs = u_bc_coefs;
+    if (!u_phys_bdry_op)
+    {
+        TBOX_ERROR(d_object_name << "::setSideCenteredVelocityBoundaryConditions():\n"
+                                 << "  the velocity boundary operator is null\n"
+                                 << "  use INSHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()\n");
+    }
+    d_u_phys_bdry_op = u_phys_bdry_op;
     return;
 } // setSideCenteredVelocityBoundaryConditions
 

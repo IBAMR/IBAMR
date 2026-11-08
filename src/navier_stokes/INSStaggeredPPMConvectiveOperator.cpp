@@ -15,11 +15,11 @@
 
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/INSStaggeredPPMConvectiveOperator.h>
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_enums.h>
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -51,15 +51,6 @@
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
-
-namespace SAMRAI
-{
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
-} // namespace SAMRAI
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -454,9 +445,16 @@ static Timer* t_deallocate_operator_state;
 INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(std::string object_name,
                                                                      Pointer<Database> input_db,
                                                                      const ConvectiveDifferencingType difference_form,
-                                                                     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
-    : ConvectiveOperator(std::move(object_name), difference_form), d_bc_coefs(std::move(bc_coefs))
+                                                                     RobinPhysBdryPatchStrategy* u_phys_bdry_op)
+    : ConvectiveOperator(std::move(object_name), difference_form), d_u_phys_bdry_op(u_phys_bdry_op)
 {
+    if (!d_u_phys_bdry_op)
+    {
+        TBOX_ERROR("INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator():\n"
+                   << "  the velocity boundary operator is null\n"
+                   << "  use INSHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()\n");
+    }
+
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR(
@@ -542,12 +540,11 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
                                                              "CONSERVATIVE_COARSEN",
                                                              d_bdry_extrap_type,
                                                              false,
-                                                             d_bc_coefs);
+                                                             nullptr);
+    transaction_comps[0].d_sc_phys_bdry_op = d_u_phys_bdry_op;
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, nullptr, d_U_scratch_idx, -1, homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, nullptr);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the convective derivative.
@@ -994,15 +991,12 @@ INSStaggeredPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
                                                                "CONSERVATIVE_COARSEN",
                                                                d_bdry_extrap_type,
                                                                false,
-                                                               d_bc_coefs);
+                                                               nullptr);
+    d_transaction_comps[0].d_sc_phys_bdry_op = d_u_phys_bdry_op;
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
     d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy);
-
-    // Initialize the BC helper.
-    d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
-    d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
 
     d_is_initialized = true;
 
@@ -1017,9 +1011,8 @@ INSStaggeredPPMConvectiveOperator::deallocateOperatorState()
 
     IBAMR_TIMER_START(t_deallocate_operator_state);
 
-    // Deallocate the communications operators and BC helpers.
+    // Deallocate the communications operators.
     d_hier_bdry_fill.setNull();
-    d_bc_helper.setNull();
 
     d_is_initialized = false;
 
