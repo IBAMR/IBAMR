@@ -116,6 +116,8 @@ accuracy review to changelog entries and PR descriptions.
   warrants a comment; otherwise label it in none. Remove a label that only
   repeats one obvious call, in a function short enough to read at a glance, from
   every sibling at once.
+- Choose wording for its content, not for how it wraps: do not reword a sentence
+  only to change its line breaks.
 
 ## Language
 
@@ -229,6 +231,8 @@ either mode, base each change on a rule.
 - Define "explicit", "semi-implicit", and "fully implicit" by the terms evaluated
   at the start and end of the time step. Distinguish the time step from the
   time-step size, and write "time-stepping scheme".
+- Use "row" only for a row of a matrix. Cells parallel to a boundary form layers,
+  as in "the two layers of ghost cells" and `num_inward_layers`.
 - Write "geometric multigrid". Name a Schur complement by its variables, as in
   "pressure Schur complement". A matrix acts on degrees of freedom, not on a
   physical domain.

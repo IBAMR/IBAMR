@@ -98,6 +98,55 @@ for (unsigned int d = 0; d < NDIM; ++d)
 }
 ```
 
+## Choose names
+
+A name states what the thing is or does in the words of its class and siblings.
+Names follow the [Language](documentation.md#language) rules on word choice and
+the [Terminology](documentation.md#terminology) rules. Like comments, they carry
+no working vocabulary from the development of a change. These rules apply to new
+and changed names.
+
+- Name types and data other than flags and enumerators with a noun phrase, and
+  functions with a verb. An adjective or participle alone is not enough: write
+  `shifted_geometry`, not `shifted`, and `fine_data`, not `fine`.
+- A short, precise name is better than a long, vague one. Short index names are
+  fine. So are short fields of a small struct if the struct's name states their
+  context, as in `NormalVelocityStencil::idx` and `weight`.
+- Use an abbreviation only if it is established, or if it is more precise than
+  a longer alternative and is explained where it is defined: `tt_corners`
+  (traction-traction corners) is more precise than `traction_corners`.
+- Name an enumerator for its case, not for its condition: `INTERIOR`, not
+  `RATIO_4_OR_MORE`.
+- Name a flag for its use or for the property that it indicates:
+  `use_source_ghost_layer`, `restrict_to_active_patches`, or
+  `has_lagrangian_data`.
+- A name must not state an action that the code does not perform: write
+  `evaluateBcCoefficients()`, not `readBcCoefficients()`. Do not use a verb that
+  Language rules 2 and 3 exclude for code, such as decide, hold, keep, or need.
+- If a class or function could refer to more than one object of a kind, say
+  which one: `d_shifted_geometry` and `d_original_geometry`, or
+  `getShiftedGeometry()`.
+- Name a copy for its result, a builder for its product, and a container for its
+  contents: `d_shifted_patch`, `buildShiftedPatch()`, and `d_flagged_boxes`.
+- Build paired and sibling names the same way. Give the same kind of thing the
+  same name and a different kind a different name: `componentUsesCubicScratch()`
+  and `levelUsesCubicScratch()`, not `needsCubicScratch()` and
+  `usesCubicScratch()`.
+- Use established IBAMR and SAMRAI names and the notation of the method:
+  `periodic_shift` (not `period`) for a periodic shift, `*_idx` for patch data
+  indices, `ln` for the level number in a loop and `finest_ln` for the number of
+  the finest level, `p_` for a pointer obtained by a cast, `a`, `b`, and `g` for
+  the Robin coefficients, and "limit" for a limiting operation.
+- A generic word such as `Scope` or `Info` is not enough as a type name, alone or
+  as a suffix: write `ScopedGeometryReplacement`, not
+  `ShiftedPatchGeometry::Scope`, and `LevelSchedules`, not `LevelInfo`. Name a
+  struct for one kind of data, such as schedules, only if it contains nothing
+  but that data and closely related data, as `LevelSchedules` does.
+- Choose plain words that suggest no unintended image or technique: write
+  `DepartingMarker`, not `Leaver`. Do not borrow the vocabulary of another
+  technique: `Tape`, `slot`, and `replay` together suggest automatic
+  differentiation.
+
 ## Name meaningful constants, not every literal
 
 Use a constant when the name explains domain meaning or keeps related uses in
