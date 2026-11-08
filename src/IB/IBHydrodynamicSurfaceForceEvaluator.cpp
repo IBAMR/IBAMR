@@ -549,7 +549,6 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM>>
     }
     else if (p_vc_ins_bc_coef)
     {
-        p_vc_ins_bc_coef->setTargetVelocityPatchDataIndex(d_u_idx);
         InterpolationTransactionComponent p_transaction_comp(d_p_idx,
                                                              p_idx,
                                                              /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
