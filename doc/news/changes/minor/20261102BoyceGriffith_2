@@ -1,0 +1,3 @@
+Fixed: Interpolate the velocity of a marker that leaves its patch in IBTK::MarkerPatchHierarchy with the patch whose box contains the marker position, on any level or process. The velocities of markers near a coarse-fine interface change.
+<br>
+(Boyce Griffith, 2026/11/02)

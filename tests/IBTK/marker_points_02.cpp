@@ -77,7 +77,7 @@ main(int argc, char** argv)
 
     int u_idx = IBTK::invalid_index;
     Pointer<hier::Variable<NDIM>> u_var;
-    if (set_velocity)
+    if (set_velocity || timestep)
     {
         // Set up the velocity on the Cartesian grid:
         u_var = new pdat::SideVariable<NDIM, double>("u_sc", 1);
@@ -122,7 +122,19 @@ main(int argc, char** argv)
     // Set up marker points.
     std::vector<IBTK::Point> positions;
     std::vector<IBTK::Vector> velocities;
-    if (!from_restart)
+    if (!from_restart && test_db && test_db->keyExists("positions"))
+    {
+        // The markers and their initial velocities, NDIM values per marker.
+        const tbox::Array<double> X = test_db->getDoubleArray("positions");
+        const tbox::Array<double> U = test_db->getDoubleArray("velocities");
+        TBOX_ASSERT(X.size() % NDIM == 0 && U.size() == X.size());
+        for (int k = 0; k < X.size(); k += NDIM)
+        {
+            positions.emplace_back(&X[k]);
+            velocities.emplace_back(&U[k]);
+        }
+    }
+    else if (!from_restart)
     {
         for (unsigned int i = 0; i < 10; ++i)
         {
@@ -138,7 +150,7 @@ main(int argc, char** argv)
     }
     MarkerPatchHierarchy marker_points("MarkerPoints", patch_hierarchy, positions, velocities);
 
-    if (set_velocity)
+    if (set_velocity || timestep)
     {
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
@@ -180,8 +192,11 @@ main(int argc, char** argv)
         ghost_fill_op.fillData(/*time*/ 0.0);
 
         // interpolate:
-        const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
-        marker_points.setVelocities(u_idx, kernel);
+        if (set_velocity)
+        {
+            const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
+            marker_points.setVelocities(u_idx, kernel);
+        }
     }
 
     if (timestep)
@@ -191,7 +206,7 @@ main(int argc, char** argv)
             patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
         const double dx = get_min_patch_dx(*finest_level);
         const double U_MAX = 1.0;
-        const double dt = dx / U_MAX;
+        const double dt = test_db->getDoubleWithDefault("dt", dx / U_MAX);
 
         const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
         const int num_timesteps = test_db->getIntegerWithDefault("num_timesteps", 10);
