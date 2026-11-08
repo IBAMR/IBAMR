@@ -621,6 +621,27 @@ CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
         }
     }
 
+    // The kernels transpose the fill with boundary data that do not depend on the patch data.
+    const Array<BoundaryBox<NDIM>> bdry_boxes_to_check =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    for (int n = 0; n < bdry_boxes_to_check.size(); ++n)
+    {
+        for (const auto& bc_coef : d_bc_coefs)
+        {
+            const auto extended_bc_coef = dynamic_cast<const ExtendedRobinBcCoefStrategy*>(bc_coef);
+            if (extended_bc_coef &&
+                extended_bc_coef->dependsOnTargetPatchData(patch, bdry_boxes_to_check[n], fill_time))
+            {
+                TBOX_ERROR("CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
+                           << "  the boundary data of a boundary condition object depend on the patch data on the "
+                              "boundary box "
+                           << bdry_boxes_to_check[n].getBox() << " of the patch\n"
+                           << "  ExtendedRobinBcCoefStrategy::dependsOnTargetPatchData() of the object must "
+                              "return false\n");
+            }
+        }
+    }
+
     // Set the boundary conditions along the co-dimension one boundary boxes,
     // then extrapolate those values to the co-dimension two and three boundary
     // boxes.

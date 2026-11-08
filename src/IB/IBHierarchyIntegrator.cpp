@@ -22,7 +22,6 @@
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/CartGridFunctionSet.h>
-#include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
@@ -289,6 +288,22 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     d_hier_cc_data_ops =
         hier_ops_manager->getOperationsDouble(new CellVariable<NDIM, double>("cc_var"), hierarchy, true);
 
+    Pointer<CellVariable<NDIM, double>> u_cc_var = d_u_var;
+    Pointer<SideVariable<NDIM, double>> u_sc_var = d_u_var;
+
+    // The fluid solver owns the divergence-free velocity boundary operator for a staggered velocity.
+    RobinPhysBdryPatchStrategy* divergence_free_u_phys_bdry_op = nullptr;
+    if (u_sc_var)
+    {
+        divergence_free_u_phys_bdry_op = d_ins_hier_integrator->getDivergenceFreeVelocityPhysBdryOp();
+        if (!divergence_free_u_phys_bdry_op)
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                                     << "  the fluid solver provides no divergence-free velocity boundary operator\n"
+                                     << "  use INSStaggeredHierarchyIntegrator or INSVCStaggeredHierarchyIntegrator\n");
+        }
+    }
+
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -338,17 +353,15 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     const int p_new_idx = var_db->mapVariableAndContextToIndex(d_p_var, getNewContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_p_var, getScratchContext());
 
-    Pointer<CellVariable<NDIM, double>> u_cc_var = d_u_var;
-    Pointer<SideVariable<NDIM, double>> u_sc_var = d_u_var;
-    if (u_cc_var)
+    if (divergence_free_u_phys_bdry_op)
+    {
+        d_u_phys_bdry_op = divergence_free_u_phys_bdry_op;
+        d_u_phys_bdry_op->setPatchDataIndex(u_scratch_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+    }
+    else if (u_cc_var)
     {
         d_u_phys_bdry_op = new CartCellRobinPhysBdryOp(u_scratch_idx,
-                                                       d_ins_hier_integrator->getVelocityBoundaryConditions(),
-                                                       /*homogeneous_bc*/ false);
-    }
-    else if (u_sc_var)
-    {
-        d_u_phys_bdry_op = new CartSideRobinPhysBdryOp(u_scratch_idx,
                                                        d_ins_hier_integrator->getVelocityBoundaryConditions(),
                                                        /*homogeneous_bc*/ false);
     }
@@ -362,8 +375,15 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
     d_u_ghostfill_op = nullptr;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
-    std::unique_ptr<RefinePatchStrategy<NDIM>> u_phys_bdry_op_unique(d_u_phys_bdry_op);
-    registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, std::move(u_phys_bdry_op_unique));
+    if (divergence_free_u_phys_bdry_op)
+    {
+        registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, d_u_phys_bdry_op);
+    }
+    else
+    {
+        registerGhostfillRefineAlgorithm(
+            d_object_name + "::u", d_u_ghostfill_alg, std::unique_ptr<RefinePatchStrategy<NDIM>>(d_u_phys_bdry_op));
+    }
 
     d_u_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     d_u_coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");

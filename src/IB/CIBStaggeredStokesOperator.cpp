@@ -154,6 +154,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     // (c) Rigid body velocity constraint.
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
+    d_cib_strategy->fillVelocityPhysBdryGhostValues(U_idx, d_homogeneous_bc, d_solution_time);
     ib_method_ops->interpolateVelocity(
         U_idx, std::vector<Pointer<CoarsenSchedule<NDIM>>>(), std::vector<Pointer<RefineSchedule<NDIM>>>(), half_time);
 
@@ -237,7 +238,23 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
 
-        fillVelocityGhostCells(U_idx, x->getPatchHierarchy());
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        // No refine operator and no Robin coefficients: the CIB strategy sets all the velocity ghost values outside the
+        // physical boundaries.
+        InterpolationTransactionComponent U_component(U_idx,
+                                                      "NONE",
+                                                      /*use_cf_bdry_interpolation*/ false,
+                                                      d_coarsen_type,
+                                                      d_bdry_extrap_type,
+                                                      d_consistent_type_2_bdry,
+                                                      static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr),
+                                                      /*fill_pattern*/ nullptr,
+                                                      d_bdry_interp_type);
+        HierarchyGhostCellInterpolation U_fill;
+        U_fill.initializeOperatorState(U_component, x->getPatchHierarchy());
+        U_fill.setHomogeneousBc(d_homogeneous_bc);
+        U_fill.fillData(d_solution_time);
+        d_cib_strategy->fillVelocityPhysBdryGhostValues(U_idx, d_homogeneous_bc, d_solution_time);
 
         d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
         ib_method_ops->interpolateVelocity(U_idx,

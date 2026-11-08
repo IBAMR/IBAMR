@@ -49,6 +49,14 @@ ExtendedRobinBcCoefStrategy::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
+bool
+ExtendedRobinBcCoefStrategy::dependsOnTargetPatchData(const Patch<NDIM>& /*patch*/,
+                                                      const BoundaryBox<NDIM>& /*bdry_box*/,
+                                                      const double /*fill_time*/) const
+{
+    return false;
+} // dependsOnTargetPatchData
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
