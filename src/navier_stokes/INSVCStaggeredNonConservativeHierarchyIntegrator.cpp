@@ -284,6 +284,18 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
 {
     INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
+    // Only the registered reset functions set a registered density variable at the new time. d_rho_var is null if an
+    // advection-diffusion integrator maintains the density.
+    if (!d_rho_is_const && d_rho_var && d_reset_rho_fcns.empty())
+    {
+        TBOX_ERROR(d_object_name
+                   << "::preprocessIntegrateHierarchy():\n"
+                   << "  rho_is_const == false with a registered mass density variable requires a function that sets "
+                      "the density at the new time\n"
+                   << "  register one with registerResetFluidDensityFcn(), or let an advection-diffusion "
+                      "integrator maintain the density with setTransportedMassDensityVariable()\n");
+    }
+
     // Keep track of the number of cycles to be used for the present integration
     // step.
     if (!d_creeping_flow && (d_current_num_cycles == 1) &&

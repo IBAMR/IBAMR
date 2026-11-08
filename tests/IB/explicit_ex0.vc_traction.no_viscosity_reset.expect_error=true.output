@@ -1,0 +1,13 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+IBRedundantInitializer:  Deallocating initialization data.
+At beginning of timestep # 0
+Program abort called with error message
+
+    INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy():
+  mu_is_const == false with a registered viscosity variable requires a function that sets the viscosity at the new time
+  register one with registerResetFluidViscosityFcn(), or let an advection-diffusion integrator maintain the viscosity with setTransportedViscosityVariable()
+
