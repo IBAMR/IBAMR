@@ -67,6 +67,9 @@ main(int argc, char* argv[])
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
     Logger::getInstance()->setAbortAppender(new TestAppender());
 
+    // Omit file names and line numbers from the output files.
+    Logger::getInstance()->setWarning(false);
+
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
 

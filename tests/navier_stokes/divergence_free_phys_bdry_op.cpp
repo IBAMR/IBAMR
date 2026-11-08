@@ -47,6 +47,8 @@
 #include <string>
 #include <vector>
 
+#include "../tests.h"
+
 #include <ibamr/app_namespaces.h>
 
 namespace
@@ -751,6 +753,8 @@ main(int argc, char* argv[])
                 "mu_fcn", app_initializer->getComponentDatabase("ViscosityFunction"), grid_geometry);
             vc_integrator->registerViscosityVariable(mu_var);
             vc_integrator->registerViscosityInitialConditions(mu_fcn);
+            vc_integrator->registerResetFluidViscosityFcn(&callSetFluidPropertyCallbackFunction,
+                                                          static_cast<void*>(mu_fcn.getPointer()));
             mu_bc_coefs.emplace_back(new muParserRobinBcCoefs(
                 "mu_bc_coef", app_initializer->getComponentDatabase("ViscosityBoundaryConditions"), grid_geometry));
             vc_integrator->registerViscosityBoundaryConditions(mu_bc_coefs.back().get());
@@ -761,7 +765,7 @@ main(int argc, char* argv[])
         const int extension_ghost_width = input_db->getInteger("extension_ghost_width");
         ins_integrator->requestDivergenceFreeFillWidth(IntVector<NDIM>(extension_ghost_width));
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const Pointer<Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
+        const Pointer<hier::Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
         const int u_idx = var_db->registerVariableAndContext(
             u_var, var_db->getContext("divergence_free_extension"), IntVector<NDIM>(extension_ghost_width));
         const int y_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
