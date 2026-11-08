@@ -140,9 +140,9 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic0 = NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)-0.5d0)+ilower0
-         ic1 = NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)-0.5d0)+ilower1
-         ic2 = NINT((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)-0.5d0)+ilower2
+         ic0 = floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ilower0
+         ic1 = floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ilower1
+         ic2 = floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))+ilower2
 c
 c     Interpolate u onto V.
 c
@@ -209,9 +209,9 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic0 = NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)-0.5d0)+ilower0
-         ic1 = NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)-0.5d0)+ilower1
-         ic2 = NINT((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)-0.5d0)+ilower2
+         ic0 = floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ilower0
+         ic1 = floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ilower1
+         ic2 = floor((X(2,s)+Xshift(2,l)-x_lower(2))/dx(2))+ilower2
 c
 c     Spread V onto u.
 c
@@ -306,7 +306,7 @@ c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
             ic_center(d) = ilower(d) +
-     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
+     &           floor((X_shifted(d)-x_lower(d))/dx(d))
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
             if ( d.eq.axis ) then
@@ -435,7 +435,7 @@ c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
             ic_center(d) = ilower(d) +
-     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
+     &           floor((X_shifted(d)-x_lower(d))/dx(d))
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
             if ( d.eq.axis ) then
@@ -813,7 +813,7 @@ c
      &           + ilower(d)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
             else
@@ -932,7 +932,7 @@ c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
             else
@@ -2889,7 +2889,7 @@ c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
             else
@@ -3007,7 +3007,7 @@ c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
             else
@@ -3348,7 +3348,7 @@ c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-3
                ic_upper(d) = ic_center(d)+2
             else
@@ -3467,7 +3467,7 @@ c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-3
                ic_upper(d) = ic_center(d)+2
             else
@@ -4060,7 +4060,7 @@ c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
             else
@@ -4185,7 +4185,7 @@ c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
             else
@@ -4310,7 +4310,7 @@ c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
             else
@@ -4435,7 +4435,7 @@ c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
             else
@@ -5034,7 +5034,7 @@ c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-3
                ic_upper(d) = ic_center(d)+2
             else
@@ -5159,7 +5159,7 @@ c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-3
                ic_upper(d) = ic_center(d)+2
             else
@@ -5285,7 +5285,7 @@ c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-3
                ic_upper(d) = ic_center(d)+2
             else
@@ -5411,7 +5411,7 @@ c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-            if ( X(d,s).lt.X_cell(d) ) then
+            if ( X(d,s)+Xshift(d,l).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-3
                ic_upper(d) = ic_center(d)+2
             else

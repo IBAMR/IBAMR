@@ -330,6 +330,7 @@ SETUP_2D(IBTK pointwise_function_symmetry.cpp)
 SETUP_2D(IBTK marker_points_01.cpp)
 SETUP_2D(IBTK marker_points_02.cpp)
 SETUP_2D(IBTK l_data_manager_redistribution_01.cpp)
+SETUP_2D(IBTK lagrangian_patch_faces.cpp)
 SETUP_2D(IBTK cf_interface.cpp)
 SETUP_2D(IBTK fac_cf_ghost_values.cpp)
 SETUP_2D(IBTK sc_poisson_cf_boundary.cpp)
@@ -364,6 +365,7 @@ SETUP_3D(IBTK cf_interface.cpp)
 SETUP_3D(IBTK fac_cf_ghost_values.cpp)
 SETUP_3D(IBTK sc_poisson_cf_boundary.cpp)
 SETUP_3D(IBTK vc_viscous_level_solver_boundary.cpp)
+SETUP_3D(IBTK lagrangian_patch_faces.cpp)
 
 ADD_CUSTOM_COMMAND(TARGET tests
   POST_BUILD

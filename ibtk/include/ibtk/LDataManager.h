@@ -485,8 +485,12 @@ public:
                 int finest_ln = invalid_level_number);
 
     /*!
-     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
-     * mesh using the default interpolation kernel function.
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian mesh using the default interpolation
+     * kernel function.
+     *
+     * Each point is interpolated on the patch whose patch box contains its current position. A point must move at most
+     * one cell width between redistributions. The ghost positions of X_data are updated first if
+     * X_data_ghost_node_update is true. The ghost values of F_data are invalid afterwards.
      */
     void interp(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
@@ -496,7 +500,8 @@ public:
                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>(),
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_ghost_fill_scheds =
                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
-                double fill_data_time = 0.0);
+                double fill_data_time = 0.0,
+                bool X_data_ghost_node_update = true);
 
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
@@ -516,6 +521,8 @@ public:
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
      * mesh using the default interpolation kernel function.
+     *
+     * Points are interpolated as described for the first overload of interp().
      */
     void interp(int f_data_idx,
                 std::vector<SAMRAI::tbox::Pointer<LData>>& F_data,
@@ -526,7 +533,8 @@ public:
                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
                 double fill_data_time = 0.0,
                 int coarsest_ln = invalid_level_number,
-                int finest_ln = invalid_level_number);
+                int finest_ln = invalid_level_number,
+                bool X_data_ghost_node_update = true);
 
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
@@ -543,6 +551,15 @@ public:
                 double fill_data_time = 0.0,
                 int coarsest_ln = invalid_level_number,
                 int finest_ln = invalid_level_number);
+
+    /*!
+     * \brief Emit an error unless each point of the level is selected on exactly one patch, as in interp().
+     *
+     * This function is collective. The arrays of X_data must not be in use.
+     */
+    void checkEachPointProcessedOnce(const std::string& operation,
+                                     int level_number,
+                                     SAMRAI::tbox::Pointer<LData> X_data) const;
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -1281,6 +1298,12 @@ private:
      * Indicates whether the LData is in synch with the LNodeData.
      */
     std::vector<bool> d_needs_synch;
+
+    /*!
+     * Indicates whether a level was initialized at the initial time and still lacks index data entries in the ghost
+     * regions of its patches. resetHierarchyConfiguration() redistributes such a level.
+     */
+    std::vector<bool> d_index_ghosts_pending;
 
     /*!
      * PETSc AO objects provide mappings between the fixed global Lagrangian
