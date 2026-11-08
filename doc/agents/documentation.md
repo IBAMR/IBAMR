@@ -189,7 +189,10 @@ either mode, base each change on a rule.
    "we compute".
 9. Describe behavior in the present tense: "returns", not "will return".
    Function briefs, commit subjects, PR titles, the opening sentences of a PR
-   description, and changelog entries use the imperative.
+   description, and changelog entries use the imperative. After "Removed:" in a
+   changelog entry, name the removed items instead of repeating the verb, and
+   give any instruction to the user in the imperative: "Removed:
+   IBTK::FMG_CYCLE and IBTK::FACPreconditioner::FMGCycle(). Use F_CYCLE."
 10. Omit "Note that", "simply", "just", "basically", and "of course".
 11. Do not begin a sentence with a bare "This" or "It" that refers to the
     previous sentence. Write "This fill" or name the thing.
@@ -221,8 +224,8 @@ either mode, base each change on a rule.
 ## Terminology
 
 - Use "Eulerian grid" for the fluid grid and "Lagrangian mesh", "markers", or
-  "nodes" for the structure. Do not call the structure "the boundary" when it may
-  be volumetric.
+  "nodes" for the structure. "Cartesian grid" is also correct for the fluid grid.
+  Do not call the structure "the boundary" when it may be volumetric.
 - Spreading maps Lagrangian force densities to Eulerian force densities with a
   regularized delta function. Interpolation maps Eulerian velocities to
   Lagrangian velocities. The continuum coupling through the Dirac delta
