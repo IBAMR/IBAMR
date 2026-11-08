@@ -14,12 +14,14 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/ShiftedPatchGeometry.h>
 
 #include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
 
 #include <BergerRigoutsos.h>
+#include <Box.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <GriddingAlgorithm.h>
@@ -33,7 +35,8 @@
 
 #include <ibtk/app_namespaces.h>
 
-// Test of the shifted patch geometry.
+// Test the shifted patch geometry, IBTK::PhysicalBoundaryUtilities::getPeriodicPhysicalDomain(), and
+// IBTK::PhysicalBoundaryUtilities::isBoundaryFace().
 
 int
 main(int argc, char* argv[])
@@ -116,11 +119,48 @@ main(int argc, char* argv[])
         }
 
         IBTK_MPI::sumReduction(total_shift.data(), NDIM);
-
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             plog << "sum over patches of the shift of the lower corner along axis " << axis
                  << ", in cells = " << total_shift[axis] << '\n';
+        }
+
+        // Count the cells and the faces on the boundaries of the periodic physical domain, at ratios 1 and 2.
+        for (int ratio = 1; ratio <= 2; ++ratio)
+        {
+            const BoxArray<NDIM> domain =
+                PhysicalBoundaryUtilities::getPeriodicPhysicalDomain(grid_geometry, IntVector<NDIM>(ratio));
+            const Box<NDIM> domain_box = Box<NDIM>::refine(grid_geometry->getPhysicalDomain()[0], ratio);
+            const Box<NDIM> search_box = Box<NDIM>::grow(domain_box, domain_box.numberCells());
+            int num_domain_cells = 0;
+            for (Box<NDIM>::Iterator b(search_box); b; b++)
+            {
+                if (domain.contains(b()))
+                {
+                    ++num_domain_cells;
+                }
+            }
+            plog << "ratio " << ratio << ": cells in the periodic physical domain = " << num_domain_cells << '\n';
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                for (int upperlower = 0; upperlower < 2; ++upperlower)
+                {
+                    const bool is_lower = upperlower == 0;
+                    Box<NDIM> face_plane = search_box;
+                    face_plane.lower(axis) = face_plane.upper(axis) =
+                        is_lower ? domain_box.lower(axis) : domain_box.upper(axis) + 1;
+                    int num_boundary_faces = 0;
+                    for (Box<NDIM>::Iterator b(face_plane); b; b++)
+                    {
+                        if (PhysicalBoundaryUtilities::isBoundaryFace(b(), axis, is_lower, domain))
+                        {
+                            ++num_boundary_faces;
+                        }
+                    }
+                    plog << "ratio " << ratio << ": faces on the " << (is_lower ? "lower" : "upper")
+                         << " boundary normal to axis " << axis << " = " << num_boundary_faces << '\n';
+                }
+            }
         }
     } // cleanup dynamically allocated objects prior to shutdown
 } // main
