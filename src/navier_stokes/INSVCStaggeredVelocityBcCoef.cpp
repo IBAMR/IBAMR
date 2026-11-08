@@ -28,21 +28,25 @@
 #include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
+#include <BoxArray.h>
 #include <CartesianPatchGeometry.h>
 #include <EdgeData.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <NodeData.h>
 #include <Patch.h>
+#include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
-#include <SideIndex.h>
 
 #include <algorithm>
 #include <limits>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "./ins_staggered_traction_stencil.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -258,6 +262,8 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
     const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
+    std::optional<BoxArray<NDIM>> domain;
+    std::optional<traction_stencil::NormalVelocityPatch> normal_velocity_patch;
 
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
 #if (NDIM == 2)
@@ -314,13 +320,26 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                 {
                     // Compute the tangential derivative of the normal
                     // component of the velocity at the boundary.
-                    hier::Index<NDIM> i_lower(i), i_upper(i);
-                    i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
+                    hier::Index<NDIM> i_upper(i);
                     i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-                    const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                    if (!domain)
+                    {
+                        domain = traction_stencil::get_periodic_physical_domain(d_fluid_solver->getPatchHierarchy(),
+                                                                                pgeom->getRatio());
+                        normal_velocity_patch.emplace(patch, bdry_normal_axis, d_comp_idx);
+                    }
                     const double du_norm_dx_tan =
-                        ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) / dx[d_comp_idx];
+                        traction_stencil::get_normal_velocity_difference(*u_target_data,
+                                                                         i,
+                                                                         bdry_normal_axis,
+                                                                         is_lower,
+                                                                         d_comp_idx,
+                                                                         d_bc_coefs[bdry_normal_axis],
+                                                                         d_homogeneous_bc,
+                                                                         *normal_velocity_patch,
+                                                                         *domain,
+                                                                         fill_time) /
+                        dx[d_comp_idx];
 
                     if (!d_fluid_solver->muIsConstant())
                     {
