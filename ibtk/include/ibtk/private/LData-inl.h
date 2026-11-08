@@ -162,6 +162,22 @@ LData::endGhostUpdate()
     return;
 } // endGhostUpdate
 
+inline void
+LData::beginGhostAccumulation()
+{
+    const int ierr = VecGhostUpdateBegin(getVec(), ADD_VALUES, SCATTER_REVERSE);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // beginGhostAccumulation
+
+inline void
+LData::endGhostAccumulation()
+{
+    const int ierr = VecGhostUpdateEnd(getVec(), ADD_VALUES, SCATTER_REVERSE);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // endGhostAccumulation
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 /**

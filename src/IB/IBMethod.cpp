@@ -683,7 +683,16 @@ IBMethod::interpolateVelocity(const int u_data_idx,
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-    d_l_data_manager->interp(u_data_idx, *U_data, *X_LE_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
+    d_l_data_manager->interp(u_data_idx,
+                             *U_data,
+                             *X_LE_data,
+                             u_synch_scheds,
+                             u_ghost_fill_scheds,
+                             data_time,
+                             invalid_level_number,
+                             invalid_level_number,
+                             *X_LE_needs_ghost_fill);
+    *X_LE_needs_ghost_fill = false;
     resetAnchorPointValues(*U_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
@@ -708,7 +717,16 @@ IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-    d_l_data_manager->interp(u_data_idx, *U_jac_data, *X_LE_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
+    d_l_data_manager->interp(u_data_idx,
+                             *U_jac_data,
+                             *X_LE_data,
+                             u_synch_scheds,
+                             u_ghost_fill_scheds,
+                             data_time,
+                             invalid_level_number,
+                             invalid_level_number,
+                             *X_LE_needs_ghost_fill);
+    *X_LE_needs_ghost_fill = false;
     resetAnchorPointValues(*U_jac_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
