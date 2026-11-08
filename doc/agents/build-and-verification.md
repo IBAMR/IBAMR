@@ -27,15 +27,14 @@
   Compiler-specific flags and dependency exceptions need equivalent intent,
   not blind copying between Clang, GCC, and Fortran.
 - The hosted jobs build with GCC on Linux and with Clang on macOS and treat
-  warnings as errors, and each compiler reports problems that the other does
-  not. Where a compiler of the family that the local build does not use is
-  installed, consider compiling the changed C++ sources with it before
-  publishing:
+  warnings as errors. Each compiler reports problems that the other does not.
+  If a compiler of the other family is installed, consider compiling the changed
+  C++ sources with it before publishing:
   `scripts/maintenance/check_pull_request.py --compiler-check <build directory>`
   does a syntax-only compilation with the warning flags of the hosted builds,
-  using GCC for a Clang build and Clang for a GCC build. This is a
-  recommendation, not a requirement: the tools are not available on every
-  system, and the hosted jobs remain the check that decides.
+  using GCC for a Clang build and Clang for a GCC build. The check is optional,
+  because the compilers are not available on every system. The hosted jobs are
+  the check of record.
 - Fix warnings introduced by the change. Report inherited warnings separately;
   agree on a narrow, visible exception when necessary instead of silently dropping
   `-Werror` or turning a feature PR into whole-tree cleanup. Do not enable
