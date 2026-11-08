@@ -66,6 +66,7 @@ c
 c
 c     Local variables.
 c
+      INTEGER ia,ja,ka
       INTEGER i_wgt0,i_wgt1
       INTEGER i,ibeg,iend,i_c,i_p
       INTEGER j,jbeg,jend,j_c,j_p
@@ -76,14 +77,33 @@ c
 c
 c     Set the values along the appropriate side.
 c
-      ibeg = max(blowerf(0),ilowerf0)
-      iend = min(bupperf(0),iupperf0)
+      ibeg = blowerf(0)
+      iend = bupperf(0)
 
-      jbeg = max(blowerf(1),ilowerf1)
-      jend = min(bupperf(1),iupperf1)
+      jbeg = blowerf(1)
+      jend = bupperf(1)
 
-      kbeg = max(blowerf(2),ilowerf2)
-      kend = min(bupperf(2),iupperf2)
+      kbeg = blowerf(2)
+      kend = bupperf(2)
+c
+c     Start the loops over coarse cells at the cell that contains
+c     the first fine index.
+c
+      if (ibeg .lt. 0) then
+         ia = ((ibeg+1)/ratio_to_coarser(0)-1)*ratio_to_coarser(0)
+      else
+         ia = (ibeg/ratio_to_coarser(0))*ratio_to_coarser(0)
+      endif
+      if (jbeg .lt. 0) then
+         ja = ((jbeg+1)/ratio_to_coarser(1)-1)*ratio_to_coarser(1)
+      else
+         ja = (jbeg/ratio_to_coarser(1))*ratio_to_coarser(1)
+      endif
+      if (kbeg .lt. 0) then
+         ka = ((kbeg+1)/ratio_to_coarser(2)-1)*ratio_to_coarser(2)
+      else
+         ka = (kbeg/ratio_to_coarser(2))*ratio_to_coarser(2)
+      endif
 
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
@@ -108,14 +128,14 @@ c
 c
 c     Set the values along the upper/lower x side of the patch.
 c
-         do k = kbeg,kend,ratio_to_coarser(2)
+         do k = ka,kend,ratio_to_coarser(2)
             if (k .lt. 0) then
                k_c = (k+1)/ratio_to_coarser(2)-1
             else
                k_c = k/ratio_to_coarser(2)
             endif
 
-            do j = jbeg,jend,ratio_to_coarser(1)
+            do j = ja,jend,ratio_to_coarser(1)
                if (j .lt. 0) then
                   j_c = (j+1)/ratio_to_coarser(1)-1
                else
@@ -137,7 +157,9 @@ c
                   enddo
 
                   do k_p = 0,ratio_to_coarser(2) - 1
+                     if (k+k_p.lt.kbeg .or. k+k_p.gt.kend) cycle
                      do j_p = 0,ratio_to_coarser(1) - 1
+                        if (j+j_p.lt.jbeg .or. j+j_p.gt.jend) cycle
                         U_fine(i,j+j_p,k+k_p) = 0.d0
                         do i_wgt1 = -1,1
                            do i_wgt0 = -1,1
@@ -179,7 +201,7 @@ c
 c
 c     Set the values along the upper/lower y side of the patch.
 c
-         do k = kbeg,kend,ratio_to_coarser(2)
+         do k = ka,kend,ratio_to_coarser(2)
             if (k .lt. 0) then
                k_c = (k+1)/ratio_to_coarser(2)-1
             else
@@ -193,7 +215,7 @@ c
                   j_c = j/ratio_to_coarser(1)
                endif
 
-               do i = ibeg,iend,ratio_to_coarser(0)
+               do i = ia,iend,ratio_to_coarser(0)
                   if (i .lt. 0) then
                      i_c = (i+1)/ratio_to_coarser(0)-1
                   else
@@ -208,7 +230,9 @@ c
                   enddo
 
                   do k_p = 0,ratio_to_coarser(2) - 1
+                     if (k+k_p.lt.kbeg .or. k+k_p.gt.kend) cycle
                      do i_p = 0,ratio_to_coarser(0) - 1
+                        if (i+i_p.lt.ibeg .or. i+i_p.gt.iend) cycle
                         U_fine(i+i_p,j,k+k_p) = 0.d0
                         do i_wgt1 = -1,1
                            do i_wgt0 = -1,1
@@ -257,14 +281,14 @@ c
                k_c = k/ratio_to_coarser(2)
             endif
 
-            do j = jbeg,jend,ratio_to_coarser(1)
+            do j = ja,jend,ratio_to_coarser(1)
                if (j .lt. 0) then
                   j_c = (j+1)/ratio_to_coarser(1)-1
                else
                   j_c = j/ratio_to_coarser(1)
                endif
 
-               do i = ibeg,iend,ratio_to_coarser(0)
+               do i = ia,iend,ratio_to_coarser(0)
                   if (i .lt. 0) then
                      i_c = (i+1)/ratio_to_coarser(0)-1
                   else
@@ -279,7 +303,9 @@ c
                   enddo
 
                   do j_p = 0,ratio_to_coarser(1) - 1
+                     if (j+j_p.lt.jbeg .or. j+j_p.gt.jend) cycle
                      do i_p = 0,ratio_to_coarser(0) - 1
+                        if (i+i_p.lt.ibeg .or. i+i_p.gt.iend) cycle
                         U_fine(i+i_p,j+j_p,k) = 0.d0
                         do i_wgt1 = -1,1
                            do i_wgt0 = -1,1
@@ -352,16 +378,16 @@ c
 c
 c     Set the values along the appropriate side.
 c
-      ibeg = max(blower(0),ilower0)
-      iend = min(bupper(0),iupper0)
+      ibeg = blower(0)
+      iend = bupper(0)
       igcw = abs(bupper(0)-blower(0))+1
 
-      jbeg = max(blower(1),ilower1)
-      jend = min(bupper(1),iupper1)
+      jbeg = blower(1)
+      jend = bupper(1)
       jgcw = abs(bupper(1)-blower(1))+1
 
-      kbeg = max(blower(2),ilower2)
-      kend = min(bupper(2),iupper2)
+      kbeg = blower(2)
+      kend = bupper(2)
       kgcw = abs(bupper(2)-blower(2))+1
 
       if ( (location_index .eq. 0) .or.
@@ -577,6 +603,7 @@ c
 c
 c     Local variables.
 c
+      INTEGER ia,ja,ka
       INTEGER i_wgt,j_wgt,k_wgt
       INTEGER i,ibeg,iend,i_c,i_f,i_p
       INTEGER j,jbeg,jend,j_c,j_f,j_p
@@ -591,14 +618,33 @@ c
 c
 c     Set the values along the appropriate side.
 c
-      ibeg = max(blowerf(0),ilowerf0)
-      iend = min(bupperf(0),iupperf0)
+      ibeg = blowerf(0)
+      iend = bupperf(0)
 
-      jbeg = max(blowerf(1),ilowerf1)
-      jend = min(bupperf(1),iupperf1)
+      jbeg = blowerf(1)
+      jend = bupperf(1)
 
-      kbeg = max(blowerf(2),ilowerf2)
-      kend = min(bupperf(2),iupperf2)
+      kbeg = blowerf(2)
+      kend = bupperf(2)
+c
+c     Start the loops over coarse cells at the cell that contains
+c     the first fine index.
+c
+      if (ibeg .lt. 0) then
+         ia = ((ibeg+1)/ratio_to_coarser(0)-1)*ratio_to_coarser(0)
+      else
+         ia = (ibeg/ratio_to_coarser(0))*ratio_to_coarser(0)
+      endif
+      if (jbeg .lt. 0) then
+         ja = ((jbeg+1)/ratio_to_coarser(1)-1)*ratio_to_coarser(1)
+      else
+         ja = (jbeg/ratio_to_coarser(1))*ratio_to_coarser(1)
+      endif
+      if (kbeg .lt. 0) then
+         ka = ((kbeg+1)/ratio_to_coarser(2)-1)*ratio_to_coarser(2)
+      else
+         ka = (kbeg/ratio_to_coarser(2))*ratio_to_coarser(2)
+      endif
 
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
@@ -653,14 +699,14 @@ c
 c
 c     Set the values along the upper/lower x side of the patch.
 c
-         do k = kbeg,kend,ratio_to_coarser(2)
+         do k = ka,kend,ratio_to_coarser(2)
             if (k .lt. 0) then
                k_c = (k+1)/ratio_to_coarser(2)-1
             else
                k_c = k/ratio_to_coarser(2)
             endif
 
-         do j = jbeg,jend,ratio_to_coarser(1)
+         do j = ja,jend,ratio_to_coarser(1)
             if (j .lt. 0) then
                j_c = (j+1)/ratio_to_coarser(1)-1
             else
@@ -694,7 +740,9 @@ c     Perform quadratic interpolation in the y- and z-directions.
             enddo
 
             do k_p = 0,ratio_to_coarser(2) - 1
+               if (k+k_p.lt.kbeg .or. k+k_p.gt.kend) cycle
                do j_p = 0,ratio_to_coarser(1) - 1
+                  if (j+j_p.lt.jbeg .or. j+j_p.gt.jend) cycle
                   if (.not.(indicator0(i_f,j+j_p,k+k_p).eq.1)) then
                      U_fine0(i_f,j+j_p,k+k_p) = 0.d0
                      do k_wgt = -1,1
@@ -731,7 +779,9 @@ c     interpolation in the z-direction.
             enddo
 
             do k_p = 0,ratio_to_coarser(2) - 1
+               if (k+k_p.lt.kbeg .or. k+k_p.gt.kend) cycle
                do j_p = 0,ratio_to_coarser(1)
+                  if (j+j_p.lt.jbeg .or. j+j_p.gt.jend+1) cycle
                   if (.not.(indicator1(i_f,j+j_p,k+k_p).eq.1)) then
                      U_fine1(i_f,j+j_p,k+k_p) = 0.d0
                      do k_wgt = -1,1
@@ -757,7 +807,9 @@ c     interpolation in the z-direction.
             enddo
 
             do k_p = 0,ratio_to_coarser(2)
+               if (k+k_p.lt.kbeg .or. k+k_p.gt.kend+1) cycle
                do j_p = 0,ratio_to_coarser(1) - 1
+                  if (j+j_p.lt.jbeg .or. j+j_p.gt.jend) cycle
                   if (.not.(indicator2(i_f,j+j_p,k+k_p).eq.1)) then
                      U_fine2(i_f,j+j_p,k+k_p) = 0.d0
                      do k_wgt = -1,2
@@ -830,7 +882,7 @@ c
 c
 c     Set the values along the upper/lower y side of the patch.
 c
-         do k = kbeg,kend,ratio_to_coarser(2)
+         do k = ka,kend,ratio_to_coarser(2)
             if (k .lt. 0) then
                k_c = (k+1)/ratio_to_coarser(2)-1
             else
@@ -844,7 +896,7 @@ c
                j_c = j/ratio_to_coarser(1)
             endif
 
-         do i = ibeg,iend,ratio_to_coarser(0)
+         do i = ia,iend,ratio_to_coarser(0)
             if (i .lt. 0) then
                i_c = (i+1)/ratio_to_coarser(0)-1
             else
@@ -871,7 +923,9 @@ c     Perform quadratic interpolation in the x- and z-directions.
             enddo
 
             do k_p = 0,ratio_to_coarser(2) - 1
+               if (k+k_p.lt.kbeg .or. k+k_p.gt.kend) cycle
                do i_p = 0,ratio_to_coarser(0) - 1
+                  if (i+i_p.lt.ibeg .or. i+i_p.gt.iend) cycle
                   if (.not.(indicator1(i+i_p,j_f,k+k_p).eq.1)) then
                      U_fine1(i+i_p,j_f,k+k_p) = 0.d0
                      do k_wgt = -1,1
@@ -908,7 +962,9 @@ c     interpolation in the z-direction.
             enddo
 
             do k_p = 0,ratio_to_coarser(2) - 1
+               if (k+k_p.lt.kbeg .or. k+k_p.gt.kend) cycle
                do i_p = 0,ratio_to_coarser(0)
+                  if (i+i_p.lt.ibeg .or. i+i_p.gt.iend+1) cycle
                   if (.not.(indicator0(i+i_p,j_f,k+k_p).eq.1)) then
                      U_fine0(i+i_p,j_f,k+k_p) = 0.d0
                      do k_wgt = -1,1
@@ -934,7 +990,9 @@ c     interpolation in the z-direction.
             enddo
 
             do k_p = 0,ratio_to_coarser(2)
+               if (k+k_p.lt.kbeg .or. k+k_p.gt.kend+1) cycle
                do i_p = 0,ratio_to_coarser(0) - 1
+                  if (i+i_p.lt.ibeg .or. i+i_p.gt.iend) cycle
                   if (.not.(indicator2(i+i_p,j_f,k+k_p).eq.1)) then
                      U_fine2(i+i_p,j_f,k+k_p) = 0.d0
                      do k_wgt = -1,2
@@ -1014,14 +1072,14 @@ c
                k_c = k/ratio_to_coarser(2)
             endif
 
-         do j = jbeg,jend,ratio_to_coarser(1)
+         do j = ja,jend,ratio_to_coarser(1)
             if (j .lt. 0) then
                j_c = (j+1)/ratio_to_coarser(1)-1
             else
                j_c = j/ratio_to_coarser(1)
             endif
 
-         do i = ibeg,iend,ratio_to_coarser(0)
+         do i = ia,iend,ratio_to_coarser(0)
             if (i .lt. 0) then
                i_c = (i+1)/ratio_to_coarser(0)-1
             else
@@ -1048,7 +1106,9 @@ c     Perform quadratic interpolation in the x- and y-directions.
             enddo
 
             do j_p = 0,ratio_to_coarser(1) - 1
+               if (j+j_p.lt.jbeg .or. j+j_p.gt.jend) cycle
                do i_p = 0,ratio_to_coarser(0) - 1
+                  if (i+i_p.lt.ibeg .or. i+i_p.gt.iend) cycle
                   if (.not.(indicator2(i+i_p,j+j_p,k_f).eq.1)) then
                      U_fine2(i+i_p,j+j_p,k_f) = 0.d0
                      do j_wgt = -1,1
@@ -1085,7 +1145,9 @@ c     interpolation in the y-direction.
             enddo
 
             do j_p = 0,ratio_to_coarser(1) - 1
+               if (j+j_p.lt.jbeg .or. j+j_p.gt.jend) cycle
                do i_p = 0,ratio_to_coarser(0)
+                  if (i+i_p.lt.ibeg .or. i+i_p.gt.iend+1) cycle
                   if (.not.(indicator0(i+i_p,j+j_p,k_f).eq.1)) then
                      U_fine0(i+i_p,j+j_p,k_f) = 0.d0
                      do j_wgt = -1,1
@@ -1111,7 +1173,9 @@ c     interpolation in the y-direction.
             enddo
 
             do j_p = 0,ratio_to_coarser(1)
+               if (j+j_p.lt.jbeg .or. j+j_p.gt.jend+1) cycle
                do i_p = 0,ratio_to_coarser(0) - 1
+                  if (i+i_p.lt.ibeg .or. i+i_p.gt.iend) cycle
                   if (.not.(indicator1(i+i_p,j+j_p,k_f).eq.1)) then
                      U_fine1(i+i_p,j+j_p,k_f) = 0.d0
                      do j_wgt = -1,2
@@ -1215,16 +1279,16 @@ c
 c
 c     Set the values along the appropriate side.
 c
-      ibeg = max(blower(0),ilower0)
-      iend = min(bupper(0),iupper0)
+      ibeg = blower(0)
+      iend = bupper(0)
       igcw = abs(bupper(0)-blower(0))+1
 
-      jbeg = max(blower(1),ilower1)
-      jend = min(bupper(1),iupper1)
+      jbeg = blower(1)
+      jend = bupper(1)
       jgcw = abs(bupper(1)-blower(1))+1
 
-      kbeg = max(blower(2),ilower2)
-      kend = min(bupper(2),iupper2)
+      kbeg = blower(2)
+      kend = bupper(2)
       kgcw = abs(bupper(2)-blower(2))+1
 
       if ( (location_index .eq. 0) .or.
