@@ -1,0 +1,5 @@
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+smallest viscosity in the cells, including ghost cells = 1
+smallest viscosity at the edges, including ghost edges = 1
