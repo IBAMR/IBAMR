@@ -87,6 +87,7 @@ SET(CXX_SRC
   boundary/physical_boundary/muParserRobinBcCoefs.cpp
   boundary/physical_boundary/ExtendedRobinBcCoefStrategy.cpp
   boundary/physical_boundary/RobinPhysBdryPatchStrategy.cpp
+  boundary/physical_boundary/ShiftedPatchGeometry.cpp
 
   # coarsen ops
   coarsen_ops/CartCellDoubleCubicCoarsen.cpp
