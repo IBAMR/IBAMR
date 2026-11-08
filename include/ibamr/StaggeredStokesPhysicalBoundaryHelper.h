@@ -143,15 +143,32 @@ public:
 
     /*!
      * \brief Stop with an error if \a bdry_interp_type is QUADRATIC, \a viscous_coef_nonzero is true, and the normal
-     * velocity of a TRACTION condition in \a u_bc_coefs is not prescribed at some boundary face of \a hierarchy. The
-     * term of addNormalTractionViscousTerm() is exact only for LINEAR. Call this function when setting up the solver,
-     * not for each term.
+     * velocity of a TRACTION condition in \a u_bc_coefs (or of a PSEUDO_TRACTION condition, if
+     * \a include_pseudo_traction is true) is not prescribed at some boundary face of \a hierarchy. The terms of
+     * addNormalTractionViscousTerm() are exact only for LINEAR. Call this function when setting up the solver, not for
+     * each term. Pass \a viscous_coef_nonzero true for a variable viscous coefficient.
      */
     void checkNormalTractionBdryInterpType(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                            IBTK::BdryInterpType bdry_interp_type,
                                            bool viscous_coef_nonzero,
                                            double fill_time,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy) const;
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                           bool include_pseudo_traction = false) const;
+
+    /*!
+     * \brief Add the viscous part of the TRACTION and PSEUDO_TRACTION conditions to \a f_data_idx at the boundary faces
+     * where the normal velocity is not prescribed. Pass the same \a u_data_idx, \a viscous_coef_data_idx, and
+     * \a viscous_coef_interp_type as to IBTK::HierarchyMathOps::vc_laplace(). The term is exact only for
+     * \a bdry_interp_type LINEAR. See checkNormalTractionBdryInterpType().
+     */
+    void addNormalTractionViscousTerm(int f_data_idx,
+                                      int u_data_idx,
+                                      int viscous_coef_data_idx,
+                                      IBTK::VCInterpType viscous_coef_interp_type,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      IBTK::BdryInterpType bdry_interp_type,
+                                      int coarsest_ln = IBTK::invalid_level_number,
+                                      int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
      * \brief Setup physical boundary condition specification objects for
