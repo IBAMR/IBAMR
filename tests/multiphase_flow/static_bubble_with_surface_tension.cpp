@@ -286,7 +286,7 @@ main(int argc, char* argv[])
         else
         {
             TBOX_ERROR("Unsupported discretization_form: " << discretization_form << "\n"
-                                                           << "Valid options are: CONSERVATIVE, NON_CONSERVATIVE");
+                                                           << "Valid options are: CONSERVATIVE, NON_CONSERVATIVE\n");
         }
 
         // Set up the advection diffusion hierarchy integrator
