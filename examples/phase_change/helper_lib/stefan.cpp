@@ -1,0 +1,276 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2017 - 2019 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
+#include "Applications.h"
+#include "ExampleOutput.h"
+
+// Config files
+#include <SAMRAI_config.h>
+
+// Headers for basic PETSc functions
+#include <petscsys.h>
+
+// Headers for basic SAMRAI objects
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
+
+// Headers for application-specific algorithm/data structure objects
+#include <ibamr/AllenCahnHierarchyIntegrator.h>
+#include <ibamr/EnthalpyHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/PhaseChangeUtilities.h>
+
+#include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/muParserRobinBcCoefs.h>
+
+#include <ibamr/app_namespaces.h>
+
+namespace PhaseChangeExamples
+{
+/*******************************************************************************
+ * For each run, the input filename and restart information (if needed) must   *
+ * be given on the command line.  For non-restarted case, command line is:     *
+ *                                                                             *
+ *    executable <input file name>                                             *
+ *                                                                             *
+ * For restarted run, command line is:                                         *
+ *                                                                             *
+ *    executable <input file name> <restart directory> <restart number>        *
+ *                                                                             *
+ *******************************************************************************/
+int
+run_stefan(int argc, char* argv[])
+{
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object
+    // as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+
+    // Increase maximum patch data component indices
+    SAMRAIManager::setMaxNumberPatchDataEntries(2500);
+
+    { // cleanup dynamically allocated objects prior to shutdown
+
+        // Parse command line options, set some standard options from the input
+        // file, initialize the restart database (if this is a restarted run),
+        // and enable file logging.
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        ExampleOutput output(app_initializer);
+
+        // Create major algorithm and data objects that comprise the
+        // application.  These objects are configured from the input database
+        // and, if this is a restarted run, from the restart database.
+
+        Pointer<PhaseChangeHierarchyIntegrator> phase_change_integrator;
+        Pointer<EnthalpyHierarchyIntegrator> enthalpy_integrator;
+        Pointer<AllenCahnHierarchyIntegrator> ac_integrator;
+        if (input_db->keyExists("EnthalpyHierarchyIntegrator"))
+        {
+            enthalpy_integrator = new EnthalpyHierarchyIntegrator(
+                "EnthalpyHierarchyIntegrator", app_initializer->getComponentDatabase("EnthalpyHierarchyIntegrator"));
+            phase_change_integrator = enthalpy_integrator;
+        }
+        else
+        {
+            ac_integrator = new AllenCahnHierarchyIntegrator(
+                "AllenCahnHierarchyIntegrator", app_initializer->getComponentDatabase("AllenCahnHierarchyIntegrator"));
+            phase_change_integrator = ac_integrator;
+        }
+        Pointer<AdvDiffHierarchyIntegrator> time_integrator = phase_change_integrator;
+
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
+                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
+
+        // register liquid fraction
+        Pointer<CellVariable<NDIM, double>> lf_var = new CellVariable<NDIM, double>("lf_var");
+        phase_change_integrator->registerLiquidFractionVariable(lf_var, true);
+
+        // register liquid fraction gradient
+        Pointer<CellVariable<NDIM, double>> lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient_var", NDIM);
+        phase_change_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
+
+        if (enthalpy_integrator)
+        {
+            // register specific enthalpy
+            Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
+            enthalpy_integrator->registerSpecificEnthalpyVariable(h_var, true);
+        }
+
+        // register Heaviside
+        Pointer<CellVariable<NDIM, double>> H_var = new CellVariable<NDIM, double>("heaviside_var");
+        time_integrator->registerTransportedQuantity(H_var, true);
+        time_integrator->setDiffusionCoefficient(H_var, 0.0);
+        phase_change_integrator->registerHeavisideVariable(H_var);
+
+        // register temperature
+        Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
+        phase_change_integrator->registerTemperatureVariable(T_var, true);
+
+        Pointer<CartGridFunction> H_init = new muParserCartGridFunction(
+            "H_init", app_initializer->getComponentDatabase("HeavisideInitialConditions"), grid_geometry);
+        time_integrator->setInitialConditions(H_var, H_init);
+
+        Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
+            "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);
+        phase_change_integrator->setTemperatureInitialCondition(T_var, T_init);
+
+        Pointer<CartGridFunction> lf_init = new muParserCartGridFunction(
+            "lf_init", app_initializer->getComponentDatabase("LiquidFractionInitialConditions"), grid_geometry);
+        phase_change_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
+
+        Pointer<CellVariable<NDIM, double>> rho_cc_var = new CellVariable<NDIM, double>("rho_cc_var");
+        phase_change_integrator->registerDensityVariable(rho_cc_var, true);
+
+        Pointer<CellVariable<NDIM, double>> Cp_var = new CellVariable<NDIM, double>("Cp");
+        phase_change_integrator->registerSpecificHeatVariable(Cp_var, true);
+
+        // Create Eulerian boundary condition specification objects (when
+        // necessary).
+        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
+
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> H_bc_coef;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
+        {
+            H_bc_coef = std::make_unique<muParserRobinBcCoefs>(
+                "H_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
+            time_integrator->setPhysicalBcCoef(H_var, H_bc_coef.get());
+        }
+
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> T_bc_coef;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("TemperatureBcCoefs"))
+        {
+            T_bc_coef = std::make_unique<muParserRobinBcCoefs>(
+                "T_bc_coef", app_initializer->getComponentDatabase("TemperatureBcCoefs"), grid_geometry);
+            phase_change_integrator->setTemperaturePhysicalBcCoef(T_var, T_bc_coef.get());
+        }
+
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> h_bc_coef;
+        if (enthalpy_integrator && !(periodic_shift.min() > 0) && input_db->keyExists("EnthalpyBcCoefs"))
+        {
+            h_bc_coef = std::make_unique<muParserRobinBcCoefs>(
+                "h_bc_coef", app_initializer->getComponentDatabase("EnthalpyBcCoefs"), grid_geometry);
+            enthalpy_integrator->setEnthalpyBcCoef(h_bc_coef.get());
+        }
+
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> lf_bc_coef;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("LiquidFractionBcCoefs"))
+        {
+            lf_bc_coef = std::make_unique<muParserRobinBcCoefs>(
+                "lf_bc_coef", app_initializer->getComponentDatabase("LiquidFractionBcCoefs"), grid_geometry);
+            if (ac_integrator)
+            {
+                ac_integrator->setLiquidFractionPhysicalBcCoef(lf_var, lf_bc_coef.get());
+            }
+        }
+
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> k_bc_coef;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("ThermalConductivityBcCoefs"))
+        {
+            k_bc_coef = std::make_unique<muParserRobinBcCoefs>(
+                "k_bc_coef", app_initializer->getComponentDatabase("ThermalConductivityBcCoefs"), grid_geometry);
+            phase_change_integrator->registerThermalConductivityBoundaryConditions(k_bc_coef.get());
+        }
+
+        const double kappa_liquid = input_db->getDouble("KAPPA_L");
+        const double kappa_solid = input_db->getDouble("KAPPA_S");
+        const double Cp_liquid = input_db->getDouble("CP_L");
+        const double Cp_solid = input_db->getDouble("CP_S");
+        const double rho_liquid = input_db->getDouble("RHO_L");
+        const double rho_solid = input_db->getDouble("RHO_S");
+
+        // There are no gas phase in this example. So Heaviside is already set to 1 to denote PCM. So the properties in
+        // the gas phase are arbitrary.
+        const double kappa_gas = 0.0;
+        const double Cp_gas = 0.0;
+        const double rho_gas = 0.0;
+
+        // Callback functions can either be registered with the NS integrator, or
+        // the advection-diffusion integrator
+        IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
+                                                                              time_integrator,
+                                                                              H_var,
+                                                                              H_bc_coef.get(),
+                                                                              lf_var,
+                                                                              lf_bc_coef.get(),
+                                                                              rho_liquid,
+                                                                              rho_solid,
+                                                                              rho_gas,
+                                                                              kappa_liquid,
+                                                                              kappa_solid,
+                                                                              kappa_gas,
+                                                                              Cp_liquid,
+                                                                              Cp_solid,
+                                                                              Cp_gas);
+
+        phase_change_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::call_set_density_callback,
+                                                         static_cast<void*>(&setSetFluidProperties));
+
+        phase_change_integrator->registerResetDiffusionCoefficientFcn(
+            &IBAMR::PhaseChangeUtilities::call_set_thermal_conductivity_callback,
+            static_cast<void*>(&setSetFluidProperties));
+
+        phase_change_integrator->registerResetSpecificHeatFcn(
+            &IBAMR::PhaseChangeUtilities::call_set_specific_heat_callback, static_cast<void*>(&setSetFluidProperties));
+
+        // Tag cells for refinement
+        const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
+        const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
+        IBAMR::PhaseChangeUtilities::TagLiquidFractionRefinementCells tagger(
+            phase_change_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
+        phase_change_integrator->registerApplyGradientDetectorCallback(
+            &IBAMR::PhaseChangeUtilities::call_tag_liquid_fraction_cells_callback, static_cast<void*>(&tagger));
+
+        output.registerDataWriter(app_initializer, time_integrator);
+
+        // Initialize hierarchy configuration and data on all patches.
+        time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+
+        // Remove the AppInitializer
+        app_initializer.setNull();
+
+        // Print the input database contents to the log file.
+        plog << "Input database:\n";
+        input_db->printClassData(plog);
+
+        output.writeInitial(time_integrator,
+                            patch_hierarchy,
+                            time_integrator->getIntegratorStep(),
+                            time_integrator->getIntegratorTime());
+        run_time_loop(time_integrator, patch_hierarchy, output);
+
+    } // cleanup dynamically allocated objects prior to shutdown
+    return 0;
+}
+
+} // namespace PhaseChangeExamples

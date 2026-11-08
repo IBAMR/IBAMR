@@ -1,0 +1,146 @@
+// Diffusion of one Fourier mode: k/(rho Cp)=0.01, dt=0.001, 16 cells per period.
+LS_CONVECTIVE_FORM = "ADVECTIVE"
+H_CONVECTIVE_FORM = "CONSERVATIVE"
+NUMBER_OF_INTERFACE_CELLS = 1.0
+RHO_L = 2.0
+RHO_S = 2.0
+RHO_G = 1.0
+CP_L = 3.0
+CP_S = 3.0
+CP_G = 7.0
+KAPPA_L = 0.06
+KAPPA_S = 0.06
+KAPPA_G = 0.03
+MU_L = 0.01
+MU_S = 0.01
+MU_G = 0.005
+Main {
+  log_file_name = "application.log"
+  restart_dump_interval = 2
+  restart_dump_dirname = "restart"
+}
+LevelSetInitialConditions { function = "100.0" }
+LiquidFractionInitialConditions { function = "1.0" }
+TemperatureInitialConditions { function = "2.0+0.1*cos(2*pi*X_0)" }
+VelocityInitialConditions { function_0 = "0.0" function_1 = "0.0" }
+CartesianGeometry {
+  domain_boxes = [(0,0),(15,7)]
+  x_lo = 0.0,0.0
+  x_up = 1.0,1.0
+  periodic_dimension = 1,0
+}
+GriddingAlgorithm {
+  max_levels = 1
+  largest_patch_size { level_0 = 16,8 }
+  smallest_patch_size { level_0 = 8,8 }
+}
+StandardTagAndInitialize { tagging_method = "GRADIENT_DETECTOR" }
+LoadBalancer { bin_pack_method = "SPATIAL" }
+RelaxationLSMethod { reinit_interval = 0 }
+INSVCStaggeredConservativeHierarchyIntegrator {
+  start_time = 0.0
+  end_time = 1.0
+  dt_max = 0.001
+  max_integrator_steps = 4
+  num_cycles = 2
+  convective_difference_form = "CONSERVATIVE"
+  rho_is_const = FALSE
+  mu_is_const = FALSE
+  normalize_pressure = TRUE
+  velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+  velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+  velocity_precond_db { coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER" }
+  mass_momentum_integrator_db {
+    density_time_stepping_type = "SSPRK3"
+    velocity_convective_limiter = "CUI"
+    density_convective_limiter = "CUI"
+  }
+}
+EnthalpyHierarchyIntegrator {
+  start_time = 0.0
+  end_time = 1.0
+  dt_max = 0.001
+  max_integrator_steps = 4
+  num_cycles = 2
+  latent_heat = 1.0
+  rho_liquid = RHO_L
+  rho_solid = RHO_S
+  T_melt = 1.0
+  convective_op_type = "CUI"
+  T_convective_op_type = "CUI"
+  T_convective_difference_form = "CONSERVATIVE"
+  T_convective_time_stepping_type = "MIDPOINT_RULE"
+  T_diffusion_time_stepping_type = "TRAPEZOIDAL_RULE"
+  solve_mass_conservation = TRUE
+  mass_scalar_transport_integrator_db {
+    density_time_stepping_type = "SSPRK3"
+    temperature_convective_limiter = "CUI"
+    specific_heat_convective_limiter = "CUI"
+    density_convective_limiter = "CUI"
+  }
+  T_solver_type = "PETSC_KRYLOV_SOLVER"
+  T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+  T_solver_db { ksp_type = "fgmres" rel_residual_tol = 1.0e-12 max_iterations = 100 }
+  T_precond_db {
+    coarse_solver_type = "PETSC_LEVEL_SOLVER"
+    coarse_solver_rel_residual_tol = 1.0e-12
+    coarse_solver_max_iterations = 100
+    coarse_solver_db { ksp_type = "gmres" pc_type = "jacobi" }
+  }
+  specific_heat_liquid = CP_L
+  specific_heat_solid = CP_S
+  specific_heat_gas = CP_G
+  liquidus_temperature = 1.1
+  solidus_temperature = 0.9
+  reference_temperature = 0.9
+}
+TemperatureBcCoefs {
+  acoef_function_0 = "0.0" acoef_function_1 = "0.0" acoef_function_2 = "0.0" acoef_function_3 = "0.0"
+  bcoef_function_0 = "1.0" bcoef_function_1 = "1.0" bcoef_function_2 = "1.0" bcoef_function_3 = "1.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}
+LiquidFractionBcCoefs {
+  acoef_function_0 = "0.0" acoef_function_1 = "0.0" acoef_function_2 = "0.0" acoef_function_3 = "0.0"
+  bcoef_function_0 = "1.0" bcoef_function_1 = "1.0" bcoef_function_2 = "1.0" bcoef_function_3 = "1.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}
+HeavisideBcCoefs {
+  acoef_function_0 = "0.0" acoef_function_1 = "0.0" acoef_function_2 = "0.0" acoef_function_3 = "0.0"
+  bcoef_function_0 = "1.0" bcoef_function_1 = "1.0" bcoef_function_2 = "1.0" bcoef_function_3 = "1.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}
+ThermalConductivityBcCoefs {
+  acoef_function_0 = "0.0" acoef_function_1 = "0.0" acoef_function_2 = "0.0" acoef_function_3 = "0.0"
+  bcoef_function_0 = "1.0" bcoef_function_1 = "1.0" bcoef_function_2 = "1.0" bcoef_function_3 = "1.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}
+DensityBcCoefs {
+  acoef_function_0 = "0.0" acoef_function_1 = "0.0" acoef_function_2 = "0.0" acoef_function_3 = "0.0"
+  bcoef_function_0 = "1.0" bcoef_function_1 = "1.0" bcoef_function_2 = "1.0" bcoef_function_3 = "1.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}
+ViscosityBcCoefs {
+  acoef_function_0 = "0.0" acoef_function_1 = "0.0" acoef_function_2 = "0.0" acoef_function_3 = "0.0"
+  bcoef_function_0 = "1.0" bcoef_function_1 = "1.0" bcoef_function_2 = "1.0" bcoef_function_3 = "1.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}
+LevelSetBcCoefs {
+  acoef_function_0 = "0.0" acoef_function_1 = "0.0" acoef_function_2 = "0.0" acoef_function_3 = "0.0"
+  bcoef_function_0 = "1.0" bcoef_function_1 = "1.0" bcoef_function_2 = "1.0" bcoef_function_3 = "1.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}
+EnthalpyBcCoefs {
+  acoef_function_0 = "0.0" acoef_function_1 = "0.0" acoef_function_2 = "0.0" acoef_function_3 = "0.0"
+  bcoef_function_0 = "1.0" bcoef_function_1 = "1.0" bcoef_function_2 = "1.0" bcoef_function_3 = "1.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}
+VelocityBcCoefs_0 {
+  acoef_function_0 = "1.0" acoef_function_1 = "1.0" acoef_function_2 = "1.0" acoef_function_3 = "1.0"
+  bcoef_function_0 = "0.0" bcoef_function_1 = "0.0" bcoef_function_2 = "0.0" bcoef_function_3 = "0.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}
+VelocityBcCoefs_1 {
+  acoef_function_0 = "1.0" acoef_function_1 = "1.0" acoef_function_2 = "1.0" acoef_function_3 = "1.0"
+  bcoef_function_0 = "0.0" bcoef_function_1 = "0.0" bcoef_function_2 = "0.0" bcoef_function_3 = "0.0"
+  gcoef_function_0 = "0.0" gcoef_function_1 = "0.0" gcoef_function_2 = "0.0" gcoef_function_3 = "0.0"
+}

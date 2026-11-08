@@ -14,13 +14,14 @@
 name: Pull/push
 on:
   # Trigger the workflow on push or pull request,
-  # but only when targeting the master branch
+  # include the maintained phase-change stack when reviewing pull requests
   push:
     branches:
       - master
   pull_request:
     branches:
       - master
+      - phase_change_patch_6
 
 jobs:
   # build IBAMR with CMake and run tests
@@ -97,8 +98,13 @@ jobs:
         id: build-tests
         run: |
           cd build
-          ninja -j4 tests
+          ninja -j4 tests tests-example_helpers
           ccache --show-stats
+      - name: Verify example helper test discovery
+        run: |
+          cd build
+          ./attest -N -R '^example_helpers/' | LC_ALL=C sort > helper-tests.txt
+          diff -u ../tests/example_helpers/expected-tests.txt helper-tests.txt
       - name: Test IBAMR
         id: test
         run: |

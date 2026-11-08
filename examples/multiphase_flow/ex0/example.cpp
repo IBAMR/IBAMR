@@ -34,15 +34,18 @@
 #include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartGridPointwiseFunction.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <cmath>
+
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "LSLocateCircularInterface.h"
+#include <LSLocateInterface.h>
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
@@ -163,12 +166,12 @@ main(int argc, char* argv[])
         const double dP_exact = input_db->getDouble("dP_exact");
 
         // Setup level set information
-        CircularInterface circle;
-        circle.R = input_db->getDouble("R");
-        circle.X0[0] = input_db->getDouble("XCOM");
-        circle.X0[1] = input_db->getDouble("YCOM");
+        const double circle_radius = input_db->getDouble("R");
+        IBTK::Vector circle_center = IBTK::Vector::Zero();
+        circle_center[0] = input_db->getDouble("XCOM");
+        circle_center[1] = input_db->getDouble("YCOM");
 #if (NDIM == 3)
-        circle.X0[2] = input_db->getDouble("ZCOM");
+        circle_center[2] = input_db->getDouble("ZCOM");
 #endif
 
         const string& ls_name = "level_set";
@@ -180,10 +183,21 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateCircularInterface setLSLocateCircularInterface(
-            "LSLocateCircularInterface", adv_diff_integrator, phi_var, circle);
-        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
-                                                                static_cast<void*>(&setLSLocateCircularInterface));
+        Pointer<CartGridFunction> sphere = make_cart_grid_pointwise_function<double>(
+            "initial_sphere",
+            phi_var,
+            [circle_center, circle_radius](const VectorNd& X, double, int, int)
+            {
+                return std::sqrt(std::pow(X[0] - circle_center[0], 2.0) + std::pow(X[1] - circle_center[1], 2.0)
+#if (NDIM == 3)
+                                 + std::pow(X[2] - circle_center[2], 2.0)
+#endif
+                                     ) -
+                       circle_radius;
+            });
+        MultiphaseExamples::LSLocateInterface locate_interface(adv_diff_integrator, phi_var, sphere);
+        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&MultiphaseExamples::call_locate_interface,
+                                                                static_cast<void*>(&locate_interface));
         IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
             phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));

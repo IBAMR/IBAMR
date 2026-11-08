@@ -404,3 +404,5 @@ set_tests_properties(autotests
     ENVIRONMENT "PYTHONUNBUFFERED=yes"
     TIMEOUT 1800
 )
+
+ADD_SUBDIRECTORY(example_helpers)
