@@ -38,7 +38,7 @@ TEX_GREEK_UPPER = {"Gamma", "Delta", "Theta", "Lambda", "Xi", "Pi", "Sigma", "Up
 # \epsilon and \phi are the lunate and closed forms, and \varepsilon and
 # \varphi are the curly and open forms, the reverse of the Unicode names.
 GREEK_VARIANTS = {"epsilon": 1, "vartheta": 2, "varkappa": 3, "phi": 4, "varrho": 5, "varpi": 6}
-GREEK_LOWER_SWAP = {"epsilon": "varepsilon", "phi": "varphi"}
+UNICODE_TO_TEX_GREEK_LOWER = {"epsilon": "varepsilon", "phi": "varphi"}
 
 LATIN_UPPER_START = 0x1D63C  # MATHEMATICAL SANS-SERIF BOLD ITALIC CAPITAL A
 LATIN_LOWER_START = 0x1D656  # ... SMALL A
@@ -58,7 +58,7 @@ def tensor_macros():
             macros.append((name, GREEK_UPPER_START + i))
     for i, name in enumerate(GREEK_LOWER):
         if name not in ("omicron", "varsigma"):
-            macros.append((GREEK_LOWER_SWAP.get(name, name), GREEK_LOWER_START + i))
+            macros.append((UNICODE_TO_TEX_GREEK_LOWER.get(name, name), GREEK_LOWER_START + i))
     for name, offset in GREEK_VARIANTS.items():
         macros.append((name, GREEK_VARIANT_START + offset))
     for _, code_point in macros:

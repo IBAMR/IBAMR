@@ -72,27 +72,27 @@ SHORTHAND = re.compile(
 # The Language rules of doc/agents/documentation.md: data and geometry that
 # act, code that decides or speaks, results that move, the first person,
 # future tense, and filler words.
-OBJECTS = (
+NON_ACTORS = (
     r"(?:cells?|faces?|sides?|nodes?|edges?|box(?:es)?|data|values?|"
     r"stencils?|patch(?:es)?|levels?|markers?)"
 )
-CODE = (
+CODE_NOUNS = (
     r"(?:solvers?|class(?:es)?|functions?|operators?|objects?|tests?|"
     r"programs?|schedules?|integrators?|methods?)"
 )
 # An optional word between subject and verb, other than an auxiliary verb.
 ADVERB = r"(?:(?!(?:is|are|was|were|be|been)\b)\w+\s+)?"
-PEOPLE = r"(?<!user )(?<!users )(?<!caller )(?<!reviewer )"
+NOT_AFTER_PERSON = r"(?<!user )(?<!users )(?<!caller )(?<!reviewer )"
 WORDING = re.compile(
     r"\bhold(?:s|ing)?\s+(?:the|a|an|its|their|data|values?|copies|\d)|"
-    rf"{PEOPLE}\b(?:keeps|kept|keeping|retains?|retained)\b|"
-    rf"{PEOPLE}\bdecid(?:e|es|ed|ing)\b|"
+    rf"{NOT_AFTER_PERSON}\b(?:keeps|kept|keeping|retains?|retained)\b|"
+    rf"{NOT_AFTER_PERSON}\bdecid(?:e|es|ed|ing)\b|"
     r"(?<!the )\banswers?\b|"
     r"(?<!message )(?<!comment )(?<!document )\b(?:says?|tells?)\b|"
-    rf"{PEOPLE}\b(?:asks?|knows?|wants?|expects?)\b|"
-    rf"\b{OBJECTS}\s+{ADVERB}"
+    rf"{NOT_AFTER_PERSON}\b(?:asks?|knows?|wants?|expects?)\b|"
+    rf"\b{NON_ACTORS}\s+{ADVERB}"
     r"(?:reads?(?!\s+(?:from|in)\b)|takes?(?!\s+\d)|needs?|lives?)\b|"
-    rf"\b{CODE}\s+{ADVERB}(?:needs?|lives?)\b|"
+    rf"\b{CODE_NOUNS}\s+{ADVERB}(?:needs?|lives?)\b|"
     r"\b(?:outputs?|values?|norms?|results?|\w+_\w+)\s+mov(?:e|es|ed)\b|"
     r"\b(?!(?:markers?|points?|bod(?:y|ies)|structures?)\b)\w+\s+"
     r"mov(?:e|es|ed)\s+from\b|"
@@ -140,7 +140,7 @@ def comment_part(path, text):
 
 
 def comment_lines(path, added):
-    """Yield (line_number, text, comment, whole) for added lines.
+    """Yield (line_number, text, comment, whole_line_comment) for added lines.
 
     A line inside a C++ block comment is a comment even without a leading *.
     """
@@ -151,8 +151,8 @@ def comment_lines(path, added):
             yield line_number, text, stripped, True
             in_block = "*/" not in stripped
             continue
-        whole = is_comment(path, text)
-        yield line_number, text, comment_part(path, text), whole
+        whole_line_comment = is_comment(path, text)
+        yield line_number, text, comment_part(path, text), whole_line_comment
         if not path.endswith(FORTRAN_SUFFIXES) and stripped.startswith("/*"):
             in_block = "*/" not in stripped[2:]
 
@@ -273,10 +273,10 @@ def check_comment_blocks(path, added):
     notes = []
     block = []
     lines = list(comment_lines(path, added)) + [(None, "", "", False)]
-    for line_number, text, _, whole in lines:
+    for line_number, text, _, whole_line_comment in lines:
         if (
             line_number is not None
-            and whole
+            and whole_line_comment
             and (not block or line_number == block[-1][0] + 1)
         ):
             block.append((line_number, text))
@@ -288,7 +288,7 @@ def check_comment_blocks(path, added):
             notes.append(
                 f"{path}:{block[0][0]}: comment block of {len(block)} lines"
             )
-        block = [(line_number, text)] if whole else []
+        block = [(line_number, text)] if whole_line_comment else []
     return notes
 
 
