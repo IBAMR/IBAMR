@@ -66,8 +66,8 @@ namespace IBTK
  * solver interface.  See <A
  *
  HREF="http://www.mcs.anl.gov/petsc/documentation/linearsolvertable.html">http://www.mcs.anl.gov/petsc/documentation/linearsolvertable.html</A>
- * for a complete list of the Krylov solvers provided by this class.  Note that
- * solver configuration is typically done at runtime via command line options.
+ * for a complete list of the Krylov solvers provided by this class.  Solver
+ * configuration is typically done at runtime via command line options.
  *
  * \note
  * - Preconditioners and direct solvers provided by PETSc \em cannot be used
@@ -76,21 +76,20 @@ namespace IBTK
  *   PETScKrylovLinearSolver class; see, for instance, classes FACPreconditioner
  *   and CCPoissonPointRelaxationFACOperator.  \par
  * - Users have the \em option of supplying the PETScKrylovLinearSolver class
- *   constructor with a KSP object.  It is important to emphasize that doing so
- *   is optional.  When a KSP object is provided to the class constructor, the
- *   PETScKrylovLinearSolver class acts as a \em wrapper for the supplied KSP
- *   object.  \par
+ *   constructor with a KSP object.  If a KSP object is provided to the class
+ *   constructor, the PETScKrylovLinearSolver class acts as a \em wrapper for
+ *   the supplied KSP object.  \par
  * - The functionality of the PETScKrylovLinearSolver class is essentially
- *   identical regardless as to whether a PETSc KSP object is provided to the
- *   class constructor.  The main exception is that when an external KSP object
+ *   identical regardless of whether a PETSc KSP object is provided to the
+ *   class constructor.  The main exception is that if an external KSP object
  *   is provided to the class constructor, memory management of that object is
  *   \em NOT handled by the PETScKrylovLinearSolver.  In particular, it is the
  *   caller's responsibility to ensure that the supplied KSP object is properly
  *   destroyed via KSPDestroy().
  *
- * When this class creates its own KSP object, a Richardson solve limited to one
- * iteration uses KSP_NORM_NONE (no convergence test), and any other solve uses
- * the PETSc default norm type, unless <code>-ksp_norm_type</code> is set.
+ * If this class creates its own KSP object and <code>-ksp_norm_type</code> is
+ * not set, a Richardson solve limited to one iteration uses KSP_NORM_NONE (no
+ * convergence test).  Any other solve uses the PETSc default norm type.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim

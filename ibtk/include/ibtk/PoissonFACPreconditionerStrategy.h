@@ -107,7 +107,7 @@ namespace IBTK
  \endverbatim
  *
  * By default, a PETSc level solver used as the coarse solver applies coarse_solver_max_iterations Richardson iterations
- * with no convergence test. A KSP type in coarse_solver_db or the PETSc options database overrides this.
+ * with no convergence test. A KSP type set in coarse_solver_db or in the PETSc options database takes precedence.
  *
  * A Krylov coarse solver or smoother, a coarse solver that stops on a convergence tolerance, or a slope-limiting
  * prolongation method (for example CONSERVATIVE_LINEAR_REFINE) makes the preconditioner nonlinear; see
@@ -280,15 +280,15 @@ public:
     /*!
      * \brief Compute hierarchy-dependent data.
      *
-     * Note that although the vector arguments given to other methods in this
-     * class may not necessarily be the same as those given to this method,
-     * there will be similarities, including:
+     * The vector arguments given to other methods in this class may differ from those given to this method but have the
+     * same:
      *
      * - hierarchy configuration (hierarchy pointer and level range)
-     * - number, type and alignment of vector component data
+     * - number, type, and alignment of vector component data
      * - ghost cell width of data in the solution (or solution-like) and right-hand-side vectors
      *
-     * An unrecoverable error will occur if the vector ghost cell widths differ or are less than the constructor's.
+     * The program stops with an error if the ghost cell widths of the solution and right-hand-side vectors differ or
+     * are less than the ghost cell width given to the constructor.
      *
      * \param solution solution vector u
      * \param rhs right hand side vector f
@@ -330,8 +330,8 @@ protected:
     /*!
      * \brief Execute a refinement schedule for prolonging data.
      *
-     * \a dst_idx is either the scratch data or has the ghost cell width of the solution vector, and \a src_idx has the
-     * ghost cell width of the solution vector.
+     * \a dst_idx refers to the scratch data or to data with the ghost cell width of the solution vector. \a src_idx
+     * refers to data with the ghost cell width of the solution vector.
      */
     void xeqScheduleProlongation(int dst_idx, int src_idx, int dst_ln);
 
@@ -339,22 +339,22 @@ protected:
      * \brief Execute schedule for restricting solution or residual to the
      * specified level.
      *
-     * \a dst_idx has the ghost cell width of the right-hand-side vector, and \a src_idx is either the scratch data or
-     * has the ghost cell width of the right-hand-side vector.
+     * \a dst_idx refers to data with the ghost cell width of the right-hand-side vector. \a src_idx refers to the
+     * scratch data or to data with the ghost cell width of the right-hand-side vector.
      */
     void xeqScheduleRestriction(int dst_idx, int src_idx, int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.
      *
-     * \a dst_idx has the ghost cell width of the solution vector.
+     * \a dst_idx refers to data with the ghost cell width of the solution vector.
      */
     void xeqScheduleGhostFillNoCoarse(int dst_idx, int dst_ln);
 
     /*!
      * \brief Execute schedule for synchronizing data on the specified level.
      *
-     * \a dst_idx has the ghost cell width of the solution vector.
+     * \a dst_idx refers to data with the ghost cell width of the solution vector.
      */
     void xeqScheduleDataSynch(int dst_idx, int dst_ln);
 
@@ -529,12 +529,14 @@ private:
 
     /*!
      * \name Various refine and coarsen objects.
+     *
+     * Schedules are created on first use and discarded when the operator state is reset.
      */
     //\{
 
     /*
      * Error prolongation (refinement) operator. The wide schedules prolong into data with the ghost cell width of the
-     * solution vector. Schedules are created on first use and discarded when the operator state is reset.
+     * solution vector.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_prolongation_refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_prolongation_refine_patch_strategy;
@@ -544,8 +546,7 @@ private:
         d_prolongation_wide_refine_schedules;
 
     /*
-     * Residual restriction (coarsening) operator. The scratch schedules restrict from the scratch data. Schedules are
-     * created on first use and discarded when the operator state is reset.
+     * Residual restriction (coarsening) operator. The scratch schedules restrict from the scratch data.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM>> d_restriction_coarsen_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_restriction_coarsen_algorithm,
@@ -554,15 +555,13 @@ private:
         d_restriction_scratch_coarsen_schedules;
 
     /*
-     * Refine operator for cell data from same level. Schedules are created on first use and discarded when the
-     * operator state is reset.
+     * Refine operator for cell data from same level.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_ghostfill_nocoarse_refine_algorithm;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_ghostfill_nocoarse_refine_schedules;
 
     /*
-     * Operator for data synchronization on same level. Schedules are created on first use and discarded when the
-     * operator state is reset.
+     * Operator for data synchronization on same level.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_synch_refine_algorithm;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_synch_refine_schedules;

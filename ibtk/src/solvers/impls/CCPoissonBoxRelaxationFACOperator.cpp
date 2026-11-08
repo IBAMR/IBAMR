@@ -360,8 +360,8 @@ CCPoissonBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& e
             residual_data->getArrayData().copy(
                 error_data->getArrayData(), d_patch_bc_box_overlap[level_num][patch_counter], IntVector<NDIM>(0));
 
-            // The patch operators need data with d_gcw ghost cells, so gather data with more ghost cells into local
-            // arrays.
+            // Gather data with more ghost cells into local arrays, because the patch operators require data with d_gcw
+            // ghost cells.
             const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), d_gcw);
             Pointer<CellData<NDIM, double>> e_data = d_patch_e_data[level_num][patch_counter];
             Pointer<CellData<NDIM, double>> f_data = d_patch_f_data[level_num][patch_counter];

@@ -89,8 +89,8 @@ get_hypre_period(const PatchLevel<NDIM>& level, const std::string& object_name, 
     IntVector<NDIM> to_lower_end(0);
     to_lower_end(d) = domain.lower(d) - domain.upper(d);
 
-    // The cells of the level at the lower and upper end of the domain, with the upper ones shifted to the lower end, so
-    // that the cells on the two sides of the periodic boundary coincide.
+    // Collect the cells of the level at the lower and upper ends of the domain, shifting the upper ones to the lower
+    // end so that cells on the two sides of the periodic boundary coincide.
     BoxList<NDIM> lower_cells, upper_cells;
     for (int n = 0; n < level.getBoxes().getNumberOfBoxes(); ++n)
     {
@@ -115,12 +115,12 @@ get_hypre_period(const PatchLevel<NDIM>& level, const std::string& object_name, 
     lower_only.removeIntersections(upper_cells);
     if (!upper_only.isEmpty() || !lower_only.isEmpty())
     {
-        TBOX_ERROR(object_name << "::initializeSolverState():\n"
+        TBOX_ERROR(object_name << "::initializeSolverState()\n"
                                << "  patches of level " << level.getLevelNumber()
                                << " adjacent to the two periodic boundaries in direction " << d
                                << " are not periodic images of each other\n"
-                               << "  the patches adjacent to the lower and upper boundary must be periodic images, or "
-                                  "one of the two boundaries must have no adjacent patch\n");
+                               << "  the patches adjacent to the two boundaries must be periodic images of each other "
+                                  "unless one boundary has no adjacent patch\n");
     }
     return period;
 }
@@ -138,7 +138,7 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_n
                                  << "  hypre solvers are only provided for 2D and 3D problems" << std::endl);
     }
 
-    // Setup default options.
+    // Set up default options.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     d_initial_guess_nonzero = false;
     d_rel_residual_tol = 1.0e-5;
@@ -648,8 +648,9 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 
-        // The initial guess is zero if initial_guess_nonzero is FALSE, without
-        // reading the solution data.  Ghost values are never part of it.
+        // If initial_guess_nonzero is FALSE, the solver uses a zero initial
+        // guess and does not read the solution data. The initial guess never
+        // includes ghost values.
         Pointer<SideData<NDIM, double>> x_data = patch->getPatchData(x_idx);
         if (d_initial_guess_nonzero)
         {

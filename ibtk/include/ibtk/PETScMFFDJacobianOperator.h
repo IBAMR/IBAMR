@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Set the base state required for evaluating \f$F'[u]\f$.
      *
-     * When no nonlinear solver has been set by setNewtonKrylovSolver(),
+     * If no nonlinear solver has been set by setNewtonKrylovSolver(),
      * setOperator() and initializeOperatorState() must be called first.
      *
      * \param u value where the Jacobian is to be evaluated

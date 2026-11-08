@@ -123,7 +123,7 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_n
                                  << "  hypre solvers are only provided for 2D and 3D problems" << std::endl);
     }
 
-    // Setup default options.
+    // Set up default options.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     d_initial_guess_nonzero = false;
     d_rel_residual_tol = 1.0e-5;
@@ -1023,19 +1023,20 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
     const bool level_zero = (d_level_num == 0);
 
-    // The PFMG and SMG solvers size their residual norm histories during
-    // setup, so set them up again if the maximum number of iterations has
-    // increased. They record norms only when they test for convergence.
+    // Set up PFMG and SMG again if the maximum number of iterations has
+    // increased, because they size their residual norm histories during setup.
     const bool multigrid_solver = d_solver_type == "PFMG" || d_solver_type == "SMG";
     if (multigrid_solver && d_max_iterations > d_setup_max_iterations)
     {
         destroyHypreSolver();
         setupHypreSolver();
     }
+    // PFMG and SMG record residual norms only if they test for convergence.
     const bool norms_recorded = d_rel_residual_tol > 0.0 && d_max_iterations > 0;
 
-    // The initial guess is zero if initial_guess_nonzero is FALSE, without
-    // reading the solution data.  Ghost values are never part of it.
+    // If initial_guess_nonzero is FALSE, the solver uses a zero initial guess
+    // and does not read the solution data. The initial guess never includes
+    // ghost values.
     if (!d_initial_guess_nonzero)
     {
         for (unsigned int k = 0; k < d_depth; ++k)

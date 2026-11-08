@@ -100,7 +100,7 @@ public:
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
      *
-     * \note FACPreconditioner solves the error equation, so passing \c false is an error.
+     * \note Passing \c false is an error because FACPreconditioner solves the error equation.
      */
     void setHomogeneousBc(bool homogeneous_bc) override;
 
@@ -175,8 +175,8 @@ public:
      * -# solve the system one or more times via solveSystem(), and
      * -# remove the hierarchy-dependent data via deallocateSolverState().
      *
-     * Note that it is generally necessary to reinitialize the solver state when
-     * the hierarchy configuration changes.
+     * The solver state generally must be reinitialized when the hierarchy
+     * configuration changes.
      *
      * When linear operator or preconditioner objects have been registered with
      * this class via setOperator() and setPreconditioner(), they are also
@@ -321,7 +321,8 @@ private:
 
     /*!
      * \brief Apply one cycle of type \a cycle_type to a zero \a u on the levels
-     * from the coarsest level of the solver through \a level_num: u = B f.
+     * from the coarsest level of the solver through \a level_num: u = B f, in
+     * which B denotes this cycle.
      *
      * On entry \a u must be zero, including ghost values, on those levels.
      * Ghost values of \a f may be overwritten. Without presmoothing, interior
@@ -336,7 +337,7 @@ private:
     /*!
      * \brief Apply one cycle of type \a cycle_type to a nonzero \a u on the
      * levels from the coarsest level of the solver through \a level_num:
-     * u += B (f - A u), where B is zeroStartCycle().
+     * u += B (f - A u), in which B is zeroStartCycle().
      *
      * \a f is not modified. Ghost values of \a u, and its values on coarse cells
      * covered by finer levels, may be overwritten.
@@ -353,7 +354,7 @@ private:
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     // Residual vector for each level ln, spanning the levels from the coarsest
-    // level through ln; its restriction is the right-hand side of the cycle on
+    // level through ln. Its restriction is the right-hand side of the cycle on
     // the next coarser level. Used only with presmoothing.
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_residual_vectors;
 

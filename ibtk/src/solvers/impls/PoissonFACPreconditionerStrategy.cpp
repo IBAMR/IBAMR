@@ -97,7 +97,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
     d_poisson_spec.setCZero();
     d_poisson_spec.setDConstant(-1.0);
 
-    // Setup a default boundary condition object that specifies homogeneous
+    // Set up a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
     auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef.get());
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -333,12 +333,13 @@ PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<
     xeqScheduleProlongation(d_scratch_idx, src_idx, dst_ln);
 
     // Correct the interior values and overwrite the ghost values with the prolonged correction. Coarse-fine
-    // interpolation requires the coarse-fine ghost values to hold data interpolated from the coarse level alone.
+    // interpolation requires the coarse-fine ghost cells to contain values interpolated from the coarse level alone.
     d_level_data_ops[dst_ln]->add(dst_idx, dst_idx, d_scratch_idx, /*interior_only*/ true);
     Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
     copy_ghost_region(*level, dst_idx, d_scratch_idx);
 
-    // Refill the physical-boundary and same-level ghost cells; the coarse-fine ghost cells keep the prolonged values.
+    // Refill the physical-boundary and same-level ghost cells. The coarse-fine ghost cells still contain the prolonged
+    // values.
     xeqScheduleGhostFillNoCoarse(dst_idx, dst_ln);
 
     IBTK_TIMER_STOP(t_prolong_error_and_correct);
@@ -479,8 +480,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
 
     // Schedules are created on first use and discarded when the operator state is reset.
     //
-    // TODO: Here we take a pessimistic approach and are recreating refine schedule for
-    // (coarsest_reset_ln - 1) level as well.
+    // TODO: Also resetting the prolongation schedules of level coarsest_reset_ln - 1 is pessimistic.
     for (int dst_ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln - 1); dst_ln <= finest_reset_ln; ++dst_ln)
     {
         d_prolongation_refine_schedules[dst_ln].setNull();

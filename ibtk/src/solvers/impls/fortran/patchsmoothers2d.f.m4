@@ -26,7 +26,7 @@ c     before each execution.  The result is the same as that of a
 c     lexicographic sweep (rows in order of increasing i1, each row in
 c     order of increasing i0).
 c
-c     The caller declares the integers i0, i1, s0, b1, r and i1end.
+c     The caller declares the integers i0, i1, s0, b1, r, and i1end.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
