@@ -1,3 +1,3 @@
-Improved: IBTK::PETScLevelSolver skips the convergence test of Richardson solves limited to one iteration.
+Improved: Skip the convergence test of Richardson solves limited to one iteration in IBTK::PETScLevelSolver.
 <br>
 (Boyce Griffith, 2026/10/05)

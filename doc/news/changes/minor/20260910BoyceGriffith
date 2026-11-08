@@ -1,6 +1,3 @@
-New: CartGridPointwiseFunction and make_cart_grid_pointwise_function provide
-functor-based initialization and transformation of scalar, vector, and tensor
-values on cell-, node-, side-, face-, and edge-centered patch data. The factory
-selects the centering from a SAMRAI variable at construction.
+New: Add IBTK::CartGridPointwiseFunction and IBTK::make_cart_grid_pointwise_function() to initialize and transform scalar, vector, and tensor values on cell-, node-, side-, face-, and edge-centered patch data with a functor.
 <br>
 (Aaron Barrett and Boyce Griffith, 2026/09/10)

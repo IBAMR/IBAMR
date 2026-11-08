@@ -1,3 +1,3 @@
-Fixed: IBAMR::IBMethod can spread fluid sources outside of a time step, such as during regridding.
+Fixed: Allow IBAMR::IBMethod to spread fluid sources outside a time step, such as during regridding.
 <br>
 (Boyce Griffith, 2026/10/02)
