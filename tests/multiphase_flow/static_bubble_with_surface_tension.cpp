@@ -277,7 +277,7 @@ main(int argc, char* argv[])
                 "INSVCStaggeredConservativeHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
         }
-        else if (!conservative_form)
+        else if (discretization_form == "NON_CONSERVATIVE")
         {
             time_integrator = new ProjectionTestIntegrator<INSVCStaggeredNonConservativeHierarchyIntegrator>(
                 "INSVCStaggeredNonConservativeHierarchyIntegrator",
@@ -285,8 +285,8 @@ main(int argc, char* argv[])
         }
         else
         {
-            TBOX_ERROR("Unsupported solver type: " << discretization_form << "\n"
-                                                   << "Valid options are: CONSERVATIVE, NON_CONSERVATIVE");
+            TBOX_ERROR("Unsupported discretization_form: " << discretization_form << "\n"
+                                                           << "Valid options are: CONSERVATIVE, NON_CONSERVATIVE");
         }
 
         // Set up the advection diffusion hierarchy integrator
