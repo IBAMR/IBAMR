@@ -46,8 +46,11 @@
 
 #include <mpi.h>
 
+#include <algorithm>
 #include <limits>
+#include <map>
 #include <numeric>
+#include <utility>
 
 #include <ibtk/app_namespaces.h>
 
@@ -801,11 +804,11 @@ MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
     }
 }
 
-void
-MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
+std::vector<std::pair<MarkerPatch*, Pointer<Patch<NDIM>>>>
+MarkerPatchHierarchy::getLocalMarkerPatches()
 {
-    IBTK_TIMER_START(t_forward_euler_step);
     const auto rank = IBTK_MPI::getRank();
+    std::vector<std::pair<MarkerPatch*, Pointer<Patch<NDIM>>>> local_marker_patches;
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         unsigned int local_patch_num = 0;
@@ -814,68 +817,211 @@ MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, con
         {
             if (rank == current_level->getMappingForPatch(p))
             {
-                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
-
-                // 1. Do a forward Euler step:
-                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
-                {
-                    marker_patch.d_positions[i] += dt * marker_patch.d_velocities[i];
-                }
-
-                // 2. Update the velocities:
-                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
-
+                local_marker_patches.emplace_back(&d_marker_patches[ln][local_patch_num], current_level->getPatch(p));
                 ++local_patch_num;
             }
         }
     }
+    return local_marker_patches;
+}
+
+void
+MarkerPatchHierarchy::interpolateInCurrentPatches(
+    const int u_idx,
+    const std::string& kernel,
+    const std::vector<std::pair<MarkerPatch*, Pointer<Patch<NDIM>>>>& local_marker_patches,
+    const std::vector<std::vector<double>>& positions,
+    std::vector<std::vector<double>>& velocities)
+{
+    // Interpolate each marker with the patch whose box contains its position. Another process can own that patch.
+    struct DepartingMarker
+    {
+        unsigned int patch;
+        unsigned int marker;
+    };
+    std::vector<DepartingMarker> departing_markers;
+    std::vector<int> departing_marker_indices;
+    std::vector<double> departing_marker_positions;
+    for (unsigned int i = 0; i < local_marker_patches.size(); ++i)
+    {
+        MarkerPatch& marker_patch = *local_marker_patches[i].first;
+        velocities[i].resize(positions[i].size());
+        std::vector<double> inside_positions;
+        std::vector<unsigned int> inside_markers;
+        for (unsigned int k = 0; k < marker_patch.size(); ++k)
+        {
+            IBTK::Point position(&positions[i][NDIM * k]);
+            if (marker_patch.contains(position))
+            {
+                inside_markers.push_back(k);
+                inside_positions.insert(inside_positions.end(), position.data(), position.data() + NDIM);
+            }
+            else
+            {
+                departing_markers.push_back({ i, k });
+                departing_marker_indices.push_back(marker_patch.d_indices[k]);
+                departing_marker_positions.insert(
+                    departing_marker_positions.end(), position.data(), position.data() + NDIM);
+            }
+        }
+        std::vector<double> inside_velocities(inside_positions.size());
+        if (!inside_markers.empty())
+        {
+            do_interpolation(u_idx, inside_positions, local_marker_patches[i].second, kernel, inside_velocities);
+        }
+        for (unsigned int n = 0; n < inside_markers.size(); ++n)
+        {
+            std::copy_n(&inside_velocities[NDIM * n], NDIM, &velocities[i][NDIM * inside_markers[n]]);
+        }
+    }
+
+    // Send the markers that have left their patches to all processes. Beyond a physical boundary, interpolate with the
+    // patch whose box contains the adjacent cell, from its ghost values outside the domain.
+    std::vector<double> all_positions, all_velocities;
+    std::vector<int> all_indices;
+    std::tie(all_positions, all_velocities, all_indices) = collect_markers(
+        departing_marker_positions, std::vector<double>(departing_marker_positions.size()), departing_marker_indices);
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift();
+    for (unsigned int k = 0; k < all_indices.size(); ++k)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (periodic_shift[d])
+            {
+                const double length = grid_geom->getXUpper()[d] - grid_geom->getXLower()[d];
+                double& X = all_positions[k * NDIM + d];
+                if (X < grid_geom->getXLower()[d]) X += length;
+                if (X >= grid_geom->getXUpper()[d]) X -= length;
+            }
+        }
+    }
+    std::vector<double> clamped_positions(all_positions);
+    for (unsigned int k = 0; k < all_indices.size(); ++k)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (!periodic_shift[d])
+            {
+                double& X = clamped_positions[k * NDIM + d];
+                X = IndexUtilities::clampToDomain(X, grid_geom->getXLower()[d], grid_geom->getXUpper()[d]);
+            }
+        }
+    }
+    std::vector<double> interpolated_velocities(all_velocities.size(), 0.0);
+    std::vector<bool> is_assigned(all_indices.size(), false);
+    for (unsigned int i = 0; i < local_marker_patches.size(); ++i)
+    {
+        std::vector<unsigned int> markers;
+        std::vector<double> patch_positions;
+        for (unsigned int k = 0; k < all_indices.size(); ++k)
+        {
+            if (!is_assigned[k] && local_marker_patches[i].first->contains(IBTK::Point(&clamped_positions[NDIM * k])))
+            {
+                is_assigned[k] = true;
+                markers.push_back(k);
+                patch_positions.insert(
+                    patch_positions.end(), &all_positions[NDIM * k], &all_positions[NDIM * k] + NDIM);
+            }
+        }
+        if (markers.empty()) continue;
+        std::vector<double> velocities_i(patch_positions.size());
+        do_interpolation(u_idx, patch_positions, local_marker_patches[i].second, kernel, velocities_i);
+        for (unsigned int n = 0; n < markers.size(); ++n)
+        {
+            std::copy_n(&velocities_i[NDIM * n], NDIM, &interpolated_velocities[NDIM * markers[n]]);
+        }
+    }
+    IBTK_MPI::sumReduction(interpolated_velocities.data(), static_cast<int>(interpolated_velocities.size()));
+
+    // Give each marker its velocity.
+    std::map<int, unsigned int> entry_of_index;
+    for (unsigned int k = 0; k < all_indices.size(); ++k)
+    {
+        entry_of_index[all_indices[k]] = k;
+    }
+    for (const DepartingMarker& departing_marker : departing_markers)
+    {
+        const unsigned int k =
+            entry_of_index.at(local_marker_patches[departing_marker.patch].first->d_indices[departing_marker.marker]);
+        std::copy_n(&interpolated_velocities[NDIM * k],
+                    NDIM,
+                    &velocities[departing_marker.patch][NDIM * departing_marker.marker]);
+    }
+}
+
+void
+MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
+{
+    IBTK_TIMER_START(t_forward_euler_step);
+    const auto local_marker_patches = getLocalMarkerPatches();
+
+    // 1. Do a forward Euler step:
+    std::vector<std::vector<double>> positions;
+    for (const auto& local_marker_patch : local_marker_patches)
+    {
+        MarkerPatch& marker_patch = *local_marker_patch.first;
+        for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+        {
+            marker_patch.d_positions[i] += dt * marker_patch.d_velocities[i];
+        }
+        positions.push_back(marker_patch.d_positions);
+    }
+
+    // 2. Update the velocities:
+    std::vector<std::vector<double>> velocities(local_marker_patches.size());
+    interpolateInCurrentPatches(u_new_idx, kernel, local_marker_patches, positions, velocities);
+    for (unsigned int n = 0; n < local_marker_patches.size(); ++n)
+    {
+        local_marker_patches[n].first->d_velocities = velocities[n];
+    }
 
     pruneAndRedistribute();
+    IBTK_TIMER_STOP(t_forward_euler_step);
 }
 
 void
 MarkerPatchHierarchy::backwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
 {
-    const auto rank = IBTK_MPI::getRank();
-    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    const auto local_marker_patches = getLocalMarkerPatches();
+
+    // 1. Do a forward Euler step:
+    std::vector<std::vector<double>> new_positions;
+    for (const auto& local_marker_patch : local_marker_patches)
     {
-        unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
-        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        const MarkerPatch& marker_patch = *local_marker_patch.first;
+        new_positions.push_back(marker_patch.d_positions);
+        for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
         {
-            if (rank == current_level->getMappingForPatch(p))
-            {
-                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
-
-                // 1. Do a forward Euler step:
-                std::vector<double> new_positions(marker_patch.d_positions);
-                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
-                {
-                    new_positions[i] = marker_patch.d_positions[i] + dt * marker_patch.d_velocities[i];
-                }
-
-                // 2. Compute new velocities:
-                std::vector<double> new_velocities(marker_patch.d_velocities);
-                do_interpolation(u_new_idx, new_positions, patch, kernel, new_velocities);
-
-                // 3. Update the positions:
-                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
-                {
-                    marker_patch.d_positions[i] += dt * new_velocities[i];
-                }
-
-                // 4. Update the velocities:
-                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
-
-                ++local_patch_num;
-            }
+            new_positions.back()[i] += dt * marker_patch.d_velocities[i];
         }
     }
 
+    // 2. Compute new velocities:
+    std::vector<std::vector<double>> new_velocities(local_marker_patches.size());
+    interpolateInCurrentPatches(u_new_idx, kernel, local_marker_patches, new_positions, new_velocities);
+
+    // 3. Update the positions:
+    std::vector<std::vector<double>> positions;
+    for (unsigned int n = 0; n < local_marker_patches.size(); ++n)
+    {
+        MarkerPatch& marker_patch = *local_marker_patches[n].first;
+        for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+        {
+            marker_patch.d_positions[i] += dt * new_velocities[n][i];
+        }
+        positions.push_back(marker_patch.d_positions);
+    }
+
+    // 4. Update the velocities:
+    std::vector<std::vector<double>> velocities(local_marker_patches.size());
+    interpolateInCurrentPatches(u_new_idx, kernel, local_marker_patches, positions, velocities);
+    for (unsigned int n = 0; n < local_marker_patches.size(); ++n)
+    {
+        local_marker_patches[n].first->d_velocities = velocities[n];
+    }
+
     pruneAndRedistribute();
-    IBTK_TIMER_STOP(t_forward_euler_step);
 }
 
 void
@@ -885,41 +1031,42 @@ MarkerPatchHierarchy::midpointStep(const double dt,
                                    const std::string& kernel)
 {
     IBTK_TIMER_START(t_midpoint_step);
-    const auto rank = IBTK_MPI::getRank();
-    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    const auto local_marker_patches = getLocalMarkerPatches();
+
+    // 1. Do a half of a forward Euler step:
+    std::vector<std::vector<double>> half_positions;
+    for (const auto& local_marker_patch : local_marker_patches)
     {
-        unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
-        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        const MarkerPatch& marker_patch = *local_marker_patch.first;
+        half_positions.push_back(marker_patch.d_positions);
+        for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
         {
-            if (rank == current_level->getMappingForPatch(p))
-            {
-                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
-
-                // 1. Do a half of a forward Euler step:
-                std::vector<double> half_positions(marker_patch.d_positions);
-                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
-                {
-                    half_positions[i] = marker_patch.d_positions[i] + 0.5 * dt * marker_patch.d_velocities[i];
-                }
-
-                // 2. Interpolate midpoint velocity:
-                std::vector<double> half_velocities(marker_patch.d_velocities);
-                do_interpolation(u_half_idx, half_positions, patch, kernel, half_velocities);
-
-                // 3. Do a midpoint step:
-                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
-                {
-                    marker_patch.d_positions[i] += dt * half_velocities[i];
-                }
-
-                // 4. Interpolate the velocity at the new time:
-                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
-
-                ++local_patch_num;
-            }
+            half_positions.back()[i] += 0.5 * dt * marker_patch.d_velocities[i];
         }
+    }
+
+    // 2. Interpolate midpoint velocity:
+    std::vector<std::vector<double>> half_velocities(local_marker_patches.size());
+    interpolateInCurrentPatches(u_half_idx, kernel, local_marker_patches, half_positions, half_velocities);
+
+    // 3. Do a midpoint step:
+    std::vector<std::vector<double>> positions;
+    for (unsigned int n = 0; n < local_marker_patches.size(); ++n)
+    {
+        MarkerPatch& marker_patch = *local_marker_patches[n].first;
+        for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+        {
+            marker_patch.d_positions[i] += dt * half_velocities[n][i];
+        }
+        positions.push_back(marker_patch.d_positions);
+    }
+
+    // 4. Interpolate the velocity at the new time:
+    std::vector<std::vector<double>> velocities(local_marker_patches.size());
+    interpolateInCurrentPatches(u_new_idx, kernel, local_marker_patches, positions, velocities);
+    for (unsigned int n = 0; n < local_marker_patches.size(); ++n)
+    {
+        local_marker_patches[n].first->d_velocities = velocities[n];
     }
 
     pruneAndRedistribute();
@@ -930,44 +1077,44 @@ void
 MarkerPatchHierarchy::trapezoidalStep(const double dt, const int u_new_idx, const std::string& kernel)
 {
     IBTK_TIMER_START(t_trapezoidal_step);
-    const auto rank = IBTK_MPI::getRank();
-    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    const auto local_marker_patches = getLocalMarkerPatches();
+
+    // 1. Do a forward Euler step:
+    std::vector<std::vector<double>> new_positions;
+    for (const auto& local_marker_patch : local_marker_patches)
     {
-        unsigned int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
-        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        const MarkerPatch& marker_patch = *local_marker_patch.first;
+        new_positions.push_back(marker_patch.d_positions);
+        for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
         {
-            if (rank == current_level->getMappingForPatch(p))
-            {
-                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
-
-                // 1. Do a forward Euler step:
-                std::vector<double> new_positions(marker_patch.d_positions);
-                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
-                {
-                    new_positions[i] = marker_patch.d_positions[i] + dt * marker_patch.d_velocities[i];
-                }
-
-                // 2. Interpolate the velocity at the new time:
-                std::vector<double> new_velocities(marker_patch.d_velocities);
-                do_interpolation(u_new_idx, new_positions, patch, kernel, new_velocities);
-
-                // 3. Do a trapezoidal step:
-                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
-                {
-                    // This is left unfactored so it matches the implementations
-                    // elsewhere
-                    marker_patch.d_positions[i] +=
-                        0.5 * dt * marker_patch.d_velocities[i] + 0.5 * dt * new_velocities[i];
-                }
-
-                // 4. Update the velocities:
-                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
-
-                ++local_patch_num;
-            }
+            new_positions.back()[i] += dt * marker_patch.d_velocities[i];
         }
+    }
+
+    // 2. Interpolate the velocity at the new time:
+    std::vector<std::vector<double>> new_velocities(local_marker_patches.size());
+    interpolateInCurrentPatches(u_new_idx, kernel, local_marker_patches, new_positions, new_velocities);
+
+    // 3. Do a trapezoidal step:
+    std::vector<std::vector<double>> positions;
+    for (unsigned int n = 0; n < local_marker_patches.size(); ++n)
+    {
+        MarkerPatch& marker_patch = *local_marker_patches[n].first;
+        for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+        {
+            // This is left unfactored so it matches the implementations
+            // elsewhere
+            marker_patch.d_positions[i] += 0.5 * dt * marker_patch.d_velocities[i] + 0.5 * dt * new_velocities[n][i];
+        }
+        positions.push_back(marker_patch.d_positions);
+    }
+
+    // 4. Update the velocities:
+    std::vector<std::vector<double>> velocities(local_marker_patches.size());
+    interpolateInCurrentPatches(u_new_idx, kernel, local_marker_patches, positions, velocities);
+    for (unsigned int n = 0; n < local_marker_patches.size(); ++n)
+    {
+        local_marker_patches[n].first->d_velocities = velocities[n];
     }
 
     pruneAndRedistribute();
