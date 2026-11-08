@@ -763,6 +763,9 @@ INSVCStaggeredHierarchyIntegrator::setLinearOperatorMu(const int mu_idx, const d
 #elif (NDIM == 3)
     d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
 #endif
+
+    // Fill the ghost nodes (2D) or edges (3D) inside the domain by copies and interpolation.
+    d_mu_interp_ghost_fill_op->fillData(time);
     return;
 } // setLinearOperatorMu
 
@@ -1181,10 +1184,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                                        /*depth*/ 1);
     d_mu_linear_op_idx = var_db->registerVariableAndContext(
         mu_cc_linear_op_var, var_db->getContext(d_object_name + "::mu_linear_op"), mu_cell_ghosts);
-    d_mu_interp_linear_op_idx =
-        var_db->registerVariableAndContext(d_mu_interp_var,
-                                           var_db->getContext(d_object_name + "::mu_interp_linear_op"),
-                                           NDIM == 2 ? node_ghosts : edge_ghosts);
     Pointer<SideVariable<NDIM, double>> rho_sc_linear_op_var =
         new SideVariable<NDIM, double>(d_object_name + "_rho_sc_linear_op_var",
                                        /*depth*/ 1);
@@ -1258,6 +1257,13 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     d_fill_after_regrid_phys_bdry_bc_op =
         std::make_unique<CartSideRobinPhysBdryOp>(d_U_scratch_idx, d_U_bc_coefs, false);
 
+    // Register the interpolated viscosity with the largest ghost width registered so far, including those of the
+    // velocity data of the fluid solver, the convective operator, and the IB method.
+    d_mu_interp_linear_op_idx =
+        var_db->registerVariableAndContext(d_mu_interp_var,
+                                           var_db->getContext(d_object_name + "::mu_interp_linear_op"),
+                                           var_db->getPatchDescriptor()->getMaxGhostWidth());
+
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
     return;
@@ -1313,7 +1319,7 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         level->allocatePatchData(d_N_full_idx, current_time);
         if (d_mu_var.isNull()) level->allocatePatchData(d_mu_scratch_idx, current_time);
         if (!level->checkAllocated(d_mu_linear_op_idx)) level->allocatePatchData(d_mu_linear_op_idx, current_time);
-        if (!level->checkAllocated(d_mu_interp_linear_op_idx))
+        if (!d_mu_is_const && !level->checkAllocated(d_mu_interp_linear_op_idx))
             level->allocatePatchData(d_mu_interp_linear_op_idx, current_time);
         if (!level->checkAllocated(d_rho_linear_op_idx)) level->allocatePatchData(d_rho_linear_op_idx, current_time);
     }
@@ -1880,6 +1886,13 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
             d_mu_scratch_idx, d_mu_refine_type, false, d_mu_coarsen_type, d_mu_bdry_extrap_type, false, d_mu_bc_coef);
         d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
+
+        // Ghost values inside the domain are positive and independent of the patch: each value is a copy of a value in
+        // the domain or a convex combination of coarse values. Values outside the domain are not set.
+        InterpolationTransactionComponent mu_interp_component(
+            d_mu_interp_linear_op_idx, NDIM == 2 ? "LINEAR_REFINE" : "CONSTANT_REFINE", false, "NONE", "NONE", false);
+        d_mu_interp_ghost_fill_op = new HierarchyGhostCellInterpolation();
+        d_mu_interp_ghost_fill_op->initializeOperatorState(mu_interp_component, d_hierarchy);
     }
 
     // Setup the patch boundary synchronization objects.

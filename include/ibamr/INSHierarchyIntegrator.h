@@ -163,6 +163,18 @@ public:
     const StokesSpecifications* getStokesSpecifications() const;
 
     /*!
+     * Return whether the viscosity is the constant getStokesSpecifications()->getMu().
+     */
+    virtual bool muIsConstant() const;
+
+    /*!
+     * Return the index of the patch data that contain the viscosity at the nodes (in two spatial dimensions) or edges
+     * (in three spatial dimensions) of the grid, as set up for the most recent linear operator. It is an error to call
+     * this function if the viscosity is constant.
+     */
+    virtual int getInterpolatedLinearOperatorMuPatchDataIndex() const;
+
+    /*!
      * Supply a physical boundary conditions specificaion for the velocity
      * field. Boundary conditions take the form of \f$ a\mathbf{u} + b\tau\cdot\mathbf{n} = \mathbf{g}\f$ where \f$\tau
      * = -p\mathbf{I} + \frac{\mu}{2}\left(\nabla\mathbf{u} + \nabla\mathbf{u}^T\right)\f$ is the Newtonian fluid
@@ -188,6 +200,17 @@ public:
      * \note Implementations may return a vector of nullptr pointers.
      */
     virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getVelocityBoundaryConditions() const;
+
+    /*!
+     * Get the velocity boundary condition specification objects supplied to
+     * registerPhysicalBoundaryConditions(), unchanged.
+     */
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getPhysicalBoundaryConditions() const;
+
+    /*!
+     * Get the interpretation of traction boundary conditions on the velocity.
+     */
+    TractionBcType getTractionBcType() const;
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.
@@ -229,6 +252,11 @@ public:
      * @note If \param Q_fcn is not specified, then \f$ \nabla \cdot \mathbf{u}  = 0 \f$ is imposed.
      */
     void registerVelocityDivergenceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
+
+    /*!
+     * Return whether a function that specifies \f$ \nabla \cdot \boldsymbol{u} \f$ has been registered.
+     */
+    bool hasVelocityDivergenceFunction() const;
 
     /*!
      * Return a pointer to the fluid velocity variable.

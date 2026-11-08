@@ -22,8 +22,10 @@
 #include <CartesianGridGeometry.h>
 #include <CellData.h>
 #include <EdgeData.h>
+#include <EdgeGeometry.h>
 #include <LoadBalancer.h>
 #include <NodeData.h>
+#include <NodeGeometry.h>
 #include <StandardTagAndInitialize.h>
 
 #include <algorithm>
@@ -36,9 +38,9 @@
 
 #include <ibamr/app_namespaces.h>
 
-// Check that the integrator sets a positive viscosity for the linear operators in the ghost cells outside the physical
-// boundaries and at the nodes (two spatial dimensions) or edges (three spatial dimensions). The cases have boundary
-// data far below the viscosity in the domain, or no viscosity boundary conditions.
+// Check that the viscosity set at the start of a time step is positive in the ghost cells and at the ghost nodes (2D)
+// or edges (3D), if the boundary data are far below the viscosity or if no viscosity boundary conditions are
+// registered. Only values that the integrator sets are checked.
 int
 main(int argc, char* argv[])
 {
@@ -101,6 +103,7 @@ main(int argc, char* argv[])
         const auto update_min = [&](double& minimum, const double value)
         { minimum = std::isnan(value) ? nan : (std::isnan(minimum) ? minimum : std::min(minimum, value)); };
         Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(0);
+        const Box<NDIM> domain_box = patch_hierarchy->getGridGeometry()->getPhysicalDomain()[0];
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
@@ -110,22 +113,33 @@ main(int argc, char* argv[])
             {
                 update_min(min_cell, (*cell_data)(CellIndex<NDIM>(b())));
             }
+            const Box<NDIM> patch_ghost_box = Box<NDIM>::grow(patch->getBox(), 1);
 #if (NDIM == 2)
             Pointer<NodeData<NDIM, double>> mu_data =
                 patch->getPatchData(ins_integrator->getInterpolatedLinearOperatorMuPatchDataIndex());
+            const Box<NDIM> set_box = NodeGeometry<NDIM>::toNodeBox(patch_ghost_box);
+            const Box<NDIM> domain_set_box = NodeGeometry<NDIM>::toNodeBox(domain_box);
             for (Box<NDIM>::Iterator b(mu_data->getGhostBox()); b; b++)
             {
-                update_min(min_node, (*mu_data)(NodeIndex<NDIM>(b(), NodeIndex<NDIM>::LowerLeft)));
+                if (set_box.contains(b()) || domain_set_box.contains(b()))
+                {
+                    update_min(min_node, (*mu_data)(NodeIndex<NDIM>(b(), NodeIndex<NDIM>::LowerLeft)));
+                }
             }
 #elif (NDIM == 3)
             Pointer<EdgeData<NDIM, double>> mu_data =
                 patch->getPatchData(ins_integrator->getInterpolatedLinearOperatorMuPatchDataIndex());
             for (int axis = 0; axis < NDIM; ++axis)
             {
+                const Box<NDIM> set_box = EdgeGeometry<NDIM>::toEdgeBox(patch_ghost_box, axis);
+                const Box<NDIM> domain_set_box = EdgeGeometry<NDIM>::toEdgeBox(domain_box, axis);
                 const ArrayData<NDIM, double>& array = mu_data->getArrayData(axis);
                 for (Box<NDIM>::Iterator b(array.getBox()); b; b++)
                 {
-                    update_min(min_node, array(b(), 0));
+                    if (set_box.contains(b()) || domain_set_box.contains(b()))
+                    {
+                        update_min(min_node, array(b(), 0));
+                    }
                 }
             }
 #endif

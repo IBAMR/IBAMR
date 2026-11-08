@@ -1,0 +1,6 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+(y, E u)   = 57.8222237944
+(E^T y, u) = 57.8222237944
+largest ghost value error / h^2 = 8.7
