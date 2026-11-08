@@ -26,6 +26,7 @@
 #include <CartesianSideDoubleWeightedAverage.h>
 #include <CoarsenOperator.h>
 #include <IntVector.h>
+#include <PatchLevel.h>
 
 #include <string>
 
@@ -52,23 +53,32 @@ namespace IBTK
  * \note This coarsen operator requires that the refinement ratio between coarse
  * and fine index spaces is even.
  *
- * \note To avoid complicating the interpolation scheme at coarse-fine
- * interfaces, the use of cubic coarsening is restricted to cases where the
- * refinement ratio is at least 4.  For refinement ratios less than 4, a warning
- * is emitted and simple weighted averaging is used instead.
+ * \note With use_source_ghost_layer = true and a refinement ratio of 2 along an axis, the cubic stencil uses one layer
+ * of fine values from the ghost cells of the source data. These ghost cells must contain the values of the fine level
+ * where its boxes cover them, and NaN elsewhere. Near the boundary of the level, the operator uses one-sided stencils
+ * or the two-point average. If use_source_ghost_layer is false or a ratio is odd, and any ratio is less than 4, the
+ * operator emits a warning and uses simple weighted averaging on all axes.
  */
 class CartSideDoubleCubicCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
+     * \param use_source_ghost_layer Whether to use the first ghost layer of the source data, which must contain the
+     * values of the fine level where the level covers it, and NaN elsewhere.
      */
-    CartSideDoubleCubicCoarsen() = default;
+    explicit CartSideDoubleCubicCoarsen(bool use_source_ghost_layer = false);
 
     /*!
      * \brief Destructor.
      */
     ~CartSideDoubleCubicCoarsen() = default;
+
+    /*!
+     * \brief Set the fine level, whose boxes determine which fine sides are covered, or release it with nullptr.
+     * Required for use_source_ghost_layer = true at a refinement ratio less than 4.
+     */
+    void setFineLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> fine_level);
 
     /*!
      * \name Implementation of SAMRAI::xfer::CoarsenOperator interface.
@@ -99,7 +109,9 @@ public:
      * Return the stencil width associated with the coarsening operator.  The
      * SAMRAI transfer routines guarantee that the source patch will contain
      * sufficient ghost cell data surrounding the interior to satisfy the
-     * stencil width requirements for each coarsening operator.
+     * stencil width requirements for each coarsening operator.  The width is one
+     * for an operator constructed with use_source_ghost_layer = true, which uses one
+     * fine ghost layer at a refinement ratio of 2, and zero otherwise.
      */
     SAMRAI::hier::IntVector<NDIM> getStencilWidth() const override;
 
@@ -147,9 +159,20 @@ private:
     static const std::string s_op_name;
 
     /*!
-     * "Backup" coarsen operator for even refinement ratios less than 4.
+     * "Backup" coarsen operator for refinement ratios less than 4 without the source ghost layer.
      */
     SAMRAI::geom::CartesianSideDoubleWeightedAverage<NDIM> d_weighted_average_coarsen_op;
+
+    /*!
+     * Whether to use the first ghost layer of the source data, which contains the values of the fine level where the
+     * level covers it.
+     */
+    bool d_use_source_ghost_layer;
+
+    /*!
+     * The fine level, whose boxes determine which fine sides are covered.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_fine_level;
 };
 } // namespace IBTK
 
