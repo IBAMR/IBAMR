@@ -135,4 +135,23 @@ get_min_patch_dx(const PatchLevel<NDIM>& patch_level)
 
     return result;
 } // get_min_patch_dx
+
+double
+wrap_into_periodic_interval(double x, const double x_lo, const double x_up)
+{
+    const double length = x_up - x_lo;
+    // A shift by one period must change x, or the loops below would not end.
+    TBOX_ASSERT(x + length != x && x - length != x);
+    while (x < x_lo)
+    {
+        x += length;
+    }
+    while (x >= x_up)
+    {
+        x -= length;
+    }
+    // Shifting by the rounded period can leave x just below x_lo, e.g. x = x_up on [0.3, 3.0].
+    return std::max(x, x_lo);
+} // wrap_into_periodic_interval
+
 } // namespace IBTK

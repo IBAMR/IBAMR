@@ -1,0 +1,14 @@
+// Physical boundaries; the grid spacing 1/12 is not exact in binary.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 12
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 0, 0
+}

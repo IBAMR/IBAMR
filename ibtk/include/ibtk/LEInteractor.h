@@ -117,13 +117,36 @@ public:
     static int getMinimumGhostWidth(const std::string& kernel_fcn);
 
     /*!
+     * \brief Compute the local PETSc indices, periodic shifts, cells, and in-cell fractions of the entries whose images
+     * lie in the box.
+     *
+     * Each point is located by one cell of the level, computed from the domain origin after its position is wrapped
+     * into each periodic direction with wrap_into_periodic_interval(). The image of an entry is in that cell plus the
+     * periodic offset of the entry. The image is selected if its cell lies in the box, a position beyond a physical
+     * boundary being in the adjacent domain cell. For each selected image, cell_indices holds its cell, in the index
+     * space of the level and without that adjustment, and cell_fractions holds the position of the point in that cell
+     * as a fraction of the cell width, NDIM per image. A fraction lies in [0, 1], and it exceeds 1 slightly only for a
+     * point that rounds to the upper face of a periodic domain.
+     *
+     * X_data must contain the positions of the ghost entries. The index data must contain every point whose image lies
+     * in the box, as they do if points move at most one cell width between redistributions.
+     */
+    template <class T>
+    static void buildLocalIndices(std::vector<int>& local_indices,
+                                  std::vector<double>& periodic_shifts,
+                                  std::vector<int>& cell_indices,
+                                  std::vector<double>& cell_fractions,
+                                  const SAMRAI::hier::Box<NDIM>& box,
+                                  const double* X_data,
+                                  int X_depth,
+                                  SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data);
+
+    /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in interp_box.
      *
      * \note The interpolation operator implements the operation
      *
@@ -138,17 +161,14 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in interp_box.
      *
      * \note The interpolation operator implements the operation
      *
@@ -163,17 +183,14 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in interp_box.
      *
      * \note The interpolation operator implements the operation
      *
@@ -188,17 +205,14 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in interp_box.
      *
      * \note The interpolation operator implements the operation
      *
@@ -213,17 +227,14 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in interp_box.
      *
      * \note The interpolation operator implements the operation
      *
@@ -240,17 +251,14 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in interp_box.
      *
      * \note The interpolation operator implements the operation
      *
@@ -267,17 +275,14 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in interp_box.
      *
      * \note The interpolation operator implements the operation
      *
@@ -294,17 +299,14 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
 
     /*!
      * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in interp_box.
      *
      * \note The interpolation operator implements the operation
      *
@@ -321,7 +323,6 @@ public:
                             SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                             const SAMRAI::hier::Box<NDIM>& interp_box,
-                            const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
 
     /*!
@@ -631,10 +632,8 @@ public:
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in spread_box.
      *
      * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -643,7 +642,7 @@ public:
      *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
-     * implemented operations spreads values, NOT densities.
+     * implemented operation spreads values, NOT densities.
      */
     template <class T>
     static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
@@ -652,17 +651,14 @@ public:
                        SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in spread_box.
      *
      * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -671,7 +667,7 @@ public:
      *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
-     * implemented operations spreads values, NOT densities.
+     * implemented operation spreads values, NOT densities.
      */
     template <class T>
     static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
@@ -680,17 +676,14 @@ public:
                        SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in spread_box.
      *
      * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -699,7 +692,7 @@ public:
      *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
-     * implemented operations spreads values, NOT densities.
+     * implemented operation spreads values, NOT densities.
      */
     template <class T>
     static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
@@ -708,17 +701,14 @@ public:
                        SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in spread_box.
      *
      * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -727,7 +717,7 @@ public:
      *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
-     * implemented operations spreads values, NOT densities.
+     * implemented operation spreads values, NOT densities.
      */
     template <class T>
     static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
@@ -736,17 +726,14 @@ public:
                        SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in spread_box.
      *
      * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -755,7 +742,7 @@ public:
      *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
-     * implemented operations spreads values, NOT densities.
+     * implemented operation spreads values, NOT densities.
      */
     template <class T>
     static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
@@ -766,17 +753,14 @@ public:
                        SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in spread_box.
      *
      * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -785,7 +769,7 @@ public:
      *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
-     * implemented operations spreads values, NOT densities.
+     * implemented operation spreads values, NOT densities.
      */
     template <class T>
     static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
@@ -796,17 +780,14 @@ public:
                        SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in spread_box.
      *
      * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -815,7 +796,7 @@ public:
      *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
-     * implemented operations spreads values, NOT densities.
+     * implemented operation spreads values, NOT densities.
      */
     template <class T>
     static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
@@ -826,17 +807,14 @@ public:
                        SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
 
     /*!
      * \brief Spread data from a Lagrangian mesh to an Eulerian grid.  The
      * positions of the nodes of the Lagrangian mesh are specified by X_data.
      *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
+     * \note The points are the entries of idx_data, ghost copies included, whose positions in X_data plus their
+     * periodic shifts lie in spread_box.
      *
      * \note The spreading operation DOES NOT include the scale factor
      * corresponding to the curvilinear volume element (dq dr ds).  The
@@ -845,7 +823,7 @@ public:
      *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
-     * implemented operations spreads values, NOT densities.
+     * implemented operation spreads values, NOT densities.
      */
     template <class T>
     static void spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
@@ -856,7 +834,6 @@ public:
                        SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data,
                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                        const SAMRAI::hier::Box<NDIM>& spread_box,
-                       const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
 
     /*!
@@ -1322,6 +1299,10 @@ private:
 
     /*!
      * Implementation of the IB interpolation operation.
+     *
+     * nearest_indices and bracket_indices give, NDIM per entry of local_indices and in the index space of q_data_box,
+     * the data point nearest each point and the data point below it, which the kernels with an odd and an even stencil
+     * width use. If they are null, the function computes them from X_data, periodic_shifts, x_lower, and dx.
      */
     static void interpolate(double* Q_data,
                             int Q_depth,
@@ -1338,10 +1319,14 @@ private:
                             const Eigen::Map<Eigen::VectorXi>& local_indices,
                             const Eigen::Map<Eigen::VectorXd>& periodic_shifts,
                             const std::string& interp_fcn,
-                            int axis = 0);
+                            int axis = 0,
+                            const int* nearest_indices = nullptr,
+                            const int* bracket_indices = nullptr);
 
     /*!
      * Implementation of the IB spreading operation.
+     *
+     * nearest_indices and bracket_indices are as in interpolate().
      */
     static void spread(double* q_data,
                        const SAMRAI::hier::Box<NDIM>& q_data_box,
@@ -1358,19 +1343,9 @@ private:
                        const Eigen::Map<Eigen::VectorXi>& local_indices,
                        const Eigen::Map<Eigen::VectorXd>& periodic_shifts,
                        const std::string& spread_fcn,
-                       int axis = 0);
-
-    /*!
-     * \brief Compute the local PETSc indices located within the provided box
-     * based on the LNodeIndexSetData values.
-     */
-    template <class T>
-    static void buildLocalIndices(std::vector<int>& local_indices,
-                                  std::vector<double>& periodic_shifts,
-                                  const SAMRAI::hier::Box<NDIM>& box,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                                  const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-                                  SAMRAI::tbox::Pointer<LIndexSetData<T>> idx_data);
+                       int axis = 0,
+                       const int* nearest_indices = nullptr,
+                       const int* bracket_indices = nullptr);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box
@@ -1400,6 +1375,8 @@ private:
                                        const double* dx,
                                        const int* local_indices,
                                        const double* X_shift,
+                                       const int* nearest_indices,
+                                       const int* bracket_indices,
                                        int num_local_indices);
 
     /*!
@@ -1417,6 +1394,8 @@ private:
                                   const double* X,
                                   const int* local_indices,
                                   const double* X_shift,
+                                  const int* nearest_indices,
+                                  const int* bracket_indices,
                                   int num_local_indices);
 };
 } // namespace IBTK

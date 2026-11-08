@@ -443,6 +443,8 @@ IBInterpolantMethod::interpolateQ(const double data_time)
     getPositionData(&X_data, data_time);
     std::vector<Pointer<LData>>* Q_data;
 
+    // The first interpolation updates the ghost positions, which the others reuse.
+    bool X_needs_ghost_fill = true;
     for (auto& Q_pair : d_Q_current_data)
     {
         const std::string& name = Q_pair.first;
@@ -454,7 +456,11 @@ IBInterpolantMethod::interpolateQ(const double data_time)
                                  *X_data,
                                  std::vector<Pointer<CoarsenSchedule<NDIM>>>(finest_ln + 1, nullptr),
                                  getGhostfillRefineSchedules(d_object_name + "::ghost_fill_alg"),
-                                 data_time);
+                                 data_time,
+                                 invalid_level_number,
+                                 invalid_level_number,
+                                 X_needs_ghost_fill);
+        X_needs_ghost_fill = false;
     }
 
     return;

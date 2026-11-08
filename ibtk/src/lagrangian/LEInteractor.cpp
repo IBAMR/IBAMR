@@ -262,6 +262,8 @@ extern "C"
                                                  const double*,
                                                  const int*,
                                                  const double*,
+                                                 const int*,
+                                                 const int*,
                                                  const int&,
                                                  const double*,
                                                  double*);
@@ -272,6 +274,8 @@ extern "C"
                                                  const int&,
                                                  const int*,
                                                  const double*,
+                                                 const int*,
+                                                 const int*,
                                                  const int&,
                                                  const double*,
                                                  const double*,
@@ -323,6 +327,8 @@ extern "C"
                                                    const double*,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    double*);
@@ -334,6 +340,8 @@ extern "C"
                                                    const int&,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    const double*,
@@ -384,6 +392,8 @@ extern "C"
                                                const double*,
                                                const int*,
                                                const double*,
+                                               const int*,
+                                               const int*,
                                                const int&,
                                                const double*,
                                                double*);
@@ -394,6 +404,8 @@ extern "C"
                                                const int&,
                                                const int*,
                                                const double*,
+                                               const int*,
+                                               const int*,
                                                const int&,
                                                const double*,
                                                const double*,
@@ -444,6 +456,8 @@ extern "C"
                                               const double*,
                                               const int*,
                                               const double*,
+                                              const int*,
+                                              const int*,
                                               const int&,
                                               const double*,
                                               double*);
@@ -454,6 +468,8 @@ extern "C"
                                               const int&,
                                               const int*,
                                               const double*,
+                                              const int*,
+                                              const int*,
                                               const int&,
                                               const double*,
                                               const double*,
@@ -504,6 +520,8 @@ extern "C"
                                    const double*,
                                    const int*,
                                    const double*,
+                                   const int*,
+                                   const int*,
                                    const int&,
                                    const double*,
                                    double*);
@@ -514,6 +532,8 @@ extern "C"
                                    const int&,
                                    const int*,
                                    const double*,
+                                   const int*,
+                                   const int*,
                                    const int&,
                                    const double*,
                                    const double*,
@@ -564,6 +584,8 @@ extern "C"
                                    const double*,
                                    const int*,
                                    const double*,
+                                   const int*,
+                                   const int*,
                                    const int&,
                                    const double*,
                                    double*);
@@ -574,6 +596,8 @@ extern "C"
                                    const int&,
                                    const int*,
                                    const double*,
+                                   const int*,
+                                   const int*,
                                    const int&,
                                    const double*,
                                    const double*,
@@ -624,6 +648,8 @@ extern "C"
                                       const double*,
                                       const int*,
                                       const double*,
+                                      const int*,
+                                      const int*,
                                       const int&,
                                       const double*,
                                       double*);
@@ -634,6 +660,8 @@ extern "C"
                                       const int&,
                                       const int*,
                                       const double*,
+                                      const int*,
+                                      const int*,
                                       const int&,
                                       const double*,
                                       const double*,
@@ -684,6 +712,8 @@ extern "C"
                                    const double*,
                                    const int*,
                                    const double*,
+                                   const int*,
+                                   const int*,
                                    const int&,
                                    const double*,
                                    double*);
@@ -694,6 +724,8 @@ extern "C"
                                    const int&,
                                    const int*,
                                    const double*,
+                                   const int*,
+                                   const int*,
                                    const int&,
                                    const double*,
                                    const double*,
@@ -744,6 +776,8 @@ extern "C"
                                    const double*,
                                    const int*,
                                    const double*,
+                                   const int*,
+                                   const int*,
                                    const int&,
                                    const double*,
                                    double*);
@@ -754,6 +788,8 @@ extern "C"
                                    const int&,
                                    const int*,
                                    const double*,
+                                   const int*,
+                                   const int*,
                                    const int&,
                                    const double*,
                                    const double*,
@@ -804,6 +840,8 @@ extern "C"
                                         const double*,
                                         const int*,
                                         const double*,
+                                        const int*,
+                                        const int*,
                                         const int&,
                                         const double*,
                                         double*);
@@ -814,6 +852,8 @@ extern "C"
                                         const int&,
                                         const int*,
                                         const double*,
+                                        const int*,
+                                        const int*,
                                         const int&,
                                         const double*,
                                         const double*,
@@ -864,6 +904,8 @@ extern "C"
                                         const double*,
                                         const int*,
                                         const double*,
+                                        const int*,
+                                        const int*,
                                         const int&,
                                         const double*,
                                         double*);
@@ -874,6 +916,8 @@ extern "C"
                                         const int&,
                                         const int*,
                                         const double*,
+                                        const int*,
+                                        const int*,
                                         const int&,
                                         const double*,
                                         const double*,
@@ -924,6 +968,8 @@ extern "C"
                                         const double*,
                                         const int*,
                                         const double*,
+                                        const int*,
+                                        const int*,
                                         const int&,
                                         const double*,
                                         double*);
@@ -934,6 +980,8 @@ extern "C"
                                         const int&,
                                         const int*,
                                         const double*,
+                                        const int*,
+                                        const int*,
                                         const int&,
                                         const double*,
                                         const double*,
@@ -984,6 +1032,8 @@ extern "C"
                                         const double*,
                                         const int*,
                                         const double*,
+                                        const int*,
+                                        const int*,
                                         const int&,
                                         const double*,
                                         double*);
@@ -994,6 +1044,8 @@ extern "C"
                                         const int&,
                                         const int*,
                                         const double*,
+                                        const int*,
+                                        const int*,
                                         const int&,
                                         const double*,
                                         const double*,
@@ -1045,6 +1097,8 @@ extern "C"
                                                    const double*,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    double*);
@@ -1056,6 +1110,8 @@ extern "C"
                                                    const int&,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    const double*,
@@ -1107,6 +1163,8 @@ extern "C"
                                                    const double*,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    double*);
@@ -1118,6 +1176,8 @@ extern "C"
                                                    const int&,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    const double*,
@@ -1169,6 +1229,8 @@ extern "C"
                                                    const double*,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    double*);
@@ -1180,6 +1242,8 @@ extern "C"
                                                    const int&,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    const double*,
@@ -1231,6 +1295,8 @@ extern "C"
                                                    const double*,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    double*);
@@ -1242,6 +1308,8 @@ extern "C"
                                                    const int&,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    const double*,
@@ -1293,6 +1361,8 @@ extern "C"
                                                    const double*,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    double*);
@@ -1304,6 +1374,8 @@ extern "C"
                                                    const int&,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    const double*,
@@ -1355,6 +1427,8 @@ extern "C"
                                                    const double*,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    double*);
@@ -1366,6 +1440,8 @@ extern "C"
                                                    const int&,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    const double*,
@@ -1417,6 +1493,8 @@ extern "C"
                                                    const double*,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    double*);
@@ -1428,6 +1506,8 @@ extern "C"
                                                    const int&,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    const double*,
@@ -1479,6 +1559,8 @@ extern "C"
                                                    const double*,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    double*);
@@ -1490,6 +1572,8 @@ extern "C"
                                                    const int&,
                                                    const int*,
                                                    const double*,
+                                                   const int*,
+                                                   const int*,
                                                    const int&,
                                                    const double*,
                                                    const double*,
@@ -1751,7 +1835,7 @@ get_mls_weights(const std::string& kernel_fcn,
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                if (X[d] < X_cell[d])
+                if (X[d] + X_shift[d] < X_cell[d])
                 {
                     stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2;
                     stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2 - 1;
@@ -2014,6 +2098,78 @@ string_to_kernel(const std::string& kernel_fcn)
     TBOX_ERROR("Unknown kernel function " << kernel_fcn << std::endl);
     return INVALID;
 }
+
+// Set the indices of the data point nearest each point and of the data point below it, NDIM per point, from the cells
+// and in-cell fractions of the points. Along a staggered axis, the data points are the cell faces.
+void
+get_kernel_indices(std::vector<int>& nearest_indices,
+                   std::vector<int>& bracket_indices,
+                   const std::vector<int>& cell_indices,
+                   const std::vector<double>& cell_fractions,
+                   const std::array<bool, NDIM>& staggered)
+{
+    const std::size_t size = cell_indices.size();
+    nearest_indices.resize(size);
+    bracket_indices.resize(size);
+    for (std::size_t k = 0; k < size; ++k)
+    {
+        const int cell = cell_indices[k];
+        const int upper_half = cell_fractions[k] >= 0.5 ? 1 : 0;
+        if (staggered[k % NDIM])
+        {
+            nearest_indices[k] = cell + upper_half;
+            bracket_indices[k] = cell;
+        }
+        else
+        {
+            nearest_indices[k] = cell;
+            bracket_indices[k] = cell + upper_half - 1;
+        }
+    }
+    return;
+} // get_kernel_indices
+
+// Set the indices of the data point nearest each point and of the data point below it in the frame of a kernel call,
+// as the kernels computed them from the position: the nearest point from the lower face, and the side from the
+// comparison with that point or, if round_to_face, by rounding to the nearest face.
+void
+get_kernel_indices_in_frame(std::vector<int>& nearest_indices,
+                            std::vector<int>& bracket_indices,
+                            const double* const X_data,
+                            const Eigen::Map<VectorXi>& local_indices,
+                            const Eigen::Map<VectorXd>& periodic_shifts,
+                            const double* const x_lower,
+                            const double* const dx,
+                            const IntVector<NDIM>& ilower,
+                            const bool round_to_face)
+{
+    const auto num_local_indices = static_cast<std::size_t>(local_indices.size());
+    nearest_indices.resize(NDIM * num_local_indices);
+    bracket_indices.resize(NDIM * num_local_indices);
+    for (std::size_t l = 0; l < num_local_indices; ++l)
+    {
+        const int s = local_indices[l];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            const double X = X_data[d + s * NDIM] + periodic_shifts[d + l * NDIM];
+            const double t = (X - x_lower[d]) / dx[d];
+            const int i = static_cast<int>(std::floor(t)) + ilower(d);
+            int upper_half = 0;
+            if (round_to_face)
+            {
+                upper_half = static_cast<int>(std::lround(t) - static_cast<long>(std::floor(t)));
+            }
+            else
+            {
+                const double X_cell = x_lower[d] + (static_cast<double>(i - ilower(d)) + 0.5) * dx[d];
+                upper_half = X < X_cell ? 0 : 1;
+            }
+            nearest_indices[NDIM * l + d] = i;
+            bracket_indices[NDIM * l + d] = i + upper_half - 1;
+        }
+    }
+    return;
+} // get_kernel_indices_in_frame
 } // namespace
 
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
@@ -2121,7 +2277,6 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
                           const Pointer<CellData<NDIM, double>> q_data,
                           const Pointer<Patch<NDIM>> patch,
                           const Box<NDIM>& interp_box,
-                          const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
 #if !defined(NDEBUG)
@@ -2141,7 +2296,6 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
                 q_data,
                 patch,
                 interp_box,
-                periodic_shift,
                 interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -2156,7 +2310,6 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
                           const Pointer<NodeData<NDIM, double>> q_data,
                           const Pointer<Patch<NDIM>> patch,
                           const Box<NDIM>& interp_box,
-                          const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
 #if !defined(NDEBUG)
@@ -2176,7 +2329,6 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
                 q_data,
                 patch,
                 interp_box,
-                periodic_shift,
                 interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -2191,7 +2343,6 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
                           const Pointer<SideData<NDIM, double>> q_data,
                           const Pointer<Patch<NDIM>> patch,
                           const Box<NDIM>& interp_box,
-                          const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
     if (Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
@@ -2217,7 +2368,6 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
                 q_data,
                 patch,
                 interp_box,
-                periodic_shift,
                 interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -2232,7 +2382,6 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
                           const Pointer<EdgeData<NDIM, double>> q_data,
                           const Pointer<Patch<NDIM>> patch,
                           const Box<NDIM>& interp_box,
-                          const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
     if (NDIM != 3 || Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
@@ -2258,7 +2407,6 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
                 q_data,
                 patch,
                 interp_box,
-                periodic_shift,
                 interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -2275,7 +2423,6 @@ LEInteractor::interpolate(double* const Q_data,
                           const Pointer<CellData<NDIM, double>> q_data,
                           const Pointer<Patch<NDIM>> patch,
                           const Box<NDIM>& interp_box,
-                          const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
 #if !defined(NDEBUG)
@@ -2303,13 +2450,17 @@ LEInteractor::interpolate(double* const Q_data,
     }
 
     // Generate a list of local indices which lie in the specified box.
-    std::vector<int> local_indices;
-    std::vector<double> periodic_shifts;
-    buildLocalIndices(local_indices, periodic_shifts, interp_box, patch, periodic_shift, idx_data);
+    std::vector<int> local_indices, cell_indices;
+    std::vector<double> periodic_shifts, cell_fractions;
+    buildLocalIndices(
+        local_indices, periodic_shifts, cell_indices, cell_fractions, interp_box, X_data, X_depth, idx_data);
+    std::vector<int> nearest_indices, bracket_indices;
 
     // Interpolate.
     if (!local_indices.empty())
     {
+        get_kernel_indices(
+            nearest_indices, bracket_indices, cell_indices, cell_fractions, array_constant<bool, NDIM>(false));
         interpolate(Q_data,
                     Q_depth,
                     X_data,
@@ -2324,7 +2475,10 @@ LEInteractor::interpolate(double* const Q_data,
                     patch_touches_upper_physical_bdry,
                     Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                     Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-                    interp_fcn);
+                    interp_fcn,
+                    /*axis*/ 0,
+                    nearest_indices.data(),
+                    bracket_indices.data());
     }
     return;
 }
@@ -2339,7 +2493,6 @@ LEInteractor::interpolate(double* const Q_data,
                           const Pointer<NodeData<NDIM, double>> q_data,
                           const Pointer<Patch<NDIM>> patch,
                           const Box<NDIM>& interp_box,
-                          const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
 #if !defined(NDEBUG)
@@ -2367,13 +2520,17 @@ LEInteractor::interpolate(double* const Q_data,
     }
 
     // Generate a list of local indices which lie in the specified box.
-    std::vector<int> local_indices;
-    std::vector<double> periodic_shifts;
-    buildLocalIndices(local_indices, periodic_shifts, interp_box, patch, periodic_shift, idx_data);
+    std::vector<int> local_indices, cell_indices;
+    std::vector<double> periodic_shifts, cell_fractions;
+    buildLocalIndices(
+        local_indices, periodic_shifts, cell_indices, cell_fractions, interp_box, X_data, X_depth, idx_data);
+    std::vector<int> nearest_indices, bracket_indices;
 
     // Interpolate.
     if (!local_indices.empty())
     {
+        get_kernel_indices(
+            nearest_indices, bracket_indices, cell_indices, cell_fractions, array_constant<bool, NDIM>(true));
         std::array<double, NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -2394,7 +2551,10 @@ LEInteractor::interpolate(double* const Q_data,
                     patch_touches_upper_physical_bdry,
                     Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                     Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-                    interp_fcn);
+                    interp_fcn,
+                    /*axis*/ 0,
+                    nearest_indices.data(),
+                    bracket_indices.data());
     }
     return;
 }
@@ -2409,7 +2569,6 @@ LEInteractor::interpolate(double* const Q_data,
                           const Pointer<SideData<NDIM, double>> q_data,
                           const Pointer<Patch<NDIM>> patch,
                           const Box<NDIM>& interp_box,
-                          const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
 #if !defined(NDEBUG)
@@ -2444,9 +2603,11 @@ LEInteractor::interpolate(double* const Q_data,
     }
 
     // Generate a list of local indices which lie in the specified box.
-    std::vector<int> local_indices;
-    std::vector<double> periodic_shifts;
-    buildLocalIndices(local_indices, periodic_shifts, interp_box, patch, periodic_shift, idx_data);
+    std::vector<int> local_indices, cell_indices;
+    std::vector<double> periodic_shifts, cell_fractions;
+    buildLocalIndices(
+        local_indices, periodic_shifts, cell_indices, cell_fractions, interp_box, X_data, X_depth, idx_data);
+    std::vector<int> nearest_indices, bracket_indices;
 
     // Interpolate.
     if (!local_indices.empty())
@@ -2456,6 +2617,9 @@ LEInteractor::interpolate(double* const Q_data,
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
+            std::array<bool, NDIM> staggered = array_constant<bool, NDIM>(false);
+            staggered[axis] = true;
+            get_kernel_indices(nearest_indices, bracket_indices, cell_indices, cell_fractions, staggered);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -2478,7 +2642,9 @@ LEInteractor::interpolate(double* const Q_data,
                         Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                         Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                         interp_fcn,
-                        axis);
+                        axis,
+                        nearest_indices.data(),
+                        bracket_indices.data());
             for (const auto& local_index : local_indices)
             {
                 Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
@@ -2498,7 +2664,6 @@ LEInteractor::interpolate(double* const Q_data,
                           const Pointer<EdgeData<NDIM, double>> q_data,
                           const Pointer<Patch<NDIM>> patch,
                           const Box<NDIM>& interp_box,
-                          const IntVector<NDIM>& periodic_shift,
                           const std::string& interp_fcn)
 {
 #if !defined(NDEBUG)
@@ -2533,9 +2698,11 @@ LEInteractor::interpolate(double* const Q_data,
     }
 
     // Generate a list of local indices which lie in the specified box.
-    std::vector<int> local_indices;
-    std::vector<double> periodic_shifts;
-    buildLocalIndices(local_indices, periodic_shifts, interp_box, patch, periodic_shift, idx_data);
+    std::vector<int> local_indices, cell_indices;
+    std::vector<double> periodic_shifts, cell_fractions;
+    buildLocalIndices(
+        local_indices, periodic_shifts, cell_indices, cell_fractions, interp_box, X_data, X_depth, idx_data);
+    std::vector<int> nearest_indices, bracket_indices;
 
     // Interpolate.
     if (!local_indices.empty())
@@ -2545,6 +2712,9 @@ LEInteractor::interpolate(double* const Q_data,
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
+            std::array<bool, NDIM> staggered = array_constant<bool, NDIM>(true);
+            staggered[axis] = false;
+            get_kernel_indices(nearest_indices, bracket_indices, cell_indices, cell_fractions, staggered);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -2570,7 +2740,9 @@ LEInteractor::interpolate(double* const Q_data,
                         Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                         Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                         interp_fcn,
-                        axis);
+                        axis,
+                        nearest_indices.data(),
+                        bracket_indices.data());
             for (const auto& local_index : local_indices)
             {
                 Q_data[NDIM * local_index + axis] = Q_data_axis[local_index];
@@ -3352,7 +3524,6 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
                      const Pointer<LIndexSetData<T>> idx_data,
                      const Pointer<Patch<NDIM>> patch,
                      const Box<NDIM>& spread_box,
-                     const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
 #if !defined(NDEBUG)
@@ -3372,7 +3543,6 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
            idx_data,
            patch,
            spread_box,
-           periodic_shift,
            spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -3387,7 +3557,6 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
                      const Pointer<LIndexSetData<T>> idx_data,
                      const Pointer<Patch<NDIM>> patch,
                      const Box<NDIM>& spread_box,
-                     const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
 #if !defined(NDEBUG)
@@ -3407,7 +3576,6 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
            idx_data,
            patch,
            spread_box,
-           periodic_shift,
            spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -3422,7 +3590,6 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
                      const Pointer<LIndexSetData<T>> idx_data,
                      const Pointer<Patch<NDIM>> patch,
                      const Box<NDIM>& spread_box,
-                     const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
     if (Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
@@ -3448,7 +3615,6 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
            idx_data,
            patch,
            spread_box,
-           periodic_shift,
            spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -3463,7 +3629,6 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
                      const Pointer<LIndexSetData<T>> idx_data,
                      const Pointer<Patch<NDIM>> patch,
                      const Box<NDIM>& spread_box,
-                     const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
     if (NDIM != 3 || Q_data->getDepth() != NDIM || q_data->getDepth() != 1)
@@ -3489,7 +3654,6 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
            idx_data,
            patch,
            spread_box,
-           periodic_shift,
            spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -3506,7 +3670,6 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
                      const Pointer<LIndexSetData<T>> idx_data,
                      const Pointer<Patch<NDIM>> patch,
                      const Box<NDIM>& spread_box,
-                     const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
 #if !defined(NDEBUG)
@@ -3534,13 +3697,17 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
     }
 
     // Generate a list of local indices which lie in the specified box.
-    std::vector<int> local_indices;
-    std::vector<double> periodic_shifts;
-    buildLocalIndices(local_indices, periodic_shifts, spread_box, patch, periodic_shift, idx_data);
+    std::vector<int> local_indices, cell_indices;
+    std::vector<double> periodic_shifts, cell_fractions;
+    buildLocalIndices(
+        local_indices, periodic_shifts, cell_indices, cell_fractions, spread_box, X_data, X_depth, idx_data);
+    std::vector<int> nearest_indices, bracket_indices;
 
     // Spread.
     if (!local_indices.empty())
     {
+        get_kernel_indices(
+            nearest_indices, bracket_indices, cell_indices, cell_fractions, array_constant<bool, NDIM>(false));
         spread(q_data->getPointer(),
                q_data->getBox(),
                q_data->getGhostCellWidth(),
@@ -3555,7 +3722,10 @@ LEInteractor::spread(Pointer<CellData<NDIM, double>> q_data,
                patch_touches_upper_physical_bdry,
                Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-               spread_fcn);
+               spread_fcn,
+               /*axis*/ 0,
+               nearest_indices.data(),
+               bracket_indices.data());
     }
     return;
 }
@@ -3570,7 +3740,6 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
                      const Pointer<LIndexSetData<T>> idx_data,
                      const Pointer<Patch<NDIM>> patch,
                      const Box<NDIM>& spread_box,
-                     const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
 #if !defined(NDEBUG)
@@ -3598,13 +3767,17 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
     }
 
     // Generate a list of local indices which lie in the specified box.
-    std::vector<int> local_indices;
-    std::vector<double> periodic_shifts;
-    buildLocalIndices(local_indices, periodic_shifts, spread_box, patch, periodic_shift, idx_data);
+    std::vector<int> local_indices, cell_indices;
+    std::vector<double> periodic_shifts, cell_fractions;
+    buildLocalIndices(
+        local_indices, periodic_shifts, cell_indices, cell_fractions, spread_box, X_data, X_depth, idx_data);
+    std::vector<int> nearest_indices, bracket_indices;
 
     // Spread.
     if (!local_indices.empty())
     {
+        get_kernel_indices(
+            nearest_indices, bracket_indices, cell_indices, cell_fractions, array_constant<bool, NDIM>(true));
         std::array<double, NDIM> x_lower_node, x_upper_node;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -3625,7 +3798,10 @@ LEInteractor::spread(Pointer<NodeData<NDIM, double>> q_data,
                patch_touches_upper_physical_bdry,
                Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
-               spread_fcn);
+               spread_fcn,
+               /*axis*/ 0,
+               nearest_indices.data(),
+               bracket_indices.data());
     }
     return;
 }
@@ -3640,7 +3816,6 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
                      const Pointer<LIndexSetData<T>> idx_data,
                      const Pointer<Patch<NDIM>> patch,
                      const Box<NDIM>& spread_box,
-                     const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
 #if !defined(NDEBUG)
@@ -3675,9 +3850,11 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
     }
 
     // Generate a list of local indices which lie in the specified box.
-    std::vector<int> local_indices;
-    std::vector<double> periodic_shifts;
-    buildLocalIndices(local_indices, periodic_shifts, spread_box, patch, periodic_shift, idx_data);
+    std::vector<int> local_indices, cell_indices;
+    std::vector<double> periodic_shifts, cell_fractions;
+    buildLocalIndices(
+        local_indices, periodic_shifts, cell_indices, cell_fractions, spread_box, X_data, X_depth, idx_data);
+    std::vector<int> nearest_indices, bracket_indices;
 
     // Spread.
     if (!local_indices.empty())
@@ -3687,6 +3864,9 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
+            std::array<bool, NDIM> staggered = array_constant<bool, NDIM>(false);
+            staggered[axis] = true;
+            get_kernel_indices(nearest_indices, bracket_indices, cell_indices, cell_fractions, staggered);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -3713,7 +3893,9 @@ LEInteractor::spread(Pointer<SideData<NDIM, double>> q_data,
                    Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                    Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                    spread_fcn,
-                   axis);
+                   axis,
+                   nearest_indices.data(),
+                   bracket_indices.data());
         }
     }
     return;
@@ -3729,7 +3911,6 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
                      const Pointer<LIndexSetData<T>> idx_data,
                      const Pointer<Patch<NDIM>> patch,
                      const Box<NDIM>& spread_box,
-                     const IntVector<NDIM>& periodic_shift,
                      const std::string& spread_fcn)
 {
 #if !defined(NDEBUG)
@@ -3764,9 +3945,11 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
     }
 
     // Generate a list of local indices which lie in the specified box.
-    std::vector<int> local_indices;
-    std::vector<double> periodic_shifts;
-    buildLocalIndices(local_indices, periodic_shifts, spread_box, patch, periodic_shift, idx_data);
+    std::vector<int> local_indices, cell_indices;
+    std::vector<double> periodic_shifts, cell_fractions;
+    buildLocalIndices(
+        local_indices, periodic_shifts, cell_indices, cell_fractions, spread_box, X_data, X_depth, idx_data);
+    std::vector<int> nearest_indices, bracket_indices;
 
     // Spread.
     if (!local_indices.empty())
@@ -3776,6 +3959,9 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
+            std::array<bool, NDIM> staggered = array_constant<bool, NDIM>(true);
+            staggered[axis] = false;
+            get_kernel_indices(nearest_indices, bracket_indices, cell_indices, cell_fractions, staggered);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -3805,7 +3991,9 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
                    Eigen::Map<VectorXi>(local_indices.data(), local_indices.size()),
                    Eigen::Map<VectorXd>(periodic_shifts.data(), periodic_shifts.size()),
                    spread_fcn,
-                   axis);
+                   axis,
+                   nearest_indices.data(),
+                   bracket_indices.data());
         }
     }
     return;
@@ -4497,7 +4685,9 @@ LEInteractor::interpolate(double* const Q_data,
                           const Eigen::Map<VectorXi>& local_indices,
                           const Eigen::Map<VectorXd>& periodic_shifts,
                           const std::string& interp_fcn,
-                          const int axis)
+                          const int axis,
+                          const int* nearest_indices,
+                          const int* bracket_indices)
 {
     const int stencil_size = getStencilSize(interp_fcn);
     const int min_ghosts = getMinimumGhostWidth(interp_fcn);
@@ -4514,7 +4704,23 @@ LEInteractor::interpolate(double* const Q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    switch (string_to_kernel(interp_fcn))
+    const KernelType kernel = string_to_kernel(interp_fcn);
+    std::vector<int> frame_nearest_indices, frame_bracket_indices;
+    if (!nearest_indices)
+    {
+        get_kernel_indices_in_frame(frame_nearest_indices,
+                                    frame_bracket_indices,
+                                    X_data,
+                                    local_indices,
+                                    periodic_shifts,
+                                    x_lower,
+                                    dx,
+                                    ilower,
+                                    kernel == IB_4 || kernel == IB_4_W8 || kernel == IB_6);
+        nearest_indices = frame_nearest_indices.data();
+        bracket_indices = frame_bracket_indices.data();
+    }
+    switch (kernel)
     {
     case PIECEWISE_CONSTANT:
     {
@@ -4544,6 +4750,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                 q_data,
                                                 &local_indices[0],
                                                 &periodic_shifts[0],
+                                                nearest_indices,
+                                                bracket_indices,
                                                 local_indices_size,
                                                 X_data,
                                                 Q_data);
@@ -4578,6 +4786,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                   q_data,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
@@ -4611,6 +4821,8 @@ LEInteractor::interpolate(double* const Q_data,
                                               q_data,
                                               &local_indices[0],
                                               &periodic_shifts[0],
+                                              nearest_indices,
+                                              bracket_indices,
                                               local_indices_size,
                                               X_data,
                                               Q_data);
@@ -4644,6 +4856,8 @@ LEInteractor::interpolate(double* const Q_data,
                                              q_data,
                                              &local_indices[0],
                                              &periodic_shifts[0],
+                                             nearest_indices,
+                                             bracket_indices,
                                              local_indices_size,
                                              X_data,
                                              Q_data);
@@ -4677,6 +4891,8 @@ LEInteractor::interpolate(double* const Q_data,
                                   q_data,
                                   &local_indices[0],
                                   &periodic_shifts[0],
+                                  nearest_indices,
+                                  bracket_indices,
                                   local_indices_size,
                                   X_data,
                                   Q_data);
@@ -4710,6 +4926,8 @@ LEInteractor::interpolate(double* const Q_data,
                                   q_data,
                                   &local_indices[0],
                                   &periodic_shifts[0],
+                                  nearest_indices,
+                                  bracket_indices,
                                   local_indices_size,
                                   X_data,
                                   Q_data);
@@ -4743,6 +4961,8 @@ LEInteractor::interpolate(double* const Q_data,
                                      q_data,
                                      &local_indices[0],
                                      &periodic_shifts[0],
+                                     nearest_indices,
+                                     bracket_indices,
                                      local_indices_size,
                                      X_data,
                                      Q_data);
@@ -4776,6 +4996,8 @@ LEInteractor::interpolate(double* const Q_data,
                                   q_data,
                                   &local_indices[0],
                                   &periodic_shifts[0],
+                                  nearest_indices,
+                                  bracket_indices,
                                   local_indices_size,
                                   X_data,
                                   Q_data);
@@ -4809,6 +5031,8 @@ LEInteractor::interpolate(double* const Q_data,
                                   q_data,
                                   &local_indices[0],
                                   &periodic_shifts[0],
+                                  nearest_indices,
+                                  bracket_indices,
                                   local_indices_size,
                                   X_data,
                                   Q_data);
@@ -4842,6 +5066,8 @@ LEInteractor::interpolate(double* const Q_data,
                                        q_data,
                                        &local_indices[0],
                                        &periodic_shifts[0],
+                                       nearest_indices,
+                                       bracket_indices,
                                        local_indices_size,
                                        X_data,
                                        Q_data);
@@ -4875,6 +5101,8 @@ LEInteractor::interpolate(double* const Q_data,
                                        q_data,
                                        &local_indices[0],
                                        &periodic_shifts[0],
+                                       nearest_indices,
+                                       bracket_indices,
                                        local_indices_size,
                                        X_data,
                                        Q_data);
@@ -4908,6 +5136,8 @@ LEInteractor::interpolate(double* const Q_data,
                                        q_data,
                                        &local_indices[0],
                                        &periodic_shifts[0],
+                                       nearest_indices,
+                                       bracket_indices,
                                        local_indices_size,
                                        X_data,
                                        Q_data);
@@ -4941,6 +5171,8 @@ LEInteractor::interpolate(double* const Q_data,
                                        q_data,
                                        &local_indices[0],
                                        &periodic_shifts[0],
+                                       nearest_indices,
+                                       bracket_indices,
                                        local_indices_size,
                                        X_data,
                                        Q_data);
@@ -4975,6 +5207,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                   q_data,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
@@ -5009,6 +5243,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                   q_data,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
@@ -5043,6 +5279,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                   q_data,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
@@ -5077,6 +5315,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                   q_data,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
@@ -5111,6 +5351,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                   q_data,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
@@ -5145,6 +5387,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                   q_data,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
@@ -5179,6 +5423,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                   q_data,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
@@ -5213,6 +5459,8 @@ LEInteractor::interpolate(double* const Q_data,
                                                   q_data,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
@@ -5232,6 +5480,8 @@ LEInteractor::interpolate(double* const Q_data,
                                dx,
                                &local_indices[0],
                                &periodic_shifts[0],
+                               nearest_indices,
+                               bracket_indices,
                                local_indices_size);
         break;
     }
@@ -5259,7 +5509,9 @@ LEInteractor::spread(double* const q_data,
                      const Eigen::Map<VectorXi>& local_indices,
                      const Eigen::Map<VectorXd>& periodic_shifts,
                      const std::string& spread_fcn,
-                     const int axis)
+                     const int axis,
+                     const int* nearest_indices,
+                     const int* bracket_indices)
 {
     const int stencil_size = getStencilSize(spread_fcn);
     const int min_ghosts = getMinimumGhostWidth(spread_fcn);
@@ -5282,7 +5534,23 @@ LEInteractor::spread(double* const q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    switch (string_to_kernel(spread_fcn))
+    const KernelType kernel = string_to_kernel(spread_fcn);
+    std::vector<int> frame_nearest_indices, frame_bracket_indices;
+    if (!nearest_indices)
+    {
+        get_kernel_indices_in_frame(frame_nearest_indices,
+                                    frame_bracket_indices,
+                                    X_data,
+                                    local_indices,
+                                    periodic_shifts,
+                                    x_lower,
+                                    dx,
+                                    ilower,
+                                    kernel == IB_4 || kernel == IB_4_W8 || kernel == IB_6);
+        nearest_indices = frame_nearest_indices.data();
+        bracket_indices = frame_bracket_indices.data();
+    }
+    switch (kernel)
     {
     case PIECEWISE_CONSTANT:
     {
@@ -5292,6 +5560,8 @@ LEInteractor::spread(double* const q_data,
                                                 q_depth,
                                                 &local_indices[0],
                                                 &periodic_shifts[0],
+                                                nearest_indices,
+                                                bracket_indices,
                                                 local_indices_size,
                                                 X_data,
                                                 Q_data,
@@ -5326,6 +5596,8 @@ LEInteractor::spread(double* const q_data,
                                                   axis,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data,
@@ -5359,6 +5631,8 @@ LEInteractor::spread(double* const q_data,
                                               q_depth,
                                               &local_indices[0],
                                               &periodic_shifts[0],
+                                              nearest_indices,
+                                              bracket_indices,
                                               local_indices_size,
                                               X_data,
                                               Q_data,
@@ -5392,6 +5666,8 @@ LEInteractor::spread(double* const q_data,
                                              q_depth,
                                              &local_indices[0],
                                              &periodic_shifts[0],
+                                             nearest_indices,
+                                             bracket_indices,
                                              local_indices_size,
                                              X_data,
                                              Q_data,
@@ -5425,6 +5701,8 @@ LEInteractor::spread(double* const q_data,
                                   q_depth,
                                   &local_indices[0],
                                   &periodic_shifts[0],
+                                  nearest_indices,
+                                  bracket_indices,
                                   local_indices_size,
                                   X_data,
                                   Q_data,
@@ -5458,6 +5736,8 @@ LEInteractor::spread(double* const q_data,
                                   q_depth,
                                   &local_indices[0],
                                   &periodic_shifts[0],
+                                  nearest_indices,
+                                  bracket_indices,
                                   local_indices_size,
                                   X_data,
                                   Q_data,
@@ -5491,6 +5771,8 @@ LEInteractor::spread(double* const q_data,
                                      q_depth,
                                      &local_indices[0],
                                      &periodic_shifts[0],
+                                     nearest_indices,
+                                     bracket_indices,
                                      local_indices_size,
                                      X_data,
                                      Q_data,
@@ -5524,6 +5806,8 @@ LEInteractor::spread(double* const q_data,
                                   q_depth,
                                   &local_indices[0],
                                   &periodic_shifts[0],
+                                  nearest_indices,
+                                  bracket_indices,
                                   local_indices_size,
                                   X_data,
                                   Q_data,
@@ -5557,6 +5841,8 @@ LEInteractor::spread(double* const q_data,
                                   q_depth,
                                   &local_indices[0],
                                   &periodic_shifts[0],
+                                  nearest_indices,
+                                  bracket_indices,
                                   local_indices_size,
                                   X_data,
                                   Q_data,
@@ -5590,6 +5876,8 @@ LEInteractor::spread(double* const q_data,
                                        q_depth,
                                        &local_indices[0],
                                        &periodic_shifts[0],
+                                       nearest_indices,
+                                       bracket_indices,
                                        local_indices_size,
                                        X_data,
                                        Q_data,
@@ -5623,6 +5911,8 @@ LEInteractor::spread(double* const q_data,
                                        q_depth,
                                        &local_indices[0],
                                        &periodic_shifts[0],
+                                       nearest_indices,
+                                       bracket_indices,
                                        local_indices_size,
                                        X_data,
                                        Q_data,
@@ -5656,6 +5946,8 @@ LEInteractor::spread(double* const q_data,
                                        q_depth,
                                        &local_indices[0],
                                        &periodic_shifts[0],
+                                       nearest_indices,
+                                       bracket_indices,
                                        local_indices_size,
                                        X_data,
                                        Q_data,
@@ -5689,6 +5981,8 @@ LEInteractor::spread(double* const q_data,
                                        q_depth,
                                        &local_indices[0],
                                        &periodic_shifts[0],
+                                       nearest_indices,
+                                       bracket_indices,
                                        local_indices_size,
                                        X_data,
                                        Q_data,
@@ -5723,6 +6017,8 @@ LEInteractor::spread(double* const q_data,
                                                   axis,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data,
@@ -5757,6 +6053,8 @@ LEInteractor::spread(double* const q_data,
                                                   axis,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data,
@@ -5791,6 +6089,8 @@ LEInteractor::spread(double* const q_data,
                                                   axis,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data,
@@ -5826,6 +6126,8 @@ LEInteractor::spread(double* const q_data,
                                                   axis,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data,
@@ -5861,6 +6163,8 @@ LEInteractor::spread(double* const q_data,
                                                   axis,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data,
@@ -5896,6 +6200,8 @@ LEInteractor::spread(double* const q_data,
                                                   axis,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data,
@@ -5931,6 +6237,8 @@ LEInteractor::spread(double* const q_data,
                                                   axis,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data,
@@ -5966,6 +6274,8 @@ LEInteractor::spread(double* const q_data,
                                                   axis,
                                                   &local_indices[0],
                                                   &periodic_shifts[0],
+                                                  nearest_indices,
+                                                  bracket_indices,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data,
@@ -6006,6 +6316,8 @@ LEInteractor::spread(double* const q_data,
                           X_data,
                           &local_indices[0],
                           &periodic_shifts[0],
+                          nearest_indices,
+                          bracket_indices,
                           local_indices_size);
         break;
     }
@@ -6023,77 +6335,79 @@ template <class T>
 void
 LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                 std::vector<double>& periodic_shifts,
+                                std::vector<int>& cell_indices,
+                                std::vector<double>& cell_fractions,
                                 const Box<NDIM>& box,
-                                const Pointer<Patch<NDIM>> patch,
-                                const IntVector<NDIM>& periodic_shift,
+                                const double* const X_data,
+                                const int X_depth,
                                 const Pointer<LIndexSetData<T>> idx_data)
 {
     local_indices.clear();
     periodic_shifts.clear();
-    const size_t upper_bound = idx_data->getLocalPETScIndices().size();
-    if (upper_bound == 0) return;
-    local_indices.reserve(upper_bound);
-    periodic_shifts.reserve(NDIM * upper_bound);
-
-    const Box<NDIM>& patch_box = patch->getBox();
-    const hier::Index<NDIM>& ilower = patch_box.lower();
-    const hier::Index<NDIM>& iupper = patch_box.upper();
-    const Box<NDIM>& ghost_box = idx_data->getGhostBox();
-
-    const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
-    const double* const dx = pgeom->getDx();
-    std::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    cell_indices.clear();
+    cell_fractions.clear();
+    const std::vector<int>& candidate_indices = idx_data->getLocalPETScIndices();
+    const std::vector<double>& candidate_shifts = idx_data->getPeriodicShifts();
+    const std::vector<int>& candidate_offsets = idx_data->getPeriodicOffsets();
+    const size_t num_candidates = candidate_indices.size();
+    if (num_candidates == 0)
     {
-        patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 0);
-        patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 1);
+        return;
     }
+    local_indices.reserve(num_candidates);
+    periodic_shifts.reserve(NDIM * num_candidates);
+    cell_indices.reserve(NDIM * num_candidates);
+    cell_fractions.reserve(NDIM * num_candidates);
 
-    if (box == patch_box)
+    const double* const x_lower = idx_data->getDomainXLower();
+    const double* const x_upper = idx_data->getDomainXUpper();
+    const double* const dx = idx_data->getLevelDx();
+    const Box<NDIM>& domain_box = idx_data->getLevelDomainBox();
+    const IntVector<NDIM>& num_periodic_cells = idx_data->getLevelPeriodicShift();
+
+    // Locate each point by one cell of the level, from the domain origin, after wrapping it into each periodic
+    // direction, so that position and shift are never added.
+    std::array<int, NDIM> image_cell{};
+    std::array<double, NDIM> cell_fraction{};
+    hier::Index<NDIM> selection_cell(0);
+    for (size_t k = 0; k < num_candidates; ++k)
     {
-        local_indices = idx_data->getInteriorLocalPETScIndices();
-        periodic_shifts = idx_data->getInteriorPeriodicShifts();
-    }
-    else if (box == ghost_box)
-    {
-        local_indices = idx_data->getLocalPETScIndices();
-        periodic_shifts = idx_data->getPeriodicShifts();
-    }
-    else
-    {
-        for (typename LIndexSetData<T>::SetIterator it(*idx_data); it; it++)
+        const double* const X = &X_data[X_depth * candidate_indices[k]];
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            const hier::Index<NDIM>& i = it.getIndex();
-            if (!box.contains(i)) continue;
+            const int N = num_periodic_cells(d);
+            double W = X[d];
+            int num_periods_added = 0;
+            if (N != 0)
+            {
+                W = wrap_into_periodic_interval(X[d], x_lower[d], x_upper[d]);
+                num_periods_added = static_cast<int>(std::lround((W - X[d]) / (x_upper[d] - x_lower[d])));
+            }
+            const double t = (W - x_lower[d]) / dx[d];
+            int cell = domain_box.lower(d) + static_cast<int>(std::floor(t));
 
-            std::array<int, NDIM> offset;
-            for (unsigned int d = 0; d < NDIM; ++d)
+            // W can round to the upper face of a periodic domain. The fraction is then at least 1.
+            if (N != 0 && cell > domain_box.upper(d))
             {
-                if (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
-                {
-                    offset[d] = -periodic_shift(d); // X is ABOVE the top    of the patch --- need
-                                                    // to shift DOWN
-                }
-                else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
-                {
-                    offset[d] = +periodic_shift(d); // X is BELOW the bottom of the patch ---
-                                                    // need to shift UP
-                }
-                else
-                {
-                    offset[d] = 0;
-                }
+                cell = domain_box.upper(d);
             }
-            const LSet<T>& idx_set = it.getItem();
-            for (auto n = idx_set.begin(); n != idx_set.end(); ++n)
-            {
-                const typename LSet<T>::value_type& idx = *n;
-                local_indices.push_back(idx->getLocalPETScIndex());
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    periodic_shifts.push_back(static_cast<double>(offset[d]) * dx[d]);
-                }
-            }
+            cell_fraction[d] = t - static_cast<double>(cell - domain_box.lower(d));
+            const int image_offset = candidate_offsets[NDIM * k + d] - num_periods_added * N;
+            image_cell[d] = cell + image_offset;
+
+            // A position beyond a physical boundary is selected by the adjacent domain cell.
+            selection_cell(d) = std::min(std::max(cell, domain_box.lower(d)), domain_box.upper(d)) + image_offset;
+        }
+        if (!box.contains(selection_cell))
+        {
+            continue;
+        }
+        local_indices.push_back(candidate_indices[k]);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            periodic_shifts.push_back(candidate_shifts[NDIM * k + d]);
+            cell_indices.push_back(image_cell[d]);
+            cell_fractions.push_back(cell_fraction[d]);
         }
     }
     return;
@@ -6152,6 +6466,8 @@ LEInteractor::userDefinedInterpolate(double* Q,
                                      const double* const dx,
                                      const int* const local_indices,
                                      const double* const X_shift,
+                                     const int* const nearest_indices,
+                                     const int* const bracket_indices,
                                      const int num_local_indices)
 {
     const int* const ilower = q_data_box.lower();
@@ -6172,36 +6488,18 @@ LEInteractor::userDefinedInterpolate(double* Q,
     {
         const int s = local_indices[l];
 
-        // Determine the Cartesian cell in which X(s) is located.
+        // An odd-width stencil is centered on the data point nearest X(s), and an even-width one has half of its
+        // points at or below the data point below X(s).
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            stencil_center[d] =
-                static_cast<int>(std::floor((X[d + s * NDIM] + X_shift[d + l * NDIM] - x_lower[d]) / dx[d])) +
-                ilower[d];
+            stencil_center[d] = nearest_indices[d + l * NDIM];
             X_cell[d] = x_lower[d] + (static_cast<double>(stencil_center[d] - ilower[d]) + 0.5) * dx[d];
-        }
-
-        // Determine the interpolation stencil corresponding to the position of
-        // X(s) within the cell.
-        if (s_kernel_fcn_stencil_size % 2 == 0)
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
+            if (s_kernel_fcn_stencil_size % 2 == 0)
             {
-                if (X[d + s * NDIM] < X_cell[d])
-                {
-                    stencil_lower[d] = stencil_center[d] - s_kernel_fcn_stencil_size / 2;
-                    stencil_upper[d] = stencil_center[d] + s_kernel_fcn_stencil_size / 2 - 1;
-                }
-                else
-                {
-                    stencil_lower[d] = stencil_center[d] - s_kernel_fcn_stencil_size / 2 + 1;
-                    stencil_upper[d] = stencil_center[d] + s_kernel_fcn_stencil_size / 2;
-                }
+                stencil_lower[d] = bracket_indices[d + l * NDIM] - s_kernel_fcn_stencil_size / 2 + 1;
+                stencil_upper[d] = bracket_indices[d + l * NDIM] + s_kernel_fcn_stencil_size / 2;
             }
-        }
-        else
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
+            else
             {
                 stencil_lower[d] = stencil_center[d] - s_kernel_fcn_stencil_size / 2;
                 stencil_upper[d] = stencil_center[d] + s_kernel_fcn_stencil_size / 2;
@@ -6280,6 +6578,8 @@ LEInteractor::userDefinedSpread(double* q,
                                 const double* const X,
                                 const int* const local_indices,
                                 const double* const X_shift,
+                                const int* const nearest_indices,
+                                const int* const bracket_indices,
                                 const int num_local_indices)
 {
     const int* const ilower = q_data_box.lower();
@@ -6300,36 +6600,18 @@ LEInteractor::userDefinedSpread(double* q,
     {
         const int s = local_indices[l];
 
-        // Determine the Cartesian cell in which X(s) is located.
+        // An odd-width stencil is centered on the data point nearest X(s), and an even-width one has half of its
+        // points at or below the data point below X(s).
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            stencil_center[d] =
-                static_cast<int>(std::floor((X[d + s * NDIM] + X_shift[d + l * NDIM] - x_lower[d]) / dx[d])) +
-                ilower[d];
+            stencil_center[d] = nearest_indices[d + l * NDIM];
             X_cell[d] = x_lower[d] + (static_cast<double>(stencil_center[d] - ilower[d]) + 0.5) * dx[d];
-        }
-
-        // Determine the interpolation stencil corresponding to the position of
-        // X(s) within the cell.
-        if (s_kernel_fcn_stencil_size % 2 == 0)
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
+            if (s_kernel_fcn_stencil_size % 2 == 0)
             {
-                if (X[d + s * NDIM] < X_cell[d])
-                {
-                    stencil_lower[d] = stencil_center[d] - s_kernel_fcn_stencil_size / 2;
-                    stencil_upper[d] = stencil_center[d] + s_kernel_fcn_stencil_size / 2 - 1;
-                }
-                else
-                {
-                    stencil_lower[d] = stencil_center[d] - s_kernel_fcn_stencil_size / 2 + 1;
-                    stencil_upper[d] = stencil_center[d] + s_kernel_fcn_stencil_size / 2;
-                }
+                stencil_lower[d] = bracket_indices[d + l * NDIM] - s_kernel_fcn_stencil_size / 2 + 1;
+                stencil_upper[d] = bracket_indices[d + l * NDIM] + s_kernel_fcn_stencil_size / 2;
             }
-        }
-        else
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
+            else
             {
                 stencil_lower[d] = stencil_center[d] - s_kernel_fcn_stencil_size / 2;
                 stencil_upper[d] = stencil_center[d] + s_kernel_fcn_stencil_size / 2;
@@ -6407,7 +6689,6 @@ template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_dat
                                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                               const SAMRAI::hier::Box<NDIM>& interp_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                               const std::string& interp_fcn);
 
 template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
@@ -6416,7 +6697,6 @@ template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_dat
                                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                               const SAMRAI::hier::Box<NDIM>& interp_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                               const std::string& interp_fcn);
 
 template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
@@ -6425,7 +6705,6 @@ template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_dat
                                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                               const SAMRAI::hier::Box<NDIM>& interp_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                               const std::string& interp_fcn);
 
 template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
@@ -6434,7 +6713,6 @@ template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_dat
                                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                               const SAMRAI::hier::Box<NDIM>& interp_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                               const std::string& interp_fcn);
 
 template void IBTK::LEInteractor::interpolate(double* const Q_data,
@@ -6445,7 +6723,6 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                               const SAMRAI::hier::Box<NDIM>& interp_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                               const std::string& interp_fcn);
 
 template void IBTK::LEInteractor::interpolate(double* const Q_data,
@@ -6456,7 +6733,6 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                               const SAMRAI::hier::Box<NDIM>& interp_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                               const std::string& interp_fcn);
 
 template void IBTK::LEInteractor::interpolate(double* const Q_data,
@@ -6467,7 +6743,6 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                               const SAMRAI::hier::Box<NDIM>& interp_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                               const std::string& interp_fcn);
 
 template void IBTK::LEInteractor::interpolate(double* const Q_data,
@@ -6478,7 +6753,6 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
                                               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                               const SAMRAI::hier::Box<NDIM>& interp_box,
-                                              const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                               const std::string& interp_fcn);
 
 template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
@@ -6487,7 +6761,6 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Cel
                                          const SAMRAI::tbox::Pointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                          const SAMRAI::hier::Box<NDIM>& spread_box,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                          const std::string& spread_fcn);
 
 template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
@@ -6496,7 +6769,6 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Nod
                                          const SAMRAI::tbox::Pointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                          const SAMRAI::hier::Box<NDIM>& spread_box,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                          const std::string& spread_fcn);
 
 template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
@@ -6505,7 +6777,6 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Sid
                                          const SAMRAI::tbox::Pointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                          const SAMRAI::hier::Box<NDIM>& spread_box,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                          const std::string& spread_fcn);
 
 template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
@@ -6514,7 +6785,6 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Edg
                                          const SAMRAI::tbox::Pointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                          const SAMRAI::hier::Box<NDIM>& spread_box,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                          const std::string& spread_fcn);
 
 template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> q_data,
@@ -6525,7 +6795,6 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Cel
                                          const SAMRAI::tbox::Pointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                          const SAMRAI::hier::Box<NDIM>& spread_box,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                          const std::string& spread_fcn);
 
 template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double>> q_data,
@@ -6536,7 +6805,6 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Nod
                                          const SAMRAI::tbox::Pointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                          const SAMRAI::hier::Box<NDIM>& spread_box,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                          const std::string& spread_fcn);
 
 template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> q_data,
@@ -6547,7 +6815,6 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Sid
                                          const SAMRAI::tbox::Pointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                          const SAMRAI::hier::Box<NDIM>& spread_box,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                          const std::string& spread_fcn);
 
 template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double>> q_data,
@@ -6558,14 +6825,15 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Edg
                                          const SAMRAI::tbox::Pointer<LIndexSetData<LNode>> idx_data,
                                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                          const SAMRAI::hier::Box<NDIM>& spread_box,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
                                          const std::string& spread_fcn);
 
 template void IBTK::LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                                     std::vector<double>& periodic_shifts,
+                                                    std::vector<int>& cell_indices,
+                                                    std::vector<double>& cell_fractions,
                                                     const SAMRAI::hier::Box<NDIM>& box,
-                                                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                                                    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                                                    const double* X_data,
+                                                    int X_depth,
                                                     const SAMRAI::tbox::Pointer<LIndexSetData<LNode>> idx_data);
 
 //////////////////////////////////////////////////////////////////////////////

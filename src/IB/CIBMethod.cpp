@@ -637,8 +637,16 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
         bool* X_half_needs_ghost_fill;
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
-        d_l_data_manager->interp(
-            u_data_idx, *U_half_data, *X_half_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
+        d_l_data_manager->interp(u_data_idx,
+                                 *U_half_data,
+                                 *X_half_data,
+                                 u_synch_scheds,
+                                 u_ghost_fill_scheds,
+                                 data_time,
+                                 invalid_level_number,
+                                 invalid_level_number,
+                                 *X_half_needs_ghost_fill);
+        *X_half_needs_ghost_fill = false;
 
         d_lag_velvec_is_initialized = false;
     }

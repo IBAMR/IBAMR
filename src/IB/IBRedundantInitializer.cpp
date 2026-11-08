@@ -1465,9 +1465,7 @@ IBRedundantInitializer::getShiftedVertexPosn(const std::pair<int, int>& point_in
     {
         if (periodic_shift[d])
         {
-            double domain_length = domain_x_upper[d] - domain_x_lower[d];
-            while (X[d] < domain_x_lower[d]) X[d] += domain_length;
-            while (X[d] >= domain_x_upper[d]) X[d] -= domain_length;
+            X[d] = wrap_into_periodic_interval(X[d], domain_x_lower[d], domain_x_upper[d]);
             TBOX_ASSERT(X[d] >= domain_x_lower[d] && X[d] < domain_x_upper[d]);
             X[d] = IndexUtilities::clampToDomain(X[d], domain_x_lower[d], domain_x_upper[d]);
         }

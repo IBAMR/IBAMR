@@ -27,10 +27,16 @@
 #include <Box.h>
 #include <IntVector.h>
 
+#include <array>
 #include <vector>
 
 namespace SAMRAI
 {
+namespace geom
+{
+template <int DIM>
+class CartesianGridGeometry;
+} // namespace geom
 namespace hier
 {
 template <int DIM>
@@ -67,10 +73,14 @@ public:
     virtual ~LIndexSetData() = default;
 
     /*!
-     * \brief Update the cached indexing data.
+     * \brief Update the cached indexing data, and store the geometry of the level, with refinement ratio \a ratio, that
+     * locates the points of the entries.
+     *
+     * The physical domain must be a single rectangular box.
      */
     void cacheLocalIndices(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                           const SAMRAI::hier::IntVector<NDIM>& periodic_shift);
+                           SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geom,
+                           const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * \return A constant reference to the set of Lagrangian data indices that
@@ -144,6 +154,37 @@ public:
      */
     const std::vector<double>& getGhostPeriodicShifts() const;
 
+    /*!
+     * \return A constant reference to the periodic offsets, in cells of the level, of the indices that lie in the patch
+     * (including the ghost cell region), NDIM per index.
+     */
+    const std::vector<int>& getPeriodicOffsets() const;
+
+    /*!
+     * \return The lower corner of the physical domain.
+     */
+    const double* getDomainXLower() const;
+
+    /*!
+     * \return The upper corner of the physical domain.
+     */
+    const double* getDomainXUpper() const;
+
+    /*!
+     * \return The grid spacing of the level.
+     */
+    const double* getLevelDx() const;
+
+    /*!
+     * \return The physical domain in the index space of the level.
+     */
+    const SAMRAI::hier::Box<NDIM>& getLevelDomainBox() const;
+
+    /*!
+     * \return The number of cells of the level in each periodic direction, and zero in each other direction.
+     */
+    const SAMRAI::hier::IntVector<NDIM>& getLevelPeriodicShift() const;
+
 private:
     /*!
      * \brief Default constructor.
@@ -176,6 +217,10 @@ private:
     std::vector<int> d_global_petsc_indices, d_interior_global_petsc_indices, d_ghost_global_petsc_indices;
     std::vector<int> d_local_petsc_indices, d_interior_local_petsc_indices, d_ghost_local_petsc_indices;
     std::vector<double> d_periodic_shifts, d_interior_periodic_shifts, d_ghost_periodic_shifts;
+    std::vector<int> d_periodic_offsets;
+    std::array<double, NDIM> d_domain_x_lower{}, d_domain_x_upper{}, d_level_dx{};
+    SAMRAI::hier::Box<NDIM> d_level_domain_box;
+    SAMRAI::hier::IntVector<NDIM> d_level_periodic_shift = SAMRAI::hier::IntVector<NDIM>(0);
 };
 } // namespace IBTK
 
