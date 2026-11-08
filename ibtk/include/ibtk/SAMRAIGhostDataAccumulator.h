@@ -24,19 +24,33 @@
 
 #include <tbox/Pointer.h>
 
-#include <petscvec.h>
-
 #include <BasePatchHierarchy.h>
-#include <RefineSchedule.h>
+#include <IntVector.h>
 #include <Variable.h>
 
+#include <memory>
 #include <vector>
 
 namespace IBTK
 {
+class RobinPhysBdryPatchStrategy;
+
 /*!
- * \brief Class that can accumulate data summed into ghost regions on a patch
- * hierarchy into their correct locations.
+ * \brief Class SAMRAIGhostDataAccumulator sums the ghost-region values of patches into the patches that own them.
+ *
+ * Each level in the range given to the constructor is summed independently, including its periodic images. Ghost cells
+ * that no patch of the level owns, such as those at a coarse-fine interface, are not summed. Cell-centered and
+ * side-centered double precision data are supported. Afterward the copies of a location in the patch interiors agree to
+ * round-off. The values in ghost regions are unspecified.
+ *
+ * The accumulation stops with an error unless:
+ * - patches are at least as wide as the ghost cell width in every direction in which the level has adjacent patches
+ *   (within the ghost cell width of each other) or is periodic;
+ * - each patch touches a physical boundary or is at least as far from it as the ghost cell width (for cell-centered
+ *   data, also a periodic boundary);
+ * - the levels are those that the constructor received.
+ *
+ * Destroy the object before regridding or redistributing the levels.
  */
 class SAMRAIGhostDataAccumulator
 {
@@ -51,17 +65,49 @@ public:
                                const int finest_ln);
 
     /*!
-     * Accumulate data by summing values in ghost positions into the entry on
-     * the owning processor associated with the same degree of freedom.
-     */
-    void accumulateGhostData(const int idx);
-
-    /*!
      * Destructor.
      */
     ~SAMRAIGhostDataAccumulator();
 
-protected:
+    /*!
+     * Accumulate data without applying the transpose of a physical boundary fill.
+     *
+     * @deprecated Use the overload with a boundary operator, and pass a null operator.
+     */
+    IBTK_DEPRECATED(
+        "Use accumulateGhostData(int, RobinPhysBdryPatchStrategy*, double, const "
+        "std::vector<std::vector<int>>*) with a null boundary operator instead.")
+    void accumulateGhostData(const int idx);
+
+    /*!
+     * Accumulate the data with patch data index \a idx in place, including the transpose of the physical boundary fill
+     * of \a bdry_op. All processes must call this function.
+     *
+     * \param idx  Patch data index of the data, with the ghost cell width of the constructor.
+     * \param bdry_op  Boundary operator whose patch data index is set to \a idx, or null for no transpose.
+     * \param fill_time  Time at which the boundary operator is evaluated.
+     * \param active_patch_nums  If not null, one vector per level, coarsest first, of the numbers of the patches owned
+     * by this process whose data may be nonzero. The function skips the other patches, whose data must be zero.
+     */
+    void accumulateGhostData(int idx,
+                             RobinPhysBdryPatchStrategy* bdry_op,
+                             double fill_time,
+                             const std::vector<std::vector<int>>* active_patch_nums = nullptr);
+
+private:
+    SAMRAIGhostDataAccumulator(const SAMRAIGhostDataAccumulator&) = delete;
+    SAMRAIGhostDataAccumulator& operator=(const SAMRAIGhostDataAccumulator&) = delete;
+
+    /*!
+     * The schedules associated with one level and their state, built when the level is first used.
+     */
+    struct LevelSchedules;
+
+    /*!
+     * Check the level and build its schedule, unless this has been done.
+     */
+    void initializeLevel(int ln);
+
     /*!
      * Pointer to the patch hierarchy under consideration.
      */
@@ -93,20 +139,14 @@ protected:
     bool d_cc_data = true;
 
     /*!
-     * Index into d_hierarchy that contains the dof numbering.
+     * Patch data index of the copy of the values that are summed.
      */
-    int d_global_dof_idx = IBTK::invalid_index;
+    int d_scratch_idx = IBTK::invalid_index;
 
     /*!
-     * Index into d_hierarchy that contains the local (i.e., the indices
-     * directly into the buffer owned by each Vec in d_vecs) dof numbering.
+     * The schedules associated with each level, indexed by level number.
      */
-    int d_local_dof_idx = IBTK::invalid_index;
-
-    /*!
-     * PETSc Vec objects storing the global ordering on each level.
-     */
-    std::vector<Vec> d_vecs;
+    std::vector<std::unique_ptr<LevelSchedules>> d_level_schedules;
 };
 } // namespace IBTK
 

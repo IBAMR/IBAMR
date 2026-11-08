@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    SAMRAIGhostDataAccumulator::check_patch_widths():
+  patch 1 of level 0 (box [(0,4),(2,5)]) is 2 cells wide along axis 1, less than the ghost cell width 3
+  patches must be at least as wide as the ghost cell width along every axis in which the level has adjacent patches or is periodic
+
