@@ -67,6 +67,31 @@ class PoissonUtilities
 {
 public:
     /*!
+     * \brief The weights of the ghost value in the first layer beyond a physical boundary with the Robin condition
+     * a*u_b + b*u_n = g.
+     *
+     * The ghost value is f_i*u_0 + f_i2*u_1 + h*(g_num/g_den)*g, in which u_0 and u_1 are the values in the two layers
+     * nearest the boundary, h is the grid spacing normal to the boundary, and u_b and u_n are the value and the outward
+     * normal derivative at the boundary.
+     */
+    struct GhostValueWeights
+    {
+        double f_i = 0.0;
+        double f_i2 = 0.0;
+        double g_num = 0.0;
+        double g_den = 0.0;
+    };
+
+    /*!
+     * Return the weights of the ghost value at a boundary with Robin coefficients a and b, for a grid spacing h normal
+     * to the boundary.
+     *
+     * Linear interpolation uses u_b = (u_G + u_0)/2 and u_n = (u_G - u_0)/h, in which u_G is the ghost value, and has
+     * f_i2 = 0. The interpolation type must be "LINEAR".
+     */
+    static GhostValueWeights computeGhostValueWeights(BdryInterpType bdry_interp_type, double a, double b, double h);
+
+    /*!
      * Compute the matrix coefficients corresponding to a cell-centered
      * discretization of the Laplacian.
      */
