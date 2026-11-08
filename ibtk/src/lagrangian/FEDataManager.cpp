@@ -489,6 +489,12 @@ FEDataManager::getPatchHierarchy() const
     return d_hierarchy;
 } // getPatchHierarchy
 
+const InterpolationStencilCheck&
+FEDataManager::getInterpolationStencilCheck() const
+{
+    return d_interp_check;
+} // getInterpolationStencilCheck
+
 int
 FEDataManager::getCoarsestPatchLevelNumber() const
 {
@@ -554,6 +560,7 @@ FEDataManager::reinitElementMappings()
     d_L2_proj_matrix_diag_ghost.clear();
 
     // Delete cached hierarchy-dependent data.
+    d_interp_check.reset(d_hierarchy);
     d_active_patch_elem_map.clear();
     d_active_patch_elem_map.resize(d_max_level_number + 1);
     d_active_patch_node_map.clear();
@@ -1867,6 +1874,13 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 // inadvertently exclude the selected points.
                 const Box<NDIM>& interp_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(1));
                 Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_data_idx);
+                d_interp_check.check("FEDataManager::interpWeighted",
+                                     patch,
+                                     *f_data,
+                                     interp_box,
+                                     X_node.data(),
+                                     static_cast<int>(X_node.size()),
+                                     interp_spec.kernel_fcn);
                 if (cc_data)
                 {
                     Pointer<CellData<NDIM, double>> f_cc_data = f_data;
@@ -1993,6 +2007,13 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 // that are within the patch interior.
                 const Box<NDIM>& interp_box = patch->getBox();
                 Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_data_idx);
+                d_interp_check.check("FEDataManager::interpWeighted",
+                                     patch,
+                                     *f_data,
+                                     interp_box,
+                                     X_qp.data(),
+                                     static_cast<int>(X_qp.size()),
+                                     interp_spec.kernel_fcn);
                 if (cc_data)
                 {
                     Pointer<CellData<NDIM, double>> f_cc_data = f_data;

@@ -1,0 +1,10 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+IBRedundantInitializer:  Deallocating initialization data.
+Program abort called with error message
+
+    LDataManager::interp():
+  the stencil of the point at (0.234375, 0.209375) on level 1 includes the cell (9,8), where the data are unset
+  enlarge the tag buffer or the refined region of level 1
+

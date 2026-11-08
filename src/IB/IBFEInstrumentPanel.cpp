@@ -354,15 +354,31 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                 }
             }
 
+            const InterpolationStencilCheck& interp_check =
+                ib_method_ops->getFEDataManager(d_part)->getInterpolationStencilCheck();
             Pointer<CellData<NDIM, double>> u_cc_data = patch->getPatchData(U_data_idx);
             Pointer<SideData<NDIM, double>> u_sc_data = patch->getPatchData(U_data_idx);
             if (u_cc_data)
             {
+                interp_check.check("IBFEInstrumentPanel::readInstrumentData",
+                                   patch,
+                                   *u_cc_data,
+                                   u_cc_data->getGhostBox(),
+                                   x_qp.data(),
+                                   static_cast<int>(x_qp.size()),
+                                   d_u_interp_fcn);
                 LEInteractor::interpolate(
                     u_qp, NDIM, x_qp, NDIM, u_cc_data, patch, u_cc_data->getGhostBox(), d_u_interp_fcn);
             }
             else if (u_sc_data)
             {
+                interp_check.check("IBFEInstrumentPanel::readInstrumentData",
+                                   patch,
+                                   *u_sc_data,
+                                   u_sc_data->getGhostBox(),
+                                   x_qp.data(),
+                                   static_cast<int>(x_qp.size()),
+                                   d_u_interp_fcn);
                 LEInteractor::interpolate(
                     u_qp, NDIM, x_qp, NDIM, u_sc_data, patch, u_sc_data->getGhostBox(), d_u_interp_fcn);
             }
@@ -373,6 +389,13 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             Pointer<CellData<NDIM, double>> p_cc_data = patch->getPatchData(P_data_idx);
             if (p_cc_data)
             {
+                interp_check.check("IBFEInstrumentPanel::readInstrumentData",
+                                   patch,
+                                   *p_cc_data,
+                                   p_cc_data->getGhostBox(),
+                                   x_qp.data(),
+                                   static_cast<int>(x_qp.size()),
+                                   d_p_interp_fcn);
                 LEInteractor::interpolate(
                     p_qp, 1, x_qp, NDIM, p_cc_data, patch, p_cc_data->getGhostBox(), d_p_interp_fcn);
             }
@@ -454,6 +477,14 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                 Pointer<CellData<NDIM, double>> p_cc_data = patch->getPatchData(P_data_idx);
                 if (p_cc_data)
                 {
+                    ib_method_ops->getFEDataManager(d_part)->getInterpolationStencilCheck().check(
+                        "IBFEInstrumentPanel::readInstrumentData",
+                        patch,
+                        *p_cc_data,
+                        p_cc_data->getGhostBox(),
+                        &x_centroid(0),
+                        NDIM,
+                        d_p_interp_fcn);
                     LEInteractor::interpolate(&d_centroid_pressure_values[meter_idx],
                                               1,
                                               1,

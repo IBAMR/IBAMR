@@ -500,6 +500,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             // that are within the patch interior.
             const Box<NDIM>& interp_box = patch->getBox();
             Pointer<PatchData<NDIM>> u_data = patch->getPatchData(u_data_idx);
+            d_fe_data_managers[part]->getInterpolationStencilCheck().check("IBFESurfaceMethod::interpolateVelocity",
+                                                                           patch,
+                                                                           *u_data,
+                                                                           interp_box,
+                                                                           x_qp.data(),
+                                                                           static_cast<int>(x_qp.size()),
+                                                                           d_default_interp_spec.kernel_fcn);
             Pointer<CellData<NDIM, double>> u_cc_data = u_data;
             if (u_cc_data)
             {

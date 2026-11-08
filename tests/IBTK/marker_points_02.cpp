@@ -64,6 +64,8 @@ main(int argc, char** argv)
     IBTK::IBTKInit ibtk_init(argc, argv);
     // Skip warnings:
     Logger::getInstance()->setWarning(false);
+    // Print errors without the path of the source file.
+    Logger::getInstance()->setAbortAppender(new TestAppender());
 
     const auto rank = IBTK_MPI::getRank();
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);

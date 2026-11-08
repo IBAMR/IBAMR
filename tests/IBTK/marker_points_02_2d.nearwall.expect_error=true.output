@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    MarkerPatchHierarchy::do_interpolation():
+  the stencil of the point at (0.9, 0) on level 1 includes the cell (24,-2) outside the physical domain, beside a boundary that the patch with box [(4,0),(21,23)] does not touch
+  patches must touch a physical boundary or be at least as far from it as the ghost cell width
+

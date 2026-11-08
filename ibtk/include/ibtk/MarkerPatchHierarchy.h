@@ -20,6 +20,7 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/InterpolationStencilCheck.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Database.h>
@@ -277,6 +278,8 @@ protected:
     std::size_t d_num_markers;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
+
+    InterpolationStencilCheck d_interp_check;
 
     std::vector<std::deque<MarkerPatch>> d_marker_patches;
 

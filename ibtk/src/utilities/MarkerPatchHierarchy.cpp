@@ -175,7 +175,8 @@ collect_markers(const std::vector<double>& local_positions,
 }
 
 void
-do_interpolation(const int data_idx,
+do_interpolation(const InterpolationStencilCheck& interp_check,
+                 const int data_idx,
                  const std::vector<double>& positions,
                  const Pointer<Patch<NDIM>> patch,
                  const std::string& kernel,
@@ -190,6 +191,13 @@ do_interpolation(const int data_idx,
     // guaranteed to have more ghost data than that
     Box<NDIM> interp_box = data->getBox();
     interp_box.grow(1);
+    interp_check.check("MarkerPatchHierarchy::do_interpolation",
+                       patch,
+                       *data,
+                       interp_box,
+                       positions.data(),
+                       static_cast<int>(positions.size()),
+                       kernel);
 #ifndef NDEBUG
     std::fill(velocities.begin(), velocities.end(), std::numeric_limits<double>::signaling_NaN());
 #endif
@@ -374,6 +382,7 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
 {
     TBOX_ASSERT(positions.size() == velocities.size());
     IBTK_TIMER_START(t_reinit);
+    d_interp_check.reset(d_hierarchy, /*fill_sets_uncovered*/ true);
     d_num_markers = positions.size();
     const auto rank = IBTK_MPI::getRank();
     const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
@@ -797,7 +806,8 @@ MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
             {
                 Pointer<Patch<NDIM>> patch = current_level->getPatch(p);
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
-                do_interpolation(u_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
+                do_interpolation(
+                    d_interp_check, u_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
                 ++local_patch_num;
             }
         }
@@ -867,7 +877,8 @@ MarkerPatchHierarchy::interpolateInCurrentPatches(
         std::vector<double> inside_velocities(inside_positions.size());
         if (!inside_markers.empty())
         {
-            do_interpolation(u_idx, inside_positions, local_marker_patches[i].second, kernel, inside_velocities);
+            do_interpolation(
+                d_interp_check, u_idx, inside_positions, local_marker_patches[i].second, kernel, inside_velocities);
         }
         for (unsigned int n = 0; n < inside_markers.size(); ++n)
         {
@@ -926,7 +937,7 @@ MarkerPatchHierarchy::interpolateInCurrentPatches(
         }
         if (markers.empty()) continue;
         std::vector<double> velocities_i(patch_positions.size());
-        do_interpolation(u_idx, patch_positions, local_marker_patches[i].second, kernel, velocities_i);
+        do_interpolation(d_interp_check, u_idx, patch_positions, local_marker_patches[i].second, kernel, velocities_i);
         for (unsigned int n = 0; n < markers.size(); ++n)
         {
             std::copy_n(&velocities_i[NDIM * n], NDIM, &interpolated_velocities[NDIM * markers[n]]);
