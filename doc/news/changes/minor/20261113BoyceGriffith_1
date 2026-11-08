@@ -1,0 +1,3 @@
+Fixed: Make the spreading functions of IBAMR::IBFEMethod and IBAMR::IBFESurfaceMethod leave the patch data indices of the boundary operator unchanged. IBTK::SAMRAIGhostDataAccumulator::accumulateGhostData() and the spreading function of IBTK::FEDataManager restore them.
+<br>
+(Boyce Griffith, 2026/11/13)
