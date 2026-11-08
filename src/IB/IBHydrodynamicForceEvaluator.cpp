@@ -145,13 +145,15 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
             double num_cells_lower = (box_X_lower[d] - grid_X_lower[d]) / dx_coarsest[d];
             double num_cells_upper = (box_X_upper[d] - grid_X_lower[d]) / dx_coarsest[d];
 
-            // A face that is not aligned moves outward. Each face is then placed at the coordinate of its side,
-            // because the cell indices of the box are computed from the coordinates by rounding down.
+            // Move an unaligned face outward, then place each face at the coordinate of its side, because the cell
+            // indices of the box are computed from the coordinates by rounding down.
             const bool lower_is_aligned = IBTK::abs_equal_eps(num_cells_lower, std::round(num_cells_lower));
             if (!lower_is_aligned)
             {
-                TBOX_WARNING("Lower side of integration box is not aligned with sides on coarsest level in dimension "
-                             << d << ". Moving it down to the nearest side below it\n");
+                TBOX_WARNING(
+                    "IBHydrodynamicForceEvaluator::registerStructure(). Lower side of integration box is not "
+                    "aligned with sides on coarsest level in dimension "
+                    << d << ". The lower side is moved down to the nearest coarsest-level cell side.\n");
                 modified_box = true;
             }
             const double side_lower = lower_is_aligned ? std::round(num_cells_lower) : std::floor(num_cells_lower);
@@ -160,8 +162,10 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
             const bool upper_is_aligned = IBTK::abs_equal_eps(num_cells_upper, std::round(num_cells_upper));
             if (!upper_is_aligned)
             {
-                TBOX_WARNING("Upper side of integration box is not aligned with sides on coarsest level in dimension "
-                             << d << ". Moving it up to the nearest side above it\n");
+                TBOX_WARNING(
+                    "IBHydrodynamicForceEvaluator::registerStructure(). Upper side of integration box is not "
+                    "aligned with sides on coarsest level in dimension "
+                    << d << ". The upper side is moved up to the nearest coarsest-level cell side.\n");
                 modified_box = true;
             }
             const double side_upper = upper_is_aligned ? std::round(num_cells_upper) : std::ceil(num_cells_upper);
