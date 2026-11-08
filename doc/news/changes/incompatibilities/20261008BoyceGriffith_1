@@ -1,0 +1,3 @@
+Changed: Add the pressure boundary condition object as a trailing argument of IBAMR::StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(). IBAMR::StaggeredStokesPETScLevelSolver::initializeSolverState() stops with an error if the velocity or pressure data of the solution or right-hand side vector has no ghost cell.
+<br>
+(Boyce Griffith, 2026/10/08)

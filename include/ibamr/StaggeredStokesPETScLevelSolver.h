@@ -66,8 +66,9 @@ namespace IBAMR
  * At the start of each solve, the solver sets the velocity ghost values of \a x
  * that lie in other patches of the level, including across periodic boundaries,
  * to the interior values of those patches, because the velocity boundary
- * condition objects read them; they keep these values on return.  The velocity
- * and pressure data of the vectors need a ghost cell width of at least one.
+ * condition objects read them; they keep these values on return.
+ * initializeSolverState() stops with an error unless the velocity and pressure
+ * data of the vectors have a ghost cell width of at least one.
  *
  * If the level has physical boundaries, setPhysicalBoundaryHelper() must be called before initialization with a
  * helper that has cached boundary data for the hierarchy.
