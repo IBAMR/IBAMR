@@ -125,7 +125,7 @@ main(int argc, char* argv[])
 
     Pointer<AppInitializer> initializer =
         new AppInitializer(static_cast<int>(storage.size()), args.data(), "petsc_options_file.log");
-    // Normal continuation must return success, so attest rejects an expected-error case.
+    // Return success in an expected-error case so that attest reports the missing error.
     if (input_path.string().find(".expect_error=true.") != std::string::npos) return EXIT_SUCCESS;
     Pointer<Database> input = initializer->getInputDatabase();
     if (input->isDatabase("Expected")) verify_values(input->getDatabase("Expected"));
