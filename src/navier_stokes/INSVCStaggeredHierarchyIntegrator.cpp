@@ -569,7 +569,7 @@ INSVCStaggeredHierarchyIntegrator::getConvectiveOperator()
                                                                   d_object_name + "::ConvectiveOperator",
                                                                   d_convective_op_input_db,
                                                                   d_convective_difference_form,
-                                                                  d_U_bc_coefs);
+                                                                  getDivergenceFreeVelocityPhysBdryOp());
         d_convective_op_needs_init = true;
     }
     return d_convective_op;

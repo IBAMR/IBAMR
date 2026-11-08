@@ -28,16 +28,11 @@
 
 #include <map>
 #include <string>
-#include <vector>
 
-namespace SAMRAI
+namespace IBTK
 {
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
-} // namespace SAMRAI
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -81,23 +76,23 @@ public:
     static void freeManager();
 
     /*!
-     * Allocate a new INSStaggeredConvectiveOperator object of the specified type.
+     * Allocate a new INSStaggeredConvectiveOperator object of the specified type. The caller owns the non-null operator
+     * u_phys_bdry_op, which fills the velocity ghost values at physical boundaries.
      */
-    SAMRAI::tbox::Pointer<ConvectiveOperator>
-    allocateOperator(const std::string& operator_type,
-                     const std::string& operator_object_name,
-                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                     ConvectiveDifferencingType difference_form,
-                     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) const;
+    SAMRAI::tbox::Pointer<ConvectiveOperator> allocateOperator(const std::string& operator_type,
+                                                               const std::string& operator_object_name,
+                                                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                               ConvectiveDifferencingType difference_form,
+                                                               IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op) const;
 
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
      */
-    using OperatorMaker = SAMRAI::tbox::Pointer<ConvectiveOperator> (*)(
-        const std::string& operator_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    using OperatorMaker =
+        SAMRAI::tbox::Pointer<ConvectiveOperator> (*)(const std::string& operator_object_name,
+                                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                      ConvectiveDifferencingType difference_form,
+                                                      IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op);
 
     /*!
      * Register a operator factory function with the operator manager class.

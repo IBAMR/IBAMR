@@ -61,15 +61,6 @@
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
-namespace SAMRAI
-{
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
-} // namespace SAMRAI
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -213,16 +204,12 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
                                                                            "CONSERVATIVE_COARSEN",
                                                                            d_velocity_bdry_extrap_type,
                                                                            false,
-                                                                           d_u_bc_coefs } });
+                                                                           nullptr } });
+    v_transaction_comps[0].d_sc_phys_bdry_op = d_u_phys_bdry_op;
     d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
     d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_v_bdry_fill->fillData(d_current_time);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-        d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
     enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_bc_coefs, nullptr);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
     // Compute the old mass
@@ -306,16 +293,12 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
                                                                                           "CONSERVATIVE_COARSEN",
                                                                                           d_velocity_bdry_extrap_type,
                                                                                           false,
-                                                                                          d_u_bc_coefs } });
+                                                                                          nullptr } });
+            v_update_transaction_comps[0].d_sc_phys_bdry_op = d_u_phys_bdry_op;
             d_hier_v_bdry_fill->resetTransactionComponents(v_update_transaction_comps);
-            StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-                d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
             d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_v_bdry_fill->fillData(eval_time);
-            d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-                d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
             enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_bc_coefs, nullptr);
             d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
         }
 
