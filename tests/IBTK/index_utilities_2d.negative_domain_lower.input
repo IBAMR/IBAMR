@@ -26,7 +26,7 @@ GriddingAlgorithm {
 
    ratio_to_coarser {level_1 = 4, 4}
 
-   // a few large patches per level keep the output short
+   // a few large patches per level so that the output is short
    largest_patch_size {level_0 = 32, 32}
 
    smallest_patch_size {level_0 = 4, 4}
