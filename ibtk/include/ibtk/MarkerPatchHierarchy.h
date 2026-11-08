@@ -31,6 +31,7 @@
 #include <deque>
 #include <iosfwd>
 #include <string>
+#include <utility>
 #include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -243,6 +244,25 @@ public:
     void trapezoidalStep(const double dt, const int u_new_idx, const std::string& kernel);
 
 protected:
+    /**
+     * Return the marker patches of the patches that this process owns, from the
+     * finest level to the coarsest, with their patches.
+     */
+    std::vector<std::pair<MarkerPatch*, SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>>>> getLocalMarkerPatches();
+
+    /**
+     * Interpolate the velocity @p u_idx at @p positions, the positions of the markers of @p local_marker_patches in
+     * order, into @p velocities, with the patch whose box contains each position (beyond a physical boundary, the patch
+     * whose box contains the adjacent cell). A marker must move less than one cell width from the patch that stores it.
+     */
+    void interpolateInCurrentPatches(
+        int u_idx,
+        const std::string& kernel,
+        const std::vector<std::pair<MarkerPatch*, SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>>>>&
+            local_marker_patches,
+        const std::vector<std::vector<double>>& positions,
+        std::vector<std::vector<double>>& velocities);
+
     /**
      * Redistribute any particles which may have moved outside of their
      * patches, taking into account physical boundaries (markers are not
