@@ -21,10 +21,10 @@
 #include <ibamr/config.h>
 
 #include <ibamr/ConvectiveOperator.h>
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Database.h>
@@ -43,8 +43,6 @@ namespace solv
 {
 template <int DIM, class TYPE>
 class SAMRAIVectorReal;
-template <int DIM>
-class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
 
@@ -78,7 +76,7 @@ public:
     INSStaggeredWavePropConvectiveOperator(std::string object_name,
                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                            ConvectiveDifferencingType difference_form,
-                                           std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
+                                           IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op);
 
     /*!
      * \brief Destructor.
@@ -92,15 +90,21 @@ public:
     allocate_operator(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+                      IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op)
     {
-        return new INSStaggeredWavePropConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
+        return new INSStaggeredWavePropConvectiveOperator(object_name, input_db, difference_form, u_phys_bdry_op);
     } // allocate_operator
 
     /*!
      * \brief Compute the action of the convective operator.
      */
     void applyConvectiveOperator(int U_idx, int N_idx) override;
+
+    /*!
+     * \brief Return the ghost width of the velocity that this operator fills through the divergence-free velocity
+     * boundary operator.
+     */
+    SAMRAI::hier::IntVector<NDIM> getVelocityGhostWidth() const override;
 
     /*!
      * \name General operator functionality.
@@ -181,11 +185,10 @@ private:
      */
     INSStaggeredWavePropConvectiveOperator& operator=(const INSStaggeredWavePropConvectiveOperator& that) = delete;
 
-    // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    // Operator of the fluid solver that fills the velocity ghost values at physical boundaries.
+    IBTK::RobinPhysBdryPatchStrategy* const d_u_phys_bdry_op;
 
     // Cached communications operators.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     std::string d_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
