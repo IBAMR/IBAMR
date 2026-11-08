@@ -52,10 +52,8 @@ IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse, const SAMRAI::
 inline double
 IndexUtilities::clampToDomain(const double x, const double x_lower, const double x_upper)
 {
-    // On a domain that is far from the origin relative to its length, the
-    // offset is smaller than the spacing of the floating-point values near
-    // x_upper, and x_upper - offset is x_upper itself. The largest value below
-    // x_upper is then the upper bound.
+    // If the offset is smaller than the spacing of the floating-point values near x_upper, the upper bound is the
+    // largest value below x_upper.
     const double offset = std::sqrt(std::numeric_limits<double>::epsilon()) * (x_upper - x_lower);
     const double x_max = std::min(x_upper - offset, std::nextafter(x_upper, x_lower));
     return std::max(x_lower, std::min(x, x_max));

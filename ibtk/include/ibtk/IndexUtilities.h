@@ -164,14 +164,13 @@ public:
      * interval [\p x_lower, \p x_upper) that the computational domain
      * occupies in one coordinate direction.
      *
-     * A coordinate below \p x_lower is moved to \p x_lower. A coordinate
-     * above \p x_upper, or within the square root of machine epsilon times
-     * the length of the domain of it, is moved to that distance below
-     * \p x_upper.
+     * A coordinate below \p x_lower is moved to \p x_lower. Let d be the
+     * square root of machine epsilon times the length of the domain. A
+     * coordinate above the smaller of \p x_upper - d and the largest double
+     * below \p x_upper is moved to that value.
      *
-     * This function does not shift points on periodic domains. It is up to the
-     * caller to shift \p x with respect to periodicity before calling this
-     * function.
+     * This function does not shift \p x on periodic domains: the caller
+     * applies any periodic shift first.
      */
     static double clampToDomain(double x, double x_lower, double x_upper);
 
@@ -268,9 +267,9 @@ public:
      * assuming that the patch level covers the entire domain.
      *
      * \param num_cells Number of data array cells for a patch level, which is
-     * assumed to cover the entire domain. It can be thought of size of the
-     * rectangular array that can store the variable data for the patch
-     * level that covers the entire domain. For a cc-variable the number of data
+     * assumed to cover the entire domain. \p num_cells is the size of the
+     * rectangular array that stores the variable data on a patch level
+     * covering the entire domain. For a cc-variable the number of data
      * array cells are same as patch level cells. For a sc-variable, the number
      * of cells for the normal component exceeds the patch level cells by 1 in
      * the normal direction.

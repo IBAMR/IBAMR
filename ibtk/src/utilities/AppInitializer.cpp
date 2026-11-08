@@ -71,8 +71,9 @@ resolve_petsc_options_file(const std::filesystem::path& advertised_path, const s
         std::error_code error_code;
         bool path_exists = std::filesystem::exists(advertised_path, error_code);
         if (error_code)
-            TBOX_ERROR("IBTK_PETSC_OPTIONS_FILESYSTEM_ERROR: could not inspect PETSc options file '"
-                       << advertised_path.string() << "': " << error_code.message() << '\n');
+            TBOX_ERROR("AppInitializer::AppInitializer():\n"
+                       << "  could not inspect PETSc options file '" << advertised_path.string()
+                       << "': " << error_code.message() << '\n');
 
         std::filesystem::path resolved_path = advertised_path;
         if (!path_exists)
@@ -80,13 +81,14 @@ resolve_petsc_options_file(const std::filesystem::path& advertised_path, const s
             resolved_path = input_filename.parent_path() / advertised_path;
             path_exists = std::filesystem::exists(resolved_path, error_code);
             if (error_code)
-                TBOX_ERROR("IBTK_PETSC_OPTIONS_FILESYSTEM_ERROR: could not inspect PETSc options file '"
-                           << resolved_path.string() << "': " << error_code.message() << '\n');
+                TBOX_ERROR("AppInitializer::AppInitializer():\n"
+                           << "  could not inspect PETSc options file '" << resolved_path.string()
+                           << "': " << error_code.message() << '\n');
         }
 
         if (!path_exists)
-            TBOX_ERROR("IBTK_PETSC_OPTIONS_FILE_MISSING: could not open PETSc options file '"
-                       << advertised_path.string() << "'\n");
+            TBOX_ERROR("AppInitializer::AppInitializer():\n"
+                       << "  could not open PETSc options file '" << advertised_path.string() << "'\n");
         resolved_path_string = resolved_path.string();
     }
 
@@ -113,7 +115,9 @@ floating_point_to_string(const T value)
     char buffer[std::numeric_limits<T>::max_digits10 + FLOATING_POINT_FORMAT_OVERHEAD];
     const auto result = std::to_chars(
         buffer, buffer + sizeof(buffer), value, std::chars_format::general, std::numeric_limits<T>::max_digits10);
-    if (result.ec != std::errc{}) TBOX_ERROR("Could not format a floating-point PETSc setting\n");
+    if (result.ec != std::errc{})
+        TBOX_ERROR("AppInitializer::AppInitializer():\n"
+                   << "  could not format a floating-point PETSc setting\n");
     return std::string(buffer, result.ptr);
 }
 
@@ -165,7 +169,8 @@ insert_petsc_settings(Pointer<Database> input_db, std::set<std::string>& option_
 
         found_settings = true;
         if (!input_db->isDatabase(database_key))
-            TBOX_ERROR("PETSc settings entry '" << database_key << "' must be a database\n");
+            TBOX_ERROR("AppInitializer::AppInitializer():\n"
+                       << "  PETSc settings entry '" << database_key << "' must be a database\n");
         Pointer<Database> settings_db = input_db->getDatabase(database_key);
         const std::string prefix = database_key == PETSC_SETTINGS_KEY.data() ?
                                        "" :
@@ -175,7 +180,8 @@ insert_petsc_settings(Pointer<Database> input_db, std::set<std::string>& option_
         {
             const std::string& key = keys[key_n];
             if (settings_db->isDatabase(key) || settings_db->getArraySize(key) != 1)
-                TBOX_ERROR("PETSc setting '" << key << "' must be a scalar value\n");
+                TBOX_ERROR("AppInitializer::AppInitializer():\n"
+                           << "  PETSc setting '" << key << "' must be a scalar value\n");
 
             std::string value;
             switch (settings_db->getArrayType(key))
@@ -196,13 +202,15 @@ insert_petsc_settings(Pointer<Database> input_db, std::set<std::string>& option_
                 value = settings_db->getString(key);
                 break;
             default:
-                TBOX_ERROR("PETSc setting '" << key
-                                             << "' must be a Boolean, integer, floating-point value, or string\n");
+                TBOX_ERROR("AppInitializer::AppInitializer():\n"
+                           << "  PETSc setting '" << key
+                           << "' must be a Boolean, integer, floating-point value, or string\n");
             }
 
             const std::string name = "-" + prefix + key;
             if (!option_names.insert(to_lower_case(name)).second)
-                TBOX_ERROR("PETSc option '" << name << "' is defined more than once in inline settings\n");
+                TBOX_ERROR("AppInitializer::AppInitializer():\n"
+                           << "  PETSc option '" << name << "' is defined more than once in inline settings\n");
             int ierr = PetscOptionsSetValue(nullptr, name.c_str(), value.c_str());
             IBTK_CHKERRQ(ierr);
         }
@@ -258,13 +266,15 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         main_db = d_input_db->getDatabase("Main");
     }
 
-    // Configure PETSc options and then reapply normal PETSc sources so command-line options win.
+    // Insert the PETSc settings from the input database and then reapply the usual PETSc sources so that
+    // command-line options take precedence.
     std::set<std::string> option_names;
     const bool found_settings = insert_petsc_settings(d_input_db, option_names);
     const bool has_options_file =
         d_input_db->keyExists("PETSC_OPTIONS_FILE") || d_input_db->keyExists("petsc_options_file");
     if (found_settings && has_options_file)
-        TBOX_ERROR("Inline PETSc settings and a PETSc options file cannot both be specified\n");
+        TBOX_ERROR("AppInitializer::AppInitializer():\n"
+                   << "  inline PETSc settings and a PETSc options file cannot both be specified\n");
     if (has_options_file)
     {
         const std::string key =

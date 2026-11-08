@@ -62,10 +62,8 @@ main(int argc, char** argv)
 
     if (app_initializer->getInputDatabase()->getBoolWithDefault("test_clamp", false))
     {
-        // clampToDomain() returns a point in [x_lower, x_upper), and that point
-        // is in an interior cell. The last three domains are so far from the
-        // origin, or so short, that the offset of clampToDomain() is smaller
-        // than the spacing of the floating-point values near x_upper.
+        // Check that clampToDomain() returns a point of [x_lower, x_upper) in an interior cell. In the last three
+        // domains, the offset of clampToDomain() is smaller than the spacing of the floating-point values near x_upper.
         const double domains[][2] = { { 0.0, 1.0 },
                                       { -4.0, 4.0 },
                                       { 1.0e9, 1.0e9 + 1.0 },
@@ -91,13 +89,13 @@ main(int argc, char** argv)
             const hier::Index<NDIM> index =
                 IndexUtilities::getCellIndex(X, X_lower.data(), X_upper.data(), dx.data(), ilower, iupper);
             tbox::pout << "domain " << domain_n++ << ":\n"
-                       << "  below the domain is moved to the lower boundary = " << (x_below == x_lower) << '\n'
-                       << "  the lower boundary is not moved = " << (x_on_lower == x_lower) << '\n'
-                       << "  the upper boundary is moved into the domain = " << in_domain(x_on_upper, x_lower, x_upper)
-                       << '\n'
-                       << "  above the domain is moved into the domain = " << in_domain(x_above, x_lower, x_upper)
-                       << '\n'
-                       << "  cell of the upper boundary is interior = "
+                       << "  a point below the domain is moved to the lower boundary = " << (x_below == x_lower) << '\n'
+                       << "  a point on the lower boundary is unchanged = " << (x_on_lower == x_lower) << '\n'
+                       << "  a point on the upper boundary is moved into the domain = "
+                       << in_domain(x_on_upper, x_lower, x_upper) << '\n'
+                       << "  a point above the domain is moved into the domain = "
+                       << in_domain(x_above, x_lower, x_upper) << '\n'
+                       << "  the cell of the upper boundary is interior = "
                        << (ilower(0) <= index(0) && index(0) <= iupper(0)) << '\n';
         }
         return 0;
