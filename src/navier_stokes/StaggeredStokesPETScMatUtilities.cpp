@@ -71,6 +71,8 @@
 #include <set>
 #include <vector>
 
+#include "./ins_velocity_bc.h"
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -362,11 +364,6 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const hier::Index<NDIM>& i = bc();
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
-                    const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
-                    const bool traction_bc = (b == 1.0 || IBTK::rel_equal_eps(b, 1.0));
-#if !defined(NDEBUG)
-                    TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
                     hier::Index<NDIM> i_intr = i;
                     if (is_lower)
                     {
@@ -378,7 +375,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     }
                     const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
 
-                    if (velocity_bc)
+                    if (velocity_bc::get_type(
+                            a, b, "StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp()") ==
+                        velocity_bc::Type::VELOCITY)
                     {
                         if (is_lower)
                         {
@@ -391,7 +390,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                             uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
                         }
                     }
-                    else if (traction_bc)
+                    else
                     {
                         // A traction condition prescribes the normal derivative of a tangential velocity
                         // component, so the ghost value is the interior value plus boundary data. Add the ghost
@@ -406,13 +405,6 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                             uu_matrix_coefs(i_s, 0) += uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
                             uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
                         }
-                    }
-                    else
-                    {
-                        TBOX_ERROR(
-                            "StaggeredStokesPETScMatUtilities::"
-                            "constructPatchLevelMACStokesOp(): Unknown BC type for "
-                            "tangential velocity specified.");
                     }
                 }
             }
@@ -466,12 +458,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
-                    const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
-                    const bool traction_bc = (b == 1.0 || IBTK::rel_equal_eps(b, 1.0));
-#if !defined(NDEBUG)
-                    TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
-                    if (velocity_bc)
+                    if (velocity_bc::get_type(
+                            a, b, "StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp()") ==
+                        velocity_bc::Type::VELOCITY)
                     {
                         uu_matrix_coefs(i_s, 0) = 1.0;
                         for (int k = 1; k < uu_stencil_sz; ++k)
@@ -483,7 +472,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                             up_matrix_coefs(i_s, k) = 0.0;
                         }
                     }
-                    else if (traction_bc)
+                    else
                     {
                         if (is_lower)
                         {
@@ -497,13 +486,6 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                                 uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
                             uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
                         }
-                    }
-                    else
-                    {
-                        TBOX_ERROR(
-                            "StaggeredStokesPETScMatUtilities::"
-                            "constructPatchLevelMACStokesOp(): Unknown BC type for "
-                            "normal velocity specified.");
                     }
                 }
             }

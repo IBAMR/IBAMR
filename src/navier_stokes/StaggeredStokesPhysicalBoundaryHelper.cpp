@@ -51,6 +51,7 @@
 #include <vector>
 
 #include "./ins_staggered_traction_stencil.h"
+#include "./ins_velocity_bc.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -267,14 +268,16 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                     {
                         const hier::Index<NDIM>& i = it();
                         const double& alpha = (*acoef_data)(i, 0);
-                        const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
-#if !defined(NDEBUG)
                         const double& beta = (*bcoef_data)(i, 0);
-                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha + beta, 1.0));
-                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha, 1.0) || IBTK::rel_equal_eps(beta, 1.0));
-#endif
-                        if (IBTK::rel_equal_eps(alpha, 1.0))
+                        const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
+                        if (velocity_bc::get_type(alpha,
+                                                  beta,
+                                                  "StaggeredStokesPhysicalBoundaryHelper::"
+                                                  "enforceNormalVelocityBoundaryConditions()") ==
+                            velocity_bc::Type::VELOCITY)
+                        {
                             (*u_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) = gamma;
+                        }
                     }
                 }
             }
@@ -335,7 +338,10 @@ StaggeredStokesPhysicalBoundaryHelper::computeNetBoundaryFlux(const std::vector<
                     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                     {
                         const hier::Index<NDIM>& i = it();
-                        if (IBTK::rel_equal_eps((*acoef_data)(i, 0), 1.0))
+                        if (velocity_bc::get_type((*acoef_data)(i, 0),
+                                                  (*bcoef_data)(i, 0),
+                                                  "StaggeredStokesPhysicalBoundaryHelper::"
+                                                  "computeNetBoundaryFlux()") == velocity_bc::Type::VELOCITY)
                         {
                             // The face i borders the interior cell i (lower) or i - e_axis (upper).
                             hier::Index<NDIM> i_c = i;
