@@ -108,22 +108,29 @@ def code_part(path, text):
 
 
 def parse_diff(diff):
-    """Return {path: {"new": bool, "added": [(line_number, text)]}}."""
+    """Return {path: {"new": bool, "added": [(line_number, text)]}}.
+
+    A symbolic link adds no lines: its diff holds only the path of its target.
+    """
     files = collections.OrderedDict()
     path = None
     line_number = 0
+    is_link = False
     for line in diff.splitlines():
         if line.startswith("diff --git"):
             path = re.search(r" b/(.*)$", line).group(1)
             files[path] = {"new": False, "added": []}
+            is_link = False
         elif path is None:
             continue
-        elif line.startswith("new file mode"):
-            files[path]["new"] = True
+        elif line.startswith(("new file mode", "new mode")):
+            files[path]["new"] |= line.startswith("new file mode")
+            is_link = line.endswith("120000")
         elif line.startswith("@@"):
             line_number = int(re.search(r"\+(\d+)", line).group(1))
         elif line.startswith("+") and not line.startswith("+++"):
-            files[path]["added"].append((line_number, line[1:]))
+            if not is_link:
+                files[path]["added"].append((line_number, line[1:]))
             line_number += 1
         elif not line.startswith("-"):
             line_number += 1
