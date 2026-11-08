@@ -1,0 +1,3 @@
+Changed: Stop creating the unused pressure ghost fill operator d_P_bdry_bc_fill_op in IBAMR::INSStaggeredHierarchyIntegrator and IBAMR::INSVCStaggeredHierarchyIntegrator. The member is null in both.
+<br>
+(Boyce Griffith, 2026/10/05)
