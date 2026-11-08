@@ -1,0 +1,22 @@
+patches on the level = 4
+points in each set = 81
+points of the first set that cross a periodic boundary = 65
+USER_DEFINED: passed
+BSPLINE_4: passed
+BSPLINE_6: passed
+PIECEWISE_CUBIC: passed
+COMPOSITE_BSPLINE_34: passed
+COMPOSITE_BSPLINE_43: passed
+COMPOSITE_BSPLINE_56: passed
+COMPOSITE_BSPLINE_65: passed
+BSPLINE_3: passed
+BSPLINE_5: passed
+COMPOSITE_BSPLINE_23: passed
+COMPOSITE_BSPLINE_32: passed
+COMPOSITE_BSPLINE_45: passed
+COMPOSITE_BSPLINE_54: passed
+IB_3: passed
+IB_4: passed
+IB_5: passed
+IB_6: passed
+PIECEWISE_LINEAR: passed

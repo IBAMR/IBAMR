@@ -1,0 +1,11 @@
+patches on the level = 4
+points = 400
+BSPLINE_4: passed
+BSPLINE_6: passed
+PIECEWISE_CUBIC: passed
+COMPOSITE_BSPLINE_34: passed
+COMPOSITE_BSPLINE_43: passed
+COMPOSITE_BSPLINE_56: passed
+COMPOSITE_BSPLINE_65: passed
+IB_4: passed
+PIECEWISE_LINEAR: passed
