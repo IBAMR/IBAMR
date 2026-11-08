@@ -412,6 +412,21 @@ public:
 
 protected:
     /*!
+     * \brief Replace each ghost value of d_mu_scratch_idx that is not positive outside a physical boundary by the
+     * Dirichlet value of that boundary if it is positive, and otherwise by the value in the nearest cell of the domain.
+     *
+     * Call after d_mu_bdry_bc_fill_op has filled d_mu_scratch_idx at fill_time.
+     */
+    void limitMuGhostCells(double fill_time);
+
+    /*!
+     * \brief Set d_mu_linear_op_idx and d_mu_interp_linear_op_idx from the viscosity with patch data index mu_idx.
+     *
+     * d_mu_scratch_idx and d_mu_interp_idx must be allocated.
+     */
+    void setLinearOperatorMu(int mu_idx, double time);
+
+    /*!
      * L1 norm of the discrete divergence of the fluid velocity before regridding.
      */
     double d_div_U_norm_1_pre = 0.0;

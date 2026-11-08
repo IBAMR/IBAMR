@@ -340,40 +340,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
             mu_current_idx = d_mu_current_idx;
         }
 
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx,
-                                     mu_current_idx,
-                                     /*interior_only*/ true);
-        d_mu_bdry_bc_fill_op->fillData(current_time);
-
-        // Interpolate onto node or edge centers
-        if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
-        {
-            d_hier_math_ops->interp_ghosted(
-                d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, current_time);
-        }
-        else if (d_mu_vc_interp_type == VC_HARMONIC_INTERP)
-        {
-            d_hier_math_ops->harmonic_interp_ghosted(
-                d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, current_time);
-        }
-        else
-        {
-            TBOX_ERROR("this statement should not be reached");
-        }
-
-        // Store the viscosities for later use
-        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx,
-                                     d_mu_scratch_idx,
-                                     /*interior_only*/ false);
-#if (NDIM == 2)
-        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx,
-                                     d_mu_interp_idx,
-                                     /*interior_only*/ false);
-#elif (NDIM == 3)
-        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx,
-                                     d_mu_interp_idx,
-                                     /*interior_only*/ false);
-#endif
+        setLinearOperatorMu(mu_current_idx, current_time);
     }
 
     // Allocate solver vectors.
@@ -699,40 +666,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchySpecialized(
         {
             mu_new_idx = d_mu_new_idx;
         }
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx,
-                                     mu_new_idx,
-                                     /*interior_only*/ true);
-        d_mu_bdry_bc_fill_op->fillData(new_time);
-
-        // Interpolate onto node or edge centers
-        if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
-        {
-            d_hier_math_ops->interp_ghosted(
-                d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, new_time);
-        }
-        else if (d_mu_vc_interp_type == VC_HARMONIC_INTERP)
-        {
-            d_hier_math_ops->harmonic_interp_ghosted(
-                d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, new_time);
-        }
-        else
-        {
-            TBOX_ERROR("this statement should not be reached");
-        }
-
-        // Store the viscosities for later use
-        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx,
-                                     d_mu_scratch_idx,
-                                     /*interior_only*/ false);
-#if (NDIM == 2)
-        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx,
-                                     d_mu_interp_idx,
-                                     /*interior_only*/ false);
-#elif (NDIM == 3)
-        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx,
-                                     d_mu_interp_idx,
-                                     /*interior_only*/ false);
-#endif
+        setLinearOperatorMu(mu_new_idx, new_time);
     }
 
     // Update the solvers and operators to take into account new state variables
