@@ -138,9 +138,9 @@ main(int argc, char* argv[])
     solver.setPhysicalBoundaryHelper(helper);
     solver.setHomogeneousBc(false);
 
-    // The velocity component axis is the constant axis + 1 and the force is axis + 1 plus the pressure gradient
-    // component axis. The solution vector holds the velocity everywhere, the exact pressure in the ghost cells, and one
-    // elsewhere.
+    // Velocity component axis is the constant axis + 1. Force component axis is axis + 1 plus component axis of the
+    // pressure gradient. The solution vector contains the velocity everywhere, the exact pressure in the ghost cells,
+    // and one elsewhere.
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = level->getPatch(p());

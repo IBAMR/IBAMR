@@ -1,6 +1,5 @@
-// Gauss-Seidel point smoothing of a single-level hierarchy of patches 3 or 4 cells wide and 3 rows high:
-// patches narrower than four cells and patches with fewer than four rows take the row-by-row paths of the
-// smoother's traversal.
+// Gauss-Seidel point smoothing on one level of patches 3 or 4 cells wide and 3 cells high: the smoother
+// traverses a patch narrower or shorter than four cells one layer of cells at a time.
 
 u {
    function = "sin(2*PI*X_0)*sin(2*PI*X_1)"
@@ -37,7 +36,7 @@ GriddingAlgorithm {
    max_levels = 1                 // Maximum number of levels in hierarchy.
 
    largest_patch_size {
-      level_0 = 4, 3              // splits the domain into patches 4 and 3 cells wide, 3 rows high
+      level_0 = 4, 3              // splits the domain into patches 4 and 3 cells wide, 3 cells high
    }
 
    smallest_patch_size {

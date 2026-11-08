@@ -39,8 +39,8 @@ main(int argc, char* argv[])
     initialize_hypre();
     std::ofstream out("output");
 
-    // The source data have two layers of ghost cells and the destination data
-    // have one, so neither array has the layout of the box that is copied.
+    // With two layers of ghost cells in the source data and one in the
+    // destination data, neither array has the layout of the copied box.
     const Box<NDIM> box(hier::Index<NDIM>(2), hier::Index<NDIM>(9));
     const int src_ghosts = 2, dst_ghosts = 1;
     const MPI_Comm communicator = IBTK_MPI::getCommunicator();

@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-// Check PETScMFFDJacobianOperator::formJacobian() and apply() when the operator is not attached to
+// Check PETScMFFDJacobianOperator::formJacobian() and apply() if the operator is not attached to
 // a nonlinear solver.
 
 #include <ibamr/StaggeredStokesOperator.h>
@@ -93,7 +93,7 @@ main(int argc, char* argv[])
         stokes_op->setVelocityPoissonSpecifications(poisson_spec);
         stokes_op->initializeOperatorState(u_vec, f_vec);
 
-        // The Stokes operator F is linear on a periodic domain, so F'(u) v = F(v). Compare the
+        // Because the Stokes operator F is linear on a periodic domain, F'(u) v = F(v). Compare the
         // finite-difference Jacobian action on v = u with F(u).
         Pointer<SAMRAIVectorReal<NDIM, double>> expected_vec = f_vec.cloneVector("expected");
         expected_vec->allocateVectorData();

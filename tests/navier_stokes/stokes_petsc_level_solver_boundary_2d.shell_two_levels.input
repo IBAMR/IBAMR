@@ -1,4 +1,4 @@
-// Solve on each of two levels with the additive shell preconditioner; the fine level covers the domain.
+// Solve on each of two levels with the additive shell preconditioner. The fine level covers the domain.
 solver_db {
    ksp_type = "gmres"
    pc_type = "shell"

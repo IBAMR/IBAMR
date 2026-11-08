@@ -1,4 +1,4 @@
-// One-level Poisson problem on a periodic grid whose cell indices are negative, solved by GMRES with a
+// One-level Poisson problem on a periodic grid with negative cell indices, solved by GMRES with a
 // point-relaxation FAC preconditioner that relaxes the level with red-black Gauss-Seidel sweeps.
 
 u {
