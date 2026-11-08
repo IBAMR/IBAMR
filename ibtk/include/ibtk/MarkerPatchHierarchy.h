@@ -115,8 +115,12 @@ private:
 
 /*!
  * Implementation of marker points, also sometimes called particles. These
- * points are akin to IB points except they are simply advected by the fluid
+ * points are akin to IB points except they are advected by the fluid
  * and do not apply any force upon it.
+ *
+ * Marker velocities are independent of the patch layout only if the caller
+ * fills the ghost cells of the velocity with the refine operator alone,
+ * without coarse-fine interpolation.
  */
 class MarkerPatchHierarchy : public SAMRAI::tbox::Serializable
 {

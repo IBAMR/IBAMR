@@ -1,0 +1,3 @@
+Changed: Fill the ghost cells of the velocity that IBAMR::IBExplicitHierarchyIntegrator interpolates to marker points with the refine operator alone, so that marker velocities are independent of the patch layout.
+<br>
+(Boyce Griffith, 2026/11/04)
