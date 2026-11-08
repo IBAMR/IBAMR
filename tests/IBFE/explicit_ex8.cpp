@@ -15,8 +15,11 @@
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartGridFunction.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/StableCentroidPartitioner.h>
@@ -36,9 +39,12 @@
 
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CellVariable.h>
 #include <LoadBalancer.h>
 #include <SAMRAI_config.h>
 #include <StandardTagAndInitialize.h>
+
+#include <memory>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -298,6 +304,21 @@ cheby(double t, double a, double b)
 } // namespace ModelData
 using namespace ModelData;
 
+// Set the viscosity at each time. Without an advection-diffusion integrator, nothing else sets it after t = 0.
+void
+callSetFluidViscosityCallbackFunction(int mu_idx,
+                                      Pointer<SAMRAI::hier::Variable<NDIM>> mu_var,
+                                      Pointer<HierarchyMathOps> hier_math_ops,
+                                      const int /*cycle_num*/,
+                                      const double time,
+                                      const double /*current_time*/,
+                                      const double /*new_time*/,
+                                      void* ctx)
+{
+    static_cast<CartGridFunction*>(ctx)->setDataOnPatchHierarchy(
+        mu_idx, mu_var, hier_math_ops->getPatchHierarchy(), time);
+}
+
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -469,9 +490,20 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator",
-            app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        const bool variable_viscosity = input_db->getBoolWithDefault("variable_viscosity", false);
+        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        if (variable_viscosity)
+        {
+            navier_stokes_integrator = new INSVCStaggeredNonConservativeHierarchyIntegrator(
+                "INSVCStaggeredNonConservativeHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSVCStaggeredNonConservativeHierarchyIntegrator"));
+        }
+        else
+        {
+            navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+                "INSStaggeredHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        }
         Pointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
@@ -533,6 +565,23 @@ main(int argc, char** argv)
             Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
+        }
+
+        // The variable-coefficient solver requires a viscosity variable, initial values, and boundary conditions.
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> mu_bc_coef;
+        if (variable_viscosity)
+        {
+            Pointer<INSVCStaggeredHierarchyIntegrator> vc_integrator = navier_stokes_integrator;
+            Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
+            vc_integrator->registerViscosityVariable(mu_var);
+            Pointer<CartGridFunction> mu_init = new muParserCartGridFunction(
+                "mu_init", app_initializer->getComponentDatabase("ViscosityInitialConditions"), grid_geometry);
+            vc_integrator->registerViscosityInitialConditions(mu_init);
+            vc_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
+                                                          static_cast<void*>(mu_init.getPointer()));
+            mu_bc_coef = std::make_unique<muParserRobinBcCoefs>(
+                "mu_bc_coef", app_initializer->getComponentDatabase("ViscosityBcCoefs"), grid_geometry);
+            vc_integrator->registerViscosityBoundaryConditions(mu_bc_coef.get());
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).

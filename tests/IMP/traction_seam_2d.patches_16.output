@@ -1,0 +1,14 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+WARNING: IMPMethod implementation currently requires that the initial velocity is *zero*.
+IMPInitializer:  Deallocating initialization data.
+points = 400
+not_finite = 0
+U_sum_squares = 416.08412143033
+U_max = 0.98693211132541
+Grad_U_sum_squares = 12627.741617998
+Grad_U_max = 5.2306322333326
+f_sum = 7.3887005861513e-15
+f_sum_squares = 2012.7451084726
+f_max = 8.4456837459909

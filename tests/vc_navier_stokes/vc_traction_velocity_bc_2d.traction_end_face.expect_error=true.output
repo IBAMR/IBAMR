@@ -1,0 +1,9 @@
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+Program abort called with error message
+
+    CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():
+  the boundary data of a boundary condition object depend on the patch data on the boundary box [(0,16),(15,16)] of the patch
+  ExtendedRobinBcCoefStrategy::dependsOnTargetPatchData() of the object must return false
+

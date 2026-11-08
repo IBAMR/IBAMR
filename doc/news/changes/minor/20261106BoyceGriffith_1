@@ -1,0 +1,3 @@
+Fixed: Stop IBAMR::INSVCStaggeredVelocityBcCoef with an error for a nonzero tangential TRACTION or PSEUDO_TRACTION datum on a patch without viscosity data (a temporary coarse patch, or a new patch filled during a regrid), instead of silently dropping the datum.
+<br>
+(Boyce Griffith, 2026/11/06)

@@ -59,28 +59,6 @@ namespace traction_stencil
 
 namespace
 {
-// Return a copy of patch that shares its patch data. Replacing the geometry of the copy leaves patch unchanged.
-Pointer<Patch<NDIM>>
-copy_patch(const Patch<NDIM>& patch)
-{
-    Pointer<Patch<NDIM>> copy = new Patch<NDIM>(patch.getBox(), patch.getPatchDescriptor());
-    copy->setPatchNumber(patch.getPatchNumber());
-    copy->setPatchLevelNumber(patch.getPatchLevelNumber());
-    copy->setPatchInHierarchy(patch.inHierarchy());
-    copy->setPatchGeometry(patch.getPatchGeometry());
-    // allocatePatchData() with an empty selector sizes the patch data array of the copy without allocating data.
-    copy->allocatePatchData(ComponentSelector());
-    const int num_components = patch.getPatchDescriptor()->getMaxNumberRegisteredComponents();
-    for (int id = 0; id < num_components; ++id)
-    {
-        if (patch.checkAllocated(id))
-        {
-            copy->setPatchData(id, patch.getPatchData(id));
-        }
-    }
-    return copy;
-} // copy_patch
-
 // Return the stencil of the normal velocity at the face i_face on the boundary normal to bdry_normal_axis, for the
 // difference along tangential_axis. The stencil faces must lie in ghost_box.
 NormalVelocityStencil
@@ -216,6 +194,27 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+Pointer<Patch<NDIM>>
+copy_patch(const Patch<NDIM>& patch)
+{
+    Pointer<Patch<NDIM>> copy = new Patch<NDIM>(patch.getBox(), patch.getPatchDescriptor());
+    copy->setPatchNumber(patch.getPatchNumber());
+    copy->setPatchLevelNumber(patch.getPatchLevelNumber());
+    copy->setPatchInHierarchy(patch.inHierarchy());
+    copy->setPatchGeometry(patch.getPatchGeometry());
+    // allocatePatchData() with an empty selector sizes the patch data array of the copy without allocating data.
+    copy->allocatePatchData(ComponentSelector());
+    const int num_components = patch.getPatchDescriptor()->getMaxNumberRegisteredComponents();
+    for (int id = 0; id < num_components; ++id)
+    {
+        if (patch.checkAllocated(id))
+        {
+            copy->setPatchData(id, patch.getPatchData(id));
+        }
+    }
+    return copy;
+} // copy_patch
 
 void
 NormalVelocityStencil::useAdjacentBoundaryValue()

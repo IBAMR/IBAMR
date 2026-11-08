@@ -1061,7 +1061,16 @@ INSStaggeredDivergenceFreePhysBdryOp::Extension::evaluateDataPoints(
                        << " that the fill uses\n"
                        << "  fill velocity data with a ghost width of at most the ghost width of the viscosity data\n");
         }
-        return mu_array(point.mu_index, 0);
+        const double value = mu_array(point.mu_index, 0);
+        if (!(value > 0.0))
+        {
+            TBOX_ERROR(
+                "INSStaggeredDivergenceFreePhysBdryOp::Extension::evaluateDataPoints():\n"
+                << "  the viscosity " << value << " at index " << point.mu_index << " of patch "
+                << patch.getPatchNumber() << " of level " << patch.getPatchLevelNumber() << " is not positive\n"
+                << "  register initial conditions for the viscosity if only reset functions set it at the new time\n");
+        }
+        return value;
     };
     std::array<std::optional<ShiftedPatchGeometry>, NDIM> shifted_geometry;
     for (const auto& batch : batches)

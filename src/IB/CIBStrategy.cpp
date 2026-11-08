@@ -98,6 +98,13 @@ CIBStrategy::setInterpolatedVelocityVector(Vec /*V*/, const double /*data_time*/
     return;
 } // setInterpolatedVelocityVector
 
+void
+CIBStrategy::fillVelocityPhysBdryGhostValues(int /*u_data_idx*/, bool /*homogeneous_bc*/, double /*fill_time*/)
+{
+    // intentionally left blank
+    return;
+} // fillVelocityPhysBdryGhostValues
+
 unsigned int
 CIBStrategy::getNumberOfRigidStructures() const
 {
