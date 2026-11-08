@@ -42,8 +42,10 @@
 
 namespace IBTK
 {
+class CartCellDoubleCubicCoarsen;
 class CartCellRobinPhysBdryOp;
 class CartExtrapPhysBdryOp;
+class CartSideDoubleCubicCoarsen;
 class CartSideRobinPhysBdryOp;
 class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
@@ -56,6 +58,8 @@ class RobinBcCoefStrategy;
 } // namespace solv
 namespace xfer
 {
+template <int DIM>
+class CoarsenOperator;
 template <int DIM>
 class CoarsenPatchStrategy;
 template <int DIM>
@@ -84,6 +88,14 @@ namespace IBTK
  * are extended beyond it with the quadratic Robin ghost value of a component with Robin coefficients, or by quadratic
  * extrapolation if the component has none and all destination data have at least two ghost cells. Otherwise, as for a
  * linear extension (d_extend_coarse_data_linearly), the interpolation is second-order accurate there.
+ *
+ * \note A component with the coarsen operator "CUBIC_COARSEN" and the refine operator "NONE" is coarsened cubically on
+ * every axis if every refinement ratio is even. The ghost values of the source data may be invalid. The covered coarse
+ * values are third-order accurate, except along an axis where the finer level is one coarse cell wide, and are
+ * independent of the patch layout. If some ratio is 2, every patch must be a whole number of coarse cells along each
+ * axis with ratio 2. If some ratio is odd and some ratio is less than 4, the component is averaged. If some ratio is
+ * odd and every ratio is at least 4, the cubic coarsen operator stops with an error. A component with another refine
+ * operator is coarsened by weighted averaging at ratios less than 4.
  */
 class HierarchyGhostCellInterpolation : public SAMRAI::tbox::DescribedClass
 {
@@ -384,6 +396,27 @@ private:
      */
     HierarchyGhostCellInterpolation& operator=(const HierarchyGhostCellInterpolation& that) = delete;
 
+    // Return the coarsen operator of the component for the variable. If componentUsesCubicScratch() returns true, the
+    // function returns a "CUBIC_COARSEN" operator of this object, which uses the ghost layer of its source.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM>>
+    getCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>>& var,
+                       const InterpolationTransactionComponent& comp) const;
+
+    // Return true if the component is coarsened cubically and has the refine operator "NONE".
+    bool componentUsesCubicScratch(const InterpolationTransactionComponent& comp) const;
+
+    // Register the scratch data and the algorithms for the cubic coarsening of levels whose refinement ratios are all
+    // even and include a ratio of 2.
+    void setUpCubicScratch();
+
+    // Return true if cubic coarsening of the given level uses the ghost layer of its source.
+    bool levelUsesCubicScratch(int ln) const;
+
+    // Allocate the scratch data on the level, fill them from the source data, and give the level to the cubic coarsen
+    // operators. The second function releases the level and deallocates the scratch data.
+    void fillCubicScratch(int ln, double fill_time);
+    void deallocateCubicScratch(int ln);
+
     // Boolean indicating whether the operator is initialized.
     bool d_is_initialized = false;
 
@@ -403,6 +436,15 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_coarsen_alg;
     std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM>> d_coarsen_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_coarsen_scheds;
+
+    // The cubic coarsen operators, and the scratch data, algorithms, and schedules for coarsening a level with ratio 2:
+    // a copy of the source data with a one-cell ghost layer that contains the values of the level and NaN elsewhere.
+    SAMRAI::tbox::Pointer<CartCellDoubleCubicCoarsen> d_cc_cubic_coarsen_op;
+    SAMRAI::tbox::Pointer<CartSideDoubleCubicCoarsen> d_sc_cubic_coarsen_op;
+    std::vector<int> d_cubic_scratch_idxs;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_cubic_scratch_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_cubic_scratch_fill_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_cubic_scratch_fill_scheds;
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_refine_alg;
     std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_refine_strategy;

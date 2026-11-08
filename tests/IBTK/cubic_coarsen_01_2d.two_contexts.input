@@ -1,0 +1,53 @@
+// Refined box inside the domain, ratio 2, with the constants 1 and 13 stored in two contexts of the same variables
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+function_names = "one"
+second_function_names = "thirteen"
+one_sc {
+   function_0 = "1"
+   function_1 = "1"
+}
+one_cc {
+   function = "1"
+}
+
+thirteen_sc {
+   function_0 = "13"
+   function_1 = "13"
+}
+thirteen_cc {
+   function = "13"
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (15,15)]
+   x_lo = 0,0
+   x_up = 1,1
+   periodic_dimension = 0,0
+}
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2,2
+   }
+   largest_patch_size {
+      level_0 = 8,8
+   }
+   smallest_patch_size {
+      level_0 = 2,2
+   }
+   efficiency_tolerance = 0.70e0
+   combine_efficiency = 0.85e0
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(4,4), (11,11)]
+   }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

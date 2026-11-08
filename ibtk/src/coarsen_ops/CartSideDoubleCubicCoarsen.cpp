@@ -21,10 +21,16 @@
 
 #include <Box.h>
 #include <SideData.h>
+#include <SideIndex.h>
+#include <SideIterator.h>
 #include <SideVariable.h>
 
+#include <array>
+#include <cmath>
 #include <ostream>
 #include <string>
+
+#include "./CubicCoarsenStencils.h"
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -96,6 +102,20 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen(const bool use_source_ghost_layer)
+    : d_use_source_ghost_layer(use_source_ghost_layer)
+{
+    // intentionally blank
+    return;
+} // CartSideDoubleCubicCoarsen
+
+void
+CartSideDoubleCubicCoarsen::setFineLevel(Pointer<PatchLevel<NDIM>> fine_level)
+{
+    d_fine_level = fine_level;
+    return;
+} // setFineLevel
+
 bool
 CartSideDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM>>& var, const std::string& op_name) const
 {
@@ -118,7 +138,7 @@ CartSideDoubleCubicCoarsen::getOperatorPriority() const
 IntVector<NDIM>
 CartSideDoubleCubicCoarsen::getStencilWidth() const
 {
-    return d_weighted_average_coarsen_op.getStencilWidth();
+    return d_use_source_ghost_layer ? IntVector<NDIM>(1) : d_weighted_average_coarsen_op.getStencilWidth();
 } // getStencilWidth
 
 void
@@ -131,11 +151,27 @@ CartSideDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
 {
     if (ratio.min() < 4)
     {
-        IBTK_DO_ONCE(TBOX_WARNING("CartSideDoubleCubicCoarsen::coarsen():\n"
-                                  << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
-                                  << "  reverting to weighted averaging." << std::endl););
-        d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
-        return;
+        bool even_ratios = true;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            even_ratios = even_ratios && ratio(d) % 2 == 0;
+        }
+        if (!even_ratios || !d_use_source_ghost_layer)
+        {
+            IBTK_DO_ONCE(
+                TBOX_WARNING("CartSideDoubleCubicCoarsen::coarsen():\n"
+                             << "  cubic coarsening requires refinement ratios of 4 or larger, or even ratios and a "
+                                "source ghost layer\n"
+                             << "  reverting to weighted averaging\n"););
+            d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
+            return;
+        }
+        if (!d_fine_level)
+        {
+            TBOX_ERROR("CartSideDoubleCubicCoarsen::coarsen():\n"
+                       << "   the fine level is not set\n"
+                       << "   call setFineLevel() before coarsening at a refinement ratio less than 4\n");
+        }
     }
     Pointer<SideData<NDIM, double>> cdata = coarse.getPatchData(dst_component);
     Pointer<SideData<NDIM, double>> fdata = fine.getPatchData(src_component);
@@ -160,9 +196,11 @@ CartSideDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
         }
     }
     const int data_depth = cdata->getDepth();
-#if !defined(NDEBUG)
-    TBOX_ASSERT(data_depth == fdata->getDepth());
-#endif
+    if (data_depth != fdata->getDepth())
+    {
+        TBOX_ERROR("CartSideDoubleCubicCoarsen::coarsen():\n"
+                   << "   coarse and fine patch data have different depths\n");
+    }
     const Box<NDIM>& patch_box_fine = fine.getBox();
     const Box<NDIM>& patch_box_crse = coarse.getBox();
     for (int depth = 0; depth < data_depth; ++depth)
@@ -208,6 +246,64 @@ CartSideDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
                             ratio,
                             coarse_box.lower(),
                             coarse_box.upper());
+    }
+
+    if (ratio.min() >= 4)
+    {
+        return;
+    }
+
+    // Coarsen the sides whose stencil involves a fine side outside the level (NaN in the source data) with stencils
+    // that use only covered sides. A NaN in the source data at a covered side propagates.
+    const LevelCoverage coverage(d_fine_level);
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        std::array<CubicCoarsenAxis, NDIM> axes;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (d == axis)
+            {
+                axes[d] = CubicCoarsenAxis::NORMAL;
+            }
+            else
+            {
+                axes[d] = ratio(d) == 2 ? CubicCoarsenAxis::RATIO_2 : CubicCoarsenAxis::INTERIOR;
+            }
+        }
+        for (SideIterator<NDIM> is(coarse_box, axis); is; is++)
+        {
+            const SideIndex<NDIM>& i_c = is();
+            if (!std::isnan((*cdata)(i_c, 0)))
+            {
+                continue;
+            }
+            Index<NDIM> base;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                base(d) = d == axis ? ratio(d) * i_c(d) : ratio(d) * i_c(d) + ratio(d) / 2 - 1;
+            }
+            // A coarse neighbor is covered if the level covers a cell on either side of the fine side of the cubic
+            // stencil in it.
+            const CubicCoarsenStencil stencil(axes,
+                                              [&](const IntVector<NDIM>& offset)
+                                              {
+                                                  Index<NDIM> fine_cell = base;
+                                                  for (unsigned int d = 0; d < NDIM; ++d)
+                                                  {
+                                                      fine_cell(d) += offset(d) == 1 ? 2 : offset(d);
+                                                  }
+                                                  if (coverage.covers(fine_cell))
+                                                  {
+                                                      return true;
+                                                  }
+                                                  fine_cell(axis) -= 1;
+                                                  return coverage.covers(fine_cell);
+                                              });
+            for (int depth = 0; depth < data_depth; ++depth)
+            {
+                (*cdata)(i_c, depth) = stencil.apply(fdata->getArrayData(axis), base, depth);
+            }
+        }
     }
     return;
 } // coarsen

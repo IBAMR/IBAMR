@@ -1,0 +1,3 @@
+Fixed: Coarsen cubically on every axis with a refinement ratio of 2 in IBTK::HierarchyGhostCellInterpolation for components with the refine operator "NONE", so that covered coarse values next to the boundary of the fine level are third-order accurate.
+<br>
+(Boyce Griffith, 2026/10/13)
