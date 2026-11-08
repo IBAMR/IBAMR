@@ -32,6 +32,7 @@
 #include <StandardTagAndInitialize.h>
 
 #include <array>
+#include <iomanip>
 #include <string>
 
 // Headers for application-specific algorithm/data structure objects
@@ -500,6 +501,7 @@ main(int argc, char* argv[])
         if (IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
+            out << std::setprecision(10);
             out << "|e|_oo = " << e_max_norm << "\n";
             out << "|e|_2  = " << e_l2_norm << "\n";
             out << "|e|_1  = " << e_l1_norm << "\n";
