@@ -14,7 +14,7 @@
 - Make an error or warning look like the other errors and warnings of the same
   class, then of its sibling classes: prefix, line breaks and indentation,
   capitalization, punctuation, and length. Where they give no lead, write
-  `TBOX_ERROR(d_object_name << "::functionName():\n" << "  message" << std::endl);`
+  `TBOX_ERROR(d_object_name << "::functionName():\n" << "  message\n");`
   with a literal class or function name in static and free functions, and the
   message in lower case without a final period.
 - An error or warning says what is wrong and names the offending input key and
