@@ -1020,7 +1020,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         if (!d_ghost_data_accumulator)
             d_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(
                 d_hierarchy, f_var, d_ghosts, d_hierarchy->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber());
-        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
+        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, nullptr, 0.0);
     }
 
     f_active_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
