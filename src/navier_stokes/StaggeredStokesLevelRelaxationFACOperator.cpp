@@ -229,7 +229,8 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
                 KSPGetType(petsc_ksp, &ksp_type);
                 if (std::string_view(ksp_type) == KSPPREONLY)
                 {
-                    // The solve starts from zero, which would discard the correction that post-smoothing keeps.
+                    // A preonly solve starts from zero and so would discard the existing correction during
+                    // post-smoothing.
                     if (performing_post_sweeps)
                     {
                         TBOX_ERROR(d_object_name << "::smoothError():\n"
