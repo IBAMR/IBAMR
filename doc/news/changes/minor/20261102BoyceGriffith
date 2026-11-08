@@ -1,0 +1,3 @@
+Fixed: Make the ghost values of the viscosity outside physical boundaries in IBAMR::INSVCStaggeredHierarchyIntegrator positive if the viscosity in the domain is positive. Each ghost value is at least half the Dirichlet value of its boundary where that value is positive and, elsewhere, half the value in the nearest cell of the domain. The limit is continuous and leaves the extrapolated value 2 mu_b - mu_I unchanged at a boundary with Dirichlet value mu_b while the viscosity mu_I in the mirror-image cell is below 1.5 mu_b.
+<br>
+(Boyce Griffith, 2026/11/02)
