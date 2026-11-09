@@ -87,7 +87,9 @@ main(int argc, char* argv[])
         Pointer<SideVariable<NDIM, double>> f_side_var = new SideVariable<NDIM, double>("f_side");
         Pointer<SideVariable<NDIM, double>> e_side_var = new SideVariable<NDIM, double>("e_side");
 
-        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVector<NDIM>(1));
+        // In 2D, the fill of u_side and mu_node uses QUADRATIC extrapolation, which requires two ghost cells.
+        const IntVector<NDIM> fill_ghost_width(NDIM == 2 ? 2 : 1);
+        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, fill_ghost_width);
         const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVector<NDIM>(1));
         const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVector<NDIM>(1));
 
@@ -101,7 +103,7 @@ main(int argc, char* argv[])
 
 #if (NDIM == 2)
         Pointer<NodeVariable<NDIM, double>> mu_node_var = new NodeVariable<NDIM, double>("mu_node");
-        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector<NDIM>(1));
+        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, fill_ghost_width);
 #endif
 #if (NDIM == 3)
         Pointer<EdgeVariable<NDIM, double>> mu_edge_var = new EdgeVariable<NDIM, double>("mu_edge");

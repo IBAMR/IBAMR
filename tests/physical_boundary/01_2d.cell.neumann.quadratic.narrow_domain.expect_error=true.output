@@ -1,0 +1,7 @@
+checking robin bc handling . . .
+Program abort called with error message
+
+    CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1():
+  QUADRATIC interpolation along axis 0 uses 2 cells inward from the boundary, more than the patch width (1) plus the filled ghost width (0)
+  the domain must be at least 2 cells wide along axis 0
+
