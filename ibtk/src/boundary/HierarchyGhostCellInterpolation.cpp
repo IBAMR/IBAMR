@@ -552,6 +552,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_extrap_bc_ops.resize(d_transaction_comps.size());
     d_cc_robin_bc_ops.resize(d_transaction_comps.size());
     d_sc_robin_bc_ops.resize(d_transaction_comps.size());
+    d_refine_scheds_built_in_place.resize(d_transaction_comps.size());
     d_refine_alg = new RefineAlgorithm<NDIM>();
     std::vector<RefinePatchStrategy<NDIM>*> refine_patch_strategies;
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
@@ -566,6 +567,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
                        << "  set consistent_type_2_bdry to false\n");
         }
         d_data_kinds[comp_idx] = { detail::get_data_kind(dst_data_idx), detail::get_data_kind(src_data_idx) };
+        d_refine_scheds_built_in_place[comp_idx] = src_data_idx == dst_data_idx;
         const std::string& phys_bdry_type = d_transaction_comps[comp_idx].d_phys_bdry_type;
         Pointer<Variable<NDIM>> var;
         var_db->mapIndexToVariable(src_data_idx, var);
@@ -828,6 +830,31 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         }
     }
 
+    // SAMRAI leaves out the copy within each patch from a refine schedule built with the source as the destination.
+    for (unsigned int comp_idx = 0; comp_idx < transaction_comps.size(); ++comp_idx)
+    {
+        const int dst_data_idx = transaction_comps[comp_idx].d_dst_data_idx;
+        const int src_data_idx = transaction_comps[comp_idx].d_src_data_idx;
+        if (d_refine_scheds_built_in_place[comp_idx] && src_data_idx != dst_data_idx)
+        {
+            // Name each patch data by its variable and context, which do not depend on the data indices.
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            const auto name_data = [var_db](const int data_idx)
+            {
+                Pointer<Variable<NDIM>> var;
+                Pointer<VariableContext> ctx;
+                var_db->mapIndexToVariableAndContext(data_idx, var, ctx);
+                return var ? var->getName() + " in context " + ctx->getName() : "with no variable";
+            };
+            TBOX_ERROR(
+                "HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
+                << "  new transaction component " << comp_idx << " has source data " << name_data(src_data_idx)
+                << " and destination data " << name_data(dst_data_idx) << "\n"
+                << "  the schedules of this component were built with equal source and destination data indices\n"
+                << "  call initializeOperatorState() with the new transaction components instead\n");
+        }
+    }
+
     // The extension of the coarse data is set up once, in initializeOperatorState().
     if (d_coarse_extension)
     {
@@ -1050,6 +1077,7 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
     d_extrap_bc_ops.clear();
     d_cc_robin_bc_ops.clear();
     d_sc_robin_bc_ops.clear();
+    d_refine_scheds_built_in_place.clear();
 
     // Clear cached communication schedules.
     d_coarsen_alg.setNull();

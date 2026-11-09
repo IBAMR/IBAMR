@@ -37,6 +37,7 @@
 #include <cmath>
 #include <functional>
 #include <iomanip>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -270,6 +271,11 @@ main(int argc, char* argv[])
         const int Q_nc_idx =
             var_db->registerVariableAndContext(Q_nc_var, var_db->getContext("CTX"), IntVector<NDIM>(ghost_width));
 
+        // With RESET_TO_OTHER_DESTINATION, the test builds the schedules to fill a copy of Q in place, then resets the
+        // component to fill Q from the copy.
+        const bool reset_to_other_destination = input_db->getBoolWithDefault("RESET_TO_OTHER_DESTINATION", false);
+        const int Q_copy_idx =
+            var_db->registerVariableAndContext(Q_var, var_db->getContext("COPY"), IntVector<NDIM>(ghost_width));
         // Initialize the AMR patch hierarchy.
         Pointer<PatchHierarchy<NDIM>> patch_hierarchy = make_hierarchy(app_initializer, grid_geometry);
 
@@ -280,6 +286,7 @@ main(int argc, char* argv[])
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_idx);
             level->allocatePatchData(Q_nc_idx);
+            level->allocatePatchData(Q_copy_idx);
         }
 
         // Fill in initial data
@@ -314,7 +321,37 @@ main(int argc, char* argv[])
                                                                 "LINEAR",
                                                                 extend_linearly);
         HierarchyGhostCellInterpolation hier_ghost_cell;
-        hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
+        if (reset_to_other_destination)
+        {
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                    patch->getPatchData(Q_copy_idx)->copy(*patch->getPatchData(Q_idx));
+                    Pointer<CellData<NDIM, double>> Q_cc_data = patch->getPatchData(Q_idx);
+                    Pointer<SideData<NDIM, double>> Q_sc_data = patch->getPatchData(Q_idx);
+                    if (Q_cc_data)
+                    {
+                        Q_cc_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+                    }
+                    if (Q_sc_data)
+                    {
+                        Q_sc_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+                    }
+                }
+            }
+            ghost_cell_comps[0].d_dst_data_idx = Q_copy_idx;
+            ghost_cell_comps[0].d_src_data_idx = Q_copy_idx;
+            hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
+            ghost_cell_comps[0].d_dst_data_idx = Q_idx;
+            hier_ghost_cell.resetTransactionComponents(ghost_cell_comps);
+        }
+        else
+        {
+            hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
+        }
         hier_ghost_cell.fillData(0.0);
 
         Pointer<VariableFillPattern<NDIM>> no_corners_pattern;
@@ -613,6 +650,7 @@ main(int argc, char* argv[])
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_idx);
             level->deallocatePatchData(Q_nc_idx);
+            level->deallocatePatchData(Q_copy_idx);
         }
 
     } // cleanup dynamically allocated objects prior to shutdown
