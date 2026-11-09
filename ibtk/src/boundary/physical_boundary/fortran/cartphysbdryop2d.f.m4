@@ -974,11 +974,12 @@ c     Dirichlet boundary conditions
                u_b = g/a
                u0(i_b,j) = u_b
                do i = 1,u_gcw
-                  f_i2 = 1.d0
-                  f_i = -3.d0
-                  f_b = 3.d0
-                  u_i = u0(i_b-sgn*i,j)
-                  u_i2 = u0(i_b-sgn*(i+1),j)
+c     The quadratic through u_b and the two nearest interior faces.
+                  f_b = 0.5d0*dble((i+1)*(i+2))
+                  f_i = -dble(i*(i+2))
+                  f_i2 = 0.5d0*dble(i*(i+1))
+                  u_i = u0(i_b-sgn,j)
+                  u_i2 = u0(i_b-2*sgn,j)
                   u0(i_b+sgn*i,j) = f_i2*u_i2 + f_i*u_i + f_b*u_b
                enddo
             else
@@ -1079,11 +1080,12 @@ c     Dirichlet boundary conditions
                u_b = g/a
                u1(i,j_b) = u_b
                do j = 1,u_gcw
-                  f_i2 = 1.d0
-                  f_i = -3.d0
-                  f_b = 3.d0
-                  u_i = u1(i,j_b-sgn*j)
-                  u_i2 = u1(i,j_b-sgn*(j+1))
+c     The quadratic through u_b and the two nearest interior faces.
+                  f_b = 0.5d0*dble((j+1)*(j+2))
+                  f_i = -dble(j*(j+2))
+                  f_i2 = 0.5d0*dble(j*(j+1))
+                  u_i = u1(i,j_b-sgn)
+                  u_i2 = u1(i,j_b-2*sgn)
                   u1(i,j_b+sgn*j) = f_i2*u_i2 + f_i*u_i + f_b*u_b
                enddo
             else

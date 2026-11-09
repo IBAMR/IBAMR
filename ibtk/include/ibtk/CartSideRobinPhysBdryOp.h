@@ -66,6 +66,11 @@ namespace IBTK
  * \warning Presently, this class only supports pure Dirichlet or pure Neumann
  * boundary conditions for the normal component of the vector field.  Mixed
  * (Robin) boundary conditions are \em not supported in the normal direction.
+ *
+ * "QUADRATIC" interpolation with ghost cell width g uses the g + 1 cells inward from a physical boundary for the
+ * tangential components, and for the normal component two cells where the boundary condition is Dirichlet and g cells
+ * elsewhere. These cells must lie in the patch or in the ghost cells filled before this operator runs. The faces on a
+ * Dirichlet boundary are not among the cells that the opposite boundary uses.
  */
 class CartSideRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
 {
@@ -169,6 +174,8 @@ public:
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
+     *
+     * The width is the largest ghost cell width of the data for "QUADRATIC" interpolation and one otherwise.
      */
     SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
 
