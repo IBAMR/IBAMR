@@ -404,8 +404,14 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     static const bool homogeneous_bc = false;
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(1);
-    transaction_comps[0] = InterpolationTransactionComponent(
-        d_U_scratch_idx, U_idx, "CONSTANT_REFINE", false, "CONSERVATIVE_COARSEN", d_bdry_extrap_type, false, nullptr);
+    transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
+                                                             U_idx,
+                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                             false,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             d_bdry_extrap_type,
+                                                             false,
+                                                             nullptr);
     transaction_comps[0].d_sc_phys_bdry_op = d_u_phys_bdry_op;
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
@@ -721,7 +727,7 @@ INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIVector
     d_transaction_comps.resize(1);
     d_transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                                in.getComponentDescriptorIndex(0),
-                                                               "CONSTANT_REFINE",
+                                                               "CONSERVATIVE_LINEAR_REFINE",
                                                                false,
                                                                "CONSERVATIVE_COARSEN",
                                                                d_bdry_extrap_type,
