@@ -104,6 +104,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
                            d_X_current_data,
                            d_u_phys_bdry_op,
                            finest_level_num,
+                           current_time,
                            /*F_needs_ghost_fill*/ true,
                            /*X_needs_ghost_fill*/ true);
 
