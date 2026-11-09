@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():
+  QUADRATIC extrapolation along axis 0 uses 3 cells inward from the boundary, more than the patch width (1) between the two boundaries
+  the domain must be at least 3 cells wide along axis 0
+

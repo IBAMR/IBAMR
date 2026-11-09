@@ -28,10 +28,13 @@
 #include <CellData.h>
 #include <ComponentSelector.h>
 #include <Patch.h>
+#include <PatchDataFactory.h>
+#include <PatchDescriptor.h>
 #include <RobinBcCoefStrategy.h>
 #include <Variable.h>
 #include <VariableDatabase.h>
 
+#include <algorithm>
 #include <ostream>
 #include <set>
 #include <string>
@@ -408,7 +411,17 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
 IntVector<NDIM>
 CartCellRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
-    return REFINE_OP_STENCIL_WIDTH;
+    // QUADRATIC interpolation uses g cells beyond the first, in which g is the ghost cell width of the data.
+    int width = REFINE_OP_STENCIL_WIDTH;
+    if (d_type == "QUADRATIC")
+    {
+        Pointer<PatchDescriptor<NDIM>> patch_descriptor = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
+        for (const int patch_data_idx : d_patch_data_indices)
+        {
+            width = std::max(width, patch_descriptor->getPatchDataFactory(patch_data_idx)->getGhostCellWidth().max());
+        }
+    }
+    return IntVector<NDIM>(width);
 } // getRefineOpStencilWidth
 
 void
@@ -512,6 +525,25 @@ CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
         const unsigned int location_index = bdry_box.getLocationIndex();
+        if (d_type == "QUADRATIC")
+        {
+            // The cells that the interpolation uses must lie in the patch or in the filled ghost cells.
+            const unsigned int axis = location_index / 2;
+            const int num_inward_layers = patch_data_gcw + 1;
+            const int filled_width =
+                PhysicalBoundaryUtilities::touchesOppositeBoundary(physical_codim1_boxes, location_index) ?
+                    0 :
+                    gcw_to_fill(axis);
+            if (patch_box.numberCells(axis) + filled_width < num_inward_layers)
+            {
+                TBOX_ERROR("CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1():\n"
+                           << "  QUADRATIC interpolation along axis " << axis << " uses " << num_inward_layers
+                           << " cells inward from the boundary, more than the patch width ("
+                           << patch_box.numberCells(axis) << ") plus the filled ghost width (" << filled_width << ")\n"
+                           << "  the domain must be at least " << num_inward_layers << " cells wide along axis " << axis
+                           << "\n");
+            }
+        }
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         const BoundaryBox<NDIM> trimmed_bdry_box(
             bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());

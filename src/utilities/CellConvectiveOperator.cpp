@@ -239,7 +239,16 @@ CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
-        d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_cell_var, context, Q_min_ghost_cell_width);
+        // The scratch data have at least as many ghost cells as the stencil width of the extrapolation at outflow
+        // boundaries.
+        IntVector<NDIM> Q_scratch_ghost_cell_width(Q_min_ghost_cell_width);
+        if (d_outflow_bdry_extrap_type != "NONE")
+        {
+            Q_scratch_ghost_cell_width = IntVector<NDIM>::max(
+                Q_scratch_ghost_cell_width,
+                IntVector<NDIM>(CartExtrapPhysBdryOp::getStencilWidth(d_outflow_bdry_extrap_type)));
+        }
+        d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_cell_var, context, Q_scratch_ghost_cell_width);
         d_Q_ghost_idx = var_db->registerClonedPatchDataIndex(d_Q_cell_var, d_Q_scratch_idx);
 
         const std::string q_flux_var_name = d_object_name + "::q_flux";

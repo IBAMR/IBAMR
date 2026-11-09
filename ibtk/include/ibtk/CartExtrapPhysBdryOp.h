@@ -48,6 +48,9 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy for setting ghost cell values at physical
  * boundaries via constant, linear, or quadratic extrapolation from interior
  * values.
+ *
+ * Constant, linear, and quadratic extrapolation use one, two, and three cells inward from a physical boundary, which
+ * must lie in the patch or in the ghost cells filled before this operator runs.
  */
 class CartExtrapPhysBdryOp : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
@@ -120,6 +123,12 @@ public:
     void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices);
 
     /*!
+     * \brief Return the refine operator stencil width of extrapolation of type \a extrap_type, the number of cells
+     * beyond the first that it uses: zero for \p "CONSTANT", one for \p "LINEAR", and two for \p "QUADRATIC".
+     */
+    static int getStencilWidth(const std::string& extrap_type);
+
+    /*!
      * \brief Set the extrapolation type employed by this class.
      *
      * \param extrap_type  Type of extrapolation to perform: \p "CONSTANT" specifies constant
@@ -154,7 +163,8 @@ public:
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      *
-     * Presently, the refine operator stencil width is zero.
+     * The width is getStencilWidth() of the extrapolation type. Scratch components must have at least this many ghost
+     * cells.
      */
     SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
 

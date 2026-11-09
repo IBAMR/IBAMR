@@ -75,16 +75,21 @@ main(int argc, char* argv[])
         else if (input_db->getString("CENTERING").compare("SIDE") == 0)
             Q_var = new SideVariable<NDIM, double>("Q");
 
-        auto Q_fcn = [](const VectorNd& x) -> double
+        // With EXTRAP_TYPE, the test fills the ghost cells with linear refinement and the extrapolation at the physical
+        // boundary instead of the coarse-fine interpolation, for a linear function that both reproduce.
+        const std::string extrap_type = input_db->getStringWithDefault("EXTRAP_TYPE", "NONE");
+        const bool test_extrap = extrap_type != "NONE";
+        auto Q_fcn = [test_extrap](const VectorNd& x) -> double
         {
             double val = 1.0;
-            for (int d = 0; d < NDIM; ++d) val += x[d] + x[d] * x[d];
+            for (int d = 0; d < NDIM; ++d) val += x[d] + (test_extrap ? 0.0 : x[d] * x[d]);
             return val;
         };
 
         auto var_db = VariableDatabase<NDIM>::getDatabase();
-        // Total amount patch indices. Note we need a single ghost cell width on the cell centered quantity.
-        const int Q_idx = var_db->registerVariableAndContext(Q_var, var_db->getContext("CTX"), IntVector<NDIM>(1));
+        const int ghost_width = input_db->getIntegerWithDefault("GHOST_WIDTH", 1);
+        const int Q_idx =
+            var_db->registerVariableAndContext(Q_var, var_db->getContext("CTX"), IntVector<NDIM>(ghost_width));
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         int tag_buffer = 1;
@@ -152,11 +157,20 @@ main(int argc, char* argv[])
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_cell_comps(1);
         ghost_cell_comps[0] =
-            InterpolationTransactionComponent(Q_idx, "NONE", true, "NONE", "NONE", false, nullptr /*bdry_conds*/);
+            test_extrap ?
+                InterpolationTransactionComponent(Q_idx,
+                                                  "CONSERVATIVE_LINEAR_REFINE",
+                                                  false,
+                                                  "CONSERVATIVE_COARSEN",
+                                                  extrap_type,
+                                                  false,
+                                                  nullptr /*bdry_conds*/) :
+                InterpolationTransactionComponent(Q_idx, "NONE", true, "NONE", "NONE", false, nullptr /*bdry_conds*/);
         HierarchyGhostCellInterpolation hier_ghost_cell;
         hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
         hier_ghost_cell.fillData(0.0);
 
+        if (!test_extrap)
         {
             int ln = patch_hierarchy->getFinestLevelNumber();
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
@@ -227,6 +241,7 @@ main(int argc, char* argv[])
 
         // Check that the ghost values one cell beyond each end of a patch along the left interface equal the exact
         // quadratic field. Such cells lie inside the domain only if several patches touch the interface.
+        if (!test_extrap)
         {
             int ln = patch_hierarchy->getFinestLevelNumber();
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
@@ -312,6 +327,56 @@ main(int argc, char* argv[])
                 }
             }
             if (num_checked > 0) pout << "Checked " << num_checked << " values beyond the ends of patches.\n";
+        }
+
+        // Check the ghost cells between the lower boundary and a patch within the ghost cell width of it. The cells are
+        // filled from a temporary coarse patch whose ghost cells are set by extrapolation.
+        if (test_extrap)
+        {
+            const int ln = patch_hierarchy->getFinestLevelNumber();
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            const Box<NDIM> domain = Box<NDIM>::refine(grid_geometry->getPhysicalDomain()[0], level->getRatio());
+            int num_checked = 0;
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
+                const double* const xlow = pgeom->getXLower();
+                const hier::Index<NDIM>& idx_low = patch->getBox().lower();
+                Pointer<CellData<NDIM, double>> Q_cc_data = patch->getPatchData(Q_idx);
+                TBOX_ASSERT(Q_cc_data);
+                // The ghost cells below the patch, away from its corners and from the other boundaries.
+                Box<NDIM> below = patch->getBox();
+                below.upper(1) = below.lower(1) - 1;
+                below.lower(1) -= ghost_width;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    if (d != 1)
+                    {
+                        below.lower(d) += 2;
+                        below.upper(d) -= 2;
+                    }
+                }
+                below = below * domain;
+                if (below.empty()) continue;
+                for (CellIterator<NDIM> ci(below); ci; ci++)
+                {
+                    const CellIndex<NDIM>& idx = ci();
+                    VectorNd x;
+                    for (int d = 0; d < NDIM; ++d)
+                        x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
+                    ++num_checked;
+                    if (!IBTK::abs_equal_eps((*Q_cc_data)(idx)-Q_fcn(x), 0.0))
+                    {
+                        pout << "Incorrect ghost value!\n";
+                        pout << "On ghost cell " << idx << "\n";
+                        pout << "Computed value " << (*Q_cc_data)(idx) << "\n";
+                        pout << "Exact value:   " << Q_fcn(x) << "\n";
+                    }
+                }
+            }
+            pout << "Checked " << num_checked << " values below patches.\n";
         }
 
         // Deallocate patch data
