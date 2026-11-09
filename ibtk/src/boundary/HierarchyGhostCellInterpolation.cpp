@@ -599,6 +599,31 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
         if (d_sc_robin_bc_ops[comp_idx]) d_sc_robin_bc_ops[comp_idx]->setHomogeneousBc(d_homogeneous_bc);
     }
 
+    // Set the side-centered data at Dirichlet boundaries before the coarsening and the coarse-fine interpolation use
+    // them. A fill of level 0 alone uses none of them.
+    if (d_finest_ln > 0)
+    {
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                if (!patch->getPatchGeometry()->getTouchesRegularBoundary())
+                {
+                    continue;
+                }
+                for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+                {
+                    if (d_sc_robin_bc_ops[comp_idx] && !d_transaction_comps[comp_idx].d_sc_phys_bdry_op)
+                    {
+                        d_sc_robin_bc_ops[comp_idx]->setDataAtDirichletBoundaries(*patch, fill_time);
+                    }
+                }
+            }
+        }
+    }
+
     // Synchronize data on the patch hierarchy prior to filling ghost cell
     // values.
     IBTK_TIMER_START(t_fill_data_coarsen);

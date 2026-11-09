@@ -675,6 +675,74 @@ CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
     return;
 } // accumulateFromPhysicalBoundaryData
 
+void
+CartSideRobinPhysBdryOp::setDataAtDirichletBoundaries(Patch<NDIM>& patch, const double fill_time)
+{
+    const Box<NDIM>& patch_box = patch.getBox();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    for (const auto& patch_data_idx : d_patch_data_indices)
+    {
+        Pointer<SideData<NDIM, double>> patch_data = patch.getPatchData(patch_data_idx);
+        if (!patch_data)
+        {
+            TBOX_ERROR("CartSideRobinPhysBdryOp::setDataAtDirichletBoundaries():\n"
+                       << "  patch data index " << patch_data_idx
+                       << " does not correspond to a side-centered double precision variable.\n");
+        }
+        if (NDIM * patch_data->getDepth() != static_cast<int>(d_bc_coefs.size()))
+        {
+            TBOX_ERROR("CartSideRobinPhysBdryOp::setDataAtDirichletBoundaries():\n"
+                       << "  data depth for patch data index " << patch_data_idx << " is " << patch_data->getDepth()
+                       << "\n"
+                       << "  but " << d_bc_coefs.size()
+                       << " boundary condition coefficient objects were provided to the class "
+                          "constructor.\n");
+        }
+        Pointer<Variable<NDIM>> var;
+        var_db->mapIndexToVariable(patch_data_idx, var);
+        for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, patch_data->getGhostCellWidth());
+            const BoundaryBox<NDIM> trimmed_bdry_box(
+                bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
+            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+            Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            for (int d = 0; d < patch_data->getDepth(); ++d)
+            {
+                RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[NDIM * d + bdry_normal_axis];
+                auto const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
+                if (extended_bc_coef)
+                {
+                    extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
+                    extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
+                }
+                bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
+                if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+                if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
+                for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+                {
+                    const hier::Index<NDIM>& i = it();
+                    if ((*bcoef_data)(i, 0) == 0.0)
+                    {
+                        (*patch_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower), d) =
+                            (*gcoef_data)(i, 0) / (*acoef_data)(i, 0);
+                    }
+                }
+            }
+        }
+    }
+    return;
+} // setDataAtDirichletBoundaries
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

@@ -199,6 +199,12 @@ public:
                                             double fill_time,
                                             const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
+    /*!
+     * \brief Set the boundary faces of \a patch at which the normal component of the registered data has a Dirichlet
+     * condition (b = 0 in a*u + b*du/dn = g) to g/a, or to zero if the boundary conditions are homogeneous.
+     */
+    void setDataAtDirichletBoundaries(SAMRAI::hier::Patch<NDIM>& patch, double fill_time);
+
 protected:
 private:
     /*!
