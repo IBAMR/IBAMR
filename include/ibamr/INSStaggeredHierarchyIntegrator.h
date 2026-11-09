@@ -27,6 +27,7 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/SideDataSynchronization.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -137,6 +138,13 @@ public:
      * used by this solver class.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> getStokesSolver();
+
+    /*!
+     * Return the time at which the pressure is defined and the body force is
+     * evaluated. This time is the new time for BDF viscous time stepping and
+     * the middle of the time step otherwise.
+     */
+    double getPressureTime(double current_time, double new_time) const override;
 
     /*!
      * Indicate that the Stokes solver should be (re-)initialized before the
@@ -466,7 +474,7 @@ private:
     std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
-    std::string d_U_P_bdry_interp_type = "LINEAR";
+    IBTK::BdryInterpType d_U_P_bdry_interp_type = IBTK::BdryInterpType::LINEAR;
 
     /*!
      * Variables for graphical output.

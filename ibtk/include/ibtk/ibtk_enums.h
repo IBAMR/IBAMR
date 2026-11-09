@@ -231,6 +231,46 @@ enum_to_string<TimePoint>(TimePoint val)
     return "UNKNOWN_TIME_POINT";
 }
 
+/*!
+ * \brief Enumerated type for the interpolation type that fills ghost cells at physical boundaries.
+ */
+enum class BdryInterpType
+{
+    LINEAR,
+    QUADRATIC,
+    UNKNOWN_BDRY_INTERP_TYPE
+};
+
+template <>
+inline BdryInterpType
+string_to_enum<BdryInterpType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "LINEAR") == 0)
+    {
+        return BdryInterpType::LINEAR;
+    }
+    if (strcasecmp(val.c_str(), "QUADRATIC") == 0)
+    {
+        return BdryInterpType::QUADRATIC;
+    }
+    return BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE;
+}
+
+template <>
+inline std::string
+enum_to_string<BdryInterpType>(BdryInterpType val)
+{
+    if (val == BdryInterpType::LINEAR)
+    {
+        return "LINEAR";
+    }
+    if (val == BdryInterpType::QUADRATIC)
+    {
+        return "QUADRATIC";
+    }
+    return "UNKNOWN_BDRY_INTERP_TYPE";
+}
+
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

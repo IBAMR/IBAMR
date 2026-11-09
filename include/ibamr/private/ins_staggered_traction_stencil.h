@@ -30,6 +30,7 @@
 #include <SideData.h>
 
 #include <functional>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -66,6 +67,22 @@ void correct_traction_coefficients(SAMRAI::pdat::ArrayData<NDIM, double>& acoef_
                                    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& patch_hierarchy,
                                    const std::function<double(const SAMRAI::hier::Index<NDIM>&, double)>& get_mu,
                                    double fill_time);
+
+/*!
+ * \brief Return the normal velocity on the face, farther from the boundary, of the ghost cell \a i_g outside the
+ * physical boundary normal to \a bdry_normal_axis (the lower boundary if \a bdry_is_lower), such that the discrete
+ * divergence of \a u_data vanishes in \a i_g. The function ignores \a u_data on that face.
+ */
+double get_divergence_free_ghost_value(const SAMRAI::pdat::SideData<NDIM, double>& u_data,
+                                       const SAMRAI::hier::Index<NDIM>& i_g,
+                                       unsigned int bdry_normal_axis,
+                                       bool bdry_is_lower,
+                                       const double* dx);
+
+/*!
+ * \brief Return whether any of \a u_bc_coefs is a StokesBcCoefStrategy with TRACTION conditions.
+ */
+bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 } // namespace detail
 } // namespace IBAMR
 

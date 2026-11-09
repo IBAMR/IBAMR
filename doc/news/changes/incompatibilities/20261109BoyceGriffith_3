@@ -1,0 +1,3 @@
+Changed: Make the protected member d_bdry_interp_type of IBAMR::StaggeredStokesOperator an IBTK::BdryInterpType instead of a std::string. Derived classes that pass it to an interface that takes a string convert it with IBTK::enum_to_string().
+<br>
+(Boyce Griffith, 2026/11/09)
