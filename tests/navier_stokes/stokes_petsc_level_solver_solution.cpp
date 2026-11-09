@@ -49,9 +49,9 @@
 #include <ibamr/app_namespaces.h>
 
 // Solve a Stokes problem twice on a periodic level of several patches along a traction boundary, with a coarse-fine
-// boundary opposite. The two solutions must agree, every copy of a shared side must hold the solution, and every ghost
-// value must be unchanged except the velocity ghost values in other patches, which hold the neighbors' interior values
-// from the start of the solve.
+// boundary opposite. The two solves start with different ghost values in other patches of the level. The test checks
+// that the two solutions are equal, that every copy of a shared side contains the solution, and that every ghost value
+// is unchanged.
 namespace
 {
 constexpr double same_level_ghost[2] = { 7.0, -5.0 };
@@ -324,16 +324,10 @@ main(int argc, char* argv[])
                         solution[state].push_back(value);
                         break;
                     case 1:
-                        if (!std::isfinite(value))
+                        if (value != same_level_ghost[state])
                         {
-                            TBOX_ERROR(
-                                "A velocity ghost value that lies in another patch of the level is not finite.\n");
-                        }
-                        if (std::abs(value - caller_velocity(location, axis)) > 1.0e-13)
-                        {
-                            TBOX_ERROR("A velocity ghost value that lies in another patch of the level is "
-                                       << value << " instead of the interior value " << caller_velocity(location, axis)
-                                       << " that the neighbor had at the start of the solve.\n");
+                            TBOX_ERROR("A velocity ghost value that lies in another patch of the level was changed to "
+                                       << value << ".\n");
                         }
                         break;
                     case 2:
