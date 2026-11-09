@@ -350,11 +350,17 @@ public:
 
     /*!
      * \brief Reset transaction component with the interpolation operator.
+     *
+     * The new component must have its destination as its source if the component given to initializeOperatorState()
+     * did.
      */
     void resetTransactionComponent(const InterpolationTransactionComponent& transaction_comps);
 
     /*!
      * \brief Reset transaction components with the interpolation operator.
+     *
+     * Each new component must have its destination as its source if the corresponding component given to
+     * initializeOperatorState() did.
      */
     void resetTransactionComponents(const std::vector<InterpolationTransactionComponent>& transaction_comps);
 
@@ -426,6 +432,9 @@ private:
 
     // The component interpolation operations to perform.
     std::vector<InterpolationTransactionComponent> d_transaction_comps;
+
+    // Whether the refine schedules of each component were built with its source as its destination.
+    std::vector<bool> d_refine_scheds_built_in_place;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;

@@ -1,0 +1,7 @@
+Program abort called with error message
+
+    HierarchyGhostCellInterpolation::resetTransactionComponents():
+  new transaction component 0 has source data index 3 and destination data index 2
+  the schedules of this component were built with equal source and destination data indices
+  call initializeOperatorState() with the new transaction components instead
+

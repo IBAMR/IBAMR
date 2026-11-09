@@ -1,0 +1,3 @@
+Fixed: Stop IBTK::HierarchyGhostCellInterpolation::resetTransactionComponents() with an error if a new component has a source other than its destination and the schedules were built with the two equal. Before, such a reset left the values of the destination unfilled.
+<br>
+(Boyce Griffith, 2026/11/08)
