@@ -1,0 +1,5 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+Largest difference between the reflected and divergence-free normal velocity ghost values: 1.994441929
+Largest magnitude of the velocity component of the result: 87.78807959
