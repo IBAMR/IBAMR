@@ -160,6 +160,7 @@ main(int argc, char* argv[])
     plog << std::setprecision(10);
 
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
+    PetscOptionsSetValue(nullptr, "-stokes_ksp_rtol", "1e-16");
     PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-10");
 
     { // cleanup dynamically allocated objects prior to shutdown

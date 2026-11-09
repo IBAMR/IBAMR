@@ -24,6 +24,7 @@
 
 #include <tbox/Pointer.h>
 
+#include <string>
 #include <vector>
 
 namespace SAMRAI
@@ -123,6 +124,31 @@ public:
     void enforceDivergenceFreeConditionAtBoundary(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_data,
                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                                   short int bdry_tag = NORMAL_TRACTION_BDRY) const;
+
+    /*!
+     * \brief Add the viscous part of the TRACTION conditions to \a f_data_idx at the boundary faces where the normal
+     * velocity is not prescribed. Pass the same \a u_data_idx and \a viscous_coef as to
+     * IBTK::HierarchyMathOps::laplace(). At a TRACTION boundary face where the normal velocity is not prescribed and
+     * \a viscous_coef is nonzero, \a bdry_interp_type must be "LINEAR".
+     */
+    void addNormalTractionViscousTerm(int f_data_idx,
+                                      int u_data_idx,
+                                      double viscous_coef,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      const std::string& bdry_interp_type,
+                                      int coarsest_ln = IBTK::invalid_level_number,
+                                      int finest_ln = IBTK::invalid_level_number) const;
+
+    /*!
+     * \brief Add the viscous part of the TRACTION conditions to \a f_data on one patch. See the version for a patch
+     * hierarchy.
+     */
+    void addNormalTractionViscousTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> f_data,
+                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_data,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                      double viscous_coef,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      const std::string& bdry_interp_type) const;
 
     /*!
      * \brief Setup physical boundary condition specification objects for

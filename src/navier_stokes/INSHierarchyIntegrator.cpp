@@ -138,6 +138,12 @@ INSHierarchyIntegrator::getViscousTimeSteppingType() const
     return d_viscous_time_stepping_type;
 } // getViscousTimeSteppingType
 
+double
+INSHierarchyIntegrator::getPressureTime(const double current_time, const double new_time) const
+{
+    return current_time + 0.5 * (new_time - current_time);
+} // getPressureTime
+
 TimeSteppingType
 INSHierarchyIntegrator::getConvectiveTimeSteppingType() const
 {
