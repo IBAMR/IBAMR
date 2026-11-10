@@ -638,6 +638,9 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                    rhs_idx,
                                                    rhs_var);
 
+    // The rows of sides on a Dirichlet boundary are identity rows.
+    d_bc_helper->copyDataAtDirichletBoundaries(res_idx, rhs_idx, coarsest_level_num, finest_level_num);
+
     IBTK_TIMER_STOP(t_compute_residual);
     return;
 } // computeResidual

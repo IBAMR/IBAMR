@@ -18,6 +18,7 @@
 
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/PatchMathOps.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
@@ -285,10 +286,13 @@ buildBoxOperator(Mat& A,
     return;
 } // buildBoxOperator
 
+// Move the contributions of the values outside the box, including ghost values, to the right-hand side, and subtract
+// boundary_rhs_correction if given.
 void
 modifyRhsForBcs(Vec& v,
                 const SideData<NDIM, double>& U_data,
                 const CellData<NDIM, double>& P_data,
+                const SideData<NDIM, double>* const boundary_rhs_correction,
                 const PoissonSpecifications& U_problem_coefs,
                 const Box<NDIM>& box,
                 const Box<NDIM>& ghost_box,
@@ -345,6 +349,16 @@ modifyRhsForBcs(Vec& v,
             {
                 ierr = VecSetValue(v, idx, -P_data(p_rght) / dx[axis], ADD_VALUES);
                 IBTK_CHKERRQ(ierr);
+            }
+
+            if (boundary_rhs_correction)
+            {
+                const double value = (*boundary_rhs_correction)(SideIndex<NDIM>(i, axis, SideIndex<NDIM>::Lower));
+                if (value != 0.0)
+                {
+                    ierr = VecSetValue(v, idx, -value, ADD_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
             }
         }
     }
@@ -591,13 +605,61 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
+
+            // Using the error before the sweep, add the viscous term that the box operator lacks at open faces, and
+            // subtract the left-hand side of the momentum equation at faces with a prescribed normal velocity.
+            Pointer<SideData<NDIM, double>> boundary_rhs_correction;
+            if (d_has_normal_stress_term && d_bc_helper && pgeom->getTouchesRegularBoundary())
+            {
+                boundary_rhs_correction = new SideData<NDIM, double>(patch_box, 1, IntVector<NDIM>(0));
+                boundary_rhs_correction->fillAll(0.0);
+                d_bc_helper->addNormalTractionViscousTerm(boundary_rhs_correction,
+                                                          U_error_data,
+                                                          patch,
+                                                          d_U_problem_coefs.getDConstant(),
+                                                          d_U_bc_coefs,
+                                                          /*bdry_interp_type*/ "LINEAR");
+                Pointer<SideData<NDIM, double>> momentum_lhs_data =
+                    new SideData<NDIM, double>(patch_box, 1, IntVector<NDIM>(0));
+                Pointer<SideData<NDIM, double>> dirichlet_lhs_data =
+                    new SideData<NDIM, double>(patch_box, 1, IntVector<NDIM>(0));
+                momentum_lhs_data->fillAll(0.0);
+                dirichlet_lhs_data->fillAll(0.0);
+                // The left-hand side of the momentum equation at each face of the patch, from the error and its
+                // ghost values.
+                const IBTK::PatchMathOps patch_math_ops;
+                patch_math_ops.grad(momentum_lhs_data, 1.0, P_error_data, 0.0, momentum_lhs_data, patch);
+                patch_math_ops.laplace(momentum_lhs_data,
+                                       d_U_problem_coefs.getDConstant(),
+                                       d_U_problem_coefs.cIsZero() ? 0.0 : d_U_problem_coefs.getCConstant(),
+                                       U_error_data,
+                                       1.0,
+                                       momentum_lhs_data,
+                                       patch);
+                d_bc_helper->copyDataAtDirichletBoundaries(dirichlet_lhs_data, momentum_lhs_data, patch);
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+                    {
+                        const SideIndex<NDIM> s_i(b(), axis, SideIndex<NDIM>::Lower);
+                        (*boundary_rhs_correction)(s_i) -= (*dirichlet_lhs_data)(s_i);
+                    }
+                }
+            }
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
                 const hier::Index<NDIM>& i = b();
                 const Box<NDIM> box(i, i);
                 copyToVec(e, *U_error_data, *P_error_data, box, box);
                 copyToVec(r, *U_residual_data, *P_residual_data, box, box);
-                modifyRhsForBcs(r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
+                modifyRhsForBcs(r,
+                                *U_error_data,
+                                *P_error_data,
+                                boundary_rhs_correction.getPointer(),
+                                d_U_problem_coefs,
+                                box,
+                                box,
+                                dx);
                 ierr = KSPSolve(ksp, r, e);
                 IBTK_CHKERRQ(ierr);
                 copyFromVec(e, *U_error_data, *P_error_data, box, box);

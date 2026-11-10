@@ -12,7 +12,7 @@ D = -1.0                            // diffusion coefficient
 
 solver_type = "PETSC_KRYLOV_SOLVER"
 solver_db {
-   max_iterations   = 8             // the iteration limit ends the solve
+   max_iterations   = 8             // the solve stops at the iteration limit
    rel_residual_tol = 1.0e-30
    abs_residual_tol = 1.0e-50
 }

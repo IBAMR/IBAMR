@@ -62,6 +62,8 @@ namespace IBAMR
  *
  * If the hierarchy has physical boundaries, setPhysicalBoundaryHelper() must be called before initialization with a
  * helper that has cached boundary data for the hierarchy.
+ *
+ * With TRACTION conditions, the exact error is a fixed point of the smoother for the StaggeredStokesOperator residual.
  */
 class StaggeredStokesBoxRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {

@@ -690,6 +690,9 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     d_level_math_ops[finest_level_num]->laplace(
         res_idx, res_var, negated_spec, sol_idx, sol_var, nullptr, d_solution_time, 1.0, rhs_idx, rhs_var);
 
+    // The rows of sides on a Dirichlet boundary are identity rows.
+    d_bc_helper->copyDataAtDirichletBoundaries(res_idx, rhs_idx, coarsest_level_num, finest_level_num);
+
     IBTK_TIMER_STOP(t_compute_residual);
     return;
 } // computeResidual

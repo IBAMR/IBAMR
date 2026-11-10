@@ -1591,6 +1591,10 @@ public:
      * The coarse values on each interface are replaced by the restriction of
      * the fine values.
      *
+     * The restriction is the mean of the fine face values over each coarse
+     * face, so that the synchronized velocity is exactly flux-divergence-free
+     * on the composite grid.
+     *
      * \note The indices must refer to side-centered, double-valued, depth-one
      * data that is allocated on every level of this object's range of levels.
      *

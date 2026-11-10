@@ -302,6 +302,9 @@ public:
     /*!
      * \brief Compute the composite-grid residual on the specified range of
      * levels of the patch hierarchy.
+     *
+     * With TRACTION conditions, the momentum residual at the faces on the physical boundary is that of
+     * StaggeredStokesOperator.
      */
     void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
@@ -405,6 +408,12 @@ protected:
      * Boundary condition helper object.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+
+    /*
+     * Whether any of the velocity boundary condition objects imposes TRACTION conditions, for which the operator adds a
+     * normal stress term.
+     */
+    bool d_has_normal_stress_term = false;
 
     /*
      * Ghost cell width.
@@ -556,6 +565,12 @@ private:
      * \return A reference to this object.
      */
     StaggeredStokesFACPreconditionerStrategy& operator=(const StaggeredStokesFACPreconditionerStrategy& that) = delete;
+
+    /*!
+     * \brief With TRACTION conditions, set the momentum residual \a U_res_idx at the faces on the physical boundary to
+     * that of StaggeredStokesOperator, after computeResidual() has evaluated its interior terms.
+     */
+    void setBoundaryMomentumResidual(int U_res_idx, int U_sol_idx, int U_rhs_idx, int coarsest_ln, int finest_ln);
 
     /*
      * Combined U & P physical boundary operator.
