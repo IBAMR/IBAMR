@@ -95,7 +95,8 @@ largest_magnitude(Pointer<PatchLevel<NDIM>> level, const int u_idx, const int p_
 void
 check_fac_open_boundary(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                         Pointer<INSHierarchyIntegrator> ins_integrator,
-                        const vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+                        const vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                        Pointer<Database> fac_db)
 {
     const double solution_time = 0.5;
     const double mu = ins_integrator->getStokesSpecifications()->getMu();
@@ -185,13 +186,15 @@ check_fac_open_boundary(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     op.setVelocityPoissonSpecifications(spec);
     op.setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     op.setPhysicalBoundaryHelper(bc_helper);
+    op.setBoundaryTreatment(ins_integrator->getBoundaryTreatment());
     op.setSolutionTime(solution_time);
     op.setTimeInterval(solution_time, solution_time);
     op.initializeOperatorState(e, r);
     op.apply(e, r);
     op.deallocateOperatorState();
 
-    StaggeredStokesBoxRelaxationFACOperator fac_op("box_smoother", nullptr, "box_");
+    StaggeredStokesBoxRelaxationFACOperator fac_op("box_smoother", fac_db, "box_");
+    fac_op.setBoundaryTreatment(ins_integrator->getBoundaryTreatment());
     fac_op.setVelocityPoissonSpecifications(spec);
     fac_op.setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     fac_op.setPhysicalBoundaryHelper(bc_helper);
@@ -273,6 +276,11 @@ main(int argc, char* argv[])
         ins_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
 
         ins_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-        check_fac_open_boundary(patch_hierarchy, ins_integrator, u_bc_coefs);
+        check_fac_open_boundary(patch_hierarchy,
+                                ins_integrator,
+                                u_bc_coefs,
+                                app_initializer->getInputDatabase()->isDatabase("fac_db") ?
+                                    app_initializer->getComponentDatabase("fac_db") :
+                                    Pointer<Database>(nullptr));
     }
 } // main

@@ -1,0 +1,3 @@
+New: Make IBAMR::INSStaggeredHierarchyIntegrator pass its bdry_interp_type, including "QUADRATIC", to its Poisson subdomain solvers and their operators and preconditioners, such as the PETSc and hypre level solvers and the FAC preconditioners. The integrator also passes its bdry_extrap_type to these operators. The integrator writes to plog the treatment of each of these objects that differs from its own. The report includes the FAC smoothers, which use "LINEAR" by default.
+<br>
+(Boyce Griffith, 2026/10/28)

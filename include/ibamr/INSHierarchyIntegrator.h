@@ -80,12 +80,16 @@ namespace IBAMR
  * hierarchy, along with basic data management for variables defined on that
  * hierarchy.
  *
- * The integrator passes its boundary treatment to the Stokes operator and preconditioners, the divergence-free velocity
- * extension, and the velocity boundary conditions. The keys <code>bdry_interp_type</code> and
- * <code>bdry_extrap_type</code> in the database of an object, such as <code>stokes_precond_db</code>, override the
- * integrator's treatment for that object. <code>stokes_solver_db</code> may set only the integrator's values. The
- * integrator writes to plog the treatment of each object that differs from its own. An object that cannot apply the
- * integrator's <code>bdry_interp_type</code> uses "LINEAR" and is marked "unsupported" in that report.
+ * The integrator passes its boundary treatment to the Stokes operator and preconditioners, the velocity and pressure
+ * subdomain solvers, the divergence-free velocity extension, and the velocity boundary conditions. The keys
+ * <code>bdry_interp_type</code> and <code>bdry_extrap_type</code> in the database of an object, such as
+ * <code>stokes_precond_db</code> or the <code>laplace_op</code> database of <code>velocity_solver_db</code>, override
+ * the integrator's treatment for that object. <code>stokes_solver_db</code> may set only the integrator's values. A FAC
+ * preconditioner uses the integrator's <code>bdry_interp_type</code> for its residual and its coarse level solver, but
+ * "LINEAR" for its smoother unless its database sets <code>smoother_bdry_interp_type</code>. The integrator writes to
+ * plog the treatment of each object that differs from its own. An object that cannot apply the integrator's
+ * <code>bdry_interp_type</code> uses "LINEAR" and is marked "unsupported" in that report. In that report, a smoother
+ * that uses "LINEAR" by default is marked "smoother default".
  */
 class INSHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
@@ -609,6 +613,28 @@ protected:
     void setPreconditionerBoundaryTreatment(StaggeredStokesSolver& precond,
                                             const std::string& precond_name,
                                             const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& precond_db);
+
+    /*!
+     * Set the discretization at physical boundaries of a Poisson solver with input database solver_db and, for a Krylov
+     * solver, of its operator and nested preconditioners with input databases precond_dbs. Report each object whose
+     * treatment differs from the integrator's. An object that cannot apply the interpolation type uses "LINEAR" and is
+     * reported as unsupported. If its database sets that type, the function stops with an error.
+     */
+    void
+    setPoissonSolverBoundaryTreatment(const std::string& function_name,
+                                      const std::string& object_name,
+                                      IBTK::PoissonSolver& solver,
+                                      const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& solver_db,
+                                      const std::vector<SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>>& precond_dbs,
+                                      const std::string& role = "solver");
+
+    /*!
+     * Write to plog the interpolation type that the smoother of a FAC preconditioner with input database db uses at
+     * physical boundaries, if that differs from the integrator's.
+     */
+    void logSmootherBoundaryTreatment(const std::string& function_name,
+                                      const std::string& object_name,
+                                      const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& db);
 
     /*!
      * Write the discretization at physical boundaries of an object to plog if it differs from that of the

@@ -19,6 +19,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
+#include <ibtk/PoissonSolver.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
@@ -136,6 +137,12 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
         {
             d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
         }
+        if (input_db->keyExists("bdry_interp_type")) setBdryInterpType(input_db->getString("bdry_interp_type"));
+        if (input_db->keyExists("smoother_bdry_interp_type"))
+            setSmootherBdryInterpType(input_db->getString("smoother_bdry_interp_type"));
+        d_coarse_solver_sets_bdry_interp_type =
+            input_db->isDatabase("coarse_solver_db") &&
+            input_db->getDatabase("coarse_solver_db")->keyExists("bdry_interp_type");
     }
 
     // Setup scratch variables.
@@ -243,6 +250,42 @@ PoissonFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(double coarse
     d_coarse_solver_rel_residual_tol = coarse_solver_rel_residual_tol;
     return;
 } // setCoarseSolverRelativeTolerance
+
+void
+PoissonFACPreconditionerStrategy::setBdryInterpType(const std::string& bdry_interp_type)
+{
+    if (bdry_interp_type != "LINEAR" && bdry_interp_type != "QUADRATIC")
+    {
+        TBOX_ERROR(d_object_name << "::setBdryInterpType():\n"
+                                 << "  unsupported bdry_interp_type: " << bdry_interp_type << "\n"
+                                 << "  valid choices are: LINEAR, QUADRATIC" << std::endl);
+    }
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setBdryInterpType():\n"
+                                 << "  cannot be called while operator state is initialized" << std::endl);
+    }
+    d_bdry_interp_type = bdry_interp_type;
+    return;
+} // setBdryInterpType
+
+void
+PoissonFACPreconditionerStrategy::setSmootherBdryInterpType(const std::string& smoother_bdry_interp_type)
+{
+    if (smoother_bdry_interp_type != "LINEAR" && smoother_bdry_interp_type != "QUADRATIC")
+    {
+        TBOX_ERROR(d_object_name << "::setSmootherBdryInterpType():\n"
+                                 << "  unsupported smoother_bdry_interp_type: " << smoother_bdry_interp_type << "\n"
+                                 << "  valid choices are: LINEAR, QUADRATIC" << std::endl);
+    }
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setSmootherBdryInterpType():\n"
+                                 << "  cannot be called while operator state is initialized" << std::endl);
+    }
+    d_smoother_bdry_interp_type = smoother_bdry_interp_type;
+    return;
+} // setSmootherBdryInterpType
 
 void
 PoissonFACPreconditionerStrategy::setProlongationMethod(const std::string& prolongation_method)
@@ -716,6 +759,13 @@ PoissonFACPreconditionerStrategy::negatePoissonSpecifications(PoissonSpecificati
     }
     return;
 } // negatePoissonSpecifications
+
+void
+PoissonFACPreconditionerStrategy::setCoarseSolverBdryInterpType(PoissonSolver& coarse_solver) const
+{
+    if (!d_coarse_solver_sets_bdry_interp_type) coarse_solver.setBdryInterpType(d_bdry_interp_type);
+    return;
+} // setCoarseSolverBdryInterpType
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

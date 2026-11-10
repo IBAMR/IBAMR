@@ -56,8 +56,7 @@ namespace IBAMR
  * This class is intended to be used with an iterative (Krylov or Newton-Krylov)
  * incompressible flow solver.
  *
- * This class requires the physical boundary condition helper object. The boundary interpolation type must be "LINEAR"
- * where the viscous coefficient is nonzero and the normal velocity has TRACTION or PSEUDO_TRACTION conditions.
+ * This class requires the physical boundary condition helper object.
  *
  * \see INSVCStaggeredHierarchyIntegrator
  */

@@ -75,6 +75,11 @@ public:
     bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
 
     /*!
+     * \brief Set the extrapolation type at physical boundaries at which boundary conditions are not present.
+     */
+    void setBdryExtrapType(const std::string& bdry_extrap_type) override;
+
+    /*!
      * \name Linear operator functionality.
      */
     //\{

@@ -195,18 +195,22 @@ get_traction_stencil(const SAMRAI::hier::Index<NDIM>& i,
                      NormalVelocityPatch& normal_velocity_patch,
                      const SAMRAI::hier::BoxArray<NDIM>& domain,
                      const SAMRAI::hier::Box<NDIM>& ghost_box,
+                     bool quadratic,
                      double fill_time);
 
 /*!
- * Return the faces on which u_I - u_div depends at the face i of a physical boundary normal to bdry_normal_axis (the
- * lower boundary if bdry_is_lower), each with its coefficient. Here u_I is the next normal velocity inside the domain.
- * The value u_div is get_divergence_free_ghost_value() in the ghost cell outside the face i.
+ * Return the velocity faces, with coefficients that add for a repeated face, in the normal-stress term at the boundary
+ * face i normal to bdry_normal_axis. The term is (11/3)*u_I - 2*u_B - (2/3)*u_I2 - u_div, less (4/3)*(u_I - u_div) at
+ * PSEUDO_TRACTION, if quadratic, and u_I - u_div (none at PSEUDO_TRACTION) if linear. u_B, u_I, and u_I2 are the normal
+ * velocities at i and the next two faces inside. u_div is get_divergence_free_ghost_value() at the ghost cell beyond i.
  */
 std::vector<std::pair<SAMRAI::pdat::SideIndex<NDIM>, double>>
 get_normal_stress_stencil(const SAMRAI::hier::Index<NDIM>& i,
                           unsigned int bdry_normal_axis,
                           bool bdry_is_lower,
-                          const double* dx);
+                          const double* dx,
+                          bool quadratic,
+                          bool pseudo_traction);
 } // namespace traction_stencil
 } // namespace IBAMR
 

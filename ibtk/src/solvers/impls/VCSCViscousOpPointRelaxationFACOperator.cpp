@@ -575,7 +575,8 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                        d_bdry_extrap_type,
                                                        /*consistent_type_2_bdry*/ false,
                                                        d_bc_coefs,
-                                                       fill_pattern);
+                                                       fill_pattern,
+                                                       d_bdry_interp_type);
     if (d_level_bdry_fill_ops[finest_level_num])
     {
         d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
@@ -595,7 +596,8 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                                d_bdry_extrap_type,
                                                                /*consistent_type_2_bdry*/ false,
                                                                d_bc_coefs,
-                                                               fill_pattern);
+                                                               fill_pattern,
+                                                               d_bdry_interp_type);
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.

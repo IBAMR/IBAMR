@@ -87,6 +87,7 @@ namespace IBTK
  * values): \verbatim
 
  options_prefix = ""           // see setOptionsPrefix()
+ bdry_interp_type = "LINEAR"   // see setBdryInterpType()
  ksp_type = "gmres"            // see setKSPType()
  initial_guess_nonzero = FALSE // see setInitialGuessNonzero()
  rel_residual_tol = 1.0e-5     // see setRelativeTolerance()
@@ -113,6 +114,12 @@ public:
      * \brief Destructor.
      */
     ~CCPoissonPETScLevelSolver();
+
+    /*!
+     * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC", at physical boundaries at which boundary conditions are present.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
 
     /*!
      * \brief Static function to construct a CCPoissonPETScLevelSolver.

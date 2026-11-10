@@ -282,6 +282,7 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         {
             level_solver->setPhysicalBoundaryHelper(d_bc_helper);
         }
+        setSolverBoundaryTreatment(*level_solver, d_level_solver_db, d_smoother_bdry_interp_type);
         level_solver->setMaxIterations(d_level_solver_max_iterations);
         level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
         level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);

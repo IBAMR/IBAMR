@@ -408,6 +408,7 @@ get_traction_stencil(const hier::Index<NDIM>& i,
                      NormalVelocityPatch& normal_velocity_patch,
                      const BoxArray<NDIM>& domain,
                      const Box<NDIM>& ghost_box,
+                     const bool quadratic,
                      const double fill_time)
 {
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = normal_velocity_patch.getPatch().getPatchGeometry();
@@ -426,7 +427,7 @@ get_traction_stencil(const hier::Index<NDIM>& i,
                                    normal_velocity_patch,
                                    domain,
                                    ghost_box,
-                                   /*quadratic*/ false,
+                                   quadratic,
                                    fill_time)
             .stencil;
     };
@@ -501,8 +502,15 @@ std::vector<std::pair<SideIndex<NDIM>, double>>
 get_normal_stress_stencil(const hier::Index<NDIM>& i,
                           const unsigned int bdry_normal_axis,
                           const bool bdry_is_lower,
-                          const double* const dx)
+                          const double* const dx,
+                          const bool quadratic,
+                          const bool pseudo_traction)
 {
+    std::vector<std::pair<SideIndex<NDIM>, double>> stencil;
+    if (pseudo_traction && !quadratic)
+    {
+        return stencil;
+    }
     hier::Index<NDIM> i_g = i;
     if (bdry_is_lower)
     {
@@ -511,11 +519,31 @@ get_normal_stress_stencil(const hier::Index<NDIM>& i,
     const SideIndex<NDIM> i_s_boundary(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
     SideIndex<NDIM> i_s_inside = i_s_boundary;
     i_s_inside(bdry_normal_axis) += bdry_is_lower ? 1 : -1;
-    std::vector<std::pair<SideIndex<NDIM>, double>> stencil;
-    stencil.emplace_back(i_s_inside, 1.0);
+
+    // The coefficients of u_I, u_B, and u_I2 and of -u_div, from the term in the documentation.
+    double u_inside_coef = 1.0, u_boundary_coef = 0.0, u_inside_2_coef = 0.0, u_div_coef = 1.0;
+    if (quadratic)
+    {
+        u_inside_coef = 11.0 / 3.0;
+        u_boundary_coef = -2.0;
+        u_inside_2_coef = -2.0 / 3.0;
+        if (pseudo_traction)
+        {
+            u_inside_coef -= 4.0 / 3.0;
+            u_div_coef -= 4.0 / 3.0;
+        }
+    }
+    stencil.emplace_back(i_s_inside, u_inside_coef);
+    if (quadratic)
+    {
+        SideIndex<NDIM> i_s_inside_2 = i_s_inside;
+        i_s_inside_2(bdry_normal_axis) += bdry_is_lower ? 1 : -1;
+        stencil.emplace_back(i_s_boundary, u_boundary_coef);
+        stencil.emplace_back(i_s_inside_2, u_inside_2_coef);
+    }
     for (const auto& entry : get_divergence_free_ghost_value_stencil(i_g, bdry_normal_axis, bdry_is_lower, dx))
     {
-        stencil.emplace_back(entry.first, -entry.second);
+        stencil.emplace_back(entry.first, -u_div_coef * entry.second);
     }
     return stencil;
 } // get_normal_stress_stencil

@@ -129,15 +129,17 @@ adjust_rhs_for_pressure_at_cf_boundary(SideData<NDIM, double>& rhs_data,
     return;
 } // adjust_rhs_for_pressure_at_cf_boundary
 
-// Move the term f_g*g of the ghost pressure p_G = f_i*p_I + f_g*g, with interior pressure p_I and boundary data g, in
-// the normal-velocity equations at open boundaries to the right-hand side.
+// Move the term f_g*g of the ghost pressure in the normal-velocity equations at open boundaries to the right-hand side.
+// The ghost pressure is p_G = f_i*p_I + f_i2*p_I2 + f_g*g, in which f_i, f_i2, and f_g are weights computed from the
+// Robin coefficients and the grid spacing, p_I and p_I2 are the interior pressures, and g is the boundary data.
 void
 adjust_rhs_for_ghost_pressure(SideData<NDIM, double>& rhs_data,
                               Patch<NDIM>& patch,
                               const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
                               RobinBcCoefStrategy<NDIM>* P_bc_coef,
                               const double data_time,
-                              const bool homogeneous_bc)
+                              const bool homogeneous_bc,
+                              const bool quadratic)
 {
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
@@ -181,8 +183,9 @@ adjust_rhs_for_ghost_pressure(SideData<NDIM, double>& rhs_data,
             {
                 continue;
             }
-            const double f_g = 2.0 * h / ((*p_acoef_data)(i, 0) * h + 2.0 * (*p_bcoef_data)(i, 0));
-            const double ghost_pressure_datum = f_g * (*p_gcoef_data)(i, 0);
+            const GhostValueWeights w =
+                get_ghost_value_weights(quadratic, (*p_acoef_data)(i, 0), (*p_bcoef_data)(i, 0), h);
+            const double ghost_pressure_datum = h * w.g_num / w.g_den * (*p_gcoef_data)(i, 0);
             rhs_data(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) +=
                 (is_lower ? 1.0 : -1.0) * ghost_pressure_datum / h;
         }
@@ -190,17 +193,19 @@ adjust_rhs_for_ghost_pressure(SideData<NDIM, double>& rhs_data,
     return;
 } // adjust_rhs_for_ghost_pressure
 
-// Move the gamma part of the normal-stress term D/h^2*(u_I - u_div) (traction_stencil::get_normal_stress_stencil()) at
-// a TRACTION boundary to the right-hand side. A tangential ghost value is f_i*u + f_g*gamma, in which f_i and f_g are
-// weights computed from the Robin coefficients and the grid spacing, u is the value on the face inside the domain, and
-// gamma is the inhomogeneous coefficient. The matrix contains the u terms.
+// Move the gamma part of the normal-stress term (traction_stencil::get_normal_stress_stencil()) at a TRACTION boundary
+// (and a PSEUDO_TRACTION boundary if quadratic) to the right-hand side. A tangential ghost value is
+// f_i*u_0 + f_i2*u_1 + f_g*gamma, in which f_i, f_i2, and f_g are weights computed from the Robin coefficients and the
+// grid spacing, u_0 and u_1 are the values on the faces inside the domain, and gamma is the inhomogeneous coefficient.
+// The matrix contains the u terms.
 void
 adjust_rhs_for_normal_stress(SideData<NDIM, double>& rhs_data,
                              Patch<NDIM>& patch,
                              const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
                              const double D,
                              const double data_time,
-                             const bool homogeneous_bc)
+                             const bool homogeneous_bc,
+                             const bool quadratic)
 {
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
@@ -213,7 +218,12 @@ adjust_rhs_for_normal_stress(SideData<NDIM, double>& rhs_data,
         const unsigned int bdry_normal_axis = location_index / 2;
         const bool is_lower = location_index % 2 == 0;
         const auto normal_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(U_bc_coefs[bdry_normal_axis]);
-        if (!normal_bc_coef || normal_bc_coef->getTractionBcType() != TRACTION)
+        if (!normal_bc_coef)
+        {
+            continue;
+        }
+        const bool pseudo_traction = normal_bc_coef->getTractionBcType() == PSEUDO_TRACTION;
+        if (normal_bc_coef->getTractionBcType() != TRACTION && !(quadratic && pseudo_traction))
         {
             continue;
         }
@@ -264,7 +274,8 @@ adjust_rhs_for_normal_stress(SideData<NDIM, double>& rhs_data,
                 continue;
             }
             double normal_stress_datum = 0.0;
-            for (const auto& entry : traction_stencil::get_normal_stress_stencil(i, bdry_normal_axis, is_lower, dx))
+            for (const auto& entry : traction_stencil::get_normal_stress_stencil(
+                     i, bdry_normal_axis, is_lower, dx, quadratic, pseudo_traction))
             {
                 const unsigned int axis = entry.first.getAxis();
                 if (axis == bdry_normal_axis)
@@ -278,8 +289,8 @@ adjust_rhs_for_normal_stress(SideData<NDIM, double>& rhs_data,
                 }
                 const double a = (*acoef_data[axis])(i_bc, 0);
                 const double b_coef = (*bcoef_data[axis])(i_bc, 0);
-                const double f_g = 2.0 * h / (a * h + 2.0 * b_coef);
-                normal_stress_datum += entry.second * f_g * (*gcoef_data[axis])(i_bc, 0);
+                const GhostValueWeights w = get_ghost_value_weights(quadratic, a, b_coef, h);
+                normal_stress_datum += entry.second * (h * w.g_num / w.g_den) * (*gcoef_data[axis])(i_bc, 0);
             }
             rhs_data(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) -= D / (h * h) * normal_stress_datum;
         }
@@ -296,6 +307,12 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
+    if (input_db && input_db->isString("bdry_interp_type"))
+    {
+        BoundaryTreatment bdry_treatment = d_bdry_treatment;
+        bdry_treatment.bdry_interp_type = input_db->getString("bdry_interp_type");
+        setBoundaryTreatment(bdry_treatment);
+    }
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -355,6 +372,12 @@ StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
     if (d_is_initialized) deallocateSolverState();
     return;
 } // ~StaggeredStokesPETScLevelSolver
+
+bool
+StaggeredStokesPETScLevelSolver::supportsBdryInterpType(const std::string& bdry_interp_type) const
+{
+    return bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC";
+} // supportsBdryInterpType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -454,6 +477,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                      d_U_problem_coefs,
                                                                      d_U_bc_coefs,
                                                                      d_new_time,
+                                                                     d_bdry_treatment.bdry_interp_type,
                                                                      d_num_dofs_per_proc,
                                                                      d_u_dof_index_idx,
                                                                      d_p_dof_index_idx,
@@ -605,16 +629,27 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                     }
                 }
             }
-            PoissonUtilities::adjustRHSAtPhysicalBoundary(
-                *f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs, d_solution_time, d_homogeneous_bc);
-            adjust_rhs_for_normal_stress(
-                *f_adj_data, *patch, d_U_bc_coefs, d_U_problem_coefs.getDConstant(), d_solution_time, d_homogeneous_bc);
+            const bool quadratic = d_bdry_treatment.bdry_interp_type == "QUADRATIC";
+            PoissonUtilities::adjustRHSAtPhysicalBoundary(*f_adj_data,
+                                                          patch,
+                                                          d_U_problem_coefs,
+                                                          d_U_bc_coefs,
+                                                          d_solution_time,
+                                                          d_homogeneous_bc,
+                                                          d_bdry_treatment.bdry_interp_type);
+            adjust_rhs_for_normal_stress(*f_adj_data,
+                                         *patch,
+                                         d_U_bc_coefs,
+                                         d_U_problem_coefs.getDConstant(),
+                                         d_solution_time,
+                                         d_homogeneous_bc,
+                                         quadratic);
             if (at_cf_bdry)
             {
                 u_bc_target_data->fillAll(0.0);
             }
             adjust_rhs_for_ghost_pressure(
-                *f_adj_data, *patch, d_U_bc_coefs, d_P_bc_coef, d_solution_time, d_homogeneous_bc);
+                *f_adj_data, *patch, d_U_bc_coefs, d_P_bc_coef, d_solution_time, d_homogeneous_bc, quadratic);
             d_bc_helper->enforceNormalVelocityBoundaryConditions(
                 f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
         }

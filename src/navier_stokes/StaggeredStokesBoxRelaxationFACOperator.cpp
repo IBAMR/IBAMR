@@ -606,8 +606,9 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
 
-            // Using the error before the sweep, add the viscous term that the box operator lacks at open faces, and
-            // subtract the left-hand side of the momentum equation at faces with a prescribed normal velocity.
+            // Using the error before the sweep, add the viscous term that the box operator lacks at open faces
+            // (TRACTION faces, and PSEUDO_TRACTION faces with quadratic ghost values), and subtract the left-hand side
+            // of the momentum equation at faces with a prescribed normal velocity.
             Pointer<SideData<NDIM, double>> boundary_rhs_correction;
             if (d_has_normal_stress_term && d_bc_helper && pgeom->getTouchesRegularBoundary())
             {
@@ -618,7 +619,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                                                           patch,
                                                           d_U_problem_coefs.getDConstant(),
                                                           d_U_bc_coefs,
-                                                          /*bdry_interp_type*/ "LINEAR");
+                                                          d_smoother_bdry_interp_type);
                 Pointer<SideData<NDIM, double>> momentum_lhs_data =
                     new SideData<NDIM, double>(patch_box, 1, IntVector<NDIM>(0));
                 Pointer<SideData<NDIM, double>> dirichlet_lhs_data =

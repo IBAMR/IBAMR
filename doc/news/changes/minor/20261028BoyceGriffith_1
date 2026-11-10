@@ -1,0 +1,3 @@
+New: Support bdry_interp_type = "QUADRATIC" at physical boundaries in the assembled matrices of the cell-centered, side-centered, and variable-coefficient viscous operators and in the PETSc and hypre level solvers that use them. The matrices are nonsymmetric with "QUADRATIC". "LINEAR" is the default.
+<br>
+(Boyce Griffith, 2026/10/28)

@@ -457,7 +457,9 @@ get_shift(int dir, int shift)
 } // get_shift
 
 // The stencil maps of the matrix of the variable-coefficient viscous operator (one in 2D, one for each axis in 3D) take
-// the index offset of a stencil entry of a side to its position in the list of coefficients of the side.
+// the index offset of a stencil entry of a side to its position in the list of coefficients of the side. The last
+// eight entries have an offset of two along one axis and one along another. They are the couplings of a quadratic
+// ghost value to the second side from a physical boundary.
 std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder>>
 make_vcsc_stencil_maps()
 {
@@ -481,6 +483,16 @@ make_vcsc_stencil_maps()
                 stencil_map[get_shift(0, s) + get_shift(1, t)] = k++;
             }
         }
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            for (int s = -2; s <= 2; s += 4)
+            {
+                for (int t = -1; t <= 1; t += 2)
+                {
+                    stencil_map[get_shift(axis, s) + get_shift(1 - axis, t)] = k++;
+                }
+            }
+        }
 #elif (NDIM == 3)
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -496,6 +508,20 @@ make_vcsc_stencil_maps()
                 }
             }
         }
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (d == m)
+            {
+                continue;
+            }
+            for (int s = -2; s <= 2; s += 4)
+            {
+                for (int t = -1; t <= 1; t += 2)
+                {
+                    stencil_map[get_shift(m, s) + get_shift(d, t)] = k++;
+                }
+            }
+        }
 #endif
         stencil_map_vec.push_back(stencil_map);
     }
@@ -503,16 +529,28 @@ make_vcsc_stencil_maps()
 }
 } // namespace
 
+GhostValueWeights
+get_ghost_value_weights(const bool quadratic, const double a, const double b, const double h)
+{
+    if (quadratic)
+    {
+        const double den = 8.0 * b + 3.0 * a * h;
+        return { 2.0 * (4.0 * b - 3.0 * a * h) / den, a * h / den, 8.0, den };
+    }
+    return { -(a * h - 2.0 * b) / (a * h + 2.0 * b), 0.0, 2.0, 2.0 * b + h * a };
+} // get_ghost_value_weights
+
 void
 PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coefficients,
                                             Pointer<Patch<NDIM>> patch,
                                             const std::vector<hier::Index<NDIM>>& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             RobinBcCoefStrategy<NDIM>* bc_coef,
-                                            double data_time)
+                                            double data_time,
+                                            const std::string& bdry_interp_type)
 {
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(1, bc_coef);
-    computeMatrixCoefficients(matrix_coefficients, patch, stencil, poisson_spec, bc_coefs, data_time);
+    computeMatrixCoefficients(matrix_coefficients, patch, stencil, poisson_spec, bc_coefs, data_time, bdry_interp_type);
     return;
 }
 
@@ -522,8 +560,13 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
                                             const std::vector<hier::Index<NDIM>>& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                            double data_time)
+                                            double data_time,
+                                            const std::string& bdry_interp_type)
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC");
+#endif
+    const bool quadratic = bdry_interp_type == "QUADRATIC";
     const int stencil_sz = static_cast<int>(stencil.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
@@ -628,6 +671,17 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
     }
 
     // Modify matrix coefficients to account for physical boundary conditions.
+    //
+    // A quadratic ghost value couples the boundary cell to the second cell from the boundary. The face coefficients
+    // are shared with the row of that cell. The couplings are therefore set after the loop that sets the matrix.
+    struct QuadraticCoupling
+    {
+        hier::Index<NDIM> i;
+        int d;
+        int stencil_index;
+        double value;
+    };
+    std::vector<QuadraticCoupling> quadratic_couplings;
     const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
@@ -676,12 +730,15 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
+            //
+            // Quadratic interpolation adds a multiple of the next interior cell to u_o.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
                 const hier::Index<NDIM>& i_s_bdry = bc();
                 const double& a = (*acoef_data)(i_s_bdry, 0);
                 const double& b = (*bcoef_data)(i_s_bdry, 0);
                 const double& h = dx[bdry_normal_axis];
+                const GhostValueWeights w = get_ghost_value_weights(quadratic, a, b, h);
 
                 // i_s_bdry: side index located on physical boundary
                 //
@@ -696,14 +753,24 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
                 if (is_lower)
                 {
                     const SideIndex<NDIM> ilower(i_c_intr, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    diagonal(i_c_intr, d) += off_diagonal(ilower, d) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
+                    diagonal(i_c_intr, d) += off_diagonal(ilower, d) * w.f_i;
+                    if (w.f_i2 != 0.0)
+                    {
+                        quadratic_couplings.push_back(
+                            { i_c_intr, d, stencil_index_upper[bdry_normal_axis], off_diagonal(ilower, d) * w.f_i2 });
+                    }
                     off_diagonal(ilower, d) = 0.0;
                 }
 
                 if (is_upper)
                 {
                     const SideIndex<NDIM> iupper(i_c_intr, bdry_normal_axis, SideIndex<NDIM>::Upper);
-                    diagonal(i_c_intr, d) += off_diagonal(iupper, d) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
+                    diagonal(i_c_intr, d) += off_diagonal(iupper, d) * w.f_i;
+                    if (w.f_i2 != 0.0)
+                    {
+                        quadratic_couplings.push_back(
+                            { i_c_intr, d, stencil_index_lower[bdry_normal_axis], off_diagonal(iupper, d) * w.f_i2 });
+                    }
                     off_diagonal(iupper, d) = 0.0;
                 }
             }
@@ -727,6 +794,10 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
             }
         }
     }
+    for (const QuadraticCoupling& coupling : quadratic_couplings)
+    {
+        matrix_coefficients(coupling.i, coupling.d * stencil_sz + coupling.stencil_index) += coupling.value;
+    }
     return;
 }
 
@@ -736,11 +807,14 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
                                             const std::vector<hier::Index<NDIM>>& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                            double data_time)
+                                            double data_time,
+                                            const std::string& bdry_interp_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
+    TBOX_ASSERT(bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC");
 #endif
+    const bool quadratic = bdry_interp_type == "QUADRATIC";
     const int stencil_sz = static_cast<int>(stencil.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
@@ -881,12 +955,15 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
+            //
+            // Quadratic interpolation adds a multiple of the next interior side to u_o.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
                 const hier::Index<NDIM>& i = bc();
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
+                const GhostValueWeights w = get_ghost_value_weights(quadratic, a, b, h);
 
                 hier::Index<NDIM> i_intr = i;
                 if (is_lower)
@@ -901,16 +978,22 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
 
                 if (is_lower)
                 {
-                    matrix_coefficients(i_s, stencil_index_diag) +=
-                        matrix_coefficients(i_s, stencil_index_lower[bdry_normal_axis]) *
-                        (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
+                    const double coef = matrix_coefficients(i_s, stencil_index_lower[bdry_normal_axis]);
+                    matrix_coefficients(i_s, stencil_index_diag) += coef * w.f_i;
+                    if (w.f_i2 != 0.0)
+                    {
+                        matrix_coefficients(i_s, stencil_index_upper[bdry_normal_axis]) += coef * w.f_i2;
+                    }
                     matrix_coefficients(i_s, stencil_index_lower[bdry_normal_axis]) = 0.0;
                 }
                 else
                 {
-                    matrix_coefficients(i_s, stencil_index_diag) +=
-                        matrix_coefficients(i_s, stencil_index_upper[bdry_normal_axis]) *
-                        (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
+                    const double coef = matrix_coefficients(i_s, stencil_index_upper[bdry_normal_axis]);
+                    matrix_coefficients(i_s, stencil_index_diag) += coef * w.f_i;
+                    if (w.f_i2 != 0.0)
+                    {
+                        matrix_coefficients(i_s, stencil_index_lower[bdry_normal_axis]) += coef * w.f_i2;
+                    }
                     matrix_coefficients(i_s, stencil_index_upper[bdry_normal_axis]) = 0.0;
                 }
             }
@@ -1030,12 +1113,15 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     double beta,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     double data_time,
+    const std::string& bdry_interp_type,
     VCInterpType mu_interp_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
+    TBOX_ASSERT(bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC");
 #endif
-    const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
+    const bool quadratic = bdry_interp_type == "QUADRATIC";
+    const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1) + 8;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(matrix_coefficients.getDepth() == stencil_sz);
@@ -1232,12 +1318,15 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
+            //
+            // Quadratic interpolation adds a multiple of the next interior side to u_o.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
                 const hier::Index<NDIM>& i = bc();
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
+                const GhostValueWeights w = get_ghost_value_weights(quadratic, a, b, h);
 
                 hier::Index<NDIM> i_intr = i;
                 if (is_lower)
@@ -1250,20 +1339,15 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                 }
                 const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
 
-                if (is_lower)
+                const hier::Index<NDIM> shift = get_shift(bdry_normal_axis, is_lower ? -1 : 1);
+                const double coef = matrix_coefficients(i_s, stencil_map[shift]);
+                matrix_coefficients(i_s, stencil_map[ORIGIN]) += coef * w.f_i;
+                if (w.f_i2 != 0.0)
                 {
-                    hier::Index<NDIM> shift = get_shift(bdry_normal_axis, -1);
-                    matrix_coefficients(i_s, stencil_map[ORIGIN]) +=
-                        matrix_coefficients(i_s, stencil_map[shift]) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
-                    matrix_coefficients(i_s, stencil_map[shift]) = 0.0;
+                    const hier::Index<NDIM> shift_inner = get_shift(bdry_normal_axis, is_lower ? 1 : -1);
+                    matrix_coefficients(i_s, stencil_map[shift_inner]) += coef * w.f_i2;
                 }
-                else
-                {
-                    hier::Index<NDIM> shift = get_shift(bdry_normal_axis, 1);
-                    matrix_coefficients(i_s, stencil_map[ORIGIN]) +=
-                        matrix_coefficients(i_s, stencil_map[shift]) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
-                    matrix_coefficients(i_s, stencil_map[shift]) = 0.0;
-                }
+                matrix_coefficients(i_s, stencil_map[shift]) = 0.0;
             }
         }
     }
@@ -1342,6 +1426,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                 // then
                 //
                 //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
+                //
+                // Quadratic interpolation adds a multiple of the side in the second layer from the boundary to u_o.
                 for (Box<NDIM>::Iterator bc(side_box); bc; bc++)
                 {
                     const hier::Index<NDIM>& i = bc();
@@ -1351,40 +1437,28 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                     const double& a_upper = (*acoef_data)(i_upper, 0);
                     const double& b_upper = (*bcoef_data)(i_upper, 0);
                     const double& h = dx[bdry_normal_axis];
+                    const GhostValueWeights w_lower = get_ghost_value_weights(quadratic, a_lower, b_lower, h);
+                    const GhostValueWeights w_upper = get_ghost_value_weights(quadratic, a_upper, b_upper, h);
 
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
 
-                    if (is_lower)
+                    // Offsets along the normal axis from the side to the ghost, first, and second layers.
+                    const int outer = is_lower ? -1 : 1;
+                    const int inner = -outer;
+                    for (int t = -1; t <= 1; t += 2)
                     {
-                        hier::Index<NDIM> shift_outer_lower = get_shift(bdry_normal_axis, -1) + get_shift(comp, -1);
-                        hier::Index<NDIM> shift_inner_lower = get_shift(bdry_normal_axis, 1) + get_shift(comp, -1);
-                        matrix_coefficients(i_s, stencil_map[shift_inner_lower]) +=
-                            matrix_coefficients(i_s, stencil_map[shift_outer_lower]) *
-                            (-(a_lower * h - 2.0 * b_lower) / (a_lower * h + 2.0 * b_lower));
-                        matrix_coefficients(i_s, stencil_map[shift_outer_lower]) = 0.0;
-
-                        hier::Index<NDIM> shift_outer_upper = get_shift(bdry_normal_axis, -1) + get_shift(comp, 1);
-                        hier::Index<NDIM> shift_inner_upper = get_shift(bdry_normal_axis, 1) + get_shift(comp, 1);
-                        matrix_coefficients(i_s, stencil_map[shift_inner_upper]) +=
-                            matrix_coefficients(i_s, stencil_map[shift_outer_upper]) *
-                            (-(a_upper * h - 2.0 * b_upper) / (a_upper * h + 2.0 * b_upper));
-                        matrix_coefficients(i_s, stencil_map[shift_outer_upper]) = 0.0;
-                    }
-                    else
-                    {
-                        hier::Index<NDIM> shift_outer_lower = get_shift(bdry_normal_axis, 1) + get_shift(comp, -1);
-                        hier::Index<NDIM> shift_inner_lower = get_shift(bdry_normal_axis, -1) + get_shift(comp, -1);
-                        matrix_coefficients(i_s, stencil_map[shift_inner_lower]) +=
-                            matrix_coefficients(i_s, stencil_map[shift_outer_lower]) *
-                            (-(a_lower * h - 2.0 * b_lower) / (a_lower * h + 2.0 * b_lower));
-                        matrix_coefficients(i_s, stencil_map[shift_outer_lower]) = 0.0;
-
-                        hier::Index<NDIM> shift_outer_upper = get_shift(bdry_normal_axis, 1) + get_shift(comp, 1);
-                        hier::Index<NDIM> shift_inner_upper = get_shift(bdry_normal_axis, -1) + get_shift(comp, 1);
-                        matrix_coefficients(i_s, stencil_map[shift_inner_upper]) +=
-                            matrix_coefficients(i_s, stencil_map[shift_outer_upper]) *
-                            (-(a_upper * h - 2.0 * b_upper) / (a_upper * h + 2.0 * b_upper));
-                        matrix_coefficients(i_s, stencil_map[shift_outer_upper]) = 0.0;
+                        const GhostValueWeights& w = t < 0 ? w_lower : w_upper;
+                        const hier::Index<NDIM> shift_outer = get_shift(bdry_normal_axis, outer) + get_shift(comp, t);
+                        const hier::Index<NDIM> shift_inner = get_shift(bdry_normal_axis, inner) + get_shift(comp, t);
+                        const double coef = matrix_coefficients(i_s, stencil_map[shift_outer]);
+                        matrix_coefficients(i_s, stencil_map[shift_inner]) += coef * w.f_i;
+                        if (w.f_i2 != 0.0)
+                        {
+                            const hier::Index<NDIM> shift_second =
+                                get_shift(bdry_normal_axis, 2 * inner) + get_shift(comp, t);
+                            matrix_coefficients(i_s, stencil_map[shift_second]) += coef * w.f_i2;
+                        }
+                        matrix_coefficients(i_s, stencil_map[shift_outer]) = 0.0;
                     }
                 }
             }
@@ -1505,10 +1579,11 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
                                               const PoissonSpecifications& poisson_spec,
                                               RobinBcCoefStrategy<NDIM>* bc_coef,
                                               double data_time,
-                                              bool homogeneous_bc)
+                                              bool homogeneous_bc,
+                                              const std::string& bdry_interp_type)
 {
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(1, bc_coef);
-    adjustRHSAtPhysicalBoundary(rhs_data, patch, poisson_spec, bc_coefs, data_time, homogeneous_bc);
+    adjustRHSAtPhysicalBoundary(rhs_data, patch, poisson_spec, bc_coefs, data_time, homogeneous_bc, bdry_interp_type);
     return;
 } // adjustRHSAtPhysicalBoundary
 
@@ -1518,12 +1593,15 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
                                               const PoissonSpecifications& poisson_spec,
                                               const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                               double data_time,
-                                              bool homogeneous_bc)
+                                              bool homogeneous_bc,
+                                              const std::string& bdry_interp_type)
 {
     const int depth = rhs_data.getDepth();
 #if !defined(NDEBUG)
     TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == depth);
+    TBOX_ASSERT(bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC");
 #endif
+    const bool quadratic = bdry_interp_type == "QUADRATIC";
     const Box<NDIM>& patch_box = patch->getBox();
     OutersideData<NDIM, double> D_data(patch_box, depth);
     if (!poisson_spec.dIsConstant())
@@ -1591,6 +1669,8 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
             //
             //     (u_i - u_o)/h = -2*g/(2*b + h*a)
             //
+            // Quadratic interpolation changes the weight 2/(2*b + h*a) of g.
+            //
             // In this loop, we modify the rhs entries appropriately.
             //
             // NOTE: i_s_bdry: side index located on physical boundary
@@ -1603,13 +1683,14 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
                 const double& b = (*bcoef_data)(i_s_bdry, 0);
                 const double& g = (*gcoef_data)(i_s_bdry, 0);
                 const double& h = dx[bdry_normal_axis];
+                const GhostValueWeights w = get_ghost_value_weights(quadratic, a, b, h);
                 hier::Index<NDIM> i_c_intr = i_s_bdry;
                 if (is_upper)
                 {
                     i_c_intr(bdry_normal_axis) -= 1;
                 }
                 const double& D = D_data.getArrayData(bdry_normal_axis, bdry_side)(i_s_bdry, d);
-                rhs_data(i_c_intr, d) += (D / h) * (-2.0 * g) / (2.0 * b + h * a);
+                rhs_data(i_c_intr, d) += (D / h) * (-w.g_num * g) / w.g_den;
             }
         }
     }
@@ -1622,11 +1703,14 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
                                               const PoissonSpecifications& poisson_spec,
                                               const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                               double data_time,
-                                              bool homogeneous_bc)
+                                              bool homogeneous_bc,
+                                              const std::string& bdry_interp_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
+    TBOX_ASSERT(bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC");
 #endif
+    const bool quadratic = bdry_interp_type == "QUADRATIC";
     if (!(poisson_spec.cIsZero() || poisson_spec.cIsConstant()) || !poisson_spec.dIsConstant())
     {
         TBOX_ERROR(
@@ -1712,6 +1796,8 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
             //
             //     (u_i - u_o)/h = -2*g/(2*b + h*a)
             //
+            // Quadratic interpolation changes the weight 2/(2*b + h*a) of g.
+            //
             // In this loop, we modify the rhs entries appropriately.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
@@ -1720,6 +1806,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
                 const double& b = (*bcoef_data)(i, 0);
                 const double& g = (*gcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
+                const GhostValueWeights w = get_ghost_value_weights(quadratic, a, b, h);
                 hier::Index<NDIM> i_intr = i;
                 if (is_lower)
                 {
@@ -1737,7 +1824,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
                     continue;
                 }
 
-                rhs_data(i_s) += (D / h) * (-2.0 * g) / (2.0 * b + h * a);
+                rhs_data(i_s) += (D / h) * (-w.g_num * g) / w.g_den;
             }
         }
     }
@@ -1825,11 +1912,14 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                            double data_time,
                                                            bool homogeneous_bc,
+                                                           const std::string& bdry_interp_type,
                                                            VCInterpType mu_interp_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
+    TBOX_ASSERT(bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC");
 #endif
+    const bool quadratic = bdry_interp_type == "QUADRATIC";
 
 #if (NDIM == 2)
     Pointer<NodeData<NDIM, double>> mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
@@ -1923,6 +2013,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
             //
             //     (u_i - u_o)/h = -2*g/(2*b + h*a)
             //
+            // Quadratic interpolation changes the weight 2/(2*b + h*a) of g.
+            //
             // In this loop, we modify the rhs entries appropriately.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
@@ -1931,6 +2023,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 const double& b = (*bcoef_data)(i, 0);
                 const double& g = (*gcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
+                const GhostValueWeights w = get_ghost_value_weights(quadratic, a, b, h);
                 hier::Index<NDIM> i_intr = i;
                 if (is_lower)
                 {
@@ -1959,7 +2052,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 #endif
 
                 const double D = is_lower ? mu_lower : mu_upper;
-                rhs_data(i_s) += alpha * (D / h) * (-2.0 * g) / (2.0 * b + h * a);
+                rhs_data(i_s) += alpha * (D / h) * (-w.g_num * g) / w.g_den;
             }
         }
     }
@@ -2034,6 +2127,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 // then, with u_i = 0,
                 //
                 //     u_o = 2*h*g/(2*b + a*h)
+                //
+                // Quadratic interpolation changes the weight 2/(2*b + a*h) of g.
                 for (Box<NDIM>::Iterator bc(side_box); bc; bc++)
                 {
                     const hier::Index<NDIM>& i = bc();
@@ -2046,6 +2141,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                     const double& g_upper = (*gcoef_data)(i_upper, 0);
                     const double& h = dx[bdry_normal_axis];
                     const double& hd = dx[comp];
+                    const GhostValueWeights w_lower = get_ghost_value_weights(quadratic, a_lower, b_lower, h);
+                    const GhostValueWeights w_upper = get_ghost_value_weights(quadratic, a_upper, b_upper, h);
 
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
 
@@ -2066,13 +2163,13 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 #endif
                     if (is_lower)
                     {
-                        rhs_data(i_s) -= alpha * (mu_lower / hd) * (2.0 * g_lower) / (2.0 * b_lower + a_lower * h);
-                        rhs_data(i_s) += alpha * (mu_upper / hd) * (2.0 * g_upper) / (2.0 * b_upper + a_upper * h);
+                        rhs_data(i_s) -= alpha * (mu_lower / hd) * (w_lower.g_num * g_lower) / w_lower.g_den;
+                        rhs_data(i_s) += alpha * (mu_upper / hd) * (w_upper.g_num * g_upper) / w_upper.g_den;
                     }
                     else
                     {
-                        rhs_data(i_s) += alpha * (mu_lower / hd) * (2.0 * g_lower) / (2.0 * b_lower + a_lower * h);
-                        rhs_data(i_s) -= alpha * (mu_upper / hd) * (2.0 * g_upper) / (2.0 * b_upper + a_upper * h);
+                        rhs_data(i_s) += alpha * (mu_lower / hd) * (w_lower.g_num * g_lower) / w_lower.g_den;
+                        rhs_data(i_s) -= alpha * (mu_upper / hd) * (w_upper.g_num * g_upper) / w_upper.g_den;
                     }
                 }
             }
@@ -2286,6 +2383,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                                            /*beta*/ 0.0,
                                            bc_coefs,
                                            data_time,
+                                           "LINEAR",
                                            mu_interp_type);
 
     // A side is a degree of freedom of the level if either of the two cells that it separates belongs to the level.
@@ -2298,6 +2396,11 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
             const SideIndex<NDIM> i_s(cc, axis, SideIndex<NDIM>::Lower);
             for (const auto& entry : stencil_map)
             {
+                const double coef = matrix_coefs(i_s, entry.second);
+                if (coef == 0.0)
+                {
+                    continue;
+                }
                 const hier::Index<NDIM>& offset = entry.first;
 
                 // The side of the stencil entry is a side of the same component, or a side of the component along the
@@ -2352,11 +2455,6 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                     continue;
                 }
 
-                const double coef = matrix_coefs(i_s, entry.second);
-                if (coef == 0.0)
-                {
-                    continue;
-                }
                 rhs_data(i_s) -= coef * sol_data(SideIndex<NDIM>(upper_cell, comp, SideIndex<NDIM>::Lower));
             }
         }

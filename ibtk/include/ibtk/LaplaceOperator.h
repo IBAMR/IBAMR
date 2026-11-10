@@ -108,6 +108,13 @@ public:
      */
     virtual void setBdryInterpType(const std::string& bdry_interp_type);
 
+    /*!
+     * \brief Set the extrapolation type at physical boundaries at which boundary conditions are not present.
+     *
+     * The default implementation does nothing, for an operator that does not extrapolate.
+     */
+    virtual void setBdryExtrapType(const std::string& bdry_extrap_type);
+
 protected:
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;

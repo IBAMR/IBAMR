@@ -221,6 +221,7 @@ INSStaggeredVelocityBcCoef::getTractionStencil(const hier::Index<NDIM>& i,
                                                const BoundaryBox<NDIM>& bdry_box,
                                                const BoxArray<NDIM>& domain,
                                                const Box<NDIM>& ghost_box,
+                                               const std::string& bdry_interp_type,
                                                const double fill_time) const
 {
     const unsigned int location_index = bdry_box.getLocationIndex();
@@ -238,6 +239,7 @@ INSStaggeredVelocityBcCoef::getTractionStencil(const hier::Index<NDIM>& i,
                                                   normal_velocity_patch,
                                                   domain,
                                                   ghost_box,
+                                                  bdry_interp_type == "QUADRATIC",
                                                   fill_time);
 } // getTractionStencil
 
