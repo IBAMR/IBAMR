@@ -194,6 +194,15 @@ double get_divergence_free_ghost_value(const SAMRAI::pdat::SideData<NDIM, double
                                        const double* dx);
 
 /*!
+ * \brief Return the faces of the velocity on which get_divergence_free_ghost_value() depends at the ghost cell \a i_g,
+ * each with its coefficient.
+ */
+StokesBcCoefStrategy::SideStencil get_divergence_free_ghost_value_stencil(const SAMRAI::hier::Index<NDIM>& i_g,
+                                                                          unsigned int bdry_normal_axis,
+                                                                          bool bdry_is_lower,
+                                                                          const double* dx);
+
+/*!
  * \brief Return whether any of \a u_bc_coefs is a StokesBcCoefStrategy with TRACTION conditions.
  */
 bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
@@ -235,6 +244,16 @@ StokesBcCoefStrategy::SideStencil get_traction_stencil(const SAMRAI::hier::Index
                                                        const SAMRAI::hier::BoxArray<NDIM>& domain,
                                                        const SAMRAI::hier::Box<NDIM>& ghost_box,
                                                        double fill_time);
+
+/*!
+ * \brief Return the faces on which u_I - u_div depends at the face \a i of a physical boundary normal to
+ * \a bdry_normal_axis (the lower boundary if \a bdry_is_lower), each with its coefficient. Here u_I is the next normal
+ * velocity inside the domain, and u_div is get_divergence_free_ghost_value() in the ghost cell outside the face \a i.
+ */
+StokesBcCoefStrategy::SideStencil get_normal_stress_stencil(const SAMRAI::hier::Index<NDIM>& i,
+                                                            unsigned int bdry_normal_axis,
+                                                            bool bdry_is_lower,
+                                                            const double* dx);
 } // namespace detail
 } // namespace IBAMR
 

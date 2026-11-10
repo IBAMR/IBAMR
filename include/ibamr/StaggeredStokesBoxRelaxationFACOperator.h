@@ -23,6 +23,8 @@
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/StaggeredStokesFACPreconditionerStrategy.h>
 
+#include <ibtk/ibtk_utilities.h>
+
 #include <tbox/Pointer.h>
 
 #include <petscksp.h>
@@ -56,6 +58,8 @@ namespace IBAMR
  *
  * If the hierarchy has physical boundaries, setPhysicalBoundaryHelper() must be called before initialization with a
  * helper that has cached boundary data for the hierarchy.
+ *
+ * With TRACTION conditions, the exact error is a fixed point of the smoother for the StaggeredStokesOperator residual.
  */
 class StaggeredStokesBoxRelaxationFACOperator : public StaggeredStokesFACPreconditionerStrategy
 {
@@ -163,6 +167,15 @@ private:
     std::vector<Mat> d_box_op;
     std::vector<Vec> d_box_e, d_box_r;
     std::vector<KSP> d_box_ksp;
+
+    /*
+     * Scratch patch data of the patches that touch a physical boundary with a normal stress term: the correction of the
+     * right-hand side, the left-hand side of the momentum equation, and its values at faces with a prescribed normal
+     * velocity.
+     */
+    int d_boundary_rhs_correction_idx = IBTK::invalid_index;
+    int d_momentum_lhs_idx = IBTK::invalid_index;
+    int d_dirichlet_lhs_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

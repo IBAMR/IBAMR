@@ -17,6 +17,7 @@
 #include <ibamr/StaggeredStokesFACPreconditionerStrategy.h>
 
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/PatchMathOps.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
@@ -48,6 +49,9 @@
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideIndex.h>
+#include <SideVariable.h>
+#include <VariableContext.h>
+#include <VariableDatabase.h>
 
 #include <algorithm>
 #include <array>
@@ -283,10 +287,13 @@ buildBoxOperator(Mat& A,
     return;
 } // buildBoxOperator
 
+// Move the contributions of the values outside the box, including ghost values, to the right-hand side, and subtract
+// boundary_rhs_correction if given.
 void
 modifyRhsForBcs(Vec& v,
                 const SideData<NDIM, double>& U_data,
                 const CellData<NDIM, double>& P_data,
+                const SideData<NDIM, double>* const boundary_rhs_correction,
                 const PoissonSpecifications& U_problem_coefs,
                 const Box<NDIM>& box,
                 const Box<NDIM>& ghost_box,
@@ -343,6 +350,16 @@ modifyRhsForBcs(Vec& v,
             {
                 ierr = VecSetValue(v, idx, -P_data(p_rght) / dx[axis], ADD_VALUES);
                 IBTK_CHKERRQ(ierr);
+            }
+
+            if (boundary_rhs_correction)
+            {
+                const double value = (*boundary_rhs_correction)(SideIndex<NDIM>(i, axis, SideIndex<NDIM>::Lower));
+                if (value != 0.0)
+                {
+                    ierr = VecSetValue(v, idx, -value, ADD_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
             }
         }
     }
@@ -428,6 +445,20 @@ copyFromVec(Vec& v,
     }
     return;
 } // copyFromVec
+
+// Register the side-centered scratch variable name without ghost cells in context.
+int
+register_scratch_index(const std::string& name, const Pointer<VariableContext>& context)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM, double>> var = new SideVariable<NDIM, double>(name);
+    if (var_db->checkVariableExists(name))
+    {
+        var = var_db->getVariable(name);
+        var_db->removePatchDataIndex(var_db->mapVariableAndContextToIndex(var, context));
+    }
+    return var_db->registerVariableAndContext(var, context, IntVector<NDIM>(0));
+} // register_scratch_index
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -438,7 +469,9 @@ StaggeredStokesBoxRelaxationFACOperator::StaggeredStokesBoxRelaxationFACOperator
     const std::string& default_options_prefix)
     : StaggeredStokesFACPreconditionerStrategy(object_name, GHOSTS, input_db, default_options_prefix)
 {
-    // intentionally blank
+    d_boundary_rhs_correction_idx = register_scratch_index(d_object_name + "::boundary_rhs_correction", d_context);
+    d_momentum_lhs_idx = register_scratch_index(d_object_name + "::momentum_lhs", d_context);
+    d_dirichlet_lhs_idx = register_scratch_index(d_object_name + "::dirichlet_lhs", d_context);
     return;
 } // StaggeredStokesBoxRelaxationFACOperator
 
@@ -466,6 +499,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
     prepareCoarseFineValues(U_error_idx, P_error_idx, level_num, performing_pre_sweeps, performing_post_sweeps);
 
     // Smooth the error by the specified number of sweeps.
+    const IBTK::PatchMathOps patch_math_ops;
     for (int isweep = 0; isweep < num_sweeps; ++isweep)
     {
         // Re-fill ghost cell data as needed.
@@ -500,13 +534,54 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
+
+            // Using the error before the sweep, add the viscous term that the box operator lacks at open faces, and
+            // subtract the left-hand side of the momentum equation at faces with a prescribed normal velocity.
+            Pointer<SideData<NDIM, double>> boundary_rhs_correction;
+            if (d_has_normal_stress_term && d_bc_helper && pgeom->getTouchesRegularBoundary())
+            {
+                boundary_rhs_correction = patch->getPatchData(d_boundary_rhs_correction_idx);
+                boundary_rhs_correction->fillAll(0.0);
+                d_bc_helper->addNormalTractionViscousTerm(
+                    boundary_rhs_correction, U_error_data, patch, d_U_problem_coefs.getDConstant(), d_U_bc_coefs);
+                Pointer<SideData<NDIM, double>> momentum_lhs_data = patch->getPatchData(d_momentum_lhs_idx);
+                Pointer<SideData<NDIM, double>> dirichlet_lhs_data = patch->getPatchData(d_dirichlet_lhs_idx);
+                momentum_lhs_data->fillAll(0.0);
+                dirichlet_lhs_data->fillAll(0.0);
+                // The left-hand side of the momentum equation at each face of the patch, from the error and its
+                // ghost values.
+                patch_math_ops.grad(momentum_lhs_data, 1.0, P_error_data, 0.0, momentum_lhs_data, patch);
+                patch_math_ops.laplace(momentum_lhs_data,
+                                       d_U_problem_coefs.getDConstant(),
+                                       d_U_problem_coefs.cIsZero() ? 0.0 : d_U_problem_coefs.getCConstant(),
+                                       U_error_data,
+                                       1.0,
+                                       momentum_lhs_data,
+                                       patch);
+                d_bc_helper->copyDataAtDirichletBoundaries(dirichlet_lhs_data, momentum_lhs_data, patch);
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+                    {
+                        const SideIndex<NDIM> s_i(b(), axis, SideIndex<NDIM>::Lower);
+                        (*boundary_rhs_correction)(s_i) -= (*dirichlet_lhs_data)(s_i);
+                    }
+                }
+            }
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
                 const hier::Index<NDIM>& i = b();
                 const Box<NDIM> box(i, i);
                 copyToVec(e, *U_error_data, *P_error_data, box, box);
                 copyToVec(r, *U_residual_data, *P_residual_data, box, box);
-                modifyRhsForBcs(r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
+                modifyRhsForBcs(r,
+                                *U_error_data,
+                                *P_error_data,
+                                boundary_rhs_correction.getPointer(),
+                                d_U_problem_coefs,
+                                box,
+                                box,
+                                dx);
                 ierr = KSPSolve(ksp, r, e);
                 IBTK_CHKERRQ(ierr);
                 copyFromVec(e, *U_error_data, *P_error_data, box, box);
@@ -568,6 +643,30 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
         }
     }
 
+    // Allocate the scratch data that smoothError() uses next to physical boundaries with a normal stress term.
+    if (d_has_normal_stress_term && d_bc_helper)
+    {
+        for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                if (!patch->getPatchGeometry()->getTouchesRegularBoundary())
+                {
+                    continue;
+                }
+                for (const int idx : { d_boundary_rhs_correction_idx, d_momentum_lhs_idx, d_dirichlet_lhs_idx })
+                {
+                    if (!patch->checkAllocated(idx))
+                    {
+                        patch->allocatePatchData(idx);
+                    }
+                }
+            }
+        }
+    }
+
     // Initialize the box relaxation data on each level of the patch hierarchy.
     d_box_op.resize(d_finest_ln + 1);
     d_box_e.resize(d_finest_ln + 1);
@@ -616,6 +715,22 @@ StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(cons
     if (!d_is_initialized) return;
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
+        // A regrid may have removed this level, and its patch data with it.
+        if (ln <= d_hierarchy->getFinestLevelNumber())
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                for (const int idx : { d_boundary_rhs_correction_idx, d_momentum_lhs_idx, d_dirichlet_lhs_idx })
+                {
+                    if (patch->checkAllocated(idx))
+                    {
+                        patch->deallocatePatchData(idx);
+                    }
+                }
+            }
+        }
         int ierr;
         ierr = MatDestroy(&d_box_op[ln]);
         IBTK_CHKERRQ(ierr);
