@@ -1,0 +1,3 @@
+Fixed: Extend the coarse data of the coarse-fine interpolation in IBTK::HierarchyGhostCellInterpolation beyond physical boundaries, so that the fine ghost values within one coarse cell of a boundary are third-order accurate for components with Robin coefficients, other than linearly extended ones such as the pressure, and for components without them whose data have at least two ghost cells.
+<br>
+(Boyce Griffith, 2026/10/13)

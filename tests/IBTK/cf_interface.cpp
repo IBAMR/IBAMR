@@ -17,19 +17,84 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/muParserCartGridFunction.h>
 
+#include <tbox/Logger.h>
+
 #include <petscsys.h>
 
+#include <ArrayData.h>
 #include <BergerRigoutsos.h>
+#include <BoundaryBox.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <RefineAlgorithm.h>
 #include <RefineSchedule.h>
+#include <RobinBcCoefStrategy.h>
 #include <StandardTagAndInitialize.h>
 
+#include <functional>
+#include <memory>
+
+#include "../tests.h"
+
 #include <ibtk/app_namespaces.h>
+
+namespace
+{
+// Dirichlet data equal to a function at the physical boundary, evaluated at the cell centers along the boundary. For
+// side-centered data, the boundary operator shifts the patch geometry.
+class FunctionDirichletBc : public RobinBcCoefStrategy<NDIM>
+{
+public:
+    explicit FunctionDirichletBc(std::function<double(const VectorNd&)> fcn) : d_fcn(std::move(fcn))
+    {
+    }
+
+    void setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                    Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                    Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                    const Pointer<SAMRAI::hier::Variable<NDIM>>& /*variable*/,
+                    const Patch<NDIM>& patch,
+                    const BoundaryBox<NDIM>& bdry_box,
+                    double /*fill_time*/) const override
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+        const double* const x_lower = pgeom->getXLower();
+        const double* const x_upper = pgeom->getXUpper();
+        const double* const dx = pgeom->getDx();
+        const hier::Index<NDIM>& patch_lower = patch.getBox().lower();
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const unsigned int normal_axis = location_index / 2;
+        const Box<NDIM>& box = (acoef_data ? acoef_data->getBox() : gcoef_data->getBox());
+        for (Box<NDIM>::Iterator b(box); b; b++)
+        {
+            const hier::Index<NDIM>& i = b();
+            VectorNd x;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (d == normal_axis)
+                    x[d] = location_index % 2 == 0 ? x_lower[d] : x_upper[d];
+                else
+                    x[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+            }
+            if (acoef_data) (*acoef_data)(i, 0) = 1.0;
+            if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
+            if (gcoef_data) (*gcoef_data)(i, 0) = d_fcn(x);
+        }
+    }
+
+    IntVector<NDIM> numberOfExtensionsFillable() const override
+    {
+        return IntVector<NDIM>(128);
+    }
+
+private:
+    std::function<double(const VectorNd&)> d_fcn;
+};
+} // namespace
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -43,6 +108,12 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+
+    // Suppress the SAMRAI warning for patches smaller than the ghost cell width, because the warning contains a path.
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+
+    // Record the message of an expected error in the output.
+    Logger::getInstance()->setAbortAppender(Pointer<Logger::Appender>(new TestAppender()));
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -69,7 +140,7 @@ main(int argc, char* argv[])
                                         load_balancer);
         // Create cell-centered and node-centered quantities, and initialize them with a function read from the input
         // file
-        Pointer<Variable<NDIM>> Q_var;
+        Pointer<SAMRAI::hier::Variable<NDIM>> Q_var;
         if (input_db->getString("CENTERING").compare("CELL") == 0)
             Q_var = new CellVariable<NDIM, double>("Q");
         else if (input_db->getString("CENTERING").compare("SIDE") == 0)
@@ -79,14 +150,27 @@ main(int argc, char* argv[])
         // boundary instead of the coarse-fine interpolation, for a linear function that both reproduce.
         const std::string extrap_type = input_db->getStringWithDefault("EXTRAP_TYPE", "NONE");
         const bool test_extrap = extrap_type != "NONE";
-        auto Q_fcn = [test_extrap](const VectorNd& x) -> double
+        // With UNRELATED_ROBIN_DATA, fill a linear function with Robin data unrelated to it, like the pressure: only
+        // the linear extension of the coarse data reproduces it.
+        const bool unrelated_robin_data = input_db->getBoolWithDefault("UNRELATED_ROBIN_DATA", false);
+        const bool extend_linearly = input_db->getBoolWithDefault("EXTEND_COARSE_DATA_LINEARLY", false);
+        const bool Q_is_linear = test_extrap || unrelated_robin_data;
+        auto Q_fcn = [Q_is_linear](const VectorNd& x) -> double
         {
             double val = 1.0;
-            for (int d = 0; d < NDIM; ++d) val += x[d] + (test_extrap ? 0.0 : x[d] * x[d]);
+            for (int d = 0; d < NDIM; ++d)
+            {
+                val += x[d] + (Q_is_linear ? 0.0 : x[d] * x[d]);
+                for (int e = d + 1; e < NDIM; ++e)
+                {
+                    val += Q_is_linear ? 0.0 : x[d] * x[e];
+                }
+            }
             return val;
         };
 
         auto var_db = VariableDatabase<NDIM>::getDatabase();
+        // The ghost cell width is an input. The extrapolation and split inputs specify 2.
         const int ghost_width = input_db->getIntegerWithDefault("GHOST_WIDTH", 1);
         const int Q_idx =
             var_db->registerVariableAndContext(Q_var, var_db->getContext("CTX"), IntVector<NDIM>(ghost_width));
@@ -152,20 +236,35 @@ main(int argc, char* argv[])
             }
         }
 
-        // Test out the filling of coarse fine interfaces. We only use the coarse fine interface operator, which fills
-        // one layer of ghost cells using quadratic interpolation.
+        // Test the coarse-fine interface operator alone, which fills one layer of ghost cells by quadratic
+        // interpolation, also where the interface meets the physical boundary.
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_cell_comps(1);
-        ghost_cell_comps[0] =
-            test_extrap ?
-                InterpolationTransactionComponent(Q_idx,
-                                                  "CONSERVATIVE_LINEAR_REFINE",
-                                                  false,
-                                                  "CONSERVATIVE_COARSEN",
-                                                  extrap_type,
-                                                  false,
-                                                  nullptr /*bdry_conds*/) :
-                InterpolationTransactionComponent(Q_idx, "NONE", true, "NONE", "NONE", false, nullptr /*bdry_conds*/);
+        std::vector<std::unique_ptr<FunctionDirichletBc>> bcs;
+        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs;
+        if (!test_extrap && input_db->getStringWithDefault("BC_TYPE", "EXTRAPOLATION") == "ROBIN")
+        {
+            const int n_components = Q_var.isNull() || !Pointer<SideVariable<NDIM, double>>(Q_var) ? 1 : NDIM;
+            for (int c = 0; c < n_components; ++c)
+            {
+                bcs.push_back(std::make_unique<FunctionDirichletBc>(
+                    unrelated_robin_data ?
+                        std::function<double(const VectorNd&)>([](const VectorNd&) { return 1000.0; }) :
+                        std::function<double(const VectorNd&)>(Q_fcn)));
+                bc_coefs.push_back(bcs.back().get());
+            }
+        }
+        ghost_cell_comps[0] = test_extrap ?
+                                  InterpolationTransactionComponent(Q_idx,
+                                                                    "CONSERVATIVE_LINEAR_REFINE",
+                                                                    false,
+                                                                    "CONSERVATIVE_COARSEN",
+                                                                    extrap_type,
+                                                                    false,
+                                                                    nullptr /*bdry_conds*/) :
+                                  InterpolationTransactionComponent(
+                                      Q_idx, "NONE", true, "NONE", "LINEAR", false, bc_coefs, nullptr /*fill_pattern*/);
+        ghost_cell_comps[0].d_extend_coarse_data_linearly = extend_linearly;
         HierarchyGhostCellInterpolation hier_ghost_cell;
         hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
         hier_ghost_cell.fillData(0.0);
@@ -183,20 +282,10 @@ main(int argc, char* argv[])
                 const hier::Index<NDIM>& idx_low = patch->getBox().lower();
                 Pointer<CellData<NDIM, double>> Q_cc_data = patch->getPatchData(Q_idx);
                 Pointer<SideData<NDIM, double>> Q_sc_data = patch->getPatchData(Q_idx);
-                IntVector<NDIM> ghost_cells =
-                    Q_cc_data ? Q_cc_data->getGhostCellWidth() : Q_sc_data->getGhostCellWidth();
-                // Only print ghost cells on the left side.
+                // Only check the first layer of ghost cells on the left side, the layer that the interpolation fills.
                 Box<NDIM> ghost_box = patch->getBox();
-                ghost_box.upper(0) = ghost_box.lower(0) + (ghost_cells(0) - 1);
-                ghost_box.shift(0, -ghost_cells(0));
-
-                // Shrink the box in other directions. CF-interfaces are only filled away from corners (where enough
-                // cells exist to perform interpolation)
-                for (int d = 1; d < NDIM; ++d)
-                {
-                    ghost_box.shorten(d, 2);
-                    ghost_box.shorten(d, -2);
-                }
+                ghost_box.upper(0) = ghost_box.lower(0);
+                ghost_box.shift(0, -1);
 
                 if (Q_cc_data)
                 {
@@ -256,8 +345,6 @@ main(int argc, char* argv[])
                 const hier::Index<NDIM>& idx_low = patch->getBox().lower();
                 Pointer<CellData<NDIM, double>> Q_cc_data = patch->getPatchData(Q_idx);
                 Pointer<SideData<NDIM, double>> Q_sc_data = patch->getPatchData(Q_idx);
-                const int ghost_width =
-                    Q_cc_data ? Q_cc_data->getGhostCellWidth()(0) : Q_sc_data->getGhostCellWidth()(0);
                 for (int t = 1; t < NDIM; ++t)
                 {
                     for (const int end : { -1, +1 })
@@ -265,7 +352,7 @@ main(int argc, char* argv[])
                         // The ghost cells beyond the end of the patch, away from its other tangential ends.
                         Box<NDIM> extension = patch->getBox();
                         extension.upper(0) = extension.lower(0) - 1;
-                        extension.lower(0) -= ghost_width;
+                        extension.lower(0) = extension.upper(0);
                         for (int d = 1; d < NDIM; ++d)
                         {
                             if (d == t)

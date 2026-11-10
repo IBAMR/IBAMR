@@ -1,0 +1,3 @@
+Improved: Set the ghost values of IBTK::CartCellRobinPhysBdryOp and IBTK::CartSideRobinPhysBdryOp at corners and edges exactly for quadratic functions with "QUADRATIC" interpolation, as at the faces, and transpose them in accumulateFromPhysicalBoundaryData().
+<br>
+(Boyce Griffith, 2026/11/08)

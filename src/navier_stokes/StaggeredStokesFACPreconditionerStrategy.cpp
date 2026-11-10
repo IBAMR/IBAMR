@@ -582,14 +582,15 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           d_U_bc_coefs,
                                                           sc_fill_pattern);
-    InterpolationTransactionComponent P_scratch_component(P_sol_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          d_P_bc_coef,
-                                                          cc_fill_pattern);
+    InterpolationTransactionComponent P_scratch_component =
+        StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(P_sol_idx,
+                                                                                DATA_REFINE_TYPE,
+                                                                                USE_CF_INTERPOLATION,
+                                                                                DATA_COARSEN_TYPE,
+                                                                                BDRY_EXTRAP_TYPE,
+                                                                                CONSISTENT_TYPE_2_BDRY,
+                                                                                d_P_bc_coef,
+                                                                                cc_fill_pattern);
     std::vector<InterpolationTransactionComponent> U_P_components(2);
     U_P_components[0] = U_scratch_component;
     U_P_components[1] = P_scratch_component;
@@ -615,14 +616,16 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                                                   d_U_bc_coefs,
                                                                   sc_fill_pattern);
 
-    InterpolationTransactionComponent default_P_scratch_component(d_solution->getComponentDescriptorIndex(1),
-                                                                  DATA_REFINE_TYPE,
-                                                                  USE_CF_INTERPOLATION,
-                                                                  DATA_COARSEN_TYPE,
-                                                                  BDRY_EXTRAP_TYPE,
-                                                                  CONSISTENT_TYPE_2_BDRY,
-                                                                  d_P_bc_coef,
-                                                                  cc_fill_pattern);
+    InterpolationTransactionComponent default_P_scratch_component =
+        StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(
+            d_solution->getComponentDescriptorIndex(1),
+            DATA_REFINE_TYPE,
+            USE_CF_INTERPOLATION,
+            DATA_COARSEN_TYPE,
+            BDRY_EXTRAP_TYPE,
+            CONSISTENT_TYPE_2_BDRY,
+            d_P_bc_coef,
+            cc_fill_pattern);
     std::vector<InterpolationTransactionComponent> default_U_P_components(2);
     default_U_P_components[0] = default_U_scratch_component;
     default_U_P_components[1] = default_P_scratch_component;

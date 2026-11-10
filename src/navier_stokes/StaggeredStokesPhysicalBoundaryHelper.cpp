@@ -643,6 +643,55 @@ StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<Robi
     return;
 } // setupBcCoefObjects
 
+HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(const int P_idx,
+                                                                        const std::string& refine_type,
+                                                                        const bool use_cf_interpolation,
+                                                                        const std::string& coarsen_type,
+                                                                        const std::string& extrap_type,
+                                                                        const bool consistent_type_2_bdry,
+                                                                        RobinBcCoefStrategy<NDIM>* P_bc_coef,
+                                                                        Pointer<VariableFillPattern<NDIM>> fill_pattern,
+                                                                        const std::string& bdry_interp_type)
+{
+    return makePressureTransactionComponent(P_idx,
+                                            P_idx,
+                                            refine_type,
+                                            use_cf_interpolation,
+                                            coarsen_type,
+                                            extrap_type,
+                                            consistent_type_2_bdry,
+                                            P_bc_coef,
+                                            fill_pattern,
+                                            bdry_interp_type);
+} // makePressureTransactionComponent
+
+HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(const int P_dst_idx,
+                                                                        const int P_src_idx,
+                                                                        const std::string& refine_type,
+                                                                        const bool use_cf_interpolation,
+                                                                        const std::string& coarsen_type,
+                                                                        const std::string& extrap_type,
+                                                                        const bool consistent_type_2_bdry,
+                                                                        RobinBcCoefStrategy<NDIM>* P_bc_coef,
+                                                                        Pointer<VariableFillPattern<NDIM>> fill_pattern,
+                                                                        const std::string& bdry_interp_type)
+{
+    HierarchyGhostCellInterpolation::InterpolationTransactionComponent comp(P_dst_idx,
+                                                                            P_src_idx,
+                                                                            refine_type,
+                                                                            use_cf_interpolation,
+                                                                            coarsen_type,
+                                                                            extrap_type,
+                                                                            consistent_type_2_bdry,
+                                                                            P_bc_coef,
+                                                                            fill_pattern,
+                                                                            bdry_interp_type);
+    comp.d_extend_coarse_data_linearly = true;
+    return comp;
+} // makePressureTransactionComponent
+
 void
 StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                                           RobinBcCoefStrategy<NDIM>* p_bc_coef)

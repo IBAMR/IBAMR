@@ -16,6 +16,7 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -263,6 +264,80 @@ check_traction_velocity_bc(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     }
     return;
 } // check_traction_velocity_bc
+
+// Fill the ghost values of a smooth finite velocity field with the coarse-fine interpolation and the velocity boundary
+// conditions of the integrator, as the integrator fills its velocity, and count the NaN ghost values inside the domain.
+// The interpolation applies the boundary conditions to temporary coarse patches, which have no viscosity data.
+void
+fill_with_coarse_fine_interpolation(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                                    Pointer<INSVCStaggeredHierarchyIntegrator> ins_integrator,
+                                    const int u_idx,
+                                    const bool homogeneous_bc)
+{
+    const double fill_time = ins_integrator->getIntegratorTime();
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(u_idx, fill_time);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<SideData<NDIM, double>> u_data = level->getPatch(p())->getPatchData(u_idx);
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(u_data->getGhostBox(), axis)); b; b++)
+                {
+                    double phase = axis;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        phase += (0.3 + 0.2 * d) * b()(d);
+                    }
+                    u_data->getArrayData(axis)(b(), 0) = std::sin(phase);
+                }
+            }
+        }
+    }
+
+    HierarchyGhostCellInterpolation fill_op;
+    fill_op.initializeOperatorState(HierarchyGhostCellInterpolation::InterpolationTransactionComponent(
+                                        u_idx,
+                                        "NONE",
+                                        /*use_cf_bdry_interpolation*/ true,
+                                        "CUBIC_COARSEN",
+                                        "LINEAR",
+                                        /*consistent_type_2_bdry*/ false,
+                                        ins_integrator->getVelocityBoundaryConditions()),
+                                    patch_hierarchy);
+    fill_op.setHomogeneousBc(homogeneous_bc);
+    fill_op.fillData(fill_time);
+
+    int nan_count = 0;
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        Box<NDIM> domain_box = patch_hierarchy->getGridGeometry()->getPhysicalDomain()[0];
+        domain_box.refine(level->getRatio());
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                const Box<NDIM> patch_side_box = SideGeometry<NDIM>::toSideBox(patch->getBox(), axis);
+                const Box<NDIM> domain_side_box = SideGeometry<NDIM>::toSideBox(domain_box, axis);
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(u_data->getGhostBox(), axis)); b; b++)
+                {
+                    if (!patch_side_box.contains(b()) && domain_side_box.contains(b()) &&
+                        std::isnan(u_data->getArrayData(axis)(b(), 0)))
+                    {
+                        ++nan_count;
+                    }
+                }
+            }
+        }
+        level->deallocatePatchData(u_idx);
+    }
+    pout << "NaN ghost values inside the domain after the coarse-fine fill = " << nan_count << '\n';
+} // fill_with_coarse_fine_interpolation
 } // namespace
 
 int
@@ -356,6 +431,14 @@ main(int argc, char* argv[])
                                    u_idx,
                                    ghost_width,
                                    app_initializer->getInputDatabase()->getBoolWithDefault("check_transpose", false));
+        if (app_initializer->getInputDatabase()->keyExists("coarse_fine_fill_homogeneous_bc"))
+        {
+            fill_with_coarse_fine_interpolation(
+                patch_hierarchy,
+                ins_integrator,
+                u_idx,
+                app_initializer->getInputDatabase()->getBool("coarse_fine_fill_homogeneous_bc"));
+        }
 
         if (app_initializer->getInputDatabase()->getBoolWithDefault("regrid_after_initialization", false))
         {
