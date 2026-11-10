@@ -1,0 +1,40 @@
+// Two levels, in which level 1 covers the center of the domain.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 16
+
+CartesianGeometry {
+   domain_boxes = [(0,0),(N - 1,N - 1)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(4,4),(11,11)]
+   }
+}
+
+LoadBalancer {
+}

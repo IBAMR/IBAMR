@@ -272,7 +272,7 @@ check_interpolation_spreading_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierar
     Pointer<LData> X_data = l_data_manager->getLData("X", ln);
     Pointer<LData> U_data = l_data_manager->createLData("interpolation_spreading_adjoint_U", ln, NDIM);
     Pointer<LData> F_data = l_data_manager->createLData("interpolation_spreading_adjoint_F", ln, NDIM);
-    l_data_manager->interp(u_idx, U_data, X_data, ln, {}, ghost_fill_scheds, time);
+    l_data_manager->interp(u_idx, U_data, X_data, ln, ghost_fill_scheds, time);
     double F_dot_Ju = 0.0;
     {
         boost::multi_array_ref<double, 2>& U = *U_data->getLocalFormVecArray();
@@ -296,7 +296,7 @@ check_interpolation_spreading_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierar
         Pointer<SideData<NDIM, double>> f_data = level->getPatch(p())->getPatchData(f_idx);
         f_data->fillAll(0.0);
     }
-    l_data_manager->spread(f_idx, F_data, X_data, bdry_op, ln, {}, time);
+    l_data_manager->spread(f_idx, F_data, X_data, bdry_op, ln, time);
     double SF_dot_u = 0.0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
