@@ -48,6 +48,16 @@ public:
     VCSCViscousOperator(std::string object_name, bool homogeneous_bc = true);
 
     /*!
+     * \brief Constructor for class VCSCViscousOperator initializes the operator
+     * coefficients and boundary conditions to default values.
+     *
+     * The optional input database may set the parameters of SCLaplaceOperator.
+     */
+    VCSCViscousOperator(std::string object_name,
+                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                        bool homogeneous_bc = true);
+
+    /*!
      * \brief Destructor.
      */
     ~VCSCViscousOperator();

@@ -179,13 +179,16 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     // (a) Momentum equation.
     d_hier_math_ops->grad(A_U_idx, A_U_sc_var, /*cf_bdry_synch*/ false, 1.0, P_idx, P_cc_var, d_no_fill, half_time);
     // Add the traction term before laplace(), whose coarse-fine synchronization restricts the complete fine value.
-    d_bc_helper->addNormalTractionViscousTerm(A_U_idx,
-                                              U_idx,
-                                              d_U_problem_coefs.getDConstant(),
-                                              d_U_bc_coefs,
-                                              d_bdry_interp_type,
-                                              u_p.getCoarsestLevelNumber(),
-                                              u_p.getFinestLevelNumber());
+    if (d_bc_helper)
+    {
+        d_bc_helper->addNormalTractionViscousTerm(A_U_idx,
+                                                  U_idx,
+                                                  d_U_problem_coefs.getDConstant(),
+                                                  d_U_bc_coefs,
+                                                  d_bdry_interp_type,
+                                                  u_p.getCoarsestLevelNumber(),
+                                                  u_p.getFinestLevelNumber());
+    }
     d_hier_math_ops->laplace(
         A_U_idx, A_U_sc_var, d_U_problem_coefs, U_idx, U_sc_var, d_no_fill, half_time, 1.0, A_U_idx, A_U_sc_var);
 
@@ -205,7 +208,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                          d_no_fill,
                          half_time,
                          /*cf_bdry_synch*/ true);
-    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
+    if (d_bc_helper) d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
 
     // (c) Rigid body velocity constraint.
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
@@ -250,6 +253,8 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
 
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
+
+    checkPhysicalBoundaryHelper(in);
 
     // Setup the interpolation transaction information.
     //
@@ -357,7 +362,11 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         const int P_idx = x->getComponentDescriptorIndex(1);
         StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
             d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
-        d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+        if (d_bc_helper)
+        {
+            d_bc_helper->enforceNormalVelocityBoundaryConditions(
+                U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+        }
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
 
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;

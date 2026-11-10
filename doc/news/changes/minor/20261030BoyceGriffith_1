@@ -1,0 +1,3 @@
+Improved: Read the parameters of IBTK::SCLaplaceOperator from an input database in IBTK::VCSCViscousOperator. IBAMR::INSVCStaggeredHierarchyIntegrator passes the laplace_op database of its velocity solver to IBTK::VCSCViscousOperator.
+<br>
+(Boyce Griffith, 2026/10/30)

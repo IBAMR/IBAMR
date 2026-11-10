@@ -54,7 +54,12 @@ namespace IBAMR
  * Cai et al, <A HREF="https://arxiv.org/pdf/1308.4605.pdf">Efficient Variable-Coefficient
  * Finite-Volume Stokes Solvers</A>
  *
- *
+ * Sample parameters for initialization from database (and their default
+ * values): \verbatim
+
+ skip_velocity_solve = FALSE  // set whether to treat the viscosity explicitly in the preconditioner by skipping
+                              // the velocity solve
+ \endverbatim
  *
  * \see INSStaggeredHierarchyIntegrator
  */
@@ -91,8 +96,8 @@ public:
     bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
 
     /*!
-     * \brief Set the discretization at physical boundaries. The preconditioner uses it to fill the ghost values of the
-     * pressure update.
+     * \brief Set the discretization at physical boundaries. The preconditioner uses its interpolation type and, unless
+     * <code>Phi_bdry_extrap_type</code> is set, its extrapolation type to fill the ghost values of the pressure update.
      */
     void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
 
@@ -201,6 +206,18 @@ private:
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx, d_F_Phi_idx, d_velocity_D_cc_idx;
+
+    // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost
+    // cell values.
+    std::string d_Phi_data_refine_type = "NONE";
+    bool d_Phi_use_cf_interpolation = true;
+    std::string d_Phi_data_coarsen_type = "CUBIC_COARSEN";
+
+    // Type of extrapolation to use at physical boundaries, or empty for that of the boundary treatment.
+    std::string d_Phi_bdry_extrap_type;
+
+    // Whether to enforce consistent interpolated values at Type 2 coarse-fine interface ghost cells.
+    bool d_Phi_use_consistent_type_2_bdry = false;
 };
 } // namespace IBAMR
 

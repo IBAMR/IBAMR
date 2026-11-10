@@ -21,6 +21,7 @@
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
+#include <tbox/Database.h>
 #include <tbox/Pointer.h>
 #include <tbox/Timer.h>
 
@@ -56,16 +57,6 @@ namespace IBTK
 
 namespace
 {
-// Types of refining and coarsening to perform prior to setting coarse-fine
-// boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE = "NONE";
-static const bool USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
-
 // Timers.
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
@@ -75,7 +66,13 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 VCSCViscousOperator::VCSCViscousOperator(std::string object_name, const bool homogeneous_bc)
-    : SCLaplaceOperator(std::move(object_name), nullptr, homogeneous_bc)
+    : VCSCViscousOperator(std::move(object_name), nullptr, homogeneous_bc)
+{
+    return;
+} // VCSCViscousOperator()
+
+VCSCViscousOperator::VCSCViscousOperator(std::string object_name, Pointer<Database> input_db, const bool homogeneous_bc)
+    : SCLaplaceOperator(std::move(object_name), input_db, homogeneous_bc)
 {
     // Setup the operator to use default vector-valued boundary conditions.
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr));
@@ -136,11 +133,11 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp),
-                                                      DATA_REFINE_TYPE,
-                                                      USE_CF_INTERPOLATION,
-                                                      DATA_COARSEN_TYPE,
+                                                      d_data_refine_type,
+                                                      d_use_cf_interpolation,
+                                                      d_data_coarsen_type,
                                                       d_bdry_extrap_type,
-                                                      CONSISTENT_TYPE_2_BDRY,
+                                                      d_use_consistent_type_2_bdry,
                                                       d_bc_coefs,
                                                       d_fill_pattern,
                                                       d_bdry_interp_type);
@@ -240,11 +237,11 @@ VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         InterpolationTransactionComponent component(in.getComponentDescriptorIndex(comp),
-                                                    DATA_REFINE_TYPE,
-                                                    USE_CF_INTERPOLATION,
-                                                    DATA_COARSEN_TYPE,
+                                                    d_data_refine_type,
+                                                    d_use_cf_interpolation,
+                                                    d_data_coarsen_type,
                                                     d_bdry_extrap_type,
-                                                    CONSISTENT_TYPE_2_BDRY,
+                                                    d_use_consistent_type_2_bdry,
                                                     d_bc_coefs,
                                                     d_fill_pattern,
                                                     d_bdry_interp_type);

@@ -230,6 +230,12 @@ public:
     //\}
 
 protected:
+    /*!
+     * \brief Throw an error if the velocity boundary conditions are TRACTION conditions, the domain is not periodic in
+     * every direction, and no physical boundary condition helper object has been set.
+     */
+    void checkPhysicalBoundaryHelper(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in) const;
+
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_U_bc_coef;

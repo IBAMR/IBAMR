@@ -18,6 +18,8 @@
 #include <ibtk/PETScLevelSolver.h>
 #include <ibtk/solver_utilities.h>
 
+#include <tbox/Utilities.h>
+
 #include <BoxList.h>
 #include <GridGeometry.h>
 #include <PatchLevel.h>
@@ -318,6 +320,66 @@ hypre_array(const SAMRAI::hier::Index<NDIM>& index)
     for (unsigned int d = 0; d < NDIM; ++d) result[d] = index[d];
     return result;
 }
+
+int
+get_hypre_periodic_shift(const SAMRAI::hier::PatchLevel<NDIM>& level,
+                         const std::string& object_name,
+                         const unsigned int d,
+                         const bool require_periodic_images)
+{
+    using namespace SAMRAI;
+    const int periodic_shift = level.getGridGeometry()->getPeriodicShift(level.getRatio())(d);
+    if (periodic_shift == 0)
+    {
+        return 0;
+    }
+    const hier::Box<NDIM> domain = level.getPhysicalDomain().getBoundingBox();
+    hier::Box<NDIM> lower_end = domain;
+    lower_end.upper(d) = domain.lower(d);
+    hier::Box<NDIM> upper_end = domain;
+    upper_end.lower(d) = domain.upper(d);
+    hier::IntVector<NDIM> to_lower_end(0);
+    to_lower_end(d) = domain.lower(d) - domain.upper(d);
+
+    // The cells of the level at the lower and upper end of the domain, with the upper ones shifted to the lower end, so
+    // that the cells on the two sides of the periodic boundary coincide.
+    hier::BoxList<NDIM> lower_cells, upper_cells;
+    for (int n = 0; n < level.getBoxes().getNumberOfBoxes(); ++n)
+    {
+        const hier::Box<NDIM> lower_box = level.getBoxes()[n] * lower_end;
+        if (!lower_box.empty())
+        {
+            lower_cells.appendItem(lower_box);
+        }
+        const hier::Box<NDIM> upper_box = level.getBoxes()[n] * upper_end;
+        if (!upper_box.empty())
+        {
+            upper_cells.appendItem(hier::Box<NDIM>::shift(upper_box, to_lower_end));
+        }
+    }
+    if (lower_cells.isEmpty() || upper_cells.isEmpty())
+    {
+        return 0;
+    }
+    if (!require_periodic_images)
+    {
+        return periodic_shift;
+    }
+    hier::BoxList<NDIM> upper_only(upper_cells);
+    upper_only.removeIntersections(lower_cells);
+    hier::BoxList<NDIM> lower_only(lower_cells);
+    lower_only.removeIntersections(upper_cells);
+    if (!upper_only.isEmpty() || !lower_only.isEmpty())
+    {
+        TBOX_ERROR(object_name << "::initializeSolverState():\n"
+                               << "  patches of level " << level.getLevelNumber()
+                               << " adjacent to the two periodic boundaries in direction " << d
+                               << " are not periodic images of each other\n"
+                               << "  the patches adjacent to the lower and upper boundary must be periodic images, or "
+                                  "one of the two boundaries must have no adjacent patch\n");
+    }
+    return periodic_shift;
+} // get_hypre_periodic_shift
 
 void
 copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,

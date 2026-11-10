@@ -49,7 +49,10 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
 {
     Pointer<PETScKrylovPoissonSolver> krylov_solver =
         new PETScKrylovPoissonSolver(solver_object_name, solver_input_db, solver_default_options_prefix);
-    krylov_solver->setOperator(new VCSCViscousOperator(solver_object_name + "::vc_viscous_operator"));
+    auto operator_db = (solver_input_db && solver_input_db->isDatabase("laplace_op")) ?
+                           solver_input_db->getDatabase("laplace_op") :
+                           nullptr;
+    krylov_solver->setOperator(new VCSCViscousOperator(solver_object_name + "::vc_viscous_operator", operator_db));
     return krylov_solver;
 }
 
