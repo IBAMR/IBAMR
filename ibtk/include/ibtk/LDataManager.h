@@ -303,6 +303,8 @@ public:
      * requirement is unmet. A point must move at most one cell width between redistributions, which the function does
      * not check. The function spreads edge-centered and node-centered data from all points in the ghost region of the
      * Lagrangian index data, without summing ghost values.
+     *
+     * The function spreads on level \a level_num only.
      */
     void spread(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
@@ -310,8 +312,24 @@ public:
                 SAMRAI::tbox::Pointer<LData> ds_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true,
+                bool ds_data_ghost_node_update = true);
+
+    /*!
+     * \brief Spread a quantity on level \a level_num.
+     *
+     * @deprecated The function ignores \a f_prolongation_scheds. Use the overload without it.
+     */
+    IBTK_DEPRECATED("Use the overload without f_prolongation_scheds instead.")
+    void spread(int f_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                SAMRAI::tbox::Pointer<LData> ds_data,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds,
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -331,6 +349,8 @@ public:
      * which spreads densities, \em NOT values.
      *
      * Data are spread as described for the first overload of spread().
+     *
+     * The function spreads on level \a level_num only.
      */
     void spread(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
@@ -339,8 +359,25 @@ public:
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true,
+                bool ds_data_ghost_node_update = true);
+
+    /*!
+     * \brief Spread a quantity on level \a level_num.
+     *
+     * @deprecated The function ignores \a f_prolongation_scheds. Use the overload without it.
+     */
+    IBTK_DEPRECATED("Use the overload without f_prolongation_scheds instead.")
+    void spread(int f_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                SAMRAI::tbox::Pointer<LData> ds_data,
+                const std::string& spread_kernel_fcn,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds,
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -419,14 +456,30 @@ public:
      * implemented operation spreads values, \em NOT densities.
      *
      * Data are spread as described for the first overload of spread().
+     *
+     * The function spreads on level \a level_num only.
      */
     void spread(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
                 SAMRAI::tbox::Pointer<LData> X_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true);
+
+    /*!
+     * \brief Spread a quantity on level \a level_num.
+     *
+     * @deprecated The function ignores \a f_prolongation_scheds. Use the overload without it.
+     */
+    IBTK_DEPRECATED("Use the overload without f_prolongation_scheds instead.")
+    void spread(int f_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds,
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true);
@@ -445,6 +498,8 @@ public:
      * implemented operation spreads values, \em NOT densities.
      *
      * Data are spread as described for the first overload of spread().
+     *
+     * The function spreads on level \a level_num only.
      */
     void spread(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
@@ -452,8 +507,23 @@ public:
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true);
+
+    /*!
+     * \brief Spread a quantity on level \a level_num.
+     *
+     * @deprecated The function ignores \a f_prolongation_scheds. Use the overload without it.
+     */
+    IBTK_DEPRECATED("Use the overload without f_prolongation_scheds instead.")
+    void spread(int f_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                const std::string& spread_kernel_fcn,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_prolongation_scheds,
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true);
@@ -520,13 +590,29 @@ public:
      * Each point is interpolated on the patch whose patch box contains its current position. A point must move at most
      * one cell width between redistributions. The ghost positions of X_data are updated first if
      * X_data_ghost_node_update is true. The ghost values of F_data are invalid afterwards.
+     *
+     * The function interpolates on level \a level_num only and uses only f_ghost_fill_scheds[level_num].
      */
     void interp(int f_data_idx,
                 SAMRAI::tbox::Pointer<LData> F_data,
                 SAMRAI::tbox::Pointer<LData> X_data,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>& f_synch_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_ghost_fill_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
+                double fill_data_time = 0.0,
+                bool X_data_ghost_node_update = true);
+
+    /*!
+     * \brief Interpolate a quantity on level \a level_num.
+     *
+     * @deprecated The function ignores \a f_synch_scheds. Use the overload without it.
+     */
+    IBTK_DEPRECATED("Use the overload without f_synch_scheds instead.")
+    void interp(int f_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>& f_synch_scheds,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_ghost_fill_scheds =
                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
                 double fill_data_time = 0.0,
