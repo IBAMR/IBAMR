@@ -130,6 +130,22 @@ add_to_row(std::vector<std::pair<int, double>>& row, const int column, const dou
     }
 } // add_to_row
 
+// Return whether the Robin coefficients impose a TRACTION condition at a face of box.
+bool
+has_traction_face(const ArrayData<NDIM, double>& acoef_data,
+                  const ArrayData<NDIM, double>& bcoef_data,
+                  const Box<NDIM>& box)
+{
+    for (Box<NDIM>::Iterator it(box); it; it++)
+    {
+        if (get_velocity_bc_type(acoef_data(it(), 0), bcoef_data(it(), 0)) == VelocityBcType::TRACTION)
+        {
+            return true;
+        }
+    }
+    return false;
+} // has_traction_face
+
 // Return the couplings of tangential velocity rows next to TRACTION boundaries to the normal velocities on the
 // boundary: D/h times the derivative of gamma in u_G = u_I + h*gamma, with ghost value u_G, interior value u_I, and
 // gamma the inhomogeneous coefficient of the TRACTION condition. Coarse-fine ghost values have no column.
@@ -179,14 +195,7 @@ compute_traction_couplings(Patch<NDIM>& patch,
             stokes_bc_coef->setHomogeneousBc(homogeneous_bc);
             const ShiftedPatchGeometry::ScopedGeometryReplacement geometry_replacement(patch, shifted_geometry);
             stokes_bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, nullptr, patch, trimmed_bdry_box, data_time);
-            const auto is_traction_face = [&](const hier::Index<NDIM>& i)
-            { return get_velocity_bc_type((*acoef_data)(i, 0), (*bcoef_data)(i, 0)) == VelocityBcType::TRACTION; };
-            bool has_traction_face = false;
-            for (Box<NDIM>::Iterator bc(bc_coef_box); bc && !has_traction_face; bc++)
-            {
-                has_traction_face = is_traction_face(bc());
-            }
-            if (!has_traction_face)
+            if (!has_traction_face(*acoef_data, *bcoef_data, bc_coef_box))
             {
                 continue;
             }
@@ -195,7 +204,7 @@ compute_traction_couplings(Patch<NDIM>& patch,
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
                 const hier::Index<NDIM>& i = bc();
-                if (!is_traction_face(i))
+                if (get_velocity_bc_type((*acoef_data)(i, 0), (*bcoef_data)(i, 0)) != VelocityBcType::TRACTION)
                 {
                     continue;
                 }
@@ -226,6 +235,162 @@ compute_traction_couplings(Patch<NDIM>& patch,
     }
     return couplings;
 } // compute_traction_couplings
+
+// Add D/h^2*(u_I - u_div) (get_normal_stress_stencil()) to the normal-velocity rows at TRACTION
+// boundaries. The matrix omits the velocities that are not DOFs and the boundary data in gamma, the inhomogeneous
+// coefficient of a tangential ghost value. StaggeredStokesPETScLevelSolver adds their terms to the right-hand side.
+void
+add_normal_stress_couplings(TractionCouplings& couplings,
+                            Patch<NDIM>& patch,
+                            const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                            const double data_time,
+                            const double D,
+                            const SideData<NDIM, int>& u_dof_index_data)
+{
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    const Box<NDIM> ghost_box = Box<NDIM>::grow(patch.getBox(), IntVector<NDIM>(1));
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+    {
+        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const unsigned int bdry_normal_axis = location_index / 2;
+        const bool is_lower = location_index % 2 == 0;
+        const auto normal_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
+        if (!normal_bc_coef || normal_bc_coef->getTractionBcType() != TRACTION)
+        {
+            continue;
+        }
+        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, patch);
+        const Box<NDIM> normal_bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+        Pointer<ArrayData<NDIM, double>> normal_acoef_data = new ArrayData<NDIM, double>(normal_bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> normal_bcoef_data = new ArrayData<NDIM, double>(normal_bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> normal_gcoef_data;
+        normal_bc_coef->clearTargetPatchDataIndex();
+        normal_bc_coef->setHomogeneousBc(true);
+        normal_bc_coef->setBcCoefs(
+            normal_acoef_data, normal_bcoef_data, normal_gcoef_data, nullptr, patch, trimmed_bdry_box, data_time);
+        std::vector<hier::Index<NDIM>> open_faces;
+        for (Box<NDIM>::Iterator it(normal_bc_coef_box); it; it++)
+        {
+            if (get_velocity_bc_type((*normal_acoef_data)(it(), 0), (*normal_bcoef_data)(it(), 0)) ==
+                VelocityBcType::TRACTION)
+            {
+                open_faces.push_back(it());
+            }
+        }
+        if (open_faces.empty())
+        {
+            continue;
+        }
+
+        // The boundary conditions of the tangential components at the locations of their ghost values, and the
+        // dependence of the inhomogeneous coefficient on the normal velocities.
+        struct TangentialBc
+        {
+            Pointer<ArrayData<NDIM, double>> acoef_data, bcoef_data;
+            Box<NDIM> bc_coef_box;
+            std::vector<std::vector<std::pair<SideIndex<NDIM>, double>>> stencils;
+        };
+        std::array<TangentialBc, NDIM> tangential_bcs;
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            if (axis == bdry_normal_axis)
+            {
+                continue;
+            }
+            const Box<NDIM> bc_coef_box = compute_tangential_extension(normal_bc_coef_box, axis);
+            TangentialBc& bc = tangential_bcs[axis];
+            bc.bc_coef_box = bc_coef_box;
+            bc.acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            bc.bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double>> gcoef_data;
+            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(true);
+            }
+            std::array<double, NDIM> shift;
+            shift.fill(0.0);
+            shift[axis] = -0.5 * dx[axis];
+            const ShiftedPatchGeometry shifted_geometry(patch, shift);
+            const ShiftedPatchGeometry::ScopedGeometryReplacement geometry_replacement(patch, shifted_geometry);
+            u_bc_coefs[axis]->setBcCoefs(
+                bc.acoef_data, bc.bcoef_data, gcoef_data, nullptr, patch, trimmed_bdry_box, data_time);
+            auto stokes_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[axis]);
+            if (!stokes_bc_coef)
+            {
+                continue;
+            }
+            if (has_traction_face(*bc.acoef_data, *bc.bcoef_data, bc_coef_box))
+            {
+                bc.stencils =
+                    stokes_bc_coef->getTractionStencil(patch, trimmed_bdry_box, bc_coef_box, ghost_box, data_time);
+            }
+        }
+
+        const double h = dx[bdry_normal_axis];
+        const double coef = D / (h * h);
+        for (const hier::Index<NDIM>& i : open_faces)
+        {
+            std::vector<std::pair<int, double>>& row =
+                couplings[get_row_key(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower))];
+            const auto add_term = [&row, &u_dof_index_data](const SideIndex<NDIM>& i_s, const double value)
+            {
+                const int column = u_dof_index_data(i_s);
+                if (column >= 0)
+                {
+                    add_to_row(row, column, value);
+                }
+            };
+            for (const auto& entry : get_normal_stress_stencil(i, bdry_normal_axis, is_lower, dx))
+            {
+                const SideIndex<NDIM>& i_s = entry.first;
+                const unsigned int axis = i_s.getAxis();
+                if (axis == bdry_normal_axis)
+                {
+                    add_term(i_s, coef * entry.second);
+                    continue;
+                }
+
+                // The face is a ghost face of the tangential velocity: its ghost value is extrapolated from the
+                // adjacent face inside the domain along the boundary-normal axis.
+                hier::Index<NDIM> i_bc = i_s;
+                SideIndex<NDIM> i_s_inside = i_s;
+                if (is_lower)
+                {
+                    i_bc(bdry_normal_axis) += 1;
+                    i_s_inside(bdry_normal_axis) += 1;
+                }
+                else
+                {
+                    i_s_inside(bdry_normal_axis) -= 1;
+                }
+                const TangentialBc& bc = tangential_bcs[axis];
+                const double a = (*bc.acoef_data)(i_bc, 0);
+                const double b = (*bc.bcoef_data)(i_bc, 0);
+                // The ghost value is f_i*u + f_g*gamma for both kinds of condition. get_velocity_bc_type() stops with
+                // an error for any other kind.
+                const VelocityBcType type = get_velocity_bc_type(a, b);
+                const double f_i = -(a * h - 2.0 * b) / (a * h + 2.0 * b);
+                const double f_g = 2.0 * h / (a * h + 2.0 * b);
+                add_term(i_s_inside, coef * entry.second * f_i);
+                if (type == VelocityBcType::TRACTION && !bc.stencils.empty())
+                {
+                    for (const auto& dgamma : bc.stencils[bc.bc_coef_box.offset(i_bc)])
+                    {
+                        add_term(dgamma.first, coef * entry.second * f_g * dgamma.second);
+                    }
+                }
+            }
+        }
+    }
+    return;
+} // add_normal_stress_couplings
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -300,8 +465,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             continue;
         }
         Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        traction_couplings[patch->getPatchNumber()] =
-            compute_traction_couplings(*patch, u_bc_coefs, data_time, D, *u_dof_index_data);
+        TractionCouplings couplings = compute_traction_couplings(*patch, u_bc_coefs, data_time, D, *u_dof_index_data);
+        add_normal_stress_couplings(couplings, *patch, u_bc_coefs, data_time, D, *u_dof_index_data);
+        traction_couplings[patch->getPatchNumber()] = std::move(couplings);
     }
 
     // Determine the non-zero structure of the matrix.
@@ -719,10 +885,21 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 const auto row_couplings = couplings.find(get_row_key(is));
                 if (row_couplings != couplings.end())
                 {
+                    // Add each coupling to its column in the stencil, or append the column if the stencil lacks it.
+                    const int num_stencil_cols = static_cast<int>(u_mat_cols.size());
                     for (const auto& coupling : row_couplings->second)
                     {
-                        u_mat_cols.push_back(coupling.first);
-                        u_mat_vals.push_back(coupling.second);
+                        const auto stencil_end = u_mat_cols.begin() + num_stencil_cols;
+                        const auto column = std::find(u_mat_cols.begin(), stencil_end, coupling.first);
+                        if (column == stencil_end)
+                        {
+                            u_mat_cols.push_back(coupling.first);
+                            u_mat_vals.push_back(coupling.second);
+                        }
+                        else
+                        {
+                            u_mat_vals[column - u_mat_cols.begin()] += coupling.second;
+                        }
                     }
                 }
 
