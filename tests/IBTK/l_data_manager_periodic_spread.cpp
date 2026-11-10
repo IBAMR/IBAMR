@@ -235,7 +235,7 @@ check_kernel(const std::string& kernel,
             Pointer<NodeData<NDIM, double>> data = level->getPatch(p())->getPatchData(node_idx);
             data->fillAll(0.0);
         }
-        l_data_manager->spread(node_idx, F_data, X_data, no_bdry_op, 0, {}, 0.0);
+        l_data_manager->spread(node_idx, F_data, X_data, no_bdry_op, 0, 0.0);
         double sum = 0.0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -260,7 +260,7 @@ check_kernel(const std::string& kernel,
             Pointer<EdgeData<NDIM, double>> data = level->getPatch(p())->getPatchData(edge_idx);
             data->fillAll(0.0);
         }
-        l_data_manager->spread(edge_idx, F_data, X_data, no_bdry_op, 0, {}, 0.0);
+        l_data_manager->spread(edge_idx, F_data, X_data, no_bdry_op, 0, 0.0);
         for (int axis = 0; axis < NDIM; ++axis)
         {
             double sum = 0.0;

@@ -319,7 +319,7 @@ check_interpolated_divergence(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     LDataManager* l_data_manager = ib_method_ops->getLDataManager();
     Pointer<LData> X_data = l_data_manager->getLData("X", ln);
     Pointer<LData> U_data = l_data_manager->createLData("interpolated_velocity_divergence_U", ln, NDIM);
-    l_data_manager->interp(u_idx, U_data, X_data, ln, {}, ghost_fill_scheds, time);
+    l_data_manager->interp(u_idx, U_data, X_data, ln, ghost_fill_scheds, time);
     const int num_evaluation_points = static_cast<int>(generate_evaluation_points(input_db->getInteger("N")).size());
     const int num_points = 2 * NDIM * num_evaluation_points;
     std::vector<double> U(num_points * NDIM, 0.0);

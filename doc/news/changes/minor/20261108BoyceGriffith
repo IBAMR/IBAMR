@@ -1,0 +1,3 @@
+Fixed: Restrict the single-level overloads of IBTK::LDataManager::spread() and IBTK::LDataManager::interp() to their own level. Before, they crashed if another level contained markers. The overloads that take prolongation or synchronization schedules are deprecated and ignore the schedules. Use the overloads without them.
+<br>
+(Boyce Griffith, 2026/11/08)
