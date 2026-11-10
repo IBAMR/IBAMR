@@ -1,6 +1,7 @@
 MAX_LEVELS = 2
 N = 8
 REF_RATIO = 2
+GHOST_WIDTH = 2
 CENTERING = "SIDE"
 
 Main {
@@ -45,10 +46,10 @@ LoadBalancer {
 }
 
 Reference {
-   ghost_locations = 16
-   coarse_fine_locations = 16
-   ghost_sum = 38.375
-   ghost_sum_squares = 93.317306518555
-   ghost_max = 2.8642578125
-   ghost_weighted_sum = 903.296875
+   ghost_locations = 66
+   coarse_fine_locations = 66
+   ghost_sum = 175.009765625
+   ghost_sum_squares = 499.27223396301
+   ghost_max = 4.1572265625
+   ghost_weighted_sum = 4484.8349609375
 }

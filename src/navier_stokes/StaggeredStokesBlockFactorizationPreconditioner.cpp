@@ -251,7 +251,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                                                          BDRY_EXTRAP_TYPE,
                                                          CONSISTENT_TYPE_2_BDRY,
                                                          d_P_bc_coef,
-                                                         fill_pattern);
+                                                         fill_pattern,
+                                                         "LINEAR",
+                                                         /*extend_coarse_data_linearly*/ true);
     InterpolationTransactionComponent P_scratch_transaction_comp(d_P_scratch_idx,
                                                                  DATA_REFINE_TYPE,
                                                                  USE_CF_INTERPOLATION,
@@ -259,7 +261,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                                                                  BDRY_EXTRAP_TYPE,
                                                                  CONSISTENT_TYPE_2_BDRY,
                                                                  d_P_bc_coef,
-                                                                 fill_pattern);
+                                                                 fill_pattern,
+                                                                 "LINEAR",
+                                                                 /*extend_coarse_data_linearly*/ true);
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -394,7 +398,9 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
                                                           BDRY_EXTRAP_TYPE,
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           d_P_bc_coef,
-                                                          fill_pattern);
+                                                          fill_pattern,
+                                                          "LINEAR",
+                                                          /*extend_coarse_data_linearly*/ true);
     d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->setHomogeneousBc(true);
     d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);

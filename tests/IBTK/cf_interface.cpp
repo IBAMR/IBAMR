@@ -23,17 +23,24 @@
 
 #include <petscsys.h>
 
+#include <ArrayData.h>
+#include <BoundaryBox.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
 #include <RefineAlgorithm.h>
 #include <RefineSchedule.h>
+#include <RobinBcCoefStrategy.h>
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../coarse_fine_ghost_values.h"
@@ -60,6 +67,70 @@ using namespace coarse_fine_ghost_values;
 
 namespace
 {
+// Dirichlet data equal to a function at the physical boundary, evaluated at the cell centers along the boundary. For
+// side-centered data, the boundary operator shifts the patch geometry.
+class FunctionDirichletBc : public RobinBcCoefStrategy<NDIM>
+{
+public:
+    explicit FunctionDirichletBc(std::function<double(const VectorNd&)> fcn) : d_fcn(std::move(fcn))
+    {
+    }
+
+    void setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                    Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                    Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                    const Pointer<SAMRAI::hier::Variable<NDIM>>& /*variable*/,
+                    const Patch<NDIM>& patch,
+                    const BoundaryBox<NDIM>& bdry_box,
+                    double /*fill_time*/) const override
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+        const double* const x_lower = pgeom->getXLower();
+        const double* const x_upper = pgeom->getXUpper();
+        const double* const dx = pgeom->getDx();
+        const hier::Index<NDIM>& patch_lower = patch.getBox().lower();
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const unsigned int normal_axis = location_index / 2;
+        const Box<NDIM>& box = (acoef_data ? acoef_data->getBox() : gcoef_data->getBox());
+        for (Box<NDIM>::Iterator b(box); b; b++)
+        {
+            const hier::Index<NDIM>& i = b();
+            VectorNd x;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (d == normal_axis)
+                {
+                    x[d] = location_index % 2 == 0 ? x_lower[d] : x_upper[d];
+                }
+                else
+                {
+                    x[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                }
+            }
+            if (acoef_data)
+            {
+                (*acoef_data)(i, 0) = 1.0;
+            }
+            if (bcoef_data)
+            {
+                (*bcoef_data)(i, 0) = 0.0;
+            }
+            if (gcoef_data)
+            {
+                (*gcoef_data)(i, 0) = d_fcn(x);
+            }
+        }
+    }
+
+    IntVector<NDIM> numberOfExtensionsFillable() const override
+    {
+        return IntVector<NDIM>(128);
+    }
+
+private:
+    std::function<double(const VectorNd&)> d_fcn;
+};
+
 // Summary of the ghost values at the distinct ghost locations outside the fine level that are away from the physical
 // boundary. The ghost locations are cells (or faces) in the ghost region of some patch. The coarse-fine locations are
 // those that get a coarse-fine value.
@@ -138,6 +209,9 @@ main(int argc, char* argv[])
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
+    // Suppress the SAMRAI warning for patches smaller than the ghost cell width, because the warning contains a path.
+    Logger::getInstance()->setWarning(false);
+
     Pointer<Logger::Appender> abort_append(new TestAppender());
     Logger::getInstance()->setAbortAppender(abort_append);
 
@@ -157,6 +231,12 @@ main(int argc, char* argv[])
         const int depth_limit = ghost_width;
         const std::string refine_op_name = input_db->getStringWithDefault("REFINE_OP", "NONE");
         const bool is_cell = input_db->getString("CENTERING").compare("CELL") == 0;
+        // With BC_TYPE = "ROBIN", the component has Dirichlet data equal to the function. With UNRELATED_ROBIN_DATA, it
+        // fills a linear function with Robin data unrelated to it, as the pressure does, which only the linear
+        // extension of the coarse data reproduces.
+        const bool use_robin = input_db->getStringWithDefault("BC_TYPE", "EXTRAPOLATION") == "ROBIN";
+        const bool unrelated_robin_data = input_db->getBoolWithDefault("UNRELATED_ROBIN_DATA", false);
+        const bool extend_linearly = input_db->getBoolWithDefault("EXTEND_COARSE_DATA_LINEARLY", false);
 
         // Create cell-centered or side-centered quantities, and initialize them with a quadratic function. The second
         // quantity is filled with a no-corners fill pattern.
@@ -172,7 +252,17 @@ main(int argc, char* argv[])
             Q_nc_var = new SideVariable<NDIM, double>("Q_no_corners");
         }
 
-        const auto Q_fcn = make_quadratic(grid_geometry);
+        const std::function<double(const VectorNd&)> linear_fcn = [](const VectorNd& x)
+        {
+            double val = 1.0;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                val += x[d];
+            }
+            return val;
+        };
+        const std::function<double(const VectorNd&)> Q_fcn =
+            unrelated_robin_data ? linear_fcn : make_quadratic(grid_geometry);
 
         auto var_db = VariableDatabase<NDIM>::getDatabase();
         const int Q_idx =
@@ -198,9 +288,31 @@ main(int argc, char* argv[])
         // Fill the ghost cells with the coarse-fine interface operator, with the default fill pattern and with a
         // no-corners fill pattern.
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        std::vector<std::unique_ptr<FunctionDirichletBc>> bcs;
+        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs;
+        if (use_robin)
+        {
+            const std::function<double(const VectorNd&)> bc_fcn =
+                unrelated_robin_data ? std::function<double(const VectorNd&)>([](const VectorNd&) { return 1000.0; }) :
+                                       Q_fcn;
+            for (int c = 0; c < (is_cell ? 1 : NDIM); ++c)
+            {
+                bcs.push_back(std::make_unique<FunctionDirichletBc>(bc_fcn));
+                bc_coefs.push_back(bcs.back().get());
+            }
+        }
         std::vector<InterpolationTransactionComponent> ghost_cell_comps(1);
-        ghost_cell_comps[0] = InterpolationTransactionComponent(
-            Q_idx, refine_op_name, true, "NONE", "NONE", false, nullptr /*bdry_conds*/);
+        ghost_cell_comps[0] = InterpolationTransactionComponent(Q_idx,
+                                                                Q_idx,
+                                                                refine_op_name,
+                                                                true,
+                                                                "NONE",
+                                                                "LINEAR",
+                                                                false,
+                                                                bc_coefs,
+                                                                nullptr /*fill_pattern*/,
+                                                                "LINEAR",
+                                                                extend_linearly);
         HierarchyGhostCellInterpolation hier_ghost_cell;
         hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
         hier_ghost_cell.fillData(0.0);
@@ -220,16 +332,19 @@ main(int argc, char* argv[])
                                                                 refine_op_name,
                                                                 true,
                                                                 "NONE",
-                                                                "NONE",
+                                                                "LINEAR",
                                                                 false,
-                                                                nullptr /*bdry_conds*/,
-                                                                no_corners_pattern);
+                                                                bc_coefs,
+                                                                no_corners_pattern,
+                                                                "LINEAR",
+                                                                extend_linearly);
         HierarchyGhostCellInterpolation hier_ghost_cell_no_corners;
         hier_ghost_cell_no_corners.initializeOperatorState(no_corners_comps, patch_hierarchy);
         hier_ghost_cell_no_corners.fillData(0.0);
 
         Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
-        const FineLevel fine = make_fine_level(patch_hierarchy, grid_geometry);
+        FineLevel fine = make_fine_level(patch_hierarchy, grid_geometry);
+        fine.coarse_data_extended = use_robin || ghost_width >= 2;
         const std::vector<int> axes = data_axes(is_cell);
 
         // The exact value of the quadratic function at a ghost cell or face of a patch.

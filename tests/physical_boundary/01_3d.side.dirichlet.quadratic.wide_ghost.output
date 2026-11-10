@@ -1,1 +1,4 @@
-01_2d.side.dirichlet.quadratic.wide_ghost.output
+checking robin bc handling . . .
+(f, E u)   = 89.2666359938
+(E^T f, u) = 89.2666359938
+boundary data appears to be correct.
