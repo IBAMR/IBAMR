@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 #include <ibtk/ibtk_enums.h>
 
@@ -156,6 +157,22 @@ public:
                                    int u_target_data_idx,
                                    int p_target_data_idx,
                                    bool homogeneous_bc);
+
+    /*!
+     * \brief Return the transaction component for a fill of the cell-centered pressure. Because the Robin data of
+     * \a P_bc_coef are not a condition that the pressure satisfies, the coarse data are extended linearly beyond
+     * physical boundaries.
+     */
+    static IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent makePressureTransactionComponent(
+        int P_idx,
+        const std::string& refine_type,
+        bool use_cf_interpolation,
+        const std::string& coarsen_type,
+        const std::string& extrap_type,
+        bool consistent_type_2_bdry,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern = nullptr,
+        const std::string& bdry_interp_type = "LINEAR");
 
     /*!
      * \brief Reset physical boundary condition specification objects.

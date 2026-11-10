@@ -1,0 +1,7 @@
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+tangential ghost values checked outside the x boundaries = 408
+largest error in those ghost values = 8.108551e-02
+NaN tangential ghost values beyond the viscosity data = 48
+NaN ghost values inside the domain after the coarse-fine fill = 0

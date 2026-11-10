@@ -82,6 +82,11 @@ namespace IBTK
  * \note In cases where physical boundary conditions are set via extrapolation
  * from interior values, setting ghost cell values may require both coarsening
  * and refining.
+ *
+ * Coarse-fine interpolation is third-order accurate within one coarse cell of a physical boundary if the coarse data
+ * are extended beyond it with the quadratic Robin ghost value of a component with Robin coefficients, or by quadratic
+ * extrapolation if the component has none and all destination data have at least two ghost cells. Otherwise, as for a
+ * linear extension (d_extend_coarse_data_linearly), the interpolation is second-order accurate there.
  */
 class HierarchyGhostCellInterpolation : public SAMRAI::tbox::DescribedClass
 {
@@ -229,7 +234,8 @@ public:
               d_robin_bc_coefs(from.d_robin_bc_coefs),
               d_fill_pattern(from.d_fill_pattern),
               d_phys_bdry_type(from.d_phys_bdry_type),
-              d_sc_phys_bdry_op(from.d_sc_phys_bdry_op)
+              d_sc_phys_bdry_op(from.d_sc_phys_bdry_op),
+              d_extend_coarse_data_linearly(from.d_extend_coarse_data_linearly)
         {
             // intentionally blank
             return;
@@ -257,6 +263,7 @@ public:
                 d_fill_pattern = that.d_fill_pattern;
                 d_phys_bdry_type = that.d_phys_bdry_type;
                 d_sc_phys_bdry_op = that.d_sc_phys_bdry_op;
+                d_extend_coarse_data_linearly = that.d_extend_coarse_data_linearly;
             }
             return *this;
         } // operator=
@@ -288,6 +295,13 @@ public:
          * HierarchyGhostCellInterpolation object.
          */
         RobinPhysBdryPatchStrategy* d_sc_phys_bdry_op = nullptr;
+
+        /*!
+         * Whether to extend the coarse data of the coarse-fine interpolation linearly beyond physical boundaries
+         * instead of with the Robin ghost value. Valid only for cell-centered data, such as the pressure, that do not
+         * satisfy the condition of their Robin coefficients.
+         */
+        bool d_extend_coarse_data_linearly = false;
     };
 
     /*!
@@ -402,6 +416,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_refine_alg;
     std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_refine_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_refine_scheds;
+
+    // Extension of the temporary coarse data beyond physical boundaries for the coarse-fine interpolation.
+    class CoarseDataExtension;
+    std::unique_ptr<CoarseDataExtension> d_coarse_extension;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.
     std::vector<std::unique_ptr<CFOwnerFill>> d_cf_fills;

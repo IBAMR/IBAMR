@@ -23,20 +23,27 @@
 
 #include <petscsys.h>
 
+#include <ArrayData.h>
 #include <BergerRigoutsos.h>
+#include <BoundaryBox.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <RefineAlgorithm.h>
 #include <RefineSchedule.h>
+#include <RobinBcCoefStrategy.h>
 #include <StandardTagAndInitialize.h>
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
+#include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ibtk/app_namespaces.h>
@@ -55,6 +62,57 @@ public:
     }
 };
 
+// Dirichlet data equal to a function at the physical boundary, evaluated at the cell centers along the boundary. For
+// side-centered data, the boundary operator shifts the patch geometry.
+class FunctionDirichletBc : public RobinBcCoefStrategy<NDIM>
+{
+public:
+    explicit FunctionDirichletBc(std::function<double(const VectorNd&)> fcn) : d_fcn(std::move(fcn))
+    {
+    }
+
+    void setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
+                    Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                    Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                    const Pointer<SAMRAI::hier::Variable<NDIM>>& /*variable*/,
+                    const Patch<NDIM>& patch,
+                    const BoundaryBox<NDIM>& bdry_box,
+                    double /*fill_time*/) const override
+    {
+        Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+        const double* const x_lower = pgeom->getXLower();
+        const double* const x_upper = pgeom->getXUpper();
+        const double* const dx = pgeom->getDx();
+        const hier::Index<NDIM>& patch_lower = patch.getBox().lower();
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const unsigned int normal_axis = location_index / 2;
+        const Box<NDIM>& box = (acoef_data ? acoef_data->getBox() : gcoef_data->getBox());
+        for (Box<NDIM>::Iterator b(box); b; b++)
+        {
+            const hier::Index<NDIM>& i = b();
+            VectorNd x;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (d == normal_axis)
+                    x[d] = location_index % 2 == 0 ? x_lower[d] : x_upper[d];
+                else
+                    x[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+            }
+            if (acoef_data) (*acoef_data)(i, 0) = 1.0;
+            if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
+            if (gcoef_data) (*gcoef_data)(i, 0) = d_fcn(x);
+        }
+    }
+
+    IntVector<NDIM> numberOfExtensionsFillable() const override
+    {
+        return IntVector<NDIM>(128);
+    }
+
+private:
+    std::function<double(const VectorNd&)> d_fcn;
+};
+
 // Value of the ghost cells before the fill, so that cells that nothing sets are equal on all patches.
 constexpr double SENTINEL = -12345.678;
 
@@ -66,6 +124,7 @@ struct FineLevel
     Box<NDIM> coarse_domain;
     IntVector<NDIM> ratio;            // To level 0.
     IntVector<NDIM> ratio_to_coarser; // To the next coarser level.
+    bool coarse_data_extended;        // Whether the fill sets the coarse data beyond the physical boundary.
 };
 
 // Cell data have axis -1. Side data have the faces normal to axis (axis >= 0), indexed by the cell above the face.
@@ -93,11 +152,12 @@ floor_div(const int i, const int r)
     return i >= 0 ? i / r : -((-i + r - 1) / r);
 }
 
-// Cells (and faces) whose coarse stencil is far from the physical boundary, where the test does not set boundary
-// values.
+// Cells (and faces) that the test checks: all of them if the fill extends the coarse data beyond the physical
+// boundary, and otherwise those whose coarse stencil is far from the boundary, where nothing sets boundary values.
 bool
 away_from_boundary(const FineLevel& fine, const hier::Index<NDIM>& i)
 {
+    if (fine.coarse_data_extended) return true;
     for (int d = 0; d < NDIM; ++d)
     {
         const int c = floor_div(i(d), fine.ratio(d));
@@ -227,6 +287,9 @@ main(int argc, char* argv[])
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
+    // Suppress the SAMRAI warning for patches smaller than the ghost cell width, because the warning contains a path.
+    Logger::getInstance()->setWarning(false);
+
     Pointer<Logger::Appender> abort_append(new TestAppender());
     Logger::getInstance()->setAbortAppender(abort_append);
 
@@ -264,6 +327,13 @@ main(int argc, char* argv[])
         // boundary instead of the coarse-fine interpolation, for a linear function that both reproduce.
         const std::string extrap_type = input_db->getStringWithDefault("EXTRAP_TYPE", "NONE");
         const bool test_extrap = extrap_type != "NONE";
+        // With BC_TYPE = "ROBIN", the component has Dirichlet data equal to the function. With UNRELATED_ROBIN_DATA, it
+        // fills a linear function with Robin data unrelated to it, as the pressure does, which only the linear
+        // extension of the coarse data reproduces.
+        const bool use_robin = !test_extrap && input_db->getStringWithDefault("BC_TYPE", "EXTRAPOLATION") == "ROBIN";
+        const bool unrelated_robin_data = input_db->getBoolWithDefault("UNRELATED_ROBIN_DATA", false);
+        const bool extend_linearly = input_db->getBoolWithDefault("EXTEND_COARSE_DATA_LINEARLY", false);
+        const bool Q_is_linear = test_extrap || unrelated_robin_data;
 
         // Create cell-centered or side-centered quantities, and initialize them with a quadratic function. The second
         // quantity is filled with a no-corners fill pattern.
@@ -295,7 +365,11 @@ main(int argc, char* argv[])
                 }
                 else
                 {
-                    val += x[d] + (test_extrap ? 0.0 : x[d] * x[d]);
+                    val += x[d] + (Q_is_linear ? 0.0 : x[d] * x[d]);
+                    for (int e = d + 1; e < NDIM; ++e)
+                    {
+                        if (periodic_shift(e) == 0) val += Q_is_linear ? 0.0 : x[d] * x[e];
+                    }
                 }
             }
             return val;
@@ -410,16 +484,36 @@ main(int argc, char* argv[])
         // no-corners fill pattern.
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_cell_comps(1);
-        ghost_cell_comps[0] = test_extrap ?
-                                  InterpolationTransactionComponent(Q_idx,
-                                                                    "CONSERVATIVE_LINEAR_REFINE",
-                                                                    false,
-                                                                    "CONSERVATIVE_COARSEN",
-                                                                    extrap_type,
-                                                                    false,
-                                                                    nullptr /*bdry_conds*/) :
-                                  InterpolationTransactionComponent(
-                                      Q_idx, refine_op_name, cf_fixup, "NONE", "NONE", false, nullptr /*bdry_conds*/);
+        std::vector<std::unique_ptr<FunctionDirichletBc>> bcs;
+        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs;
+        if (use_robin)
+        {
+            for (int c = 0; c < (is_cell ? 1 : NDIM); ++c)
+            {
+                bcs.push_back(std::make_unique<FunctionDirichletBc>(
+                    unrelated_robin_data ?
+                        std::function<double(const VectorNd&)>([](const VectorNd&) { return 1000.0; }) :
+                        std::function<double(const VectorNd&)>(Q_fcn)));
+                bc_coefs.push_back(bcs.back().get());
+            }
+        }
+        ghost_cell_comps[0] = test_extrap ? InterpolationTransactionComponent(Q_idx,
+                                                                              "CONSERVATIVE_LINEAR_REFINE",
+                                                                              false,
+                                                                              "CONSERVATIVE_COARSEN",
+                                                                              extrap_type,
+                                                                              false,
+                                                                              nullptr /*bdry_conds*/) :
+                                            InterpolationTransactionComponent(Q_idx,
+                                                                              Q_idx,
+                                                                              refine_op_name,
+                                                                              cf_fixup,
+                                                                              "NONE",
+                                                                              "LINEAR",
+                                                                              false,
+                                                                              bc_coefs,
+                                                                              nullptr /*fill_pattern*/);
+        ghost_cell_comps[0].d_extend_coarse_data_linearly = extend_linearly;
         HierarchyGhostCellInterpolation hier_ghost_cell;
         hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
         hier_ghost_cell.fillData(0.0);
@@ -430,15 +524,9 @@ main(int argc, char* argv[])
         else
             no_corners_pattern = new SideNoCornersFillPattern(ghost_width, /*overwrite_interior*/ false);
         std::vector<InterpolationTransactionComponent> no_corners_comps(1);
-        no_corners_comps[0] = InterpolationTransactionComponent(Q_nc_idx,
-                                                                Q_nc_idx,
-                                                                refine_op_name,
-                                                                cf_fixup,
-                                                                "NONE",
-                                                                "NONE",
-                                                                false,
-                                                                nullptr /*bdry_conds*/,
-                                                                no_corners_pattern);
+        no_corners_comps[0] = InterpolationTransactionComponent(
+            Q_nc_idx, Q_nc_idx, refine_op_name, cf_fixup, "NONE", "LINEAR", false, bc_coefs, no_corners_pattern);
+        no_corners_comps[0].d_extend_coarse_data_linearly = extend_linearly;
         HierarchyGhostCellInterpolation hier_ghost_cell_no_corners;
         hier_ghost_cell_no_corners.initializeOperatorState(no_corners_comps, patch_hierarchy);
         hier_ghost_cell_no_corners.fillData(0.0);
@@ -450,6 +538,7 @@ main(int argc, char* argv[])
         fine.ratio_to_coarser = level->getRatioToCoarserLevel();
         fine.domain = Box<NDIM>::refine(grid_geometry->getPhysicalDomain()[0], level->getRatio());
         fine.coarse_domain = grid_geometry->getPhysicalDomain()[0];
+        fine.coarse_data_extended = use_robin || ghost_width >= 2;
         std::vector<int> axes;
         if (is_cell)
         {

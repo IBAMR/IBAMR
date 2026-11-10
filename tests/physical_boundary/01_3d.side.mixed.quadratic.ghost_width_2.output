@@ -1,0 +1,4 @@
+checking robin bc handling . . .
+(f, E u)   = -62.2486714928
+(E^T f, u) = -62.2486714928
+boundary data appears to be correct.

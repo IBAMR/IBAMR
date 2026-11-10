@@ -1,6 +1,6 @@
-Checked 10 ghost values at coarse-fine interfaces against the quadratic function.
-Compared 2 ghost cells that several patches contain, set B (first ghost layer, within one cell of the tangential range): 0 differ.
-Compared 2 ghost cells that several patches contain, set A (all ghost cells outside the fine level): 0 differ.
-Compared 16 cells of the fine level that several patches contain: 0 differ.
-Compared 16 ghost values of the no-corners fill with the default fill: 0 differ.
+Checked 40 ghost values at coarse-fine interfaces against the quadratic function.
+Compared 4 ghost cells that several patches contain, set B (first ghost layer, within one cell of the tangential range): 0 differ.
+Compared 8 ghost cells that several patches contain, set A (all ghost cells outside the fine level): 0 differ.
+Compared 32 cells of the fine level that several patches contain: 0 differ.
+Compared 64 ghost values of the no-corners fill with the default fill: 0 differ.
 Compared 256 interior values of the patches with their values before the fill: 0 changed.

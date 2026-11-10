@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    HierarchyGhostCellInterpolation::initializeOperatorState():
+  d_extend_coarse_data_linearly is true for transaction component 0, whose data are not cell-centered
+  set d_extend_coarse_data_linearly only for cell-centered data
+
