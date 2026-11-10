@@ -134,7 +134,9 @@ main(int argc, char* argv[])
         poisson_spec.setCConstant(input_db->getDouble("C"));
         poisson_spec.setDConstant(input_db->getDouble("D"));
         vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, nullptr);
-        SCLaplaceOperator laplace_op("laplace_op");
+        Pointer<Database> solver_db = input_db->getDatabase("solver_db");
+        SCLaplaceOperator laplace_op(
+            "laplace_op", solver_db->isDatabase("laplace_op") ? solver_db->getDatabase("laplace_op") : nullptr);
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoefs(bc_coefs);
         laplace_op.initializeOperatorState(u_vec, f_vec);
@@ -142,7 +144,6 @@ main(int argc, char* argv[])
 
         // Setup the Poisson solver.
         string solver_type = input_db->getString("solver_type");
-        Pointer<Database> solver_db = input_db->getDatabase("solver_db");
         string precond_type = input_db->getString("precond_type");
         Pointer<Database> precond_db = input_db->getDatabase("precond_db");
         Pointer<PoissonSolver> poisson_solver = SCPoissonSolverManager::getManager()->allocateSolver(

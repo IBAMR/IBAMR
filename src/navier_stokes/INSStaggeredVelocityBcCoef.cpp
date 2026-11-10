@@ -220,6 +220,7 @@ INSStaggeredVelocityBcCoef::getTractionStencil(const Patch<NDIM>& patch,
                                                const BoundaryBox<NDIM>& bdry_box,
                                                const Box<NDIM>& bc_coef_box,
                                                const Box<NDIM>& ghost_box,
+                                               const std::string& bdry_interp_type,
                                                const double fill_time) const
 {
     std::vector<std::vector<std::pair<SideIndex<NDIM>, double>>> stencils(bc_coef_box.size());
@@ -249,6 +250,7 @@ INSStaggeredVelocityBcCoef::getTractionStencil(const Patch<NDIM>& patch,
                                                                   normal_velocity_patch,
                                                                   domain,
                                                                   ghost_box,
+                                                                  bdry_interp_type == "QUADRATIC",
                                                                   fill_time);
     }
     return stencils;

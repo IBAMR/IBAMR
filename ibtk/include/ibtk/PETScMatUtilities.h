@@ -31,6 +31,7 @@
 #include <PoissonSpecifications.h>
 
 #include <cmath>
+#include <string>
 #include <vector>
 
 namespace SAMRAI
@@ -72,11 +73,15 @@ public:
      * \brief Construct a parallel PETSc Mat object corresponding to the
      * cell-centered Laplacian of a cell-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
+     *
+     * The ghost values at physical boundaries have the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC". The matrix is nonsymmetric with quadratic interpolation.
      */
     static void constructPatchLevelCCLaplaceOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                                SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
                                                double data_time,
+                                               const std::string& bdry_interp_type,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
@@ -90,6 +95,7 @@ public:
                                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                                const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                double data_time,
+                                               const std::string& bdry_interp_type,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
@@ -103,6 +109,7 @@ public:
                                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                                const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                double data_time,
+                                               const std::string& bdry_interp_type,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
@@ -122,6 +129,7 @@ public:
                                                  double beta,
                                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                  double data_time,
+                                                 const std::string& bdry_interp_type,
                                                  const std::vector<int>& num_dofs_per_proc,
                                                  int dof_index_idx,
                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,

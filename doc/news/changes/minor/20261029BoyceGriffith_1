@@ -1,0 +1,3 @@
+New: Support bdry_interp_type = "QUADRATIC" in the variable-coefficient viscous term that IBAMR::StaggeredStokesPhysicalBoundaryHelper adds at TRACTION and PSEUDO_TRACTION boundaries, as in the constant-coefficient term.
+<br>
+(Boyce Griffith, 2026/10/29)

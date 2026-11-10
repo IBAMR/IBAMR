@@ -105,6 +105,19 @@ public:
      */
     void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) override;
 
+    /*!
+     * \brief Return whether the preconditioner can apply the interpolation type \a bdry_interp_type.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the interpolation type of the residual and the coarse level solver of the FAC strategy, but not that
+     * of its smoother.
+     *
+     * \see PoissonFACPreconditionerStrategy::setBdryInterpType
+     */
+    void setBdryInterpType(const std::string& bdry_interp_type) override;
+
 private:
     /*!
      * \brief Default constructor.

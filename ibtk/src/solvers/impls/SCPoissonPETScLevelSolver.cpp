@@ -72,6 +72,7 @@ SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(const std::string& object_n
     // Configure solver.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, std::move(default_options_prefix));
+    if (input_db && input_db->isString("bdry_interp_type")) setBdryInterpType(input_db->getString("bdry_interp_type"));
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -93,6 +94,12 @@ SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
     if (d_is_initialized) deallocateSolverState();
     return;
 } // ~SCPoissonPETScLevelSolver
+
+bool
+SCPoissonPETScLevelSolver::supportsBdryInterpType(const std::string& bdry_interp_type) const
+{
+    return bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC";
+} // supportsBdryInterpType
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -134,8 +141,14 @@ SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRe
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelSCLaplaceOp(
-        d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, d_level);
+    PETScMatUtilities::constructPatchLevelSCLaplaceOp(d_petsc_mat,
+                                                      d_poisson_spec,
+                                                      d_bc_coefs,
+                                                      d_solution_time,
+                                                      d_bdry_interp_type,
+                                                      d_num_dofs_per_proc,
+                                                      d_dof_index_idx,
+                                                      d_level);
     d_petsc_pc = d_petsc_mat;
 
     // Setup SAMRAI communication objects.
@@ -190,7 +203,7 @@ SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         if (at_physical_bdry)
         {
             PoissonUtilities::adjustRHSAtPhysicalBoundary(
-                *b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+                *b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc, d_bdry_interp_type);
         }
         const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
             level_zero ? Array<BoundaryBox<NDIM>>() :

@@ -90,6 +90,7 @@ namespace IBTK
  rel_residual_tol = 1.0e-6      // see setRelativeTolerance()
  enable_logging = FALSE         // see setLoggingEnabled()
  options_prefix = ""            // see setOptionsPrefix()
+ bdry_interp_type = "LINEAR"    // see setBdryInterpType()
  \endverbatim
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
@@ -110,6 +111,12 @@ public:
      * \brief Destructor.
      */
     ~SCPoissonPETScLevelSolver();
+
+    /*!
+     * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC", at physical boundaries at which boundary conditions are present.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
 
     /*!
      * \brief Static function to construct a SCPoissonPETScLevelSolver.

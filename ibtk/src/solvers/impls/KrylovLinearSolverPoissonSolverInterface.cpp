@@ -86,6 +86,31 @@ KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<R
     return;
 } // setPhysicalBcCoefs
 
+bool
+KrylovLinearSolverPoissonSolverInterface::supportsBdryInterpType(const std::string& bdry_interp_type) const
+{
+    auto p_this = dynamic_cast<const KrylovLinearSolver*>(this);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(p_this);
+#endif
+    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    return p_operator ? p_operator->supportsBdryInterpType(bdry_interp_type) :
+                        PoissonSolver::supportsBdryInterpType(bdry_interp_type);
+} // supportsBdryInterpType
+
+void
+KrylovLinearSolverPoissonSolverInterface::setBdryInterpType(const std::string& bdry_interp_type)
+{
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(p_this);
+#endif
+    PoissonSolver::setBdryInterpType(bdry_interp_type);
+    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    if (p_operator) p_operator->setBdryInterpType(d_bdry_interp_type);
+    return;
+} // setBdryInterpType
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

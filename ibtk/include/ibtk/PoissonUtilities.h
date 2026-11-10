@@ -60,6 +60,24 @@ class RobinBcCoefStrategy;
 namespace IBTK
 {
 /*!
+ * The ghost value in the first layer beyond a physical boundary with the Robin condition a*u_b + b*u_n = g is f_i*u_0 +
+ * f_i2*u_1 + h*(g_num/g_den)*g, in which u_0 and u_1 are the values in the two layers nearest the boundary, h is the
+ * grid spacing normal to the boundary, and u_b and u_n are the value and the outward normal derivative at the boundary.
+ * Linear interpolation uses u_b = (u_G + u_0)/2 and u_n = (u_G - u_0)/h, in which u_G is the ghost value. Quadratic
+ * interpolation uses the quadratic through u_G, u_0, and u_1.
+ */
+struct GhostValueWeights
+{
+    double f_i, f_i2, g_num, g_den;
+};
+
+/*!
+ * Return the weights of the ghost value at a boundary with Robin coefficients a and b, for a grid spacing h normal to
+ * the boundary, from linear (f_i2 = 0) or quadratic interpolation.
+ */
+GhostValueWeights get_ghost_value_weights(bool quadratic, double a, double b, double h);
+
+/*!
  * \brief Class PoissonUtilities provides utility functions for constructing
  * Poisson solvers.
  */
@@ -69,39 +87,56 @@ public:
     /*!
      * Compute the matrix coefficients corresponding to a cell-centered
      * discretization of the Laplacian.
+     *
+     * The ghost values at physical boundaries have the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC". A quadratic ghost value couples a boundary row to the second cell from the boundary along the
+     * normal, which is an entry of the stencil.
      */
     static void computeMatrixCoefficients(SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                           const std::vector<SAMRAI::hier::Index<NDIM>>& stencil,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                           SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-                                          double data_time);
+                                          double data_time,
+                                          const std::string& bdry_interp_type);
 
     /*!
      * Compute the matrix coefficients corresponding to a cell-centered
      * discretization of the Laplacian.
+     *
+     * \see computeMatrixCoefficients() for \a bdry_interp_type.
      */
     static void computeMatrixCoefficients(SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                           const std::vector<SAMRAI::hier::Index<NDIM>>& stencil,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                          double data_time);
+                                          double data_time,
+                                          const std::string& bdry_interp_type);
 
     /*!
      * Compute the matrix coefficients corresponding to a side-centered
      * discretization of the Laplacian.
+     *
+     * \see computeMatrixCoefficients() for \a bdry_interp_type, which applies to the ghost values of the components
+     * tangential to a physical boundary.
      */
     static void computeMatrixCoefficients(SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
                                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                           const std::vector<SAMRAI::hier::Index<NDIM>>& stencil,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                          double data_time);
+                                          double data_time,
+                                          const std::string& bdry_interp_type);
 
     /*!
      * Compute the matrix coefficients corresponding to a side-centered
      * discretization of the divergence of the viscous stress tensor.
+     *
+     * The ghost values at physical boundaries have the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC". The stencil maps of a side must also have an entry for each of the offsets \f$ \pm 2 \f$ along the
+     * component and \f$ \pm 1 \f$ along another axis: the couplings that a quadratic ghost value adds to the row of a
+     * component at a physical boundary normal to it.
      *
      * \note The scaling factors of \f$ C \f$ and \f$ D \f$ variables in
      * the PoissonSpecification object are passed separately and are denoted
@@ -116,31 +151,39 @@ public:
         double beta,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         double data_time,
+        const std::string& bdry_interp_type,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a cell-centered discretization of the
      * Laplacian.
+     *
+     * The interpolation type \a bdry_interp_type of the ghost values at physical boundaries, "LINEAR" or
+     * "QUADRATIC", must be that of the matrix.
      */
     static void adjustRHSAtPhysicalBoundary(SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
                                             double data_time,
-                                            bool homogeneous_bc);
+                                            bool homogeneous_bc,
+                                            const std::string& bdry_interp_type);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a cell-centered discretization of the
      * Laplacian.
+     *
+     * \see adjustRHSAtPhysicalBoundary() for \a bdry_interp_type.
      */
     static void adjustRHSAtPhysicalBoundary(SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                             double data_time,
-                                            bool homogeneous_bc);
+                                            bool homogeneous_bc,
+                                            const std::string& bdry_interp_type);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
@@ -149,13 +192,16 @@ public:
      *
      * This function leaves unchanged the entry of each side on a Dirichlet boundary (Robin coefficient b exactly zero),
      * which holds the boundary value.
+     *
+     * \see adjustRHSAtPhysicalBoundary() for \a bdry_interp_type.
      */
     static void adjustRHSAtPhysicalBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                             double data_time,
-                                            bool homogeneous_bc);
+                                            bool homogeneous_bc,
+                                            const std::string& bdry_interp_type);
 
     /*!
      * Modify the right-hand side entries to account for physical boundary
@@ -164,6 +210,8 @@ public:
      *
      * This function leaves unchanged the entry of each side on a Dirichlet boundary (Robin coefficient b exactly zero),
      * which holds the boundary value.
+     *
+     * \see adjustRHSAtPhysicalBoundary() for \a bdry_interp_type.
      *
      * \note The scaling factors of \f$ D \f$ variable in the PoissonSpecification object
      * is passed separately and is denoted \f$ \alpha \f$.
@@ -176,6 +224,7 @@ public:
                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                              double data_time,
                                              bool homogeneous_bc,
+                                             const std::string& bdry_interp_type,
                                              VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
