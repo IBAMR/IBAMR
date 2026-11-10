@@ -631,6 +631,16 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
 } // INSHierarchyIntegrator
 
 void
+INSHierarchyIntegrator::setConvectiveOperatorBdryExtrapType()
+{
+    if (!d_convective_op_input_db->keyExists("bdry_extrap_type"))
+    {
+        d_convective_op->setBdryExtrapType(d_bdry_extrap_type);
+    }
+    return;
+} // setConvectiveOperatorBdryExtrapType
+
+void
 INSHierarchyIntegrator::updateCurrentCFLNumber(const int data_idx, const double dt)
 {
     double cfl_max = 0.0;

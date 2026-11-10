@@ -49,6 +49,12 @@ ConvectiveOperator::setAdvectionVelocity(const int u_idx)
     return;
 } // setAdvectionVelocity
 
+void
+ConvectiveOperator::setBdryExtrapType(const std::string& /*bdry_extrap_type*/)
+{
+    return;
+} // setBdryExtrapType
+
 int
 ConvectiveOperator::getAdvectionVelocity() const
 {

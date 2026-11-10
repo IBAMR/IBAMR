@@ -107,6 +107,11 @@ public:
     void applyConvectiveOperator(int U_idx, int N_idx) override;
 
     /*!
+     * \brief Set the type of extrapolation of the velocity beyond physical boundaries.
+     */
+    void setBdryExtrapType(const std::string& bdry_extrap_type) override;
+
+    /*!
      * \name General operator functionality.
      */
     //\{
@@ -191,7 +196,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_ghostfill_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_ghostfill_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_ghostfill_scheds;
-    std::string d_bdry_extrap_type = "CONSTANT";
+    std::string d_bdry_extrap_type = "LINEAR";
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
