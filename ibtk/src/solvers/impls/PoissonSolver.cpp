@@ -18,6 +18,7 @@
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <Box.h>
 #include <LocationIndexRobinBcCoefs.h>
@@ -68,6 +69,45 @@ PoissonSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>&
     }
     return;
 } // setPhysicalBcCoefs
+
+bool
+PoissonSolver::supportsBdryInterpType(const BdryInterpType bdry_interp_type) const
+{
+    return bdry_interp_type == BdryInterpType::LINEAR;
+} // supportsBdryInterpType
+
+void
+PoissonSolver::setBdryInterpType(const BdryInterpType bdry_interp_type)
+{
+    TBOX_ASSERT(bdry_interp_type != BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    if (!supportsBdryInterpType(bdry_interp_type))
+    {
+        TBOX_ERROR(d_object_name << "::setBdryInterpType():\n"
+                                 << "  this solver does not support bdry_interp_type = "
+                                 << enum_to_string(bdry_interp_type) << "\n"
+                                 << "  use bdry_interp_type = LINEAR" << std::endl);
+    }
+    d_bdry_interp_type = bdry_interp_type;
+    return;
+} // setBdryInterpType
+
+void
+PoissonSolver::setBdryInterpTypeFromInput(const Pointer<Database>& input_db)
+{
+    if (input_db && input_db->isString("bdry_interp_type"))
+    {
+        const std::string type_name = input_db->getString("bdry_interp_type");
+        const BdryInterpType bdry_interp_type = string_to_enum<BdryInterpType>(type_name);
+        if (bdry_interp_type == BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE)
+        {
+            TBOX_ERROR(d_object_name << "::setBdryInterpTypeFromInput():\n"
+                                     << "  unknown bdry_interp_type \"" << type_name << "\"\n"
+                                     << "  valid values are \"LINEAR\" and \"QUADRATIC\"\n");
+        }
+        setBdryInterpType(bdry_interp_type);
+    }
+    return;
+} // setBdryInterpTypeFromInput
 
 void
 PoissonSolver::initSpecialized(const std::string& object_name, const bool /*homogeneous_bc*/)

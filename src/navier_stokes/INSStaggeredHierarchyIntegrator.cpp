@@ -676,6 +676,11 @@ INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
                                                                  d_velocity_sub_precond_db,
                                                                  "velocity_sub_pc_");
         d_velocity_solver->setHierarchyMathOps(d_hier_math_ops);
+
+        setPoissonSolverBoundaryTreatment("velocity subdomain",
+                                          *d_velocity_solver,
+                                          d_velocity_solver_db,
+                                          { d_velocity_precond_db, d_velocity_sub_precond_db });
         d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
@@ -700,6 +705,11 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
                                                                  d_pressure_sub_precond_db,
                                                                  "pressure_sub_pc_");
         d_pressure_solver->setHierarchyMathOps(d_hier_math_ops);
+
+        setPoissonSolverBoundaryTreatment("pressure subdomain",
+                                          *d_pressure_solver,
+                                          d_pressure_solver_db,
+                                          { d_pressure_precond_db, d_pressure_sub_precond_db });
         d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;

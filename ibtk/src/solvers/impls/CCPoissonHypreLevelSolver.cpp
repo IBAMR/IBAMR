@@ -133,6 +133,7 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_n
     if (input_db)
     {
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
+        setBdryInterpTypeFromInput(input_db);
         if (input_db->keyExists("solver_type")) d_solver_type = input_db->getString("solver_type");
         if (input_db->keyExists("precond_type")) d_precond_type = input_db->getString("precond_type");
         if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
@@ -185,6 +186,12 @@ CCPoissonHypreLevelSolver::~CCPoissonHypreLevelSolver()
     if (d_is_initialized) deallocateSolverState();
     return;
 } // ~CCPoissonHypreLevelSolver
+
+bool
+CCPoissonHypreLevelSolver::supportsBdryInterpType(const BdryInterpType bdry_interp_type) const
+{
+    return bdry_interp_type == BdryInterpType::LINEAR || bdry_interp_type == BdryInterpType::QUADRATIC;
+} // supportsBdryInterpType
 
 bool
 CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
@@ -483,8 +490,13 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         CellData<NDIM, double> matrix_coefs(patch_box, stencil_size, IntVector<NDIM>(0));
         for (unsigned int k = 0; k < d_depth; ++k)
         {
-            PoissonUtilities::computeMatrixCoefficients(
-                matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
+            PoissonUtilities::computeMatrixCoefficients(matrix_coefs,
+                                                        patch,
+                                                        d_stencil_offsets,
+                                                        d_poisson_spec,
+                                                        d_bc_coefs[k],
+                                                        d_solution_time,
+                                                        d_bdry_interp_type);
             // Drop the couplings to cells that are not cells of the level.
             clearOffLevelMatrixEntries(matrix_coefs, *d_level, d_stencil_offsets);
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
@@ -1074,8 +1086,13 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             b_adj_data.copyOnBox(*b_data, patch_box);
             if (at_physical_bdry)
             {
-                PoissonUtilities::adjustRHSAtPhysicalBoundary(
-                    b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+                PoissonUtilities::adjustRHSAtPhysicalBoundary(b_adj_data,
+                                                              patch,
+                                                              d_poisson_spec,
+                                                              d_bc_coefs,
+                                                              d_solution_time,
+                                                              d_homogeneous_bc,
+                                                              d_bdry_interp_type);
             }
             if (at_cf_bdry)
             {

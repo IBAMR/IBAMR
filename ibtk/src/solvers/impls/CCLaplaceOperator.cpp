@@ -109,6 +109,13 @@ CCLaplaceOperator::supportsBdryInterpType(const BdryInterpType bdry_interp_type)
 } // supportsBdryInterpType
 
 void
+CCLaplaceOperator::setBdryExtrapType(const std::string& bdry_extrap_type)
+{
+    d_bdry_extrap_type = bdry_extrap_type;
+    return;
+} // setBdryExtrapType
+
+void
 CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     IBTK_TIMER_START(t_apply);

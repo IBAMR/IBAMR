@@ -96,13 +96,24 @@ static const std::string DATA_REFINE_TYPE = "NONE";
 static const bool USE_CF_INTERPOLATION = true;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
-// Type of extrapolation to use at physical boundaries; used only to evaluate
-// composite grid residuals.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
+
+// Return the interpolation type that the input key of the database sets.
+IBTK::BdryInterpType
+get_bdry_interp_type(const std::string& object_name, const Pointer<Database>& db, const std::string& key)
+{
+    const std::string type_name = db->getString(key);
+    const IBTK::BdryInterpType bdry_interp_type = IBTK::string_to_enum<IBTK::BdryInterpType>(type_name);
+    if (bdry_interp_type == IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE)
+    {
+        TBOX_ERROR(object_name << "::StaggeredStokesFACPreconditionerStrategy():\n"
+                               << "  unknown " << key << " \"" << type_name << "\"\n"
+                               << "  valid values are \"LINEAR\" and \"QUADRATIC\"\n");
+    }
+    return bdry_interp_type;
+} // get_bdry_interp_type
 
 void
 check_ghost_cell_widths(const std::string& object_name,
@@ -187,6 +198,21 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
         if (input_db->keyExists("coarse_solver_max_iterations"))
             d_coarse_solver_max_iterations = input_db->getInteger("coarse_solver_max_iterations");
         if (input_db->isDatabase("coarse_solver_db")) d_coarse_solver_db = input_db->getDatabase("coarse_solver_db");
+        if (input_db->keyExists("bdry_interp_type") || input_db->keyExists("bdry_extrap_type"))
+        {
+            BoundaryTreatment bdry_treatment = d_bdry_treatment;
+            if (input_db->keyExists("bdry_interp_type"))
+            {
+                bdry_treatment.bdry_interp_type = get_bdry_interp_type(d_object_name, input_db, "bdry_interp_type");
+            }
+            bdry_treatment.bdry_extrap_type =
+                input_db->getStringWithDefault("bdry_extrap_type", bdry_treatment.bdry_extrap_type);
+            setBoundaryTreatment(bdry_treatment);
+        }
+        if (input_db->keyExists("smoother_bdry_interp_type"))
+        {
+            setSmootherBdryInterpType(get_bdry_interp_type(d_object_name, input_db, "smoother_bdry_interp_type"));
+        }
     }
 
     // Setup scratch variables.
@@ -291,6 +317,33 @@ StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<R
 
     return;
 } // setPhysicalBcCoefs
+
+void
+StaggeredStokesFACPreconditionerStrategy::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    TBOX_ASSERT(bdry_treatment.bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setBoundaryTreatment():\n"
+                                 << "  cannot be called while operator state is initialized" << std::endl);
+    }
+    d_bdry_treatment = bdry_treatment;
+    return;
+} // setBoundaryTreatment
+
+void
+StaggeredStokesFACPreconditionerStrategy::setSmootherBdryInterpType(
+    const IBTK::BdryInterpType smoother_bdry_interp_type)
+{
+    TBOX_ASSERT(smoother_bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setSmootherBdryInterpType():\n"
+                                 << "  cannot be called while operator state is initialized" << std::endl);
+    }
+    d_smoother_bdry_interp_type = smoother_bdry_interp_type;
+    return;
+} // setSmootherBdryInterpType
 
 void
 StaggeredStokesFACPreconditionerStrategy::setPhysicalBoundaryHelper(
@@ -568,19 +621,20 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
                                                           DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
+                                                          d_bdry_treatment.bdry_extrap_type,
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           d_U_bc_coefs,
-                                                          d_U_op_stencil_fill_pattern);
+                                                          d_U_op_stencil_fill_pattern,
+                                                          IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type));
     InterpolationTransactionComponent P_scratch_component(P_sol_idx,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
                                                           DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
+                                                          d_bdry_treatment.bdry_extrap_type,
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           d_P_bc_coef,
                                                           d_P_op_stencil_fill_pattern,
-                                                          "LINEAR",
+                                                          IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type),
                                                           /*extend_coarse_data_linearly*/ true);
     std::vector<InterpolationTransactionComponent> U_P_components(2);
     U_P_components[0] = U_scratch_component;
@@ -598,25 +652,28 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
 
-    InterpolationTransactionComponent default_U_scratch_component(d_solution->getComponentDescriptorIndex(0),
-                                                                  DATA_REFINE_TYPE,
-                                                                  USE_CF_INTERPOLATION,
-                                                                  DATA_COARSEN_TYPE,
-                                                                  BDRY_EXTRAP_TYPE,
-                                                                  CONSISTENT_TYPE_2_BDRY,
-                                                                  d_U_bc_coefs,
-                                                                  d_U_op_stencil_fill_pattern);
+    InterpolationTransactionComponent default_U_scratch_component(
+        d_solution->getComponentDescriptorIndex(0),
+        DATA_REFINE_TYPE,
+        USE_CF_INTERPOLATION,
+        DATA_COARSEN_TYPE,
+        d_bdry_treatment.bdry_extrap_type,
+        CONSISTENT_TYPE_2_BDRY,
+        d_U_bc_coefs,
+        d_U_op_stencil_fill_pattern,
+        IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type));
 
-    InterpolationTransactionComponent default_P_scratch_component(d_solution->getComponentDescriptorIndex(1),
-                                                                  DATA_REFINE_TYPE,
-                                                                  USE_CF_INTERPOLATION,
-                                                                  DATA_COARSEN_TYPE,
-                                                                  BDRY_EXTRAP_TYPE,
-                                                                  CONSISTENT_TYPE_2_BDRY,
-                                                                  d_P_bc_coef,
-                                                                  d_P_op_stencil_fill_pattern,
-                                                                  "LINEAR",
-                                                                  /*extend_coarse_data_linearly*/ true);
+    InterpolationTransactionComponent default_P_scratch_component(
+        d_solution->getComponentDescriptorIndex(1),
+        DATA_REFINE_TYPE,
+        USE_CF_INTERPOLATION,
+        DATA_COARSEN_TYPE,
+        d_bdry_treatment.bdry_extrap_type,
+        CONSISTENT_TYPE_2_BDRY,
+        d_P_bc_coef,
+        d_P_op_stencil_fill_pattern,
+        IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type),
+        /*extend_coarse_data_linearly*/ true);
     std::vector<InterpolationTransactionComponent> default_U_P_components(2);
     default_U_P_components[0] = default_U_scratch_component;
     default_U_P_components[1] = default_P_scratch_component;
@@ -720,12 +777,14 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln = solution.getFinestLevelNumber();
 
-    // Determine whether any velocity boundary condition object imposes TRACTION conditions.
-    d_has_normal_stress_term = detail::has_normal_stress_term(d_U_bc_coefs, IBTK::BdryInterpType::LINEAR);
+    // Determine whether the smoother adds the viscous term of TRACTION or PSEUDO_TRACTION conditions.
+    d_has_normal_stress_term = detail::has_normal_stress_term(d_U_bc_coefs, d_smoother_bdry_interp_type);
 
     // Setup boundary condition handling objects.
-    d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
-    d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef, false);
+    d_U_bc_op = new CartSideRobinPhysBdryOp(
+        d_side_scratch_idx, d_U_bc_coefs, false, IBTK::enum_to_string(d_smoother_bdry_interp_type));
+    d_P_bc_op = new CartCellRobinPhysBdryOp(
+        d_cell_scratch_idx, d_P_bc_coef, false, IBTK::enum_to_string(d_smoother_bdry_interp_type));
     d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(d_gcw, /*overwrite_interior*/ false);
     d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(d_gcw, /*overwrite_interior*/ false);
     d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
@@ -756,6 +815,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
         {
             d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
         }
+        setSolverBoundaryTreatment(*d_coarse_solver, d_coarse_solver_db, d_bdry_treatment.bdry_interp_type);
         d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
         d_coarse_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
@@ -1242,6 +1302,22 @@ StaggeredStokesFACPreconditionerStrategy::finishCoarseFineValues()
     d_smoother_P_coarse_fine_fill = nullptr;
 }
 
+void
+StaggeredStokesFACPreconditionerStrategy::setSolverBoundaryTreatment(StaggeredStokesSolver& solver,
+                                                                     const Pointer<Database>& solver_db,
+                                                                     const IBTK::BdryInterpType bdry_interp_type) const
+{
+    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    if (solver_db && solver_db->keyExists("bdry_interp_type"))
+    {
+        return;
+    }
+    BoundaryTreatment bdry_treatment = d_bdry_treatment;
+    bdry_treatment.bdry_interp_type = bdry_interp_type;
+    solver.setBoundaryTreatment(bdry_treatment);
+    return;
+} // setSolverBoundaryTreatment
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -1251,18 +1327,19 @@ StaggeredStokesFACPreconditionerStrategy::setBoundaryMomentumResidual(const int 
                                                                       const int coarsest_ln,
                                                                       const int finest_ln)
 {
-    if (!d_has_normal_stress_term || !d_bc_helper)
+    if (!d_bc_helper || !detail::has_normal_stress_term(d_U_bc_coefs, d_bdry_treatment.bdry_interp_type))
     {
         return;
     }
 
     // Where the normal velocity is not prescribed, the helper subtracts from the residual the viscous term that
-    // StaggeredStokesOperator adds for the TRACTION condition. Where it is prescribed, the row is the velocity.
+    // StaggeredStokesOperator adds for the TRACTION or PSEUDO_TRACTION condition. Where it is prescribed, the row is an
+    // identity row.
     d_bc_helper->addNormalTractionViscousTerm(U_res_idx,
                                               U_sol_idx,
                                               -d_U_problem_coefs.getDConstant(),
                                               d_U_bc_coefs,
-                                              IBTK::BdryInterpType::LINEAR,
+                                              d_bdry_treatment.bdry_interp_type,
                                               coarsest_ln,
                                               finest_ln);
     // As StaggeredStokesOperator does, restrict the fine residual with the term to the coarse faces at coarse-fine

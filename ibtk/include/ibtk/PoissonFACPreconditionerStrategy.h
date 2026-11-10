@@ -22,6 +22,7 @@
 
 #include <ibtk/FACPreconditionerStrategy.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
@@ -47,6 +48,7 @@ namespace IBTK
 {
 class HierarchyGhostCellInterpolation;
 class HierarchyMathOps;
+class PoissonSolver;
 namespace detail
 {
 class CoarseFineOwnerFill;
@@ -108,6 +110,8 @@ namespace IBTK
  use_cf_interpolation = TRUE                  // whether to interpolate at coarse-fine interfaces
  data_coarsen_type = "CUBIC_COARSEN"          // coarsen operator applied before ghost cell filling
  bdry_extrap_type = "LINEAR"                  // extrapolation at physical boundaries
+ bdry_interp_type = "LINEAR"                  // see setBdryInterpType()
+ smoother_bdry_interp_type = "LINEAR"         // see setSmootherBdryInterpType()
  \endverbatim
  *
  * By default, a PETSc level solver used as the coarse solver applies coarse_solver_max_iterations Richardson iterations
@@ -224,6 +228,20 @@ public:
     void setCoarseSolverRelativeTolerance(double coarse_solver_rel_residual_tol);
 
     /*!
+     * \brief Set the interpolation type, "LINEAR" or "QUADRATIC", of the ghost values at physical boundaries that
+     * define the operator: those of the residual computation and of the coarse level solver.
+     */
+    void setBdryInterpType(BdryInterpType bdry_interp_type);
+
+    /*!
+     * \brief Set the interpolation type, "LINEAR" or "QUADRATIC", of the smoother at physical boundaries.
+     *
+     * Linear interpolation is the default, also when the operator uses quadratic interpolation. The smoother's
+     * interpolation affects only the convergence rate, not the converged solution.
+     */
+    void setSmootherBdryInterpType(BdryInterpType smoother_bdry_interp_type);
+
+    /*!
      * \brief Set the name of the prolongation method.
      */
     void setProlongationMethod(const std::string& prolongation_method);
@@ -324,6 +342,13 @@ protected:
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
     virtual void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) = 0;
+
+    /*!
+     * \brief Give \a solver the interpolation type \a bdry_interp_type unless its input database \a solver_db sets one.
+     */
+    void setSolverBdryInterpType(PoissonSolver& solver,
+                                 const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& solver_db,
+                                 BdryInterpType bdry_interp_type) const;
 
     /*!
      * \name Methods for executing, caching, and resetting communication
@@ -477,6 +502,12 @@ protected:
     bool d_use_cf_interpolation = true;
     std::string d_data_coarsen_type = "CUBIC_COARSEN";
     std::string d_bdry_extrap_type = "LINEAR";
+
+    /*
+     * The interpolation types of the ghost values at physical boundaries for the operator and for the smoother.
+     */
+    BdryInterpType d_bdry_interp_type = BdryInterpType::LINEAR;
+    BdryInterpType d_smoother_bdry_interp_type = BdryInterpType::LINEAR;
 
     //\}
 

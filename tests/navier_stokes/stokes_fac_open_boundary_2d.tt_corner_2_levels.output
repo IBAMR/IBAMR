@@ -1,0 +1,7 @@
+INSStaggeredHierarchyIntegrator::logBoundaryTreatment(): boundary treatment of the integrator: bdry_interp_type = QUADRATIC, bdry_extrap_type = LINEAR
+INSStaggeredHierarchyIntegrator::logBoundaryTreatment(): boundary treatment of the velocity subdomain preconditioner smoother: bdry_interp_type = LINEAR (smoother default)
+INSStaggeredHierarchyIntegrator::logBoundaryTreatment(): boundary treatment of the pressure subdomain preconditioner smoother: bdry_interp_type = LINEAR (smoother default)
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+Largest magnitude of the residual: 229.9925249

@@ -1,0 +1,75 @@
+// Two-level side-centered Helmholtz solve with Dirichlet walls and quadratic ghost values, preconditioned by the
+// point-relaxation FAC operator with one presmoothing sweep. The solve stops at the iteration limit.
+
+u {
+   function = "sin(PI*X_0)*sin(PI*X_1)"
+}
+
+C = 1.0
+D = -1.0
+
+solver_type = "PETSC_KRYLOV_SOLVER"
+solver_db {
+   ksp_type         = "fgmres"
+   max_iterations   = 6
+   rel_residual_tol = 1.0e-10
+   abs_residual_tol = 1.0e-50
+   laplace_op {
+      bdry_interp_type = "QUADRATIC"
+   }
+}
+
+precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   bdry_interp_type = "QUADRATIC"
+   num_pre_sweeps  = 1
+   num_post_sweeps = 1
+   smoother_type       = "PATCH_GAUSS_SEIDEL"
+   coarse_solver_type  = "PATCH_GAUSS_SEIDEL"
+   coarse_solver_rel_residual_tol = 1.0e-30
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations   = 20
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 16
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = N, N
+      level_1 = 16, 16
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+      level_1 = 4, 4
+   }
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
