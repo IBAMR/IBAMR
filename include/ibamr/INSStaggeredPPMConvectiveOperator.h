@@ -95,6 +95,11 @@ public:
     void applyConvectiveOperator(int U_idx, int N_idx) override;
 
     /*!
+     * \brief Set the type of extrapolation of the velocity beyond physical boundaries.
+     */
+    void setBdryExtrapType(const std::string& bdry_extrap_type) override;
+
+    /*!
      * \name General operator functionality.
      */
     //\{
@@ -177,7 +182,7 @@ private:
     IBTK::RobinPhysBdryPatchStrategy* const d_u_phys_bdry_op;
 
     // Cached communications operators.
-    std::string d_bdry_extrap_type = "CONSTANT";
+    std::string d_bdry_extrap_type = "LINEAR";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 

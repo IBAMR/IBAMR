@@ -269,11 +269,11 @@ Writing visualization files...
 Computing error norms.
 
 Error in u at time 0.00976562:
-  L1-norm:  0.0001782041241
-  L2-norm:  0.0001684912373
-  max-norm: 0.0003546137763
+  L1-norm:  0.0001782041248
+  L2-norm:  0.0001684912375
+  max-norm: 0.0003546137759
 Error in p at time 0.00927734375:
   L1-norm:  0.1285673271
   L2-norm:  0.1492593867
-  max-norm: 0.3261593467
+  max-norm: 0.3261593433
 +++++++++++++++++++++++++++++++++++++++++++++++++++

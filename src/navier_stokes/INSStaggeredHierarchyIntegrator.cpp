@@ -639,6 +639,7 @@ INSStaggeredHierarchyIntegrator::getConvectiveOperator()
                                                                   d_convective_op_input_db,
                                                                   d_convective_difference_form,
                                                                   getDivergenceFreeVelocityPhysBdryOp());
+        setConvectiveOperatorBdryExtrapType();
         d_convective_op_needs_init = true;
     }
     return d_convective_op;
