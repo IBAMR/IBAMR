@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredDivergenceFreePhysBdryOp.h>
 #include <ibamr/StokesSpecifications.h>
@@ -21,6 +22,7 @@
 #include <ibamr/private/ins_velocity_bc.h>
 
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/private/ScopedShiftedPatchGeometry.h>
 
@@ -192,8 +194,10 @@ class INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder
 {
 public:
     // Prepare to build the extension of patch for the patch data u_data, filling the ghost values within
-    // ghost_width_to_fill at fill_time. The patch must outlive the builder.
+    // ghost_width_to_fill at fill_time, with the extrapolation of bdry_interp_type at prescribed-velocity boundaries.
+    // The patch must outlive the builder.
     ExtensionBuilder(const INSHierarchyIntegrator& fluid_solver,
+                     IBTK::BdryInterpType bdry_interp_type,
                      Patch<NDIM>& patch,
                      const Pointer<Variable<NDIM>>& u_var,
                      const SideData<NDIM, double>& u_data,
@@ -291,6 +295,7 @@ private:
     Pointer<Variable<NDIM>> d_u_var;
     TractionBcType d_traction_bc_type;
     bool d_has_source;
+    IBTK::BdryInterpType d_bdry_interp_type;
     double d_fill_time;
 
     // The data and the geometry.
@@ -311,6 +316,7 @@ private:
 /////////////////////////////// EXTENSION BUILDER ////////////////////////////
 
 INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::ExtensionBuilder(const INSHierarchyIntegrator& fluid_solver,
+                                                                         const IBTK::BdryInterpType bdry_interp_type,
                                                                          Patch<NDIM>& patch,
                                                                          const Pointer<Variable<NDIM>>& u_var,
                                                                          const SideData<NDIM, double>& u_data,
@@ -321,6 +327,7 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::ExtensionBuilder(const I
       d_u_var(u_var),
       d_traction_bc_type(fluid_solver.getTractionBcType()),
       d_has_source(fluid_solver.hasVelocityDivergenceFunction()),
+      d_bdry_interp_type(bdry_interp_type),
       d_fill_time(fill_time),
       d_extension(std::make_shared<Extension>())
 {
@@ -727,8 +734,28 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::setTangentialValue(const
     switch (getRule(axis, loc, boundary_face))
     {
     case TangentialRule::PRESCRIBED:
-        addTerm(value.terms, *mirror_id, -1.0);
-        addDataTerm(value.data_terms, getDataPoint(axis, loc, boundary_face, false), 2.0);
+        if (d_bdry_interp_type == IBTK::BdryInterpType::QUADRATIC)
+        {
+            // The quadratic through the boundary value and the interior values at distances (k + 1/2)*dx and
+            // (k + 3/2)*dx from the boundary.
+            hier::Index<NDIM> mirror_next = mirror;
+            mirror_next(normal_axis) += is_upper ? -1 : +1;
+            const std::optional<int> mirror_next_id = getValue(axis, mirror_next);
+            if (!mirror_next_id)
+            {
+                return false;
+            }
+            addTerm(value.terms, *mirror_id, -(2.0 * k + 2.0));
+            addTerm(value.terms, *mirror_next_id, (2.0 * k + 1.0) * (2.0 * k + 1.0) / (2.0 * k + 3.0));
+            addDataTerm(value.data_terms,
+                        getDataPoint(axis, loc, boundary_face, false),
+                        4.0 * (2.0 * k + 2.0) / (2.0 * k + 3.0));
+        }
+        else
+        {
+            addTerm(value.terms, *mirror_id, -1.0);
+            addDataTerm(value.data_terms, getDataPoint(axis, loc, boundary_face, false), 2.0);
+        }
         break;
     case TangentialRule::PSEUDO_TRACTION:
         addTerm(value.terms, *mirror_id, 1.0);
@@ -789,8 +816,8 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::addNormalVelocity(Linear
         extra_region[l] = f_region[l] && !other_region[l];
     }
 
-    // One cell beyond a corner, the value is 2*u_b - u (u at the nearest face on the adjacent boundary B) if the
-    // condition on B prescribes the normal velocity u_b, and an extrapolation along B otherwise.
+    // Beyond a corner, the value is an extrapolation along the boundary B at loc, or, if the normal velocity is
+    // prescribed on the adjacent boundary, the combination that NormalVelocityStencil::useAdjacentBoundaryValue() sets.
     if (count_boundaries(extra_region) == 0)
     {
         const std::optional<int> id = getValue(normal_axis, f);
@@ -823,7 +850,7 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::addNormalVelocity(Linear
         stencil.adjacent_location_index % 2 == 1 ? d_domain_upper[axis] + 1 : d_domain_lower[axis];
     if (getRule(normal_axis, stencil.adjacent_location_index, adjacent_boundary_face) == TangentialRule::PRESCRIBED)
     {
-        stencil.useAdjacentBoundaryValue();
+        stencil.useAdjacentBoundaryValue(d_bdry_interp_type);
     }
     for (int n = 0; n < 2; ++n)
     {
@@ -842,7 +869,7 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::addNormalVelocity(Linear
     {
         addDataTerm(value.data_terms,
                     getDataPoint(normal_axis, stencil.adjacent_location_index, adjacent_boundary_face, false),
-                    2.0 * weight);
+                    stencil.prescribed_weight * weight);
     }
     return true;
 } // addNormalVelocity
@@ -1224,6 +1251,14 @@ INSStaggeredDivergenceFreePhysBdryOp::checkBoundaryConditionTypes()
 } // checkBoundaryConditionTypes
 
 void
+INSStaggeredDivergenceFreePhysBdryOp::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_bdry_interp_type = bdry_treatment.bdry_interp_type;
+    clearCache();
+    return;
+} // setBoundaryTreatment
+
+void
 INSStaggeredDivergenceFreePhysBdryOp::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* /*bc_coef*/)
 {
     TBOX_ERROR("INSStaggeredDivergenceFreePhysBdryOp::setPhysicalBcCoef():\n"
@@ -1373,7 +1408,8 @@ INSStaggeredDivergenceFreePhysBdryOp::getExtension(Patch<NDIM>& patch,
     if (!cached.extensions.empty())
     {
         const auto bc_types =
-            ExtensionBuilder(*d_fluid_solver, patch, u_var, *u_data, gcw_to_fill, fill_time).evaluateBcTypes();
+            ExtensionBuilder(*d_fluid_solver, d_bdry_interp_type, patch, u_var, *u_data, gcw_to_fill, fill_time)
+                .evaluateBcTypes();
         for (const auto& extension : cached.extensions)
         {
             if (extension->bc_types == bc_types)
@@ -1396,7 +1432,7 @@ INSStaggeredDivergenceFreePhysBdryOp::getExtension(Patch<NDIM>& patch,
                           "initializing the fluid solver\n");
         }
     }
-    ExtensionBuilder builder(*d_fluid_solver, patch, u_var, *u_data, gcw_to_fill, fill_time);
+    ExtensionBuilder builder(*d_fluid_solver, d_bdry_interp_type, patch, u_var, *u_data, gcw_to_fill, fill_time);
     std::shared_ptr<const Extension> extension = builder.build();
     cached.extensions.push_back(extension);
     cached.by_time.emplace_back(fill_time, extension);

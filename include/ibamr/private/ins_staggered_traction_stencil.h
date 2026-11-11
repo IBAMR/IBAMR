@@ -22,6 +22,8 @@
 
 #include <ibamr/StokesBcCoefStrategy.h>
 
+#include <ibtk/ibtk_enums.h>
+
 #include <tbox/Pointer.h>
 
 #include <ArrayData.h>
@@ -105,7 +107,7 @@ private:
  * \brief Stencil weight[0]*u(idx[0]) + weight[1]*u(idx[1]) for the normal velocity in the TRACTION condition at a face
  * on a boundary. Beyond a corner, the weights are those of linear extrapolation, or of constant extrapolation from a
  * boundary segment of one face. If the normal velocity u_b is prescribed on the adjacent boundary
- * (adjacent_location_index), the caller calls useAdjacentBoundaryValue() and adds 2*u_b.
+ * (adjacent_location_index), the caller calls useAdjacentBoundaryValue() and adds prescribed_weight*u_b.
  */
 struct NormalVelocityStencil
 {
@@ -135,9 +137,17 @@ struct NormalVelocityStencil
     bool uses_adjacent_boundary_value = false;
 
     /*!
-     * \brief Replace the weighted sum by minus the value at the nearest face. The member beyond_corner must be true.
+     * \brief The weight of the prescribed normal velocity u_b on the adjacent boundary, which
+     * useAdjacentBoundaryValue() sets.
      */
-    void useAdjacentBoundaryValue();
+    double prescribed_weight = 2.0;
+
+    /*!
+     * \brief Replace the weighted sum by -q_0, or by -2*q_0 + q_1/3 if \a bdry_interp_type is QUADRATIC and the
+     * boundary segment has two faces, in which q_0 and q_1 are the values at the two nearest faces on the boundary, and
+     * set prescribed_weight to 2 or 8/3. The member beyond_corner must be true.
+     */
+    void useAdjacentBoundaryValue(IBTK::BdryInterpType bdry_interp_type);
 };
 
 /*!
@@ -167,6 +177,9 @@ bool has_traction_face(const SAMRAI::pdat::ArrayData<NDIM, double>& acoef_data,
  * \a get_mu returns the viscosity at a face, given the traction datum g there. The function evaluates it only at faces
  * with a TRACTION condition.
  * \a patch_hierarchy must be set.
+ *
+ * Beyond a corner where the normal velocity is prescribed on the adjacent boundary, \a bdry_interp_type determines the
+ * extrapolation of the normal velocity: see NormalVelocityStencil::useAdjacentBoundaryValue().
  */
 void correct_traction_coefficients(SAMRAI::pdat::ArrayData<NDIM, double>& acoef_data,
                                    SAMRAI::pdat::ArrayData<NDIM, double>& bcoef_data,
@@ -180,6 +193,7 @@ void correct_traction_coefficients(SAMRAI::pdat::ArrayData<NDIM, double>& acoef_
                                    bool homogeneous_bc,
                                    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& patch_hierarchy,
                                    const std::function<double(const SAMRAI::hier::Index<NDIM>&, double)>& get_mu,
+                                   IBTK::BdryInterpType bdry_interp_type,
                                    double fill_time);
 
 /*!
@@ -203,9 +217,12 @@ StokesBcCoefStrategy::SideStencil get_divergence_free_ghost_value_stencil(const 
                                                                           const double* dx);
 
 /*!
- * \brief Return whether any of \a u_bc_coefs is a StokesBcCoefStrategy with TRACTION conditions.
+ * \brief Return whether any of \a u_bc_coefs is a StokesBcCoefStrategy with TRACTION conditions or, if
+ * \a bdry_interp_type is QUADRATIC, PSEUDO_TRACTION conditions: the conditions for which
+ * StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm() adds a term.
  */
-bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                            IBTK::BdryInterpType bdry_interp_type);
 
 /*!
  * \brief Set the Robin coefficients of the velocity component \a axis on \a bdry_box of \a patch at the locations of

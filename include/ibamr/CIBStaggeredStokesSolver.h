@@ -22,6 +22,7 @@
 
 #include <ibamr/StaggeredStokesSolver.h>
 
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
@@ -126,6 +127,16 @@ public:
      */
     virtual void
     setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
+
+    /*!
+     * \brief Return true: the extended Stokes operator applies any interpolation type.
+     */
+    bool supportsBdryInterpType(IBTK::BdryInterpType bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries of the extended Stokes operator.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.

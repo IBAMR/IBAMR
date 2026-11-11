@@ -20,9 +20,11 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/GeneralSolver.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
 
@@ -97,6 +99,20 @@ public:
      */
     virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
+    /*!
+     * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type at physical boundaries.
+     *
+     * The default implementation supports only linear interpolation.
+     */
+    virtual bool supportsBdryInterpType(IBTK::BdryInterpType bdry_interp_type) const;
+
+    /*!
+     * \brief Set the discretization of the velocity and pressure at physical boundaries that the solver uses.
+     *
+     * The solver reports an error if it does not support the interpolation type.
+     */
+    virtual void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment);
+
 protected:
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
@@ -107,6 +123,9 @@ protected:
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+
+    // Discretization of the velocity and pressure at physical boundaries.
+    BoundaryTreatment d_bdry_treatment;
 
     // Null space info
     bool d_has_velocity_nullspace = false, d_has_pressure_nullspace = false;

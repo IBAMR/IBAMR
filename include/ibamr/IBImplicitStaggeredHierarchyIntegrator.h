@@ -20,12 +20,15 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBImplicitStrategy.h>
 #include <ibamr/StaggeredStokesFACPreconditioner.h>
 #include <ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesSolver.h>
+
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
 
@@ -201,6 +204,18 @@ private:
             StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
             d_stokes_op->setPhysicalBoundaryHelper(bc_helper);
             d_stokes_fac_pc->setPhysicalBoundaryHelper(bc_helper);
+            return;
+        }
+
+        bool supportsBdryInterpType(IBTK::BdryInterpType /*bdry_interp_type*/) const override
+        {
+            return true;
+        }
+
+        void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override
+        {
+            d_bdry_treatment = bdry_treatment;
+            d_stokes_op->setBoundaryTreatment(bdry_treatment);
             return;
         }
 

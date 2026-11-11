@@ -18,6 +18,7 @@
 
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PatchMathOps.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
@@ -542,8 +543,12 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             {
                 boundary_rhs_correction = patch->getPatchData(d_boundary_rhs_correction_idx);
                 boundary_rhs_correction->fillAll(0.0);
-                d_bc_helper->addNormalTractionViscousTerm(
-                    boundary_rhs_correction, U_error_data, patch, d_U_problem_coefs.getDConstant(), d_U_bc_coefs);
+                d_bc_helper->addNormalTractionViscousTerm(boundary_rhs_correction,
+                                                          U_error_data,
+                                                          patch,
+                                                          d_U_problem_coefs.getDConstant(),
+                                                          d_U_bc_coefs,
+                                                          IBTK::BdryInterpType::LINEAR);
                 Pointer<SideData<NDIM, double>> momentum_lhs_data = patch->getPatchData(d_momentum_lhs_idx);
                 Pointer<SideData<NDIM, double>> dirichlet_lhs_data = patch->getPatchData(d_dirichlet_lhs_idx);
                 momentum_lhs_data->fillAll(0.0);

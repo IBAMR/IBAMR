@@ -22,6 +22,7 @@
 #include <ibamr/private/ins_velocity_bc.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/MathUtilities.h>
 #include <tbox/Pointer.h>
@@ -334,6 +335,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                                               d_homogeneous_bc,
                                               d_fluid_solver->getPatchHierarchy(),
                                               get_mu,
+                                              IBTK::BdryInterpType::LINEAR,
                                               fill_time);
         return;
     }

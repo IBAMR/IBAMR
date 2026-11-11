@@ -190,13 +190,8 @@ VCStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
     StaggeredStokesOperator::initializeOperatorState(in, out);
     if (d_bc_helper)
     {
-        // The viscous coefficient is variable, so it may be nonzero.
-        d_bc_helper->checkNormalTractionBdryInterpType(d_U_bc_coefs,
-                                                       d_bdry_interp_type,
-                                                       /*viscous_coef_nonzero*/ true,
-                                                       d_new_time,
-                                                       in.getPatchHierarchy(),
-                                                       /*include_pseudo_traction*/ true);
+        d_bc_helper->checkNormalTractionBdryInterpType(
+            d_U_bc_coefs, d_bdry_interp_type, d_new_time, in.getPatchHierarchy());
     }
     return;
 } // initializeOperatorState

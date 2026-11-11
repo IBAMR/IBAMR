@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_utilities.h>
@@ -100,15 +101,21 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
     {
         d_refine_type = input_db->getStringWithDefault("refine_type", d_refine_type);
         d_coarsen_type = input_db->getStringWithDefault("coarsen_type", d_coarsen_type);
-        d_bdry_extrap_type = input_db->getStringWithDefault("bdry_extrap_type", d_bdry_extrap_type);
-        const std::string bdry_interp_type =
-            input_db->getStringWithDefault("bdry_interp_type", IBTK::enum_to_string(d_bdry_interp_type));
-        d_bdry_interp_type = IBTK::string_to_enum<BdryInterpType>(bdry_interp_type);
-        if (d_bdry_interp_type == BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE)
+        // Leave the database unchanged, so that its owner can tell whether it sets these keys.
+        if (input_db->isString("bdry_extrap_type"))
         {
-            TBOX_ERROR(d_object_name << "::StaggeredStokesOperator():\n"
-                                     << "  unknown bdry_interp_type \"" << bdry_interp_type << "\"\n"
-                                     << "  valid values are \"LINEAR\" and \"QUADRATIC\"\n");
+            d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        }
+        if (input_db->isString("bdry_interp_type"))
+        {
+            const std::string bdry_interp_type = input_db->getString("bdry_interp_type");
+            d_bdry_interp_type = IBTK::string_to_enum<BdryInterpType>(bdry_interp_type);
+            if (d_bdry_interp_type == BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE)
+            {
+                TBOX_ERROR(d_object_name << "::StaggeredStokesOperator():\n"
+                                         << "  unknown bdry_interp_type \"" << bdry_interp_type << "\"\n"
+                                         << "  valid values are \"LINEAR\" and \"QUADRATIC\"\n");
+            }
         }
         d_use_cf_interpolation = input_db->getBoolWithDefault("use_cf_interpolation", d_use_cf_interpolation);
         if (input_db->getBoolWithDefault("consistent_type_2_bdry", false))
@@ -190,6 +197,14 @@ StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysic
     d_bc_helper = bc_helper;
     return;
 } // setPhysicalBoundaryHelper
+
+void
+StaggeredStokesOperator::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_bdry_interp_type = bdry_treatment.bdry_interp_type;
+    d_bdry_extrap_type = bdry_treatment.bdry_extrap_type;
+    return;
+} // setBoundaryTreatment
 
 void
 StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
@@ -297,7 +312,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
-    if (!d_bc_helper && detail::has_normal_stress_term(d_U_bc_coefs) &&
+    if (!d_bc_helper && detail::has_normal_stress_term(d_U_bc_coefs, d_bdry_interp_type) &&
         in.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() == 0)
     {
         TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
@@ -305,14 +320,6 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
                                     "StaggeredStokesPhysicalBoundaryHelper in a domain that is not periodic in every "
                                     "direction\n"
                                  << "  call setPhysicalBoundaryHelper() to provide one\n");
-    }
-    if (d_bc_helper && d_U_problem_coefs.dIsConstant())
-    {
-        d_bc_helper->checkNormalTractionBdryInterpType(d_U_bc_coefs,
-                                                       d_bdry_interp_type,
-                                                       d_U_problem_coefs.getDConstant() != 0.0,
-                                                       d_new_time,
-                                                       in.getPatchHierarchy());
     }
 
     // Setup the interpolation transaction information.

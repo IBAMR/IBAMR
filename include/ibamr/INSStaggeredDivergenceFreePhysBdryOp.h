@@ -20,7 +20,10 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/BoundaryTreatment.h>
+
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <IntVector.h>
 
@@ -52,8 +55,10 @@ namespace IBAMR
  * boundaries so that each ghost cell has zero discrete divergence, or the divergence of the adjacent interior cell if
  * the fluid solver has a divergence function.
  *
- * The boundary conditions come from the fluid solver and must prescribe the velocity or the traction. Ghost values that
- * depend on a face outside the patch box grown by the filled ghost width are NaN. Requirements:
+ * The boundary conditions come from the fluid solver and must prescribe the velocity or the traction. Where the
+ * velocity is prescribed, the operator extrapolates the tangential ghost values linearly, or quadratically if
+ * setBoundaryTreatment() sets the interpolation type "QUADRATIC". Ghost values that depend on a face outside the patch
+ * box grown by the filled ghost width are NaN. Requirements:
  * - The domain is a single box at least as wide as the filled ghost width along each non-periodic direction.
  * - Each patch that touches a physical boundary is at least as wide as the filled ghost width normal to it.
  * - The velocity patch data have depth one.
@@ -83,6 +88,12 @@ public:
      * function when the types can change other than with the fill time.
      */
     void checkBoundaryConditionTypes();
+
+    /*!
+     * \brief Set the discretization at physical boundaries. The interpolation type determines the tangential ghost
+     * values at boundaries where the velocity is prescribed.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment);
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefinePatchStrategy and
@@ -184,6 +195,11 @@ private:
     };
     std::map<std::array<int, 5 * NDIM>, CachedExtension> d_extension_cache;
     unsigned int d_check_number = 0;
+
+    /*!
+     * The interpolation type of the tangential ghost values at prescribed-velocity boundaries.
+     */
+    IBTK::BdryInterpType d_bdry_interp_type = IBTK::BdryInterpType::LINEAR;
 };
 } // namespace IBAMR
 
