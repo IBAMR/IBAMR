@@ -64,8 +64,6 @@ namespace IBTK
 
 namespace
 {
-static const int REFINE_OP_STENCIL_WIDTH = 0;
-
 template <typename D, typename I>
 inline double
 compute_linear_extrap(D& patch_data, const I& i, const I& i_intr, const IntVector<NDIM>& i_shft, const int depth)
@@ -183,6 +181,18 @@ CartExtrapPhysBdryOp::setPatchDataIndices(const ComponentSelector& patch_data_in
     return;
 } // setPatchDataIndices
 
+int
+CartExtrapPhysBdryOp::getStencilWidth(const std::string& extrap_type)
+{
+    if (extrap_type == "CONSTANT") return 0;
+    if (extrap_type == "LINEAR") return 1;
+    if (extrap_type == "QUADRATIC") return 2;
+    TBOX_ERROR("CartExtrapPhysBdryOp::getStencilWidth():\n"
+               << "  unknown extrapolation type: " << extrap_type << "\n"
+               << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC\n");
+    return 0;
+} // getStencilWidth
+
 void
 CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
 {
@@ -219,6 +229,20 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
         const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 1;
+        const unsigned int axis = location_index / 2;
+        // The cells used must lie in the patch or in the ghost cells set before this operator runs. On temporary
+        // patches, SAMRAI sets them through the stencil width, except where the patch touches the opposite boundary.
+        const int num_inward_layers = getStencilWidth(d_extrap_type) + 1;
+        if (patch_box.numberCells(axis) < num_inward_layers &&
+            PhysicalBoundaryUtilities::touchesOppositeBoundary(physical_codim1_boxes, location_index))
+        {
+            TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
+                       << "  " << d_extrap_type << " extrapolation along axis " << axis << " uses " << num_inward_layers
+                       << " cells inward from the boundary, more than the patch width (" << patch_box.numberCells(axis)
+                       << ") between the two boundaries\n"
+                       << "  the domain must be at least " << num_inward_layers << " cells wide along axis " << axis
+                       << "\n");
+        }
         bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
     }
 #if (NDIM > 1)
@@ -260,7 +284,9 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
 IntVector<NDIM>
 CartExtrapPhysBdryOp::getRefineOpStencilWidth() const
 {
-    return REFINE_OP_STENCIL_WIDTH;
+    // The number of cells beyond the first that the extrapolation uses. SAMRAI sets this many ghost cells on a
+    // temporary patch.
+    return IntVector<NDIM>(getStencilWidth(d_extrap_type));
 } // getRefineOpStencilWidth
 
 void

@@ -1,0 +1,3 @@
+Changed: Declare the number of cells beyond the first that IBTK::CartExtrapPhysBdryOp, IBTK::CartCellRobinPhysBdryOp, and IBTK::CartSideRobinPhysBdryOp use as their stencil width, and stop with an error if a patch at a physical boundary is too narrow for them. The scratch data of a refine schedule must have at least this many ghost cells: two for quadratic extrapolation. IBAMR::CellConvectiveOperator allocates at least two ghost cells for its scratch data if outflow_bdry_extrap_type = QUADRATIC.
+<br>
+(Boyce Griffith, 2026/11/04)

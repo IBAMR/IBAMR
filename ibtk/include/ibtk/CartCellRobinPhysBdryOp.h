@@ -66,6 +66,9 @@ namespace IBTK
  * SAMRAI::solv::CartesianRobinBcHelper class.  An important difference between
  * the two classes is that class CartCellRobinPhysBdryOp allows for the
  * specification of boundary conditions for vector-valued quantities.
+ *
+ * "QUADRATIC" interpolation with ghost cell width g uses the g + 1 cells inward from a physical boundary, which must
+ * lie in the patch or in the ghost cells filled before this operator runs.
  */
 class CartCellRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
 {
@@ -217,6 +220,8 @@ public:
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
+     *
+     * The width is the largest ghost cell width of the data for "QUADRATIC" interpolation and one otherwise.
      */
     SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
 

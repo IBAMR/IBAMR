@@ -180,6 +180,19 @@ PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const Patch<NDIM>& pat
     return patch.getPatchGeometry()->getCodimensionBoundaries(1);
 } // getPhysicalBoundaryCodim1Boxes
 
+bool
+PhysicalBoundaryUtilities::touchesOppositeBoundary(const Array<BoundaryBox<NDIM>>& physical_codim1_boxes,
+                                                   const unsigned int location_index)
+{
+    // The boundaries of an axis have the location indices 2 * axis and 2 * axis + 1.
+    const int opposite_index = location_index % 2 == 0 ? location_index + 1 : location_index - 1;
+    for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+    {
+        if (physical_codim1_boxes[n].getLocationIndex() == opposite_index) return true;
+    }
+    return false;
+} // touchesOppositeBoundary
+
 Array<BoundaryBox<NDIM>>
 PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const Patch<NDIM>& patch)
 {
