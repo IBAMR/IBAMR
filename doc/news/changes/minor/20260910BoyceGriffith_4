@@ -1,3 +1,3 @@
-Fixed: PETScLevelSolver regenerates its ASM subdomain index sets each time its state is initialized.
+Fixed: Regenerate the ASM subdomain index sets of IBTK::PETScLevelSolver each time its state is initialized.
 <br>
 (Boyce Griffith, 2026/09/10)

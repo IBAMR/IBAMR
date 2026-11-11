@@ -1,0 +1,3 @@
+Removed: The ghost_fill_sched argument of IBTK::PETScVecUtilities::copyFromPatchLevelVec() and IBAMR::StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec().
+<br>
+(Boyce Griffith, 2026/10/07)

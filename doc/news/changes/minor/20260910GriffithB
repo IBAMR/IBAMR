@@ -1,4 +1,3 @@
-Fix: Safeguard phase-volume correction and diagnose invalid or unconverged
-requests before changing the field; increase the default trial budget to 64.
+Fixed: Make IBAMR::LevelSetUtilities::LevelSetMassLossFixer stop with an error before changing the level set if a volume correction is invalid or does not converge. Raise the default of its input key max_its from 4 to 64.
 <br>
 (Boyce Griffith, 2026/09/10)

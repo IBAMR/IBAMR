@@ -1,5 +1,3 @@
-Removed: IBTK::FACPreconditionerStrategy's setHomogeneousBc(),
-getHomogeneousBc(), and homogeneous_bc constructor parameter have been
-removed.
+Removed: IBTK::FACPreconditionerStrategy::setHomogeneousBc(), getHomogeneousBc(), and the homogeneous_bc constructor parameter.
 <br>
 (Boyce Griffith, 2026/09/23)

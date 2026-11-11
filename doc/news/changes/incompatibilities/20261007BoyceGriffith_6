@@ -1,7 +1,3 @@
-Changed: IBTK::PETScLevelSolver and its subclasses now return the solution in the interior values only, as the hypre level solvers do, and default to a zero initial guess (initial_guess_nonzero = FALSE).
-<br>
-Removed: IBAMR::StaggeredStokesPETScVecUtilities::constructGhostFillSchedule().
-<br>
-Removed: the ghost_fill_sched argument of IBTK::PETScVecUtilities::copyFromPatchLevelVec() and IBAMR::StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec().
+Changed: Make IBTK::PETScLevelSolver and its subclasses return only the interior values of the solution, as the HYPRE level solvers do, and default to a zero initial guess (initial_guess_nonzero = FALSE).
 <br>
 (Boyce Griffith, 2026/10/07)
