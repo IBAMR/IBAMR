@@ -33,18 +33,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
-
-namespace SAMRAI
-{
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
-} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -94,7 +84,7 @@ INSStaggeredConvectiveOperatorManager::allocateOperator(const std::string& opera
                                                         const std::string& operator_object_name,
                                                         Pointer<Database> input_db,
                                                         const ConvectiveDifferencingType difference_form,
-                                                        const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
+                                                        RobinPhysBdryPatchStrategy* const u_phys_bdry_op) const
 {
     auto it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())
@@ -102,7 +92,13 @@ INSStaggeredConvectiveOperatorManager::allocateOperator(const std::string& opera
         TBOX_ERROR("INSStaggeredConvectiveOperatorManager::allocateOperator():\n"
                    << "  unrecognized operator type: " << operator_type << "\n");
     }
-    return (it->second)(operator_object_name, input_db, difference_form, bc_coefs);
+    if (!u_phys_bdry_op)
+    {
+        TBOX_ERROR("INSStaggeredConvectiveOperatorManager::allocateOperator():\n"
+                   << "  the velocity boundary operator of operator " << operator_object_name << " is null\n"
+                   << "  use INSHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()\n");
+    }
+    return (it->second)(operator_object_name, input_db, difference_form, u_phys_bdry_op);
 } // allocateOperator
 
 void

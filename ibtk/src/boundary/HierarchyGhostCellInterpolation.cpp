@@ -23,6 +23,7 @@
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/RefinePatchStrategySet.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
@@ -320,7 +321,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
             d_cc_robin_bc_ops[comp_idx] =
                 new CartCellRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc, phys_bdry_type);
         }
-        if (!null_bc_coefs && sc_var)
+        if (!null_bc_coefs && sc_var && !d_transaction_comps[comp_idx].d_sc_phys_bdry_op)
         {
 #if !defined(NDEBUG)
             TBOX_ASSERT(robin_bc_coefs.size() % NDIM == 0);
@@ -384,6 +385,19 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():"
                    << "  invalid reset operation.  attempting to change the number of registered "
                       "interpolation transaction components.\n");
+    }
+
+    // A reset must not remove the operator: initializeOperatorState() sets up the Robin fill of a side-centered
+    // component only if the component has no physical boundary operator.
+    for (unsigned int comp_idx = 0; comp_idx < transaction_comps.size(); ++comp_idx)
+    {
+        if (d_transaction_comps[comp_idx].d_sc_phys_bdry_op && !transaction_comps[comp_idx].d_sc_phys_bdry_op)
+        {
+            TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
+                       << "  new transaction component " << comp_idx
+                       << " has no physical boundary operator, unlike the current one\n"
+                       << "  call initializeOperatorState() with the new transaction components instead\n");
+        }
     }
 
     // Reset the transaction components.
@@ -638,7 +652,17 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
                         d_cc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(
                             *patch, fill_time, ghost_width_to_fill);
                     }
-                    if (d_sc_robin_bc_ops[comp_idx])
+                    RobinPhysBdryPatchStrategy* const sc_phys_bdry_op = d_transaction_comps[comp_idx].d_sc_phys_bdry_op;
+                    if (sc_phys_bdry_op)
+                    {
+                        const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
+                        const IntVector<NDIM>& ghost_width_to_fill =
+                            patch->getPatchData(dst_data_idx)->getGhostCellWidth();
+                        sc_phys_bdry_op->setPatchDataIndex(dst_data_idx);
+                        sc_phys_bdry_op->setHomogeneousBc(d_homogeneous_bc);
+                        sc_phys_bdry_op->setPhysicalBoundaryConditions(*patch, fill_time, ghost_width_to_fill);
+                    }
+                    else if (d_sc_robin_bc_ops[comp_idx])
                     {
                         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
                         const IntVector<NDIM>& ghost_width_to_fill =
