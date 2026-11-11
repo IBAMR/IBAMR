@@ -112,7 +112,8 @@ main(int argc, char* argv[])
         }
         else
         {
-            TBOX_ERROR("NON_CONSERVATIVE discretization form not supported for this example");
+            TBOX_ERROR("Unsupported discretization_form: " << discretization_form << "\n"
+                                                           << "Valid options are: CONSERVATIVE\n");
         }
 
         Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(

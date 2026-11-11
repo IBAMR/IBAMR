@@ -14,7 +14,7 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on f
 
 // solver parameters
 SOLVER_TYPE         = "STAGGERED"          // the fluid solver to use (STAGGERED or COLLOCATED)
-DISCRETIZATION_FORM = "NON_CONSERVATIVE"    // the discretization form to use (CONSERVATIVE or NON_CONSERVATIVE)
+DISCRETIZATION_FORM = "NON_CONSERVATIVE"    // the discretization form to use (NON_CONSERVATIVE only)
 START_TIME         = 0.0e0                // initial simulation time
 END_TIME           = 0.01                  // final simulation time
 MAX_INTEGRATOR_STEPS = 1000000
@@ -333,7 +333,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
 
 Main {
    solver_type         = SOLVER_TYPE
-   dicretization_form  = DISCRETIZATION_FORM
+   discretization_form = DISCRETIZATION_FORM
 
 // log file parameters
    log_file_name               = "INS3d.log"

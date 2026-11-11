@@ -1,0 +1,3 @@
+Fixed: Examples and tests that choose a variable-coefficient INS integrator by discretization_form now stop with an error for a value other than CONSERVATIVE or NON_CONSERVATIVE, instead of running the non-conservative integrator.
+<br>
+(Boyce Griffith, 2026/11/07)
