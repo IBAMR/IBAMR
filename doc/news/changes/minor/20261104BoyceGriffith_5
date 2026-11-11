@@ -1,0 +1,3 @@
+Fixed: Set the ghost cells one cell beyond each end of a patch along a coarse-fine interface to the coarse-fine value in IBTK::CartCellDoubleQuadraticCFInterpolation and IBTK::CartSideDoubleQuadraticCFInterpolation, so that the ghost values are independent of the patch layout.
+<br>
+(Boyce Griffith, 2026/11/04)

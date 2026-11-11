@@ -57,14 +57,14 @@ c
 c
 c     Set the values along the appropriate side.
 c
-      ibeg = max(blower(0),ilower0)
-      iend = min(bupper(0),iupper0)
+      ibeg = blower(0)
+      iend = bupper(0)
 
-      jbeg = max(blower(1),ilower1)
-      jend = min(bupper(1),iupper1)
+      jbeg = blower(1)
+      jend = bupper(1)
 
-      kbeg = max(blower(2),ilower2)
-      kend = min(bupper(2),iupper2)
+      kbeg = blower(2)
+      kend = bupper(2)
 
       R = dble(ratio)
 

@@ -225,6 +225,95 @@ main(int argc, char* argv[])
             }
         }
 
+        // Check that the ghost values one cell beyond each end of a patch along the left interface equal the exact
+        // quadratic field. Such cells lie inside the domain only if several patches touch the interface.
+        {
+            int ln = patch_hierarchy->getFinestLevelNumber();
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            const Box<NDIM> domain = Box<NDIM>::refine(grid_geometry->getPhysicalDomain()[0], level->getRatio());
+            int num_checked = 0;
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
+                const double* const xlow = pgeom->getXLower();
+                const hier::Index<NDIM>& idx_low = patch->getBox().lower();
+                Pointer<CellData<NDIM, double>> Q_cc_data = patch->getPatchData(Q_idx);
+                Pointer<SideData<NDIM, double>> Q_sc_data = patch->getPatchData(Q_idx);
+                const int ghost_width =
+                    Q_cc_data ? Q_cc_data->getGhostCellWidth()(0) : Q_sc_data->getGhostCellWidth()(0);
+                for (int t = 1; t < NDIM; ++t)
+                {
+                    for (const int end : { -1, +1 })
+                    {
+                        // The ghost cells beyond the end of the patch, away from its other tangential ends.
+                        Box<NDIM> extension = patch->getBox();
+                        extension.upper(0) = extension.lower(0) - 1;
+                        extension.lower(0) -= ghost_width;
+                        for (int d = 1; d < NDIM; ++d)
+                        {
+                            if (d == t)
+                            {
+                                extension.lower(d) = extension.upper(d) =
+                                    end < 0 ? patch->getBox().lower(d) - 1 : patch->getBox().upper(d) + 1;
+                            }
+                            else
+                            {
+                                extension.lower(d) += 2;
+                                extension.upper(d) -= 2;
+                            }
+                        }
+                        extension = extension * domain;
+                        if (extension.empty()) continue;
+                        if (Q_cc_data)
+                        {
+                            for (CellIterator<NDIM> ci(extension); ci; ci++)
+                            {
+                                const CellIndex<NDIM>& idx = ci();
+                                VectorNd x;
+                                for (int d = 0; d < NDIM; ++d)
+                                    x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
+                                ++num_checked;
+                                if (!IBTK::abs_equal_eps((*Q_cc_data)(idx)-Q_fcn(x), 0.0))
+                                {
+                                    pout << "Incorrect ghost value!\n";
+                                    pout << "On extension cell " << idx << "\n";
+                                    pout << "Computed value " << (*Q_cc_data)(idx) << "\n";
+                                    pout << "Exact value:   " << Q_fcn(x) << "\n";
+                                }
+                            }
+                        }
+                        else if (Q_sc_data)
+                        {
+                            // The faces that are not normal to the direction of the extension.
+                            for (int axis = 0; axis < NDIM; ++axis)
+                            {
+                                if (axis == t) continue;
+                                for (SideIterator<NDIM> si(extension, axis); si; si++)
+                                {
+                                    const SideIndex<NDIM>& idx = si();
+                                    VectorNd x;
+                                    for (int d = 0; d < NDIM; ++d)
+                                        x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) +
+                                                                  (d == axis ? 0.0 : 0.5));
+                                    ++num_checked;
+                                    if (!IBTK::abs_equal_eps((*Q_sc_data)(idx)-Q_fcn(x), 0.0))
+                                    {
+                                        pout << "Incorrect ghost value!\n";
+                                        pout << "On extension face " << idx << " and axis " << axis << "\n";
+                                        pout << "Computed value " << (*Q_sc_data)(idx) << "\n";
+                                        pout << "Exact value:   " << Q_fcn(x) << "\n";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (num_checked > 0) pout << "Checked " << num_checked << " values beyond the ends of patches.\n";
+        }
+
         // Deallocate patch data
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
