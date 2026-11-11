@@ -18,6 +18,7 @@
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/GeneralSolver.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
@@ -30,10 +31,12 @@
 #include <tbox/Array.h>
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <petsclog.h>
 #include <petscvec.h>
 
+#include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
 #include <CartesianPatchGeometry.h>
@@ -44,12 +47,14 @@
 #include <IntVector.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
+#include <PatchDescriptor.h>
 #include <PatchGeometry.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <RefineAlgorithm.h>
 #include <RefineClasses.h>
 #include <RefineSchedule.h>
+#include <RobinBcCoefStrategy.h>
 #include <SAMRAIVectorReal.h>
 #include <SideData.h>
 #include <SideIndex.h>
@@ -59,8 +64,11 @@
 #include <VariableDatabase.h>
 
 #include <algorithm>
+#include <ostream>
 #include <string>
 #include <vector>
+
+#include "./ins_velocity_bc.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -119,6 +127,67 @@ adjust_rhs_for_pressure_at_cf_boundary(SideData<NDIM, double>& rhs_data,
     }
     return;
 } // adjust_rhs_for_pressure_at_cf_boundary
+
+// Move the term f_g*g of the ghost pressure p_G = f_i*p_I + f_g*g, with interior pressure p_I and boundary data g, in
+// the normal-velocity equations at open boundaries to the right-hand side.
+void
+adjust_rhs_for_ghost_pressure(SideData<NDIM, double>& rhs_data,
+                              Patch<NDIM>& patch,
+                              const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                              RobinBcCoefStrategy<NDIM>* P_bc_coef,
+                              const double data_time,
+                              const bool homogeneous_bc)
+{
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+    {
+        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const unsigned int bdry_normal_axis = location_index / 2;
+        const bool is_lower = location_index % 2 == 0;
+        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, patch);
+        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+        // The normal velocity is not prescribed where the velocity boundary condition is a traction condition.
+        Pointer<ArrayData<NDIM, double>> u_acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> u_bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> u_gcoef_data;
+        U_bc_coefs[bdry_normal_axis]->setBcCoefs(
+            u_acoef_data, u_bcoef_data, u_gcoef_data, nullptr, patch, trimmed_bdry_box, data_time);
+
+        // For homogeneous conditions, setupBcCoefObjects() makes an ExtendedRobinBcCoefStrategy return homogeneous
+        // data. This function zeroes g of any other object, as the other users of Robin data do.
+        Pointer<ArrayData<NDIM, double>> p_acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> p_bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double>> p_gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        auto extended_p_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(P_bc_coef);
+        P_bc_coef->setBcCoefs(p_acoef_data, p_bcoef_data, p_gcoef_data, nullptr, patch, trimmed_bdry_box, data_time);
+        if (homogeneous_bc && !extended_p_bc_coef)
+        {
+            p_gcoef_data->fillAll(0.0);
+        }
+
+        const double h = dx[bdry_normal_axis];
+        for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+        {
+            const hier::Index<NDIM>& i = b();
+            if (velocity_bc::get_type((*u_acoef_data)(i, 0),
+                                      (*u_bcoef_data)(i, 0),
+                                      "StaggeredStokesPETScLevelSolver::setupKSPVecs()") != velocity_bc::Type::TRACTION)
+            {
+                continue;
+            }
+            const double f_g = 2.0 * h / ((*p_acoef_data)(i, 0) * h + 2.0 * (*p_bcoef_data)(i, 0));
+            const double ghost_pressure_datum = f_g * (*p_gcoef_data)(i, 0);
+            rhs_data(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) +=
+                (is_lower ? 1.0 : -1.0) * ghost_pressure_datum / h;
+        }
+    }
+    return;
+} // adjust_rhs_for_ghost_pressure
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -212,7 +281,7 @@ StaggeredStokesPETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::s
 
 void
 StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                  const SAMRAIVectorReal<NDIM, double>& /*b*/)
+                                                                  const SAMRAIVectorReal<NDIM, double>& b)
 {
     // Physical boundary DOFs need the boundary helper. Fully periodic hierarchies
     // do not require a boundary helper.
@@ -226,6 +295,27 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                 TBOX_ERROR(d_object_name << "::initializeSolverStateSpecialized():\n"
                                          << "  physical boundaries require a StaggeredStokesPhysicalBoundaryHelper "
                                          << "provided via setPhysicalBoundaryHelper().\n");
+            }
+        }
+    }
+
+    // The velocity and pressure data of both vectors must have a ghost layer. The data may be unallocated.
+    const Pointer<PatchDescriptor<NDIM>> patch_descriptor = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
+    for (const SAMRAIVectorReal<NDIM, double>* const vec : { &x, &b })
+    {
+        for (int comp = 0; comp < 2; ++comp)
+        {
+            const int ghost_width = patch_descriptor->getPatchDataFactory(vec->getComponentDescriptorIndex(comp))
+                                        ->getGhostCellWidth()
+                                        .min();
+            if (ghost_width < 1)
+            {
+                TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                         << "  the " << (comp == 0 ? "velocity" : "pressure") << " data of the "
+                                         << (vec == &x ? "solution" : "right-hand side")
+                                         << " vector has ghost cell width " << ghost_width << "\n"
+                                         << "  allocate the velocity and pressure data with a ghost cell width of at "
+                                            "least one\n");
             }
         }
     }
@@ -250,7 +340,8 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                      d_num_dofs_per_proc,
                                                                      d_u_dof_index_idx,
                                                                      d_p_dof_index_idx,
-                                                                     d_level);
+                                                                     d_level,
+                                                                     d_P_bc_coef);
     d_petsc_pc = d_petsc_mat;
 
     // Set pressure nullspace if the level covers the entire domain.
@@ -378,6 +469,8 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         {
             PoissonUtilities::adjustRHSAtPhysicalBoundary(
                 *f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs, d_solution_time, d_homogeneous_bc);
+            adjust_rhs_for_ghost_pressure(
+                *f_adj_data, *patch, d_U_bc_coefs, d_P_bc_coef, d_solution_time, d_homogeneous_bc);
             d_bc_helper->enforceNormalVelocityBoundaryConditions(
                 f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
         }

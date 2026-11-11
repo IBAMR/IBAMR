@@ -1,0 +1,3 @@
+Fixed: Impose the pressure boundary condition at open boundaries in IBAMR::StaggeredStokesPETScLevelSolver.
+<br>
+(Boyce Griffith, 2026/10/08)
