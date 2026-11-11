@@ -1,0 +1,3 @@
+Deprecated: IBTK::SAMRAIGhostDataAccumulator::accumulateGhostData(int), which applies no transpose of the physical boundary fill. Use the overload that takes a boundary operator, with a null operator for no transpose.
+<br>
+(Boyce Griffith, 2026/11/04)

@@ -157,7 +157,7 @@ main(int argc, char* argv[])
 
         // accumulate values
         SAMRAIGhostDataAccumulator accumulator(patch_hierarchy, u_var, gcw, finest_ln, finest_ln);
-        accumulator.accumulateGhostData(u_idx);
+        accumulator.accumulateGhostData(u_idx, nullptr, 0.0);
 
         std::ostringstream out;
         out.precision(16);

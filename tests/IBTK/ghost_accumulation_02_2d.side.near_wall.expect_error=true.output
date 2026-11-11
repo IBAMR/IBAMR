@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    SAMRAIGhostDataAccumulator::check_physical_boundaries():
+  patch 0 of level 1 (box [(2,2),(3,13)]) is 2 cells from the physical boundary along axis 0, less than the ghost cell width 3
+  patches must touch a physical boundary or be at least as far from it as the ghost cell width
+

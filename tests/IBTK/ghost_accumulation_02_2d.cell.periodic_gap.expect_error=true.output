@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    SAMRAIGhostDataAccumulator::check_periodic_images():
+  patch 0 of level 1 (box [(4,2),(11,9)]) is 2 cells from the periodic boundary along axis 1, less than the ghost cell width 3
+  patches must touch a periodic boundary or be at least as far from it as the ghost cell width
+

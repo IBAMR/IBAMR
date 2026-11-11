@@ -1099,7 +1099,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
             d_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(
                 hierarchy, f_var, gcw, getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber());
         }
-        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
+        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, nullptr, 0.0);
     }
 
     // Prolong forces spread onto coarser levels onto finer levels.
@@ -1347,7 +1347,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
         d_source_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(
             hierarchy, q_var, gcw, getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber());
     }
-    d_source_ghost_data_accumulator->accumulateGhostData(q_scratch_data_idx);
+    d_source_ghost_data_accumulator->accumulateGhostData(q_scratch_data_idx, nullptr, 0.0);
 
     if (d_use_scratch_hierarchy)
     {

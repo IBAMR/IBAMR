@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    SAMRAIGhostDataAccumulator::accumulateGhostData():
+  level 0 of the patch hierarchy is not the level for which the accumulator was built
+  construct a new accumulator after the levels are regridded or redistributed
+
