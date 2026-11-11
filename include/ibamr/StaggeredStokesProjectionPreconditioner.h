@@ -88,6 +88,18 @@ public:
     } // allocate_solver
 
     /*!
+     * \brief Return true: the preconditioner applies any interpolation type.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries. The preconditioner uses its interpolation type and, unless
+     * <code>Phi_bdry_extrap_type</code> is set, its extrapolation type to fill the ghost values of the pressure
+     * update.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
+
+    /*!
      * \name Linear solver functionality.
      */
     //\{
@@ -191,8 +203,8 @@ private:
     bool d_Phi_use_cf_interpolation = true;
     std::string d_Phi_data_coarsen_type = "CUBIC_COARSEN";
 
-    // Type of extrapolation to use at physical boundaries.
-    std::string d_Phi_bdry_extrap_type = "LINEAR";
+    // Type of extrapolation to use at physical boundaries, or empty for that of the boundary treatment.
+    std::string d_Phi_bdry_extrap_type;
 
     // Whether to enforce consistent interpolated values at Type 2 coarse-fine interface ghost cells.
     bool d_Phi_use_consistent_type_2_bdry = false;

@@ -392,8 +392,15 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const std::string& bdry_interp_type) const
 {
-    // Adding D*(u_I - u_div)/h^2 with p_b = -g is equivalent to using u_div with p_b = -D*(u_I - u_div)/h - g, in which
-    // D = viscous_coef, u_I is the reflected ghost value, and g is the normal traction.
+    // With p_b = -g, in which g is the normal traction, the term makes the boundary row a one-sided derivative of the
+    // normal stress, extrapolated as the pressure is.
+    const bool quadratic = bdry_interp_type == "QUADRATIC";
+    if (!quadratic && bdry_interp_type != "LINEAR")
+    {
+        TBOX_ERROR("StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm():\n"
+                   << "  unsupported boundary interpolation type: " << bdry_interp_type << "\n"
+                   << "  valid choices are: LINEAR, QUADRATIC\n");
+    }
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary())
     {
         return;
@@ -406,14 +413,18 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     const std::vector<Pointer<ArrayData<NDIM, bool>>>& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
-    const bool linear_interp = bdry_interp_type == "LINEAR";
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
         const unsigned int location_index = physical_codim1_boxes[n].getLocationIndex();
         const unsigned int bdry_normal_axis = location_index / 2;
         const bool is_lower = location_index % 2 == 0;
         auto stokes_u_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
-        if (!stokes_u_bc_coef || stokes_u_bc_coef->getTractionBcType() != TRACTION)
+        if (!stokes_u_bc_coef)
+        {
+            continue;
+        }
+        const bool pseudo_traction = stokes_u_bc_coef->getTractionBcType() == PSEUDO_TRACTION;
+        if (pseudo_traction && !quadratic)
         {
             continue;
         }
@@ -423,33 +434,37 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
         for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
         {
             const hier::Index<NDIM>& i = it();
-            if (bdry_locs_data(i, 0) == 0.0)
+            if (bdry_locs_data(i, 0) != 0.0)
             {
-                // The added term is exact only if the pressure ghost value is p_G = 2*p_b - p_I, in which p_b is the
-                // boundary value and p_I is the interior value.
-                if (!linear_interp && viscous_coef != 0.0)
-                {
-                    TBOX_ERROR(
-                        "StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm():\n"
-                        << "  TRACTION conditions for the normal velocity require the boundary interpolation "
-                           "type \"LINEAR\"\n"
-                        << "  set bdry_interp_type of the Stokes operator or U_P_bdry_interp_type of the integrator "
-                           "to \"LINEAR\"\n");
-                }
-                // i_g is the ghost cell abutting the boundary. i_s_inside is the next face inside the domain.
-                hier::Index<NDIM> i_g = i;
-                if (is_lower)
-                {
-                    i_g(bdry_normal_axis) -= 1;
-                }
-                const SideIndex<NDIM> i_s_boundary(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                SideIndex<NDIM> i_s_inside = i_s_boundary;
-                i_s_inside(bdry_normal_axis) += is_lower ? 1 : -1;
-                const double u_inside = (*u_data)(i_s_inside);
-                const double u_div =
-                    traction_stencil::get_divergence_free_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
-                (*f_data)(i_s_boundary) += viscous_coef * (u_inside - u_div) / (h * h);
+                continue;
             }
+            // i_g is the ghost cell abutting the boundary. i_s_inside and i_s_inside_2 are the next two faces inside
+            // the domain.
+            hier::Index<NDIM> i_g = i;
+            if (is_lower)
+            {
+                i_g(bdry_normal_axis) -= 1;
+            }
+            const SideIndex<NDIM> i_s_boundary(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+            SideIndex<NDIM> i_s_inside = i_s_boundary;
+            i_s_inside(bdry_normal_axis) += is_lower ? 1 : -1;
+            const double u_inside = (*u_data)(i_s_inside);
+            const double u_div =
+                traction_stencil::get_divergence_free_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
+            double term = u_inside - u_div;
+            if (quadratic)
+            {
+                SideIndex<NDIM> i_s_inside_2 = i_s_inside;
+                i_s_inside_2(bdry_normal_axis) += is_lower ? 1 : -1;
+                const double u_boundary = (*u_data)(i_s_boundary);
+                const double u_inside_2 = (*u_data)(i_s_inside_2);
+                term = 3.0 * (u_inside - u_boundary) - (2.0 / 3.0) * (u_inside_2 - u_inside) + (u_boundary - u_div);
+                if (pseudo_traction)
+                {
+                    term -= (4.0 / 3.0) * (u_inside - u_div);
+                }
+            }
+            (*f_data)(i_s_boundary) += viscous_coef * term / (h * h);
         }
     }
     return;

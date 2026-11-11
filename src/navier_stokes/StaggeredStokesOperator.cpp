@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_utilities.h>
@@ -100,8 +101,9 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
     {
         d_refine_type = input_db->getStringWithDefault("refine_type", d_refine_type);
         d_coarsen_type = input_db->getStringWithDefault("coarsen_type", d_coarsen_type);
-        d_bdry_extrap_type = input_db->getStringWithDefault("bdry_extrap_type", d_bdry_extrap_type);
-        d_bdry_interp_type = input_db->getStringWithDefault("bdry_interp_type", d_bdry_interp_type);
+        // Leave the database unchanged, so that its owner can tell whether it sets these keys.
+        if (input_db->isString("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        if (input_db->isString("bdry_interp_type")) d_bdry_interp_type = input_db->getString("bdry_interp_type");
         d_use_cf_interpolation = input_db->getBoolWithDefault("use_cf_interpolation", d_use_cf_interpolation);
         d_consistent_type_2_bdry = input_db->getBoolWithDefault("consistent_type_2_bdry", d_consistent_type_2_bdry);
     }
@@ -177,6 +179,14 @@ StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysic
     d_bc_helper = bc_helper;
     return;
 } // setPhysicalBoundaryHelper
+
+void
+StaggeredStokesOperator::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_bdry_interp_type = bdry_treatment.bdry_interp_type;
+    d_bdry_extrap_type = bdry_treatment.bdry_extrap_type;
+    return;
+} // setBoundaryTreatment
 
 void
 StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
@@ -284,7 +294,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
-    if (!d_bc_helper && traction_stencil::has_normal_stress_term(d_U_bc_coefs) &&
+    if (!d_bc_helper && traction_stencil::has_normal_stress_term(d_U_bc_coefs, d_bdry_interp_type == "QUADRATIC") &&
         in.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() == 0)
     {
         TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"

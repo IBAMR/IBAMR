@@ -105,6 +105,16 @@ public:
      */
     void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
+    /*!
+     * \brief Return true: the operator applies any interpolation type.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries of the operator, but not of the preconditioner.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
+
 private:
     /*!
      * \brief Copy constructor.

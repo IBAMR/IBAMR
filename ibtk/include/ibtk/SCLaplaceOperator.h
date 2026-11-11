@@ -55,6 +55,9 @@ public:
     /*!
      * \brief Constructor for class SCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
+     *
+     * The optional input database may set <code>bdry_interp_type</code>, the interpolation type at physical
+     * boundaries at which boundary conditions are present: "LINEAR" (default) or "QUADRATIC".
      */
     SCLaplaceOperator(std::string object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
@@ -64,6 +67,12 @@ public:
      * \brief Destructor.
      */
     ~SCLaplaceOperator();
+
+    /*!
+     * \brief Return whether the operator can apply the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC", at physical boundaries at which boundary conditions are present.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
 
     /*!
      * \name Linear operator functionality.

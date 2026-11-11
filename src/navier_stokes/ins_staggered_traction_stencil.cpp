@@ -60,14 +60,16 @@ namespace traction_stencil
 namespace
 {
 // Return the stencil of the normal velocity at the face i_face on the boundary normal to bdry_normal_axis, for the
-// difference along tangential_axis. The stencil faces must lie in ghost_box.
+// difference along tangential_axis. Beyond a corner, the stencil is a quadratic extrapolation if quadratic and a linear
+// one otherwise. The stencil faces must lie in ghost_box.
 NormalVelocityStencil
 get_normal_velocity_stencil(hier::Index<NDIM> i_face,
                             const unsigned int bdry_normal_axis,
                             const bool bdry_is_lower,
                             const unsigned int tangential_axis,
                             const BoxArray<NDIM>& domain,
-                            const Box<NDIM>& ghost_box)
+                            const Box<NDIM>& ghost_box,
+                            const bool quadratic)
 {
     const int j = i_face(tangential_axis);
     if (PhysicalBoundaryUtilities::isBoundaryFace(i_face, bdry_normal_axis, bdry_is_lower, domain))
@@ -75,8 +77,8 @@ get_normal_velocity_stencil(hier::Index<NDIM> i_face,
         TBOX_ASSERT(ghost_box.contains(i_face));
         NormalVelocityStencil stencil;
         const SideIndex<NDIM> idx(i_face, bdry_normal_axis, SideIndex<NDIM>::Lower);
-        stencil.idx = { idx, idx };
-        stencil.weight = { 1.0, 0.0 };
+        stencil.idx.fill(idx);
+        stencil.weight = { 1.0, 0.0, 0.0 };
         return stencil;
     }
 
@@ -99,16 +101,24 @@ get_normal_velocity_stencil(hier::Index<NDIM> i_face,
                    << " is beyond a corner of the physical boundary with no adjacent face on the boundary along axis "
                    << tangential_axis << "\n");
     }
-    hier::Index<NDIM> i_near = i_face, i_next = i_face;
-    i_near(tangential_axis) = j + step;
-    i_next(tangential_axis) = j + 2 * step;
-    TBOX_ASSERT(ghost_box.contains(i_near));
 
-    // A boundary segment of one face has no second face to extrapolate from.
-    const bool can_extrapolate =
-        PhysicalBoundaryUtilities::isBoundaryFace(i_next, bdry_normal_axis, bdry_is_lower, domain);
-    TBOX_ASSERT(!can_extrapolate || ghost_box.contains(i_next));
-    return get_corner_normal_velocity_stencil(i_face, bdry_normal_axis, tangential_axis, step, can_extrapolate);
+    // Count the faces of the boundary segment from the nearest one, up to the number that the extrapolation uses.
+    const int max_faces = quadratic ? 3 : 2;
+    int num_boundary_faces = 1;
+    hier::Index<NDIM> i_far = i_face;
+    while (num_boundary_faces < max_faces)
+    {
+        i_far(tangential_axis) = j + (num_boundary_faces + 1) * step;
+        if (!PhysicalBoundaryUtilities::isBoundaryFace(i_far, bdry_normal_axis, bdry_is_lower, domain)) break;
+        ++num_boundary_faces;
+    }
+    const NormalVelocityStencil stencil =
+        get_corner_normal_velocity_stencil(i_face, bdry_normal_axis, tangential_axis, step, num_boundary_faces);
+    for (int k = 0; k < num_boundary_faces; ++k)
+    {
+        TBOX_ASSERT(ghost_box.contains(stencil.idx[k]));
+    }
+    return stencil;
 } // get_normal_velocity_stencil
 
 // Return the normal velocity that normal_bc_coef prescribes on the adjacent boundary at the extension of the face
@@ -158,8 +168,8 @@ struct NormalVelocity
 };
 
 // Return the normal velocity in the TRACTION condition at the boundary face i_face. Beyond a corner with u_b prescribed
-// on the adjacent boundary (zero if homogeneous_bc), it is 2*u_b - u, in which u is the value at the nearest boundary
-// face.
+// on the adjacent boundary (zero if homogeneous_bc), it is 2*u_b - q_0, or (8/3)*u_b - 2*q_0 + q_1/3 if quadratic and
+// the boundary has two faces, in which q_0 and q_1 are the values at the two nearest faces on the boundary.
 NormalVelocity
 get_normal_velocity(const hier::Index<NDIM>& i_face,
                     const unsigned int bdry_normal_axis,
@@ -170,11 +180,12 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
                     NormalVelocityPatch& normal_velocity_patch,
                     const BoxArray<NDIM>& domain,
                     const Box<NDIM>& ghost_box,
+                    const bool quadratic,
                     const double fill_time)
 {
-    NormalVelocity u = {
-        get_normal_velocity_stencil(i_face, bdry_normal_axis, bdry_is_lower, tangential_axis, domain, ghost_box), 0.0
-    };
+    NormalVelocity u = { get_normal_velocity_stencil(
+                             i_face, bdry_normal_axis, bdry_is_lower, tangential_axis, domain, ghost_box, quadratic),
+                         0.0 };
     if (u.stencil.beyond_corner)
     {
         const std::optional<double> u_prescribed = get_prescribed_normal_velocity(i_face,
@@ -185,8 +196,8 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
                                                                                   fill_time);
         if (u_prescribed)
         {
-            u.stencil.useAdjacentBoundaryValue();
-            u.offset = homogeneous_bc ? 0.0 : 2.0 * *u_prescribed;
+            u.stencil.useAdjacentBoundaryValue(quadratic);
+            u.offset = homogeneous_bc ? 0.0 : u.stencil.prescribed_weight * *u_prescribed;
         }
     }
     return u;
@@ -217,12 +228,22 @@ copy_patch(const Patch<NDIM>& patch)
 } // copy_patch
 
 void
-NormalVelocityStencil::useAdjacentBoundaryValue()
+NormalVelocityStencil::useAdjacentBoundaryValue(const bool quadratic)
 {
     TBOX_ASSERT(beyond_corner);
-    idx[1] = idx[0];
-    weight = { -1.0, 0.0 };
     uses_adjacent_boundary_value = true;
+
+    // The weight of the second face is zero if the boundary segment has only one face.
+    if (quadratic && weight[1] != 0.0)
+    {
+        idx[2] = idx[0];
+        weight = { -2.0, 1.0 / 3.0, 0.0 };
+        prescribed_weight = 8.0 / 3.0;
+        return;
+    }
+    idx.fill(idx[0]);
+    weight = { -1.0, 0.0, 0.0 };
+    prescribed_weight = 2.0;
 } // useAdjacentBoundaryValue
 
 NormalVelocityStencil
@@ -230,17 +251,20 @@ get_corner_normal_velocity_stencil(hier::Index<NDIM> i_face,
                                    const unsigned int bdry_normal_axis,
                                    const unsigned int tangential_axis,
                                    const int step,
-                                   const bool can_extrapolate)
+                                   const int num_boundary_faces)
 {
-    const int j = i_face(tangential_axis);
-    hier::Index<NDIM> i_near = i_face, i_next = i_face;
-    i_near(tangential_axis) = j + step;
-    i_next(tangential_axis) = j + 2 * step;
-    const SideIndex<NDIM> near_idx(i_near, bdry_normal_axis, SideIndex<NDIM>::Lower);
-    const SideIndex<NDIM> next_idx(i_next, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    TBOX_ASSERT(num_boundary_faces >= 1 && num_boundary_faces <= static_cast<int>(NormalVelocityStencil::NUM_FACES));
+    // The weights of the polynomial through one, two, or three faces, evaluated one face beyond the first.
+    static constexpr std::array<std::array<double, NormalVelocityStencil::NUM_FACES>, NormalVelocityStencil::NUM_FACES>
+        WEIGHTS = { { { 1.0, 0.0, 0.0 }, { 2.0, -1.0, 0.0 }, { 3.0, -3.0, 1.0 } } };
     NormalVelocityStencil stencil;
-    stencil.idx = { near_idx, can_extrapolate ? next_idx : near_idx };
-    stencil.weight = can_extrapolate ? std::array<double, 2>{ 2.0, -1.0 } : std::array<double, 2>{ 1.0, 0.0 };
+    stencil.weight = WEIGHTS[num_boundary_faces - 1];
+    for (std::size_t k = 0; k < NormalVelocityStencil::NUM_FACES; ++k)
+    {
+        hier::Index<NDIM> i = i_face;
+        i(tangential_axis) += step * (static_cast<int>(k) < num_boundary_faces ? static_cast<int>(k) + 1 : 1);
+        stencil.idx[k] = SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    }
     stencil.beyond_corner = true;
     stencil.adjacent_location_index = 2 * tangential_axis + (step < 0 ? 1 : 0);
     return stencil;
@@ -301,6 +325,7 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
                                const bool homogeneous_bc,
                                NormalVelocityPatch& normal_velocity_patch,
                                const BoxArray<NDIM>& domain,
+                               const bool quadratic,
                                const double fill_time)
 {
     const Box<NDIM>& ghost_box = u_data.getGhostBox();
@@ -322,12 +347,13 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
                                    normal_velocity_patch,
                                    domain,
                                    ghost_box,
+                                   quadratic,
                                    fill_time);
     };
     const NormalVelocity u_lower = get_u(i_lower);
     const NormalVelocity u_upper = get_u(i);
     double du = u_upper.offset - u_lower.offset;
-    for (int k = 0; k < 2; ++k)
+    for (std::size_t k = 0; k < NormalVelocityStencil::NUM_FACES; ++k)
     {
         du += u_upper.stencil.weight[k] * u_data(u_upper.stencil.idx[k]) -
               u_lower.stencil.weight[k] * u_data(u_lower.stencil.idx[k]);
@@ -359,12 +385,13 @@ get_divergence_free_ghost_value(const SideData<NDIM, double>& u_data,
 } // get_divergence_free_ghost_value
 
 bool
-has_normal_stress_term(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+has_normal_stress_term(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs, const bool quadratic)
 {
     for (const auto& u_bc_coef : u_bc_coefs)
     {
         const auto stokes_u_bc_coef = dynamic_cast<const StokesBcCoefStrategy*>(u_bc_coef);
-        if (stokes_u_bc_coef && stokes_u_bc_coef->getTractionBcType() == TRACTION)
+        if (stokes_u_bc_coef && (stokes_u_bc_coef->getTractionBcType() == TRACTION ||
+                                 (quadratic && stokes_u_bc_coef->getTractionBcType() == PSEUDO_TRACTION)))
         {
             return true;
         }
@@ -399,13 +426,14 @@ get_traction_stencil(const hier::Index<NDIM>& i,
                                    normal_velocity_patch,
                                    domain,
                                    ghost_box,
+                                   /*quadratic*/ false,
                                    fill_time)
             .stencil;
     };
     const NormalVelocityStencil lower_stencil = get_stencil(i_lower);
     const NormalVelocityStencil upper_stencil = get_stencil(i);
     std::vector<std::pair<SideIndex<NDIM>, double>> stencil;
-    for (int k = 0; k < 2; ++k)
+    for (std::size_t k = 0; k < NormalVelocityStencil::NUM_FACES; ++k)
     {
         if (upper_stencil.weight[k] != 0.0)
         {

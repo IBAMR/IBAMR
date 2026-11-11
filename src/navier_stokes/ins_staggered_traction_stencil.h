@@ -35,6 +35,7 @@
 #include <SideIndex.h>
 
 #include <array>
+#include <cstddef>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -47,24 +48,30 @@ namespace IBAMR
 namespace traction_stencil
 {
 /*!
- * \brief Stencil weight[0]*u(idx[0]) + weight[1]*u(idx[1]) for the normal velocity in the TRACTION condition at a face
- * on a boundary. Beyond a corner, the weights are those of linear extrapolation, or of constant extrapolation from a
- * boundary segment of one face. If the normal velocity u_b is prescribed on the adjacent boundary
- * (adjacent_location_index), the caller calls useAdjacentBoundaryValue() and adds 2*u_b.
+ * \brief Stencil sum_k weight[k]*u(idx[k]) for the normal velocity in the TRACTION condition at a face on a boundary.
+ * An unused entry has weight 0 and the index idx[0]. Beyond a corner, the stencil is an extrapolation along the
+ * boundary segment: quadratic from three faces with "QUADRATIC" interpolation, otherwise linear from two faces, or the
+ * value of the nearest face for a segment of one face. If the normal velocity u_b is prescribed on the adjacent
+ * boundary (adjacent_location_index), the caller calls useAdjacentBoundaryValue() and adds prescribed_weight*u_b.
  */
 struct NormalVelocityStencil
 {
-    std::array<SAMRAI::pdat::SideIndex<NDIM>, 2> idx;
-    std::array<double, 2> weight;
+    static constexpr std::size_t NUM_FACES = 3;
+
+    std::array<SAMRAI::pdat::SideIndex<NDIM>, NUM_FACES> idx;
+    std::array<double, NUM_FACES> weight;
 
     bool beyond_corner = false;
     unsigned int adjacent_location_index = 0;
     bool uses_adjacent_boundary_value = false;
+    double prescribed_weight = 2.0;
 
     /*!
-     * Replace the weighted sum by minus the value at the nearest face. The member beyond_corner must be true.
+     * Replace the weighted sum by -q_0, or by -2*q_0 + q_1/3 if quadratic and the boundary segment has two faces, in
+     * which q_0 and q_1 are the values at the two nearest faces on the boundary, and set prescribed_weight to 2 or 8/3.
+     * The member beyond_corner must be true.
      */
-    void useAdjacentBoundaryValue();
+    void useAdjacentBoundaryValue(bool quadratic);
 };
 
 /*!
@@ -77,13 +84,14 @@ get_periodic_physical_domain(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHier
 /*!
  * Return the stencil of the normal velocity at the face i_face beyond a corner of the boundary normal to
  * bdry_normal_axis, where the boundary segment ends along tangential_axis. The nearest face on the boundary is i_face +
- * step along tangential_axis. The stencil also uses the second nearest face if can_extrapolate is true.
+ * step along tangential_axis. The stencil is the extrapolation through the num_boundary_faces faces of the segment from
+ * there, with 1 <= num_boundary_faces <= NormalVelocityStencil::NUM_FACES.
  */
 NormalVelocityStencil get_corner_normal_velocity_stencil(SAMRAI::hier::Index<NDIM> i_face,
                                                          unsigned int bdry_normal_axis,
                                                          unsigned int tangential_axis,
                                                          int step,
-                                                         bool can_extrapolate);
+                                                         int num_boundary_faces);
 
 /*!
  * Return a patch with the box, numbers, geometry, and patch data of patch. Replacing the geometry of the copy leaves
@@ -139,7 +147,8 @@ private:
 /*!
  * Return the difference along tangential_axis of the normal velocity in the TRACTION condition for velocity component
  * tangential_axis at i on the boundary normal to bdry_normal_axis, or NaN if the face i - 1 or i lies outside the ghost
- * box of u_data. The patch of normal_velocity_patch must be the patch of u_data.
+ * box of u_data. The patch of normal_velocity_patch must be the patch of u_data. Beyond a corner with a prescribed
+ * normal velocity, the function passes quadratic to NormalVelocityStencil::useAdjacentBoundaryValue().
  */
 double get_normal_velocity_difference(const SAMRAI::pdat::SideData<NDIM, double>& u_data,
                                       const SAMRAI::hier::Index<NDIM>& i,
@@ -150,6 +159,7 @@ double get_normal_velocity_difference(const SAMRAI::pdat::SideData<NDIM, double>
                                       bool homogeneous_bc,
                                       NormalVelocityPatch& normal_velocity_patch,
                                       const SAMRAI::hier::BoxArray<NDIM>& domain,
+                                      bool quadratic,
                                       double fill_time);
 
 /*!
@@ -164,10 +174,11 @@ double get_divergence_free_ghost_value(const SAMRAI::pdat::SideData<NDIM, double
                                        const double* dx);
 
 /*!
- * Return whether any of u_bc_coefs is a StokesBcCoefStrategy with TRACTION conditions, for which the operator adds a
- * normal stress term.
+ * Return whether any of u_bc_coefs is a StokesBcCoefStrategy with TRACTION conditions or, if quadratic, PSEUDO_TRACTION
+ * conditions: the conditions for which StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm() adds a
+ * term.
  */
-bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs, bool quadratic);
 
 /*!
  * Return the side indices of the normal velocities on which the inhomogeneous Robin coefficient of the TRACTION
