@@ -685,12 +685,14 @@ IBExplicitHierarchyIntegrator::fillMarkerVelocityGhostCells(const bool include_h
         {
             indices.push_back(d_u_half_idx);
         }
+        // The refine operator alone fills the ghost cells, so that marker velocities are independent of the
+        // patch layout.
         std::vector<ITC> ghostfills;
         for (const int idx : indices)
         {
             ghostfills.emplace_back(idx,
                                     "CONSERVATIVE_LINEAR_REFINE",
-                                    /*use_cf_bdry_interpolation*/ true,
+                                    /*use_cf_bdry_interpolation*/ false,
                                     "CONSERVATIVE_COARSEN",
                                     "LINEAR",
                                     false,

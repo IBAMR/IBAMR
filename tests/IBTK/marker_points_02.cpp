@@ -167,8 +167,14 @@ main(int argc, char** argv)
         // sync ghost data:
         using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<ITC> ghost_cell_components(1);
-        ghost_cell_components[0] = ITC(
-            u_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", true, u_bc_coef_ptrs, nullptr);
+        ghost_cell_components[0] = ITC(u_idx,
+                                       "CONSERVATIVE_LINEAR_REFINE",
+                                       false,
+                                       "CONSERVATIVE_COARSEN",
+                                       "LINEAR",
+                                       true,
+                                       u_bc_coef_ptrs,
+                                       nullptr);
         IBTK::HierarchyGhostCellInterpolation ghost_fill_op;
         ghost_fill_op.initializeOperatorState(ghost_cell_components, patch_hierarchy);
         ghost_fill_op.fillData(/*time*/ 0.0);
