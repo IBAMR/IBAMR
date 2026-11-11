@@ -312,7 +312,7 @@ jobs:
         run: |
           print_and_check() {
               echo $1
-              /usr/bin/mpic++ -O0 -fsyntax-only -DNDIM=2 \
+              /usr/bin/mpic++ -std=c++20 -O0 -fsyntax-only -DNDIM=2 \
                 -I/samrai/include                        \
                 -I/petsc/include                         \
                 -I/libmesh/include                       \
