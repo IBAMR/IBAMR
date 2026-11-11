@@ -62,16 +62,6 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 
-// Types of refining and coarsening to perform prior to setting coarse-fine
-// boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE = "NONE";
-static const bool USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
-
 // Timers.
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
@@ -82,10 +72,13 @@ static Timer* t_deallocate_solver_state;
 
 VCStaggeredStokesProjectionPreconditioner::VCStaggeredStokesProjectionPreconditioner(
     const std::string& object_name,
-    Pointer<Database> /*input_db*/,
+    Pointer<Database> input_db,
     const std::string& /*default_options_prefix*/)
-    : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
-                                         /*needs_pressure_solver*/ true),
+    : StaggeredStokesBlockPreconditioner(
+          /*needs_velocity_solver*/ input_db ?
+              (input_db->keyExists("skip_velocity_solve") ? !input_db->getBool("skip_velocity_solve") : true) :
+              true,
+          /*needs_pressure_solver*/ true),
       d_Phi_bdry_fill_op(nullptr),
       d_no_fill_op(nullptr),
       d_Phi_var(nullptr),
@@ -95,6 +88,18 @@ VCStaggeredStokesProjectionPreconditioner::VCStaggeredStokesProjectionPreconditi
       d_velocity_D_cc_idx(-1)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
+
+    if (input_db)
+    {
+        if (input_db->isString("Phi_data_refine_type"))
+            d_Phi_data_refine_type = input_db->getString("Phi_data_refine_type");
+        if (input_db->isBool("Phi_use_cf_interpolation"))
+            d_Phi_use_cf_interpolation = input_db->getBool("Phi_use_cf_interpolation");
+        if (input_db->isString("Phi_data_coarsen_type"))
+            d_Phi_data_coarsen_type = input_db->getString("Phi_data_coarsen_type");
+        if (input_db->isString("Phi_bdry_extrap_type"))
+            d_Phi_bdry_extrap_type = input_db->getString("Phi_bdry_extrap_type");
+    }
 
     // Present implementation requires zero initial guess and can perform only
     // one iteration.
@@ -233,10 +238,20 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     // U^* := inv(rho/dt - K*L_mu) F_U
     //
     // An approximate Helmholtz solver is used.
-    d_velocity_solver->setHomogeneousBc(true);
-    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
-    if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
-    d_velocity_solver->solveSystem(*U_vec, *F_U_vec);
+    if (d_needs_velocity_solver)
+    {
+        d_velocity_solver->setHomogeneousBc(true);
+        auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+        if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
+        d_velocity_solver->solveSystem(*U_vec, *F_U_vec);
+    }
+    else
+    {
+        TBOX_ASSERT(!d_U_problem_coefs.cIsZero());
+        d_velocity_data_ops->scale(U_vec->getComponentDescriptorIndex(0),
+                                   1.0 / d_U_problem_coefs.getCConstant(),
+                                   F_U_vec->getComponentDescriptorIndex(0));
+    }
 
     // (2) Solve the pressure sub-problem.
     //
@@ -393,15 +408,16 @@ VCStaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVec
     // Setup hierarchy operators.
     Pointer<VariableFillPattern<NDIM>> fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          d_bdry_treatment.bdry_extrap_type,
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          d_P_bc_coef,
-                                                          fill_pattern,
-                                                          d_bdry_treatment.bdry_interp_type);
+    InterpolationTransactionComponent P_scratch_component(
+        d_Phi_scratch_idx,
+        d_Phi_data_refine_type,
+        d_Phi_use_cf_interpolation,
+        d_Phi_data_coarsen_type,
+        d_Phi_bdry_extrap_type.empty() ? d_bdry_treatment.bdry_extrap_type : d_Phi_bdry_extrap_type,
+        d_Phi_use_consistent_type_2_bdry,
+        d_P_bc_coef,
+        fill_pattern,
+        d_bdry_treatment.bdry_interp_type);
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
     d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);

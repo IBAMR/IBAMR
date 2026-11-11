@@ -1,0 +1,3 @@
+Improved: Read Phi_data_refine_type, Phi_use_cf_interpolation, Phi_data_coarsen_type, Phi_bdry_extrap_type, and skip_velocity_solve in IBAMR::VCStaggeredStokesProjectionPreconditioner, as IBAMR::StaggeredStokesProjectionPreconditioner does.
+<br>
+(Boyce Griffith, 2026/10/30)

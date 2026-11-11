@@ -1,0 +1,3 @@
+Improved: Give hypre the periodic shift of the domain in IBTK::CCPoissonHypreLevelSolver only for a level that has cells at both ends of the domain, as IBTK::SCPoissonHypreLevelSolver does, through the new IBTK::get_hypre_periodic_shift(). The solver writes to plog at the start of each solve if enable_logging is set.
+<br>
+(Boyce Griffith, 2026/10/30)

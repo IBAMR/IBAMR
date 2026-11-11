@@ -54,8 +54,8 @@ namespace IBAMR
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- skip_velocity_solve = FALSE  // set whether to skip the velocity solve; this is equivalent
-                              // to treating viscosity explicitly in the preconditioner
+ skip_velocity_solve = FALSE  // set whether to treat the viscosity explicitly in the preconditioner by skipping
+                              // the velocity solve
  \endverbatim
  *
  * \see INSStaggeredHierarchyIntegrator

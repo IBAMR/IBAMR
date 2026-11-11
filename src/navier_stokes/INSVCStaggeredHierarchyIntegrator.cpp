@@ -294,7 +294,10 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
 {
     Pointer<PETScKrylovPoissonSolver> krylov_solver =
         new PETScKrylovPoissonSolver(solver_object_name, solver_input_db, solver_default_options_prefix);
-    krylov_solver->setOperator(new VCSCViscousOperator(solver_object_name + "::vc_viscous_operator"));
+    auto operator_db = (solver_input_db && solver_input_db->isDatabase("laplace_op")) ?
+                           solver_input_db->getDatabase("laplace_op") :
+                           nullptr;
+    krylov_solver->setOperator(new VCSCViscousOperator(solver_object_name + "::vc_viscous_operator", operator_db));
     return krylov_solver;
 }
 } // namespace
@@ -1316,7 +1319,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     {
         Pointer<PoissonFACPreconditioner> p_poisson_fac_pc = p_velocity_solver->getPreconditioner();
         Pointer<VCSCViscousOpPointRelaxationFACOperator> p_vc_point_fac_op =
-            p_poisson_fac_pc->getFACPreconditionerStrategy();
+            p_poisson_fac_pc ? p_poisson_fac_pc->getFACPreconditionerStrategy() : nullptr;
         if (p_vc_point_fac_op) p_vc_point_fac_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
         if (p_vc_point_fac_op) p_vc_point_fac_op->setOperatorScaling(d_A_scale);
 
@@ -1326,7 +1329,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         if (p_vc_point_fac_op)
         {
             Pointer<VCSCViscousPETScLevelSolver> p_vc_level_solver = p_vc_point_fac_op->getCoarseSolver();
-            if (p_poisson_fac_pc) p_vc_level_solver->setViscosityInterpolationType(d_mu_vc_interp_type);
+            if (p_vc_level_solver) p_vc_level_solver->setViscosityInterpolationType(d_mu_vc_interp_type);
         }
     }
 

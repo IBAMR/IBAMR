@@ -294,15 +294,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
-    if (!d_bc_helper && traction_stencil::has_normal_stress_term(d_U_bc_coefs, d_bdry_interp_type == "QUADRATIC") &&
-        in.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() == 0)
-    {
-        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
-                                 << "  the TRACTION velocity boundary conditions require a "
-                                    "StaggeredStokesPhysicalBoundaryHelper in a domain that is not periodic in every "
-                                    "direction\n"
-                                 << "  call setPhysicalBoundaryHelper() to provide one\n");
-    }
+    checkPhysicalBoundaryHelper(in);
 
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, /*overwrite_interior*/ false);
@@ -436,6 +428,21 @@ StaggeredStokesOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& u)
 } // imposeSolBcs
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+StaggeredStokesOperator::checkPhysicalBoundaryHelper(const SAMRAIVectorReal<NDIM, double>& in) const
+{
+    if (!d_bc_helper && traction_stencil::has_normal_stress_term(d_U_bc_coefs, d_bdry_interp_type == "QUADRATIC") &&
+        in.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() == 0)
+    {
+        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
+                                 << "  the TRACTION velocity boundary conditions require a "
+                                    "StaggeredStokesPhysicalBoundaryHelper in a domain that is not periodic in every "
+                                    "direction\n"
+                                 << "  call setPhysicalBoundaryHelper() to provide one\n");
+    }
+    return;
+} // checkPhysicalBoundaryHelper
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
