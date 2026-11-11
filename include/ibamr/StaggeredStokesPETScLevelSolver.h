@@ -63,6 +63,10 @@ namespace IBAMR
  * for a staggered-grid (MAC) discretization of the incompressible Stokes
  * equations.
  *
+ * With TRACTION conditions, the matrix and right-hand side include the dependence of the tangential ghost values on the
+ * normal velocity and, where the normal velocity is not prescribed, the viscous normal-stress term. The solution vector
+ * is used only as the initial guess and for coarse-fine ghost values.
+ *
  * initializeSolverState() stops with an error unless the velocity and pressure data of the vectors have a ghost cell
  * width of at least one.
  *

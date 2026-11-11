@@ -71,8 +71,12 @@ public:
      * single SAMRAI::hier::PatchLevel.
      *
      * The matrix is for homogeneous boundary conditions. The normal-velocity equations at physical boundaries without a
-     * prescribed normal velocity include the dependence of the ghost pressure on the adjacent interior pressure, as
-     * determined by \a p_bc_coef.
+     * prescribed normal velocity include the dependence of the ghost pressure on the adjacent interior pressure. The
+     * Robin coefficients of \a p_bc_coef determine that dependence.
+     *
+     * For an entry of \a u_bc_coefs that is an INSStaggeredVelocityBcCoef with TRACTION conditions, the matrix includes
+     * the dependence of the tangential ghost values on the normal velocity and, where the normal velocity is not
+     * prescribed, the viscous normal-stress term. Any other StokesBcCoefStrategy with the TRACTION type is an error.
      */
     static void constructPatchLevelMACStokesOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,

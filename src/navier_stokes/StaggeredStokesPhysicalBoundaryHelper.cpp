@@ -558,6 +558,52 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
 } // addNormalTractionViscousTerm
 
 void
+StaggeredStokesPhysicalBoundaryHelper::setResidualAtDirichletBoundaries(const int r_data_idx,
+                                                                        const int f_data_idx,
+                                                                        const int u_data_idx,
+                                                                        const int coarsest_ln,
+                                                                        const int finest_ln) const
+{
+    TBOX_ASSERT(d_hierarchy);
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+    for (int ln = (coarsest_ln == IBTK::invalid_level_number ? 0 : coarsest_ln);
+         ln <= (finest_ln == IBTK::invalid_level_number ? finest_hier_level : finest_ln);
+         ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            if (!patch->getPatchGeometry()->getTouchesRegularBoundary())
+            {
+                continue;
+            }
+            Pointer<SideData<NDIM, double>> r_data = patch->getPatchData(r_data_idx);
+            Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_data_idx);
+            const Array<BoundaryBox<NDIM>>& physical_codim1_boxes =
+                d_physical_codim1_boxes[ln].find(patch->getPatchNumber())->second;
+            const std::vector<Pointer<ArrayData<NDIM, bool>>>& dirichlet_bdry_locs =
+                d_dirichlet_bdry_locs[ln].find(patch->getPatchNumber())->second;
+            for (int n = 0; n < physical_codim1_boxes.size(); ++n)
+            {
+                const unsigned int bdry_normal_axis = physical_codim1_boxes[n].getLocationIndex() / 2;
+                const ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
+                for (Box<NDIM>::Iterator it(bdry_locs_data.getBox()); it; it++)
+                {
+                    const hier::Index<NDIM>& i = it();
+                    if (bdry_locs_data(i, 0))
+                    {
+                        const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                        (*r_data)(i_s) = (*f_data)(i_s) - (*u_data)(i_s);
+                    }
+                }
+            }
+        }
+    }
+} // setResidualAtDirichletBoundaries
+
+void
 StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                                           RobinBcCoefStrategy<NDIM>* p_bc_coef,
                                                           int u_target_data_idx,

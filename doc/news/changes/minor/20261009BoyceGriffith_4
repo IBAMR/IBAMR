@@ -1,0 +1,3 @@
+Fixed: Impose TRACTION conditions at open boundaries correctly in IBAMR::StaggeredStokesPETScLevelSolver, IBAMR::StaggeredStokesBoxRelaxationFACOperator, and IBAMR::StaggeredStokesFACPreconditionerStrategy.
+<br>
+(Boyce Griffith, 2026/10/09)

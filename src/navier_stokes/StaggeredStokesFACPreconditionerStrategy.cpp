@@ -83,6 +83,8 @@
 #include <utility>
 #include <vector>
 
+#include "./ins_staggered_traction_stencil.h"
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -661,6 +663,9 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                                      1.0,
                                                      U_rhs_idx,
                                                      U_rhs_sc_var);
+    // As in StaggeredStokesOperator, compute the boundary terms from the velocity before div() synchronizes it at
+    // coarse-fine interfaces.
+    setBoundaryMomentumResidual(U_res_idx, U_sol_idx, U_rhs_idx, coarsest_level_num, finest_level_num);
     d_level_math_ops[finest_level_num]->div(P_res_idx,
                                             P_res_cc_var,
                                             1.0,
@@ -720,6 +725,9 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_hierarchy = solution.getPatchHierarchy();
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln = solution.getFinestLevelNumber();
+
+    // Determine whether any velocity boundary condition object imposes TRACTION conditions.
+    d_has_normal_stress_term = traction_stencil::has_normal_stress_term(d_U_bc_coefs);
 
     // Setup boundary condition handling objects.
     d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
@@ -1145,6 +1153,34 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleDataSynch(const int U_dst_i
 } // xeqScheduleDataSynch
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+StaggeredStokesFACPreconditionerStrategy::setBoundaryMomentumResidual(const int U_res_idx,
+                                                                      const int U_sol_idx,
+                                                                      const int U_rhs_idx,
+                                                                      const int coarsest_ln,
+                                                                      const int finest_ln)
+{
+    if (!d_has_normal_stress_term || !d_bc_helper)
+    {
+        return;
+    }
+
+    // Where the normal velocity is not prescribed, the helper subtracts from the residual the viscous term that
+    // StaggeredStokesOperator adds for the TRACTION condition. Where it is prescribed, the row is the velocity.
+    d_bc_helper->addNormalTractionViscousTerm(U_res_idx,
+                                              U_sol_idx,
+                                              -d_U_problem_coefs.getDConstant(),
+                                              d_U_bc_coefs,
+                                              /*bdry_interp_type*/ "LINEAR",
+                                              coarsest_ln,
+                                              finest_ln);
+    // As StaggeredStokesOperator does, restrict the fine residual with the term to the coarse faces at coarse-fine
+    // interfaces before setting the residual at the faces at which the normal velocity is prescribed.
+    d_level_math_ops[finest_ln]->synchronizeCoarseFineBoundary({ U_res_idx });
+    d_bc_helper->setResidualAtDirichletBoundaries(U_res_idx, U_rhs_idx, U_sol_idx, coarsest_ln, finest_ln);
+    return;
+} // setBoundaryMomentumResidual
 
 //////////////////////////////////////////////////////////////////////////////
 

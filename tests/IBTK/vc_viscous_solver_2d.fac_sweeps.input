@@ -74,7 +74,7 @@ solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
 solver_db {
    ksp_type          = "fgmres"
    pc_type           = "shell"
-   rel_residual_tol  = 1.0e-30   // the iteration limit ends the solve
+   rel_residual_tol  = 1.0e-30   // the solve stops at the iteration limit
    abs_residual_tol  = 1.0e-50
    max_iterations    = 8
    initial_guess_nonzero = TRUE
