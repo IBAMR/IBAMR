@@ -1,0 +1,3 @@
+New: Add IBTK::ShiftedPatchGeometry, a shifted copy of the geometry of a patch. Its ScopedGeometryReplacement class installs the copy on the patch and restores the original when the scope ends.
+<br>
+(Boyce Griffith, 2026/10/20)
