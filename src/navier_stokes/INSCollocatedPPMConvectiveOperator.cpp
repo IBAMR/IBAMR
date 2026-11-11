@@ -400,6 +400,13 @@ INSCollocatedPPMConvectiveOperator::~INSCollocatedPPMConvectiveOperator()
 } // ~INSCollocatedPPMConvectiveOperator
 
 void
+INSCollocatedPPMConvectiveOperator::setBdryExtrapType(const std::string& bdry_extrap_type)
+{
+    d_bdry_extrap_type = bdry_extrap_type;
+    return;
+} // setBdryExtrapType
+
+void
 INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);

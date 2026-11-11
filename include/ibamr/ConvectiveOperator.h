@@ -80,6 +80,14 @@ public:
     ConvectiveDifferencingType getConvectiveDifferencingType() const;
 
     /*!
+     * \brief Set the type of extrapolation of the velocity beyond physical boundaries, before the operator state is
+     * initialized.
+     *
+     * The default implementation does nothing.
+     */
+    virtual void setBdryExtrapType(const std::string& bdry_extrap_type);
+
+    /*!
      * \brief Compute N = u * grad Q.
      */
     virtual void applyConvectiveOperator(int Q_idx, int N_idx) = 0;

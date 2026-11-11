@@ -150,7 +150,7 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000950301
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000950302
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -269,11 +269,11 @@ Writing visualization files...
 Computing error norms.
 
 Error in u at time 0.00976562:
-  L1-norm:  0.0001782132658
-  L2-norm:  0.000168501236
-  max-norm: 0.0003546296177
+  L1-norm:  0.0001782132666
+  L2-norm:  0.0001685012362
+  max-norm: 0.0003546296174
 Error in p at time 0.00927734375:
   L1-norm:  0.1285674613
-  L2-norm:  0.1492595626
-  max-norm: 0.3261598438
+  L2-norm:  0.1492595625
+  max-norm: 0.3261598403
 +++++++++++++++++++++++++++++++++++++++++++++++++++
