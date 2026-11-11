@@ -58,6 +58,7 @@ struct NormalVelocityStencil
 
     bool beyond_corner = false;
     unsigned int adjacent_location_index = 0;
+    bool uses_adjacent_boundary_value = false;
 
     /*!
      * Replace the weighted sum by minus the value at the nearest face. The member beyond_corner must be true.
