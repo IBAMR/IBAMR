@@ -18,6 +18,7 @@
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredPressureBcCoef.h>
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StokesSpecifications.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
@@ -533,15 +534,17 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM>>
     InterpolationTransactionComponent p_transaction_comp;
     if (p_ins_bc_coef)
     {
-        InterpolationTransactionComponent p_transaction_comp(d_p_idx,
-                                                             p_idx,
-                                                             /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                             /*USE_CF_INTERPOLATION*/ true,
-                                                             /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                             /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                             /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                             p_ins_bc_coef,
-                                                             Pointer<VariableFillPattern<NDIM>>(nullptr));
+        InterpolationTransactionComponent p_transaction_comp =
+            StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(
+                d_p_idx,
+                p_idx,
+                /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
+                /*USE_CF_INTERPOLATION*/ true,
+                /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                /*CONSISTENT_TYPE_2_BDRY*/ false,
+                p_ins_bc_coef,
+                Pointer<VariableFillPattern<NDIM>>(nullptr));
         Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
         hier_p_bdry_fill->setHomogeneousBc(false);
@@ -549,15 +552,17 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM>>
     }
     else if (p_vc_ins_bc_coef)
     {
-        InterpolationTransactionComponent p_transaction_comp(d_p_idx,
-                                                             p_idx,
-                                                             /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                             /*USE_CF_INTERPOLATION*/ true,
-                                                             /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                             /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                             /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                             p_vc_ins_bc_coef,
-                                                             Pointer<VariableFillPattern<NDIM>>(nullptr));
+        InterpolationTransactionComponent p_transaction_comp =
+            StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(
+                d_p_idx,
+                p_idx,
+                /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
+                /*USE_CF_INTERPOLATION*/ true,
+                /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                /*CONSISTENT_TYPE_2_BDRY*/ false,
+                p_vc_ins_bc_coef,
+                Pointer<VariableFillPattern<NDIM>>(nullptr));
 
         Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);

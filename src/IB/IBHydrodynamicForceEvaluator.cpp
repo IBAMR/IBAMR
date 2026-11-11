@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <ibamr/IBHydrodynamicForceEvaluator.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/IBTK_MPI.h>
@@ -1258,15 +1259,16 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
 
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> transaction_comp(1);
-        transaction_comp[0] = InterpolationTransactionComponent(d_p_idx,
-                                                                p_src_idx,
-                                                                /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                                /*USE_CF_INTERPOLATION*/ true,
-                                                                /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                                /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                p_ins_bc_coef,
-                                                                Pointer<VariableFillPattern<NDIM>>(nullptr));
+        transaction_comp[0] = StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(
+            d_p_idx,
+            p_src_idx,
+            /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
+            /*USE_CF_INTERPOLATION*/ true,
+            /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+            /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+            /*CONSISTENT_TYPE_2_BDRY*/ false,
+            p_ins_bc_coef,
+            Pointer<VariableFillPattern<NDIM>>(nullptr));
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
         hier_bdry_fill->setHomogeneousBc(false);

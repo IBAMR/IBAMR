@@ -15,6 +15,7 @@
 
 #include <ibamr/StaggeredStokesBlockFactorizationPreconditioner.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/CellNoCornersFillPattern.h>
@@ -244,22 +245,24 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
     // Setup the interpolation transaction information.
     Pointer<VariableFillPattern<NDIM>> fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_transaction_comp(P_idx,
-                                                         DATA_REFINE_TYPE,
-                                                         USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE,
-                                                         BDRY_EXTRAP_TYPE,
-                                                         CONSISTENT_TYPE_2_BDRY,
-                                                         d_P_bc_coef,
-                                                         fill_pattern);
-    InterpolationTransactionComponent P_scratch_transaction_comp(d_P_scratch_idx,
-                                                                 DATA_REFINE_TYPE,
-                                                                 USE_CF_INTERPOLATION,
-                                                                 DATA_COARSEN_TYPE,
-                                                                 BDRY_EXTRAP_TYPE,
-                                                                 CONSISTENT_TYPE_2_BDRY,
-                                                                 d_P_bc_coef,
-                                                                 fill_pattern);
+    InterpolationTransactionComponent P_transaction_comp =
+        StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(P_idx,
+                                                                                DATA_REFINE_TYPE,
+                                                                                USE_CF_INTERPOLATION,
+                                                                                DATA_COARSEN_TYPE,
+                                                                                BDRY_EXTRAP_TYPE,
+                                                                                CONSISTENT_TYPE_2_BDRY,
+                                                                                d_P_bc_coef,
+                                                                                fill_pattern);
+    InterpolationTransactionComponent P_scratch_transaction_comp =
+        StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(d_P_scratch_idx,
+                                                                                DATA_REFINE_TYPE,
+                                                                                USE_CF_INTERPOLATION,
+                                                                                DATA_COARSEN_TYPE,
+                                                                                BDRY_EXTRAP_TYPE,
+                                                                                CONSISTENT_TYPE_2_BDRY,
+                                                                                d_P_bc_coef,
+                                                                                fill_pattern);
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -387,14 +390,15 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
     // Setup hierarchy operators.
     Pointer<VariableFillPattern<NDIM>> fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          d_P_bc_coef,
-                                                          fill_pattern);
+    InterpolationTransactionComponent P_scratch_component =
+        StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(d_P_scratch_idx,
+                                                                                DATA_REFINE_TYPE,
+                                                                                USE_CF_INTERPOLATION,
+                                                                                DATA_COARSEN_TYPE,
+                                                                                BDRY_EXTRAP_TYPE,
+                                                                                CONSISTENT_TYPE_2_BDRY,
+                                                                                d_P_bc_coef,
+                                                                                fill_pattern);
     d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->setHomogeneousBc(true);
     d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);

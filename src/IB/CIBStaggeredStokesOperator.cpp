@@ -152,15 +152,16 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                                                              d_U_bc_coefs,
                                                              d_U_fill_pattern,
                                                              d_bdry_interp_type);
-    transaction_comps[1] = InterpolationTransactionComponent(P_idx,
-                                                             d_refine_type,
-                                                             d_use_cf_interpolation,
-                                                             d_coarsen_type,
-                                                             d_bdry_extrap_type,
-                                                             d_consistent_type_2_bdry,
-                                                             d_P_bc_coef,
-                                                             d_P_fill_pattern,
-                                                             d_bdry_interp_type);
+    transaction_comps[1] =
+        StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(P_idx,
+                                                                                d_refine_type,
+                                                                                d_use_cf_interpolation,
+                                                                                d_coarsen_type,
+                                                                                d_bdry_extrap_type,
+                                                                                d_consistent_type_2_bdry,
+                                                                                d_P_bc_coef,
+                                                                                d_P_fill_pattern,
+                                                                                d_bdry_interp_type);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
@@ -267,15 +268,16 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
                                                                d_U_bc_coefs,
                                                                d_U_fill_pattern,
                                                                d_bdry_interp_type);
-    d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1),
-                                                               d_refine_type,
-                                                               d_use_cf_interpolation,
-                                                               d_coarsen_type,
-                                                               d_bdry_extrap_type,
-                                                               d_consistent_type_2_bdry,
-                                                               d_P_bc_coef,
-                                                               d_P_fill_pattern,
-                                                               d_bdry_interp_type);
+    d_transaction_comps[1] =
+        StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(in.getComponentDescriptorIndex(1),
+                                                                                d_refine_type,
+                                                                                d_use_cf_interpolation,
+                                                                                d_coarsen_type,
+                                                                                d_bdry_extrap_type,
+                                                                                d_consistent_type_2_bdry,
+                                                                                d_P_bc_coef,
+                                                                                d_P_fill_pattern,
+                                                                                d_bdry_interp_type);
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();

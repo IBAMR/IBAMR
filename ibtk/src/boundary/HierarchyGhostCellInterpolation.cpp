@@ -33,6 +33,7 @@
 
 #include <Box.h>
 #include <CartesianGridGeometry.h>
+#include <CellData.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenOperator.h>
 #include <CoarsenPatchStrategy.h>
@@ -89,6 +90,215 @@ static Timer* t_fill_data_coarsen;
 static Timer* t_fill_data_refine;
 static Timer* t_fill_data_set_physical_bcs;
 } // namespace
+
+// Extends the temporary coarse data of the coarse-fine interpolation beyond physical boundaries with the Robin ghost
+// value, or with linear or quadratic extrapolation, as each component requires.
+class HierarchyGhostCellInterpolation::CoarseDataExtension : public RefinePatchStrategy<NDIM>
+{
+public:
+    explicit CoarseDataExtension(const HierarchyGhostCellInterpolation& ghost_fill);
+
+    void setFillTime(const double fill_time)
+    {
+        d_fill_time = fill_time;
+    }
+
+    void setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const IntVector<NDIM>& ghost_width_to_fill) override;
+
+    IntVector<NDIM> getRefineOpStencilWidth() const override;
+
+    void preprocessRefine(Patch<NDIM>& fine,
+                          const Patch<NDIM>& coarse,
+                          const Box<NDIM>& fine_box,
+                          const IntVector<NDIM>& ratio) override;
+
+    void postprocessRefine(Patch<NDIM>& fine,
+                           const Patch<NDIM>& coarse,
+                           const Box<NDIM>& fine_box,
+                           const IntVector<NDIM>& ratio) override;
+
+    // Stop if the extension that the components determine differs from the one made at set-up.
+    void checkReset(const std::vector<InterpolationTransactionComponent>& comps) const;
+
+private:
+    // Whether the component has Robin coefficients that its coarse data can be extended with.
+    static bool usesRobinCoefs(const InterpolationTransactionComponent& comp)
+    {
+        return !comp.d_sc_phys_bdry_op &&
+               std::any_of(comp.d_robin_bc_coefs.begin(),
+                           comp.d_robin_bc_coefs.end(),
+                           [](const RobinBcCoefStrategy<NDIM>* coef) { return coef != nullptr; });
+    }
+
+    // Whether the coarse data of a component are extended with the Robin ghost value.
+    static bool hasRobinExtension(const InterpolationTransactionComponent& comp)
+    {
+        return usesRobinCoefs(comp) && !comp.d_extend_coarse_data_linearly;
+    }
+
+    // Whether the coarse data of a component are extended linearly in place of the Robin ghost value.
+    static bool hasLinearExtension(const InterpolationTransactionComponent& comp)
+    {
+        return usesRobinCoefs(comp) && comp.d_extend_coarse_data_linearly;
+    }
+
+    // Determine whether the coarse data of the components are extended by quadratic extrapolation, and the stencil
+    // width that getRefineOpStencilWidth() returns.
+    static void determineExtension(const std::vector<InterpolationTransactionComponent>& comps,
+                                   bool& extrapolate_quadratically,
+                                   int& stencil_width);
+
+    const HierarchyGhostCellInterpolation& d_ghost_fill;
+    CartExtrapPhysBdryOp d_extrap_op;
+    int d_stencil_width = 1;
+    bool d_extrapolate_quadratically = false;
+    double d_fill_time = 0.0;
+};
+
+HierarchyGhostCellInterpolation::CoarseDataExtension::CoarseDataExtension(
+    const HierarchyGhostCellInterpolation& ghost_fill)
+    : d_ghost_fill(ghost_fill)
+{
+    d_extrap_op.setExtrapolationType("QUADRATIC");
+    determineExtension(d_ghost_fill.d_transaction_comps, d_extrapolate_quadratically, d_stencil_width);
+    return;
+} // CoarseDataExtension
+
+void
+HierarchyGhostCellInterpolation::CoarseDataExtension::determineExtension(
+    const std::vector<InterpolationTransactionComponent>& comps,
+    bool& extrapolate_quadratically,
+    int& stencil_width)
+{
+    // Quadratic extrapolation uses three layers next to a boundary and requires stencil width 2, which the schedule
+    // supports only if all destination data have that many ghost cells.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    bool has_extrapolated_component = false;
+    bool wide_data = true;
+    for (const auto& comp : comps)
+    {
+        has_extrapolated_component =
+            has_extrapolated_component || (comp.d_use_cf_bdry_interpolation && !usesRobinCoefs(comp));
+        wide_data =
+            wide_data &&
+            var_db->getPatchDescriptor()->getPatchDataFactory(comp.d_dst_data_idx)->getGhostCellWidth().min() >= 2;
+    }
+    extrapolate_quadratically = has_extrapolated_component && wide_data;
+    stencil_width = extrapolate_quadratically ? 2 : 1;
+    return;
+} // determineExtension
+
+void
+HierarchyGhostCellInterpolation::CoarseDataExtension::checkReset(
+    const std::vector<InterpolationTransactionComponent>& comps) const
+{
+    bool extrapolate_quadratically = false;
+    int stencil_width = 1;
+    determineExtension(comps, extrapolate_quadratically, stencil_width);
+    if (extrapolate_quadratically != d_extrapolate_quadratically || stencil_width != d_stencil_width)
+    {
+        TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
+                   << "  the new transaction components require a different extension of the coarse data beyond "
+                      "physical boundaries\n"
+                   << "  call initializeOperatorState() with the new transaction components instead\n");
+    }
+    return;
+} // checkReset
+
+void
+HierarchyGhostCellInterpolation::CoarseDataExtension::setPhysicalBoundaryConditions(
+    Patch<NDIM>& /*patch*/,
+    const double /*fill_time*/,
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
+{
+    // intentionally blank
+    return;
+} // setPhysicalBoundaryConditions
+
+IntVector<NDIM>
+HierarchyGhostCellInterpolation::CoarseDataExtension::getRefineOpStencilWidth() const
+{
+    return d_stencil_width;
+} // getRefineOpStencilWidth
+
+void
+HierarchyGhostCellInterpolation::CoarseDataExtension::preprocessRefine(Patch<NDIM>& /*fine*/,
+                                                                       const Patch<NDIM>& /*coarse*/,
+                                                                       const Box<NDIM>& /*fine_box*/,
+                                                                       const IntVector<NDIM>& /*ratio*/)
+{
+    // intentionally blank
+    return;
+} // preprocessRefine
+
+void
+HierarchyGhostCellInterpolation::CoarseDataExtension::postprocessRefine(Patch<NDIM>& fine,
+                                                                        const Patch<NDIM>& coarse,
+                                                                        const Box<NDIM>& /*fine_box*/,
+                                                                        const IntVector<NDIM>& /*ratio*/)
+{
+    // Interpolation from coarse data occurs only on patches of the hierarchy.
+    if (!fine.inHierarchy())
+    {
+        return;
+    }
+
+    Pointer<PatchGeometry<NDIM>> pgeom = coarse.getPatchGeometry();
+    if (!pgeom->getTouchesRegularBoundary())
+    {
+        return;
+    }
+
+    // The data of the temporary coarse patch, which SAMRAI passes as const, are scratch data of the schedule.
+    Patch<NDIM>& coarse_patch = const_cast<Patch<NDIM>&>(coarse);
+    for (unsigned int comp_idx = 0; comp_idx < d_ghost_fill.d_transaction_comps.size(); ++comp_idx)
+    {
+        if (!d_ghost_fill.d_cf_bdry_ops[comp_idx])
+        {
+            continue;
+        }
+        const InterpolationTransactionComponent& comp = d_ghost_fill.d_transaction_comps[comp_idx];
+        const int dst_data_idx = comp.d_dst_data_idx;
+        Pointer<PatchData<NDIM>> coarse_data = coarse.getPatchData(dst_data_idx);
+        if (hasRobinExtension(comp))
+        {
+            // Computing the Robin value uses layers 0 and 1, which exist on every temporary patch next to a boundary.
+            IntVector<NDIM> width = coarse_data->getGhostCellWidth();
+            width.min(IntVector<NDIM>(1));
+            if (Pointer<CellData<NDIM, double>>(coarse_data))
+            {
+                CartCellRobinPhysBdryOp op(
+                    dst_data_idx, comp.d_robin_bc_coefs, d_ghost_fill.d_homogeneous_bc, "QUADRATIC");
+                op.setPhysicalBoundaryConditions(coarse_patch, d_fill_time, width);
+            }
+            else
+            {
+                CartSideRobinPhysBdryOp op(
+                    dst_data_idx, comp.d_robin_bc_coefs, d_ghost_fill.d_homogeneous_bc, "QUADRATIC");
+                // Set the data at Dirichlet boundaries here: if the source differs from the destination, the pre-step
+                // of fillData() sets these values only in the destination data.
+                op.setDataAtDirichletBoundaries(coarse_patch, d_fill_time);
+                op.setPhysicalBoundaryConditions(coarse_patch, d_fill_time, width);
+            }
+        }
+        else if (hasLinearExtension(comp))
+        {
+            // Linear extrapolation, like the computation of the Robin value, uses layers 0 and 1.
+            IntVector<NDIM> width = coarse_data->getGhostCellWidth();
+            width.min(IntVector<NDIM>(1));
+            CartExtrapPhysBdryOp op(dst_data_idx, "LINEAR");
+            op.setPhysicalBoundaryConditions(coarse_patch, d_fill_time, width);
+        }
+        else if (d_extrapolate_quadratically)
+        {
+            d_extrap_op.setPatchDataIndex(dst_data_idx);
+            d_extrap_op.setPhysicalBoundaryConditions(coarse_patch, 0.0, coarse_data->getGhostCellWidth());
+        }
+    }
+    return;
+} // postprocessRefine
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -225,6 +435,13 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         Pointer<SideVariable<NDIM, double>> sc_var = var;
         Pointer<EdgeVariable<NDIM, double>> ec_var = var;
         Pointer<FaceVariable<NDIM, double>> fc_var = var;
+        if (d_transaction_comps[comp_idx].d_extend_coarse_data_linearly && !cc_var)
+        {
+            TBOX_ERROR("HierarchyGhostCellInterpolation::initializeOperatorState():\n"
+                       << "  d_extend_coarse_data_linearly is true for transaction component " << comp_idx
+                       << ", whose data are not cell-centered\n"
+                       << "  set d_extend_coarse_data_linearly only for cell-centered data\n");
+        }
         Pointer<RefineOperator<NDIM>> refine_op = nullptr;
         d_cf_bdry_ops[comp_idx] = nullptr;
         Pointer<VariableFillPattern<NDIM>> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
@@ -331,6 +548,15 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
     }
 
+    // Extend the coarse data before the coarse-fine interpolations use them.
+    d_coarse_extension = nullptr;
+    if (std::any_of(
+            d_cf_bdry_ops.begin(), d_cf_bdry_ops.end(), [](const auto& cf_bdry_op) { return !cf_bdry_op.isNull(); }))
+    {
+        d_coarse_extension = std::make_unique<CoarseDataExtension>(*this);
+        refine_patch_strategies.insert(refine_patch_strategies.begin(), d_coarse_extension.get());
+    }
+
     d_refine_strategy =
         std::make_unique<RefinePatchStrategySet>(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
 
@@ -400,6 +626,12 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         }
     }
 
+    // The extension of the coarse data is set up once, in initializeOperatorState().
+    if (d_coarse_extension)
+    {
+        d_coarse_extension->checkReset(transaction_comps);
+    }
+
     // Reset the transaction components.
     d_transaction_comps = transaction_comps;
 
@@ -447,6 +679,13 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         Pointer<NodeVariable<NDIM, double>> nc_var = var;
         Pointer<SideVariable<NDIM, double>> sc_var = var;
         Pointer<EdgeVariable<NDIM, double>> ec_var = var;
+        if (d_transaction_comps[comp_idx].d_extend_coarse_data_linearly && !cc_var)
+        {
+            TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
+                       << "  d_extend_coarse_data_linearly is true for transaction component " << comp_idx
+                       << ", whose data are not cell-centered\n"
+                       << "  set d_extend_coarse_data_linearly only for cell-centered data\n");
+        }
         Pointer<RefineOperator<NDIM>> refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM>> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (d_cf_bdry_ops[comp_idx]) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
@@ -575,6 +814,7 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
 
     d_refine_alg.setNull();
     d_refine_strategy = nullptr;
+    d_coarse_extension = nullptr;
     d_refine_scheds.clear();
 
     // Indicate that the operator is NOT initialized.
@@ -587,6 +827,7 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
 void
 HierarchyGhostCellInterpolation::fillData(double fill_time)
 {
+    if (d_coarse_extension) d_coarse_extension->setFillTime(fill_time);
     IBTK_TIMER_START(t_fill_data);
 
 #if !defined(NDEBUG)

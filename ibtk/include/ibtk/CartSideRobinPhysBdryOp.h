@@ -67,10 +67,13 @@ namespace IBTK
  * boundary conditions for the normal component of the vector field.  Mixed
  * (Robin) boundary conditions are \em not supported in the normal direction.
  *
- * "QUADRATIC" interpolation with ghost cell width g uses the g + 1 cells inward from a physical boundary for the
- * tangential components, and for the normal component two cells where the boundary condition is Dirichlet and g cells
- * elsewhere. These cells must lie in the patch or in the ghost cells filled before this operator runs. The faces on a
- * Dirichlet boundary are not among the cells that the opposite boundary uses.
+ * A fill to ghost width w sets the first w ghost layers normal to each boundary. The "LINEAR" interpolation uses the w
+ * cells next to the boundary. The "QUADRATIC" interpolation uses w + 1 cells for the tangential components, and for the
+ * normal component two cells where the condition is Dirichlet and w cells elsewhere. These cells must lie in the patch
+ * or in ghost cells set by an earlier fill. The fill at the opposite boundary does not use the faces on a Dirichlet
+ * boundary. The stencil width for "QUADRATIC" interpolation is the ghost width of the data. At corners and edges, the
+ * "QUADRATIC" interpolation is exact for quadratic functions and uses only the ghost values at the adjacent boundaries
+ * and the two cells nearest to the corner along each boundary normal.
  */
 class CartSideRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
 {

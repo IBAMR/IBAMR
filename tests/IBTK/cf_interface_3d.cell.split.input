@@ -3,6 +3,7 @@
 MAX_LEVELS = 2
 N = 8
 REF_RATIO = 2
+GHOST_WIDTH = 2
 CENTERING = "CELL"
 
 Main {

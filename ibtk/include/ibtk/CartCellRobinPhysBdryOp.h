@@ -67,8 +67,11 @@ namespace IBTK
  * the two classes is that class CartCellRobinPhysBdryOp allows for the
  * specification of boundary conditions for vector-valued quantities.
  *
- * "QUADRATIC" interpolation with ghost cell width g uses the g + 1 cells inward from a physical boundary, which must
- * lie in the patch or in the ghost cells filled before this operator runs.
+ * A fill to ghost width w sets the first w ghost layers normal to each boundary. The "LINEAR" interpolation uses the w
+ * cells next to the boundary. The "QUADRATIC" interpolation uses w + 1 cells, which must lie in the patch or in ghost
+ * cells set by an earlier fill. The stencil width for "QUADRATIC" interpolation is the ghost width of the data.
+ * At corners and edges, the "QUADRATIC" interpolation is exact for quadratic functions and uses only the ghost values
+ * at the adjacent boundaries and the two cells nearest to the corner along each boundary normal.
  */
 class CartCellRobinPhysBdryOp : public RobinPhysBdryPatchStrategy
 {
