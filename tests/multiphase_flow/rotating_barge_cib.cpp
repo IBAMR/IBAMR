@@ -71,12 +71,9 @@ main(int argc, char* argv[])
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
-    // Several parts of the code (such as LDataManager) expect mesh files,
-    // specified in the input file, to exist in the current working
-    // directory. Since tests are run in temporary directories we need to
-    // regenerate these input files first.
-    //
-    // The following is simply the bargeGen executable:
+    // Generate the mesh files named in the input file in the working directory of the test, where LDataManager and
+    // other classes read them.
+    // The code is a copy of examples/multiphase_flow/ex11/bargeGen.cpp.
     if (IBTK_MPI::getRank() == 0)
     {
         const double Lx = 5.0;

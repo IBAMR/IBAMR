@@ -11,28 +11,9 @@
 //
 // ---------------------------------------------------------------------
 
-// This test checks LevelSetUtilities::LevelSetMassLossFixer and the
-// fixMassLoss{2,3}PhaseFlows callbacks that apply it, which correct a phase
-// volume computed from the regularized Heaviside/delta functions to a target
-// by a uniform shift of phi.
-//
-// The input file's "mode" key selects one of three test modes:
-//   - "algebraic" (the default): check_algebraic_corrections() sweeps
-//     synthetic phi/psi fields (the cases[] array in that function) through
-//     the fixer directly, once for a two-phase LevelSetContainer and once for
-//     a three-phase one. "case = N" in the log indexes into cases[], with the
-//     full two-phase sweep printed first, followed by the three-phase sweep.
-//     The "failure" input key ("budget_exhausted", "target_infeasible", or
-//     "nonfinite") instead sets up one correction that must fail; the
-//     expected output is then the error message.
-//   - "lifecycle": check_correction_lifecycle() registers the fixer as a
-//     postprocessIntegrateHierarchy callback and advances the hierarchy
-//     integrator through several steps, exercising the correction-interval
-//     skip logic and, with the "test_restart" input key, a restart. The
-//     "phases" input key (2 or 3) selects the container.
-//   - "transport": check_corrected_transport() advances a transported,
-//     periodically reinitialized level set with and without the fixer
-//     attached and compares both against the exact translating circle.
+// Check LevelSetUtilities::LevelSetMassLossFixer, which shifts the level set uniformly to correct a phase volume
+// to a target, and the fixMassLoss{2,3}PhaseFlows callbacks. The input key "mode" selects algebraic corrections of
+// synthetic fields (the default), the callback lifecycle with an optional restart, or the transport of a circle.
 
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/LevelSetUtilities.h>
@@ -173,7 +154,7 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
         Logger::getInstance()->setAbortAppender(new TestAppender());
     }
     const bool exact_initial_success = input->getBoolWithDefault("exact_initial_success", false);
-    // The third coordinate is extruded for these algebraic cases.
+    // In three spatial dimensions, these fields are constant in the third coordinate.
     using Case = std::tuple<Geometry, Geometry, double>;
     const Case cases[] = {
         { Geometry::NEGATIVE, Geometry::POSITIVE, 1.0 },   { Geometry::POSITIVE, Geometry::POSITIVE, 0.0 },
@@ -254,8 +235,8 @@ check_algebraic_corrections(Pointer<AdvDiffHierarchyIntegrator> integrator,
             }
             if (!failure.empty())
             {
-                // The correction should have failed. Return normally so that
-                // the expected-error case is rejected.
+                // The correction stops with an error before this point. Return normally so that attest reports the
+                // missing error.
                 break;
             }
             const double q = fixer.getLagrangeMultiplier();
@@ -362,7 +343,7 @@ check_correction_lifecycle(Pointer<AdvDiffHierarchyIntegrator> integrator,
             fixer.getTargetVolume() != 0.4 * capacity || fixer.getMaxIterations() != 96 ||
             fixer.getErrorRelTolerance() != 5.0e-13 || fixer.getLevelSetContainer().getInterfaceHalfWidth() != 1.0)
         {
-            TBOX_ERROR("Correction regression: restart/input precedence\n");
+            TBOX_ERROR("Correction regression: restart and input settings are applied in the wrong order\n");
         }
     }
     integrator->registerPostprocessIntegrateHierarchyCallback(

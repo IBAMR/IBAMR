@@ -1,1 +1,2 @@
-PETSc option '-poisson_ksp_type' is defined more than once in inline settings
+AppInitializer::AppInitializer():
+  PETSc option '-poisson_ksp_type' is defined more than once in inline settings

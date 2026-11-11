@@ -1,30 +1,30 @@
 domain 0:
-  below the domain is moved to the lower boundary = 1
-  the lower boundary is not moved = 1
-  the upper boundary is moved into the domain = 1
-  above the domain is moved into the domain = 1
-  cell of the upper boundary is interior = 1
+  a point below the domain is moved to the lower boundary = 1
+  a point on the lower boundary is unchanged = 1
+  a point on the upper boundary is moved into the domain = 1
+  a point above the domain is moved into the domain = 1
+  the cell of the upper boundary is interior = 1
 domain 1:
-  below the domain is moved to the lower boundary = 1
-  the lower boundary is not moved = 1
-  the upper boundary is moved into the domain = 1
-  above the domain is moved into the domain = 1
-  cell of the upper boundary is interior = 1
+  a point below the domain is moved to the lower boundary = 1
+  a point on the lower boundary is unchanged = 1
+  a point on the upper boundary is moved into the domain = 1
+  a point above the domain is moved into the domain = 1
+  the cell of the upper boundary is interior = 1
 domain 2:
-  below the domain is moved to the lower boundary = 1
-  the lower boundary is not moved = 1
-  the upper boundary is moved into the domain = 1
-  above the domain is moved into the domain = 1
-  cell of the upper boundary is interior = 1
+  a point below the domain is moved to the lower boundary = 1
+  a point on the lower boundary is unchanged = 1
+  a point on the upper boundary is moved into the domain = 1
+  a point above the domain is moved into the domain = 1
+  the cell of the upper boundary is interior = 1
 domain 3:
-  below the domain is moved to the lower boundary = 1
-  the lower boundary is not moved = 1
-  the upper boundary is moved into the domain = 1
-  above the domain is moved into the domain = 1
-  cell of the upper boundary is interior = 1
+  a point below the domain is moved to the lower boundary = 1
+  a point on the lower boundary is unchanged = 1
+  a point on the upper boundary is moved into the domain = 1
+  a point above the domain is moved into the domain = 1
+  the cell of the upper boundary is interior = 1
 domain 4:
-  below the domain is moved to the lower boundary = 1
-  the lower boundary is not moved = 1
-  the upper boundary is moved into the domain = 1
-  above the domain is moved into the domain = 1
-  cell of the upper boundary is interior = 1
+  a point below the domain is moved to the lower boundary = 1
+  a point on the lower boundary is unchanged = 1
+  a point on the upper boundary is moved into the domain = 1
+  a point above the domain is moved into the domain = 1
+  the cell of the upper boundary is interior = 1

@@ -97,11 +97,6 @@ circular_interface_neighborhood(int D_idx,
     return;
 } // circular_interface_neighborhood
 
-// If the input has a RedistributionTests database, check volume redistribution
-// and the mass constraint on a prescribed field (key "field") and report the
-// phase volume, its drift, the L1 distance error where the field has an exact
-// distance, and the largest change made by redistribution, for each
-// combination of the two options.
 namespace
 {
 enum class RedistributionField
@@ -120,6 +115,9 @@ copy_redistribution_distance(const int idx, Pointer<HierarchyMathOps> ops, doubl
     data_ops.copyData(idx, source_idx);
 }
 
+// Check volume redistribution and the mass constraint, each on and off, for the field named by the key "field". Report
+// the phase volume, its drift, the L1 distance error if the field has an exact distance, and the largest change made by
+// redistribution.
 void
 check_redistribution(Pointer<PatchHierarchy<NDIM>> hierarchy,
                      Pointer<CellVariable<NDIM, double>> variable,
@@ -158,8 +156,7 @@ check_redistribution(Pointer<PatchHierarchy<NDIM>> hierarchy,
     LocationIndexRobinBcCoefs<NDIM> bc;
     for (int face = 0; face < 2 * NDIM; ++face)
     {
-        // The plane uses boundary slopes consistent with the exact distance;
-        // the other fields use zero slope.
+        // For the plane, the boundary slopes match the exact distance. For the other fields, the slopes are zero.
         const double slope = field == RedistributionField::PLANE && face < 2 ? (face == 0 ? -1.0 : 1.0) : 0.0;
         bc.setBoundarySlope(face, slope);
     }
@@ -270,7 +267,7 @@ check_redistribution(Pointer<PatchHierarchy<NDIM>> hierarchy,
             difference = IBTK_MPI::maxReduction(difference);
             if (field == RedistributionField::CURVE && redistribution && !(difference > 128.0 * eps))
             {
-                TBOX_ERROR("Redistribution regression: resolved correction is inactive\n");
+                TBOX_ERROR("Redistribution regression: redistribution did not change the CURVE field\n");
             }
             if ((field == RedistributionField::CONSTANT || field == RedistributionField::PLANE) && redistribution &&
                 difference > 128.0 * eps)

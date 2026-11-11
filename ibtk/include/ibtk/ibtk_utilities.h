@@ -170,9 +170,9 @@ double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
  *
  * Values on the patch boundary (e.g., side-centered normal components) are interior.
  *
- * Both indices must be allocated and hold data of the same element type. Data whose geometries compute no overlap with
- * each other (for example, data of different centerings) produce an error. If the depths differ, only the common
- * components are copied.
+ * Both indices must refer to allocated data of the same element type. The function stops with an error if the box
+ * geometries of the source and destination data compute no overlap, for example for data of different centerings. If
+ * the depths differ, only the common components are copied.
  */
 void copy_ghost_region(const SAMRAI::hier::PatchLevel<NDIM>& patch_level, int dst_idx, int src_idx);
 
@@ -241,20 +241,18 @@ tensor_idx_to_voigt(const std::pair<int, int>& idx)
 }
 
 /*!
- * Regularized Heaviside function with smoothing half-width alpha.
- * For finite phi and finite positive alpha, values lie in [0, 1], with exact
- * saturation at both cutoffs. Values are accurate to absolute rounding error;
- * tiny fractions near the cutoffs do not have full relative accuracy. Use
- * smooth_heaviside(-phi, alpha) for a small complementary fraction that
- * subtraction from one would lose.
+ * Regularized Heaviside function with smoothing half-width alpha and cutoffs at phi = -alpha and phi = alpha.
+ * For finite phi and finite positive alpha, values lie in [0, 1], with exact saturation at both cutoffs. Values are
+ * accurate to absolute rounding error. Tiny values near the cutoffs do not have full relative accuracy. Use
+ * smooth_heaviside(-phi, alpha) for a small complementary fraction that subtraction from one would lose.
  */
 double smooth_heaviside(const double& phi, const double& alpha);
 
 /*!
  * Analytic derivative of smooth_heaviside(), with the same half-width alpha.
  * Values are nonnegative and exactly zero at and outside both cutoffs.
- * Requires finite phi and finite positive alpha; the result may underflow or
- * overflow when the derivative is not representable.
+ * Requires finite phi and finite positive alpha. The result may underflow or overflow if the derivative is not
+ * representable.
  */
 double smooth_delta(const double& phi, const double& alpha);
 

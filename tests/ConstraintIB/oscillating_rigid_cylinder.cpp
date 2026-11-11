@@ -68,9 +68,8 @@ main(int argc, char* argv[])
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
-    // Several parts of the code (such as LDataManager) expect mesh files,
-    // specified in the input file, to exist in the current working
-    // directory. Rather than store them we generate them here programatically:
+    // Generate the mesh files named in the input file in the working directory of the test, where LDataManager and
+    // other classes read them.
     if (IBTK_MPI::getRank() == 0)
     {
         std::ofstream output("cylinder2d.vertex");

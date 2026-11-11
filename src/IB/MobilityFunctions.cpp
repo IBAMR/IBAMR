@@ -362,9 +362,8 @@ InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta)
     return;
 } // InterpolateConstants
 
-// Returns the viscous CFL number beta = mu dt / (rho dx^2). A fluid of zero
-// density has no inertia: beta is unbounded and the steady Stokes fits are
-// used, which require a positive viscosity. An inviscid fluid has beta = 0.
+// Return the viscous CFL number beta = mu dt / (rho dx^2): 0 for an inviscid fluid and infinity for zero density. An
+// infinite beta selects the steady Stokes fits, which require a positive viscosity.
 double
 get_viscous_cfl_number(const double MU, const double rho, const double Dt, const double DX)
 {
@@ -372,8 +371,9 @@ get_viscous_cfl_number(const double MU, const double rho, const double Dt, const
     {
         if (MU <= 0.0)
         {
-            TBOX_ERROR("MobilityFunctions: the viscosity must be positive when the density is zero, but mu = "
-                       << MU << " and rho = " << rho << ".\n");
+            TBOX_ERROR("MobilityFunctions::constructEmpiricalMobilityMatrix():\n"
+                       << "  the viscosity must be positive if the density is not positive: mu = " << MU
+                       << ", rho = " << rho << "\n");
         }
         return std::numeric_limits<double>::infinity();
     }
@@ -581,8 +581,8 @@ MobilityFunctions::constructEmpiricalMobilityMatrix(const char* IBKernelName,
                                                     const double L_domain,
                                                     double* MM)
 {
-    // The fitting constants depend on the kernel, the fluid properties, the time step size, and the grid spacing, so
-    // compute them for the arguments of this call. The calls for individual pairs of markers below reuse them.
+    // Compute the fitting constants for the kernel, fluid properties, time-step size, and grid spacing of this call.
+    // The calls for individual pairs of markers below reuse them.
     const double mob_fit_factor = InitializeAllConstants(IBKernelName, MU, rho, Dt, DX);
 
     int row, col;

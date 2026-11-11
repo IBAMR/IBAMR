@@ -975,30 +975,29 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
 
     if (!std::isfinite(S) || !std::isfinite(W))
     {
-        TBOX_ERROR(d_object_name << "::applyVolumeRedistribution(): nonfinite source or weight integral\n"
-                                 << "  S = " << S << ", W = " << W << '\n');
+        TBOX_ERROR(d_object_name << "::applyVolumeRedistribution():\n"
+                                 << "  nonfinite source or weight integral: S = " << S << ", W = " << W << '\n');
     }
     if (W < 0.0)
     {
-        TBOX_ERROR(d_object_name << "::applyVolumeRedistribution(): negative redistribution weight integral\n"
-                                 << "  S = " << S << ", W = " << W << '\n');
+        TBOX_ERROR(d_object_name << "::applyVolumeRedistribution():\n"
+                                 << "  negative redistribution weight integral: S = " << S << ", W = " << W << '\n');
     }
     if (W == 0.0)
     {
         if (S != 0.0)
         {
-            TBOX_ERROR(
-                d_object_name << "::applyVolumeRedistribution(): nonzero source with zero redistribution weight; "
-                              << "the correction is not representable (possible underflow)\n"
-                              << "  S = " << S << ", W = " << W << '\n');
+            TBOX_ERROR(d_object_name << "::applyVolumeRedistribution():\n"
+                                     << "  nonzero source integral with zero redistribution weight integral: S = " << S
+                                     << ", W = " << W << '\n');
         }
         return;
     }
     const double correction = S / W;
     if (!std::isfinite(correction))
     {
-        TBOX_ERROR(d_object_name << "::applyVolumeRedistribution(): nonfinite redistribution quotient\n"
-                                 << "  S = " << S << ", W = " << W << '\n');
+        TBOX_ERROR(d_object_name << "::applyVolumeRedistribution():\n"
+                                 << "  nonfinite redistribution quotient: S = " << S << ", W = " << W << '\n');
     }
 
     // Validate the complete proposed update before modifying distance data.
@@ -1021,7 +1020,8 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
                 const double value = (*phi)(i()) + dt * correction * (*lambda)(i());
                 if (!std::isfinite(value))
                 {
-                    TBOX_ERROR(d_object_name << "::applyVolumeRedistribution(): nonfinite proposed distance value\n");
+                    TBOX_ERROR(d_object_name << "::applyVolumeRedistribution():\n"
+                                             << "  nonfinite proposed distance value\n");
                 }
             }
         }

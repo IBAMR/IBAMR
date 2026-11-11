@@ -44,8 +44,9 @@ namespace IBTK
 /*!
  * \brief Storage conventions for pointwise MatrixNd values.
  *
- * FULL uses row-major depth ordering: component (i,j) has depth i*NDIM+j.
- * SYMMETRIC uses (xx, yy, xy) in 2D and (xx, yy, zz, yz, xz, xy) in 3D.
+ * With FULL, component (i,j) is stored at depth i*NDIM+j. With SYMMETRIC, the
+ * depths contain (xx, yy, xy) in two spatial dimensions and (xx, yy, zz, yz,
+ * xz, xy) in three spatial dimensions.
  */
 enum class TensorStorage
 {
@@ -63,23 +64,25 @@ inline std::string enum_to_string<TensorStorage>(TensorStorage value);
  * \brief Initialize or transform Cartesian patch-interior values with a functor.
  *
  * Data must be CellData, NodeData, SideData, FaceData, or EdgeData of doubles.
- * Value must be double, VectorNd, VectorXd, or MatrixNd: a double callback is
- * evaluated for every depth, VectorNd requires depth NDIM, VectorXd uses the
- * complete depth vector, and MatrixNd requires a TensorStorage and the
- * corresponding depth.
+ * Value must be one of these types:
+ * - double, evaluated separately for each depth;
+ * - VectorNd, which requires depth NDIM;
+ * - VectorXd, which contains all depths;
+ * - MatrixNd, which requires a TensorStorage and the corresponding depth.
  *
  * Function must support exactly one of these signatures:
  * \code
  * Value(const VectorNd& x, double time, int depth, int axis);
  * Value(const Value& q, const VectorNd& x, double time, int depth, int axis);
  * \endcode
- * The first initializes data; the second transforms initialized data in place.
- * depth is the scalar depth index, or zero for vector and tensor callbacks.
+ * The first signature initializes data. The second transforms initialized data in
+ * place. depth is the scalar depth index, or zero if Value is a vector or tensor
+ * type.
  * axis is the orientation for side-, face-, and edge-centered data, or
  * invalid_index for cell- and node-centered data.
  *
- * Ghost values are neither read nor modified, and values shared between
- * patches are evaluated on each patch that holds them.
+ * Ghost values are neither read nor modified. A value shared between patches is
+ * evaluated on every patch whose data contain it.
  *
  * \see make_cart_grid_pointwise_function()
  */
@@ -98,11 +101,11 @@ public:
     CartGridPointwiseFunction(std::string object_name, Function function, TensorStorage storage);
 
     /*!
-     * \brief Conservatively report that the supplied function depends on time.
+     * \brief Return true, because the functor may depend on time.
      */
     bool isTimeDependent() const override;
 
-    /*! \brief Apply the callback to the allocated double-precision patch data. */
+    /*! \brief Apply the functor to the allocated double-precision patch data. */
     void setDataOnPatch(int data_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
@@ -128,16 +131,19 @@ private:
 
     struct Centering
     {
-        /*! \brief Whether the centering has oriented data arrays. */
+        /*! \brief Return whether the centering has oriented data arrays. */
         static constexpr bool is_staggered();
 
-        /*! \brief Whether the data allocate the requested orientation. */
+        /*! \brief Return whether \a data has an array for orientation \a axis. */
         static bool has_axis(const Data& data, int axis);
 
-        /*! \brief Iterate over the specified patch interior and orientation. */
+        /*! \brief Return an iterator over \a box for orientation \a axis. */
         static typename Data::Iterator begin(const SAMRAI::hier::Box<NDIM>& box, int axis);
 
-        /*! \brief Locate the data relative to the lower corner of its cell. */
+        /*!
+         * \brief Return the position of the data relative to the lower corner of its cell, in units of the grid
+         * spacing.
+         */
         static VectorNd offset(int axis);
 
         /*! \brief Convert a centered index to Cartesian coordinate order. */
@@ -150,7 +156,7 @@ private:
         /*! \brief Validate tensor storage and return its required depth. */
         static int tensor_depth(TensorStorage storage);
 
-        /*! \brief Check the allocated depth against the callback value type. */
+        /*! \brief Check the allocated depth against Value. */
         static void validate_depth(int depth, TensorStorage storage);
 
         /*! \brief Allocate scratch space for one collocated value. */
@@ -172,7 +178,7 @@ private:
         static void store(const Value& value, Data& data, const Index& index, int depth, TensorStorage storage);
     };
 
-    /*! \brief Evaluate the callback on patch-interior data of the selected centering. */
+    /*! \brief Evaluate the functor on patch-interior data of the selected centering. */
     void applyPointwise(Data& data,
                         const SAMRAI::hier::Box<NDIM>& box,
                         const SAMRAI::geom::CartesianPatchGeometry<NDIM>& geometry,
@@ -185,9 +191,9 @@ private:
 /*!
  * \brief Construct a scalar or vector pointwise function, deducing the functor type.
  *
- * The patch-data factory of var selects the centering. var is not retained,
- * and the returned function may be applied to other variables of the same
- * data type. MatrixNd functions require the overload with TensorStorage.
+ * The patch-data factory of var selects the centering. The returned function
+ * does not store var and may be applied to other variables of the same data
+ * type. MatrixNd functions require the overload with TensorStorage.
  *
  * \code
  * const double factor = 2.0;

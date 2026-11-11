@@ -21,7 +21,7 @@
 namespace IBTK
 {
 /*!
- * \brief Whether two strings are equal when the ASCII letters are compared without regard to case.
+ * \brief Return whether two strings are equal when the ASCII letters are compared without regard to case.
  *
  * The comparison does not depend on the locale. Every other byte, including the bytes of a multibyte character,
  * must match exactly. The strings must use an encoding, such as UTF-8, in which bytes below 0x80 occur only as

@@ -78,10 +78,8 @@ main(int argc, char* argv[])
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
-    // Several parts of the code (such as LDataManager) expect mesh files,
-    // specified in the input file, to exist in the current working
-    // directory. Since tests are run in temporary directories we need to regenerate these input
-    // to work.
+    // Copy the mesh files named in the input file into the working directory of the test, where LDataManager and
+    // other classes read them.
     if (IBTK_MPI::getRank() == 0)
     {
         std::ifstream structure_vertex_stream(SOURCE_DIR "/cylinder2d_water_entry.vertex");
