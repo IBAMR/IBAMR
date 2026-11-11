@@ -161,6 +161,17 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
 {
     if (d_integrator_is_initialized) return;
 
+    // With creeping flow, the conservative integrator does not run its mass and convective momentum integrator, which
+    // sets the density at the new time. creeping_flow is final once the integrator is initialized.
+    if (d_creeping_flow)
+    {
+        TBOX_ERROR(
+            "INSVCStaggeredConservativeHierarchyIntegrator::"
+            "initializeHierarchyIntegrator():\n"
+            << "  creeping_flow == true is not supported by the conservative integrator\n"
+            << "  use INSVCStaggeredNonConservativeHierarchyIntegrator for creeping flow\n");
+    }
+
     INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
     // Get the density variable, which must be side-centered and maintained by the

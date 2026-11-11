@@ -40,6 +40,8 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include "../tests.h"
+
 #include <ibamr/app_namespaces.h>
 
 // Application
@@ -62,6 +64,11 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+
+    // Omit file names and line numbers from the output files.
+    Logger::getInstance()->setWarning(false);
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -190,7 +197,7 @@ main(int argc, char* argv[])
         }
 
         // Setup the INS maintained material properties.
-        Pointer<Variable<NDIM>> rho_var;
+        Pointer<hier::Variable<NDIM>> rho_var;
         if (conservative_form)
         {
             rho_var = new SideVariable<NDIM, double>("rho");

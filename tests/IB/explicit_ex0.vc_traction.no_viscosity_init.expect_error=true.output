@@ -1,0 +1,11 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+Program abort called with error message
+
+    INSStaggeredDivergenceFreePhysBdryOp::Extension::evaluateDataPoints():
+  the viscosity 0 at index (64,0) of patch 0 of level 0 is not positive
+  register initial conditions for the viscosity if only reset functions set it at the new time
+

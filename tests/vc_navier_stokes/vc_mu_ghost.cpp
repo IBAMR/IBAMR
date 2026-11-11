@@ -14,6 +14,7 @@
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -37,6 +38,24 @@
 #include <vector>
 
 #include <ibamr/app_namespaces.h>
+
+namespace
+{
+// Set the viscosity at the requested time. The integrator sets the viscosity at the new time only with such functions.
+void
+set_viscosity(int mu_idx,
+              Pointer<hier::Variable<NDIM>> mu_var,
+              Pointer<HierarchyMathOps> hier_math_ops,
+              const int /*cycle_num*/,
+              const double time,
+              const double /*current_time*/,
+              const double /*new_time*/,
+              void* ctx)
+{
+    static_cast<CartGridFunction*>(ctx)->setDataOnPatchHierarchy(
+        mu_idx, mu_var, hier_math_ops->getPatchHierarchy(), time);
+}
+} // namespace
 
 // Check that the viscosity set at the start of a time step is positive in the ghost cells and at the ghost nodes (2D)
 // or edges (3D), if the boundary data are far below the viscosity or if no viscosity boundary conditions are
@@ -84,6 +103,7 @@ main(int argc, char* argv[])
             "mu_fcn", app_initializer->getComponentDatabase("ViscosityFunction"), grid_geometry);
         ins_integrator->registerViscosityVariable(mu_var);
         ins_integrator->registerViscosityInitialConditions(mu_fcn);
+        ins_integrator->registerResetFluidViscosityFcn(&set_viscosity, static_cast<void*>(mu_fcn.getPointer()));
         std::unique_ptr<muParserRobinBcCoefs> mu_bc_coef;
         if (app_initializer->getInputDatabase()->getBoolWithDefault("register_viscosity_boundary_conditions", true))
         {

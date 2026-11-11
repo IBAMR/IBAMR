@@ -18,6 +18,7 @@
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
@@ -51,6 +52,20 @@
 
 namespace
 {
+// Set the viscosity at the requested time. The integrator sets the viscosity at the new time only with such functions.
+void
+set_viscosity(int mu_idx,
+              Pointer<hier::Variable<NDIM>> mu_var,
+              Pointer<HierarchyMathOps> hier_math_ops,
+              const int /*cycle_num*/,
+              const double time,
+              const double /*current_time*/,
+              const double /*new_time*/,
+              void* ctx)
+{
+    static_cast<CartGridFunction*>(ctx)->setDataOnPatchHierarchy(
+        mu_idx, mu_var, hier_math_ops->getPatchHierarchy(), time);
+}
 
 // A velocity given by muParser expressions function_0, function_1, ... of the
 // position X_0, X_1, ....
@@ -640,6 +655,7 @@ main(int argc, char* argv[])
                 "mu_fcn", app_initializer->getComponentDatabase("ViscosityFunction"), grid_geometry);
             vc_integrator->registerViscosityVariable(mu_var);
             vc_integrator->registerViscosityInitialConditions(mu_fcn);
+            vc_integrator->registerResetFluidViscosityFcn(&set_viscosity, static_cast<void*>(mu_fcn.getPointer()));
             mu_bc_coefs.emplace_back(new muParserRobinBcCoefs(
                 "mu_bc_coef", app_initializer->getComponentDatabase("ViscosityBoundaryConditions"), grid_geometry));
             vc_integrator->registerViscosityBoundaryConditions(mu_bc_coefs.back().get());

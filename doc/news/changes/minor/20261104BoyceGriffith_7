@@ -1,0 +1,3 @@
+Changed: Stop IBAMR::INSVCStaggeredHierarchyIntegrator with an error at the start of a time step if the viscosity is variable, a viscosity variable is registered, and no function registered with registerResetFluidViscosityFcn() sets the viscosity at the new time. Before, the Stokes solve returned a zero velocity without a message. Stop IBAMR::INSVCStaggeredNonConservativeHierarchyIntegrator in the same way for the mass density and registerResetFluidDensityFcn(). Stop IBAMR::INSVCStaggeredConservativeHierarchyIntegrator with an error when it is initialized with creeping_flow = TRUE. Use IBAMR::INSVCStaggeredNonConservativeHierarchyIntegrator for creeping flow.
+<br>
+(Boyce Griffith, 2026/11/04)
