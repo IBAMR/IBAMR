@@ -1,0 +1,3 @@
+Changed: Select the points of the IBTK::LEInteractor::interpolate() and spread() overloads that take IBTK::LIndexSetData by the box that contains their current positions, and remove their periodic shift argument. Make IBTK::LEInteractor::buildLocalIndices() for index data public, with the positions as an argument. Add the optional argument X_data_ghost_node_update to IBTK::LDataManager::interp(), which determines whether interp() updates the ghost positions. The ghost values of its output are invalid afterwards.
+<br>
+(Boyce Griffith, 2026/11/02)

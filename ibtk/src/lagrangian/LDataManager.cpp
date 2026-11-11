@@ -272,6 +272,7 @@ LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     d_lag_mesh.resize(d_finest_ln + 1);
     d_lag_mesh_data.resize(d_finest_ln + 1);
     d_needs_synch.resize(d_finest_ln + 1, false);
+    d_index_ghosts_pending.resize(d_finest_ln + 1, false);
     d_ao.resize(d_finest_ln + 1);
     d_num_nodes.resize(d_finest_ln + 1);
     d_node_offset.resize(d_finest_ln + 1);
@@ -600,7 +601,6 @@ LDataManager::spread(const int f_data_idx,
     }
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // If there are coarser levels in the patch hierarchy, prolong data from
@@ -616,7 +616,6 @@ LDataManager::spread(const int f_data_idx,
         if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
         if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
@@ -626,26 +625,22 @@ LDataManager::spread(const int f_data_idx,
             if (cc_data)
             {
                 Pointer<CellData<NDIM, double>> f_cc_data = f_data;
-                LEInteractor::spread(
-                    f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
+                LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
             }
             if (ec_data)
             {
                 Pointer<EdgeData<NDIM, double>> f_ec_data = f_data;
-                LEInteractor::spread(
-                    f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
+                LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
             }
             if (nc_data)
             {
                 Pointer<NodeData<NDIM, double>> f_nc_data = f_data;
-                LEInteractor::spread(
-                    f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
+                LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
             }
             if (sc_data)
             {
                 Pointer<SideData<NDIM, double>> f_sc_data = f_data;
-                LEInteractor::spread(
-                    f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
+                LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, spread_kernel_fcn);
             }
             if (f_phys_bdry_op)
             {
@@ -670,7 +665,8 @@ LDataManager::interp(const int f_data_idx,
                      const int level_num,
                      const std::vector<Pointer<CoarsenSchedule<NDIM>>>& f_synch_scheds,
                      const std::vector<Pointer<RefineSchedule<NDIM>>>& f_ghost_fill_scheds,
-                     const double fill_data_time)
+                     const double fill_data_time,
+                     const bool X_data_ghost_node_update)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -688,7 +684,8 @@ LDataManager::interp(const int f_data_idx,
            f_ghost_fill_scheds,
            fill_data_time,
            coarsest_ln,
-           finest_ln);
+           finest_ln,
+           X_data_ghost_node_update);
     return;
 } // interp
 
@@ -700,7 +697,8 @@ LDataManager::interp(const int f_data_idx,
                      const std::vector<Pointer<RefineSchedule<NDIM>>>& f_ghost_fill_scheds,
                      const double fill_data_time,
                      const int coarsest_ln_in,
-                     const int finest_ln_in)
+                     const int finest_ln_in,
+                     const bool X_data_ghost_node_update)
 {
     IBTK_TIMER_START(t_interp);
 
@@ -730,73 +728,68 @@ LDataManager::interp(const int f_data_idx,
         }
     }
 
-    // Interpolate data from the Eulerian grid to the Lagrangian mesh.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    // Zero the output, ghost entries included, so that the ghost accumulation below adds only values computed here.
+    // Start updating the ghost positions, which determine the points that lie in each patch box.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
 
+        if (X_data_ghost_node_update) X_data[ln]->beginGhostUpdate();
+        std::fill_n(F_data[ln]->getGhostedLocalFormVecArray()->data(),
+                    F_data[ln]->getGhostedLocalFormVecArray()->num_elements(),
+                    0.0);
+        F_data[ln]->restoreArrays();
+    }
+
+    // Interpolate data from the Eulerian grid to the Lagrangian mesh.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!levelContainsLagrangianData(ln)) continue;
+
+        if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
         if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && f_ghost_fill_scheds[ln])
         {
             f_ghost_fill_scheds[ln]->fillData(fill_data_time);
         }
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
             Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_data_idx);
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            const Box<NDIM>& box = idx_data->getBox();
+            const Box<NDIM>& box = patch->getBox();
             if (cc_data)
             {
                 Pointer<CellData<NDIM, double>> f_cc_data = f_data;
-                LEInteractor::interpolate(F_data[ln],
-                                          X_data[ln],
-                                          idx_data,
-                                          f_cc_data,
-                                          patch,
-                                          box,
-                                          periodic_shift,
-                                          d_default_interp_kernel_fcn);
+                LEInteractor::interpolate(
+                    F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, d_default_interp_kernel_fcn);
             }
             if (ec_data)
             {
                 Pointer<EdgeData<NDIM, double>> f_ec_data = f_data;
-                LEInteractor::interpolate(F_data[ln],
-                                          X_data[ln],
-                                          idx_data,
-                                          f_ec_data,
-                                          patch,
-                                          box,
-                                          periodic_shift,
-                                          d_default_interp_kernel_fcn);
+                LEInteractor::interpolate(
+                    F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, d_default_interp_kernel_fcn);
             }
             if (nc_data)
             {
                 Pointer<NodeData<NDIM, double>> f_nc_data = f_data;
-                LEInteractor::interpolate(F_data[ln],
-                                          X_data[ln],
-                                          idx_data,
-                                          f_nc_data,
-                                          patch,
-                                          box,
-                                          periodic_shift,
-                                          d_default_interp_kernel_fcn);
+                LEInteractor::interpolate(
+                    F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, d_default_interp_kernel_fcn);
             }
             if (sc_data)
             {
                 Pointer<SideData<NDIM, double>> f_sc_data = f_data;
-                LEInteractor::interpolate(F_data[ln],
-                                          X_data[ln],
-                                          idx_data,
-                                          f_sc_data,
-                                          patch,
-                                          box,
-                                          periodic_shift,
-                                          d_default_interp_kernel_fcn);
+                LEInteractor::interpolate(
+                    F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, d_default_interp_kernel_fcn);
             }
         }
+#if !defined(NDEBUG)
+        checkEachPointProcessedOnce("LDataManager::interp", ln, X_data[ln]);
+#endif
+
+        // Add the values computed here for points owned by other processes to their owners.
+        F_data[ln]->beginGhostAccumulation();
+        F_data[ln]->endGhostAccumulation();
     }
 
     // Zero inactivated components.
@@ -808,6 +801,54 @@ LDataManager::interp(const int f_data_idx,
     IBTK_TIMER_STOP(t_interp);
     return;
 } // interp
+
+void
+LDataManager::checkEachPointProcessedOnce(const std::string& operation,
+                                          const int level_number,
+                                          Pointer<LData> X_data) const
+{
+    // Count the patches on which each point is selected, and add the counts of ghost copies to the owners.
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_number);
+    Pointer<LData> count_data =
+        new LData("count", getNumberOfLocalNodes(level_number), 1, d_nonlocal_petsc_indices[level_number]);
+    {
+        boost::multi_array_ref<double, 2>& count = *count_data->getGhostedLocalFormVecArray();
+        std::fill_n(count.data(), count.num_elements(), 0.0);
+        const double* const X = X_data->getGhostedLocalFormVecArray()->data();
+        std::vector<int> local_indices;
+        std::vector<double> periodic_shifts;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            LEInteractor::buildLocalIndices(
+                local_indices, periodic_shifts, patch->getBox(), patch, X, X_data->getDepth(), idx_data);
+            for (const int local_idx : local_indices)
+            {
+                count[local_idx][0] += 1.0;
+            }
+        }
+        X_data->restoreArrays();
+        count_data->restoreArrays();
+    }
+    count_data->beginGhostAccumulation();
+    count_data->endGhostAccumulation();
+    const boost::multi_array_ref<double, 2>& count = *count_data->getLocalFormVecArray();
+    for (const LNode* node : getLMesh(level_number)->getLocalNodes())
+    {
+        const double num_processed = count[node->getLocalPETScIndex()][0];
+        if (num_processed != 1.0)
+        {
+            TBOX_ERROR(operation << "():\n"
+                                 << "  on level " << level_number << ", point " << node->getLagrangianIndex()
+                                 << " is processed " << num_processed << " times, not once\n"
+                                 << "  points must move at most one cell width between redistributions and stay on "
+                                    "the level\n");
+        }
+    }
+    count_data->restoreArrays();
+    return;
+} // checkEachPointProcessedOnce
 
 void
 LDataManager::registerLInitStrategy(Pointer<LInitStrategy> lag_init)
@@ -2349,6 +2390,7 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>> hierar
         d_lag_mesh.resize(level_number + 1);
         d_lag_mesh_data.resize(level_number + 1);
         d_needs_synch.resize(level_number + 1, false);
+        d_index_ghosts_pending.resize(level_number + 1, false);
         d_ao.resize(level_number + 1);
         d_num_nodes.resize(level_number + 1);
         d_node_offset.resize(level_number + 1);
@@ -2533,6 +2575,9 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>> hierar
                                num_local_nodes > 0 ? &d_local_petsc_indices[level_number][0] : nullptr,
                                &d_ao[level_number]);
         IBTK_CHKERRQ(ierr);
+
+        // The ghost regions of the index data contain no entries yet.
+        d_index_ghosts_pending[level_number] = true;
     }
 
     // If a Silo data writer is registered with the manager, give it access to
@@ -2601,6 +2646,17 @@ LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM>
         Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
         Pointer<PatchLevel<NDIM>> coarser_level = hierarchy->getPatchLevel(level_number - 1);
         d_node_count_coarsen_scheds[level_number] = d_node_count_coarsen_alg->createSchedule(coarser_level, level);
+    }
+
+    // Redistribute the levels initialized at the initial time, as after a regrid, so that the ghost regions of the
+    // index data contain entries before the first interpolation.
+    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+    {
+        if (!d_index_ghosts_pending[level_number]) continue;
+        d_index_ghosts_pending[level_number] = false;
+        if (!d_level_contains_lag_data[level_number]) continue;
+        beginDataRedistribution(level_number, level_number);
+        endDataRedistribution(level_number, level_number);
     }
 
     IBTK_TIMER_STOP(t_reset_hierarchy_configuration);
@@ -3315,6 +3371,7 @@ LDataManager::getFromRestart()
     d_lag_mesh.resize(d_finest_ln + 1);
     d_lag_mesh_data.resize(d_finest_ln + 1);
     d_needs_synch.resize(d_finest_ln + 1, false);
+    d_index_ghosts_pending.resize(d_finest_ln + 1, false);
     d_ao.resize(d_finest_ln + 1);
     d_num_nodes.resize(d_finest_ln + 1);
     d_node_offset.resize(d_finest_ln + 1);
