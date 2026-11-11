@@ -1,0 +1,3 @@
+Changed: Make IBAMR::INSVCStaggeredConservativeHierarchyIntegrator and IBAMR::INSVCStaggeredNonConservativeHierarchyIntegrator stop with an error if stokes_solver_db sets bdry_interp_type or bdry_extrap_type to a value that differs from the integrator's, because the Stokes operator and the right-hand side use one boundary treatment. Set the keys in the integrator database only.
+<br>
+(Boyce Griffith, 2026/11/09)

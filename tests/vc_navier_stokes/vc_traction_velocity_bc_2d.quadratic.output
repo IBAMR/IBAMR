@@ -1,0 +1,7 @@
+INSVCStaggeredNonConservativeHierarchyIntegrator::getVelocitySubdomainSolver(): boundary treatment of the integrator: bdry_interp_type = QUADRATIC, bdry_extrap_type = LINEAR
+INSVCStaggeredNonConservativeHierarchyIntegrator::getVelocitySubdomainSolver(): boundary treatment of the velocity subdomain preconditioner smoother: bdry_interp_type = LINEAR (smoother default)
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+tangential ghost values checked outside the x boundaries = 102
+largest error in those ghost values = 7.275247e-04

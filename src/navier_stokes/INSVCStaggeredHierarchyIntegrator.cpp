@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/BrinkmanPenalizationStrategy.h>
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/INSHierarchyIntegrator.h>
@@ -477,6 +478,8 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     }
     if (!d_stokes_precond_db) d_stokes_precond_db = new MemoryDatabase("stokes_precond_db");
 
+    getBoundaryTreatmentFromInput(input_db, "INSVCStaggeredHierarchyIntegrator", d_stokes_solver_db);
+
     // Flag to determine whether we explicitly remove any null space components.
     if (input_db->keyExists("explicitly_remove_nullspace"))
         d_explicitly_remove_nullspace = input_db->getBool("explicitly_remove_nullspace");
@@ -589,6 +592,11 @@ INSVCStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
                                                                                  d_object_name + "::velocity_precond",
                                                                                  d_velocity_precond_db,
                                                                                  "velocity_pc_");
+        setPoissonSolverBoundaryTreatment("getVelocitySubdomainSolver",
+                                          "velocity subdomain",
+                                          *d_velocity_solver,
+                                          d_velocity_solver_db,
+                                          { d_velocity_precond_db });
         d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
@@ -607,6 +615,11 @@ INSVCStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
                                                                                  d_object_name + "::pressure_precond",
                                                                                  d_pressure_precond_db,
                                                                                  "pressure_pc_");
+        setPoissonSolverBoundaryTreatment("getPressureSubdomainSolver",
+                                          "pressure subdomain",
+                                          *d_pressure_solver,
+                                          d_pressure_solver_db,
+                                          { d_pressure_precond_db });
         d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;
@@ -648,6 +661,7 @@ INSVCStaggeredHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()
     {
         d_divergence_free_velocity_phys_bdry_op =
             std::make_unique<INSStaggeredDivergenceFreePhysBdryOp>(this, /*homogeneous_bc*/ false);
+        d_divergence_free_velocity_phys_bdry_op->setBoundaryTreatment(getBoundaryTreatment());
     }
     return d_divergence_free_velocity_phys_bdry_op.get();
 } // getDivergenceFreeVelocityPhysBdryOp
@@ -1253,6 +1267,23 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
         if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
     }
+
+    // Pass the discretization at physical boundaries to the Stokes solver and the velocity boundary conditions. The
+    // Stokes preconditioner uses it unless its database sets bdry_interp_type or bdry_extrap_type.
+    const BoundaryTreatment bdry_treatment = getBoundaryTreatment();
+    d_stokes_solver->setBoundaryTreatment(bdry_treatment);
+    for (const auto& U_bc_coef : d_vc_velocity_bc_coefs)
+    {
+        U_bc_coef->setBoundaryTreatment(bdry_treatment);
+    }
+    Pointer<KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
+    Pointer<StaggeredStokesSolver> p_stokes_precond =
+        p_stokes_krylov_solver ? p_stokes_krylov_solver->getPreconditioner() : nullptr;
+    if (p_stokes_precond)
+    {
+        setPreconditionerBoundaryTreatment(*p_stokes_precond, "Stokes preconditioner", d_stokes_precond_db);
+    }
+
     if (p_stokes_linear_solver)
     {
         Pointer<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
@@ -1304,7 +1335,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     // Setup a boundary op to set velocity boundary conditions on regrid.
     d_fill_after_regrid_phys_bdry_bc_op =
-        std::make_unique<CartSideRobinPhysBdryOp>(d_U_scratch_idx, d_U_bc_coefs, false);
+        std::make_unique<CartSideRobinPhysBdryOp>(d_U_scratch_idx, d_U_bc_coefs, false, d_bdry_interp_type);
 
     // Register the interpolated viscosity with the largest ghost width registered so far, including those of the
     // velocity data of the fluid solver, the convective operator, and the IB method.
@@ -1939,7 +1970,9 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      DATA_COARSEN_TYPE,
                                                      d_bdry_extrap_type, // TODO: update variable name
                                                      CONSISTENT_TYPE_2_BDRY,
-                                                     d_U_bc_coefs);
+                                                     d_U_bc_coefs,
+                                                     nullptr,
+                                                     d_bdry_interp_type);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
