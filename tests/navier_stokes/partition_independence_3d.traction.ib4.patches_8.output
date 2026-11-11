@@ -1,0 +1,20 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+IBRedundantInitializer:  Deallocating initialization data.
+markers = 192
+ghost faces = 7092
+sum of ghost values = -86.728942476661
+sum of squares of ghost values = 117261.2940796
+max ghost value = 56.25037494322
+largest difference between a ghost copy and the owner's copy = 0
+(F, J u) = -4.6561082428142
+sum of squares of J u = 77.967156439632
+max J u = 1.2731132610421
+sum of S F = -1339.3665673386
+sum of squares of S F = 982271.82998959
+max S F = 311.23186519476
+(S F, u) = -2383.9274203209
+sum of N = 1383.5610368456
+sum of squares of N = 23352.606370582
+max N = 20.879301014096
