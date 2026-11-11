@@ -1,0 +1,3 @@
+Fixed: Make in-place side-centered fills of IBTK::HierarchyGhostCellInterpolation, such as those of the staggered Stokes operators and the FAC strategies, independent of the input values on physical boundary faces with a prescribed velocity.
+<br>
+(Boyce Griffith, 2026/10/13)
