@@ -1,0 +1,11 @@
+two levels, from level 0 only, linear refine registered first: interior cells set 256 of 256
+two levels, from level 0 only, constant refine registered first: interior cells set 256 of 256
+one level, side data, all directions registered first: ghost values set axis 0 52 of 52, axis 1 53 of 53
+one level, side data, axis 0 registered first: ghost values set axis 0 52 of 52, axis 1 53 of 53
+coarsen, ring registered first, item with ring: ring cells holding 7 36 of 36, covered cells holding 5 64 of 64
+coarsen, ring registered first, item without ring: ring cells holding 3 36 of 36, covered cells holding 5 64 of 64
+coarsen, no ring registered first, item with ring: ring cells holding 7 36 of 36, covered cells holding 5 64 of 64
+coarsen, no ring registered first, item without ring: ring cells holding 3 36 of 36, covered cells holding 5 64 of 64
+coarsen, side data, all directions registered first: covered values set axis 0 64 of 64, axis 1 60 of 60
+coarsen, side data, axis 0 registered first: covered values set axis 0 64 of 64, axis 1 60 of 60
+one level, copying schedule reset to in place: cells set 306 of 306
