@@ -359,7 +359,7 @@ check_kernel(const std::string& kernel,
         }
         Pointer<IBTK::LData> X_initial = l_data_manager->getLData(IBTK::LDataManager::POSN_DATA_NAME, 0);
         Pointer<IBTK::LData> U_initial = l_data_manager->createLData("U_initial", 0, 1);
-        l_data_manager->interp(q_idx, U_initial, X_initial, 0, {}, {}, 0.0);
+        l_data_manager->interp(q_idx, U_initial, X_initial, 0, {}, 0.0);
         const std::vector<double> U_stored = gather_by_lagrangian_index(U_initial, l_data_manager, 2 * num_in_set);
         for (std::size_t k = 0; k < U_stored.size(); ++k)
         {
@@ -389,7 +389,7 @@ check_kernel(const std::string& kernel,
         Pointer<CellData<NDIM, double>> q_data = level->getPatch(p())->getPatchData(q_idx);
         q_data->fillAll(1.0);
     }
-    l_data_manager->interp(q_idx, U_data, X_data, 0, {}, {}, 0.0);
+    l_data_manager->interp(q_idx, U_data, X_data, 0, {}, 0.0);
     const std::vector<double> U_one = gather_by_lagrangian_index(U_data, l_data_manager, 2 * num_in_set);
     for (std::size_t k = 0; k < U_one.size(); ++k)
     {
@@ -418,7 +418,7 @@ check_kernel(const std::string& kernel,
         }
     }
     ghost_fill_scheds[0]->fillData(0.0);
-    l_data_manager->interp(q_idx, U_data, X_data, 0, {}, {}, 0.0);
+    l_data_manager->interp(q_idx, U_data, X_data, 0, {}, 0.0);
     const std::vector<double> U = gather_by_lagrangian_index(U_data, l_data_manager, 2 * num_in_set);
     for (std::size_t k = 0; k < num_in_set; ++k)
     {
@@ -443,7 +443,7 @@ check_kernel(const std::string& kernel,
             f_data->fillAll(0.0);
         }
         set_forces(F_data, l_data_manager, num_in_set, set == 0);
-        l_data_manager->spread(f_idx, F_data, X_data, no_bdry_op, 0, {}, 0.0);
+        l_data_manager->spread(f_idx, F_data, X_data, no_bdry_op, 0, 0.0);
         const double integral = integrate(level, f_idx);
         if (!(std::abs(integral - force_sum) <= tol * force_sum))
         {

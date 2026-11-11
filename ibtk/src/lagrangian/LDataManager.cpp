@@ -300,7 +300,6 @@ LDataManager::spread(const int f_data_idx,
                      Pointer<LData> ds_data,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<Pointer<RefineSchedule<NDIM>>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
@@ -313,7 +312,32 @@ LDataManager::spread(const int f_data_idx,
            d_default_spread_kernel_fcn,
            f_phys_bdry_op,
            level_num,
-           f_prolongation_scheds,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update,
+           ds_data_ghost_node_update);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     Pointer<LData> ds_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update)
+{
+    spread(f_data_idx,
+           F_data,
+           X_data,
+           ds_data,
+           f_phys_bdry_op,
+           level_num,
            fill_data_time,
            F_data_ghost_node_update,
            X_data_ghost_node_update,
@@ -329,16 +353,14 @@ LDataManager::spread(const int f_data_idx,
                      const std::string& spread_kernel_fcn,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<Pointer<RefineSchedule<NDIM>>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
                      const bool ds_data_ghost_node_update)
 {
-    const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 #if !defined(NDEBUG)
-    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+    TBOX_ASSERT(0 <= level_num && level_num <= finest_ln);
 #endif
     std::vector<Pointer<LData>> F_data_vec(finest_ln + 1);
     std::vector<Pointer<LData>> X_data_vec(finest_ln + 1);
@@ -352,13 +374,41 @@ LDataManager::spread(const int f_data_idx,
            ds_data_vec,
            spread_kernel_fcn,
            f_phys_bdry_op,
-           f_prolongation_scheds,
+           std::vector<Pointer<RefineSchedule<NDIM>>>(),
            fill_data_time,
            F_data_ghost_node_update,
            X_data_ghost_node_update,
            ds_data_ghost_node_update,
-           coarsest_ln,
-           finest_ln);
+           level_num,
+           level_num);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     Pointer<LData> ds_data,
+                     const std::string& spread_kernel_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update)
+{
+    spread(f_data_idx,
+           F_data,
+           X_data,
+           ds_data,
+           spread_kernel_fcn,
+           f_phys_bdry_op,
+           level_num,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update,
+           ds_data_ghost_node_update);
     return;
 } // spread
 
@@ -471,7 +521,6 @@ LDataManager::spread(const int f_data_idx,
                      Pointer<LData> X_data,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<Pointer<RefineSchedule<NDIM>>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update)
@@ -482,7 +531,28 @@ LDataManager::spread(const int f_data_idx,
            d_default_spread_kernel_fcn,
            f_phys_bdry_op,
            level_num,
-           f_prolongation_scheds,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update)
+{
+    spread(f_data_idx,
+           F_data,
+           X_data,
+           f_phys_bdry_op,
+           level_num,
            fill_data_time,
            F_data_ghost_node_update,
            X_data_ghost_node_update);
@@ -496,15 +566,13 @@ LDataManager::spread(const int f_data_idx,
                      const std::string& spread_kernel_fcn,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<Pointer<RefineSchedule<NDIM>>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update)
 {
-    const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 #if !defined(NDEBUG)
-    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+    TBOX_ASSERT(0 <= level_num && level_num <= finest_ln);
 #endif
     std::vector<Pointer<LData>> F_data_vec(finest_ln + 1);
     std::vector<Pointer<LData>> X_data_vec(finest_ln + 1);
@@ -515,12 +583,36 @@ LDataManager::spread(const int f_data_idx,
            X_data_vec,
            spread_kernel_fcn,
            f_phys_bdry_op,
-           f_prolongation_scheds,
+           std::vector<Pointer<RefineSchedule<NDIM>>>(),
            fill_data_time,
            F_data_ghost_node_update,
            X_data_ghost_node_update,
-           coarsest_ln,
-           finest_ln);
+           level_num,
+           level_num);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     const std::string& spread_kernel_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update)
+{
+    spread(f_data_idx,
+           F_data,
+           X_data,
+           spread_kernel_fcn,
+           f_phys_bdry_op,
+           level_num,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update);
     return;
 } // spread
 
@@ -569,8 +661,10 @@ LDataManager::spread(const int f_data_idx,
     const int finest_ln = (finest_ln_in == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
 
     // Zero inactivated components.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        if (!levelContainsLagrangianData(ln)) continue;
+
         zeroInactivatedComponents(F_data[ln], ln);
     }
 
@@ -782,15 +876,13 @@ LDataManager::interp(const int f_data_idx,
                      Pointer<LData> F_data,
                      Pointer<LData> X_data,
                      const int level_num,
-                     const std::vector<Pointer<CoarsenSchedule<NDIM>>>& f_synch_scheds,
                      const std::vector<Pointer<RefineSchedule<NDIM>>>& f_ghost_fill_scheds,
                      const double fill_data_time,
                      const bool X_data_ghost_node_update)
 {
-    const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 #if !defined(NDEBUG)
-    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+    TBOX_ASSERT(0 <= level_num && level_num <= finest_ln);
 #endif
     std::vector<Pointer<LData>> F_data_vec(finest_ln + 1);
     std::vector<Pointer<LData>> X_data_vec(finest_ln + 1);
@@ -799,12 +891,26 @@ LDataManager::interp(const int f_data_idx,
     interp(f_data_idx,
            F_data_vec,
            X_data_vec,
-           f_synch_scheds,
+           std::vector<Pointer<CoarsenSchedule<NDIM>>>(),
            f_ghost_fill_scheds,
            fill_data_time,
-           coarsest_ln,
-           finest_ln,
+           level_num,
+           level_num,
            X_data_ghost_node_update);
+    return;
+} // interp
+
+void
+LDataManager::interp(const int f_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     const int level_num,
+                     const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*f_synch_scheds*/,
+                     const std::vector<Pointer<RefineSchedule<NDIM>>>& f_ghost_fill_scheds,
+                     const double fill_data_time,
+                     const bool X_data_ghost_node_update)
+{
+    interp(f_data_idx, F_data, X_data, level_num, f_ghost_fill_scheds, fill_data_time, X_data_ghost_node_update);
     return;
 } // interp
 
@@ -926,8 +1032,10 @@ LDataManager::interp(const int f_data_idx,
     }
 
     // Zero inactivated components.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        if (!levelContainsLagrangianData(ln)) continue;
+
         zeroInactivatedComponents(F_data[ln], ln);
     }
 

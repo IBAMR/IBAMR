@@ -297,7 +297,7 @@ check_interpolation_spreading_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierar
         Pointer<SideData<NDIM, double>> f_data = level->getPatch(p())->getPatchData(f_idx);
         f_data->fillAll(0.0);
     }
-    l_data_manager->spread(f_idx, F_data, X_data, bdry_op, ln, {}, time);
+    l_data_manager->spread(f_idx, F_data, X_data, bdry_op, ln, time);
     double SF_dot_u = 0.0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
