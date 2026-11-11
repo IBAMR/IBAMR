@@ -102,7 +102,8 @@ static const std::string DATA_REFINE_TYPE = "NONE";
 static const bool USE_CF_INTERPOLATION = true;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
-// Type of extrapolation to use at physical boundaries.
+// The extrapolation of this type at physical boundaries supplies the coarse values beyond a boundary to the coarse-fine
+// interpolation. The CIB strategy then sets all the velocity ghost values outside the physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
@@ -524,7 +525,7 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
                                                 DATA_COARSEN_TYPE,
                                                 BDRY_EXTRAP_TYPE,
                                                 CONSISTENT_TYPE_2_BDRY,
-                                                d_u_bc_coefs,
+                                                static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr),
                                                 d_fill_pattern);
     d_transaction_comps.push_back(component);
 
@@ -969,7 +970,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
                                                   DATA_COARSEN_TYPE,
                                                   BDRY_EXTRAP_TYPE,
                                                   CONSISTENT_TYPE_2_BDRY,
-                                                  solver->d_u_bc_coefs,
+                                                  static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr),
                                                   solver->d_fill_pattern);
     transaction_comps.push_back(u_component);
     solver->d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -977,6 +978,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     solver->d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     solver->d_hier_bdry_fill->fillData(half_time);
     solver->d_hier_bdry_fill->resetTransactionComponents(solver->d_transaction_comps);
+    solver->d_cib_strategy->fillVelocityPhysBdryGhostValues(u_data_idx, homogeneous_bc, half_time);
 
     // 2b) U = J u + W.
     solver->d_cib_strategy->setInterpolatedVelocityVector(U, half_time);

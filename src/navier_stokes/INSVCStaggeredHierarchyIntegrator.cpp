@@ -20,6 +20,7 @@
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
 #include <ibamr/INSStaggeredConvectiveOperatorManager.h>
+#include <ibamr/INSStaggeredDivergenceFreePhysBdryOp.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredPressureBcCoef.h>
 #include <ibamr/INSVCStaggeredVelocityBcCoef.h>
@@ -639,6 +640,17 @@ INSVCStaggeredHierarchyIntegrator::getStokesSolver()
     return d_stokes_solver;
 } // getStokesSolver
 
+IBTK::RobinPhysBdryPatchStrategy*
+INSVCStaggeredHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()
+{
+    if (!d_divergence_free_velocity_phys_bdry_op)
+    {
+        d_divergence_free_velocity_phys_bdry_op =
+            std::make_unique<INSStaggeredDivergenceFreePhysBdryOp>(this, /*homogeneous_bc*/ false);
+    }
+    return d_divergence_free_velocity_phys_bdry_op.get();
+} // getDivergenceFreeVelocityPhysBdryOp
+
 void
 INSVCStaggeredHierarchyIntegrator::limitMuGhostCells(const double fill_time)
 {
@@ -768,6 +780,42 @@ INSVCStaggeredHierarchyIntegrator::setLinearOperatorMu(const int mu_idx, const d
     d_mu_interp_ghost_fill_op->fillData(time);
     return;
 } // setLinearOperatorMu
+
+void
+INSVCStaggeredHierarchyIntegrator::initializeLinearOperatorMu(const double time)
+{
+    if (d_mu_is_const) return;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int mu_current_idx =
+        (d_adv_diff_hier_integrators.size() > 0 && d_mu_adv_diff_var) ?
+            var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var,
+                                                 d_adv_diff_hier_integrators[d_mu_adv_diff_idx]->getCurrentContext()) :
+            d_mu_current_idx;
+
+    // The scratch data exist only during the time step. The data of the linear operators persist.
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    Pointer<PatchLevel<NDIM>> coarsest_level = d_hierarchy->getPatchLevel(coarsest_ln);
+    const bool allocate_scratch = !coarsest_level->checkAllocated(d_mu_scratch_idx);
+    const bool allocate_interp = !coarsest_level->checkAllocated(d_mu_interp_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        if (allocate_scratch) level->allocatePatchData(d_mu_scratch_idx, time);
+        if (allocate_interp) level->allocatePatchData(d_mu_interp_idx, time);
+        if (!level->checkAllocated(d_mu_linear_op_idx)) level->allocatePatchData(d_mu_linear_op_idx, time);
+        if (!level->checkAllocated(d_mu_interp_linear_op_idx))
+            level->allocatePatchData(d_mu_interp_linear_op_idx, time);
+    }
+    setLinearOperatorMu(mu_current_idx, time);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        if (allocate_scratch) level->deallocatePatchData(d_mu_scratch_idx);
+        if (allocate_interp) level->deallocatePatchData(d_mu_interp_idx);
+    }
+    return;
+} // initializeLinearOperatorMu
 
 void
 INSVCStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
@@ -1297,6 +1345,12 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
 {
     INSHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
+    // The types of the boundary conditions may change in time.
+    if (d_divergence_free_velocity_phys_bdry_op)
+    {
+        d_divergence_free_velocity_phys_bdry_op->clearCache();
+    }
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -1693,9 +1747,13 @@ INSVCStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
 } // regridHierarchyEndSpecialized
 
 void
-INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
+INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double init_data_time,
                                                                                const bool initial_time)
 {
+    // The velocity ghost fill reads the interpolated viscosity, which is not set before the first time step. Levels
+    // created by regridding have no such data.
+    initializeLinearOperatorMu(init_data_time);
+
     if (initial_time && d_Q_fcn) return;
 
     // Project the interpolated velocity if needed.
@@ -1837,6 +1895,12 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     NULL_USE(finest_level);
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
+
+    // Discard the cached data of the divergence-free velocity boundary operator.
+    if (d_divergence_free_velocity_phys_bdry_op)
+    {
+        d_divergence_free_velocity_phys_bdry_op->clearCache();
+    }
 
     // Reset the hierarchy operations objects for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);

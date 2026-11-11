@@ -1,0 +1,12 @@
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+tangential ghost values checked outside the x boundaries = 408
+largest error in those ghost values = 8.108551e-02
+NaN tangential ghost values beyond the viscosity data = 48
+Program abort called with error message
+
+    INSVCStaggeredVelocityBcCoef::setBcCoefs():
+  a nonzero tangential traction at the face (0,1) of axis 1 is not supported on a patch without viscosity data (a temporary coarse patch, or a new patch filled during a regrid)
+  use a zero tangential traction or a constant viscosity
+

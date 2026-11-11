@@ -1,0 +1,111 @@
+// Partition independence of IMPMethod beside a boundary with TRACTION conditions on the lower boundaries and walls on
+// the upper boundaries. Material points on a strip along the lower boundary move 0.9 cells in x across x = 0.5, a patch
+// boundary in the layouts with 2, 4, and 16 patches. The 32 x 32 cells form two patches of 16 x 32 cells.
+// The inputs that differ only in the patch size or the number of processes share one expected output and one set of
+// reference values.
+N = 32
+MAX_LEVELS = 1
+strip = 0.30, 0.70, 0.02, 0.10
+num_elements_x = 8
+num_elements_y = 2
+marker_shift = 0.9, 0.0
+
+Reference {
+   points             = 400
+   not_finite         = 0
+   U_sum_squares      = 416.08412143033
+   U_max              = 0.98693211132541
+   Grad_U_sum_squares = 12627.741617998
+   Grad_U_max         = 5.2306322333326
+   f_sum              = 0.0
+   f_sum_squares      = 2012.7451084726
+   f_max              = 8.4456837459909
+}
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+IBHierarchyIntegrator {
+   start_time     = 0.0
+   end_time       = 0.01
+   dt_max         = 0.01
+   enable_logging = FALSE
+}
+
+IMPMethod {
+}
+
+IMPInitializer {
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                      = 1.0
+   rho                     = 1.0
+   start_time              = 0.0
+   end_time                = 0.01
+   dt_max                  = 0.01
+   traction_bc_type        = "TRACTION"
+   enable_logging          = FALSE
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = 1,1
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   largest_patch_size {
+      level_0 = 16,32
+   }
+   smallest_patch_size {
+      level_0 = 16,32
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}

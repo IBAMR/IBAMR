@@ -1,0 +1,7 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+IBRedundantInitializer:  Deallocating initialization data.
+patches on the level = 16
+(F, J u) = 0.464757266324
+(S F, u) = 0.464757266324

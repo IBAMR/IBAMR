@@ -1,0 +1,3 @@
+Changed: Set the ghost values of a staggered velocity outside physical boundaries in IBAMR::IBHierarchyIntegrator with the divergence-free velocity boundary operator of the fluid solver, and spread forces with its transpose. IBAMR::CIBMethod and IBAMR::ConstraintIBMethod use that operator if setVelocityPhysBdryOp() is not called.
+<br>
+(Boyce Griffith, 2026/10/01)

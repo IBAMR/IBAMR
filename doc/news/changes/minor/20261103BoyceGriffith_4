@@ -1,0 +1,3 @@
+New: Add IBTK::ExtendedRobinBcCoefStrategy::dependsOnTargetPatchData(), which returns whether the boundary data on a boundary box of a patch depend on the target patch data. IBTK::CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData() and IBTK::CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData() emit an error if the boundary data depend on the target patch data, because the accumulation is then not the transpose of the fill. The boundary data of the velocity boundary conditions of the staggered fluid solvers can depend on the velocity for TRACTION conditions.
+<br>
+(Boyce Griffith, 2026/11/03)

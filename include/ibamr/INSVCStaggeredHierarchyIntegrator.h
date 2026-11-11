@@ -45,6 +45,7 @@
 #include <SAMRAIVectorReal.h>
 #include <SideVariable.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -52,6 +53,7 @@ namespace IBAMR
 {
 class BrinkmanPenalizationStrategy;
 class ConvectiveOperator;
+class INSStaggeredDivergenceFreePhysBdryOp;
 class INSVCStaggeredPressureBcCoef;
 class INSVCStaggeredVelocityBcCoef;
 } // namespace IBAMR
@@ -169,6 +171,11 @@ public:
      * used by this solver class.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> getStokesSolver();
+
+    /*!
+     * Get the divergence-free velocity boundary operator.
+     */
+    IBTK::RobinPhysBdryPatchStrategy* getDivergenceFreeVelocityPhysBdryOp() override;
 
     /*!
      * Indicate that the Stokes solver should be (re-)initialized before the
@@ -426,6 +433,13 @@ protected:
      * d_mu_scratch_idx and d_mu_interp_idx must be allocated.
      */
     void setLinearOperatorMu(int mu_idx, double time);
+
+    /*!
+     * Allocate the viscosity data of the linear operators on the levels that lack them and set them from the current
+     * viscosity, unless it is constant. The integrator calls this function when the hierarchy is initialized and after
+     * regridding.
+     */
+    void initializeLinearOperatorMu(double time);
 
     /*!
      * L1 norm of the discrete divergence of the fluid velocity before regridding.
@@ -764,6 +778,11 @@ private:
      */
     std::vector<INSVCStaggeredVelocityBcCoef*> d_vc_velocity_bc_coefs;
     INSVCStaggeredPressureBcCoef* d_vc_pressure_bc_coef = nullptr;
+
+    /*!
+     * The divergence-free velocity boundary operator, created when first requested.
+     */
+    std::unique_ptr<INSStaggeredDivergenceFreePhysBdryOp> d_divergence_free_velocity_phys_bdry_op;
 
     /*!
      * \brief Default constructor.

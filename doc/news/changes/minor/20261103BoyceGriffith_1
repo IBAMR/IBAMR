@@ -1,0 +1,3 @@
+Changed: Extrapolate the velocity ghost values outside physical boundaries linearly, without Robin boundary conditions, before the coarse-fine interpolation in the CIB saddle point solver, mobility solver, and Stokes operator. The CIB strategy then sets the velocity ghost values outside the physical boundaries within the ghost width of the data.
+<br>
+(Boyce Griffith, 2026/11/03)

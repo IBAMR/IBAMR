@@ -1,0 +1,3 @@
+Fixed: Set the interpolated viscosity data of the linear operators of IBAMR::INSVCStaggeredHierarchyIntegrator when the hierarchy is initialized and after regridding, so that they exist at the first IB interpolation. IBAMR::IBFEMethod with a scratch hierarchy transfers them to the scratch hierarchy.
+<br>
+(Boyce Griffith, 2026/11/03)

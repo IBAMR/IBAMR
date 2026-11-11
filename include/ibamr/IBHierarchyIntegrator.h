@@ -127,6 +127,13 @@ namespace IBAMR
  * <em>If either <code>regrid_structure_cfl_interval</code> or
  * <code>regrid_fluid_cfl_interval</code> are provided in the input database
  * then <code>regrid_interval</code> is ignored.</em>
+ *
+ * <h2>Velocity Ghost Values at Physical Boundaries</h2>
+ *
+ * The divergence-free velocity boundary operator of the fluid solver sets the ghost values of a staggered velocity
+ * outside physical boundaries. Velocity interpolation uses the operator. Force spreading uses its transpose. The
+ * physical domain must be a single rectangular box at least as wide as the IB ghost width along each
+ * axis that is not periodic.
  */
 class IBHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
@@ -411,7 +418,8 @@ protected:
     /*
      * Refine and coarsen algorithm data.
      * The base class, HierarchyIntegrator, is responsible for the d_u_phys_bdry_op and d_p_phys_bdry_op
-     * objects as they are passed into d_ghostfill_strategies.
+     * objects as they are passed into d_ghostfill_strategies, except for the divergence-free velocity
+     * boundary operator, which the fluid solver owns.
      */
     IBTK::RobinPhysBdryPatchStrategy *d_u_phys_bdry_op, *d_p_phys_bdry_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,

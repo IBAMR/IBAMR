@@ -208,6 +208,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     // (c) Rigid body velocity constraint.
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
+    d_cib_strategy->fillVelocityPhysBdryGhostValues(U_idx, d_homogeneous_bc, d_solution_time);
     ib_method_ops->interpolateVelocity(
         U_idx, std::vector<Pointer<CoarsenSchedule<NDIM>>>(), std::vector<Pointer<RefineSchedule<NDIM>>>(), half_time);
 
@@ -359,19 +360,22 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
 
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> U_transaction_comps(1);
+        // The extrapolation supplies the coarse values beyond a boundary to the coarse-fine interpolation. The CIB
+        // strategy then sets all the velocity ghost values outside the physical boundaries.
         U_transaction_comps[0] = InterpolationTransactionComponent(U_idx,
                                                                    d_refine_type,
                                                                    d_use_cf_interpolation,
                                                                    d_coarsen_type,
                                                                    d_bdry_extrap_type,
                                                                    d_consistent_type_2_bdry,
-                                                                   d_U_bc_coefs,
+                                                                   static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr),
                                                                    d_U_fill_pattern,
                                                                    d_bdry_interp_type);
         Pointer<HierarchyGhostCellInterpolation> U_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
         U_bdry_fill->initializeOperatorState(U_transaction_comps, x->getPatchHierarchy());
         U_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
         U_bdry_fill->fillData(d_solution_time);
+        d_cib_strategy->fillVelocityPhysBdryGhostValues(U_idx, d_homogeneous_bc, d_solution_time);
 
         d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
         ib_method_ops->interpolateVelocity(U_idx,

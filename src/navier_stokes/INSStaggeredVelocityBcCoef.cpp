@@ -198,6 +198,15 @@ INSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
+bool
+INSStaggeredVelocityBcCoef::dependsOnTargetPatchData(const Patch<NDIM>& patch,
+                                                     const BoundaryBox<NDIM>& bdry_box,
+                                                     const double fill_time) const
+{
+    return d_traction_bc_type == TRACTION && velocity_bc::traction_data_depend_on_velocity(
+                                                 d_bc_coefs[d_comp_idx], d_comp_idx, patch, bdry_box, fill_time);
+} // dependsOnTargetPatchData
+
 void
 INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
                                        Pointer<ArrayData<NDIM, double>>& bcoef_data,

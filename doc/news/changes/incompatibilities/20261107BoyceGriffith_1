@@ -1,0 +1,3 @@
+Changed: Stop IB interpolation and spreading with a staggered velocity with an error unless the physical domain is a single rectangular box at least as wide as the ghost cell width of the IB velocity data along each axis that is not periodic. Other domains worked with the Robin fill that IBAMR::INSStaggeredDivergenceFreePhysBdryOp replaces.
+<br>
+(Boyce Griffith, 2026/11/07)

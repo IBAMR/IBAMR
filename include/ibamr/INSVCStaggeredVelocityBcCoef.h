@@ -170,6 +170,15 @@ public:
      */
     void setHomogeneousBc(bool homogeneous_bc) override;
 
+    /*!
+     * \brief Return whether the boundary data on the boundary box \a bdry_box of \a patch depend on the target patch
+     * data: true if the type of the traction conditions is TRACTION, the component is tangential to the box, and a face
+     * of the box has TRACTION coefficients at \a fill_time.
+     */
+    bool dependsOnTargetPatchData(const SAMRAI::hier::Patch<NDIM>& patch,
+                                  const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                  double fill_time) const override;
+
     //\}
 
     /*!

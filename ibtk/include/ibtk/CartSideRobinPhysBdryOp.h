@@ -191,6 +191,9 @@ public:
      * \param fill_time            Double simulation time for boundary filling.
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
      * all registered scratch components.
+     *
+     * \note Emits an error if the boundary data of a boundary condition object depend on the patch data (see
+     * ExtendedRobinBcCoefStrategy::dependsOnTargetPatchData()), because the result would not be the adjoint.
      */
     void accumulateFromPhysicalBoundaryData(SAMRAI::hier::Patch<NDIM>& patch,
                                             double fill_time,

@@ -85,6 +85,12 @@ NormalVelocityStencil get_corner_normal_velocity_stencil(SAMRAI::hier::Index<NDI
                                                          bool can_extrapolate);
 
 /*!
+ * Return a patch with the box, numbers, geometry, and patch data of patch. Replacing the geometry of the copy leaves
+ * patch unchanged.
+ */
+SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> copy_patch(const SAMRAI::hier::Patch<NDIM>& patch);
+
+/*!
  * \brief A copy of a patch whose geometry is shifted from the faces of velocity component tangential_axis to the faces
  * of component bdry_normal_axis, for evaluating the boundary condition coefficients of the normal component. The
  * original patch is unchanged.

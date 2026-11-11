@@ -21,6 +21,7 @@
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CellVariable.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
@@ -32,8 +33,11 @@
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartGridFunction.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
@@ -42,7 +46,9 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Set up application namespace declarations
+#include <algorithm>
 #include <array>
+#include <memory>
 
 #include "../tests.h"
 
@@ -57,6 +63,8 @@ SAMRAI::tbox::Array<double> struct_shift;
 int num_node_circum, num_node_radial;
 double dr;
 bool put_structure_outside_domain = false;
+double curve2d_beta = 0.25;
+int curve2d_node_factor = 1;
 
 void
 generate_structure(const unsigned int& strct_num,
@@ -70,7 +78,7 @@ generate_structure(const unsigned int& strct_num,
         num_vertices = 0;
         vertex_posn.resize(num_vertices);
     }
-    double beta = 0.25;
+    double beta = curve2d_beta;
     double alpha = 0.25 * 0.25 / beta;
     double A = M_PI * alpha * beta; // Area of ellipse
     double R = sqrt(A / M_PI);      // Radius of disc with equivalent area as ellipse
@@ -125,7 +133,8 @@ generate_structure(const unsigned int& strct_num,
         //         double aaa = aa*4.0;
         //         double aaaa = dx/64.0*aaa;
         //         int aaaaa = static_cast<int>(aaaa);
-        num_node[strct_num] = static_cast<int>((1.0 / (dx * 64.0)) * ceil(perim / (1.0 / (3.0 * 64.0)) / 4.0) * 4.0);
+        num_node[strct_num] = curve2d_node_factor *
+                              static_cast<int>((1.0 / (dx * 64.0)) * ceil(perim / (1.0 / (3.0 * 64.0)) / 4.0) * 4.0);
         ds[strct_num] = 2.0 * M_PI * R / num_node[strct_num];
         num_vertices = num_node[strct_num];
         vertex_posn.resize(num_vertices);
@@ -134,8 +143,8 @@ generate_structure(const unsigned int& strct_num,
             IBTK::Point& X = *it;
             int num = std::distance(vertex_posn.begin(), it);
             double theta = 2.0 * M_PI * num / num_vertices;
-            X(0) = x_center + alpha * std::cos(theta);
-            X(1) = y_center + beta * std::sin(theta);
+            X(0) = x_center + alpha * std::cos(theta) + struct_shift[0];
+            X(1) = y_center + beta * std::sin(theta) + struct_shift[1];
         }
     }
     else if (struct_list[strct_num].compare("shell2d") == 0)
@@ -183,6 +192,48 @@ generate_structure(const unsigned int& strct_num,
         }
     }
     return;
+}
+
+// Compute the shoelace area enclosed by the curve2d markers (area[0]), the area extrapolated to zero marker spacing
+// (area[1]), and the lowest and highest marker heights. Valid for serial runs only.
+void
+get_enclosed_area(IBTK::LDataManager* l_data_manager,
+                  const int ln,
+                  std::array<double, 2>& area,
+                  double& y_min,
+                  double& y_max)
+{
+    if (struct_list[0].compare("curve2d") != 0 || IBTK_MPI::getNodes() != 1)
+    {
+        TBOX_ERROR("print_enclosed_area requires a curve2d structure and a serial run");
+    }
+    const std::pair<int, int> lag_idxs = l_data_manager->getLagrangianStructureIndexRange(0, ln);
+    std::vector<int> petsc_idxs;
+    for (int lag_idx = lag_idxs.first; lag_idx < lag_idxs.second; ++lag_idx)
+    {
+        petsc_idxs.push_back(lag_idx);
+    }
+    l_data_manager->mapLagrangianToPETSc(petsc_idxs, ln);
+    Pointer<IBTK::LData> X_data = l_data_manager->getLData("X", ln);
+    const boost::multi_array_ref<double, 2>& X = *X_data->getVecArray();
+    area[0] = 0.0;
+    double area_coarse = 0.0;
+    y_min = y_max = X[petsc_idxs[0]][1];
+    for (std::size_t k = 0; k < petsc_idxs.size(); ++k)
+    {
+        const int i = petsc_idxs[k];
+        const int j = petsc_idxs[(k + 1) % petsc_idxs.size()];
+        area[0] += 0.5 * (X[i][0] * X[j][1] - X[j][0] * X[i][1]);
+        if (k % 2 == 0)
+        {
+            const int j2 = petsc_idxs[(k + 2) % petsc_idxs.size()];
+            area_coarse += 0.5 * (X[i][0] * X[j2][1] - X[j2][0] * X[i][1]);
+        }
+        y_min = std::min(y_min, X[i][1]);
+        y_max = std::max(y_max, X[i][1]);
+    }
+    area[1] = (4.0 * area[0] - area_coarse) / 3.0;
+    X_data->restoreArrays();
 }
 
 void
@@ -266,6 +317,21 @@ generate_springs(
     return;
 }
 
+// Set the viscosity at each time. Without an advection-diffusion integrator, nothing else sets it after t = 0.
+void
+callSetFluidViscosityCallbackFunction(int mu_idx,
+                                      Pointer<SAMRAI::hier::Variable<NDIM>> mu_var,
+                                      Pointer<HierarchyMathOps> hier_math_ops,
+                                      const int /*cycle_num*/,
+                                      const double time,
+                                      const double /*current_time*/,
+                                      const double /*new_time*/,
+                                      void* ctx)
+{
+    static_cast<CartGridFunction*>(ctx)->setDataOnPatchHierarchy(
+        mu_idx, mu_var, hier_math_ops->getPatchHierarchy(), time);
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -309,6 +375,12 @@ main(int argc, char* argv[])
         // is not in the domain
         put_structure_outside_domain = input_db->getBoolWithDefault("put_structure_outside_domain", false);
 
+        // For checking the enclosed area of the curve2d structure: print its area, and set the aspect ratio and
+        // refinement of the markers
+        const bool print_enclosed_area = input_db->getBoolWithDefault("print_enclosed_area", false);
+        curve2d_beta = input_db->getDoubleWithDefault("CURVE2D_BETA", curve2d_beta);
+        curve2d_node_factor = input_db->getIntegerWithDefault("CURVE2D_NODE_FACTOR", curve2d_node_factor);
+
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
@@ -331,10 +403,16 @@ main(int argc, char* argv[])
                 "INSCollocatedHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
         }
+        else if (solver_type == "VC_STAGGERED")
+        {
+            navier_stokes_integrator = new INSVCStaggeredNonConservativeHierarchyIntegrator(
+                "INSVCStaggeredNonConservativeHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSVCStaggeredNonConservativeHierarchyIntegrator"));
+        }
         else
         {
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
-                                                   << "Valid options are: COLLOCATED, STAGGERED");
+                                                   << "Valid options are: COLLOCATED, STAGGERED, VC_STAGGERED");
         }
         Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator =
@@ -397,6 +475,23 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
+
+        // The variable-coefficient solver requires a viscosity variable, initial values, and boundary conditions.
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> mu_bc_coef;
+        if (solver_type == "VC_STAGGERED")
+        {
+            Pointer<INSVCStaggeredHierarchyIntegrator> vc_integrator = navier_stokes_integrator;
+            Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
+            vc_integrator->registerViscosityVariable(mu_var);
+            Pointer<CartGridFunction> mu_init = new muParserCartGridFunction(
+                "mu_init", app_initializer->getComponentDatabase("ViscosityInitialConditions"), grid_geometry);
+            vc_integrator->registerViscosityInitialConditions(mu_init);
+            vc_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
+                                                          static_cast<void*>(mu_init.getPointer()));
+            mu_bc_coef = std::make_unique<muParserRobinBcCoefs>(
+                "mu_bc_coef", app_initializer->getComponentDatabase("ViscosityBcCoefs"), grid_geometry);
+            vc_integrator->registerViscosityBoundaryConditions(mu_bc_coef.get());
+        }
 
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -488,6 +583,17 @@ main(int argc, char* argv[])
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
+        std::array<double, 2> area_0{}, area{}, max_area_change{};
+        double y_min = 0.0, y_max = 0.0, y_min_run = 0.0;
+        if (print_enclosed_area)
+        {
+            get_enclosed_area(ib_method_ops->getLDataManager(), finest_ln, area_0, y_min, y_max);
+            area = area_0;
+            y_min_run = y_min;
+            pout << std::setprecision(16) << "Enclosed area at time " << loop_time << ": " << area_0[0]
+                 << "\n  extrapolated enclosed area: " << area_0[1]
+                 << "\n  lowest and highest marker heights: " << y_min << " " << y_max << "\n";
+        }
         while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
@@ -498,6 +604,16 @@ main(int argc, char* argv[])
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+
+            if (print_enclosed_area)
+            {
+                get_enclosed_area(ib_method_ops->getLDataManager(), finest_ln, area, y_min, y_max);
+                for (int k = 0; k < 2; ++k)
+                {
+                    max_area_change[k] = std::max(max_area_change[k], std::abs(area[k] - area_0[k]) / area_0[k]);
+                }
+                y_min_run = std::min(y_min_run, y_min);
+            }
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -584,6 +700,18 @@ main(int argc, char* argv[])
                 p_err[1] = hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx);
                 p_err[2] = hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx);
             }
+        }
+
+        if (print_enclosed_area)
+        {
+            pout << std::setprecision(16) << "Enclosed area at time " << loop_time << ": " << area[0]
+                 << "\n  relative change from the initial area: " << (area[0] - area_0[0]) / area_0[0]
+                 << "\n  maximum relative change over the run: " << max_area_change[0]
+                 << "\n  extrapolated enclosed area: " << area[1]
+                 << "\n  relative change of the extrapolated area: " << (area[1] - area_0[1]) / area_0[1]
+                 << "\n  maximum relative change of the extrapolated area over the run: " << max_area_change[1]
+                 << "\n  lowest and highest marker heights: " << y_min << " " << y_max
+                 << "\n  lowest marker height over the run: " << y_min_run << "\n";
         }
 
         // Cleanup Eulerian boundary condition specification objects (when

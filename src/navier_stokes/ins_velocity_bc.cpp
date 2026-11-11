@@ -13,8 +13,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/ShiftedPatchGeometry.h>
+
+#include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
 
+#include <ArrayData.h>
+#include <Box.h>
+#include <CartesianPatchGeometry.h>
+#include <Patch.h>
+#include <Variable.h>
+
+#include <array>
+
+#include "./ins_staggered_traction_stencil.h"
 #include "./ins_velocity_bc.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -41,6 +54,44 @@ get_type(const double a, const double b, const char* const caller)
     }
     return is_velocity ? Type::VELOCITY : Type::TRACTION;
 } // get_type
+
+bool
+traction_data_depend_on_velocity(RobinBcCoefStrategy<NDIM>* const comp_bc_coef,
+                                 const unsigned int comp_idx,
+                                 const Patch<NDIM>& patch,
+                                 const BoundaryBox<NDIM>& bdry_box,
+                                 const double fill_time)
+{
+    if (static_cast<int>(comp_idx) == bdry_box.getLocationIndex() / 2) return false;
+
+    // Evaluate the coefficients at the faces where the fill sets the component: the cells of the boundary box and one
+    // more face along the component axis, with the patch geometry shifted by half a cell along that axis.
+    Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bdry_box);
+    bc_coef_box.upper()(comp_idx) += 1;
+    Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+    Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+    Pointer<ArrayData<NDIM, double>> gcoef_data;
+    std::array<double, NDIM> shift;
+    shift.fill(0.0);
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    shift[comp_idx] = -0.5 * pgeom->getDx()[comp_idx];
+    // Shifting the geometry of a copy of the patch leaves the patch geometry unchanged.
+    Pointer<Patch<NDIM>> shifted_patch = traction_stencil::copy_patch(patch);
+    const ShiftedPatchGeometry shifted_geometry(*shifted_patch, shift);
+    const ShiftedPatchGeometry::ScopedGeometryReplacement geometry_replacement(*shifted_patch, shifted_geometry);
+    comp_bc_coef->setBcCoefs(
+        acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM>>(), *shifted_patch, bdry_box, fill_time);
+    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    {
+        if (get_type((*acoef_data)(it(), 0),
+                     (*bcoef_data)(it(), 0),
+                     "velocity_bc::traction_data_depend_on_velocity()") == Type::TRACTION)
+        {
+            return true;
+        }
+    }
+    return false;
+} // traction_data_depend_on_velocity
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

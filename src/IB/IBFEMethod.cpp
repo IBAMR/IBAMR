@@ -690,8 +690,18 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
     if (d_use_scratch_hierarchy)
     {
+        // The velocity ghost fill reads the interpolated viscosity at the physical boundaries, on the secondary
+        // patches.
+        const INSHierarchyIntegrator* const ins_integrator = getINSHierarchyIntegrator();
+        const int mu_idx = ins_integrator->muIsConstant() ?
+                               IBTK::invalid_index :
+                               ins_integrator->getInterpolatedLinearOperatorMuPatchDataIndex();
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
+            if (mu_idx != IBTK::invalid_index)
+            {
+                d_secondary_hierarchy->transferPrimaryToSecondary(ln, mu_idx, mu_idx, data_time, nullptr);
+            }
             d_secondary_hierarchy->transferPrimaryToSecondary(
                 ln, u_data_idx, u_data_idx, data_time, d_ib_solver->getVelocityPhysBdryOp());
         }

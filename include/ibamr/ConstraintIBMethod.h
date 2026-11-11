@@ -215,7 +215,7 @@ public:
     /*!
      * \brief Set the boundary operator for the velocity at physical boundaries. The operator fills the velocity ghost
      * values at physical boundaries before the velocity is interpolated, and the velocity correction is spread with
-     * it.
+     * it. If none is set, the operator of the fluid solver is used.
      */
     inline void setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op)
     {
@@ -300,6 +300,12 @@ private:
      * \note This assignment operator is not implemented and should not be used.
      */
     ConstraintIBMethod& operator=(const ConstraintIBMethod& that) = delete;
+
+    /*!
+     * \brief Return the velocity physical boundary operator of the ghost fill and the spreading: the one set by
+     * setVelocityPhysBdryOp(), or the operator of the fluid solver if none is set.
+     */
+    IBTK::RobinPhysBdryPatchStrategy* getVelocityPhysBdryOp() const;
 
     /*!
      * \brief Get values from input file.

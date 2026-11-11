@@ -71,6 +71,8 @@
 #include <VariableDatabase.h>
 #include <VariableFillPattern.h>
 
+#include "./ib_velocity_ghost_fill.h"
+
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -764,6 +766,12 @@ ConstraintIBMethod::postprocessIntegrateData(double current_time, double new_tim
 } // postprocessIntegrateData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+IBTK::RobinPhysBdryPatchStrategy*
+ConstraintIBMethod::getVelocityPhysBdryOp() const
+{
+    return d_u_phys_bdry_op ? d_u_phys_bdry_op : d_ib_solver->getVelocityPhysBdryOp();
+} // getVelocityPhysBdryOp
 
 void
 ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_restart)
@@ -2389,23 +2397,11 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     hier_bdry_fill->fillData(0.0);
 
     // Set the ghost values at the physical boundaries with the velocity boundary conditions.
-    if (d_u_phys_bdry_op)
+    IBTK::RobinPhysBdryPatchStrategy* const u_phys_bdry_op = getVelocityPhysBdryOp();
+    if (u_phys_bdry_op)
     {
-        d_u_phys_bdry_op->setPatchDataIndex(copy_to_idx);
-        d_u_phys_bdry_op->setHomogeneousBc(false);
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                if (patch->getPatchGeometry()->getTouchesRegularBoundary())
-                {
-                    d_u_phys_bdry_op->setPhysicalBoundaryConditions(
-                        *patch, d_FuRMoRP_new_time, patch->getPatchData(copy_to_idx)->getGhostCellWidth());
-                }
-            }
-        }
+        fill_velocity_phys_bdry_ghost_values(
+            *u_phys_bdry_op, copy_to_idx, d_hierarchy, /*homogeneous_bc*/ false, d_FuRMoRP_new_time);
     }
 
     return;
@@ -2478,7 +2474,7 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     u_ins.addComponent(d_u_fluidSolve_var, d_u_fluidSolve_idx, d_wgt_sc_idx);
 
     u_cib.setToScalar(0.0);
-    d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, d_u_phys_bdry_op);
+    d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, getVelocityPhysBdryOp());
 
     u_ins.add(Pointer<SAMRAIVectorReal<NDIM, double>>(&u_ins, false),
               Pointer<SAMRAIVectorReal<NDIM, double>>(&u_cib, false));
