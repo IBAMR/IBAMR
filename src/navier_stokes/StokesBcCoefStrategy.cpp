@@ -16,6 +16,18 @@
 #include <ibamr/StokesBcCoefStrategy.h>
 #include <ibamr/ibamr_enums.h>
 
+#include <tbox/Utilities.h>
+
+#include <BoundaryBox.h>
+#include <Box.h>
+#include <BoxArray.h>
+#include <Index.h>
+#include <Patch.h>
+#include <SideIndex.h>
+
+#include <utility>
+#include <vector>
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 namespace IBAMR
@@ -81,6 +93,23 @@ StokesBcCoefStrategy::getTractionBcType() const
 {
     return d_traction_bc_type;
 } // getTractionBcType
+
+std::vector<std::pair<SideIndex<NDIM>, double>>
+StokesBcCoefStrategy::getTractionStencil(const hier::Index<NDIM>& /*i*/,
+                                         const Patch<NDIM>& /*patch*/,
+                                         const BoundaryBox<NDIM>& /*bdry_box*/,
+                                         const BoxArray<NDIM>& /*domain*/,
+                                         const Box<NDIM>& /*ghost_box*/,
+                                         const double /*fill_time*/) const
+{
+    if (d_traction_bc_type == TRACTION)
+    {
+        TBOX_ERROR("StokesBcCoefStrategy::getTractionStencil():\n"
+                   << "  this boundary condition object does not provide the stencil of its TRACTION conditions\n"
+                   << "  override getTractionStencil() or use the PSEUDO_TRACTION type\n");
+    }
+    return {};
+} // getTractionStencil
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

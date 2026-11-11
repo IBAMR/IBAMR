@@ -1,0 +1,3 @@
+Changed: Stop with an error in IBAMR::StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(), and with it IBAMR::StaggeredStokesPETScLevelSolver, at a boundary with a traction condition on a tangential velocity, if the velocity boundary condition object has the TRACTION type, the default, and does not override IBAMR::StokesBcCoefStrategy::getTractionStencil(). Override it or use the PSEUDO_TRACTION type.
+<br>
+(Boyce Griffith, 2026/10/08)

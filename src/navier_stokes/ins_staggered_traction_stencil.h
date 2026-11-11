@@ -36,6 +36,7 @@
 
 #include <array>
 #include <optional>
+#include <utility>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -168,6 +169,22 @@ double get_divergence_free_ghost_value(const SAMRAI::pdat::SideData<NDIM, double
  */
 bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
+/*!
+ * Return the side indices of the normal velocities on which the inhomogeneous Robin coefficient of the TRACTION
+ * condition depends at the location i, each with the derivative of the coefficient with respect to it. An index may
+ * appear more than once: its derivative is the sum of its entries. The arguments are those of
+ * get_normal_velocity_difference(), except that ghost_box replaces u_data.
+ */
+std::vector<std::pair<SAMRAI::pdat::SideIndex<NDIM>, double>>
+get_traction_stencil(const SAMRAI::hier::Index<NDIM>& i,
+                     unsigned int bdry_normal_axis,
+                     bool bdry_is_lower,
+                     unsigned int tangential_axis,
+                     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* normal_bc_coef,
+                     NormalVelocityPatch& normal_velocity_patch,
+                     const SAMRAI::hier::BoxArray<NDIM>& domain,
+                     const SAMRAI::hier::Box<NDIM>& ghost_box,
+                     double fill_time);
 } // namespace traction_stencil
 } // namespace IBAMR
 
