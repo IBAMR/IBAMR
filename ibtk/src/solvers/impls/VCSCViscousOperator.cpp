@@ -145,7 +145,8 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
                                                       BDRY_EXTRAP_TYPE,
                                                       CONSISTENT_TYPE_2_BDRY,
                                                       d_bc_coefs,
-                                                      d_fill_pattern);
+                                                      d_fill_pattern,
+                                                      d_bdry_interp_type);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -248,7 +249,8 @@ VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
                                                     BDRY_EXTRAP_TYPE,
                                                     CONSISTENT_TYPE_2_BDRY,
                                                     d_bc_coefs,
-                                                    d_fill_pattern);
+                                                    d_fill_pattern,
+                                                    d_bdry_interp_type);
         d_transaction_comps.push_back(component);
     }
 

@@ -18,6 +18,7 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
+#include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/StokesSpecifications.h>
 #include <ibamr/ibamr_enums.h>
 
@@ -110,6 +111,28 @@ set_unit_velocity(const Pointer<PatchHierarchy<NDIM>>& hierarchy,
         }
     }
 }
+// Return bdry_treatment with the values of bdry_interp_type and bdry_extrap_type that the input database db of an
+// object sets.
+BoundaryTreatment
+get_bdry_treatment(const Pointer<Database>& db, BoundaryTreatment bdry_treatment)
+{
+    if (db && db->keyExists("bdry_interp_type"))
+    {
+        bdry_treatment.bdry_interp_type = db->getString("bdry_interp_type");
+    }
+    if (db && db->keyExists("bdry_extrap_type"))
+    {
+        bdry_treatment.bdry_extrap_type = db->getString("bdry_extrap_type");
+    }
+    return bdry_treatment;
+} // get_bdry_treatment
+
+// Return whether the input database db of an object sets bdry_interp_type or bdry_extrap_type.
+bool
+sets_bdry_treatment(const Pointer<Database>& db)
+{
+    return db && (db->keyExists("bdry_interp_type") || db->keyExists("bdry_extrap_type"));
+} // sets_bdry_treatment
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -240,6 +263,15 @@ INSHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()
 {
     return nullptr;
 } // getDivergenceFreeVelocityPhysBdryOp
+
+BoundaryTreatment
+INSHierarchyIntegrator::getBoundaryTreatment() const
+{
+    BoundaryTreatment bdry_treatment;
+    bdry_treatment.bdry_interp_type = d_bdry_interp_type;
+    bdry_treatment.bdry_extrap_type = d_bdry_extrap_type;
+    return bdry_treatment;
+} // getBoundaryTreatment
 
 RobinBcCoefStrategy<NDIM>*
 INSHierarchyIntegrator::getPressureBoundaryConditions() const
@@ -928,6 +960,93 @@ INSHierarchyIntegrator::updateNullSpaceVectors(const double current_time,
     }
     return;
 } // updateNullSpaceVectors
+
+void
+INSHierarchyIntegrator::getBoundaryTreatmentFromInput(Pointer<Database> input_db,
+                                                      const std::string& function_name,
+                                                      Pointer<Database> stokes_solver_db)
+{
+    // One boundary interpolation type for every object that fills velocity or pressure boundary values.
+    d_bdry_interp_type = input_db->getStringWithDefault("bdry_interp_type", d_bdry_interp_type);
+    if (d_bdry_interp_type != "LINEAR" && d_bdry_interp_type != "QUADRATIC")
+    {
+        TBOX_ERROR(d_object_name << "::" << function_name << "():\n"
+                                 << "  unsupported bdry_interp_type: " << d_bdry_interp_type << "\n"
+                                 << "  valid choices are: LINEAR, QUADRATIC" << std::endl);
+    }
+
+    // The Stokes operator and the right-hand side are the implicit and explicit parts of the viscous term.
+    const auto check_stokes_solver_db = [&](const std::string& key, const std::string& value)
+    {
+        if (stokes_solver_db->keyExists(key) && stokes_solver_db->getString(key) != value)
+        {
+            TBOX_ERROR(d_object_name << "::" << function_name << "():\n"
+                                     << "  stokes_solver_db sets " << key << " = " << stokes_solver_db->getString(key)
+                                     << " for the Stokes operator, but the right-hand side uses " << value << "\n"
+                                     << "  set " << key << " in the integrator database only" << std::endl);
+        }
+    };
+    check_stokes_solver_db("bdry_interp_type", d_bdry_interp_type);
+    check_stokes_solver_db("bdry_extrap_type", d_bdry_extrap_type);
+    return;
+} // getBoundaryTreatmentFromInput
+
+BoundaryTreatment
+INSHierarchyIntegrator::getBoundaryTreatmentOf(const Pointer<Database>& db) const
+{
+    return get_bdry_treatment(db, getBoundaryTreatment());
+} // getBoundaryTreatmentOf
+
+void
+INSHierarchyIntegrator::setPreconditionerBoundaryTreatment(StaggeredStokesSolver& precond,
+                                                           const std::string& precond_name,
+                                                           const Pointer<Database>& precond_db)
+{
+    BoundaryTreatment bdry_treatment = getBoundaryTreatmentOf(precond_db);
+    std::string source = sets_bdry_treatment(precond_db) ? precond_db->getName() : "";
+    if (!precond_db->keyExists("bdry_interp_type") && !precond.supportsBdryInterpType(bdry_treatment.bdry_interp_type))
+    {
+        bdry_treatment.bdry_interp_type = "LINEAR";
+        source = "unsupported";
+    }
+    precond.setBoundaryTreatment(bdry_treatment);
+    logBoundaryTreatment("initializeHierarchyIntegrator", precond_name, bdry_treatment, true, source);
+    return;
+} // setPreconditionerBoundaryTreatment
+
+void
+INSHierarchyIntegrator::logBoundaryTreatment(const std::string& function_name,
+                                             const std::string& object_name,
+                                             const BoundaryTreatment& bdry_treatment,
+                                             const bool uses_bdry_extrap_type,
+                                             const std::string& source)
+{
+    const bool differs = bdry_treatment.bdry_interp_type != d_bdry_interp_type ||
+                         (uses_bdry_extrap_type && bdry_treatment.bdry_extrap_type != d_bdry_extrap_type);
+    if (!differs)
+    {
+        return;
+    }
+    if (!d_logged_bdry_treatment)
+    {
+        plog << d_object_name << "::" << function_name
+             << "(): boundary treatment of the integrator: bdry_interp_type = " << d_bdry_interp_type
+             << ", bdry_extrap_type = " << d_bdry_extrap_type << "\n";
+        d_logged_bdry_treatment = true;
+    }
+    plog << d_object_name << "::" << function_name << "(): boundary treatment of the " << object_name
+         << ": bdry_interp_type = " << bdry_treatment.bdry_interp_type;
+    if (uses_bdry_extrap_type)
+    {
+        plog << ", bdry_extrap_type = " << bdry_treatment.bdry_extrap_type;
+    }
+    if (!source.empty())
+    {
+        plog << " (" << source << ")";
+    }
+    plog << "\n";
+    return;
+} // logBoundaryTreatment
 
 double
 INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()

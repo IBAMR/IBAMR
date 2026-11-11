@@ -1,0 +1,11 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+ghost faces at the lower corners of the x boundaries: 96 checked, largest error 0.0000000000
+ghost faces at the upper corners of the x boundaries: 96 checked, largest error 0.0000000000
+ghost faces elsewhere on the x boundaries: 768 checked, largest error 0.0000000000
+outermost ghost faces at the ends of the ghost box: 192 are NaN, as the fill does not compute them
+normal velocity ghost faces of the extension next to corners: 168 checked, largest error 0.0000000000
+normal velocity ghost faces of the extension elsewhere: 216 checked, largest error 0.0000000000
+normal-stress terms next to corners: 168 checked, largest error 0.0000000000
+normal-stress terms elsewhere: 216 checked, largest error 0.0000000000

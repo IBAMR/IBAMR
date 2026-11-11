@@ -75,6 +75,7 @@ SCLaplaceOperator::SCLaplaceOperator(std::string object_name, Pointer<Database> 
             d_use_cf_interpolation = input_db->getBool("use_cf_interpolation");
         if (input_db->isString("data_coarsen_type")) d_data_coarsen_type = input_db->getString("data_coarsen_type");
         if (input_db->isString("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        if (input_db->isString("bdry_interp_type")) setBdryInterpType(input_db->getString("bdry_interp_type"));
         if (input_db->isBool("use_consistent_type_2_bdry"))
             d_use_consistent_type_2_bdry = input_db->getBool("use_consistent_type_2_bdry");
     }
@@ -96,6 +97,12 @@ SCLaplaceOperator::~SCLaplaceOperator()
     if (d_is_initialized) deallocateOperatorState();
     return;
 } // ~SCLaplaceOperator()
+
+bool
+SCLaplaceOperator::supportsBdryInterpType(const std::string& bdry_interp_type) const
+{
+    return bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC";
+} // supportsBdryInterpType
 
 void
 SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
@@ -141,7 +148,8 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
                                                       d_bdry_extrap_type,
                                                       d_use_consistent_type_2_bdry,
                                                       d_bc_coefs,
-                                                      d_fill_pattern);
+                                                      d_fill_pattern,
+                                                      d_bdry_interp_type);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -226,7 +234,8 @@ SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
                                                     d_bdry_extrap_type,
                                                     d_use_consistent_type_2_bdry,
                                                     d_bc_coefs,
-                                                    d_fill_pattern);
+                                                    d_fill_pattern,
+                                                    d_bdry_interp_type);
         d_transaction_comps.push_back(component);
     }
 
