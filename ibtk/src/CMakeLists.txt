@@ -98,6 +98,7 @@ SET(CXX_SRC
   lagrangian/LDataManager.cpp
   lagrangian/LNode.cpp
   lagrangian/LTransaction.cpp
+  lagrangian/InterpolationStencilCheck.cpp
   lagrangian/LEInteractor.cpp
   lagrangian/LNodeIndex.cpp
   lagrangian/LIndexSetData.cpp

@@ -133,6 +133,12 @@ LDataManager::getLNodePatchDescriptorIndex() const
     return d_lag_node_index_current_idx;
 } // getLNodePatchDescriptorIndex
 
+inline const InterpolationStencilCheck&
+LDataManager::getInterpolationStencilCheck() const
+{
+    return d_interp_check;
+} // getInterpolationStencilCheck
+
 inline int
 LDataManager::getWorkloadPatchDescriptorIndex() const
 {

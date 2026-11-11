@@ -20,6 +20,7 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/InterpolationStencilCheck.h>
 #include <ibtk/LInitStrategy.h>
 #include <ibtk/LNodeSet.h>
 #include <ibtk/LNodeSetVariable.h>
@@ -702,6 +703,11 @@ public:
     int getLNodePatchDescriptorIndex() const;
 
     /*!
+     * \brief Return the check that stops interpolation at cells with unset data.
+     */
+    const InterpolationStencilCheck& getInterpolationStencilCheck() const;
+
+    /*!
      * \brief Get the patch data descriptor index for the workload cell data.
      *
      * @deprecated This method is deprecated since, in future versions of
@@ -1212,6 +1218,11 @@ private:
      * Cached Eulerian data to reduce the number of allocations/deallocations.
      */
     SAMRAIDataCache d_cached_eulerian_data;
+
+    /*
+     * The check that stops interpolation at cells with unset data.
+     */
+    InterpolationStencilCheck d_interp_check;
 
     /*
      * Objects that sum ghost values into their owners in spread(), by variable, ghost cell width, and range of levels.

@@ -22,6 +22,7 @@
 
 #ifdef IBTK_HAVE_LIBMESH
 
+#include <ibtk/InterpolationStencilCheck.h>
 #include <ibtk/QuadratureCache.h>
 #include <ibtk/SAMRAIDataCache.h>
 #include <ibtk/ibtk_enums.h>
@@ -694,6 +695,11 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> getPatchHierarchy() const;
 
     /*!
+     * \brief Return the check that stops interpolation at cells with unset data.
+     */
+    const InterpolationStencilCheck& getInterpolationStencilCheck() const;
+
+    /*!
      * Get the coarsest patch level number on which elements are assigned.
      */
     int getCoarsestPatchLevelNumber() const;
@@ -1312,6 +1318,11 @@ private:
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
+
+    /*!
+     * The check that stops interpolation at cells with unset data.
+     */
+    InterpolationStencilCheck d_interp_check;
 
     /*!
      * Maximum possible level number in the patch hierarchy.

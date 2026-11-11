@@ -1,0 +1,3 @@
+Changed: Stop IB interpolation with an error if the kernel stencil of a point includes data in a cell not covered by the patch level, or in a ghost cell outside the physical domain beside a boundary that the patch does not touch. The change applies to IBTK::LDataManager::interp(), IBTK::FEDataManager::interpWeighted(), and the interpolation of IBAMR::IMPMethod, IBAMR::IIMethod, IBAMR::IBFESurfaceMethod, and IBAMR::IBFEInstrumentPanel. IBTK::MarkerPatchHierarchy stops only for the ghost cells beside a boundary that the patch does not touch. IBTK::InterpolationStencilCheck finds these cells. Before, the interpolation used undefined values.
+<br>
+(Boyce Griffith, 2026/11/04)

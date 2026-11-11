@@ -871,6 +871,20 @@ LDataManager::interp(const int f_data_idx,
             f_ghost_fill_scheds[ln]->fillData(fill_data_time);
         }
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        const double* const X = X_data[ln]->getGhostedLocalFormVecArray()->data();
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            d_interp_check.check("LDataManager::interp",
+                                 patch,
+                                 *patch->getPatchData(f_data_idx),
+                                 patch->getBox(),
+                                 X,
+                                 idx_data,
+                                 d_default_interp_kernel_fcn);
+        }
+        X_data[ln]->restoreArrays();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
@@ -2737,6 +2751,7 @@ LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM>
     // Reset the patch hierarchy and levels.
     setPatchHierarchy(hierarchy);
     setPatchLevels(0, finest_hier_level);
+    d_interp_check.reset(d_hierarchy);
 
     // Reset the Silo data writer.
     if (d_silo_writer)

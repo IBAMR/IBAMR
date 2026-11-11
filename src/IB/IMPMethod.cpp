@@ -456,6 +456,8 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
             {
                 side_boxes[axis] = SideGeometry<NDIM>::toSideBox(u_data->getGhostBox() * idx_data->getGhostBox(), axis);
             }
+            d_l_data_manager->getInterpolationStencilCheck().check(
+                "IMPMethod::interpolateVelocity", patch, *u_data, patch_box, X_array.data(), idx_data, KERNEL_FCN);
             LEInteractor::buildLocalIndices(
                 local_indices, periodic_shifts, patch_box, patch, X_array.data(), NDIM, idx_data);
             for (std::size_t n = 0; n < local_indices.size(); ++n)

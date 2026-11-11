@@ -14,9 +14,9 @@
 // Check that IB force spreading S is the adjoint of IB velocity interpolation J, including the velocity boundary
 // conditions at physical boundaries, on a level with several patches: (F, J u) = (S F, u) for a force F and a velocity
 // u. The identity holds for the homogeneous (linear) part of the fill and for velocity fields that are zero on the
-// prescribed wall-normal faces. The test first displaces the markers by marker_displacement grid cells toward the
-// center of the domain (see displace_markers) and shifts them by marker_shift grid cells along each axis (see
-// shift_markers).
+// prescribed wall-normal faces. The test first displaces the markers toward the center of the domain by
+// marker_displacement and unchecked_marker_displacement grid cells, and shifts them by marker_shift grid cells along
+// each axis.
 //
 // The fluid solver is INSVCStaggeredNonConservativeHierarchyIntegrator if the input has a database of that name.
 
@@ -58,6 +58,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "../tests.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -217,7 +219,7 @@ check_interpolation_spreading_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierar
     Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
     const double time = ib_integrator->getIntegratorTime();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const Pointer<Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
+    const Pointer<hier::Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
     const int u_idx = var_db->registerVariableAndContext(
         u_var, var_db->getContext("interpolation_spreading_adjoint"), ib_method_ops->getMinimumGhostCellWidth());
     const int f_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
@@ -268,7 +270,10 @@ check_interpolation_spreading_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierar
     Pointer<LData> X_data = l_data_manager->getLData("X", ln);
     Pointer<LData> U_data = l_data_manager->createLData("interpolation_spreading_adjoint_U", ln, NDIM);
     Pointer<LData> F_data = l_data_manager->createLData("interpolation_spreading_adjoint_F", ln, NDIM);
-    l_data_manager->interp(u_idx, U_data, X_data, ln, {}, ghost_fill_scheds, time);
+    std::vector<Pointer<LData>> U_data_levels(ln + 1), X_data_levels(ln + 1);
+    U_data_levels[ln] = U_data;
+    X_data_levels[ln] = X_data;
+    l_data_manager->interp(u_idx, U_data_levels, X_data_levels, {}, ghost_fill_scheds, time, ln, ln);
     double F_dot_Ju = 0.0;
     {
         boost::multi_array_ref<double, 2>& U = *U_data->getLocalFormVecArray();
@@ -357,6 +362,10 @@ main(int argc, char* argv[])
 
     // Suppress warnings caused by running without Silo and by allowing patches smaller than the ghost cell width.
     SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+
+    // Print error messages without file names or line numbers.
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
 
     {
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
@@ -456,6 +465,10 @@ main(int argc, char* argv[])
                                                 << " must be less than one grid cell in magnitude\n");
         }
         displace_markers(patch_hierarchy, ib_method_ops, marker_displacement);
+        if (input_db->keyExists("unchecked_marker_displacement"))
+        {
+            displace_markers(patch_hierarchy, ib_method_ops, input_db->getDouble("unchecked_marker_displacement"));
+        }
         if (input_db->keyExists("marker_shift"))
         {
             std::array<double, NDIM> marker_shift;

@@ -1241,15 +1241,30 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 
             const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(u_ghost_num));
 
+            const InterpolationStencilCheck& interp_check = d_fe_data_managers[part]->getInterpolationStencilCheck();
             Pointer<CellData<NDIM, double>> u_cc_data = u_data;
             if (u_cc_data)
             {
+                interp_check.check("IIMethod::interpolateVelocity",
+                                   patch,
+                                   *u_cc_data,
+                                   interp_box,
+                                   x_qp.data(),
+                                   static_cast<int>(x_qp.size()),
+                                   d_default_interp_spec.kernel_fcn);
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
             Pointer<SideData<NDIM, double>> u_sc_data = u_data;
             if (u_sc_data && !d_use_u_interp_correction)
             {
+                interp_check.check("IIMethod::interpolateVelocity",
+                                   patch,
+                                   *u_sc_data,
+                                   interp_box,
+                                   x_qp.data(),
+                                   static_cast<int>(x_qp.size()),
+                                   d_default_interp_spec.kernel_fcn);
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_sc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
@@ -1268,6 +1283,20 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                                              << "  increase min_ghost_cell_width\n");
                 }
 
+                interp_check.check("IIMethod::interpolateVelocity",
+                                   patch,
+                                   *u_sc_data,
+                                   ghost_box,
+                                   x_in_qp.data(),
+                                   static_cast<int>(x_in_qp.size()),
+                                   d_default_interp_spec.kernel_fcn);
+                interp_check.check("IIMethod::interpolateVelocity",
+                                   patch,
+                                   *u_sc_data,
+                                   ghost_box,
+                                   x_out_qp.data(),
+                                   static_cast<int>(x_out_qp.size()),
+                                   d_default_interp_spec.kernel_fcn);
                 LEInteractor::interpolate(
                     U_in_qp, NDIM, x_in_qp, NDIM, u_sc_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 
@@ -2352,6 +2381,22 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_data_idx);
 
         const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(p_ghost_num));
+
+        const InterpolationStencilCheck& interp_check = d_fe_data_managers[part]->getInterpolationStencilCheck();
+        interp_check.check("IIMethod::extrapolatePressureForTraction",
+                           patch,
+                           *p_data,
+                           ghost_box,
+                           x_in_qp.data(),
+                           static_cast<int>(x_in_qp.size()),
+                           d_default_interp_spec.kernel_fcn);
+        interp_check.check("IIMethod::extrapolatePressureForTraction",
+                           patch,
+                           *p_data,
+                           ghost_box,
+                           x_out_qp.data(),
+                           static_cast<int>(x_out_qp.size()),
+                           d_default_interp_spec.kernel_fcn);
 
         LEInteractor::interpolate(P_i_qp, 1, x_in_qp, NDIM, p_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 
