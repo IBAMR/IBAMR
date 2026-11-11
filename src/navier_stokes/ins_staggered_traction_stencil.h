@@ -36,6 +36,7 @@
 
 #include <array>
 #include <optional>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -142,6 +143,23 @@ double get_normal_velocity_difference(const SAMRAI::pdat::SideData<NDIM, double>
                                       NormalVelocityPatch& normal_velocity_patch,
                                       const SAMRAI::hier::BoxArray<NDIM>& domain,
                                       double fill_time);
+
+/*!
+ * Return the normal velocity on the face, farther from the boundary, of the ghost cell i_g outside the physical
+ * boundary normal to bdry_normal_axis (the lower boundary if bdry_is_lower), such that the discrete divergence of
+ * u_data vanishes in i_g. The function ignores u_data on that face.
+ */
+double get_divergence_free_ghost_value(const SAMRAI::pdat::SideData<NDIM, double>& u_data,
+                                       const SAMRAI::hier::Index<NDIM>& i_g,
+                                       unsigned int bdry_normal_axis,
+                                       bool bdry_is_lower,
+                                       const double* dx);
+
+/*!
+ * Return whether any of u_bc_coefs is a StokesBcCoefStrategy with TRACTION conditions, for which the operator adds a
+ * normal stress term.
+ */
+bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
 } // namespace traction_stencil
 } // namespace IBAMR

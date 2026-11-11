@@ -44,6 +44,8 @@
 #include <string>
 #include <vector>
 
+#include "./ins_staggered_traction_stencil.h"
+
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -244,6 +246,18 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                              A_U_sc_var,
                              /*dst_cf_bdry_synch*/ false);
 
+    // Add the traction term before the coarse-fine synchronization, which restricts the complete fine value.
+    if (d_bc_helper)
+    {
+        d_bc_helper->addNormalTractionViscousTerm(A_U_idx,
+                                                  U_idx,
+                                                  d_U_problem_coefs.getDConstant(),
+                                                  d_U_bc_coefs,
+                                                  d_bdry_interp_type,
+                                                  x.getCoarsestLevelNumber(),
+                                                  x.getFinestLevelNumber());
+    }
+
     // Synchronize A_U and U across coarse-fine interfaces together.
     d_hier_math_ops->synchronizeCoarseFineBoundary({ A_U_idx, U_idx });
     d_hier_math_ops->div(A_P_idx,
@@ -268,6 +282,16 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
 
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
+
+    if (!d_bc_helper && traction_stencil::has_normal_stress_term(d_U_bc_coefs) &&
+        in.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() == 0)
+    {
+        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
+                                 << "  the TRACTION velocity boundary conditions require a "
+                                    "StaggeredStokesPhysicalBoundaryHelper in a domain that is not periodic in every "
+                                    "direction\n"
+                                 << "  call setPhysicalBoundaryHelper() to provide one\n");
+    }
 
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, /*overwrite_interior*/ false);

@@ -13,6 +13,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/StokesBcCoefStrategy.h>
+#include <ibamr/ibamr_enums.h>
+
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/ShiftedPatchGeometry.h>
 
@@ -39,6 +42,7 @@
 #include <array>
 #include <limits>
 #include <optional>
+#include <vector>
 
 #include "./ins_staggered_traction_stencil.h"
 #include "./ins_velocity_bc.h"
@@ -330,6 +334,43 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
     }
     return du;
 } // get_normal_velocity_difference
+
+double
+get_divergence_free_ghost_value(const SideData<NDIM, double>& u_data,
+                                const hier::Index<NDIM>& i_g,
+                                const unsigned int bdry_normal_axis,
+                                const bool bdry_is_lower,
+                                const double* const dx)
+{
+    double div_u_g = 0.0;
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        const SideIndex<NDIM> i_g_s_upper(i_g, axis, SideIndex<NDIM>::Upper);
+        const SideIndex<NDIM> i_g_s_lower(i_g, axis, SideIndex<NDIM>::Lower);
+        double u_upper = u_data(i_g_s_upper);
+        double u_lower = u_data(i_g_s_lower);
+        if (axis == bdry_normal_axis)
+        {
+            (bdry_is_lower ? u_lower : u_upper) = 0.0;
+        }
+        div_u_g += (u_upper - u_lower) * dx[bdry_normal_axis] / dx[axis];
+    }
+    return (bdry_is_lower ? +1.0 : -1.0) * div_u_g;
+} // get_divergence_free_ghost_value
+
+bool
+has_normal_stress_term(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+{
+    for (const auto& u_bc_coef : u_bc_coefs)
+    {
+        const auto stokes_u_bc_coef = dynamic_cast<const StokesBcCoefStrategy*>(u_bc_coef);
+        if (stokes_u_bc_coef && stokes_u_bc_coef->getTractionBcType() == TRACTION)
+        {
+            return true;
+        }
+    }
+    return false;
+} // has_normal_stress_term
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
