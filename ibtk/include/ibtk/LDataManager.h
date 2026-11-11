@@ -620,21 +620,6 @@ public:
 
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
-     * mesh using the specified interpolation kernel function.
-     */
-    void interp(int f_data_idx,
-                SAMRAI::tbox::Pointer<LData> F_data,
-                SAMRAI::tbox::Pointer<LData> X_data,
-                const std::string& interp_kernel_fcn,
-                int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>& f_synch_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>(),
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_ghost_fill_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
-                double fill_data_time = 0.0);
-
-    /*!
-     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
      * mesh using the default interpolation kernel function.
      *
      * Points are interpolated as described for the first overload of interp().
@@ -650,22 +635,6 @@ public:
                 int coarsest_ln = invalid_level_number,
                 int finest_ln = invalid_level_number,
                 bool X_data_ghost_node_update = true);
-
-    /*!
-     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
-     * mesh using the specified interpolation kernel function.
-     */
-    void interp(int f_data_idx,
-                std::vector<SAMRAI::tbox::Pointer<LData>>& F_data,
-                std::vector<SAMRAI::tbox::Pointer<LData>>& X_data,
-                const std::string& interp_kernel_fcn,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>& f_synch_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>>(),
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>& f_ghost_fill_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>(),
-                double fill_data_time = 0.0,
-                int coarsest_ln = invalid_level_number,
-                int finest_ln = invalid_level_number);
 
     /*!
      * \brief Emit an error unless each point of the level is processed on exactly one patch, as in interp() and
