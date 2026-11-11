@@ -86,6 +86,17 @@ public:
     } // allocate_solver
 
     /*!
+     * \brief Return true: the preconditioner applies any interpolation type.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries. The preconditioner uses it to fill the ghost values of the
+     * pressure update.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
+
+    /*!
      * \name Linear solver functionality.
      */
     //\{
