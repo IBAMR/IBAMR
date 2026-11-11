@@ -21,6 +21,7 @@
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
@@ -215,11 +216,45 @@ main(int argc, char* argv[])
         u_fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
         f_fcn.setDataOnPatchHierarchy(f_sc_idx, f_sc_var, patch_hierarchy, 0.0);
 #if (NDIM == 2)
-        mu_fcn.setDataOnPatchHierarchy(mu_nc_idx, mu_nc_var, patch_hierarchy, 0.0);
+        const int mu_idx = mu_nc_idx;
+        Pointer<hier::Variable<NDIM>> mu_var = mu_nc_var;
 #elif (NDIM == 3)
-        mu_fcn.setDataOnPatchHierarchy(mu_ec_idx, mu_ec_var, patch_hierarchy, 0.0);
+        const int mu_idx = mu_ec_idx;
+        Pointer<hier::Variable<NDIM>> mu_var = mu_ec_var;
 #endif
-        // Fill ghost cells of viscosity.
+        // Evaluate the viscosity on each patch grown by the ghost cell width, so that the ghost values outside a
+        // physical boundary are values of the viscosity function.
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                Pointer<PatchData<NDIM>> mu_data = patch->getPatchData(mu_idx);
+                const IntVector<NDIM>& mu_gcw = mu_data->getGhostCellWidth();
+                const double* const dx = pgeom->getDx();
+                double x_lower[NDIM], x_upper[NDIM];
+                tbox::Array<tbox::Array<bool>> touches_bdry(NDIM);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    x_lower[d] = pgeom->getXLower()[d] - mu_gcw(d) * dx[d];
+                    x_upper[d] = pgeom->getXUpper()[d] + mu_gcw(d) * dx[d];
+                    touches_bdry[d].resizeArray(2);
+                    touches_bdry[d][0] = false;
+                    touches_bdry[d][1] = false;
+                }
+                Pointer<Patch<NDIM>> grown_patch =
+                    new Patch<NDIM>(Box<NDIM>::grow(patch->getBox(), mu_gcw), patch->getPatchDescriptor());
+                grown_patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(
+                    pgeom->getRatio(), touches_bdry, touches_bdry, dx, x_lower, x_upper));
+                grown_patch->allocatePatchData(mu_idx);
+                mu_fcn.setDataOnPatch(mu_idx, mu_var, grown_patch, 0.0);
+                mu_data->copy(*grown_patch->getPatchData(mu_idx));
+            }
+        }
+
+        // Fill the ghost cells of the viscosity that lie inside the domain or across a periodic boundary.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> transaction_comp(1);
 #if (NDIM == 2)
@@ -227,7 +262,7 @@ main(int argc, char* argv[])
                                                                 /*DATA_REFINE_TYPE*/ "LINEAR_REFINE",
                                                                 /*USE_CF_INTERPOLATION*/ false,
                                                                 /*DATA_COARSEN_TYPE*/ "CONSTANT_COARSEN",
-                                                                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                                /*BDRY_EXTRAP_TYPE*/ "NONE",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 /*mu_bc_coef*/ nullptr,
                                                                 Pointer<VariableFillPattern<NDIM>>(nullptr));
@@ -236,7 +271,7 @@ main(int argc, char* argv[])
                                                                 /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
                                                                 /*USE_CF_INTERPOLATION*/ false,
                                                                 /*DATA_COARSEN_TYPE*/ "CONSERVATIVE_COARSEN",
-                                                                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                                /*BDRY_EXTRAP_TYPE*/ "NONE",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 /*mu_bc_coef*/ nullptr,
                                                                 Pointer<VariableFillPattern<NDIM>>(nullptr));
