@@ -202,6 +202,8 @@ ENDIF()
 SETUP_2D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_2D(vc_navier_stokes vc_traction_velocity_bc.cpp)
+SETUP_2D(vc_navier_stokes vc_mu_ghost.cpp)
+SETUP_3D(vc_navier_stokes vc_mu_ghost.cpp)
 
 # wave_tank:
 IF(${IBAMR_HAVE_LIBMESH})
