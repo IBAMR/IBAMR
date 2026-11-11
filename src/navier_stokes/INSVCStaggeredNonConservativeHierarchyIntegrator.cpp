@@ -445,7 +445,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                               U_rhs_problem_coefs.getDPatchDataId(),
                                               d_mu_vc_interp_type,
                                               d_U_bc_coefs,
-                                              /*bdry_interp_type*/ "LINEAR");
+                                              d_bdry_interp_type);
     d_hier_math_ops->vc_laplace(U_rhs_idx,
                                 U_rhs_var,
                                 1.0,
