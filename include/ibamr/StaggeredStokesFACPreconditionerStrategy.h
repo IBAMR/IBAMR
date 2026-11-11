@@ -169,6 +169,22 @@ public:
     virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
+     * \brief Set the discretization at physical boundaries of the residual and the coarse level solver.
+     *
+     * The input keys <code>bdry_interp_type</code> and <code>bdry_extrap_type</code> set the same types. The input key
+     * <code>smoother_bdry_interp_type</code> sets the type of setSmootherBdryInterpType().
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment);
+
+    /*!
+     * \brief Set the interpolation type, "LINEAR" or "QUADRATIC", of the smoother at physical boundaries.
+     *
+     * Linear interpolation is the default, even when the operator uses quadratic interpolation, because it gives fewer
+     * outer iterations than quadratic or constant interpolation, with the same errors.
+     */
+    void setSmootherBdryInterpType(const std::string& smoother_bdry_interp_type);
+
+    /*!
      * \name Functions for configuring the solver.
      */
     //\{
@@ -344,6 +360,14 @@ public:
 
 protected:
     /*!
+     * \brief Give \a solver the discretization at physical boundaries of the residual, with interpolation type
+     * \a bdry_interp_type, unless its input database \a solver_db sets one.
+     */
+    void setSolverBoundaryTreatment(StaggeredStokesSolver& solver,
+                                    const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& solver_db,
+                                    const std::string& bdry_interp_type) const;
+
+    /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
     virtual void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
@@ -410,8 +434,8 @@ protected:
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     /*
-     * Whether any of the velocity boundary condition objects imposes TRACTION conditions, for which the operator adds a
-     * normal stress term.
+     * Whether the smoother adds the viscous term of TRACTION conditions, or of PSEUDO_TRACTION conditions with
+     * quadratic ghost values.
      */
     bool d_has_normal_stress_term = false;
 
@@ -489,6 +513,13 @@ protected:
     int d_coarse_solver_max_iterations = 10;
     SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+
+    /*
+     * The discretization at physical boundaries of the residual and the coarse level solver, and the interpolation type
+     * of the ghost values at physical boundaries that the smoother uses.
+     */
+    BoundaryTreatment d_bdry_treatment;
+    std::string d_smoother_bdry_interp_type = "LINEAR";
 
     /*
      * Null space info.

@@ -102,6 +102,7 @@ namespace IBTK
  * values): \verbatim
 
  enable_logging = FALSE         // see setLoggingEnabled()
+ bdry_interp_type = "LINEAR"     // see setBdryInterpType()
  solver_type = "Split"          // choices are: "Split", "PCG", "GMRES", "FlexGMRES", "LGMRES", "BiCGSTAB"
  precond_type = "none"          // choices are: "none", "Split"
  split_solver_type = "PFMG"     // choices are: "PFMG", "SMG", "Jacobi"
@@ -134,6 +135,12 @@ public:
      * \brief Destructor.
      */
     ~SCPoissonHypreLevelSolver();
+
+    /*!
+     * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC", at physical boundaries at which boundary conditions are present.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
 
     /*!
      * \brief Static function to construct a SCPoissonHypreLevelSolver.

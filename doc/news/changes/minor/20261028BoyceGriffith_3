@@ -1,0 +1,3 @@
+New: Apply bdry_interp_type = "QUADRATIC" at physical boundaries in IBAMR::StaggeredStokesPETScLevelSolver and the Stokes FAC preconditioners, including the viscous normal-stress term and the pressure ghost value at TRACTION and PSEUDO_TRACTION boundaries. The residual and the coarse level solver of a Stokes FAC preconditioner use the interpolation type of the integrator. Its smoother uses "LINEAR" unless smoother_bdry_interp_type sets another type.
+<br>
+(Boyce Griffith, 2026/10/28)

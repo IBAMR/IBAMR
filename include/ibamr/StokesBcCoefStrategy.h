@@ -27,6 +27,7 @@
 
 #include <SideIndex.h>
 
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -125,6 +126,8 @@ public:
      * \param bdry_box  Boundary box that contains \a i.
      * \param domain  Physical domain of the level of the patch with its periodic images.
      * \param ghost_box  Ghost box of the data that the returned side indices refer to.
+     * \param bdry_interp_type  Interpolation type, "LINEAR" or "QUADRATIC", of the assembled matrix. The type
+     * determines the extrapolation of the normal velocity beyond a corner.
      * \param fill_time  Time at which the boundary conditions are evaluated.
      *
      * \note The default implementation returns an empty vector for the PSEUDO_TRACTION type, whose conditions do not
@@ -136,6 +139,7 @@ public:
                        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
                        const SAMRAI::hier::BoxArray<NDIM>& domain,
                        const SAMRAI::hier::Box<NDIM>& ghost_box,
+                       const std::string& bdry_interp_type,
                        double fill_time) const;
 
 protected:

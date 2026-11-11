@@ -639,6 +639,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         {
             level_solver->setPhysicalBoundaryHelper(d_bc_helper);
         }
+        setSolverBoundaryTreatment(*level_solver, d_level_solver_db, d_smoother_bdry_interp_type);
         level_solver->setMaxIterations(d_level_solver_max_iterations);
         level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
         level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
@@ -703,6 +704,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         {
             d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
         }
+        setSolverBoundaryTreatment(*d_coarse_solver, d_coarse_solver_db, d_bdry_treatment.bdry_interp_type);
         d_coarse_solver->setHomogeneousBc(true);
         d_coarse_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),

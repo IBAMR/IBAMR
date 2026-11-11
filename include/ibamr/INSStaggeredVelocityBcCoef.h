@@ -207,6 +207,7 @@ public:
                        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
                        const SAMRAI::hier::BoxArray<NDIM>& domain,
                        const SAMRAI::hier::Box<NDIM>& ghost_box,
+                       const std::string& bdry_interp_type,
                        double fill_time) const override;
 
     /*!

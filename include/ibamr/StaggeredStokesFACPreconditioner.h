@@ -112,6 +112,19 @@ public:
      */
     void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
+    /*!
+     * \brief Return whether the preconditioner can apply the interpolation type \a bdry_interp_type.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries of the residual and the coarse level solver of the FAC
+     * strategy, but not of its smoother.
+     *
+     * \see StaggeredStokesFACPreconditionerStrategy::setBoundaryTreatment
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
+
 private:
     /*!
      * \brief Default constructor.

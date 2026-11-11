@@ -73,6 +73,10 @@ namespace IBAMR
  * If the level has physical boundaries, setPhysicalBoundaryHelper() must be called before initialization with a
  * helper that has cached boundary data for the hierarchy.
  *
+ * The solver applies "LINEAR" or "QUADRATIC" interpolation of the ghost values at physical boundaries. The input
+ * database may set <code>bdry_interp_type</code>. Otherwise setBoundaryTreatment() sets it. The matrix is nonsymmetric
+ * with quadratic interpolation.
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public StaggeredStokesSolver
@@ -89,6 +93,11 @@ public:
      * \brief Destructor.
      */
     ~StaggeredStokesPETScLevelSolver();
+
+    /*!
+     * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type, "LINEAR" or "QUADRATIC".
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
 
     /*!
      * \brief Static function to construct a StaggeredStokesPETScLevelSolver.

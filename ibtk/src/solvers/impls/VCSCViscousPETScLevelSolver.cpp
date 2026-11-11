@@ -100,6 +100,7 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
                                                         beta,
                                                         d_bc_coefs,
                                                         d_solution_time,
+                                                        d_bdry_interp_type,
                                                         d_num_dofs_per_proc,
                                                         d_dof_index_idx,
                                                         d_level,
@@ -141,6 +142,7 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                                        d_bc_coefs,
                                                                        d_solution_time,
                                                                        d_homogeneous_bc,
+                                                                       d_bdry_interp_type,
                                                                        d_mu_interp_type);
         }
         const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =

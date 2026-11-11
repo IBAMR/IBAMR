@@ -481,11 +481,17 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
     const int coarsest_ln,
     const int finest_ln) const
 {
-    // Add 2*(D_I*(u_I - u_B) + D_G*(u_B - u_G))/h^2 and subtract D_B*(u_I - u_div)/h^2 for PSEUDO_TRACTION. Subscripts
-    // I, B, and G mark interior, boundary, and ghost values of u and of the viscous coefficient D.
+    // With p_b = -g, in which g is the normal traction, the term makes the boundary row a one-sided derivative of the
+    // normal stress, extrapolated as the pressure is.
+    const bool quadratic = bdry_interp_type == "QUADRATIC";
+    if (!quadratic && bdry_interp_type != "LINEAR")
+    {
+        TBOX_ERROR("StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm():\n"
+                   << "  unsupported boundary interpolation type: " << bdry_interp_type << "\n"
+                   << "  valid choices are: LINEAR, QUADRATIC\n");
+    }
     TBOX_ASSERT(d_hierarchy);
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    const bool linear_interp = bdry_interp_type == "LINEAR";
     for (int ln = (coarsest_ln == IBTK::invalid_level_number ? 0 : coarsest_ln);
          ln <= (finest_ln == IBTK::invalid_level_number ? finest_hier_level : finest_ln);
          ++ln)
@@ -547,22 +553,25 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
                     const double coef_boundary =
                         pseudo_traction ? face_viscous_coef(*coef_data, i, bdry_normal_axis, viscous_coef_interp_type) :
                                           0.0;
-                    // The added term is exact only if the pressure ghost value is p_G = 2*p_b - p_I, in which p_b is
-                    // the boundary value and p_I is the interior value.
-                    if (!linear_interp && (coef_inside != 0.0 || coef_outside != 0.0 || coef_boundary != 0.0))
-                    {
-                        TBOX_ERROR("StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm():\n"
-                                   << "  TRACTION and PSEUDO_TRACTION conditions for the normal velocity require the "
-                                      "boundary interpolation type \"LINEAR\"\n"
-                                   << "  set bdry_interp_type of the Stokes operator to \"LINEAR\"\n");
-                    }
                     double term =
                         2.0 * (coef_inside * (u_inside - u_boundary) + coef_outside * (u_boundary - u_outside));
+                    if (quadratic)
+                    {
+                        // i_c_2 and i_s_inside_2 are the next cell and face inside the domain.
+                        hier::Index<NDIM> i_c_2 = i_c;
+                        i_c_2(bdry_normal_axis) += is_lower ? 1 : -1;
+                        SideIndex<NDIM> i_s_inside_2 = i_s_inside;
+                        i_s_inside_2(bdry_normal_axis) += is_lower ? 1 : -1;
+                        const double u_inside_2 = (*u_data)(i_s_inside_2);
+                        const double coef_inside_2 = cell_viscous_coef(*coef_data, i_c_2, viscous_coef_interp_type);
+                        term += 2.0 * coef_inside * (u_inside - u_boundary) -
+                                (2.0 / 3.0) * coef_inside_2 * (u_inside_2 - u_inside);
+                    }
                     if (pseudo_traction)
                     {
                         const double u_div = traction_stencil::get_divergence_free_ghost_value(
                             *u_data, i_g, bdry_normal_axis, is_lower, dx);
-                        term -= coef_boundary * (u_inside - u_div);
+                        term -= (quadratic ? 4.0 / 3.0 : 1.0) * coef_boundary * (u_inside - u_div);
                     }
                     (*f_data)(i_s_boundary) += term / (h * h);
                 }

@@ -1,0 +1,3 @@
+New: Accept bdry_interp_type = "QUADRATIC" in the point, box, and level relaxation FAC preconditioners for the ghost values at physical boundaries in their residual and coarse level solver, and smoother_bdry_interp_type for those of their smoother. The smoother uses "LINEAR" by default because the tests indicate fewer iterations with it.
+<br>
+(Boyce Griffith, 2026/10/28)
