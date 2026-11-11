@@ -22,9 +22,14 @@
 #include <Box.h>
 #include <CartesianCellDoubleWeightedAverage.h>
 #include <CellData.h>
+#include <CellIterator.h>
 
+#include <array>
+#include <cmath>
 #include <ostream>
 #include <string>
+
+#include "./CubicCoarsenStencils.h"
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -88,6 +93,20 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+CartCellDoubleCubicCoarsen::CartCellDoubleCubicCoarsen(const bool use_source_ghost_layer)
+    : d_use_source_ghost_layer(use_source_ghost_layer)
+{
+    // intentionally blank
+    return;
+} // CartCellDoubleCubicCoarsen
+
+void
+CartCellDoubleCubicCoarsen::setFineLevel(Pointer<PatchLevel<NDIM>> fine_level)
+{
+    d_fine_level = fine_level;
+    return;
+} // setFineLevel
+
 bool
 CartCellDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM>>& var, const std::string& op_name) const
 {
@@ -110,7 +129,7 @@ CartCellDoubleCubicCoarsen::getOperatorPriority() const
 IntVector<NDIM>
 CartCellDoubleCubicCoarsen::getStencilWidth() const
 {
-    return d_weighted_average_coarsen_op.getStencilWidth();
+    return d_use_source_ghost_layer ? IntVector<NDIM>(1) : d_weighted_average_coarsen_op.getStencilWidth();
 } // getStencilWidth
 
 void
@@ -123,11 +142,27 @@ CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
 {
     if (ratio.min() < 4)
     {
-        IBTK_DO_ONCE(TBOX_WARNING("CartCellDoubleCubicCoarsen::coarsen():\n"
-                                  << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
-                                  << "  reverting to weighted averaging." << std::endl););
-        d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
-        return;
+        bool even_ratios = true;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            even_ratios = even_ratios && ratio(d) % 2 == 0;
+        }
+        if (!even_ratios || !d_use_source_ghost_layer)
+        {
+            IBTK_DO_ONCE(
+                TBOX_WARNING("CartCellDoubleCubicCoarsen::coarsen():\n"
+                             << "  cubic coarsening requires refinement ratios of 4 or larger, or even ratios and a "
+                                "source ghost layer\n"
+                             << "  reverting to weighted averaging\n"););
+            d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
+            return;
+        }
+        if (!d_fine_level)
+        {
+            TBOX_ERROR("CartCellDoubleCubicCoarsen::coarsen():\n"
+                       << "   the fine level is not set\n"
+                       << "   call setFineLevel() before coarsening at a refinement ratio less than 4\n");
+        }
     }
     Pointer<CellData<NDIM, double>> cdata = coarse.getPatchData(dst_component);
     Pointer<CellData<NDIM, double>> fdata = fine.getPatchData(src_component);
@@ -152,9 +187,11 @@ CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
         }
     }
     const int data_depth = cdata->getDepth();
-#if !defined(NDEBUG)
-    TBOX_ASSERT(data_depth == fdata->getDepth());
-#endif
+    if (data_depth != fdata->getDepth())
+    {
+        TBOX_ERROR("CartCellDoubleCubicCoarsen::coarsen():\n"
+                   << "   coarse and fine patch data have different depths\n");
+    }
     const Box<NDIM>& patch_box_fine = fine.getBox();
     const Box<NDIM>& patch_box_crse = coarse.getBox();
     for (int depth = 0; depth < data_depth; ++depth)
@@ -184,6 +221,48 @@ CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
                             ratio,
                             coarse_box.lower(),
                             coarse_box.upper());
+    }
+
+    if (ratio.min() >= 4)
+    {
+        return;
+    }
+
+    // Coarsen the cells whose stencil involves a fine cell outside the level (NaN in the source data) with stencils
+    // that use only covered cells. A NaN in the source data at a covered cell propagates.
+    const LevelCoverage coverage(d_fine_level);
+    std::array<CubicCoarsenAxis, NDIM> axes;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        axes[d] = ratio(d) == 2 ? CubicCoarsenAxis::RATIO_2 : CubicCoarsenAxis::INTERIOR;
+    }
+    for (CellIterator<NDIM> ic(coarse_box); ic; ic++)
+    {
+        const Index<NDIM>& i_c = ic();
+        if (!std::isnan((*cdata)(i_c, 0)))
+        {
+            continue;
+        }
+        Index<NDIM> base;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            base(d) = ratio(d) * i_c(d) + ratio(d) / 2 - 1;
+        }
+        // A coarse neighbor is covered if the fine cell of the cubic stencil in it is.
+        const CubicCoarsenStencil stencil(axes,
+                                          [&](const IntVector<NDIM>& offset)
+                                          {
+                                              Index<NDIM> fine_cell = base;
+                                              for (unsigned int d = 0; d < NDIM; ++d)
+                                              {
+                                                  fine_cell(d) += offset(d) == 1 ? 2 : offset(d);
+                                              }
+                                              return coverage.covers(fine_cell);
+                                          });
+        for (int depth = 0; depth < data_depth; ++depth)
+        {
+            (*cdata)(i_c, depth) = stencil.apply(fdata->getArrayData(), base, depth);
+        }
     }
     return;
 } // coarsen
