@@ -1,0 +1,3 @@
+bool values received from other processes: 10, incorrect: 0
+char values received from other processes: 10, incorrect: 0
+dcomplex values received from other processes: 10, incorrect: 0
