@@ -28,19 +28,24 @@
 #include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
+#include <BoxArray.h>
 #include <CartesianPatchGeometry.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <Patch.h>
+#include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
 #include <SideIndex.h>
 
-#include <algorithm>
 #include <limits>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "./ins_staggered_traction_stencil.h"
+#include "./ins_velocity_bc.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -57,8 +62,6 @@ class Variable;
 
 namespace IBAMR
 {
-/////////////////////////////// STATIC ///////////////////////////////////////
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(const unsigned int comp_idx,
@@ -253,27 +256,19 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
-    const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
+    std::optional<BoxArray<NDIM>> domain;
+    std::optional<traction_stencil::NormalVelocityPatch> normal_velocity_patch;
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);
-        const bool velocity_bc = IBTK::rel_equal_eps(alpha, 1.0);
-        const bool traction_bc = IBTK::rel_equal_eps(beta, 1.0);
-#if !defined(NDEBUG)
-        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
-        if (velocity_bc)
-        {
-            alpha = 1.0;
-            beta = 0.0;
-        }
-        else if (traction_bc)
+        if (velocity_bc::get_type(alpha, beta, "INSStaggeredVelocityBcCoef::setBcCoefs()") ==
+            velocity_bc::Type::TRACTION)
         {
             if (d_comp_idx == bdry_normal_axis)
             {
@@ -296,13 +291,24 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
                 {
                     // Compute the tangential derivative of the normal
                     // component of the velocity at the boundary.
-                    hier::Index<NDIM> i_lower(i), i_upper(i);
-                    i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
-                    i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-                    const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                    if (!domain)
+                    {
+                        domain = traction_stencil::get_periodic_physical_domain(d_fluid_solver->getPatchHierarchy(),
+                                                                                pgeom->getRatio());
+                        normal_velocity_patch.emplace(patch, bdry_normal_axis, d_comp_idx);
+                    }
                     const double du_norm_dx_tan =
-                        ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) / dx[d_comp_idx];
+                        traction_stencil::get_normal_velocity_difference(*u_target_data,
+                                                                         i,
+                                                                         bdry_normal_axis,
+                                                                         is_lower,
+                                                                         d_comp_idx,
+                                                                         d_bc_coefs[bdry_normal_axis],
+                                                                         d_homogeneous_bc,
+                                                                         *normal_velocity_patch,
+                                                                         *domain,
+                                                                         fill_time) /
+                        dx[d_comp_idx];
 
                     // Correct the boundary condition value.
                     alpha = 0.0;
@@ -327,10 +333,6 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
                 }
                 }
             }
-        }
-        else
-        {
-            TBOX_ERROR("this statement should not be reached!\n");
         }
     }
     return;

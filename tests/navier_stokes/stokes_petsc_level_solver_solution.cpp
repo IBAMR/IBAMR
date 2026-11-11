@@ -17,15 +17,19 @@
 #include <ibamr/StaggeredStokesPETScLevelSolver.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
+#include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
 
 #include <tbox/Database.h>
 
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 #include <CellVariable.h>
+#include <LoadBalancer.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <PoissonSpecifications.h>
 #include <RefineAlgorithm.h>
@@ -33,14 +37,14 @@
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideVariable.h>
+#include <StandardTagAndInitialize.h>
 #include <VariableDatabase.h>
 
 #include <algorithm>
 #include <cmath>
+#include <fstream>
 #include <memory>
 #include <vector>
-
-#include "../tests.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -132,34 +136,24 @@ int
 main(int argc, char* argv[])
 {
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
-    Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
+    Pointer<AppInitializer> app = new AppInitializer(argc, argv, "INS.log");
     Pointer<Database> input_db = app->getInputDatabase();
-    const auto hierarchy_data = setup_hierarchy<NDIM>(app);
-    Pointer<PatchHierarchy<NDIM>> hierarchy = std::get<0>(hierarchy_data);
-    const int ln = hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("stokes_petsc_level_solver_solution");
-    Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("u");
-    Pointer<CellVariable<NDIM, double>> p_var = new CellVariable<NDIM, double>("p");
-    Pointer<SideVariable<NDIM, double>> f_var = new SideVariable<NDIM, double>("f");
-    Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h");
-    Pointer<SideVariable<NDIM, double>> check_var = new SideVariable<NDIM, double>("check");
-    const int u_idx = var_db->registerVariableAndContext(u_var, context, IntVector<NDIM>(1));
-    const int p_idx = var_db->registerVariableAndContext(p_var, context, IntVector<NDIM>(1));
-    const int f_idx = var_db->registerVariableAndContext(f_var, context, IntVector<NDIM>(1));
-    const int h_idx = var_db->registerVariableAndContext(h_var, context, IntVector<NDIM>(1));
-    const int check_idx = var_db->registerVariableAndContext(check_var, context, IntVector<NDIM>(1));
-    for (const int idx : { u_idx, p_idx, f_idx, h_idx, check_idx })
-    {
-        level->allocatePatchData(idx);
-    }
+    Pointer<INSStaggeredHierarchyIntegrator> integrator = new INSStaggeredHierarchyIntegrator(
+        "INSStaggeredHierarchyIntegrator", input_db->getDatabase("INSStaggeredHierarchyIntegrator"), false);
+    Pointer<CartesianGridGeometry<NDIM>> grid_geometry =
+        new CartesianGridGeometry<NDIM>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+    Pointer<PatchHierarchy<NDIM>> hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+    Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
+        "StandardTagAndInitialize", integrator, input_db->getDatabase("StandardTagAndInitialize"));
+    Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+    Pointer<LoadBalancer<NDIM>> load_balancer =
+        new LoadBalancer<NDIM>("LoadBalancer", input_db->getDatabase("LoadBalancer"));
+    Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm = new GriddingAlgorithm<NDIM>(
+        "GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
     // The boundary condition objects of the integrator: Neumann conditions on the velocity at the lower boundary are
     // traction conditions.
-    Pointer<INSStaggeredHierarchyIntegrator> integrator = new INSStaggeredHierarchyIntegrator(
-        "INSStaggeredHierarchyIntegrator", input_db->getDatabase("INSStaggeredHierarchyIntegrator"), false);
     std::vector<std::unique_ptr<LocationIndexRobinBcCoefs<NDIM>>> physical_storage;
     std::vector<RobinBcCoefStrategy<NDIM>*> physical_bcs(NDIM, nullptr);
     for (int axis = 0; axis < NDIM; ++axis)
@@ -180,6 +174,29 @@ main(int argc, char* argv[])
         velocity_bcs[axis] = velocity_storage.back().get();
     }
     INSStaggeredPressureBcCoef pressure_bc(integrator, physical_bcs, TRACTION);
+
+    // The integrator initializes the hierarchy after the boundary condition objects that refer to it exist.
+    integrator->initializePatchHierarchy(hierarchy, gridding_algorithm);
+    const int ln = hierarchy->getFinestLevelNumber();
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableContext> context = var_db->getContext("stokes_petsc_level_solver_solution");
+    Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("u");
+    Pointer<CellVariable<NDIM, double>> p_var = new CellVariable<NDIM, double>("p");
+    Pointer<SideVariable<NDIM, double>> f_var = new SideVariable<NDIM, double>("f");
+    Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h");
+    Pointer<SideVariable<NDIM, double>> check_var = new SideVariable<NDIM, double>("check");
+    const int u_idx = var_db->registerVariableAndContext(u_var, context, IntVector<NDIM>(1));
+    const int p_idx = var_db->registerVariableAndContext(p_var, context, IntVector<NDIM>(1));
+    const int f_idx = var_db->registerVariableAndContext(f_var, context, IntVector<NDIM>(1));
+    const int h_idx = var_db->registerVariableAndContext(h_var, context, IntVector<NDIM>(1));
+    const int check_idx = var_db->registerVariableAndContext(check_var, context, IntVector<NDIM>(1));
+    for (const int idx : { u_idx, p_idx, f_idx, h_idx, check_idx })
+    {
+        level->allocatePatchData(idx);
+    }
+
     Pointer<StaggeredStokesPhysicalBoundaryHelper> helper = new StaggeredStokesPhysicalBoundaryHelper();
     helper->cacheBcCoefData(physical_bcs, 0.0, hierarchy);
 
@@ -369,8 +386,12 @@ main(int argc, char* argv[])
     }
     const int number_of_sides = IBTK_MPI::sumReduction(static_cast<int>(solution[0].size()));
 
-    plog << "number_of_patches = " << level->getNumberOfPatches() << '\n';
-    plog << "number_of_sides = " << number_of_sides << '\n';
-    plog << "velocity_l2_norm = " << l2 << '\n';
+    if (IBTK_MPI::getRank() == 0)
+    {
+        std::ofstream out("output");
+        out << "number_of_patches = " << level->getNumberOfPatches() << '\n';
+        out << "number_of_sides = " << number_of_sides << '\n';
+        out << "velocity_l2_norm = " << l2 << '\n';
+    }
     return 0;
 }

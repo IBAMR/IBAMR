@@ -1,0 +1,3 @@
+New: Add IBTK::PhysicalBoundaryUtilities::getPeriodicPhysicalDomain(), getPeriodicImageShifts(), and isBoundaryFace().
+<br>
+(Boyce Griffith, 2026/10/28)

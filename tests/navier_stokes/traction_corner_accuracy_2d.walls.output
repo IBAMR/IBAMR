@@ -1,0 +1,7 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+ghost faces at the lower corners of the x boundaries: 6 checked, largest error 0.0090586
+ghost faces at the upper corners of the x boundaries: 6 checked, largest error 0.0368571
+ghost faces elsewhere on the x boundaries: 96 checked, largest error 0.000727525
+outermost ghost faces at the ends of the ghost box: 12 are NaN, as the fill does not compute them

@@ -1,0 +1,3 @@
+Changed: Require the velocity coefficients (a, b) of IBAMR::INSStaggeredVelocityBcCoef to be exactly (1, 0) or (0, 1).
+<br>
+(Boyce Griffith, 2026/10/06)
