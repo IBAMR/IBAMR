@@ -2,10 +2,23 @@
 
 - Include a focused native `attest` regression in the same PR as each feature or
   bug fix. First look for a suitable executable on the actual target branch and
-  add another case when initialization, lifecycle, and linkage fit. An executable
-  on an unmerged sibling branch is not available coverage. Explain the need for a
-  new executable in the task report and, when material to review, the PR. Do not
+  add another case when initialization, lifecycle, and linkage fit. The point of
+  reusing an executable is that its existing setup, driven by a new input file,
+  can exercise the new or repaired functionality. An executable on an unmerged
+  sibling branch is not available coverage. Explain the need for a new
+  executable in the task report and, when material to review, the PR. Do not
   add a separate CTest test in place of native coverage.
+- A test source is one test if it runs the same steps after setup and writes
+  the same quantities for every input. Inputs may differ in values and in the
+  library object, kernel, centering, or geometry built during setup. The source
+  is several tests if an input key, the input file's name, or the process count
+  determines whether or which later step runs, or what is written. Before adding
+  such a branch, try to run the step for every input, or to replace the flag
+  with a value. Otherwise write a separate small executable. A branch of a few
+  lines whose two sides make the same check on different data may stay. Delete
+  a branch that runs for no committed input. Checks that belong together may
+  share a source. Unrelated checks run one after another are probably separate
+  tests.
 - Build the executable and use the normal fixture-linking targets. A CMake target
   alone, or a hand-copied test collection, is not integrated coverage. Verify
   `attest -N` discovers the intended input/output pairs before running them.
