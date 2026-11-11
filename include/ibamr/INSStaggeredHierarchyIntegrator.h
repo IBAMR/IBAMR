@@ -484,8 +484,6 @@ private:
     std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
-    std::string d_U_P_bdry_interp_type = "LINEAR";
-
     /*!
      * Variables for graphical output.
      */

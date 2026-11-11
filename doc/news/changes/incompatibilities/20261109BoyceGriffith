@@ -1,0 +1,3 @@
+Changed: Replace the input key U_P_bdry_interp_type of IBAMR::INSStaggeredHierarchyIntegrator with bdry_interp_type. The new key sets the interpolation type of every object that fills velocity or pressure boundary values. The integrator stops with an error if U_P_bdry_interp_type is set.
+<br>
+(Boyce Griffith, 2026/11/09)

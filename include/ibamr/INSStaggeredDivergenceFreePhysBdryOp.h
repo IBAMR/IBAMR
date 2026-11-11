@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/BoundaryTreatment.h>
+
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 
 #include <IntVector.h>
@@ -27,6 +29,7 @@
 #include <array>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace IBAMR
@@ -51,8 +54,10 @@ namespace IBAMR
  * boundaries so that each ghost cell has zero discrete divergence, or the divergence of the adjacent interior cell if
  * the fluid solver has a divergence function.
  *
- * The boundary conditions come from the fluid solver and must prescribe the velocity or the traction. Ghost values that
- * depend on a face outside the patch box grown by the filled ghost width are NaN. Requirements:
+ * The boundary conditions come from the fluid solver and must prescribe the velocity or the traction. Where the
+ * velocity is prescribed, the operator extrapolates the tangential ghost values linearly, or quadratically if
+ * setBoundaryTreatment() sets the interpolation type "QUADRATIC". Ghost values that depend on a face outside the patch
+ * box grown by the filled ghost width are NaN. Requirements:
  * - The domain is a single box at least as wide as the filled ghost width along each non-periodic direction.
  * - Each patch that touches a physical boundary is at least as wide as the filled ghost width normal to it.
  * - The velocity patch data have depth one.
@@ -81,6 +86,12 @@ public:
      * change.
      */
     void clearCache();
+
+    /*!
+     * \brief Set the discretization at physical boundaries. The interpolation type determines the tangential ghost
+     * values at boundaries where the velocity is prescribed.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment);
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefinePatchStrategy and
@@ -173,6 +184,11 @@ private:
      * The Extensions, keyed by refinement ratio, patch box, and the ghost widths of the patch data and of the fill.
      */
     std::map<std::array<int, 5 * NDIM>, std::shared_ptr<const Extension>> d_extension_cache;
+
+    /*!
+     * The interpolation type of the tangential ghost values at prescribed-velocity boundaries.
+     */
+    std::string d_bdry_interp_type = "LINEAR";
 };
 } // namespace IBAMR
 

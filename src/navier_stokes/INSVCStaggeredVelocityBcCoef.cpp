@@ -349,6 +349,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                                                                          d_homogeneous_bc,
                                                                          *normal_velocity_patch,
                                                                          *domain,
+                                                                         /*quadratic*/ false,
                                                                          fill_time) /
                         dx[d_comp_idx];
 

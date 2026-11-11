@@ -1,0 +1,3 @@
+New: With bdry_interp_type = "QUADRATIC", make IBAMR::INSStaggeredVelocityBcCoef extrapolate the normal velocity quadratically from the three nearest faces beyond a corner where two TRACTION boundaries meet, so that the TRACTION condition for the tangential velocity is second-order accurate there. LINEAR is unchanged.
+<br>
+(Boyce Griffith, 2026/10/13)

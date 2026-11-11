@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
 #include <ibamr/StokesBcCoefStrategy.h>
@@ -161,6 +162,13 @@ INSStaggeredVelocityBcCoef::setTimeInterval(const double /*current_time*/, const
     // intentionally blank
     return;
 } // setTimeInterval
+
+void
+INSStaggeredVelocityBcCoef::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_bdry_interp_type = bdry_treatment.bdry_interp_type;
+    return;
+} // setBoundaryTreatment
 
 void
 INSStaggeredVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
@@ -342,6 +350,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
                                                                          d_homogeneous_bc,
                                                                          *normal_velocity_patch,
                                                                          *domain,
+                                                                         d_bdry_interp_type == "QUADRATIC",
                                                                          fill_time) /
                         dx[d_comp_idx];
 

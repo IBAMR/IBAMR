@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StaggeredStokesBlockFactorizationPreconditioner.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
@@ -68,9 +69,6 @@ static const int SIDEG = 1;
 static const std::string DATA_REFINE_TYPE = "NONE";
 static const bool USE_CF_INTERPOLATION = true;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
@@ -179,6 +177,19 @@ StaggeredStokesBlockFactorizationPreconditioner::~StaggeredStokesBlockFactorizat
     return;
 } // ~StaggeredStokesBlockFactorizationPreconditioner
 
+bool
+StaggeredStokesBlockFactorizationPreconditioner::supportsBdryInterpType(const std::string& /*bdry_interp_type*/) const
+{
+    return true;
+} // supportsBdryInterpType
+
+void
+StaggeredStokesBlockFactorizationPreconditioner::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_bdry_treatment = bdry_treatment;
+    return;
+} // setBoundaryTreatment
+
 void
 StaggeredStokesBlockFactorizationPreconditioner::setFactorizationType(FactorizationType factorization_type)
 {
@@ -250,19 +261,21 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                                                                                 DATA_REFINE_TYPE,
                                                                                 USE_CF_INTERPOLATION,
                                                                                 DATA_COARSEN_TYPE,
-                                                                                BDRY_EXTRAP_TYPE,
+                                                                                d_bdry_treatment.bdry_extrap_type,
                                                                                 CONSISTENT_TYPE_2_BDRY,
                                                                                 d_P_bc_coef,
-                                                                                fill_pattern);
+                                                                                fill_pattern,
+                                                                                d_bdry_treatment.bdry_interp_type);
     InterpolationTransactionComponent P_scratch_transaction_comp =
         StaggeredStokesPhysicalBoundaryHelper::makePressureTransactionComponent(d_P_scratch_idx,
                                                                                 DATA_REFINE_TYPE,
                                                                                 USE_CF_INTERPOLATION,
                                                                                 DATA_COARSEN_TYPE,
-                                                                                BDRY_EXTRAP_TYPE,
+                                                                                d_bdry_treatment.bdry_extrap_type,
                                                                                 CONSISTENT_TYPE_2_BDRY,
                                                                                 d_P_bc_coef,
-                                                                                fill_pattern);
+                                                                                fill_pattern,
+                                                                                d_bdry_treatment.bdry_interp_type);
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -395,10 +408,11 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
                                                                                 DATA_REFINE_TYPE,
                                                                                 USE_CF_INTERPOLATION,
                                                                                 DATA_COARSEN_TYPE,
-                                                                                BDRY_EXTRAP_TYPE,
+                                                                                d_bdry_treatment.bdry_extrap_type,
                                                                                 CONSISTENT_TYPE_2_BDRY,
                                                                                 d_P_bc_coef,
-                                                                                fill_pattern);
+                                                                                fill_pattern,
+                                                                                d_bdry_treatment.bdry_interp_type);
     d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->setHomogeneousBc(true);
     d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
