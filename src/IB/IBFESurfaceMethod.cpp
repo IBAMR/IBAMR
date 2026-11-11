@@ -1004,23 +1004,12 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         }
     }
 
-    if (f_phys_bdry_op)
-    {
-        f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            const Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_scratch_data_idx);
-            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
-        }
-    }
-
+    // Apply the transpose of the physical boundary fill, then sum the ghost values into the patches that own them.
     {
         if (!d_ghost_data_accumulator)
             d_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(
                 d_hierarchy, f_var, d_ghosts, d_hierarchy->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber());
-        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, nullptr, 0.0);
+        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, f_phys_bdry_op, data_time);
     }
 
     f_active_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);

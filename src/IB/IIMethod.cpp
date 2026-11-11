@@ -3130,26 +3130,7 @@ IIMethod::spreadForce(const int f_data_idx,
         d_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
     }
 
-    // Apply the transpose of the physical boundary fill to the forces spread
-    // outside the physical domain. This must precede the accumulation, which
-    // ignores ghost cells that do not correspond to degrees of freedom.
-    if (f_phys_bdry_op)
-    {
-        f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
-        for (int ln = 0; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                const Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<PatchData<NDIM>> f_data = patch->getPatchData(f_scratch_data_idx);
-                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
-            }
-        }
-        f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-    }
-
-    // Sum the forces spread into patch ghost regions into the owning patches.
+    // Apply the transpose of the physical boundary fill, then sum the ghost values into the patches that own them.
     if (!d_ghost_data_accumulator)
     {
         // Use the ghost width that the data actually has, since it may be wider
@@ -3159,7 +3140,8 @@ IIMethod::spreadForce(const int f_data_idx,
             level->getPatchDescriptor()->getPatchDataFactory(f_scratch_data_idx)->getGhostCellWidth();
         d_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(d_hierarchy, f_var, gcw, 0, finest_ln);
     }
-    d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, nullptr, 0.0);
+    d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, f_phys_bdry_op, data_time);
+    if (f_phys_bdry_op) f_phys_bdry_op->setPatchDataIndex(f_data_idx);
     f_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
