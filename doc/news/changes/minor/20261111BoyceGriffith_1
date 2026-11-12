@@ -1,0 +1,3 @@
+Changed: IBTK::CartSideDoubleSpecializedLinearRefine is deprecated. Use IBTK::CartSideDoubleLinearRefine instead.
+<br>
+(Boyce Griffith, 2026/11/11)

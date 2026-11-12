@@ -1,0 +1,38 @@
+// Fine patch in the corner of a domain with physical boundaries; linear field.
+test_linear_fill = TRUE
+smooth_field = FALSE
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 8
+
+CartesianGeometry {
+   domain_boxes = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo         = 0, 0, 0
+   x_up         = 1, 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2, 2, 2
+   }
+   largest_patch_size {
+      level_0 = 2^8, 2^8, 2^8
+   }
+   smallest_patch_size {
+      level_0 = 1, 1, 1
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0,0), (N/2 - 1,N/2 - 1,N/2 - 1)]
+   }
+}
+
+LoadBalancer {}
