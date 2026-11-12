@@ -1,0 +1,12 @@
+geometry_0 cell ghost value = 3.5625
+geometry_0 side ghost value = 3.53125
+geometry_0 synchronized side value = 4.3125
+geometry_1 cell ghost value = 3.5625
+geometry_1 side ghost value = 3.53125
+geometry_1 synchronized side value = 4.3125
+geometry_0 refine operator = RT0_REFINE
+geometry_1 refine operator = RT0_REFINE
+geometry_2 cell ghost value = 3.5625
+geometry_2 side ghost value = 3.53125
+geometry_2 synchronized side value = 4.3125
+geometry_2 refine operator = RT0_REFINE

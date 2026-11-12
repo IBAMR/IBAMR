@@ -19,13 +19,9 @@
 #include <ibamr/StaggeredStokesSolverManager.h>
 #include <ibamr/ibamr_utilities.h>
 
-#include <ibtk/CartCellDoubleCubicCoarsen.h>
 #include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
-#include <ibtk/CartSideDoubleCubicCoarsen.h>
 #include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
-#include <ibtk/CartSideDoubleRT0Coarsen.h>
-#include <ibtk/CartSideDoubleRT0Refine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
@@ -788,10 +784,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
 
     // Get the transfer operators.
     Pointer<CartesianGridGeometry<NDIM>> geometry = d_hierarchy->getGridGeometry();
-    IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
-                  geometry->addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen());
-                  geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
-                  geometry->addSpatialRefineOperator(new CartSideDoubleRT0Refine()));
+    register_ibtk_transfer_operators(*geometry);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM>> var;
 

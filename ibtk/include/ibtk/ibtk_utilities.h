@@ -42,6 +42,15 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <string>
 #include <utility>
 
+namespace SAMRAI
+{
+namespace xfer
+{
+template <int DIM>
+class Geometry;
+} // namespace xfer
+} // namespace SAMRAI
+
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
 #define IBTK_BIT_SET(bitfield, b) ((bitfield) |= (1 << (b)))
@@ -175,6 +184,14 @@ double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
  * components are copied.
  */
 void copy_ghost_region(const SAMRAI::hier::PatchLevel<NDIM>& patch_level, int dst_idx, int src_idx);
+
+/*!
+ * \brief Register the IBTK coarsen and refine operators (cubic cell and side coarsening, RT0 side coarsening, and RT0
+ * side refinement) with \a geometry.
+ *
+ * Further calls on the same geometry do nothing.
+ */
+void register_ibtk_transfer_operators(SAMRAI::xfer::Geometry<NDIM>& geometry);
 
 template <class T, unsigned N>
 inline std::array<T, N>
