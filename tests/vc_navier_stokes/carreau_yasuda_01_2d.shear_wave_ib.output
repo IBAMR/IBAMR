@@ -1,0 +1,13 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+time = 0.1
+u L2-norm = 1.000033093
+u max-norm = 1.051692494
+mu min = 0.9755697362
+mu max = 0.999999988
+time steps = 18
+cycles per time step = 2
+viscosity updates = 72
+viscosity update errors = 0
+IBRedundantInitializer:  Deallocating initialization data.

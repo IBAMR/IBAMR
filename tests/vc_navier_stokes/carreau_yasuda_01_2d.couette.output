@@ -1,8 +1,12 @@
-INSVCStaggeredCarreauYasudaHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
-INSVCStaggeredCarreauYasudaHierarchyIntegrator::initializeCompositeHierarchyData():
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 time = 0.05
 u L2-norm = 1.154136582
 u max-norm = 1.9375
 mu min = 0.7018662745
 mu max = 0.7018662745
+time steps = 5
+cycles per time step = 2
+viscosity updates = 20
+viscosity update errors = 0
