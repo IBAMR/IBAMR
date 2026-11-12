@@ -1,0 +1,3 @@
+Fixed: IBAMR::INSStaggeredUpwindConvectiveOperator fills coarse-fine ghost values with CONSERVATIVE_LINEAR_REFINE, as the other staggered convective operators do. Its error near coarse-fine interfaces now converges as the grid is refined; it did not with CONSTANT_REFINE.
+<br>
+(Boyce Griffith, 2026/11/12)
