@@ -15,7 +15,6 @@
 
 #include <ibtk/CCPoissonPointRelaxationFACOperator.h>
 #include <ibtk/CCPoissonSolverManager.h>
-#include <ibtk/CartCellDoubleCubicCoarsen.h>
 #include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CellNoCornersFillPattern.h>
@@ -969,7 +968,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
 
     // Setup specialized transfer operators.
     Pointer<CartesianGridGeometry<NDIM>> geometry = d_hierarchy->getGridGeometry();
-    IBTK_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen()););
+    register_ibtk_transfer_operators(*geometry);
 
     // Setup coarse-fine interface and physical boundary operators.
     d_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
