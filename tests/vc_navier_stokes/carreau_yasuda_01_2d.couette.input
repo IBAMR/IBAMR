@@ -39,13 +39,15 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = "0.0"
 }
 
-INSVCStaggeredCarreauYasudaHierarchyIntegrator {
+CarreauYasudaViscosity {
    zero_shear_viscosity     = 1.0
    infinite_shear_viscosity = 0.1
    relaxation_time          = 1.0
    power_law_index          = 0.5
    yasuda_exponent          = 2.0
+}
 
+INSVCStaggeredNonConservativeHierarchyIntegrator {
    rho_is_const                  = TRUE
    rho                           = 1.0
    mu                            = 1.0      // unused; avoids a warning
