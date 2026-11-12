@@ -1,0 +1,3 @@
+Fixed: Register the IBTK coarsen and refine operators on every grid geometry with IBTK::register_ibtk_transfer_operators(), so that the ghost-cell fills, synchronizations, and FAC solvers of IBTK and IBAMR work on a second grid geometry in the same process.
+<br>
+(Boyce Griffith, 2026/11/12)

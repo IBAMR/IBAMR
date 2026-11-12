@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibtk/CartSideDoubleCubicCoarsen.h>
 #include <ibtk/SideDataSynchronization.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
 
@@ -91,8 +90,8 @@ SideDataSynchronization::initializeOperatorState(
     d_coarsest_ln = 0;
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    // Register the cubic coarsen operators with the grid geometry object.
-    IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen()));
+    // Register the IBTK transfer operators with the grid geometry object.
+    register_ibtk_transfer_operators(*d_grid_geom);
 
     // Setup cached coarsen algorithms and schedules.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
