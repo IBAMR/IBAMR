@@ -1,0 +1,10 @@
+constant ratio (2,2): max error = 0, upper plane max error = 0, outside writes = 0
+linear ratio (2,2): max error = 0, upper plane max error = 0, outside writes = 0
+constant ratio (4,4): max error = 0, upper plane max error = 0, outside writes = 0
+linear ratio (4,4): max error = 0, upper plane max error = 0, outside writes = 0
+constant ratio (2,3): max error = 0, upper plane max error = 0, outside writes = 0
+linear ratio (2,3): max error = 0, upper plane max error = 0, outside writes = 0
+smooth ratio (2,2): max errors = 0.0331263, 0.00839564, observed order = 1.98026
+smooth ratio (4,4): max errors = 0.0365783, 0.00928295, observed order = 1.97833
+random ratio (2,2): refined 312 sides
+random ratio (4,4): refined 1012 sides

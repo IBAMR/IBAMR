@@ -37,6 +37,7 @@
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
+#include <ibtk/CartSideDoubleLinearRefine.h>
 #include <ibtk/CartSideDoubleRT0Refine.h>
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
@@ -768,7 +769,11 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     // INSVCStaggeredHierarchyIntegrator.
     Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     grid_geom->addSpatialRefineOperator(new CartSideDoubleRT0Refine());
+    grid_geom->addSpatialRefineOperator(new CartSideDoubleLinearRefine());
+    // Remains registered for input files that name it; remove with CartSideDoubleSpecializedLinearRefine.
+    IBTK_DISABLE_EXTRA_WARNINGS
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+    IBTK_ENABLE_EXTRA_WARNINGS
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const IntVector<NDIM> cell_ghosts = CELLG;
