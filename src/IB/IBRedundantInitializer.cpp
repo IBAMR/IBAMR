@@ -544,10 +544,7 @@ IBRedundantInitializer::initializeTargetPts()
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
-        TargetSpec default_spec;
-        default_spec.stiffness = 0.0;
-        default_spec.damping = 0.0;
-        d_target_spec_data[ln].resize(num_base_filename);
+        d_target_spec_map[ln].resize(num_base_filename);
         std::multimap<int, TargetSpec> tg_pt_spec;
         if (d_init_target_pt_on_level_fcn)
         {
@@ -557,7 +554,6 @@ IBRedundantInitializer::initializeTargetPts()
 
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
-                d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
                 for (const auto& spec_pair : tg_pt_spec)
                 {
                     const int& idx = spec_pair.first;
@@ -580,16 +576,13 @@ IBRedundantInitializer::initializeTargetPts()
                                                  << " and structure number " << j << ": \n"
                                                  << tg_spec.damping << " is negative");
                     }
-                    d_target_spec_data[ln][j][idx] = tg_spec;
+                    d_target_spec_map[ln][j][idx] = tg_spec;
                 }
             }
         }
         else
         {
-            for (unsigned int j = 0; j < num_base_filename; ++j)
-            {
-                d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
-            }
+            // No callback registered, so the map remains empty
         }
     }
     return;
@@ -777,16 +770,13 @@ IBRedundantInitializer::initializeAnchorPts()
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const size_t num_base_filename = d_base_filename[ln].size();
-        d_anchor_spec_data[ln].resize(num_base_filename);
-        AnchorSpec default_spec;
-        default_spec.is_anchor_point = false;
+        d_anchor_spec_map[ln].resize(num_base_filename);
         if (d_init_anchor_pt_on_level_fcn)
         {
             std::multimap<int, AnchorSpec> anchor_map;
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
                 d_init_anchor_pt_on_level_fcn(j, ln, anchor_map, d_init_anchor_pt_on_level_ctx);
-                d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
                 for (const auto& anchor_pair : anchor_map)
@@ -798,16 +788,13 @@ IBRedundantInitializer::initializeAnchorPts()
                                                  << " and structure number " << j << ": \n"
                                                  << anchor_pt);
                     }
-                    d_anchor_spec_data[ln][j][anchor_pt] = anchor_pair.second;
+                    d_anchor_spec_map[ln][j][anchor_pt] = anchor_pair.second;
                 }
             }
         }
         else
         {
-            for (unsigned int j = 0; j < num_base_filename; ++j)
-            {
-                d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
-            }
+            // No callback registered, so the map remains empty
         }
     }
     return;
@@ -1657,19 +1644,26 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     // Initialize any target point specifications associated with the present
     // vertex.
     {
-        const TargetSpec& spec_data = getVertexTargetSpec(point_index, level_number);
-        const double kappa_target = spec_data.stiffness;
-        const double eta_target = spec_data.damping;
-        const Point& X_target = getVertexPosn(point_index, level_number);
-        node_data.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target));
+        const std::map<int, TargetSpec>& target_spec_map = d_target_spec_map[level_number][point_index.first];
+        const auto it = target_spec_map.find(point_index.second);
+
+        if (it != target_spec_map.end())
+        {
+            const TargetSpec& spec_data = it->second;
+            const double kappa_target = spec_data.stiffness;
+            const double eta_target = spec_data.damping;
+            const Point& X_target = getVertexPosn(point_index, level_number);
+            node_data.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target));
+        }
     }
 
     // Initialize any anchor point specifications associated with the present
     // vertex.
     {
-        const AnchorSpec& spec_data = getVertexAnchorSpec(point_index, level_number);
-        const bool is_anchor_point = spec_data.is_anchor_point;
-        if (is_anchor_point)
+        const std::map<int, AnchorSpec>& anchor_spec_map = d_anchor_spec_map[level_number][point_index.first];
+        const auto it = anchor_spec_map.find(point_index.second);
+
+        if (it != anchor_spec_map.end() && it->second.is_anchor_point)
         {
             node_data.push_back(new IBAnchorPointSpec(mastr_idx));
         }
@@ -1733,7 +1727,9 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
     d_rod_edge_map.resize(d_max_levels);
     d_rod_spec_data.resize(d_max_levels);
     d_target_spec_data.resize(d_max_levels);
+    d_target_spec_map.resize(d_max_levels);
     d_anchor_spec_data.resize(d_max_levels);
+    d_anchor_spec_map.resize(d_max_levels);
     d_bdry_mass_spec_data.resize(d_max_levels);
     d_directors.resize(d_max_levels);
     d_instrument_idx.resize(d_max_levels);
