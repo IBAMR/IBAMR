@@ -336,7 +336,8 @@ main(int argc, char** argv)
         // velocity interpolation requires that ghost data be present
         ghost_fill_op.fillData(/*time*/ 0.0);
 
-        // Now put it back on the structure:
+        // Now put it back on the structure. The boundary operator fills the physical ghost cells of f_ghost_idx.
+        bdry_op->setPatchDataIndex(f_ghost_idx);
         ib_method_ops->interpolateVelocity(f_ghost_idx, {}, {}, data_time);
 
         // The rest is just bookkeeping and some visualization.
