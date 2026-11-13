@@ -1,0 +1,3 @@
+Fixed: Make the quadratic coarse-fine ghost values of cell- and side-centered data in IBTK::HierarchyGhostCellInterpolation independent of the patch layout, and correct the 3D quadratic coarse-fine ghost values of the normal component of side-centered data at the lower y and z sides.
+<br>
+(Boyce Griffith, 2026/11/04)

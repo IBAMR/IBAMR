@@ -13,14 +13,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/CFOwnerFill.h>
 #include <ibtk/CartCellDoubleCubicCoarsen.h>
-#include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/CartSideDoubleCubicCoarsen.h>
-#include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/ibtk_utilities.h>
@@ -32,14 +30,20 @@
 
 #include <Box.h>
 #include <CartesianGridGeometry.h>
+#include <CellDataFactory.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenOperator.h>
 #include <CoarsenPatchStrategy.h>
 #include <CoarsenSchedule.h>
+#include <EdgeDataFactory.h>
 #include <EdgeVariable.h>
+#include <FaceDataFactory.h>
+#include <NodeDataFactory.h>
 #include <NodeVariable.h>
 #include <Patch.h>
 #include <PatchData.h>
+#include <PatchDataFactory.h>
+#include <PatchDescriptor.h>
 #include <PatchGeometry.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
@@ -47,6 +51,7 @@
 #include <RefineOperator.h>
 #include <RefinePatchStrategy.h>
 #include <RefineSchedule.h>
+#include <SideDataFactory.h>
 #include <SideVariable.h>
 #include <Variable.h>
 #include <VariableDatabase.h>
@@ -87,6 +92,88 @@ static Timer* t_fill_data;
 static Timer* t_fill_data_coarsen;
 static Timer* t_fill_data_refine;
 static Timer* t_fill_data_set_physical_bcs;
+
+// Works around IBSAMRAI2#67: in an in-place refine fill, the side values of a fine patch on the coarse-fine interface
+// are overwritten with refined coarse values. Remove once IBAMR requires an IBSAMRAI2 release that fixes #67.
+bool
+preserves_interface_faces(const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& comp)
+{
+    return comp.d_dst_data_idx == comp.d_src_data_idx && comp.d_refine_op_name != "NONE";
+}
+
+// The centering (0 to 4 for cell, node, side, edge, and face data, -1 otherwise) and depth of the data with index idx.
+std::pair<int, int>
+get_data_kind(const int idx)
+{
+    Pointer<PatchDataFactory<NDIM>> factory =
+        VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor()->getPatchDataFactory(idx);
+    if (Pointer<CellDataFactory<NDIM, double>> f = factory) return { 0, f->getDefaultDepth() };
+    if (Pointer<NodeDataFactory<NDIM, double>> f = factory) return { 1, f->getDefaultDepth() };
+    if (Pointer<SideDataFactory<NDIM, double>> f = factory) return { 2, f->getDefaultDepth() };
+    if (Pointer<EdgeDataFactory<NDIM, double>> f = factory) return { 3, f->getDefaultDepth() };
+    if (Pointer<FaceDataFactory<NDIM, double>> f = factory) return { 4, f->getDefaultDepth() };
+    return { -1, 0 };
+}
+
+std::string
+data_kind_to_string(const std::pair<int, int>& kind)
+{
+    static const std::array<std::string, 5> names = { "cell", "node", "side", "edge", "face" };
+    return (kind.first < 0 ? std::string("other") : names[kind.first]) + "-centered data of depth " +
+           std::to_string(kind.second);
+}
+
+// In an in-place refine fill, IBSAMRAI2#67 also overwrites the patch-border values of node, edge, and face data, and
+// only side data are restored. Remove this check once IBAMR requires an IBSAMRAI2 release that fixes #67.
+void
+check_in_place_fill_of_patch_border_data(const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& comp,
+                                         const Pointer<Variable<NDIM>>& var,
+                                         const int finest_ln,
+                                         const std::string& function_name)
+{
+    if (finest_ln < 1 || !preserves_interface_faces(comp)) return;
+    Pointer<SideVariable<NDIM, double>> sc_var = var;
+    if (sc_var || !var->getPatchDataFactory()->dataLivesOnPatchBorder()) return;
+    TBOX_ERROR("HierarchyGhostCellInterpolation::"
+               << function_name << "():\n"
+               << "  variable " << var->getName() << " is filled in place with refine type " << comp.d_refine_op_name
+               << " on a level with a coarser level, which overwrites its patch-border values\n"
+               << "  fill it from a separate source patch data index\n");
+}
+
+// The refine strategies of the fill, which also restore the faces along the coarse-fine interface of a patch right
+// after the refine operator fills it, before the schedule copies the values to other patches and sets the physical
+// boundary values.
+class RefineStrategies : public RefinePatchStrategySet
+{
+public:
+    template <typename InputIterator>
+    RefineStrategies(InputIterator first,
+                     InputIterator last,
+                     const std::vector<std::unique_ptr<InterfaceFaceGhostCopy>>& ghost_copies)
+        : RefinePatchStrategySet(first, last, false), d_ghost_copies(ghost_copies)
+    {
+    }
+
+    void postprocessRefineBoxes(Patch<NDIM>& fine,
+                                const Patch<NDIM>& coarse,
+                                const BoxList<NDIM>& fine_boxes,
+                                const IntVector<NDIM>& ratio) override
+    {
+        // The schedule also uses this object for temporary coarser levels, whose patches are not in the hierarchy.
+        if (fine.inHierarchy())
+        {
+            for (const auto& ghost_copy : d_ghost_copies)
+            {
+                if (ghost_copy) ghost_copy->restore(fine);
+            }
+        }
+        RefinePatchStrategySet::postprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
+    }
+
+private:
+    const std::vector<std::unique_ptr<InterfaceFaceGhostCopy>>& d_ghost_copies;
+};
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -206,7 +293,12 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     }
 
     // Setup cached refine algorithms and schedules.
-    d_cf_bdry_ops.resize(d_transaction_comps.size());
+    d_data_kinds.clear();
+    d_data_kinds.resize(d_transaction_comps.size());
+    d_cf_fills.clear();
+    d_cf_fills.resize(d_transaction_comps.size());
+    d_face_ghost_copies.clear();
+    d_face_ghost_copies.resize(d_transaction_comps.size());
     d_extrap_bc_ops.resize(d_transaction_comps.size());
     d_cc_robin_bc_ops.resize(d_transaction_comps.size());
     d_sc_robin_bc_ops.resize(d_transaction_comps.size());
@@ -216,6 +308,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     {
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
         const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
+        d_data_kinds[comp_idx] = { get_data_kind(dst_data_idx), get_data_kind(src_data_idx) };
         const std::string& phys_bdry_type = d_transaction_comps[comp_idx].d_phys_bdry_type;
         Pointer<Variable<NDIM>> var;
         var_db->mapIndexToVariable(src_data_idx, var);
@@ -225,8 +318,9 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         Pointer<EdgeVariable<NDIM, double>> ec_var = var;
         Pointer<FaceVariable<NDIM, double>> fc_var = var;
         Pointer<RefineOperator<NDIM>> refine_op = nullptr;
-        d_cf_bdry_ops[comp_idx] = nullptr;
         Pointer<VariableFillPattern<NDIM>> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
+        check_in_place_fill_of_patch_border_data(
+            d_transaction_comps[comp_idx], var, d_finest_ln, "initializeOperatorState");
         if (cc_var)
         {
             if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
@@ -235,12 +329,9 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
             }
             if (d_transaction_comps[comp_idx].d_use_cf_bdry_interpolation)
             {
-                d_cf_bdry_ops[comp_idx] = new CartCellDoubleQuadraticCFInterpolation();
-                d_cf_bdry_ops[comp_idx]->setConsistentInterpolationScheme(
-                    d_transaction_comps[comp_idx].d_consistent_type_2_bdry);
-                d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
-                d_cf_bdry_ops[comp_idx]->setPatchHierarchy(d_hierarchy);
-                refine_patch_strategies.push_back(d_cf_bdry_ops[comp_idx]);
+                d_cf_fills[comp_idx] = std::make_unique<CFOwnerFill>(
+                    d_hierarchy, d_coarsest_ln, d_finest_ln, dst_data_idx, src_data_idx, fill_pattern);
+                refine_patch_strategies.push_back(d_cf_fills[comp_idx].get());
             }
         }
         else if (nc_var)
@@ -260,14 +351,21 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
             {
                 refine_op = d_grid_geom->lookupRefineOperator(var, d_transaction_comps[comp_idx].d_refine_op_name);
             }
+            // Every side-centered component gets the faces of the fine patches along the coarse-fine interface in the
+            // ghost cells of the other patches, whatever the refine operator.
+            d_face_ghost_copies[comp_idx] =
+                std::make_unique<InterfaceFaceGhostCopy>(d_hierarchy,
+                                                         d_coarsest_ln,
+                                                         d_finest_ln,
+                                                         dst_data_idx,
+                                                         src_data_idx,
+                                                         fill_pattern,
+                                                         preserves_interface_faces(d_transaction_comps[comp_idx]));
             if (d_transaction_comps[comp_idx].d_use_cf_bdry_interpolation)
             {
-                d_cf_bdry_ops[comp_idx] = new CartSideDoubleQuadraticCFInterpolation();
-                d_cf_bdry_ops[comp_idx]->setConsistentInterpolationScheme(
-                    d_transaction_comps[comp_idx].d_consistent_type_2_bdry);
-                d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
-                d_cf_bdry_ops[comp_idx]->setPatchHierarchy(d_hierarchy);
-                refine_patch_strategies.push_back(d_cf_bdry_ops[comp_idx]);
+                d_cf_fills[comp_idx] = std::make_unique<CFOwnerFill>(
+                    d_hierarchy, d_coarsest_ln, d_finest_ln, dst_data_idx, src_data_idx, fill_pattern);
+                refine_patch_strategies.push_back(d_cf_fills[comp_idx].get());
             }
         }
         else if (ec_var)
@@ -330,8 +428,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
     }
 
-    d_refine_strategy =
-        std::make_unique<RefinePatchStrategySet>(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
+    d_refine_strategy = std::make_unique<RefineStrategies>(
+        refine_patch_strategies.begin(), refine_patch_strategies.end(), d_face_ghost_copies);
 
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
@@ -386,6 +484,33 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
                       "interpolation transaction components.\n");
     }
 
+    // The data and the coarse-fine fills are set up once, in initializeOperatorState().
+    for (unsigned int comp_idx = 0; comp_idx < transaction_comps.size(); ++comp_idx)
+    {
+        const std::array<std::pair<int, int>, 2> kinds = { get_data_kind(transaction_comps[comp_idx].d_dst_data_idx),
+                                                           get_data_kind(transaction_comps[comp_idx].d_src_data_idx) };
+        for (unsigned int k = 0; k < 2; ++k)
+        {
+            if (kinds[k] != d_data_kinds[comp_idx][k])
+            {
+                TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
+                           << "  new transaction component " << comp_idx << " has "
+                           << (k == 0 ? "destination" : "source") << " " << data_kind_to_string(kinds[k])
+                           << ", but initializeOperatorState() set up "
+                           << data_kind_to_string(d_data_kinds[comp_idx][k]) << "\n"
+                           << "  call initializeOperatorState() with the new transaction components instead\n");
+            }
+        }
+        const bool use_cf = transaction_comps[comp_idx].d_use_cf_bdry_interpolation;
+        if (use_cf != d_transaction_comps[comp_idx].d_use_cf_bdry_interpolation)
+        {
+            TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
+                       << "  new transaction component " << comp_idx << " sets d_use_cf_bdry_interpolation to "
+                       << use_cf << ", but initializeOperatorState() set it to " << !use_cf << "\n"
+                       << "  call initializeOperatorState() with the new transaction components instead\n");
+        }
+    }
+
     // Reset the transaction components.
     d_transaction_comps = transaction_comps;
 
@@ -435,7 +560,28 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         Pointer<EdgeVariable<NDIM, double>> ec_var = var;
         Pointer<RefineOperator<NDIM>> refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM>> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
-        if (d_cf_bdry_ops[comp_idx]) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
+        check_in_place_fill_of_patch_border_data(
+            d_transaction_comps[comp_idx], var, d_finest_ln, "resetTransactionComponents");
+        if (sc_var)
+        {
+            const bool protect = preserves_interface_faces(d_transaction_comps[comp_idx]);
+            if (protect != d_face_ghost_copies[comp_idx]->protectsFaces())
+            {
+                TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
+                           << "  new transaction component " << comp_idx
+                           << " changes whether it fills in place with a refine operator\n"
+                           << "  call initializeOperatorState() with the new transaction components instead\n");
+            }
+            else
+            {
+                d_face_ghost_copies[comp_idx]->resetPatchDataIndices(dst_data_idx, src_data_idx, fill_pattern);
+            }
+        }
+        if (d_cf_fills[comp_idx])
+        {
+            d_cf_fills[comp_idx]->resetPatchDataIndices(
+                dst_data_idx, src_data_idx, d_transaction_comps[comp_idx].d_fill_pattern);
+        }
         if (cc_var)
         {
             if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
@@ -549,7 +695,9 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
     IBTK_TIMER_START(t_deallocate_operator_state);
 
     // Clear cached refinement operators.
-    d_cf_bdry_ops.clear();
+    d_data_kinds.clear();
+    d_cf_fills.clear();
+    d_face_ghost_copies.clear();
     d_extrap_bc_ops.clear();
     d_cc_robin_bc_ops.clear();
     d_sc_robin_bc_ops.clear();
@@ -599,20 +747,21 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
     IBTK_TIMER_START(t_fill_data_refine);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
-        if (d_refine_scheds[dst_ln]) d_refine_scheds[dst_ln]->fillData(fill_time);
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
-        const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        // A refine operator overwrites the faces of the patch boundaries along the coarse-fine interface. Restore their
+        // values, which the coarse-fine fill also uses.
+        for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+            if (d_face_ghost_copies[comp_idx]) d_face_ghost_copies[comp_idx]->save(dst_ln);
+        }
+        // The refine schedule calls the coarse-fine fills to compute the tangential values.
+        if (d_refine_scheds[dst_ln]) d_refine_scheds[dst_ln]->fillData(fill_time);
+        for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+        {
+            if (d_face_ghost_copies[comp_idx]) d_face_ghost_copies[comp_idx]->copyToGhostCells(dst_ln, fill_time);
+            if (d_cf_fills[comp_idx] && d_cf_fills[comp_idx]->hasValues(dst_ln))
             {
-                if (d_cf_bdry_ops[comp_idx])
-                {
-                    const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
-                    const IntVector<NDIM>& ghost_width_to_fill = patch->getPatchData(dst_data_idx)->getGhostCellWidth();
-                    d_cf_bdry_ops[comp_idx]->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
-                }
+                d_cf_fills[comp_idx]->computeValues(dst_ln);
+                d_cf_fills[comp_idx]->copyValues(dst_ln, fill_time);
             }
         }
     }
