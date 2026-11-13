@@ -303,7 +303,8 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Computes D = alpha div grad U + beta U + gamma W, evaluating each
-c     flux once.  FLd and FUd return the fluxes on the patch box sides.
+c     flux once.  On return, FLd and FUd contain the fluxes on the patch
+c     box sides.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -1897,7 +1898,7 @@ c     Laplacian of a side centered variable U=(U0,U1,U2) and centered
 c     differences to compute the partial gradient of a cell centered
 c     variable P on each side.  The sum is evaluated as
 c     (alpha div grad U + beta U) + (gamma grad P + delta V).
-c     The term beta U is omitted when beta is zero.
+c     The term beta U is omitted if beta is zero.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c

@@ -1,8 +1,7 @@
 // Variable-coefficient viscous solve with a damping term on a two-level periodic grid of 4 x 4 patches,
 // preconditioned by the point-relaxation FAC operator with two smoothing sweeps. The right-hand side is generated
-// by the discrete operator and the solve is limited to 8 iterations, so the result is not converged and depends on
-// the preconditioner; it must not depend on the number of processes, and the one- and two-process cases have the
-// same expected output.
+// by the discrete operator. Because the solve is limited to 8 iterations and is not converged, the result depends
+// on the preconditioner. The one- and two-process cases have the same expected output.
 
 // Scalar parameters
 C = 1.0                   // damping term
@@ -18,7 +17,7 @@ mu {
 }
 
 f  {
-// required by the test; unused when use_discrete_rhs = TRUE
+// required by the test; unused if use_discrete_rhs = TRUE
    function_0 = "2.0*PI^2*(2.0*cos(4*PI*X_0) + cos(4*PI*(X_0-X_1)) - cos(4*PI*X_1) + 2.0*cos(4*PI*(X_0+X_1)) - 2.0*sin(2*PI*(X_0-X_1)) - 4.0*sin(2*PI*(X_0+X_1)) )"
    function_1 = "2.0*PI^2*(cos(4*PI*X_0) + cos(4*PI*(X_0-X_1)) - 2*(cos(4*PI*X_1) - cos(4*PI*(X_0+X_1)) + sin(2*PI*(X_0-X_1)) + 2.0*sin(2*PI*(X_0+X_1)) ) )"
 }

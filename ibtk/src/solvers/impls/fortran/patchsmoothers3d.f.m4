@@ -21,13 +21,13 @@ c
 c     Wavefront traversal of a box.
 c
 c     WAVEFRONT_3D(lower0,upper0,lower1,upper1,lower2,upper2,body)
-c     executes body for every cell (i0,i1,i2) of the box, with i0, i1
+c     executes body for every cell (i0,i1,i2) of the box, with i0, i1,
 c     and i2 set to the cell before each execution.  The result is the
 c     same as that of a lexicographic sweep (planes in order of
 c     increasing i2, rows in order of increasing i1, each row in order
 c     of increasing i0).
 c
-c     The caller declares the integers i0, i1, i2, s0, b1, r and i1end.
+c     The caller declares the integers i0, i1, i2, s0, b1, r, and i1end.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c

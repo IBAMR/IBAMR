@@ -74,8 +74,8 @@ static Timer* t_deallocate_solver_state;
 // Largest relative additivity defect for which a preconditioner is regarded as a fixed linear operator.
 constexpr double PRECONDITIONER_LINEARITY_TOL = 1.0e-8;
 
-// Krylov methods that tolerate a preconditioner that is not a fixed linear operator. The literal "none" is used because
-// older PETSc versions do not define KSPNONE.
+// Krylov methods that tolerate a varying or nonlinear preconditioner. The literal "none" is used because older PETSc
+// versions do not define KSPNONE.
 constexpr std::array<std::string_view, 11> VARYING_PC_KSP_TYPES = { KSPFGMRES,     KSPPIPEFGMRES, KSPGCR,   KSPPIPEGCR,
                                                                     KSPFCG,        KSPPIPEFCG,    KSPFBCGS, KSPFBCGSR,
                                                                     KSPRICHARDSON, KSPPREONLY,    "none" };
@@ -755,12 +755,10 @@ PETScKrylovLinearSolver::checkPreconditionerLinearity()
     if (!(defect <= PRECONDITIONER_LINEARITY_TOL) && !ksp_tolerates_varying_preconditioner(d_ksp_type))
     {
         TBOX_WARNING(d_object_name << "::solveSystem()\n"
-                                   << "  the preconditioner is not linear (relative additivity defect "
-                                   << defect_stream.str() << "), but KSP type " << d_ksp_type
-                                   << " requires a linear preconditioner\n"
+                                   << "  nonlinear preconditioner (relative additivity defect " << defect_stream.str()
+                                   << ") with KSP type " << d_ksp_type << ", which requires a linear preconditioner\n"
                                    << "  use a flexible Krylov method such as fgmres, or richardson, or make the "
-                                      "preconditioner linear"
-                                   << std::endl);
+                                      "preconditioner linear\n");
     }
     return;
 } // checkPreconditionerLinearity
@@ -782,8 +780,8 @@ PETScKrylovLinearSolver::resetMatNullSpace()
         {
             d_nullspace_constant_vec = d_x->cloneVector(d_x->getName());
             d_nullspace_constant_vec->allocateVectorData();
-            // Set the values with SAMRAI: VecSet() would cache a norm computed from the placeholder global size of
-            // the PETSc wrapper, and the vector is normalized below.
+            // Set the values with SAMRAI: VecSet() would cache a norm computed from the placeholder global size of the
+            // PETSc wrapper, which would spoil the normalization below.
             d_nullspace_constant_vec->setToScalar(1.0, /*interior_only*/ false);
             d_petsc_nullspace_constant_vec =
                 PETScSAMRAIVectorReal::createPETScVector(d_nullspace_constant_vec, d_petsc_comm);

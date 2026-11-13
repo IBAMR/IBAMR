@@ -119,7 +119,7 @@ generate_petsc_is_from_std_is(std::vector<std::set<int>>& overlap_std,
 
 PETScLevelSolver::PETScLevelSolver()
 {
-    // Setup default options.
+    // Set up default options.
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
@@ -723,7 +723,7 @@ PETScLevelSolver::deallocateSolverState()
         d_sub_y.clear();
     }
 
-    // Destroy the subdomain index sets; the next initialization generates them again.
+    // Destroy the subdomain index sets, which the next initialization generates again.
     for (IS& is : d_nonoverlap_is)
     {
         ierr = ISDestroy(&is);
@@ -841,7 +841,7 @@ PETScLevelSolver::resetKSPNormType()
         return;
     }
 
-    // Not every KSP type supports every norm type, so the norm type goes with the KSP type of this class.
+    // Use d_ksp_norm_type only with the KSP type of this class, because not every KSP type supports every norm type.
     PetscBool ksp_type_in_options = PETSC_FALSE;
     ierr = PetscOptionsHasName(nullptr, d_options_prefix.c_str(), "-ksp_type", &ksp_type_in_options);
     IBTK_CHKERRQ(ierr);

@@ -30,7 +30,7 @@ namespace IBTK
 {
 namespace
 {
-// Offsets by which the periodic images of a box of the level are shifted, including no shift.
+// Return the offsets of the periodic images of a box of the level, including the zero offset.
 std::vector<SAMRAI::hier::IntVector<NDIM>>
 periodic_image_offsets(const SAMRAI::hier::PatchLevel<NDIM>& level)
 {
@@ -86,8 +86,8 @@ for_each_off_level_entry(const SAMRAI::hier::PatchLevel<NDIM>& level,
     const hier::Box<NDIM> ghost_box = hier::Box<NDIM>::grow(dof_box, reach);
     const std::vector<hier::IntVector<NDIM>> offsets = periodic_image_offsets(level);
 
-    // The degrees of freedom in the ghost region of the patch that are in the physical domain, including its periodic
-    // images, and that are not degrees of freedom of the level.
+    // Collect the ghost degrees of freedom of the patch that lie in the physical domain or its periodic images but are
+    // not degrees of freedom of the level.
     hier::BoxList<NDIM> ghost_dofs(ghost_box);
     ghost_dofs.removeIntersections(dof_box);
     hier::BoxList<NDIM> off_level_dofs;
@@ -350,9 +350,9 @@ copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
               HYPRE_SStructVector vector,
               const SAMRAI::hier::Box<NDIM>& box)
 {
-    // SAMRAI gives a side the index of the cell above it, and hypre gives it
-    // the index of the cell below it, so subtract one from each index in the
-    // direction normal to the side.
+    // Subtract one from each index in the direction normal to the side, because
+    // SAMRAI indexes a side by the cell above it and hypre indexes it by the
+    // cell below it.
     for (int var = 0; var < NDIM; ++var)
     {
         const unsigned int axis = var;
@@ -415,9 +415,9 @@ copyToHypre(HYPRE_SStructVector& vector,
             SAMRAI::pdat::SideData<NDIM, double>& src_data,
             const SAMRAI::hier::Box<NDIM>& box)
 {
-    // SAMRAI gives a side the index of the cell above it, and hypre gives it
-    // the index of the cell below it, so subtract one from each index in the
-    // direction normal to the side.
+    // Subtract one from each index in the direction normal to the side, because
+    // SAMRAI indexes a side by the cell above it and hypre indexes it by the
+    // cell below it.
     for (int var = 0; var < NDIM; ++var)
     {
         const unsigned int axis = var;

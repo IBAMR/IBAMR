@@ -177,8 +177,8 @@ private:
 };
 
 // Determines whether a side of a patch lies on a physical boundary normal to its component at which the Robin
-// coefficient b is exactly zero. It evaluates the boundary condition coefficients only for physical boundaries that
-// contain a queried side.
+// coefficient b is exactly zero. The classifier evaluates the boundary condition coefficients only for physical
+// boundaries that contain a queried side.
 class DirichletRowClassifier
 {
 public:
@@ -260,8 +260,8 @@ private:
     Pointer<ArrayData<NDIM, double>> d_bcoef_data[2 * NDIM];
 };
 
-// Subtract from the right-hand side of each side of a patch the contribution of the ghost values that the matrix of a
-// side-centered level solver drops.
+// Subtract from the right-hand side of each side of a patch the contribution of the ghost values that are omitted from
+// the matrix of a side-centered level solver.
 void
 adjust_sc_rhs_at_cf_boundary(SideData<NDIM, double>& rhs_data,
                              const SideData<NDIM, double>& sol_data,
@@ -455,8 +455,8 @@ get_shift(int dir, int shift)
     return iv;
 } // get_shift
 
-// The stencil maps of the matrix of the variable-coefficient viscous operator (one in 2D, one for each axis in 3D) take
-// the index offset of a stencil entry of a side to its position in the list of coefficients of the side.
+// Return the stencil maps of the matrix of the variable-coefficient viscous operator (one in 2D, one for each axis in
+// 3D), which take the index offset of a stencil entry of a side to its position in the side's coefficient list.
 std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder>>
 make_vcsc_stencil_maps()
 {
@@ -2404,7 +2404,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
     const LevelCellClassifier cells(*patch, type1_cf_bdry, type2_cf_bdry);
 
     // The coefficient of a stencil entry whose side is not a degree of freedom of the level is the coefficient of the
-    // term that the matrix of the level solver drops.
+    // term that is omitted from the matrix of the level solver.
     static const std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder>> stencil_map_vec =
         make_vcsc_stencil_maps();
     const int stencil_sz = static_cast<int>(stencil_map_vec[0].size());
@@ -2432,7 +2432,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                 const hier::Index<NDIM>& offset = entry.first;
 
                 // The side of the stencil entry is a side of the same component, or a side of the component along the
-                // other axis of the offset. It is located by the cell on its upper side.
+                // other axis of the offset. That side is indexed by the cell on its upper side.
                 int n_nonzero = 0;
                 unsigned int other_axis = axis;
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -2515,7 +2515,7 @@ PoissonUtilities::checkCoefficientDepths(const PoissonSpecifications& poisson_sp
                                    << "  register the variable for " << name << " before setting the specifications"
                                    << std::endl);
         }
-        // Reject C and D of depth other than one until the non-aligned tensor paths are repaired (#2276).
+        // Reject C and D of depth other than one: the non-aligned tensor discretization is defective for them (#2276).
         if (depth != 1)
         {
             TBOX_ERROR(object_name << "::setPoissonSpecifications():\n"

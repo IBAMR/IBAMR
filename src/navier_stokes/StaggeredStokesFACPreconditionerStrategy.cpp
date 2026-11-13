@@ -158,7 +158,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
       d_gcw(ghost_cell_width),
       d_coarse_solver_default_options_prefix(default_options_prefix + "level_0_")
 {
-    // Setup a default boundary condition object that specifies homogeneous
+    // Set up a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
     // boundary conditions for the pressure.
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -478,14 +478,15 @@ StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVec
     xeqScheduleProlongation(scratch_idxs, src_idxs, dst_ln);
 
     // Correct the interior values and overwrite the ghost values with the prolonged correction. Coarse-fine
-    // interpolation requires the coarse-fine ghost values to hold data interpolated from the coarse level alone.
+    // interpolation requires the coarse-fine ghost cells to contain values interpolated from the coarse level alone.
     d_level_U_data_ops[dst_ln]->add(U_dst_idx, U_dst_idx, d_side_scratch_idx, /*interior_only*/ true);
     d_level_P_data_ops[dst_ln]->add(P_dst_idx, P_dst_idx, d_cell_scratch_idx, /*interior_only*/ true);
     Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
     copy_ghost_region(*level, U_dst_idx, d_side_scratch_idx);
     copy_ghost_region(*level, P_dst_idx, d_cell_scratch_idx);
 
-    // Refill the physical-boundary and same-level ghost cells; the coarse-fine ghost cells keep the prolonged values.
+    // Refill the physical-boundary and same-level ghost cells. The coarse-fine ghost cells still contain the prolonged
+    // values.
     xeqScheduleGhostFillNoCoarse(std::make_pair(U_dst_idx, P_dst_idx), dst_ln);
 
     IBAMR_TIMER_STOP(t_prolong_error_and_correct);

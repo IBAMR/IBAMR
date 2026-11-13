@@ -63,8 +63,8 @@ namespace IBTK
  level solver
  \endverbatim
  *
- * With \c "PROCESSOR_GAUSS_SEIDEL", a sweep reads values that neighboring patches on the same process updated
- * earlier in that sweep, so results depend on the patch layout.
+ * With \c "PROCESSOR_GAUSS_SEIDEL", a sweep uses values on neighboring patches of the same process that were updated
+ * earlier in that sweep. The results therefore depend on the patch layout.
 */
 class VCSCViscousOpPointRelaxationFACOperator : public SCPoissonPointRelaxationFACOperator
 {
@@ -142,8 +142,8 @@ public:
      *
      * Where level \p dst_ln is covered by level \p dst_ln + 1, \p dst is the
      * restriction of \p src multiplied by the ratio of the level \p dst_ln and
-     * level \p dst_ln + 1 factors set by setOperatorScaling(); elsewhere it is
-     * \p src. The scratch data on level \p dst_ln + 1 are overwritten.
+     * level \p dst_ln + 1 factors set by setOperatorScaling(). Elsewhere, \p dst
+     * equals \p src. The scratch data on level \p dst_ln + 1 are overwritten.
      *
      * \param src source residual, read on levels \p dst_ln and \p dst_ln + 1
      * \param dst destination residual, written on level \p dst_ln

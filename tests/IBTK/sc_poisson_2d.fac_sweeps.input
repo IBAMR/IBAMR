@@ -1,7 +1,7 @@
 // Constant-coefficient side-centered Helmholtz solve on a single-level periodic grid of 4 x 4 patches, preconditioned
-// by the point-relaxation FAC operator with two Gauss-Seidel sweeps on the level. The solve is limited to 8 iterations,
-// so the result is not converged and depends on the preconditioner; it must not depend on the number of processes, and
-// the one- and two-process cases have the same expected output.
+// by the point-relaxation FAC operator with two Gauss-Seidel sweeps on the level. Because the solve is limited to 8
+// iterations and is not converged, the result depends on the preconditioner. The one- and two-process cases have the
+// same expected output.
 
 u {
    function = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))"

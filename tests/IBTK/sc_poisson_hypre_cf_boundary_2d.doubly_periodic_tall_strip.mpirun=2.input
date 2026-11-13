@@ -1,4 +1,4 @@
-// A tall fine strip across x, in the interior in y, cut into two patches stacked in y; periodic in x and y.
+// A tall fine strip across x, in the interior in y, cut into two patches stacked in y, on a domain periodic in x and y.
 exact_solution = 2.0
 error_tolerance = 1.0e-6
 solver_db {

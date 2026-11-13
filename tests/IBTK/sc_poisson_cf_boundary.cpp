@@ -39,9 +39,9 @@
 #include <ibtk/app_namespaces.h>
 
 // Solve a side-centered Poisson problem with the side-centered PETSc level solver on the finest level of a hierarchy
-// whose coarse-fine boundaries have convex and concave corners. The solution is a constant, with matching boundary
-// data and exact ghost values at coarse-fine boundaries, which the solver reproduces only if it corrects the
-// right-hand side for exactly the couplings that the level matrix does not contain.
+// whose coarse-fine boundaries have convex and concave corners. The constant solution has matching boundary data and
+// exact ghost values at coarse-fine boundaries. The solver reproduces the solution only if its right-hand-side
+// correction covers exactly the couplings that the level matrix omits.
 int
 main(int argc, char* argv[])
 {
@@ -85,8 +85,8 @@ main(int argc, char* argv[])
         bc_coefs[axis] = bc_storage.back().get();
     }
 
-    // The exact solution is the constant axis + 1 for each component. The ghost values are exact and the initial guess
-    // is zero. The right-hand side vanishes except at Dirichlet sides on the physical boundary, which hold the data.
+    // The exact solution is axis + 1 in each component. The initial guess is zero, with exact ghost values.
+    // The right-hand side equals the boundary data at Dirichlet sides on the physical boundary and is zero elsewhere.
     const Box<NDIM>& domain_box = level->getPhysicalDomain()[0];
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {

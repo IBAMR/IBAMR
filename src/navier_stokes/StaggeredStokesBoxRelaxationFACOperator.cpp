@@ -604,8 +604,8 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             }
         }
 
-        // The box operator is the same for every box and has no boundary rows, so enforce the normal velocity
-        // boundary conditions after each sweep.
+        // Enforce the normal velocity boundary conditions after each sweep, because the box operator, which is the same
+        // for every box, has no boundary rows.
         if (d_bc_helper)
         {
             StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
@@ -648,9 +648,11 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
                 Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 if (patch->getPatchGeometry()->getTouchesRegularBoundary())
                 {
-                    TBOX_ERROR(d_object_name << "::initializeOperatorStateSpecialized():\n"
-                                             << "  physical boundaries require a StaggeredStokesPhysicalBoundaryHelper "
-                                             << "provided via setPhysicalBoundaryHelper().\n");
+                    TBOX_ERROR(d_object_name
+                               << "::initializeOperatorStateSpecialized():\n"
+                               << "  no StaggeredStokesPhysicalBoundaryHelper is set for a level that touches a "
+                                  "physical boundary\n"
+                               << "  call setPhysicalBoundaryHelper()\n");
                 }
             }
         }

@@ -213,7 +213,8 @@ VCSCViscousOpPointRelaxationFACOperator::VCSCViscousOpPointRelaxationFACOperator
     if (d_coarse_solver_type == "RED_BLACK_GAUSS_SEIDEL")
     {
         TBOX_ERROR(d_object_name << "::VCSCViscousOpPointRelaxationFACOperator():\n"
-                                 << "  unsupported coarse solver type: " << d_coarse_solver_type << std::endl);
+                                 << "  unsupported coarse solver type: " << d_coarse_solver_type << "\n"
+                                 << "  use PATCH_GAUSS_SEIDEL, PROCESSOR_GAUSS_SEIDEL, or a level solver\n");
     }
 
     // Set a default interpolation type.
@@ -652,14 +653,14 @@ VCSCViscousOpPointRelaxationFACOperator::restrictResidual(const SAMRAIVectorReal
     const int src_idx = src.getComponentDescriptorIndex(0);
     const int dst_idx = dst.getComponentDescriptorIndex(0);
 
-    // Rescale the fine-level residual in the scratch data before restricting it. An empty d_A_scale means no
-    // scaling; otherwise it must have an entry for every level.
+    // Rescale the fine-level residual in the scratch data before restricting it. An empty d_A_scale indicates no
+    // scaling. Otherwise, d_A_scale must have an entry for every level.
     const bool A_scale_is_set = d_A_scale.size() > 0;
     if (A_scale_is_set && dst_ln + 1 >= d_A_scale.size())
     {
         TBOX_ERROR(d_object_name << "::restrictResidual():\n"
-                                 << "  d_A_scale has " << d_A_scale.size() << " entries, which is too few for level "
-                                 << (dst_ln + 1) << ".\n");
+                                 << "  the operator scaling from setOperatorScaling() has " << d_A_scale.size()
+                                 << " entries, which is too few for level " << (dst_ln + 1) << "\n");
     }
     const double A_scale_coarse = A_scale_is_set ? d_A_scale[dst_ln] : 1.0;
     const double A_scale_fine = A_scale_is_set ? d_A_scale[dst_ln + 1] : 1.0;

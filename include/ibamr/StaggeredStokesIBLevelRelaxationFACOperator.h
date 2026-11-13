@@ -99,8 +99,8 @@ namespace IBAMR
  * smoothers for staggered-grid (MAC) discretizations of the implicit
  * incompressible Stokes-IB equations.
  *
- * The solution and right-hand-side vectors must have one ghost cell. Each sweep applies the level solver selected by
- * level_solver_type.
+ * The solution and right-hand-side vectors must have a ghost cell width of one. Each sweep applies the level solver
+ * selected by level_solver_type.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim

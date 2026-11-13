@@ -1,4 +1,4 @@
-// Solve directly on a refined level that has a traction boundary with the boundary condition objects of the integrator.
+// Solve directly, with the boundary condition objects of the integrator, on a refined level that has a traction boundary.
 solver_db {
    ksp_type = "preonly"
    pc_type = "svd"

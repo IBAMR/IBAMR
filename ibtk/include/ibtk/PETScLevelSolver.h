@@ -59,11 +59,6 @@ namespace IBTK
  * of linear equations on a \em single SAMRAI::hier::PatchLevel using <A
  * HREF="http://www.mcs.anl.gov/petsc/petsc-as">PETSc</A>.
  *
- * The solver treats the ghost values of \a x at coarse-fine interfaces as
- * Dirichlet data: it reads them and, unless a derived class says otherwise,
- * does not change them.  A caller that wants homogeneous data there sets them
- * to zero.  On return, the interior values of \a x contain the solution.
- *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
@@ -77,7 +72,7 @@ namespace IBTK
  enable_logging = FALSE        // see setLoggingEnabled()
  \endverbatim
  *
- * When pc_type is empty, the preconditioner is ILU on one process and block Jacobi with ILU blocks on several
+ * If pc_type is empty, the preconditioner is ILU on one process and block Jacobi with ILU blocks on several
  * processes.
  *
  * PETSc is developed at the Argonne National Laboratory Mathematics and
@@ -106,7 +101,7 @@ public:
      * \brief Set the KSP norm type.
      *
      * With KSP_NORM_NONE a solve applies max_iterations iterations with no convergence test. The setting is ignored
-     * when the PETSc options database selects the KSP type or the norm type. A Richardson solve limited to one
+     * if the PETSc options database selects the KSP type or the norm type. A Richardson solve limited to one
      * iteration uses KSP_NORM_NONE unless the PETSc options database selects the norm type.
      */
     void setKSPNormType(KSPNormType ksp_norm_type);
@@ -152,6 +147,11 @@ public:
      *
      * \param x solution vector
      * \param b right-hand-side vector
+     *
+     * The solver uses the ghost values of \a x at coarse-fine interfaces as
+     * Dirichlet data and leaves them unchanged.  For homogeneous Dirichlet
+     * data, set these ghost values to zero before the call.  On return, the
+     * interior values of \a x contain the solution.
      *
      * <b>Conditions on Parameters:</b>
      * - vectors \a x and \a b must have same patch hierarchy
