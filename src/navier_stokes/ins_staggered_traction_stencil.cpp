@@ -231,6 +231,7 @@ NormalVelocityStencil::useAdjacentBoundaryValue()
     TBOX_ASSERT(beyond_corner);
     idx[1] = idx[0];
     weight = { -1.0, 0.0 };
+    uses_adjacent_boundary_value = true;
 } // useAdjacentBoundaryValue
 
 NormalVelocityStencil

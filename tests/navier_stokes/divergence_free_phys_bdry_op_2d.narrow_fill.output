@@ -1,0 +1,7 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+(y, E u)   = 68.4686583447
+(E^T y, u) = 68.4686583447
+values that depend on the unfilled faces = 0
+NaN values outside the domain in the fill boxes = 24
