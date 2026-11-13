@@ -197,6 +197,7 @@ IF(${IBAMR_HAVE_LIBMESH})
 ENDIF()
 
 # vc_navier_stokes:
+SETUP_2D(vc_navier_stokes carreau_yasuda_01.cpp)
 SETUP_2D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 

@@ -1,0 +1,3 @@
+New: IBAMR::CarreauYasudaViscosity sets the viscosity of an IBAMR::INSVCStaggeredHierarchyIntegrator from the Carreau-Yasuda model of a generalized Newtonian fluid.
+<br>
+(Marshall Davey, 2026/11/12)
