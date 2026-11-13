@@ -1989,8 +1989,8 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     if (d_Q_fcn)
     {
         InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
-                                                         DATA_REFINE_TYPE,
-                                                         USE_CF_INTERPOLATION,
+                                                         "LINEAR_REFINE",
+                                                         false,
                                                          DATA_COARSEN_TYPE,
                                                          d_bdry_extrap_type, // TODO: update variable name
                                                          CONSISTENT_TYPE_2_BDRY);
