@@ -309,8 +309,8 @@ main(int argc, char** argv)
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
         ghost_cell_components[0] = InterpolationTransactionComponent(u_ghost_idx,
-                                                                     "CONSERVATIVE_LINEAR_REFINE",
-                                                                     true,
+                                                                     "NONE",
+                                                                     false,
                                                                      "CONSERVATIVE_COARSEN",
                                                                      "LINEAR",
                                                                      false,
