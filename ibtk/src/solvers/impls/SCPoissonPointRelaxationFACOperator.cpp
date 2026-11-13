@@ -340,6 +340,25 @@ SCPoissonPointRelaxationFACOperator::~SCPoissonPointRelaxationFACOperator()
 } // ~SCPoissonPointRelaxationFACOperator
 
 void
+SCPoissonPointRelaxationFACOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+{
+    if (poisson_spec.cIsVariable())
+    {
+        TBOX_ERROR(d_object_name << "::setPoissonSpecifications():\n"
+                                 << "  the patch data for C cannot be used in SCPoissonPointRelaxationFACOperator\n"
+                                 << "  C must be zero or constant, and D must be constant\n");
+    }
+    if (poisson_spec.dIsVariable())
+    {
+        TBOX_ERROR(d_object_name << "::setPoissonSpecifications():\n"
+                                 << "  the patch data for D cannot be used in SCPoissonPointRelaxationFACOperator\n"
+                                 << "  C must be zero or constant, and D must be constant\n");
+    }
+    PoissonFACPreconditionerStrategy::setPoissonSpecifications(poisson_spec);
+    return;
+} // setPoissonSpecifications
+
+void
 SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
                                                  SAMRAIVectorReal<NDIM, double>& residual,
                                                  int level_num,
@@ -765,14 +784,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     d_bc_op = new CartSideRobinPhysBdryOp(d_scratch_idx, d_bc_coefs, false);
 
     // Setup fill pattern spec objects.
-    if (d_poisson_spec.dIsConstant())
-    {
-        d_op_stencil_fill_pattern = new SideNoCornersFillPattern(d_gcw.max(), /*overwrite_interior*/ true);
-    }
-    else
-    {
-        d_op_stencil_fill_pattern = nullptr;
-    }
+    d_op_stencil_fill_pattern = new SideNoCornersFillPattern(d_gcw.max(), /*overwrite_interior*/ true);
     d_synch_fill_pattern = new SideSynchCopyFillPattern();
 
     // Find the ghost sides along the coarse-fine interface of each patch.

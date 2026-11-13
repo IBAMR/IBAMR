@@ -1,0 +1,3 @@
+Changed: IBTK::SCPoissonPointRelaxationFACOperator now stops with an error if C or D is patch data. Only constant coefficients are used in its smoother and residual, so patch data for C or D gave a wrong preconditioner without an error in optimized builds. IBTK::VCSCViscousOpPointRelaxationFACOperator still accepts patch data.
+<br>
+(Boyce Griffith, 2026/11/12)

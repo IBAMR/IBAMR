@@ -229,6 +229,14 @@ VCSCViscousOpPointRelaxationFACOperator::~VCSCViscousOpPointRelaxationFACOperato
 } // ~VCSCViscousOpPointRelaxationFACOperator
 
 void
+VCSCViscousOpPointRelaxationFACOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
+{
+    // Skip the constant-coefficient check of SCPoissonPointRelaxationFACOperator.
+    PoissonFACPreconditionerStrategy::setPoissonSpecifications(poisson_spec);
+    return;
+} // setPoissonSpecifications
+
+void
 VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
                                                      SAMRAIVectorReal<NDIM, double>& residual,
                                                      int level_num,
@@ -709,8 +717,7 @@ VCSCViscousOpPointRelaxationFACOperator::initializeOperatorStateSpecialized(
     SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
         solution, rhs, coarsest_reset_ln, finest_reset_ln);
 
-    // Set stencil fill pattern to nullptr if the base class
-    // has set it to non-null.
+    // The cross-derivative terms of the viscous operator read corner ghost values, so fill every ghost value.
     d_op_stencil_fill_pattern = nullptr;
 
     return;
