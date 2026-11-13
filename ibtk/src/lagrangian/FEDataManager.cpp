@@ -1285,6 +1285,7 @@ FEDataManager::spread(const int f_data_idx,
     // sum values outside the physical domain into the physical domain.
     if (f_phys_bdry_op)
     {
+        const std::set<int> f_phys_bdry_op_indices = f_phys_bdry_op->getPatchDataIndices();
         f_phys_bdry_op->setPatchDataIndex(f_data_idx);
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
@@ -1299,6 +1300,7 @@ FEDataManager::spread(const int f_data_idx,
                 f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
             }
         }
+        f_phys_bdry_op->setPatchDataIndices(f_phys_bdry_op_indices);
     }
 
     // Accumulate data.

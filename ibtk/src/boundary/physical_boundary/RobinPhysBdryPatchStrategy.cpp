@@ -79,6 +79,12 @@ RobinPhysBdryPatchStrategy::setPatchDataIndices(const ComponentSelector& patch_d
     return;
 } // setPatchDataIndices
 
+const std::set<int>&
+RobinPhysBdryPatchStrategy::getPatchDataIndices() const
+{
+    return d_patch_data_indices;
+} // getPatchDataIndices
+
 void
 RobinPhysBdryPatchStrategy::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef)
 {
