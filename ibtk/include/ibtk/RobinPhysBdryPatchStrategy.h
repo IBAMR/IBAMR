@@ -88,7 +88,7 @@ public:
      *
      * \note \a bc_coef cannot be nullptr.
      */
-    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    virtual void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Reset the Robin boundary condition specification object employed
@@ -96,7 +96,7 @@ public:
      *
      * \note None of the elements of \a bc_coefs can be nullptr.
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Set whether boundary filling should employ homogeneous boundary

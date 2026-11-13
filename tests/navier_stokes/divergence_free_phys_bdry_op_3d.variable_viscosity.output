@@ -1,0 +1,6 @@
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+(y, E u)   = -16.1062001811
+(E^T y, u) = -16.1062001811
+largest ghost value error / h^2 = 4.34411

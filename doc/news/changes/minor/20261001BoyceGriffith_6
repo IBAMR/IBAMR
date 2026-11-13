@@ -1,0 +1,3 @@
+New: Add IBAMR::INSStaggeredDivergenceFreePhysBdryOp, which sets velocity ghost values outside the physical boundaries so that each ghost cell has zero discrete divergence or, with a velocity divergence function, the divergence of the adjacent interior cell.
+<br>
+(Boyce Griffith, 2026/10/01)
