@@ -1,0 +1,3 @@
+Changed: Make IBTK::HierarchyGhostCellInterpolation::resetTransactionComponents() stop with an error if a reset changes the depth of the data of a transaction component, its use of coarse-fine interpolation, the width of its coarse-fine fill, or whether its side-centered data are filled in place with a refine operator. Call initializeOperatorState() with the new components instead.
+<br>
+(Boyce Griffith, 2026/11/13)

@@ -17,6 +17,7 @@
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchyDataOpsManager.h>
 #include <LoadBalancer.h>
 #include <SAMRAIVectorReal.h>
 #include <StandardTagAndInitialize.h>
@@ -76,6 +77,7 @@ main(int argc, char* argv[])
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
+        Pointer<VariableContext> src_ctx = var_db->getContext("source");
 
         Pointer<hier::Variable<NDIM>> u_var, e_var;
         Pointer<CellVariable<NDIM, double>> u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
@@ -100,6 +102,9 @@ main(int argc, char* argv[])
         }
 
         const int u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVector<NDIM>(1));
+        // Face and node fills with a refine operator use a source separate from the destination.
+        const int u_src_idx =
+            var_type == "FACE" ? var_db->registerVariableAndContext(u_var, src_ctx, IntVector<NDIM>(1)) : u_idx;
 
         const bool fine_boundary_represents_var = input_db->getBoolWithDefault("fine_boundary_represents_var", false);
         Pointer<NodeVariable<NDIM, double>> u_nc_var =
@@ -111,6 +116,8 @@ main(int argc, char* argv[])
         // Don't add more ghosts unless we need them to interpolate_back
         const bool interp_back = input_db->getBoolWithDefault("interp_back", false);
         const int u_nc_idx = var_db->registerVariableAndContext(u_nc_var, ctx, IntVector<NDIM>(interp_back ? 1 : 0));
+        const int u_nc_src_idx =
+            interp_back ? var_db->registerVariableAndContext(u_nc_var, src_ctx, IntVector<NDIM>(1)) : u_nc_idx;
 
         int e_idx = IBTK::invalid_index;
         if (interp_back)
@@ -159,7 +166,15 @@ main(int argc, char* argv[])
         {
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_idx, 0.0);
+            if (u_src_idx != u_idx)
+            {
+                level->allocatePatchData(u_src_idx, 0.0);
+            }
             level->allocatePatchData(u_nc_idx, 0.0);
+            if (u_nc_src_idx != u_nc_idx)
+            {
+                level->allocatePatchData(u_nc_src_idx, 0.0);
+            }
             level->allocatePatchData(e_idx, 0.0);
         }
 
@@ -188,12 +203,18 @@ main(int argc, char* argv[])
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
         u_fcn.setDataOnPatchHierarchy(u_idx, u_var, patch_hierarchy, 0.0);
         u_fcn.setDataOnPatchHierarchy(e_idx, e_var, patch_hierarchy, 0.0);
+        if (u_src_idx != u_idx)
+        {
+            HierarchyDataOpsManager<NDIM>::getManager()
+                ->getOperationsDouble(u_var, patch_hierarchy, true)
+                ->copyData(u_src_idx, u_idx, false);
+        }
 
         // We need updated ghost values to interpolate from side or face data:
         using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<ITC> output_transaction_comps;
         output_transaction_comps.emplace_back(
-            u_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false);
+            u_idx, u_src_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, nullptr);
         HierarchyGhostCellInterpolation hier_bdry_fill;
         hier_bdry_fill.initializeOperatorState(output_transaction_comps, patch_hierarchy);
         hier_bdry_fill.fillData(0.0);
@@ -219,8 +240,12 @@ main(int argc, char* argv[])
         if (interp_back)
         {
             // only node-to-cell is implemented and it requires updated ghost values
+            HierarchyDataOpsManager<NDIM>::getManager()
+                ->getOperationsDouble(u_nc_var, patch_hierarchy, true)
+                ->copyData(u_nc_src_idx, u_nc_idx, false);
             std::vector<ITC> comps_2;
-            comps_2.emplace_back(u_nc_idx, "LINEAR_REFINE", false, "CONSTANT_COARSEN", "LINEAR", false);
+            comps_2.emplace_back(
+                u_nc_idx, u_nc_src_idx, "LINEAR_REFINE", false, "CONSTANT_COARSEN", "LINEAR", false, nullptr);
             HierarchyGhostCellInterpolation hier_bdry_fill_2;
             hier_bdry_fill_2.initializeOperatorState(comps_2, patch_hierarchy);
             hier_bdry_fill_2.fillData(0.0);

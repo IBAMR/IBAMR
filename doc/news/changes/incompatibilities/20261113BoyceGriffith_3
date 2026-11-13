@@ -1,0 +1,3 @@
+Changed: Remove the effect of the option consistent_type_2_bdry of IBTK::HierarchyGhostCellInterpolation transaction components. A transaction component with it set to true, and the input keys consistent_type_2_bdry, use_consistent_type_2_bdry, and Phi_use_consistent_type_2_bdry set to TRUE, stop with an error. IBTK::SCLaplaceOperator and IBAMR::StaggeredStokesOperator no longer have the protected members d_use_consistent_type_2_bdry and d_consistent_type_2_bdry.
+<br>
+(Boyce Griffith, 2026/11/13)

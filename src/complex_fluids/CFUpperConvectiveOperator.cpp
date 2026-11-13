@@ -38,6 +38,8 @@
 #include <VariableContext.h>
 #include <VariableDatabase.h>
 
+#include <algorithm>
+
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
 namespace SAMRAI
@@ -284,20 +286,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
         }
     }
     // Fill boundary conditions for side centered velocity
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
-    ghost_cell_components[0] = InterpolationTransactionComponent(d_u_scratch_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CUBIC_COARSEN",
-                                                                 "LINEAR",
-                                                                 false,
-                                                                 d_u_bc_coefs,
-                                                                 nullptr,
-                                                                 d_interp_type);
-    HierarchyGhostCellInterpolation ghost_fill_op;
-    ghost_fill_op.initializeOperatorState(ghost_cell_components, d_hierarchy);
-    ghost_fill_op.fillData(d_solution_time);
+    d_hier_u_bdry_fill->fillData(d_solution_time);
 
     d_convec_oper->applyConvectiveOperator(Q_idx, d_Q_convec_idx);
 
@@ -486,6 +475,20 @@ CFUpperConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
         if (!level->checkAllocated(d_Q_convec_idx)) level->allocatePatchData(d_Q_convec_idx);
         if (!level->checkAllocated(d_s_idx)) level->allocatePatchData(d_s_idx);
     }
+    // Cache the ghost cell fill for the side centered velocity; it is rebuilt after a regrid.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
+    ghost_cell_components[0] = InterpolationTransactionComponent(d_u_scratch_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CUBIC_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 d_u_bc_coefs,
+                                                                 nullptr,
+                                                                 d_interp_type);
+    d_hier_u_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_u_bdry_fill->initializeOperatorState(ghost_cell_components, d_hierarchy);
     d_is_initialized = true;
     return;
 } // initializeOperatorState
@@ -495,8 +498,9 @@ CFUpperConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
     d_convec_oper->deallocateOperatorState();
-    // Deallocate scratch data
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    d_hier_u_bdry_fill.setNull();
+    // Deallocate scratch data; after a regrid, levels above the current finest level no longer exist.
+    for (int ln = d_coarsest_ln; ln <= std::min(d_finest_ln, d_hierarchy->getFinestLevelNumber()); ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Q_convec_idx)) level->deallocatePatchData(d_Q_convec_idx);

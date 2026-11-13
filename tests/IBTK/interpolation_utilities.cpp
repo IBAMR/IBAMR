@@ -25,6 +25,7 @@
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchyDataOpsManager.h>
 #include <LoadBalancer.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <SAMRAI_config.h>
@@ -88,6 +89,9 @@ main(int argc, char* argv[])
         const int cc_idx = var_db->registerVariableAndContext(cc_var, context, gcw);
         const int sc_idx = var_db->registerVariableAndContext(sc_var, context, gcw);
         const int nc_idx = var_db->registerVariableAndContext(nc_var, context, gcw);
+        // The node data fill with a refine operator uses a source separate from the destination.
+        Pointer<VariableContext> src_context = var_db->getContext("SOURCE");
+        const int nc_src_idx = var_db->registerVariableAndContext(nc_var, src_context, gcw);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -109,6 +113,7 @@ main(int argc, char* argv[])
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(cc_idx);
             level->allocatePatchData(nc_idx);
+            level->allocatePatchData(nc_src_idx);
             level->allocatePatchData(sc_idx);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -152,11 +157,17 @@ main(int argc, char* argv[])
             }
         }
 
+        HierarchyDataOpsManager<NDIM>::getManager()
+            ->getOperationsDouble(nc_var, patch_hierarchy, true)
+            ->copyData(nc_src_idx, nc_idx, false);
+
         // Now fill ghost cells
         using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<ITC> ghost_cell_comps{ ITC(cc_idx, "CONSERVATIVE_LINEAR_REFINE", false, "NONE"),
-                                           ITC(sc_idx, "CONSERVATIVE_LINEAR_REFINE", false, "NONE"),
-                                           ITC(nc_idx, "LINEAR_REFINE", false, "NONE") };
+        std::vector<ITC> ghost_cell_comps{
+            ITC(cc_idx, "CONSERVATIVE_LINEAR_REFINE", false, "NONE"),
+            ITC(sc_idx, "CONSERVATIVE_LINEAR_REFINE", false, "NONE"),
+            ITC(nc_idx, nc_src_idx, "LINEAR_REFINE", false, "NONE", "NONE", false, nullptr)
+        };
         HierarchyGhostCellInterpolation ghost_cell_fill;
         ghost_cell_fill.initializeOperatorState(ghost_cell_comps, patch_hierarchy, coarsest_ln, finest_ln);
         ghost_cell_fill.fillData(0.0);

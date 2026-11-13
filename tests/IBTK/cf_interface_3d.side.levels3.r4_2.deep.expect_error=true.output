@@ -1,0 +1,7 @@
+Program abort called with error message
+
+    CoarseFineOwnerFill::checkFillWidth():
+  the quadratic coarse-fine interpolation of variable Q fills 4 ghost cell layers along axis 0, but the refinement ratio of level 2 is 2
+  the interpolation reaches at most one coarse cell from the coarse-fine interface
+  use a ghost width or a fill pattern width of at most the refinement ratio
+

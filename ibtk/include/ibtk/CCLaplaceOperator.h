@@ -170,9 +170,6 @@ private:
 
     // Type of extrapolation to use at physical boundaries.
     std::string d_bdry_extrap_type = "LINEAR";
-
-    // Whether to enforce consistent interpolated values at Type 2 coarse-fine interface ghost cells.
-    bool d_use_consistent_type_2_bdry = false;
 };
 } // namespace IBTK
 

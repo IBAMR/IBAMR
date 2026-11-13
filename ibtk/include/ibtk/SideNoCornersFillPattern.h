@@ -150,6 +150,11 @@ public:
     SAMRAI::hier::IntVector<NDIM>& getStencilWidth() override;
 
     /*!
+     * \brief Whether the pattern includes the interior of the patch on the target level.
+     */
+    bool getOverwriteInterior() const;
+
+    /*!
      * Returns a string name identifier "SIDE_NO_CORNERS_FILL_PATTERN".
      */
     const std::string& getPatternName() const override;

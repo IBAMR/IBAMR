@@ -142,6 +142,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_adv_var;
     int d_u_scratch_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_u_bdry_fill;
 
     // Source function data.
     SAMRAI::tbox::Pointer<IBAMR::CFStrategy> d_cf_strategy;

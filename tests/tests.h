@@ -379,21 +379,6 @@ setup_hierarchy(SAMRAI::tbox::Pointer<IBTK::AppInitializer> app_initializer,
     {
         IBTK::muParserCartGridFunction f_fcn("f", f_db, patch_hierarchy->getGridGeometry());
         f_fcn.setDataOnPatchHierarchy(f_idx, f_var, patch_hierarchy, 0.0);
-
-        using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<ITC> ghost_cell_components(1);
-        const std::string refine_type = f_data_type == "CELL" ? "LINEAR_REFINE" : "SPECIALIZED_LINEAR_REFINE";
-        ghost_cell_components[0] = ITC(f_idx,
-                                       refine_type,
-                                       true,
-                                       "CONSERVATIVE_COARSEN",
-                                       "LINEAR",
-                                       false,
-                                       {}, // f_bc_coefs
-                                       nullptr);
-        IBTK::HierarchyGhostCellInterpolation ghost_fill_op;
-        ghost_fill_op.initializeOperatorState(ghost_cell_components, patch_hierarchy);
-        ghost_fill_op.fillData(/*time*/ 0.0);
     }
 
     return std::make_tuple(patch_hierarchy, error_detector, box_generator, load_balancer, gridding_algorithm, f_idx);

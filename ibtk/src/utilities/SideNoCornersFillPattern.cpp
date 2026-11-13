@@ -120,6 +120,12 @@ SideNoCornersFillPattern::getStencilWidth()
     return d_stencil_width;
 } // getStencilWidth
 
+bool
+SideNoCornersFillPattern::getOverwriteInterior() const
+{
+    return d_overwrite_interior;
+} // getOverwriteInterior
+
 const std::string&
 SideNoCornersFillPattern::getPatternName() const
 {

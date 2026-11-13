@@ -63,8 +63,12 @@ CCLaplaceOperator::CCLaplaceOperator(std::string object_name, Pointer<Database> 
             d_use_cf_interpolation = input_db->getBool("use_cf_interpolation");
         if (input_db->isString("data_coarsen_type")) d_data_coarsen_type = input_db->getString("data_coarsen_type");
         if (input_db->isString("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
-        if (input_db->isBool("use_consistent_type_2_bdry"))
-            d_use_consistent_type_2_bdry = input_db->getBool("use_consistent_type_2_bdry");
+        if (input_db->getBoolWithDefault("use_consistent_type_2_bdry", false))
+        {
+            TBOX_ERROR(d_object_name << "::CCLaplaceOperator():\n"
+                                     << "  the input key use_consistent_type_2_bdry was removed and has no effect\n"
+                                     << "  set it to FALSE or remove it\n");
+        }
     }
 
     // Setup the operator to use default scalar-valued boundary conditions.
@@ -127,7 +131,7 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
                                                       d_use_cf_interpolation,
                                                       d_data_coarsen_type,
                                                       d_bdry_extrap_type,
-                                                      d_use_consistent_type_2_bdry,
+                                                      /*consistent_type_2_bdry*/ false,
                                                       d_bc_coefs,
                                                       d_fill_pattern);
         transaction_comps.push_back(x_component);
@@ -217,7 +221,7 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
                                                     d_use_cf_interpolation,
                                                     d_data_coarsen_type,
                                                     d_bdry_extrap_type,
-                                                    d_use_consistent_type_2_bdry,
+                                                    /*consistent_type_2_bdry*/ false,
                                                     d_bc_coefs,
                                                     d_fill_pattern);
         d_transaction_comps.push_back(component);

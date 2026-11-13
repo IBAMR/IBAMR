@@ -1,0 +1,43 @@
+// Fine boxes around the periodic corner of the domain, so that the patches touch each other across the periodic boundaries, with side data filled by the refine operator only: every patch has the same value of a face along the coarse-fine interface, whichever patch contains it, also across a periodic boundary.
+MAX_LEVELS = 2
+N = 16
+REF_RATIO = 2
+CENTERING = "SIDE"
+GHOST_WIDTH = 1
+REFINE_OP = "CONSERVATIVE_LINEAR_REFINE"
+FINE_BOXES = [(0,0,0),(7,7,7)], [(0,0,24),(7,7,31)], [(0,24,0),(7,31,7)], [(0,24,24),(7,31,31)], [(24,0,0),(31,7,7)], [(24,0,24),(31,7,31)], [(24,24,0),(31,31,7)], [(24,24,24),(31,31,31)]
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = 0,0,0
+   x_up               = 1,1,1
+   periodic_dimension = 1,1,1
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 512,512,512
+   }
+   smallest_patch_size {
+      level_0 = 4,4,4
+   }
+}
+
+StandardTagAndInitialize {
+  tagging_method = "REFINE_BOXES"
+  RefineBoxes {
+    level_0 = [(0,0,0),(N - 1,N - 1,N - 1)]
+  }
+}
+
+LoadBalancer {
+}
