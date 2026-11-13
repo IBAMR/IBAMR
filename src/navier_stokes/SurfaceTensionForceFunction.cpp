@@ -36,6 +36,7 @@
 #include <PatchData.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
+#include <PatchSideDataOpsReal.h>
 #include <SideData.h>
 #include <Variable.h>
 #include <VariableContext.h>
@@ -346,6 +347,25 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     CartGridFunction::setDataOnPatchHierarchy(
         data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
 
+    if (!initial_time)
+    {
+        if (d_compute_surface_tension_coef)
+        {
+            // Compute variable surface tension coefficient sigma as F = sigma*F.
+            const double apply_time = data_time;
+            const double current_time = data_time;
+            const double new_time = data_time;
+            d_compute_surface_tension_coef(data_idx,
+                                           d_hier_math_ops,
+                                           -1 /*cycle_num*/,
+                                           apply_time,
+                                           current_time,
+                                           new_time,
+                                           d_compute_surface_tension_coef_ctx);
+        }
+        addForcesOnPatchHierarchy(data_idx, data_time);
+    }
+
     // Limit the surface tension force if necessary. This is mainly used in phase change problems
     // to activate the surface tension force only at the liquid-gas interface.
     if (d_mask_surface_tension_force)
@@ -401,23 +421,11 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
     {
         setDataOnPatchSide(f_sc_data, patch, data_time, initial_time, level);
 
-        if (d_compute_surface_tension_coef)
+        // setDataOnPatchHierarchy() applies a registered coefficient function to the whole hierarchy.
+        if (!d_compute_surface_tension_coef)
         {
-            // Compute variable surface tension coefficient sigma as F = sigma*F.
-            const double apply_time = data_time;
-            const double current_time = data_time;
-            const double new_time = data_time;
-            d_compute_surface_tension_coef(data_idx,
-                                           d_hier_math_ops,
-                                           -1 /*cycle_num*/,
-                                           apply_time,
-                                           current_time,
-                                           new_time,
-                                           d_compute_surface_tension_coef_ctx);
-        }
-        else
-        {
-            d_hier_sc_data_ops->scale(data_idx, d_sigma, data_idx, /*interior_only*/ true);
+            PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
+            patch_sc_data_ops.scale(f_sc_data, d_sigma, f_sc_data, patch->getBox());
         }
     }
     return;
@@ -443,6 +451,12 @@ SurfaceTensionForceFunction::registerSurfaceTensionCoefficientFunction(ComputeSu
 } // registerSurfaceTensionCoefficientFunction
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+SurfaceTensionForceFunction::addForcesOnPatchHierarchy(const int /*data_idx*/, const double /*data_time*/)
+{
+    return;
+} // addForcesOnPatchHierarchy
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

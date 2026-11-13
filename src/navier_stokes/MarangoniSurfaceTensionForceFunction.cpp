@@ -41,6 +41,7 @@
 #include <Patch.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
+#include <PatchSideDataOpsReal.h>
 #include <SideData.h>
 #include <SideGeometry.h>
 #include <SideIndex.h>
@@ -325,27 +326,12 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
         Pointer<SideData<NDIM, double>> f_marangoni_sc_data = patch->getPatchData(d_F_cloned_idx);
         setDataOnPatchSide(f_marangoni_sc_data, patch, data_time, initial_time, level);
 
-        if (d_compute_marangoni_coef)
+        // addForcesOnPatchHierarchy() applies a registered Marangoni coefficient function to the whole hierarchy.
+        if (!d_compute_marangoni_coef)
         {
-            // Use the callback function to compute F = marangoni_coef*F.
-            const double apply_time = data_time;
-            const double current_time = data_time;
-            const double new_time = data_time;
-            d_compute_marangoni_coef(d_F_cloned_idx,
-                                     d_hier_math_ops,
-                                     -1 /*cycle_num*/,
-                                     apply_time,
-                                     current_time,
-                                     new_time,
-                                     d_compute_marangoni_coef_ctx);
+            PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
+            patch_sc_data_ops.scale(f_marangoni_sc_data, d_marangoni_coefficient, f_marangoni_sc_data, patch->getBox());
         }
-        else
-        {
-            d_hier_sc_data_ops->scale(d_F_cloned_idx, d_marangoni_coefficient, d_F_cloned_idx, /*interior_only*/ true);
-        }
-
-        // Add Marangoni force with the surface tension force.
-        d_hier_sc_data_ops->add(data_idx, data_idx, d_F_cloned_idx, /*interior_only*/ true);
     }
     return;
 } // setDataOnPatch
@@ -357,6 +343,31 @@ MarangoniSurfaceTensionForceFunction::registerMarangoniCoefficientFunction(Compu
     d_compute_marangoni_coef_ctx = ctx;
     return;
 } // registerMarangoniCoefficientFunction
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+MarangoniSurfaceTensionForceFunction::addForcesOnPatchHierarchy(const int data_idx, const double data_time)
+{
+    if (d_compute_marangoni_coef)
+    {
+        // Use the callback function to compute F = marangoni_coef*F.
+        const double apply_time = data_time;
+        const double current_time = data_time;
+        const double new_time = data_time;
+        d_compute_marangoni_coef(d_F_cloned_idx,
+                                 d_hier_math_ops,
+                                 -1 /*cycle_num*/,
+                                 apply_time,
+                                 current_time,
+                                 new_time,
+                                 d_compute_marangoni_coef_ctx);
+    }
+
+    // Add Marangoni force with the surface tension force.
+    d_hier_sc_data_ops->add(data_idx, data_idx, d_F_cloned_idx, /*interior_only*/ true);
+    return;
+} // addForcesOnPatchHierarchy
 
 /////////////////////////////// PRIVATE ////////////////////////////////////
 

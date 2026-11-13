@@ -139,6 +139,12 @@ public:
 
     //\}
 
+protected:
+    /*!
+     * Add the Marangoni force, after applying the Marangoni coefficient function if one is registered.
+     */
+    void addForcesOnPatchHierarchy(int data_idx, double data_time) override;
+
 private:
     /*!
      * \brief Default constructor.

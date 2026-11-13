@@ -31,6 +31,7 @@
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
@@ -233,6 +234,13 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> u_init =
             new VelocityInitialCondition("u_init", num_interface_cells, inside_velocity, outside_velocity, circle);
         time_integrator->registerVelocityInitialConditions(u_init);
+
+        Pointer<CartGridFunction> surface_tension_force =
+            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
+                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+                                            adv_diff_integrator,
+                                            phi_var);
+        time_integrator->registerBodyForceFunction(surface_tension_force);
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
