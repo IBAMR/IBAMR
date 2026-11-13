@@ -349,7 +349,7 @@ main(int argc, char** argv)
         std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
         ghost_cell_components[0] = InterpolationTransactionComponent(f_ghost_idx,
                                                                      "CONSERVATIVE_LINEAR_REFINE",
-                                                                     true,
+                                                                     false,
                                                                      "CONSERVATIVE_COARSEN",
                                                                      "LINEAR",
                                                                      false,
