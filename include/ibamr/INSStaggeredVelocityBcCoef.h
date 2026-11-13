@@ -26,7 +26,9 @@
 #include <tbox/Pointer.h>
 
 #include <IntVector.h>
+#include <SideIndex.h>
 
+#include <utility>
 #include <vector>
 
 namespace IBAMR
@@ -180,6 +182,20 @@ public:
                                   double fill_time) const override;
 
     //\}
+
+    /*!
+     * \brief Return the side indices of the normal velocities on which the tangential TRACTION condition depends at
+     * each face of \a bc_coef_box, each with its derivative. The stencils are empty unless this object imposes
+     * TRACTION conditions on a tangential component.
+     *
+     * \see StokesBcCoefStrategy::getTractionStencil
+     */
+    std::vector<std::vector<std::pair<SAMRAI::pdat::SideIndex<NDIM>, double>>>
+    getTractionStencil(const SAMRAI::hier::Patch<NDIM>& patch,
+                       const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                       const SAMRAI::hier::Box<NDIM>& bc_coef_box,
+                       const SAMRAI::hier::Box<NDIM>& ghost_box,
+                       double fill_time) const override;
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
