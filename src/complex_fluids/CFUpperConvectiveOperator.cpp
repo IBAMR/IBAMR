@@ -286,8 +286,15 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
     // Fill boundary conditions for side centered velocity
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
-    ghost_cell_components[0] = InterpolationTransactionComponent(
-        d_u_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, d_u_bc_coefs, nullptr, d_interp_type);
+    ghost_cell_components[0] = InterpolationTransactionComponent(d_u_scratch_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CUBIC_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 d_u_bc_coefs,
+                                                                 nullptr,
+                                                                 d_interp_type);
     HierarchyGhostCellInterpolation ghost_fill_op;
     ghost_fill_op.initializeOperatorState(ghost_cell_components, d_hierarchy);
     ghost_fill_op.fillData(d_solution_time);
