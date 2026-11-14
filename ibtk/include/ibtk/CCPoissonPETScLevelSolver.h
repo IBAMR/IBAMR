@@ -126,6 +126,11 @@ public:
 
 protected:
     /*!
+     * \brief Construct the PETSc operator after DOF indices and vectors exist.
+     */
+    virtual void createOperatorSpecialized();
+
+    /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */
     void generateASMSubdomains(std::vector<std::set<int>>& overlap_is,
@@ -162,6 +167,17 @@ protected:
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
+    /*!
+     * \name PETSc objects.
+     */
+    //\{
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    std::vector<int> d_num_dofs_per_proc;
+    int d_dof_index_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
+    //\}
+
 private:
     /*!
      * \brief Default constructor.
@@ -189,17 +205,6 @@ private:
      * \return A reference to this object.
      */
     CCPoissonPETScLevelSolver& operator=(const CCPoissonPETScLevelSolver& that) = delete;
-
-    /*!
-     * \name PETSc objects.
-     */
-    //\{
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    std::vector<int> d_num_dofs_per_proc;
-    int d_dof_index_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
-    //\}
 };
 } // namespace IBTK
 

@@ -947,6 +947,10 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
         d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
         d_coarse_solver->setHomogeneousBc(true);
+
+        // Allow derived classes to specialize the coarse solver
+        configureCoarseSolverSpecialized();
+
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
@@ -1028,6 +1032,12 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const in
     }
     return;
 } // deallocateOperatorStateSpecialized
+
+void
+CCPoissonPointRelaxationFACOperator::configureCoarseSolverSpecialized()
+{
+    return;
+} // configureCoarseSolverSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -2747,6 +2747,124 @@ HierarchyMathOps::laplace(const int dst_idx,
 } // laplace
 
 void
+HierarchyMathOps::scaled_laplace(const int dst_idx,
+                                 const Pointer<CellVariable<NDIM, double>> dst_var,
+                                 const PoissonSpecifications& poisson_spec,
+                                 const int scale_idx,
+                                 const int src1_idx,
+                                 const Pointer<CellVariable<NDIM, double>> src1_var,
+                                 const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                                 const double src1_ghost_fill_time,
+                                 const double gamma,
+                                 const int src2_idx,
+                                 const Pointer<CellVariable<NDIM, double>> src2_var,
+                                 const int dst_depth,
+                                 const int src1_depth,
+                                 const int src2_depth,
+                                 const int scale_depth)
+{
+    const bool scale_is_variable = scale_idx != invalid_index;
+    const bool C_is_variable = poisson_spec.cIsVariable();
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<CellVariable<NDIM, double>> scale_var;
+    if (scale_is_variable)
+    {
+        Pointer<Variable<NDIM>> variable;
+        var_db->mapIndexToVariable(scale_idx, variable);
+        scale_var = variable;
+
+        if (!scale_var)
+        {
+            TBOX_ERROR(d_object_name << "::scaled_laplace():\n"
+                                     << "  scale_idx must refer to cell-centered double data.\n");
+        }
+    }
+
+    Pointer<CellVariable<NDIM, double>> C_var;
+    if (C_is_variable)
+    {
+        Pointer<Variable<NDIM>> variable;
+        var_db->mapIndexToVariable(poisson_spec.getCPatchDataId(), variable);
+        C_var = variable;
+
+        if (!C_var)
+        {
+            TBOX_ERROR(d_object_name << "::scaled_laplace():\n"
+                                     << "  C must refer to cell-centered double data.\n");
+        }
+    }
+
+    // First compute dst = div(D grad(src1)), including coarse-fine flux synchronization.
+    PoissonSpecifications diffusion_spec(poisson_spec);
+    diffusion_spec.setCZero();
+
+    laplace(dst_idx,
+            dst_var,
+            diffusion_spec,
+            src1_idx,
+            src1_var,
+            src1_ghost_fill,
+            src1_ghost_fill_time,
+            0.0,
+            invalid_index,
+            nullptr,
+            dst_depth,
+            src1_depth);
+
+    // Apply S outside the divergence.
+    if (scale_is_variable)
+    {
+        pointwiseMultiply(dst_idx,
+                          dst_var,
+                          scale_idx,
+                          scale_var,
+                          dst_idx,
+                          dst_var,
+                          0.0,
+                          invalid_index,
+                          nullptr,
+                          dst_depth,
+                          dst_depth,
+                          0,
+                          scale_depth);
+    }
+
+    // Add C*src1 without scaling it by S.
+    if (C_is_variable)
+    {
+        pointwiseMultiply(dst_idx,
+                          dst_var,
+                          poisson_spec.getCPatchDataId(),
+                          C_var,
+                          src1_idx,
+                          src1_var,
+                          1.0,
+                          dst_idx,
+                          dst_var,
+                          dst_depth,
+                          src1_depth,
+                          dst_depth,
+                          0);
+    }
+    else if (!poisson_spec.cIsZero())
+    {
+        const double C = poisson_spec.getCConstant();
+        pointwiseMultiply(
+            dst_idx, dst_var, C, src1_idx, src1_var, 1.0, dst_idx, dst_var, dst_depth, src1_depth, dst_depth);
+    }
+
+    // Add gamma*src2 only when requested.
+    if (src2_idx != invalid_index)
+    {
+        pointwiseMultiply(
+            dst_idx, dst_var, gamma, src2_idx, src2_var, 1.0, dst_idx, dst_var, dst_depth, src2_depth, dst_depth);
+    }
+
+    return;
+} // scaled_laplace
+
+void
 HierarchyMathOps::laplace(const int dst_idx,
                           const Pointer<SideVariable<NDIM, double>> dst_var,
                           const PoissonSpecifications& poisson_spec,

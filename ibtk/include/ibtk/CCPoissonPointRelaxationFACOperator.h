@@ -223,6 +223,35 @@ protected:
      */
     void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
+    /*!
+     * \brief Configure additional coarse-solver properties before initialization.
+     */
+    virtual void configureCoarseSolverSpecialized();
+
+    /*
+     * Coarse level solvers and solver parameters.
+     */
+    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+
+    /*
+     * Patch overlap data.
+     */
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_bc_box_overlap;
+    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM>>>> d_patch_neighbor_overlap;
+
+    // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost
+    // cell values.
+    std::string d_data_refine_type = "NONE";
+    bool d_use_cf_interpolation = true;
+    std::string d_data_coarsen_type = "CUBIC_COARSEN";
+
+    // Type of extrapolation to use at physical boundaries.
+    std::string d_bdry_extrap_type = "LINEAR";
+
+    // Whether to enforce consistent interpolated values at Type 2 coarse-fine interface ghost cells.
+    bool d_use_consistent_type_2_bdry = false;
+
 private:
     /*!
      * \brief Default constructor.
@@ -250,30 +279,6 @@ private:
      * \return A reference to this object.
      */
     CCPoissonPointRelaxationFACOperator& operator=(const CCPoissonPointRelaxationFACOperator& that) = delete;
-
-    /*
-     * Coarse level solvers and solver parameters.
-     */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
-
-    /*
-     * Patch overlap data.
-     */
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM>>>> d_patch_neighbor_overlap;
-
-    // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost
-    // cell values.
-    std::string d_data_refine_type = "NONE";
-    bool d_use_cf_interpolation = true;
-    std::string d_data_coarsen_type = "CUBIC_COARSEN";
-
-    // Type of extrapolation to use at physical boundaries.
-    std::string d_bdry_extrap_type = "LINEAR";
-
-    // Whether to enforce consistent interpolated values at Type 2 coarse-fine interface ghost cells.
-    bool d_use_consistent_type_2_bdry = false;
 };
 } // namespace IBTK
 

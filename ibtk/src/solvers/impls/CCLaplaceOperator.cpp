@@ -138,28 +138,7 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator.
-    for (int comp = 0; comp < d_ncomp; ++comp)
-    {
-        Pointer<CellVariable<NDIM, double>> x_cc_var = x.getComponentVariable(comp);
-        Pointer<CellVariable<NDIM, double>> y_cc_var = y.getComponentVariable(comp);
-        const int x_idx = x.getComponentDescriptorIndex(comp);
-        const int y_idx = y.getComponentDescriptorIndex(comp);
-        for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
-        {
-            d_hier_math_ops->laplace(y_idx,
-                                     y_cc_var,
-                                     d_poisson_spec,
-                                     x_idx,
-                                     x_cc_var,
-                                     d_no_fill,
-                                     0.0,
-                                     0.0,
-                                     -1,
-                                     Pointer<CellVariable<NDIM, double>>(nullptr),
-                                     l,
-                                     l);
-        }
-    }
+    applySpecialized(x, y);
 
     IBTK_TIMER_STOP(t_apply);
     return;
@@ -254,6 +233,36 @@ CCLaplaceOperator::deallocateOperatorState()
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 } // deallocateOperatorState
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+void
+CCLaplaceOperator::applySpecialized(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+{
+    for (int comp = 0; comp < x.getNumberOfComponents(); ++comp)
+    {
+        Pointer<CellVariable<NDIM, double>> x_cc_var = x.getComponentVariable(comp);
+        Pointer<CellVariable<NDIM, double>> y_cc_var = y.getComponentVariable(comp);
+        const int x_idx = x.getComponentDescriptorIndex(comp);
+        const int y_idx = y.getComponentDescriptorIndex(comp);
+        for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
+        {
+            d_hier_math_ops->laplace(y_idx,
+                                     y_cc_var,
+                                     d_poisson_spec,
+                                     x_idx,
+                                     x_cc_var,
+                                     d_no_fill,
+                                     0.0,
+                                     0.0,
+                                     -1,
+                                     Pointer<CellVariable<NDIM, double>>(nullptr),
+                                     l,
+                                     l);
+        }
+    }
+
+    return;
+} // applySpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

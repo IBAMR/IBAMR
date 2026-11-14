@@ -721,6 +721,127 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Perform one Gauss-Seidel pass for
+c
+c         F = C U + S div(D grad U).
+c
+c     C and S are cell-centered. D is side-centered.
+c     Each coefficient may instead be spatially constant.
+c
+c     color = -1: lexicographic Gauss-Seidel.
+c     color =  0: red pass.
+c     color =  1: black pass.
+c
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine scaled_gs_2d(
+     &     U,U_gcw,
+     &     F,F_gcw,
+     &     C,C_gcw,C_constant,C_is_variable,
+     &     S,S_gcw,S_constant,S_is_variable,
+     &     D0,D1,D_gcw,D_constant,D_is_variable,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx,color)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw,F_gcw,C_gcw,S_gcw,D_gcw
+      INTEGER C_is_variable,S_is_variable,D_is_variable
+      INTEGER color
+
+      REAL C_constant,S_constant,D_constant
+      REAL dx(0:NDIM-1)
+
+      REAL F(CELL2d(ilower,iupper,F_gcw))
+      REAL C(CELL2d(ilower,iupper,C_gcw))
+      REAL S(CELL2d(ilower,iupper,S_gcw))
+
+      REAL D0(SIDE2d0(ilower,iupper,D_gcw))
+      REAL D1(SIDE2d1(ilower,iupper,D_gcw))
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,cell_color
+      REAL    fac0,fac1
+      REAL    cv,sv
+      REAL    dl0,du0,dl1,du1
+      REAL    wl0,wu0,wl1,wu1
+      REAL    diagonal,neighbor_sum
+
+      fac0 = 1.d0/(dx(0)*dx(0))
+      fac1 = 1.d0/(dx(1)*dx(1))
+c
+c     Perform one lexicographic or red-black pass.
+c
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+
+c           Normalize parity so negative indices are handled correctly.
+
+            cell_color = mod(mod(i0+i1,2)+2,2)
+
+            if (color .lt. 0 .or. cell_color .eq. color) then
+
+               cv = C_constant
+               if (C_is_variable .ne. 0) cv = C(i0,i1)
+
+               sv = S_constant
+               if (S_is_variable .ne. 0) sv = S(i0,i1)
+
+c              For S = 0, the row reduces to C U = F.
+
+               if (sv .eq. 0.d0) then
+                  U(i0,i1) = F(i0,i1)/cv
+               else
+                  if (D_is_variable .ne. 0) then
+                     dl0 = D0(i0,i1)
+                     du0 = D0(i0+1,i1)
+                     dl1 = D1(i0,i1)
+                     du1 = D1(i0,i1+1)
+                  else
+                     dl0 = D_constant
+                     du0 = D_constant
+                     dl1 = D_constant
+                     du1 = D_constant
+                  endif
+
+
+c                 S multiplies the completed diffusion row.
+c                 It is not interpolated to sides.
+
+                  wl0 = -sv*dl0*fac0
+                  wu0 = -sv*du0*fac0
+                  wl1 = -sv*dl1*fac1
+                  wu1 = -sv*du1*fac1
+
+                  diagonal = cv + wl0 + wu0 + wl1 + wu1
+
+                  neighbor_sum =
+     &                 wl0*U(i0-1,i1) + wu0*U(i0+1,i1)
+     &               + wl1*U(i0,i1-1) + wu1*U(i0,i1+1)
+
+                  U(i0,i1) = (F(i0,i1)+neighbor_sum)/diagonal
+
+               endif
+            endif
+         enddo
+      enddo
+c
+      return
+      end
+c      
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c  Perform a single Gauss-Seidel sweep for
 c     (f0,f1) = alpha div mu (grad (u0,u1) + grad (u0, u1)^T) + beta c (u0,u1).
 c

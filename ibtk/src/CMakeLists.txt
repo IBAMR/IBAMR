@@ -172,6 +172,9 @@ SET(CXX_SRC
   solvers/impls/SCPoissonHypreLevelSolver.cpp
   solvers/impls/PETScKrylovPoissonSolver.cpp
   solvers/impls/CCPoissonPointRelaxationFACOperator.cpp
+  solvers/impls/CCScaledLaplaceOperator.cpp
+  solvers/impls/CCScaledPoissonPETScLevelSolver.cpp
+  solvers/impls/CCScaledPoissonPointRelaxationFACOperator.cpp
 
   # utilities
   utilities/RefinePatchStrategySet.cpp

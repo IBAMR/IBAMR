@@ -95,6 +95,15 @@ CCPoissonPETScLevelSolver::~CCPoissonPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
+CCPoissonPETScLevelSolver::createOperatorSpecialized()
+{
+    PETScMatUtilities::constructPatchLevelCCLaplaceOp(
+        d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, d_level);
+
+    return;
+} // createOperatorSpecialized
+
+void
 CCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*overlap_is*/,
                                                  std::vector<std::set<int>>& /*nonoverlap_is*/)
 {
@@ -132,8 +141,7 @@ CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRe
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelCCLaplaceOp(
-        d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, d_level);
+    createOperatorSpecialized();
     d_petsc_pc = d_petsc_mat;
 
     // Setup SAMRAI communication objects.

@@ -1069,6 +1069,35 @@ public:
                  int src2_depth = 0);
 
     /*!
+     * \brief Compute dst = C src1 + S div(D grad(src1)) + gamma src2.
+     *
+     * C and D are specified by poisson_spec. S is a cell-centered coefficient
+     *
+     * The scale S multiplies the divergence; it is not placed inside it.
+     * Coarse-fine flux synchronization follows the existing laplace() implementation.
+     *
+     * Only the specified destination depth is modified, on patch interiors.
+     * Coefficient ghost cells are not filled by this routine.
+     *
+     * \note Destination data must not alias source or coefficient data.
+     */
+    void scaled_laplace(int dst_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> dst_var,
+                        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                        int scale_idx,
+                        int src1_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> src1_var,
+                        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                        double src1_ghost_fill_time,
+                        double gamma = 0.0,
+                        int src2_idx = invalid_index,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> src2_var = nullptr,
+                        int dst_depth = 0,
+                        int src1_depth = 0,
+                        int src2_depth = 0,
+                        int scale_depth = 0);
+
+    /*!
      * \brief Compute the Laplacian of a scalar quantity using centered
      * differences.
      *

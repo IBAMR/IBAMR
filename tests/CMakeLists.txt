@@ -295,6 +295,8 @@ SETUP_2D(IBTK index_utilities.cpp)
 SETUP_2D(IBTK marker_points_01.cpp)
 SETUP_2D(IBTK marker_points_02.cpp)
 SETUP_2D(IBTK cf_interface.cpp)
+SETUP_2D(IBTK scaled_poisson_01.cpp)
+SETUP_2D(IBTK scaled_poisson_02.cpp)
 
 IF(${IBAMR_HAVE_LIBMESH})
   SETUP_3D(IBTK bounding_boxes_01.cpp)

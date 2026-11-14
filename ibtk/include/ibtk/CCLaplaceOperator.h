@@ -122,6 +122,16 @@ public:
 
     //\}
 
+protected:
+    /*!
+     * \brief Compute y = A*x after apply() has filled the input ghost cells.
+     *
+     * Derived classes can override the numerical operation while retaining
+     * the communication and boundary-condition handling in apply().
+     */
+    virtual void applySpecialized(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+
 private:
     /*!
      * \brief Default constructor.
