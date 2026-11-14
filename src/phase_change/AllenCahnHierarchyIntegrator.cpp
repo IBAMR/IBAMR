@@ -543,16 +543,6 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
             TBOX_ERROR("this statement should not be reached");
         }
 
-        // for plotting purpose.
-        static const bool synch_cf_interface = true;
-        d_hier_math_ops->interp(d_D_cc_new_idx,
-                                d_D_cc_var,
-                                d_T_diffusion_coef_current_idx,
-                                d_T_diffusion_coef_var,
-                                d_no_fill_op,
-                                d_integrator_time,
-                                synch_cf_interface);
-
         d_hier_sc_data_ops->scale(d_T_diffusion_coef_rhs_scratch_idx, (1.0 - alpha), d_T_diffusion_coef_current_idx);
         T_rhs_op_spec.setDPatchDataId(d_T_diffusion_coef_rhs_scratch_idx);
 
@@ -883,7 +873,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
         // momentum integrator.
         Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         // Update N_idx if necessary
-        if (cycle_num > 0 && d_solve_mass_conservation)
+        if (cycle_num > 0 && d_solve_mass_conservation && d_u_adv_var)
         {
             const double dt = new_time - current_time;
             const double half_time = current_time + 0.5 * dt;
@@ -925,12 +915,10 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
             }
 
             d_rho_p_integrator->integrate(dt);
-        }
 
-        d_updated_rho_idx = d_rho_p_integrator ? d_rho_p_integrator->getUpdatedDensityPatchDataIndex() : d_rho_new_idx;
-        d_hier_cc_data_ops->copyData(d_rho_new_idx,
-                                     d_updated_rho_idx,
-                                     /*interior_only*/ true);
+            const int updated_rho_idx = d_rho_p_integrator->getUpdatedDensityPatchDataIndex();
+            d_hier_cc_data_ops->copyData(d_rho_new_idx, updated_rho_idx, /*interior_only*/ true);
+        }
 
         PoissonSpecifications T_solver_spec(d_object_name + "::solver_spec::" + d_T_var->getName());
         // set rho*Cp/dt
@@ -988,16 +976,6 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
         {
             TBOX_ERROR("this statement should not be reached");
         }
-
-        // for plotting purpose.
-        static const bool synch_cf_interface = true;
-        d_hier_math_ops->interp(d_D_cc_new_idx,
-                                d_D_cc_var,
-                                d_T_diffusion_coef_new_idx,
-                                d_T_diffusion_coef_var,
-                                d_no_fill_op,
-                                d_integrator_time,
-                                synch_cf_interface);
 
         d_hier_sc_data_ops->scale(d_T_diffusion_coef_scratch_idx, -alpha, d_T_diffusion_coef_new_idx);
         T_solver_spec.setDPatchDataId(d_T_diffusion_coef_scratch_idx);

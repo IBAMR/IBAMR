@@ -38,6 +38,10 @@ TemperatureInitialConditions{
   function = "973.6"
 }
 
+LevelSetInitialConditions{
+  function = "10.0"   // Put a positive number as the whole domain is PCM 
+}
+
 PCMVoFInitialConditions{
   function = "1.0"
 }
@@ -210,30 +214,36 @@ EnthalpyHierarchyIntegrator {
    reference_temperature           = REFERENCE_TEMPERATURE
    output_temp_k                   = TRUE
 
-      T_solver_type = "PETSC_KRYLOV_SOLVER"
-      T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-      T_solver_db
-      {
-        ksp_type             = "fgmres"
-        rel_residual_tol     = 1.0e-12
-        max_iterations       = 1000
-      }
+   T_solver_type = "SCALED_PETSC_KRYLOV_SOLVER"
+   T_precond_type = "SCALED_POINT_RELAXATION_FAC_PRECONDITIONER"
+   T_solver_db
+   {
+      ksp_type             = "fgmres"
+      rel_residual_tol     = 1.0e-12
+      max_iterations       = 1000
+   }
 
-      T_precond_db
+   T_precond_db
+   {
+      cycle_type = "V_CYCLE"
+      num_pre_sweeps = 1
+      num_post_sweeps = 2
+      smoother_type = "RED_BLACK_GAUSS_SEIDEL"
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "SCALED_PETSC_LEVEL_SOLVER"
+      coarse_solver_prefix = "coarse_"
+      coarse_solver_rel_residual_tol = 1.0e-4
+      coarse_solver_abs_residual_tol = 1.0e-12
+      coarse_solver_max_iterations = 100
+
+      coarse_solver_db
       {
-          num_pre_sweeps  = 0
-          num_post_sweeps = 3
-          prolongation_method = "LINEAR_REFINE"
-          restriction_method  = "CONSERVATIVE_COARSEN"
-          coarse_solver_type = "PETSC_LEVEL_SOLVER"
-          coarse_solver_rel_residual_tol = 1.0e-12
-          coarse_solver_abs_residual_tol = 1.0e-50
-          coarse_solver_max_iterations = 100
-          coarse_solver_db {
-             ksp_type = "gmres"
-             pc_type = "jacobi"
-          }
+         ksp_type = "gmres"
+         pc_type = "jacobi"
       }
+   }
+
 }
 
 Main {

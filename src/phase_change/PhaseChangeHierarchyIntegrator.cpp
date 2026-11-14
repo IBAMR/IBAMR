@@ -430,20 +430,6 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
 
     d_C_rhs_scratch_idx = var_db->registerVariableAndContext(d_C_var, var_db->getContext("C_rhs"));
 
-    d_D_cc_var = new CellVariable<NDIM, double>("D_cc", NDIM);
-    registerVariable(d_D_cc_current_idx,
-                     d_D_cc_new_idx,
-                     d_D_cc_scratch_idx,
-                     d_D_cc_var,
-                     cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
-
-    if (d_visit_writer && d_output_temp_k)
-    {
-        d_visit_writer->registerPlotQuantity("temperature_kappa", "VECTOR", d_D_cc_current_idx, 0);
-    }
-
     d_U_old_var = new FaceVariable<NDIM, double>(d_object_name + "::U_old");
     registerVariable(d_U_old_current_idx,
                      d_U_old_new_idx,
@@ -452,9 +438,6 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
                      face_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
-
-    d_updated_rho_var = new CellVariable<NDIM, double>(d_object_name + "::updated_rho");
-    registerVariable(d_updated_rho_idx, d_updated_rho_var, no_ghosts, getCurrentContext());
 
     d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F_var");
     registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());

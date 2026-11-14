@@ -112,6 +112,11 @@ main(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
+        // Register level set
+        Pointer<CellVariable<NDIM, double>> ls_var = new CellVariable<NDIM, double>("ls_var");
+        time_integrator->registerTransportedQuantity(ls_var, true);
+        time_integrator->setDiffusionCoefficient(ls_var, 0.0);
+
         // Register liquid fraction
         Pointer<CellVariable<NDIM, double>> lf_var = new CellVariable<NDIM, double>("lf_var");
         Pointer<EnthalpyHierarchyIntegrator> enthalpy_hier_integrator = time_integrator;
@@ -129,11 +134,18 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
         time_integrator->registerTransportedQuantity(pcm_vof_var, true);
         time_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
+
+        // Set level set and VOF variables with the enthalpy integrator
+        enthalpy_hier_integrator->registerLevelSetVariable(ls_var);
         enthalpy_hier_integrator->registerHeavisideVariable(pcm_vof_var);
 
         // Register temperature
         Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
         enthalpy_hier_integrator->registerTemperatureVariable(T_var, true);
+
+        Pointer<CartGridFunction> ls_init = new muParserCartGridFunction(
+            "ls_init", app_initializer->getComponentDatabase("LevelSetInitialConditions"), grid_geometry);
+        time_integrator->setInitialConditions(ls_var, ls_init);
 
         Pointer<CartGridFunction> pcm_vof_init = new muParserCartGridFunction(
             "pcm_vof_init", app_initializer->getComponentDatabase("PCMVoFInitialConditions"), grid_geometry);

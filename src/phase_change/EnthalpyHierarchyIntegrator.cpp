@@ -21,11 +21,13 @@
 #include <ibamr/ibamr_enums.h>
 #include <ibamr/ibamr_utilities.h>
 
-#include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CCPoissonSolverManager.h>
+#include <ibtk/CCScaledLaplaceOperator.h>
+#include <ibtk/CCScaledPoissonPETScLevelSolver.h>
+#include <ibtk/CCScaledPoissonPointRelaxationFACOperator.h>
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/IBTK_MPI.h>
-#include <ibtk/LaplaceOperator.h>
-#include <ibtk/PoissonSolver.h>
+#include <ibtk/PETScKrylovPoissonSolver.h>
 
 #include <tbox/Database.h>
 #include <tbox/MathUtilities.h>
@@ -173,6 +175,44 @@ static const double H_LIM = 0.5;
 const auto clamp = [](const double x, const double x_min, const double x_max)
 { return std::max(x_min, std::min(x, x_max)); };
 
+Pointer<PoissonSolver>
+allocate_scaled_poisson_petsc_krylov_solver(const std::string& object_name,
+                                            Pointer<Database> input_db,
+                                            const std::string& default_options_prefix)
+{
+    Pointer<PETScKrylovPoissonSolver> solver =
+        new PETScKrylovPoissonSolver(object_name, input_db, default_options_prefix);
+
+    Pointer<Database> operator_db = nullptr;
+    if (input_db && input_db->isDatabase("laplace_op"))
+    {
+        operator_db = input_db->getDatabase("laplace_op");
+    }
+
+    solver->setOperator(new CCScaledLaplaceOperator(object_name + "::CCScaledLaplaceOperator", operator_db));
+
+    return solver;
+} // allocate_scaled_poisson_petsc_krylov_solver
+
+void
+register_scaled_poisson_solvers()
+{
+    IBAMR_DO_ONCE({
+        CCPoissonSolverManager* manager = CCPoissonSolverManager::getManager();
+
+        manager->registerSolverFactoryFunction("SCALED_PETSC_LEVEL_SOLVER",
+                                               CCScaledPoissonPETScLevelSolver::allocate_solver);
+
+        manager->registerSolverFactoryFunction("SCALED_POINT_RELAXATION_FAC_PRECONDITIONER",
+                                               CCScaledPoissonPointRelaxationFACOperator::allocate_solver);
+
+        manager->registerSolverFactoryFunction("SCALED_PETSC_KRYLOV_SOLVER",
+                                               allocate_scaled_poisson_petsc_krylov_solver);
+    });
+
+    return;
+} // register_scaled_poisson_solvers
+
 // Copy data from a side-centered variable to a face-centered variable.
 void
 copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy<NDIM>> hierarchy)
@@ -239,6 +279,10 @@ EnthalpyHierarchyIntegrator::EnthalpyHierarchyIntegrator(const std::string& obje
     if (from_restart) getFromRestart();
     getFromInput(input_db, from_restart);
 
+    // Register the factory functions of the scaled Poisson solvers
+    // with solver manager.
+    register_scaled_poisson_solvers();
+
     return;
 } // EnthalpyHierarchyIntegrator
 
@@ -304,20 +348,16 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
     d_dT_dh_scratch_idx = var_db->registerVariableAndContext(d_dT_dh_var, getScratchContext(), no_ghosts);
 
     d_delta_h_var = new CellVariable<NDIM, double>(d_object_name + "::delta_h_var");
-    d_delta_h_idx = var_db->registerVariableAndContext(d_delta_h_var, getScratchContext(), cell_ghosts);
+    d_delta_h_idx = var_db->registerVariableAndContext(d_delta_h_var, getScratchContext(), no_ghosts);
 
-    d_delta_h_rhs_var = new CellVariable<NDIM, double>(d_object_name + "::delta_h_rhs_var");
-    d_delta_h_rhs_idx = var_db->registerVariableAndContext(d_delta_h_rhs_var, getScratchContext(), cell_ghosts);
+    d_delta_T_var = new CellVariable<NDIM, double>(d_object_name + "::delta_T_var");
+    d_delta_T_idx = var_db->registerVariableAndContext(d_delta_T_var, getScratchContext(), cell_ghosts);
+
+    d_delta_T_rhs_var = new CellVariable<NDIM, double>(d_object_name + "::delta_T_rhs_var");
+    d_delta_T_rhs_idx = var_db->registerVariableAndContext(d_delta_T_rhs_var, getScratchContext(), cell_ghosts);
 
     d_h_residual_var = new CellVariable<NDIM, double>(d_object_name + "::h_residual_var");
     d_h_residual_idx = var_db->registerVariableAndContext(d_h_residual_var, getScratchContext(), no_ghosts);
-
-    d_h_C_var = new CellVariable<NDIM, double>(d_object_name + "::h_C_var");
-    d_h_C_idx = var_db->registerVariableAndContext(d_h_C_var, getScratchContext(), no_ghosts);
-
-    d_h_diffusion_coef_var = new SideVariable<NDIM, double>(d_object_name + "::h_diffusion_coef_var");
-    d_h_diffusion_coef_idx =
-        var_db->registerVariableAndContext(d_h_diffusion_coef_var, getScratchContext(), side_ghosts);
 
     if (d_solve_mass_conservation && d_u_adv_var)
     {
@@ -327,12 +367,10 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
 
     if (d_lf_extrap_var) d_lf_extrap_convective_op = getLiquidFractionExtrapConvectiveOperator(d_lf_extrap_var);
 
-    // Create the boundary condition object for the enthalpy correction equation.
-    d_h_correction_bc_coef = new EnthalpyCorrectionBcCoefs(d_object_name + "::enthalpy_correction_bc");
-
-    // Create the level set to VOF converter object
-    d_ls_to_vof_converter =
-        new VCINSVOFUtilities::LevelSetToVOFConverter(d_object_name + "::vof_converter", this, d_ls_var, d_H_var);
+    // Create the level set to VOF converter object.
+    // NOTE: We need to pass a non-managed Pointer<T> to *this
+    d_ls_to_vof_converter = new VCINSVOFUtilities::LevelSetToVOFConverter(
+        d_object_name + "::vof_converter", Pointer<AdvDiffHierarchyIntegrator>(this, false), d_ls_var, d_H_var);
 
     d_integrator_is_initialized = true;
 
@@ -361,11 +399,9 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 
         if (!level->checkAllocated(d_dT_dh_scratch_idx)) level->allocatePatchData(d_dT_dh_scratch_idx, current_time);
         if (!level->checkAllocated(d_delta_h_idx)) level->allocatePatchData(d_delta_h_idx, current_time);
-        if (!level->checkAllocated(d_delta_h_rhs_idx)) level->allocatePatchData(d_delta_h_rhs_idx, current_time);
+        if (!level->checkAllocated(d_delta_T_idx)) level->allocatePatchData(d_delta_T_idx, current_time);
+        if (!level->checkAllocated(d_delta_T_rhs_idx)) level->allocatePatchData(d_delta_T_rhs_idx, current_time);
         if (!level->checkAllocated(d_h_residual_idx)) level->allocatePatchData(d_h_residual_idx, current_time);
-        if (!level->checkAllocated(d_h_C_idx)) level->allocatePatchData(d_h_C_idx, current_time);
-        if (!level->checkAllocated(d_h_diffusion_coef_idx))
-            level->allocatePatchData(d_h_diffusion_coef_idx, current_time);
 
         if (d_lf_extrap_var)
         {
@@ -514,132 +550,182 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
         }
 
         rho_p_integrator->integrate(dt);
+
+        const int updated_rho_idx = d_rho_p_integrator->getUpdatedDensityPatchDataIndex();
+        d_hier_cc_data_ops->copyData(d_rho_new_idx, updated_rho_idx, /*interior_only*/ true);
     }
-    d_updated_rho_idx = d_rho_p_integrator ? d_rho_p_integrator->getUpdatedDensityPatchDataIndex() : d_rho_new_idx;
-    d_hier_cc_data_ops->copyData(d_rho_new_idx, d_updated_rho_idx, /*interior_only*/ true);
 
     if (d_lf_extrap_var)
     {
         computeAdvectionVelocityForExtrapolation(d_u_adv_fc_lf_extrap_current_idx, current_time, new_time);
     }
 
-    // Inner iterations for the Newton-Ralphson scheme.
-    double h_correction_error = 1.0;
-    int inner_iterations = 0;
-
-    while (h_correction_error > d_newton_error_tolerance && inner_iterations < d_max_newton_iterations)
+    // Density, composition, and advection remain frozen during the inner iterations.
+    // Specific heat and conductivity are updated from each nonlinear state.
+    const auto update_material_properties = [&]()
     {
-        // beta = dT/dh.
-        computeTemperatureDerivative(d_dT_dh_scratch_idx, d_h_new_idx, H_new_idx);
-
-        // Build the nonlinear residual R_h(h^m).
-        computeEnthalpyResidual(d_h_residual_idx, current_time, new_time);
-
-        // Construct the temperature-to-enthalpy Robin correction condition.
-        updateEnthalpyCorrectionBoundaryCondition(new_time);
-
-        // Right-hand side is -R_h.
-        d_hier_cc_data_ops->scale(d_delta_h_rhs_idx, -1.0, d_h_residual_idx);
-
-        // Temporal Jacobian coefficient: rho / dt.
-        d_hier_cc_data_ops->copyData(d_h_C_idx, d_rho_new_idx);
-        d_hier_cc_data_ops->scale(d_h_C_idx, 1.0 / dt, d_h_C_idx);
-
-        // Form the cell-centered enthalpy diffusion coefficient:
-        // kappa_h = kappa_T * dT/dh.
-        d_hier_cc_data_ops->multiply(
-            d_T_diffusion_coef_cc_scratch_idx, d_T_diffusion_coef_cc_new_idx, d_dT_dh_scratch_idx);
-        d_k_bdry_bc_fill_op->fillData(new_time);
-
-        // Interpolate the cell-centered coefficient to side centers.
-        if (d_k_vc_interp_type == VC_AVERAGE_INTERP)
-        {
-            interpolateCCToSCSimpleAveraging(d_h_diffusion_coef_idx, d_T_diffusion_coef_cc_scratch_idx);
-        }
-        else if (d_k_vc_interp_type == VC_HARMONIC_INTERP)
-        {
-            interpolateCCToSCHarmonicAveraging(d_h_diffusion_coef_idx, d_T_diffusion_coef_cc_scratch_idx);
-        }
-        else
-        {
-            TBOX_ERROR("Unsupported diffusion coefficient interpolation type.");
-        }
-        d_hier_sc_data_ops->scale(d_h_diffusion_coef_idx, -1.0, d_h_diffusion_coef_idx);
-
-        // Solve for the enthalpy correction delta_h.
-        PoissonSpecifications h_correction_spec(d_object_name + "::enthalpy_correction_spec");
-        h_correction_spec.setCPatchDataId(d_h_C_idx);
-        h_correction_spec.setDPatchDataId(d_h_diffusion_coef_idx);
-
-        Pointer<PoissonSolver> h_correction_solver = getEnergyEquationHelmholtzSolver(d_h_var);
-        h_correction_solver->setPoissonSpecifications(h_correction_spec);
-        h_correction_solver->setPhysicalBcCoef(d_h_correction_bc_coef.getPointer());
-        h_correction_solver->setHomogeneousBc(false);
-        h_correction_solver->setSolutionTime(new_time);
-        h_correction_solver->setTimeInterval(current_time, new_time);
-        h_correction_solver->initializeSolverState(*d_delta_h_sol,
-                                                   *d_delta_h_rhs); // Coefs are changing; update each time
-        d_hier_cc_data_ops->setToScalar(d_delta_h_idx, 0.0);
-        h_correction_solver->solveSystem(*d_delta_h_sol, *d_delta_h_rhs);
-
-        // Update the enthalpy iterate: h^{m+1} = h^m + damping * delta_h.
-        const double h_old_norm = d_hier_cc_data_ops->L2Norm(d_h_new_idx, wgt_cc_idx);
-        const double damping = 1.0;
-        d_hier_cc_data_ops->axpy(d_h_new_idx, damping, d_delta_h_idx, d_h_new_idx);
-
-        // Update the temperature iterate: T^{m+1} = T(h^{m+1}).
-        computeTemperatureBasedOnEnthalpy(d_T_new_idx, d_h_new_idx, H_new_idx);
-
-        // Copy the old liquid fraction, and compute its norm
-        d_hier_cc_data_ops->copyData(d_lf_pre_idx, d_lf_new_idx);
-        const double lf_old_norm = d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx);
-
-        // Update the liquid fraction iterate: lf^{m+1} = lf(h^{m+1}).
-        computeLiquidFractionBasedOnEnthalpy(d_lf_new_idx, d_h_new_idx, H_new_idx);
-
-        // Update specific heat based on new enthalpy, temperature, and liquid fraction.
-        const double apply_time = new_time;
         for (unsigned k = 0; k < d_reset_specific_heat_fcns.size(); ++k)
         {
             d_reset_specific_heat_fcns[k](d_specific_heat_new_idx,
                                           d_specific_heat_var,
                                           d_hier_math_ops,
                                           -1 /*cycle_num*/,
-                                          apply_time,
+                                          new_time,
                                           current_time,
                                           new_time,
                                           d_reset_specific_heat_fcns_ctx[k]);
         }
 
-        // Update conductivity based on new enthalpy, temperature, and liquid fraction.
         for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
         {
             d_reset_kappa_fcns[k](d_T_diffusion_coef_cc_new_idx,
                                   d_T_diffusion_coef_cc_var,
                                   d_hier_math_ops,
                                   -1 /*cycle_num*/,
-                                  apply_time,
+                                  new_time,
                                   current_time,
                                   new_time,
                                   d_reset_kappa_fcns_ctx[k]);
         }
+    };
 
-        // Compute norms of the liquid fraction correction and enthalpy correction
-        d_hier_cc_data_ops->subtract(d_lf_pre_idx, d_lf_new_idx, d_lf_pre_idx);
-        const double lf_correction_error = d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx) / (1.0 + lf_old_norm);
+    // H_new may differ from H_current. Construct a consistent initial iterate.
+    computeTemperatureBasedOnEnthalpy(d_T_new_idx, d_h_new_idx, H_new_idx);
+    computeLiquidFractionBasedOnEnthalpy(d_lf_new_idx, d_h_new_idx, H_new_idx);
+    update_material_properties();
 
-        h_correction_error = d_hier_cc_data_ops->L2Norm(d_delta_h_idx, wgt_cc_idx) / (1.0 + h_old_norm);
+    // Reuse the temperature solver, configured through the scaled solver factories.
+    Pointer<PoissonSolver> correction_solver = getEnergyEquationHelmholtzSolver(d_T_var);
 
-        plog << "At Newton iteration: " << inner_iterations << "\n"
-             << "Relative liquid fraction correction error: " << lf_correction_error << "\n"
-             << "Relative enthalpy correction error:        " << h_correction_error << "\n";
+    // Inner iterations for the Newton-Ralphson scheme.
+    const double damping = 1.0;
+    bool converged = false;
+    double h_correction_error = 0.0;
+    double lf_correction_error = 0.0;
 
-        if (h_correction_error < d_newton_error_tolerance)
+    for (int inner_iterations = 0; inner_iterations < d_max_newton_iterations; ++inner_iterations)
+    {
+        // beta = dT/dh at the current nonlinear iterate.
+        computeTemperatureDerivative(d_dT_dh_scratch_idx, d_h_new_idx, H_new_idx);
+
+        // Build the nonlinear residual R_h(h^m) and +kappa at side centers
+        // R_h = temporal term + conservative advection - diffusion - forcing.
+        computeEnthalpyResidual(d_h_residual_idx, current_time, new_time);
+        const double residual_enthalpy = d_hier_cc_data_ops->L2Norm(d_h_residual_idx, wgt_cc_idx);
+
+        // Save norms and liquid fraction before applying the correction.
+        const double h_old_norm = d_hier_cc_data_ops->L2Norm(d_h_new_idx, wgt_cc_idx);
+        d_hier_cc_data_ops->copyData(d_lf_pre_idx, d_lf_new_idx);
+        const double lf_old_norm = d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx);
+
+        // RHS = -beta*R_h. Initialize ghosts as well as interiors.
+        d_hier_cc_data_ops->setToScalar(d_delta_T_rhs_idx, 0.0, false);
+        d_hier_cc_data_ops->multiply(d_delta_T_rhs_idx, d_dT_dh_scratch_idx, d_h_residual_idx);
+        d_hier_cc_data_ops->scale(d_delta_T_rhs_idx, -1.0, d_delta_T_rhs_idx);
+
+        // Set the C = rho^{n+1}/dt coefficient of the temperature correction solver.
+        // Since rho^{n+1} does not change during the Newton iterations, we need to do
+        // this only at the first iteration.
+        if (inner_iterations == 0)
         {
-            break;
+            d_hier_cc_data_ops->scale(d_T_C_idx, 1.0 / dt, d_rho_new_idx);
         }
 
-        ++inner_iterations;
+        // Set D = -kappa for the temperature correction solver
+        // +kappa is computed on side centers during residual calculation above
+        d_hier_sc_data_ops->scale(d_T_diffusion_coef_scratch_idx, -1.0, d_T_diffusion_coef_rhs_scratch_idx);
+
+        PoissonSpecifications correction_spec(d_object_name + "::temperature_correction_spec");
+        correction_spec.setCPatchDataId(d_T_C_idx);
+        correction_spec.setDPatchDataId(d_T_diffusion_coef_scratch_idx);
+
+        // Rebuild coefficient-dependent solver state as beta and kappa change.
+        correction_solver->deallocateSolverState();
+        correction_solver->setPoissonSpecifications(correction_spec);
+        correction_solver->setPhysicalBcCoef(d_T_bc_coef);
+        correction_solver->setHomogeneousBc(true);
+        correction_solver->setSolutionTime(new_time);
+        correction_solver->setTimeInterval(current_time, new_time);
+        // Set beta = dT/dh with the correction solver
+        {
+            auto* krylov_solver = dynamic_cast<KrylovLinearSolver*>(correction_solver.getPointer());
+            auto* scaled_op = dynamic_cast<CCScaledLaplaceOperator*>(krylov_solver->getOperator().getPointer());
+            auto* fac_pc = dynamic_cast<PoissonFACPreconditioner*>(krylov_solver->getPreconditioner().getPointer());
+            auto* fac_op = dynamic_cast<CCScaledPoissonPointRelaxationFACOperator*>(
+                fac_pc->getFACPreconditionerStrategy().getPointer());
+            scaled_op->setScalePatchDataIndex(d_dT_dh_scratch_idx);
+            fac_op->setScalePatchDataIndex(d_dT_dh_scratch_idx);
+            krylov_solver->setInitialGuessNonzero(false);
+        }
+
+        // Solve the temperature correction equation
+        d_hier_cc_data_ops->setToScalar(d_delta_T_idx, 0.0, false);
+        correction_solver->initializeSolverState(*d_delta_T_sol, *d_delta_T_rhs);
+        correction_solver->solveSystem(*d_delta_T_sol, *d_delta_T_rhs);
+
+        // Evaluate L(delta_T) = div(kappa*grad(delta_T)).
+        PoissonSpecifications diffusion_spec(d_object_name + "::temperature_correction_diffusion_spec");
+        diffusion_spec.setCZero();
+        diffusion_spec.setDPatchDataId(d_T_diffusion_coef_rhs_scratch_idx);
+
+        Pointer<LaplaceOperator> diffusion_op = d_T_rhs_op;
+        diffusion_op->setPoissonSpecifications(diffusion_spec);
+        diffusion_op->setPhysicalBcCoef(d_T_bc_coef);
+        diffusion_op->setHomogeneousBc(true);
+        diffusion_op->setSolutionTime(new_time);
+        diffusion_op->setTimeInterval(current_time, new_time);
+
+        // Reuse the existing temperature solution and RHS vectors.
+        d_hier_cc_data_ops->copyData(d_T_scratch_idx, d_delta_T_idx);
+
+        if (d_T_rhs_op_needs_init)
+        {
+            diffusion_op->initializeOperatorState(*d_T_sol, *d_T_rhs);
+            d_T_rhs_op_needs_init = false;
+        }
+        diffusion_op->apply(*d_T_sol, *d_T_rhs);
+
+        // Reset the BC type for the RHS diffusion operator
+        // which is used again in evaluating the residual of the enthalpy
+        diffusion_op->setHomogeneousBc(false);
+
+        // Recover delta_h = dt/rho * (L(delta_T) - R_h).
+        // This requires the original energy residual, not beta*R_h.
+        d_hier_cc_data_ops->subtract(d_delta_h_idx, d_T_rhs_scratch_idx, d_h_residual_idx);
+        d_hier_cc_data_ops->divide(d_delta_h_idx, d_delta_h_idx, d_rho_new_idx);
+        d_hier_cc_data_ops->scale(d_delta_h_idx, dt, d_delta_h_idx);
+
+        // Update enthalpy, then enforce the nonlinear constitutive relation.
+        d_hier_cc_data_ops->axpy(d_h_new_idx, damping, d_delta_h_idx, d_h_new_idx);
+        computeTemperatureBasedOnEnthalpy(d_T_new_idx, d_h_new_idx, H_new_idx);
+        computeLiquidFractionBasedOnEnthalpy(d_lf_new_idx, d_h_new_idx, H_new_idx);
+        update_material_properties();
+
+        // Compute norms for determining convergence
+        const double delta_h_norm = d_hier_cc_data_ops->L2Norm(d_delta_h_idx, wgt_cc_idx);
+        h_correction_error = std::abs(damping) * delta_h_norm / (1.0 + h_old_norm);
+        d_hier_cc_data_ops->subtract(d_lf_pre_idx, d_lf_new_idx, d_lf_pre_idx);
+        lf_correction_error = d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx) / (1.0 + lf_old_norm);
+
+        plog << "At Newton iteration: " << inner_iterations + 1 << "\n"
+             << "Residual of enthalpy equation before correction: " << residual_enthalpy << "\n"
+             << "Relative liquid fraction correction error:       " << lf_correction_error << "\n"
+             << "Relative enthalpy correction error:              " << h_correction_error << "\n";
+
+        if (h_correction_error <= d_newton_error_tolerance)
+        {
+            converged = true;
+            break;
+        }
+    }
+
+    if (!converged)
+    {
+        TBOX_WARNING(d_object_name << "::integrateHierarchySpecialized():\n"
+                                   << "  nonlinear iteration failed to converge within " << d_max_newton_iterations
+                                   << " iterations.\n"
+                                   << "  relative enthalpy correction error = " << h_correction_error << "\n"
+                                   << "  relative liquid fraction correction error = " << lf_correction_error << "\n");
     }
 
     computeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
@@ -648,6 +734,8 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     {
         extrapolateLiquidFractionToGasRegion(d_lf_new_idx);
     }
+
+    return;
 } // integrateHierarchySpecialized
 
 void
@@ -659,10 +747,17 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    // Deallocate the scratch and new data.
+    // Deallocate the non-hierarchy maintained scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+
+        level->deallocatePatchData(d_dT_dh_scratch_idx);
+        level->deallocatePatchData(d_delta_h_idx);
+        level->deallocatePatchData(d_delta_T_idx);
+        level->deallocatePatchData(d_delta_T_rhs_idx);
+        level->deallocatePatchData(d_h_residual_idx);
+
         if (d_lf_extrap_var)
         {
             level->deallocatePatchData(d_u_adv_fc_lf_extrap_current_idx);
@@ -747,19 +842,18 @@ EnthalpyHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
 
     // Construct the Newton correction solution vector.
-    // The unknown is delta_h, stored in d_delta_h_idx.
-    d_delta_h_sol = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::sol_vec::" + d_delta_h_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_delta_h_sol->addComponent(d_delta_h_var, d_delta_h_idx, wgt_idx, d_hier_cc_data_ops);
+    // The unknown is delta_T, stored in d_delta_T_idx.
+    d_delta_T_sol = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::sol_vec::" + d_delta_T_var->getName(), d_hierarchy, 0, finest_hier_level);
+    d_delta_T_sol->addComponent(d_delta_T_var, d_delta_T_idx, wgt_idx, d_hier_cc_data_ops);
 
     // Construct the Newton correction right-hand-side vector.
-    // The right-hand side is -R_h and is stored in d_delta_h_rhs_idx.
-    d_delta_h_rhs = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::rhs_vec::" + d_delta_h_rhs_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_delta_h_rhs->addComponent(d_delta_h_rhs_var, d_delta_h_rhs_idx, wgt_idx, d_hier_cc_data_ops);
+    // The right-hand side is -beta * R_h and is stored in d_delta_T_rhs_idx.
+    d_delta_T_rhs = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::rhs_vec::" + d_delta_T_rhs_var->getName(), d_hierarchy, 0, finest_hier_level);
+    d_delta_T_rhs->addComponent(d_delta_T_rhs_var, d_delta_T_rhs_idx, wgt_idx, d_hier_cc_data_ops);
 
-    // Reinitialize any additional hierarchy-dependent objects.
-    d_delta_h_solver_needs_init = true;
+    d_T_solver_needs_init = true;
 
     if (d_lf_extrap_var)
     {
@@ -1227,31 +1321,6 @@ EnthalpyHierarchyIntegrator::computeEnthalpyResidual(const int residual_idx,
 
     return;
 } // computeEnthalpyResidual
-
-void
-EnthalpyHierarchyIntegrator::updateEnthalpyCorrectionBoundaryCondition(const double new_time)
-{
-    // Preserve the current temperature iterate for boundary conversion.
-    d_hier_cc_data_ops->copyData(d_T_scratch_idx, d_T_new_idx);
-
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-
-    std::vector<InterpolationTransactionComponent> transaction_comps(1);
-    transaction_comps[0] = InterpolationTransactionComponent(
-        d_T_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, d_T_bc_coef);
-
-    HierarchyGhostCellInterpolation T_bdry_fill_op;
-    T_bdry_fill_op.initializeOperatorState(transaction_comps, d_hierarchy);
-    T_bdry_fill_op.setHomogeneousBc(false);
-    T_bdry_fill_op.fillData(new_time);
-
-    // beta = dT/dh is sampled from the adjacent interior cell.
-    // Its physical ghost values are not needed by the correction BC.
-    d_h_correction_bc_coef->setTemperatureBcCoef(d_T_bc_coef);
-    d_h_correction_bc_coef->setTemperatureAndDerivativePatchDataIndices(d_T_scratch_idx, d_dT_dh_scratch_idx);
-
-    return;
-} // updateEnthalpyCorrectionBoundaryCondition
 
 void
 EnthalpyHierarchyIntegrator::computeLiquidFractionBasedOnEnthalpy(const int lf_idx, const int h_idx, const int H_idx)

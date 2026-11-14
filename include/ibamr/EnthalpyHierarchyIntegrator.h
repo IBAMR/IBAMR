@@ -21,7 +21,6 @@
 #include <ibamr/config.h>
 
 #include <ibamr/CellConvectiveOperator.h>
-#include <ibamr/EnthalpyCorrectionBcCoefs.h>
 #include <ibamr/PhaseChangeHierarchyIntegrator.h>
 #include <ibamr/vc_ins_vof_utilities.h>
 
@@ -212,11 +211,6 @@ private:
     void computeEnthalpyResidual(int h_residual_idx, double current_time, double new_time);
 
     /*!
-     * \brief Convert the temperature boundary condition to the enthalpy correction boundary condition.
-     */
-    void updateEnthalpyCorrectionBoundaryCondition(double new_time);
-
-    /*!
      * \brief Compute liquid fraction.
      */
     void computeLiquidFractionBasedOnEnthalpy(int lf_idx, int h_idx, int H_idx);
@@ -228,6 +222,7 @@ private:
      * Euler time stepping scheme is used to perfom constant extrapolation with fixed 15 iterations and CFL = 0.3.
      */
     void extrapolateLiquidFractionToGasRegion(int lf_new_idx);
+
     /*!
      * \brief Compute advection velocity \f$ u_{\rm adv} = H(-\phi) n \f$.
      */
@@ -247,22 +242,18 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::VCINSVOFUtilities::LevelSetToVOFConverter> d_ls_to_vof_converter;
 
     /*!
-     * Solver variables related to enthalpy.
+     * Solver variables related to enthalpy, temperature, and their correction.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_h_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_delta_h_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_delta_h_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_delta_T_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_delta_T_rhs_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_h_residual_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_h_C_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_h_diffusion_coef_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_dT_dh_var;
-    SAMRAI::tbox::Pointer<EnthalpyCorrectionBcCoefs> d_h_correction_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_h_bc_coef = nullptr;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_delta_h_sol;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_delta_h_rhs;
-
-    bool d_delta_h_solver_needs_init = true;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_delta_T_sol;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_delta_T_rhs;
 
     /*!
      * Patch data descriptor indices for all "state" variables managed by the
@@ -280,10 +271,9 @@ private:
      */
     int d_dT_dh_scratch_idx = IBTK::invalid_index;
     int d_delta_h_idx = IBTK::invalid_index;
-    int d_delta_h_rhs_idx = IBTK::invalid_index;
+    int d_delta_T_idx = IBTK::invalid_index;
+    int d_delta_T_rhs_idx = IBTK::invalid_index;
     int d_h_residual_idx = IBTK::invalid_index;
-    int d_h_C_idx = IBTK::invalid_index;
-    int d_h_diffusion_coef_idx = IBTK::invalid_index;
 
     /*!
      * Boolean to output the enthalpy in visit.
@@ -304,7 +294,7 @@ private:
     /*!
      * Inner iteration parameters.
      */
-    int d_max_newton_iterations = 15;
+    int d_max_newton_iterations = 30;
     double d_newton_error_tolerance = 1e-8;
 
     /*!
