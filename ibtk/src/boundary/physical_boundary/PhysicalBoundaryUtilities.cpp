@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/private/periodic_image_offsets.h>
 
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
@@ -21,6 +22,11 @@
 
 #include <BoundaryBox.h>
 #include <Box.h>
+#include <BoxArray.h>
+#include <BoxList.h>
+#include <GridGeometry.h>
+#include <Index.h>
+#include <IntVector.h>
 #include <Patch.h>
 #include <PatchGeometry.h>
 
@@ -251,6 +257,42 @@ PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(const BoundaryBox<NDIM>& bd
     }
     return side_bdry_box;
 } // makeSideBoundaryCodim1Box
+
+BoxArray<NDIM>
+PhysicalBoundaryUtilities::getPeriodicPhysicalDomain(const Pointer<GridGeometry<NDIM>>& grid_geom,
+                                                     const IntVector<NDIM>& ratio)
+{
+    BoxArray<NDIM> domain = grid_geom->getPhysicalDomain();
+    domain.refine(ratio);
+    BoxList<NDIM> domain_list(domain);
+    for (const IntVector<NDIM>& image_shift : IBTK::detail::periodic_image_offsets(grid_geom->getPeriodicShift(ratio)))
+    {
+        if (image_shift == IntVector<NDIM>(0))
+        {
+            continue;
+        }
+        BoxArray<NDIM> image_domain = domain;
+        for (int b = 0; b < image_domain.size(); ++b)
+        {
+            image_domain[b].shift(image_shift);
+        }
+        domain_list.unionBoxes(BoxList<NDIM>(image_domain));
+    }
+    return BoxArray<NDIM>(domain_list);
+} // getPeriodicPhysicalDomain
+
+bool
+PhysicalBoundaryUtilities::isBoundaryFace(hier::Index<NDIM> i_face,
+                                          const unsigned int bdry_normal_axis,
+                                          const bool bdry_is_lower,
+                                          const BoxArray<NDIM>& domain)
+{
+    if (!bdry_is_lower)
+    {
+        i_face(bdry_normal_axis) -= 1;
+    }
+    return domain.contains(i_face);
+} // isBoundaryFace
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
