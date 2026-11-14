@@ -21,14 +21,22 @@
 #include <ibtk/config.h>
 
 #include <tbox/Array.h>
+#include <tbox/Pointer.h>
 
 #include <BoundaryBox.h>
 #include <Box.h>
+#include <BoxArray.h>
+#include <Index.h>
+#include <IntVector.h>
+
+#include <vector>
 
 namespace SAMRAI
 {
 namespace hier
 {
+template <int DIM>
+class GridGeometry;
 template <int DIM>
 class Patch;
 } // namespace hier
@@ -108,6 +116,29 @@ public:
      * \see SAMRAI::hier::BoundaryBox::getBoundaryType
      */
     static SAMRAI::hier::Box<NDIM> makeSideBoundaryCodim1Box(const SAMRAI::hier::BoundaryBox<NDIM>& boundary_box);
+
+    /*!
+     * \brief Return the shifts of a box to its periodic images: plus or minus one period in each periodic direction and
+     * in each combination of them. The \a periodic_shift is zero in a direction without periodicity.
+     */
+    static std::vector<SAMRAI::hier::IntVector<NDIM>>
+    getPeriodicImageShifts(const SAMRAI::hier::IntVector<NDIM>& periodic_shift);
+
+    /*!
+     * \brief Return the physical domain of the grid geometry, refined by \a ratio, together with its periodic images.
+     */
+    static SAMRAI::hier::BoxArray<NDIM>
+    getPeriodicPhysicalDomain(const SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM>>& grid_geom,
+                              const SAMRAI::hier::IntVector<NDIM>& ratio);
+
+    /*!
+     * \brief Return whether the face \a i_face lies on the boundary of the physical \a domain. The face must lie in
+     * the plane of the physical boundary normal to \a bdry_normal_axis, the lower boundary if \a bdry_is_lower.
+     */
+    static bool isBoundaryFace(SAMRAI::hier::Index<NDIM> i_face,
+                               unsigned int bdry_normal_axis,
+                               bool bdry_is_lower,
+                               const SAMRAI::hier::BoxArray<NDIM>& domain);
 
 protected:
 private:
