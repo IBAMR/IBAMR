@@ -170,9 +170,8 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
 } // postprocessRefine
 
 void
-CartCellDoubleQuadraticCFInterpolation::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
+CartCellDoubleQuadraticCFInterpolation::setConsistentInterpolationScheme(const bool /*consistent_type_2_bdry*/)
 {
-    d_consistent_type_2_bdry = consistent_type_2_bdry;
     return;
 } // setConsistentInterpolationScheme
 

@@ -16,7 +16,6 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/SCPoissonPointRelaxationFACOperator.h>
-#include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
 #include <ibtk/VCSCViscousOpPointRelaxationFACOperator.h>
 #include <ibtk/ibtk_enums.h>
@@ -242,8 +241,8 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
                                                      SAMRAIVectorReal<NDIM, double>& residual,
                                                      int level_num,
                                                      int num_sweeps,
-                                                     bool /*performing_pre_sweeps*/,
-                                                     bool /*performing_post_sweeps*/)
+                                                     bool performing_pre_sweeps,
+                                                     bool performing_post_sweeps)
 {
     if (num_sweeps == 0) return;
 
@@ -251,7 +250,6 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 
     Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
-    const int scratch_idx = d_scratch_idx;
 
     // Determine the smoother type.
     const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
@@ -259,79 +257,19 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
     // Only the processor Gauss-Seidel smoother reads updated values of neighboring patches within a pass.
     const bool update_local_data = smoother_type == PROCESSOR_GAUSS_SEIDEL;
 
-    // Cache coarse-fine interface ghost cell values in the "scratch" data.
-    if (level_num > d_coarsest_ln && num_sweeps > 1)
-    {
-        int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
-            TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
-#endif
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                scratch_data->getArrayData(axis).copy(error_data->getArrayData(axis),
-                                                      d_patch_cf_bdry_ghost_boxes[level_num][patch_counter][axis],
-                                                      IntVector<NDIM>(0));
-            }
-        }
-    }
+    prepareCoarseFineValues(error_idx, level_num, performing_pre_sweeps, performing_post_sweeps);
 
     // Smooth the error by the specified number of sweeps.
     for (int isweep = 0; isweep < num_sweeps; ++isweep)
     {
         // Re-fill ghost cell data as needed.
-        if (level_num > d_coarsest_ln)
+        if (isweep > 0)
         {
-            if (isweep > 0)
-            {
-                // Copy the coarse-fine interface ghost cell values which are
-                // cached in the scratch data into the error data.
-                int patch_counter = 0;
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
-                {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    Pointer<SideData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<SideData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
-#if !defined(NDEBUG)
-                    TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
-                    TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
-#endif
-                    for (unsigned int axis = 0; axis < NDIM; ++axis)
-                    {
-                        error_data->getArrayData(axis).copy(scratch_data->getArrayData(axis),
-                                                            d_patch_cf_bdry_ghost_boxes[level_num][patch_counter][axis],
-                                                            IntVector<NDIM>(0));
-                    }
-                }
-
-                // Synchronize the copies of the values on shared faces, which differ after a patch sweep.
-                xeqScheduleDataSynch(error_idx, level_num);
-
-                // Fill the non-coarse-fine interface ghost cell values.
-                xeqScheduleGhostFillNoCoarse(error_idx, level_num);
-            }
-
-            // Complete the coarse-fine interface interpolation by computing the
-            // normal extension.
-            d_cf_bdry_op->setPatchDataIndex(error_idx);
-            const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                const IntVector<NDIM>& ghost_width_to_fill = d_gcw;
-                d_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
-            }
-        }
-        else if (isweep > 0)
-        {
+            // Synchronize the copies of the values on shared faces, which differ after a patch sweep.
             xeqScheduleDataSynch(error_idx, level_num);
             xeqScheduleGhostFillNoCoarse(error_idx, level_num);
         }
+        fillCoarseFineValues(level_num);
 
         // Smooth the error on the patches.
         int patch_counter = 0;
@@ -553,6 +491,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
 
     // Synchronize data along patch boundaries.
     xeqScheduleDataSynch(error_idx, level_num);
+    finishCoarseFineValues();
     IBTK_TIMER_STOP(t_smooth_error);
     return;
 } // smoothError
@@ -576,7 +515,6 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    Pointer<SideNoCornersFillPattern> fill_pattern = nullptr;
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        d_data_refine_type,
                                                        d_use_cf_interpolation,
@@ -584,7 +522,7 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                        d_bdry_extrap_type,
                                                        /*consistent_type_2_bdry*/ false,
                                                        d_bc_coefs,
-                                                       fill_pattern);
+                                                       d_residual_fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num])
     {
         d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
@@ -604,7 +542,7 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, 
                                                                d_bdry_extrap_type,
                                                                /*consistent_type_2_bdry*/ false,
                                                                d_bc_coefs,
-                                                               fill_pattern);
+                                                               d_residual_fill_pattern);
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.

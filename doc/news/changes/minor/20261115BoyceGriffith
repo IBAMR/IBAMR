@@ -1,0 +1,3 @@
+Fixed: Make the coarse-fine ghost values of the FAC smoothers independent of the patch layout, as those of IBTK::HierarchyGhostCellInterpolation are.
+<br>
+(Boyce Griffith, 2026/11/15)

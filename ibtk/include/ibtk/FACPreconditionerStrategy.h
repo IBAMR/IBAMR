@@ -162,7 +162,10 @@ public:
      * \brief Smooth the error by the specified number of sweeps on the
      * specified level of the patch hierarchy.
      *
-     * Ghost values of \a residual may be overwritten.
+     * Ghost values of \a residual may be overwritten. If \a performing_pre_sweeps is true, \a error is zero on the
+     * specified level and on every coarser level, including ghost values. On a level above the coarsest level of the
+     * solve, \a performing_pre_sweeps or \a performing_post_sweeps must be true: post-smoothing follows a prolongation
+     * to the level.
      */
     virtual void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,

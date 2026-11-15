@@ -1,0 +1,40 @@
+// Three fine patches in an L shape, with refinement ratio 4.
+N = 10
+REF_RATIO = 4
+CENTERING = "SIDE"
+FINE_BOXES = [(12,12),(19,19)], [(20,12),(27,19)], [(20,20),(27,27)]
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0,0
+   x_up               = 1,1
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 512,512
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+   }
+}
+
+StandardTagAndInitialize {
+  tagging_method = "REFINE_BOXES"
+  RefineBoxes {
+    level_0 = [(0,0),(N - 1,N - 1)]
+  }
+}
+
+LoadBalancer {
+}

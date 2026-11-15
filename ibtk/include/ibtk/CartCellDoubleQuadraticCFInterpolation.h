@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
 
@@ -91,8 +92,14 @@ namespace IBTK
  *
  * Note: This class is specialized for the case of a single ghost cell width. Additional ghost cells are not guaranteed
  * to be filled correctly.
+ *
+ * @deprecated Use HierarchyGhostCellInterpolation, or derive a FAC preconditioner from
+ * PoissonFACPreconditionerStrategy, whose protected functions provide the coarse-fine values to the smoothers.
  */
-class CartCellDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
+class IBTK_DEPRECATED(
+    "Use HierarchyGhostCellInterpolation, or derive a FAC preconditioner from PoissonFACPreconditionerStrategy, whose "
+    "protected functions provide the coarse-fine values to the smoothers.") CartCellDoubleQuadraticCFInterpolation
+    : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!
@@ -191,7 +198,10 @@ public:
     /*!
      * \brief Not supported: this class fills only co-dimension 1 coarse-fine interface ghost cells, and the
      * setting has no effect.
+     *
+     * @deprecated The option no longer has an effect.
      */
+    IBTK_DEPRECATED("The option no longer has an effect.")
     void setConsistentInterpolationScheme(bool consistent_type_2_bdry) override;
 
     /*!
@@ -272,11 +282,6 @@ private:
      * operated on by this class.
      */
     std::set<int> d_patch_data_indices;
-
-    /*!
-     * Stored but unused; see setConsistentInterpolationScheme().
-     */
-    bool d_consistent_type_2_bdry = false;
 
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.

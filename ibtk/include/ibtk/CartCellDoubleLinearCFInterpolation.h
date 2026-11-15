@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
 
@@ -56,8 +57,11 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy which sets coarse-fine interface ghost cell
  * values for cell-centered double precision patch data via linear interpolation
  * in the normal and tangential directions at coarse-fine interfaces.
+ *
+ * @deprecated Use HierarchyGhostCellInterpolation.
  */
-class CartCellDoubleLinearCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
+class IBTK_DEPRECATED("Use HierarchyGhostCellInterpolation.") CartCellDoubleLinearCFInterpolation
+    : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!
@@ -157,8 +161,11 @@ public:
 
     /*!
      * \brief Not supported: this class fills only co-dimension 1 coarse-fine
-     * interface ghost cells, and the value must be false.
+     * interface ghost cells, and the setting has no effect.
+     *
+     * @deprecated The option no longer has an effect.
      */
+    IBTK_DEPRECATED("The option no longer has an effect.")
     void setConsistentInterpolationScheme(bool consistent_type_2_bdry) override;
 
     /*!
@@ -224,13 +231,6 @@ private:
      * operated on by this class.
      */
     std::set<int> d_patch_data_indices;
-
-    /*!
-     * Boolean value indicating whether a consistent interpolation scheme is
-     * requested at coarse-fine interface ghost cells of co-dimension greater
-     * than 1.
-     */
-    bool d_consistent_type_2_bdry = false;
 
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.

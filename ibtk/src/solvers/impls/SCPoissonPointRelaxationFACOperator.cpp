@@ -13,9 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/LinearSolver.h>
@@ -40,12 +38,9 @@
 #include <tbox/Utilities.h>
 
 #include <ArrayData.h>
-#include <BoundaryBox.h>
 #include <Box.h>
-#include <BoxList.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
-#include <CoarseFineBoundary.h>
 #include <CoarsenOperator.h>
 #include <MultiblockDataTranslator.h>
 #include <Patch.h>
@@ -65,7 +60,6 @@
 #include <VariableFillPattern.h>
 
 #include <algorithm>
-#include <array>
 #include <map>
 #include <memory>
 #include <ostream>
@@ -362,8 +356,8 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                                                  SAMRAIVectorReal<NDIM, double>& residual,
                                                  int level_num,
                                                  int num_sweeps,
-                                                 bool /*performing_pre_sweeps*/,
-                                                 bool /*performing_post_sweeps*/)
+                                                 bool performing_pre_sweeps,
+                                                 bool performing_post_sweeps)
 {
     if (num_sweeps == 0) return;
 
@@ -371,7 +365,6 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
 
     Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
-    const int scratch_idx = d_scratch_idx;
 
     // Determine the smoother type.
     const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
@@ -379,81 +372,21 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
     const bool red_black_ordering = use_red_black_ordering(smoother_type);
     const bool update_local_data = do_local_data_update(smoother_type);
 
-    // Count passes, not sweeps, for the caching test below: red-black ordering makes two passes per sweep.
+    // Count passes, not sweeps: red-black ordering makes two passes (red, then black) per sweep.
     if (red_black_ordering) num_sweeps *= 2;
-    // Cache coarse-fine interface ghost cell values in the "scratch" data.
-    if (level_num > d_coarsest_ln && num_sweeps > 1)
-    {
-        int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
-            TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
-#endif
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                scratch_data->getArrayData(axis).copy(error_data->getArrayData(axis),
-                                                      d_patch_cf_bdry_ghost_boxes[level_num][patch_counter][axis],
-                                                      IntVector<NDIM>(0));
-            }
-        }
-    }
+    prepareCoarseFineValues(error_idx, level_num, performing_pre_sweeps, performing_post_sweeps);
 
     // Smooth the error by the specified number of sweeps.
     for (int isweep = 0; isweep < num_sweeps; ++isweep)
     {
         // Re-fill ghost cell data as needed.
-        if (level_num > d_coarsest_ln)
+        if (isweep > 0)
         {
-            if (isweep > 0)
-            {
-                // Copy the coarse-fine interface ghost cell values which are
-                // cached in the scratch data into the error data.
-                int patch_counter = 0;
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
-                {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    Pointer<SideData<NDIM, double>> error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<SideData<NDIM, double>> scratch_data = patch->getPatchData(scratch_idx);
-#if !defined(NDEBUG)
-                    TBOX_ASSERT(error_data->getGhostCellWidth() >= d_gcw);
-                    TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
-#endif
-                    for (unsigned int axis = 0; axis < NDIM; ++axis)
-                    {
-                        error_data->getArrayData(axis).copy(scratch_data->getArrayData(axis),
-                                                            d_patch_cf_bdry_ghost_boxes[level_num][patch_counter][axis],
-                                                            IntVector<NDIM>(0));
-                    }
-                }
-
-                // Synchronize the copies of the values on shared faces, which differ after a patch sweep.
-                xeqScheduleDataSynch(error_idx, level_num);
-
-                // Fill the non-coarse-fine interface ghost cell values.
-                xeqScheduleGhostFillNoCoarse(error_idx, level_num);
-            }
-
-            // Complete the coarse-fine interface interpolation by computing the
-            // normal extension.
-            d_cf_bdry_op->setPatchDataIndex(error_idx);
-            const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                const IntVector<NDIM>& ghost_width_to_fill = d_gcw;
-                d_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
-            }
-        }
-        else if (isweep > 0)
-        {
+            // Synchronize the copies of the values on shared faces, which differ after a patch sweep.
             xeqScheduleDataSynch(error_idx, level_num);
             xeqScheduleGhostFillNoCoarse(error_idx, level_num);
         }
+        fillCoarseFineValues(level_num);
 
         // Smooth the error on the patches.
         int patch_counter = 0;
@@ -605,6 +538,7 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
 
     // Synchronize data along patch boundaries.
     xeqScheduleDataSynch(error_idx, level_num);
+    finishCoarseFineValues();
     IBTK_TIMER_STOP(t_smooth_error);
     return;
 } // smoothError
@@ -658,8 +592,6 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    Pointer<SideNoCornersFillPattern> fill_pattern =
-        new SideNoCornersFillPattern(d_gcw.max(), /*overwrite_interior*/ false);
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        d_data_refine_type,
                                                        d_use_cf_interpolation,
@@ -667,7 +599,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
                                                        d_bdry_extrap_type,
                                                        /*consistent_type_2_bdry*/ false,
                                                        d_bc_coefs,
-                                                       fill_pattern);
+                                                       d_residual_fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num])
     {
         d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
@@ -687,7 +619,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
                                                                d_bdry_extrap_type,
                                                                /*consistent_type_2_bdry*/ false,
                                                                d_bc_coefs,
-                                                               fill_pattern);
+                                                               d_residual_fill_pattern);
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.
@@ -773,56 +705,13 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     Pointer<CartesianGridGeometry<NDIM>> geometry = d_hierarchy->getGridGeometry();
     register_ibtk_transfer_operators(*geometry);
 
-    // Setup coarse-fine interface and physical boundary operators.
-    d_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
-    d_cf_bdry_op->setConsistentInterpolationScheme(false);
-    d_cf_bdry_op->setPatchDataIndex(d_scratch_idx);
-    d_cf_bdry_op->setPatchHierarchy(d_hierarchy);
+    // Setup the physical boundary operator.
     d_bc_op = new CartSideRobinPhysBdryOp(d_scratch_idx, d_bc_coefs, false);
 
     // Setup fill pattern spec objects.
     d_op_stencil_fill_pattern = new SideNoCornersFillPattern(d_gcw.max(), /*overwrite_interior*/ true);
     d_synch_fill_pattern = new SideSynchCopyFillPattern();
-
-    // Find the ghost sides along the coarse-fine interface of each patch.
-    d_patch_cf_bdry_ghost_boxes.resize(d_finest_ln + 1);
-    for (int ln = std::max(coarsest_reset_ln, d_coarsest_ln + 1); ln <= finest_reset_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
-        d_patch_cf_bdry_ghost_boxes[ln].assign(num_local_patches, std::array<BoxList<NDIM>, NDIM>());
-        const CoarseFineBoundary<NDIM> cf_boundary(*d_hierarchy, ln, IntVector<NDIM>(1));
-        int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Array<BoundaryBox<NDIM>>& cf_bdry_codim1_boxes =
-                cf_boundary.getBoundaries(patch->getPatchNumber(), /*boundary type*/ 1);
-            for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
-            {
-                const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
-
-                // Remove from the boundary box the corner cells, which are not part of the interface. The location
-                // index is 2 * (axis normal to the face) + side.
-                const int bdry_axis = bdry_box.getLocationIndex() / 2;
-                Box<NDIM> face_box = patch_box;
-                face_box.grow(bdry_axis, 1);
-                const Box<NDIM> cf_box = bdry_box.getBox() * face_box;
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
-                {
-                    // Only the sides outside the patch box are ghost sides: the sides on the patch boundary belong to
-                    // the patch.
-                    BoxList<NDIM> ghost_sides(SideGeometry<NDIM>::toSideBox(cf_box, axis));
-                    ghost_sides.removeIntersections(SideGeometry<NDIM>::toSideBox(patch_box, axis));
-                    for (BoxList<NDIM>::Iterator b(ghost_sides); b; b++)
-                    {
-                        d_patch_cf_bdry_ghost_boxes[ln][patch_counter][axis].addItem(b());
-                    }
-                }
-            }
-        }
-    }
+    d_residual_fill_pattern = new SideNoCornersFillPattern(d_gcw.max(), /*overwrite_interior*/ false);
 
     // Get overlap information for re-setting patch boundary conditions during
     // smoothing.
@@ -870,7 +759,6 @@ SCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const in
 
     if (!d_in_initialize_operator_state)
     {
-        d_patch_cf_bdry_ghost_boxes.clear();
         d_patch_neighbor_overlap.clear();
         if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
     }
