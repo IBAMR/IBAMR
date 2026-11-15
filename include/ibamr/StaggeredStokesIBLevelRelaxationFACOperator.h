@@ -28,7 +28,6 @@
 
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/FACPreconditionerStrategy.h>
 
 #include <tbox/Database.h>
@@ -52,7 +51,6 @@
 #include <VariableContext.h>
 #include <VariableFillPattern.h>
 
-#include <array>
 #include <string>
 #include <utility>
 #include <vector>
@@ -68,11 +66,6 @@ class HierarchyMathOps;
 } // namespace IBTK
 namespace SAMRAI
 {
-namespace hier
-{
-template <int DIM>
-class BoxList;
-} // namespace hier
 namespace solv
 {
 template <int DIM>
@@ -340,12 +333,6 @@ private:
     double d_SAJ_fill = 1.0, d_RStokesIBP_fill = 1.0;
     std::vector<Mat> d_SAJ_mat, d_SAJ_prolongation_mat, d_stokesib_prolongation_mat, d_galerkin_stokesib_mat;
     std::vector<Vec> d_scale_SAJ_restriction_mat, d_scale_stokesib_restriction_mat;
-
-    /*
-     * Mappings from patch indices to patch operators.
-     */
-    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM>>> d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_cell_bc_box_overlap;
 };
 } // namespace IBAMR
 

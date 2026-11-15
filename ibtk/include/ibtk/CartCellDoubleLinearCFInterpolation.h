@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
 
@@ -56,8 +57,11 @@ namespace IBTK
  * SAMRAI::xfer::RefinePatchStrategy which sets coarse-fine interface ghost cell
  * values for cell-centered double precision patch data via linear interpolation
  * in the normal and tangential directions at coarse-fine interfaces.
+ *
+ * @deprecated Use HierarchyGhostCellInterpolation.
  */
-class CartCellDoubleLinearCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
+class IBTK_DEPRECATED("Use HierarchyGhostCellInterpolation.") CartCellDoubleLinearCFInterpolation
+    : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!

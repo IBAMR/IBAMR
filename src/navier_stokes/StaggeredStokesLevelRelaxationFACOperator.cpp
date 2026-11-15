@@ -18,7 +18,6 @@
 #include <ibamr/StaggeredStokesSolverManager.h>
 #include <ibamr/ibamr_utilities.h>
 
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScLevelSolver.h>
@@ -35,16 +34,13 @@
 
 #include <ArrayData.h>
 #include <Box.h>
-#include <BoxList.h>
 #include <CellData.h>
 #include <IntVector.h>
 #include <Patch.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
-#include <ProcessorMapping.h>
 #include <SAMRAIVectorReal.h>
 #include <SideData.h>
-#include <SideGeometry.h>
 
 #include <algorithm>
 #include <memory>
@@ -110,7 +106,7 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
                                                        SAMRAIVectorReal<NDIM, double>& residual,
                                                        int level_num,
                                                        int num_sweeps,
-                                                       bool /*performing_pre_sweeps*/,
+                                                       bool performing_pre_sweeps,
                                                        bool performing_post_sweeps)
 {
     if (num_sweeps == 0) return;
@@ -120,93 +116,16 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
     Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
     const int P_error_idx = error.getComponentDescriptorIndex(1);
-    const int U_scratch_idx = d_side_scratch_idx;
-    const int P_scratch_idx = d_cell_scratch_idx;
 
     Pointer<SAMRAIVectorReal<NDIM, double>> e_level = getLevelSAMRAIVectorReal(error, level_num);
     Pointer<SAMRAIVectorReal<NDIM, double>> r_level = getLevelSAMRAIVectorReal(residual, level_num);
 
-    // Cache coarse-fine interface ghost cell values in the "scratch" data.
-    if (level_num > d_coarsest_ln && num_sweeps > 1)
-    {
-        int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-
-            Pointer<SideData<NDIM, double>> U_error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double>> U_scratch_data = patch->getPatchData(U_scratch_idx);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(U_error_data->getGhostCellWidth() >= d_gcw);
-            TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == d_gcw);
-#endif
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                U_scratch_data->getArrayData(axis).copy(U_error_data->getArrayData(axis),
-                                                        d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                                        IntVector<NDIM>(0));
-            }
-
-            Pointer<CellData<NDIM, double>> P_error_data = error.getComponentPatchData(1, *patch);
-            Pointer<CellData<NDIM, double>> P_scratch_data = patch->getPatchData(P_scratch_idx);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(P_error_data->getGhostCellWidth() >= d_gcw);
-            TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == d_gcw);
-#endif
-            P_scratch_data->getArrayData().copy(P_error_data->getArrayData(),
-                                                d_patch_cell_bc_box_overlap[level_num][patch_counter],
-                                                IntVector<NDIM>(0));
-        }
-    }
+    prepareCoarseFineValues(U_error_idx, P_error_idx, level_num, performing_pre_sweeps, performing_post_sweeps);
 
     // Smooth the error by the specified number of sweeps.
     for (int isweep = 0; isweep < num_sweeps; ++isweep)
     {
-        // Re-fill ghost cell data as needed.
-        if (level_num > d_coarsest_ln)
-        {
-            if (isweep > 0)
-            {
-                // Copy the coarse-fine interface ghost cell values which are
-                // cached in the scratch data into the error data.
-                int patch_counter = 0;
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
-                {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-
-                    Pointer<SideData<NDIM, double>> U_error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<SideData<NDIM, double>> U_scratch_data = patch->getPatchData(U_scratch_idx);
-                    for (unsigned int axis = 0; axis < NDIM; ++axis)
-                    {
-                        U_error_data->getArrayData(axis).copy(
-                            U_scratch_data->getArrayData(axis),
-                            d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                            IntVector<NDIM>(0));
-                    }
-
-                    Pointer<CellData<NDIM, double>> P_error_data = error.getComponentPatchData(1, *patch);
-                    Pointer<CellData<NDIM, double>> P_scratch_data = patch->getPatchData(P_scratch_idx);
-                    P_error_data->getArrayData().copy(P_scratch_data->getArrayData(),
-                                                      d_patch_cell_bc_box_overlap[level_num][patch_counter],
-                                                      IntVector<NDIM>(0));
-                }
-            }
-
-            // Complete the coarse-fine interface interpolation by computing the
-            // normal extension. This uses latest interior values on fine patch
-            // but cached tangential values at the fine locations of the
-            // coarse-fine interface
-            d_U_cf_bdry_op->setPatchDataIndex(U_error_idx);
-            d_P_cf_bdry_op->setPatchDataIndex(P_error_idx);
-            const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                const IntVector<NDIM>& ghost_width_to_fill = d_gcw;
-                d_U_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
-                d_P_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
-            }
-        }
+        fillCoarseFineValues(level_num);
 
         // Smooth the error on the level.
         Pointer<StaggeredStokesSolver> level_solver = d_level_solvers[level_num];
@@ -246,6 +165,7 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
         level_solver->solveSystem(*e_level, *r_level);
     }
 
+    finishCoarseFineValues(level_num);
     IBAMR_TIMER_STOP(t_smooth_error);
     return;
 } // smoothError
@@ -293,48 +213,6 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
 
     // Nullify any fill pattern spec objects which maybe set by the base class.
     // However, we are NOT doing that with this class.
-
-    // Get overlap information for setting patch boundary conditions.
-    d_patch_side_bc_box_overlap.resize(d_finest_ln + 1);
-    for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
-        d_patch_side_bc_box_overlap[ln].resize(num_local_patches);
-        int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                const Box<NDIM> side_ghost_box = Box<NDIM>::grow(side_box, 1);
-                d_patch_side_bc_box_overlap[ln][patch_counter][axis] = BoxList<NDIM>(side_ghost_box);
-                d_patch_side_bc_box_overlap[ln][patch_counter][axis].removeIntersections(side_box);
-            }
-        }
-    }
-
-    d_patch_cell_bc_box_overlap.resize(d_finest_ln + 1);
-    for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-
-        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
-        d_patch_cell_bc_box_overlap[ln].resize(num_local_patches);
-
-        int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
-        {
-            Pointer<Patch<NDIM>> patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Box<NDIM>& ghost_box = Box<NDIM>::grow(patch_box, 1);
-
-            d_patch_cell_bc_box_overlap[ln][patch_counter] = BoxList<NDIM>(ghost_box);
-            d_patch_cell_bc_box_overlap[ln][patch_counter].removeIntersections(patch_box);
-        }
-    }
     return;
 } // initializeOperatorStateSpecialized
 
@@ -346,8 +224,6 @@ StaggeredStokesLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(co
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
         if (d_level_solvers[ln]) d_level_solvers[ln]->deallocateSolverState();
-        d_patch_side_bc_box_overlap[ln].resize(0);
-        d_patch_cell_bc_box_overlap[ln].resize(0);
     }
     return;
 } // deallocateOperatorStateSpecialized

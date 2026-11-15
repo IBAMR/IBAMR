@@ -58,7 +58,8 @@ namespace IBTK
  * patch data.
  *
  * Use postprocessRefine() as a refine hook of the schedule that fills the destination, then computeValues() and
- * copyValues() after the schedule.
+ * copyValues() after the schedule. To fill again from the stored tangential values, as a smoother does between its
+ * sweeps, call computeValues() and copyValues() without the schedule.
  */
 class CFOwnerFill : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
@@ -83,6 +84,24 @@ public:
     void resetPatchDataIndices(int dst_data_idx,
                                int src_data_idx,
                                SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern);
+
+    /*!
+     * \brief Use the data with index data_idx as destination and source of level ln only, and call copyValues() only
+     * for that level until the index is reset for another level. The data must have the centering, depth, and ghost
+     * width of the data that the fill was set up for.
+     */
+    void resetPatchDataIndex(int ln, int data_idx);
+
+    /*!
+     * \brief Set the stored tangential values of level ln to zero.
+     */
+    void zeroTangentialValues(int ln);
+
+    /*!
+     * \brief Copy the stored tangential values of level ln from another object that has the same hierarchy, levels,
+     * centering, depth, and fill width.
+     */
+    void copyTangentialValues(const CFOwnerFill& from, int ln);
 
     /*!
      * \return True if the level has coarse-fine ghost values to set.
@@ -209,6 +228,9 @@ private:
         std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, 2 * NDIM>> cross_regions;
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> copy_alg;
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> copy_sched;
+        // The destination index of the copy schedule, and the fill pattern that its region pattern wraps.
+        int copy_dst_idx = IBTK::invalid_index;
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> copy_inner_pattern, copy_pattern;
     };
 
     void setGhostWidth();

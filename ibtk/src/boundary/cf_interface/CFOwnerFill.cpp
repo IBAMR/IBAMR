@@ -477,6 +477,50 @@ CFOwnerFill::resetPatchDataIndices(const int dst_data_idx,
     }
 }
 
+void
+CFOwnerFill::resetPatchDataIndex(const int ln, const int data_idx)
+{
+    // A level without values has no schedule to reset.
+    if (d_dst_idx == data_idx && d_src_idx == data_idx && (!hasValues(ln) || d_levels[ln].copy_dst_idx == data_idx))
+    {
+        return;
+    }
+    d_dst_idx = data_idx;
+    d_src_idx = data_idx;
+    if (hasValues(ln)) setUpSchedules(ln);
+}
+
+void
+CFOwnerFill::copyTangentialValues(const CFOwnerFill& from, const int ln)
+{
+    for (auto& entry : d_levels[ln].work)
+    {
+        const PatchWork& source = from.d_levels[ln].work.at(entry.first);
+        for (std::size_t code = 0; code < entry.second.tangential.size(); ++code)
+        {
+            if (!entry.second.tangential[code]) continue;
+            for (const int comp : d_comps)
+            {
+                ArrayData<NDIM, double>& dst = array_data(entry.second.tangential[code], comp);
+                copy_on(dst, array_data(source.tangential[code], comp), dst.getBox());
+            }
+        }
+    }
+}
+
+void
+CFOwnerFill::zeroTangentialValues(const int ln)
+{
+    for (auto& entry : d_levels[ln].work)
+    {
+        for (const auto& data : entry.second.tangential)
+        {
+            if (!data) continue;
+            for (const int comp : d_comps) array_data(data, comp).fillAll(0.0);
+        }
+    }
+}
+
 bool
 CFOwnerFill::hasValues(const int ln) const
 {
@@ -592,11 +636,16 @@ CFOwnerFill::setUpSchedules(const int ln)
     }
 
     // Copy the averages into the ghost cells of the level.
-    Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> inner = d_fill_pattern;
-    if (!inner) inner = new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>();
-    Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> pattern = new RegionFillPattern(inner, L.all_regions);
+    if (first || L.copy_inner_pattern != d_fill_pattern)
+    {
+        Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> inner = d_fill_pattern;
+        if (!inner) inner = new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>();
+        L.copy_inner_pattern = d_fill_pattern;
+        L.copy_pattern = new RegionFillPattern(inner, L.all_regions);
+    }
     L.copy_alg = new RefineAlgorithm<NDIM>();
-    L.copy_alg->registerRefine(d_dst_idx, d_result_idx, d_dst_idx, Pointer<RefineOperator<NDIM>>(nullptr), pattern);
+    L.copy_alg->registerRefine(
+        d_dst_idx, d_result_idx, d_dst_idx, Pointer<RefineOperator<NDIM>>(nullptr), L.copy_pattern);
     if (first)
     {
         L.copy_sched = L.copy_alg->createSchedule(L.level, L.value_level);
@@ -605,6 +654,7 @@ CFOwnerFill::setUpSchedules(const int ln)
     {
         L.copy_alg->resetSchedule(L.copy_sched);
     }
+    L.copy_dst_idx = d_dst_idx;
 }
 
 void
@@ -1107,6 +1157,7 @@ CFOwnerFill::setUpWork(const int ln)
             pw.indicator->fillAll(0);
         }
     }
+    zeroTangentialValues(ln);
 }
 
 void

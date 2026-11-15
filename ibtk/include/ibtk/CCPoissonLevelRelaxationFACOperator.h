@@ -34,7 +34,6 @@
 #include <IntVector.h>
 #include <PoissonSpecifications.h>
 
-#include <map>
 #include <string>
 #include <vector>
 
@@ -44,8 +43,6 @@ namespace hier
 {
 template <int DIM>
 class Box;
-template <int DIM>
-class BoxList;
 template <int DIM>
 class Patch;
 } // namespace hier
@@ -247,11 +244,6 @@ private:
      */
     SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
-
-    /*
-     * Patch overlap data.
-     */
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_bc_box_overlap;
 };
 } // namespace IBTK
 

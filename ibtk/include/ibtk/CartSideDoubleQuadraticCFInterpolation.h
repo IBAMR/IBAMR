@@ -120,8 +120,11 @@ namespace IBTK
  *
  * Note: If this class is used in conjunction with RefineAlgorithm, to correctly fill in ghost cells,
  * computeNormalExtension() must be called after RefineAlgorithm::refine() is completed.
+ *
+ * @deprecated Use HierarchyGhostCellInterpolation, or CFOwnerFill in a FAC preconditioner.
  */
-class CartSideDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
+class IBTK_DEPRECATED("Use HierarchyGhostCellInterpolation, or CFOwnerFill in a FAC preconditioner.")
+    CartSideDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!

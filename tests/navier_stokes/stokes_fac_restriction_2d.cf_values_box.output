@@ -1,0 +1,2 @@
+post-smoothing: compares 134 velocity and 64 pressure coarse-fine ghost values
+zero-start smoothing: compares 134 velocity and 64 pressure coarse-fine ghost values

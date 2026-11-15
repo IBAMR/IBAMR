@@ -1,0 +1,6 @@
+point relaxation: post-smoothing compares 64 coarse-fine ghost values
+point relaxation: zero-start smoothing compares 64 coarse-fine ghost values
+box relaxation: post-smoothing compares 64 coarse-fine ghost values
+box relaxation: zero-start smoothing compares 64 coarse-fine ghost values
+level relaxation: post-smoothing compares 64 coarse-fine ghost values
+level relaxation: zero-start smoothing compares 64 coarse-fine ghost values
