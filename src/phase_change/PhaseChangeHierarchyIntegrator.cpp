@@ -576,8 +576,6 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
     d_hier_cc_data_ops->copyData(d_specific_heat_new_idx, d_specific_heat_current_idx);
     d_hier_cc_data_ops->copyData(d_T_diffusion_coef_cc_new_idx, d_T_diffusion_coef_cc_current_idx);
 
-    // Execute any registered callbacks.
-    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
 } // preprocessIntegrateHierarchy
 
@@ -628,9 +626,6 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
-    // Execute any registered callbacks.
-    executePostprocessIntegrateHierarchyCallbackFcns(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
 } // postprocessIntegrateHierarchy
 
@@ -1082,6 +1077,33 @@ PhaseChangeHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)
     }
     return;
 } // boundLiquidFraction
+
+void
+PhaseChangeHierarchyIntegrator::executePreprocessIntegrateHierarchyCallbackFcns(const double current_time,
+                                                                                const double new_time,
+                                                                                const int num_cycles)
+{
+    if (!d_execute_pre_process_integrate_hier_callback_fcns) return;
+
+    IBTK::HierarchyIntegrator::executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
+
+    return;
+} // executePreprocessIntegrateHierarchyCallbackFcns
+
+void
+PhaseChangeHierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(
+    const double current_time,
+    const double new_time,
+    const bool skip_synchronize_new_state_data,
+    const int num_cycles)
+{
+    if (!d_execute_post_process_integrate_hier_callback_fcns) return;
+
+    IBTK::HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    return;
+} // executePostprocessIntegrateHierarchyCallbackFcn
 
 void
 PhaseChangeHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)

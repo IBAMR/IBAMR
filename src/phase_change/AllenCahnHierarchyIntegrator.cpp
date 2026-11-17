@@ -295,6 +295,8 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
                                                            const double new_time,
                                                            const int num_cycles)
 {
+    // Suppress any preprocess callback functions at this stage in the base classes
+    d_execute_pre_process_integrate_hier_callback_fcns = false;
     PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
     const int coarsest_ln = 0;
@@ -583,7 +585,9 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         }
     }
     // Execute any registered callbacks.
+    d_execute_pre_process_integrate_hier_callback_fcns = true;
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
+
     return;
 } // preprocessIntegrateHierarchy
 
@@ -1096,12 +1100,16 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
         level->deallocatePatchData(d_lf_flux_idx);
     }
 
+    // Suppress any postprocess callback functions at this stage in the base classes
+    d_execute_post_process_integrate_hier_callback_fcns = false;
     PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     // Execute any registered callbacks.
+    d_execute_post_process_integrate_hier_callback_fcns = true;
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
     return;
 } // postprocessIntegrateHierarchy
 

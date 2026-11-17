@@ -364,6 +364,22 @@ protected:
     void boundLiquidFraction(int lf_new_idx);
 
     /*!
+     * Control when to call the callback function during the preprocess integrate hierarchy stage.
+     */
+    void executePreprocessIntegrateHierarchyCallbackFcns(double current_time, double new_time, int num_cycles) override;
+
+    /*!
+     * Control when to call the callback function during the postprocess integrate hierarchy stage.
+     */
+    void executePostprocessIntegrateHierarchyCallbackFcns(double current_time,
+                                                          double new_time,
+                                                          bool skip_synchronize_new_state_data,
+                                                          int num_cycles) override;
+
+    bool d_execute_pre_process_integrate_hier_callback_fcns = true;
+    bool d_execute_post_process_integrate_hier_callback_fcns = true;
+
+    /*!
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_lf_var, d_lf_gradient_var, d_lf_pre_var;
@@ -375,7 +391,7 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_N_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_C_var, d_T_temp_rhs_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_specific_heat_var, d_rho_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_C_var, d_rho_vec_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_C_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_H_var, d_H_pre_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_Div_U_F_var;
@@ -476,8 +492,6 @@ protected:
     int d_H_scratch_idx = IBTK::invalid_index, d_H_current_idx = IBTK::invalid_index, d_H_new_idx = IBTK::invalid_index;
     int d_U_old_current_idx = IBTK::invalid_index, d_U_old_new_idx = IBTK::invalid_index,
         d_U_old_scratch_idx = IBTK::invalid_index;
-    int d_D_cc_scratch_idx = IBTK::invalid_index, d_D_cc_current_idx = IBTK::invalid_index,
-        d_D_cc_new_idx = IBTK::invalid_index;
     int d_T_diffusion_coef_current_idx = IBTK::invalid_index, d_T_diffusion_coef_new_idx = IBTK::invalid_index,
         d_T_diffusion_coef_scratch_idx = IBTK::invalid_index;
     int d_T_diffusion_coef_cc_current_idx = IBTK::invalid_index, d_T_diffusion_coef_cc_new_idx = IBTK::invalid_index,

@@ -381,6 +381,8 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
                                                           const double new_time,
                                                           const int num_cycles)
 {
+    // Suppress any preprocess callback functions at this stage in the base classes
+    d_execute_pre_process_integrate_hier_callback_fcns = false;
     PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
     const int coarsest_ln = 0;
@@ -496,7 +498,11 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
         d_lf_extrap_convective_op->initializeOperatorState(*d_lf_extrap_sol, *d_lf_extrap_rhs);
     }
 
+    // Enable callback functions here
+    d_execute_pre_process_integrate_hier_callback_fcns = true;
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
+
+    return;
 } // preprocessIntegrateHierarchy
 
 void
@@ -530,28 +536,34 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
 
     // Update rho^n+1 and find the convective derivative term N^n+1.
     Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_integrator = d_rho_p_integrator;
-    if (cycle_num > 0 && d_solve_mass_conservation && d_u_adv_var)
+
+    if (d_solve_mass_conservation && d_u_adv_var)
     {
-        rho_p_integrator->setSolutionTime(half_time);
-        rho_p_integrator->setCycleNumber(cycle_num);
-        rho_p_integrator->setConvectiveDerivativePatchDataIndex(d_T_N_scratch_idx);
-        rho_p_integrator->setDensityPatchDataIndex(d_rho_current_idx);
-        rho_p_integrator->setTransportQuantityPatchDataIndices(d_h_current_idx, d_h_new_idx);
-
-        if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+        if (cycle_num > 0)
         {
-            rho_p_integrator->setFluidVelocityPatchDataIndices(-1, d_u_adv_current_idx, d_u_adv_new_idx);
-        }
-        else
-        {
-            rho_p_integrator->setFluidVelocityPatchDataIndices(
-                d_U_old_current_idx, d_u_adv_current_idx, d_u_adv_new_idx);
-            rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
+            rho_p_integrator->setSolutionTime(half_time);
+            rho_p_integrator->setCycleNumber(cycle_num);
+            rho_p_integrator->setConvectiveDerivativePatchDataIndex(d_T_N_scratch_idx);
+            rho_p_integrator->setDensityPatchDataIndex(d_rho_current_idx);
+            rho_p_integrator->setTransportQuantityPatchDataIndices(d_h_current_idx, d_h_new_idx);
+
+            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+            {
+                rho_p_integrator->setFluidVelocityPatchDataIndices(-1, d_u_adv_current_idx, d_u_adv_new_idx);
+            }
+            else
+            {
+                rho_p_integrator->setFluidVelocityPatchDataIndices(
+                    d_U_old_current_idx, d_u_adv_current_idx, d_u_adv_new_idx);
+                rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
+            }
+
+            rho_p_integrator->integrate(dt);
         }
 
-        rho_p_integrator->integrate(dt);
-
-        const int updated_rho_idx = d_rho_p_integrator->getUpdatedDensityPatchDataIndex();
+        // Cycle zero was integrated during preprocessing.
+        // Use the corresponding updated density in every cycle.
+        const int updated_rho_idx = rho_p_integrator->getUpdatedDensityPatchDataIndex();
         d_hier_cc_data_ops->copyData(d_rho_new_idx, updated_rho_idx, /*interior_only*/ true);
     }
 
@@ -767,12 +779,16 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
         }
     }
 
+    // Suppress any postprocess callback functions at this stage in the base classes
+    d_execute_post_process_integrate_hier_callback_fcns = false;
     PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     // Execute any registered callbacks.
+    d_execute_post_process_integrate_hier_callback_fcns = true;
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
     return;
 } // postprocessIntegrateHierarchy
 
