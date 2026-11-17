@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_CarreauYasudaViscosity
-#define included_IBAMR_CarreauYasudaViscosity
+#ifndef included_IBAMR_ViscosityModelLib
+#define included_IBAMR_ViscosityModelLib
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -92,4 +92,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_CarreauYasudaViscosity
+#endif // #ifndef included_IBAMR_ViscosityModelLib

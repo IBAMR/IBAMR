@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibamr/CarreauYasudaViscosity.h>
+#include <ibamr/ViscosityModelLib.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>

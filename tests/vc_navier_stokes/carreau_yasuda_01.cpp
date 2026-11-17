@@ -11,12 +11,12 @@
 //
 // ---------------------------------------------------------------------
 
-#include <ibamr/CarreauYasudaViscosity.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
 #include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/ViscosityModelLib.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
