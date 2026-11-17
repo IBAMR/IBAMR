@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibamr/CarreauYasudaViscosity.h>
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
@@ -26,17 +25,16 @@
 #include <CellData.h>
 #include <CellIterator.h>
 #include <CellVariable.h>
-#include <HierarchySideDataOpsReal.h>
 #include <Patch.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <SideVariable.h>
+#include <Variable.h>
 #include <VariableDatabase.h>
 
 #include <cmath>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -46,23 +44,9 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CarreauYasudaViscosity::CarreauYasudaViscosity(std::string object_name,
-                                               Pointer<Database> input_db,
-                                               INSVCStaggeredHierarchyIntegrator& ins_integrator)
-    : d_object_name(std::move(object_name)), d_ins_integrator(ins_integrator)
+CarreauYasudaViscosity::CarreauYasudaViscosity(std::string object_name, Pointer<Database> input_db)
+    : d_object_name(std::move(object_name))
 {
-    if (d_ins_integrator.muIsConstant())
-    {
-        TBOX_ERROR(d_object_name << "::CarreauYasudaViscosity():\n"
-                                 << "  unsupported mu_is_const = TRUE in " << d_ins_integrator.getName() << "\n"
-                                 << "  set mu_is_const = FALSE or remove it\n");
-    }
-    if (d_ins_integrator.getViscosityVariable() || d_ins_integrator.getTransportedViscosityVariable())
-    {
-        TBOX_ERROR(d_object_name << "::CarreauYasudaViscosity():\n"
-                                 << "  " << d_ins_integrator.getName() << " already has a viscosity variable\n");
-    }
-
     const auto get_parameter = [&](const std::string& key, const bool positive)
     {
         const double value = input_db->getDouble(key);
@@ -81,58 +65,39 @@ CarreauYasudaViscosity::CarreauYasudaViscosity(std::string object_name,
     d_yasuda_exponent = get_parameter("yasuda_exponent", true);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> scratch_ctx = var_db->getContext(d_object_name + "::SCRATCH");
-    d_U_scratch_var = new SideVariable<NDIM, double>(d_object_name + "::U");
-    d_U_scratch_idx = var_db->registerVariableAndContext(d_U_scratch_var, scratch_ctx, IntVector<NDIM>(1));
     d_EE_var = new CellVariable<NDIM, double>(d_object_name + "::EE", NDIM * (NDIM + 1) / 2);
-    d_EE_idx = var_db->registerVariableAndContext(d_EE_var, scratch_ctx, IntVector<NDIM>(0));
-
-    d_mu_var = new CellVariable<NDIM, double>(d_object_name + "::mu");
-    d_ins_integrator.registerViscosityVariable(d_mu_var);
-    d_ins_integrator.registerResetFluidViscosityFcn(&reset_viscosity, this);
+    d_EE_idx = var_db->registerVariableAndContext(
+        d_EE_var, var_db->getContext(d_object_name + "::SCRATCH"), IntVector<NDIM>(0));
     return;
 } // CarreauYasudaViscosity
 
-/////////////////////////////// PRIVATE //////////////////////////////////////
+int
+CarreauYasudaViscosity::getVelocityGhostWidth() const
+{
+    return 1;
+} // getVelocityGhostWidth
 
 void
-CarreauYasudaViscosity::computeViscosity(const int mu_idx, const int U_idx, const double time)
+CarreauYasudaViscosity::setDataOnPatchHierarchy(const int mu_idx,
+                                                const int U_idx,
+                                                HierarchyMathOps& hier_math_ops,
+                                                const double time)
 {
-    Pointer<PatchHierarchy<NDIM>> hierarchy = d_ins_integrator.getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> hierarchy = hier_math_ops.getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_U_scratch_idx, time);
-        level->allocatePatchData(d_EE_idx, time);
+        hierarchy->getPatchLevel(ln)->allocatePatchData(d_EE_idx, time);
     }
 
-    // Fill the velocity ghost cells in the same way as the integrator. The operator is built on each call because
-    // its schedules refer to the current patch levels, and a parent integrator may regrid the hierarchy without
-    // notifying this object.
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs = d_ins_integrator.getVelocityBoundaryConditions();
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
-                                                     /*refine_op_name*/ "NONE",
-                                                     /*use_cf_bdry_interpolation*/ true,
-                                                     /*coarsen_op_name*/ "CUBIC_COARSEN",
-                                                     /*phys_bdry_extrap_type*/ "LINEAR",
-                                                     /*consistent_type_2_bdry*/ false,
-                                                     U_bc_coefs);
-    HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
-    U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, hierarchy);
-    HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(hierarchy, coarsest_ln, finest_ln);
-    hier_sc_data_ops.copyData(d_U_scratch_idx, U_idx);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(U_bc_coefs,
-                                                              /*P_bc_coef*/ nullptr,
-                                                              d_U_scratch_idx,
-                                                              /*P_data_idx*/ -1,
-                                                              /*homogeneous_bc*/ false);
-    U_bdry_bc_fill_op.fillData(time);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(U_bc_coefs, /*P_bc_coef*/ nullptr);
-    d_ins_integrator.getHierarchyMathOps()->strain_rate(
-        d_EE_idx, d_EE_var, d_U_scratch_idx, d_U_scratch_var, /*src_ghost_fill*/ nullptr, time);
+    Pointer<Variable<NDIM>> U_var;
+    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(U_idx, U_var);
+    const Pointer<SideVariable<NDIM, double>> U_sc_var = U_var;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(U_sc_var);
+#endif
+    hier_math_ops.strain_rate(d_EE_idx, d_EE_var, U_idx, U_sc_var, /*src_ghost_fill*/ nullptr, time);
 
     const double exponent = (d_power_law_index - 1.0) / d_yasuda_exponent;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -163,33 +128,10 @@ CarreauYasudaViscosity::computeViscosity(const int mu_idx, const int U_idx, cons
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_U_scratch_idx);
-        level->deallocatePatchData(d_EE_idx);
+        hierarchy->getPatchLevel(ln)->deallocatePatchData(d_EE_idx);
     }
     return;
-} // computeViscosity
-
-void
-CarreauYasudaViscosity::reset_viscosity(const int mu_idx,
-                                        Pointer<Variable<NDIM>> /*mu_var*/,
-                                        Pointer<HierarchyMathOps> /*hier_math_ops*/,
-                                        const int /*cycle_num*/,
-                                        const double time,
-                                        const double /*current_time*/,
-                                        const double /*new_time*/,
-                                        void* ctx)
-{
-    auto* const viscosity = static_cast<CarreauYasudaViscosity*>(ctx);
-    const INSVCStaggeredHierarchyIntegrator& integrator = viscosity->d_ins_integrator;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const bool is_current =
-        mu_idx == var_db->mapVariableAndContextToIndex(viscosity->d_mu_var, integrator.getCurrentContext());
-    const int U_idx = var_db->mapVariableAndContextToIndex(
-        integrator.getVelocityVariable(), is_current ? integrator.getCurrentContext() : integrator.getNewContext());
-    viscosity->computeViscosity(mu_idx, U_idx, time);
-    return;
-} // reset_viscosity
+} // setDataOnPatchHierarchy
 
 //////////////////////////////////////////////////////////////////////////////
 

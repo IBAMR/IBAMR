@@ -36,9 +36,11 @@
 #include <StandardTagAndInitialize.h>
 
 #include <cmath>
+#include <cstddef>
 #include <iomanip>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../tests.h"
@@ -47,16 +49,121 @@
 
 namespace
 {
-// Checks the viscosity after each update by CarreauYasudaViscosity, whose reset function the integrator calls just
-// before this one because it was registered first. In each time step, the integrator should update the current
-// viscosity at the current time (cycle -1), then the new viscosity at the new time at the start of each cycle and
-// again at the end of the last cycle.
-struct ViscosityObserver
+// Wraps a viscosity model to check each viscosity update. The integrator should compute the viscosity of the initial
+// velocity once. Then, in each time step, it should update the viscosity at the current time, run the preprocess
+// callbacks, and update the viscosity at the new time at the start of each cycle and after the last one.
+class ObservedViscosity : public ViscosityModel
 {
-    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> ins_integrator;
-    double mu_min, mu_max;
-    std::vector<int> step_cycles;
+public:
+    ObservedViscosity(std::unique_ptr<ViscosityModel> model,
+                      const INSVCStaggeredHierarchyIntegrator& ins_integrator,
+                      const double mu_min,
+                      const double mu_max)
+        : d_model(std::move(model)), d_ins_integrator(ins_integrator), d_mu_min(mu_min), d_mu_max(mu_max)
+    {
+    }
+
+    int getVelocityGhostWidth() const override
+    {
+        return d_model->getVelocityGhostWidth();
+    }
+
+    void setDataOnPatchHierarchy(const int mu_idx,
+                                 const int U_idx,
+                                 IBTK::HierarchyMathOps& hier_math_ops,
+                                 const double time) override
+    {
+        d_model->setDataOnPatchHierarchy(mu_idx, U_idx, hier_math_ops, time);
+        ++num_updates;
+
+        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> mu_var = d_ins_integrator.getViscosityVariable();
+        if (mu_idx == var_db->mapVariableAndContextToIndex(mu_var, d_ins_integrator.getCurrentContext()))
+        {
+            d_events.push_back({ Event::CURRENT, time, time, 0 });
+        }
+        else if (mu_idx == var_db->mapVariableAndContextToIndex(mu_var, d_ins_integrator.getNewContext()))
+        {
+            d_events.push_back({ Event::NEW, time, time, 0 });
+        }
+        else
+        {
+            error("viscosity update of unknown patch data");
+        }
+
+        // Every updated value must lie between the infinite and zero shear viscosities.
+        int num_bad_values = 0;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy = hier_math_ops.getPatchHierarchy();
+        for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch = level->getPatch(p());
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> mu_data = patch->getPatchData(mu_idx);
+                for (SAMRAI::pdat::CellIterator<NDIM> ic(patch->getBox()); ic; ic++)
+                {
+                    const double mu = (*mu_data)(ic());
+                    if (!(std::isfinite(mu) && mu >= d_mu_min && mu <= d_mu_max)) ++num_bad_values;
+                }
+            }
+        }
+        if (IBTK::IBTK_MPI::sumReduction(num_bad_values) > 0) error("viscosity out of range");
+    }
+
+    // Record the start of a time step; ctx is this object.
+    static void start_step(const double current_time, const double new_time, const int num_cycles, void* ctx)
+    {
+        static_cast<ObservedViscosity*>(ctx)->d_events.push_back({ Event::STEP, current_time, new_time, num_cycles });
+    }
+
+    // Check the recorded sequence of updates and time steps.
+    void finish()
+    {
+        const std::size_t num_events = d_events.size();
+        if (num_events == 0 || d_events[0].type != Event::CURRENT)
+        {
+            error("the viscosity of the initial velocity was not computed");
+            return;
+        }
+        for (std::size_t i = 1; i < num_events; ++num_steps)
+        {
+            const std::string step = " in time step " + std::to_string(num_steps);
+            if (i + 1 >= num_events || d_events[i].type != Event::CURRENT || d_events[i + 1].type != Event::STEP ||
+                d_events[i].time != d_events[i + 1].time)
+            {
+                error("no update of the viscosity at the current time" + step);
+                return;
+            }
+            const Event& start = d_events[i + 1];
+            if (num_cycles >= 0 && start.num_cycles != num_cycles) error("number of cycles changed" + step);
+            num_cycles = start.num_cycles;
+            i += 2;
+            for (int k = 0; k <= num_cycles; ++k, ++i)
+            {
+                if (i >= num_events || d_events[i].type != Event::NEW || d_events[i].time != start.new_time)
+                {
+                    error("wrong updates of the viscosity at the new time" + step);
+                    return;
+                }
+            }
+        }
+    }
+
     int num_updates = 0, num_steps = 0, num_cycles = -1, num_errors = 0;
+
+private:
+    struct Event
+    {
+        enum Type
+        {
+            CURRENT,
+            NEW,
+            STEP
+        } type;
+        double time, new_time;
+        int num_cycles;
+    };
 
     void error(const std::string& message)
     {
@@ -64,64 +171,11 @@ struct ViscosityObserver
         ++num_errors;
     }
 
-    // Check that the cycle numbers of one time step are -1, 0, 1, ..., K - 1, K - 1 for the same K in every step.
-    void finishStep()
-    {
-        if (step_cycles.empty()) return;
-        const int K = static_cast<int>(step_cycles.size()) - 2;
-        bool valid = K >= 1 && step_cycles.back() == K - 1;
-        for (int k = -1; valid && k < K; ++k) valid = step_cycles[k + 1] == k;
-        if (!valid) error("unexpected viscosity update sequence in time step " + std::to_string(num_steps));
-        if (num_cycles >= 0 && K != num_cycles) error("number of cycles changed");
-        num_cycles = K;
-        ++num_steps;
-        step_cycles.clear();
-    }
+    std::unique_ptr<ViscosityModel> d_model;
+    const INSVCStaggeredHierarchyIntegrator& d_ins_integrator;
+    double d_mu_min, d_mu_max;
+    std::vector<Event> d_events;
 };
-
-void
-observe_viscosity(const int mu_idx,
-                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> /*mu_var*/,
-                  SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> /*hier_math_ops*/,
-                  const int cycle_num,
-                  const double time,
-                  const double current_time,
-                  const double new_time,
-                  void* ctx)
-{
-    auto* const observer = static_cast<ViscosityObserver*>(ctx);
-    if (cycle_num == -1) observer->finishStep();
-    observer->step_cycles.push_back(cycle_num);
-    ++observer->num_updates;
-
-    const SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator>& integrator = observer->ins_integrator;
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-    const bool is_current = cycle_num == -1;
-    const int expected_mu_idx = var_db->mapVariableAndContextToIndex(
-        integrator->getViscosityVariable(), is_current ? integrator->getCurrentContext() : integrator->getNewContext());
-    if (mu_idx != expected_mu_idx) observer->error("viscosity update in the wrong context");
-    if (time != (is_current ? current_time : new_time)) observer->error("viscosity update at the wrong time");
-
-    // Every updated value must lie between the infinite and zero shear viscosities.
-    int num_bad_values = 0;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy = integrator->getPatchHierarchy();
-    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch = level->getPatch(p());
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> mu_data = patch->getPatchData(mu_idx);
-            for (SAMRAI::pdat::CellIterator<NDIM> ic(patch->getBox()); ic; ic++)
-            {
-                const double mu = (*mu_data)(ic());
-                if (!(std::isfinite(mu) && mu >= observer->mu_min && mu <= observer->mu_max)) ++num_bad_values;
-            }
-        }
-    }
-    if (IBTK::IBTK_MPI::sumReduction(num_bad_values) > 0) observer->error("viscosity out of range");
-    return;
-}
 
 // Place one passive marker point at the center of the domain on the finest level.
 int finest_ln = 0;
@@ -171,12 +225,14 @@ main(int argc, char* argv[])
     }
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> viscosity_db =
         app_initializer->getComponentDatabase("CarreauYasudaViscosity");
-    CarreauYasudaViscosity viscosity("CarreauYasudaViscosity", viscosity_db, *time_integrator);
-    ViscosityObserver observer;
-    observer.ins_integrator = time_integrator;
-    observer.mu_min = viscosity_db->getDouble("infinite_shear_viscosity");
-    observer.mu_max = viscosity_db->getDouble("zero_shear_viscosity");
-    time_integrator->registerResetFluidViscosityFcn(&observe_viscosity, &observer);
+    auto viscosity = std::make_unique<ObservedViscosity>(
+        std::make_unique<CarreauYasudaViscosity>("CarreauYasudaViscosity", viscosity_db),
+        *time_integrator,
+        viscosity_db->getDouble("infinite_shear_viscosity"),
+        viscosity_db->getDouble("zero_shear_viscosity"));
+    ObservedViscosity& observer = *viscosity;
+    time_integrator->registerPreprocessIntegrateHierarchyCallback(&ObservedViscosity::start_step, &observer);
+    time_integrator->setViscosityModel(std::move(viscosity));
 
     // The integrator that advances the solution, which is either the fluid integrator or its IB parent.
     SAMRAI::tbox::Pointer<IBTK::HierarchyIntegrator> driver = time_integrator;
@@ -257,7 +313,7 @@ main(int argc, char* argv[])
     {
         driver->advanceHierarchy(driver->getMaximumTimeStepSize());
     }
-    observer.finishStep();
+    observer.finish();
 
     SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
     const int u_idx = var_db->mapVariableAndContextToIndex(time_integrator->getVelocityVariable(),

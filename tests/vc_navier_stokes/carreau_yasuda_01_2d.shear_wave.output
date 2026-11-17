@@ -8,5 +8,5 @@ mu min = 0.9776425817
 mu max = 0.9999999993
 time steps = 11
 cycles per time step = 2
-viscosity updates = 44
+viscosity updates = 45
 viscosity update errors = 0

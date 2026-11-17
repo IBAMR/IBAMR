@@ -24,6 +24,7 @@
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolver.h>
 #include <ibamr/StaggeredStokesSolverManager.h>
+#include <ibamr/ViscosityModel.h>
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/SideDataSynchronization.h>
@@ -45,6 +46,7 @@
 #include <SAMRAIVectorReal.h>
 #include <SideVariable.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -239,6 +241,17 @@ public:
      * Register a variable viscosity variable with the hierarchy integrator.
      */
     void registerViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> mu_var);
+
+    /*!
+     * Compute the viscosity from the velocity with \p viscosity_model, which this integrator then owns.
+     *
+     * The integrator creates the cell-centered viscosity variable, so <tt>mu_is_const</tt> must be <tt>FALSE</tt>, and
+     * no viscosity variable, viscosity initial conditions, transported viscosity variable, or viscosity reset function
+     * may be registered. The model must be set before the integrator is initialized.
+     *
+     * \see ViscosityModel
+     */
+    void setViscosityModel(std::unique_ptr<ViscosityModel> viscosity_model);
 
     /*!
      * Get the viscosity variable registered with the hierarchy integrator.
@@ -528,6 +541,13 @@ protected:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
 
     /*!
+     * Set the viscosity with patch data index \p mu_idx with the viscosity model from the velocity with patch data
+     * index \p U_idx at time \p time. The velocity is copied to the scratch velocity, whose ghost cells are filled, so
+     * the scratch velocity must be allocated.
+     */
+    void setViscosityFromModel(int mu_idx, int U_idx, double time);
+
+    /*!
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double>> d_hier_cc_data_ops;
@@ -640,6 +660,11 @@ protected:
      */
     std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_mu_fcns;
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
+
+    /*!
+     * Model that computes the viscosity from the velocity, if any.
+     */
+    std::unique_ptr<ViscosityModel> d_viscosity_model;
 
     /*!
      * Brinkman force strategy objects registered with this integrator.
