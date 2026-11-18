@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    poisson_precond::SCPoissonPointRelaxationFACOperator::setPoissonSpecifications():
+  the patch data for D cannot be used in SCPoissonPointRelaxationFACOperator
+  C must be zero or constant, and D must be constant
+

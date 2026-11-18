@@ -32,6 +32,10 @@
 #include <ibtk/SCPoissonSolverManager.h>
 #include <ibtk/muParserCartGridFunction.h>
 
+#include <tbox/Logger.h>
+
+#include "../tests.h"
+
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
@@ -43,6 +47,10 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+
+    // Do not print file names or line numbers to the output file.
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
@@ -147,7 +155,28 @@ main(int argc, char* argv[])
         Pointer<Database> precond_db = input_db->getDatabase("precond_db");
         Pointer<PoissonSolver> poisson_solver = SCPoissonSolverManager::getManager()->allocateSolver(
             solver_type, "poisson_solver", solver_db, "", precond_type, "poisson_precond", precond_db, "");
-        poisson_solver->setPoissonSpecifications(poisson_spec);
+        // The optional input "patch_data_coefficient" ("C" or "D") gives the solver, but not laplace_op, that
+        // coefficient as patch data.
+        PoissonSpecifications solver_spec("solver_spec", poisson_spec);
+        if (input_db->keyExists("patch_data_coefficient"))
+        {
+            Pointer<SideVariable<NDIM, double>> coef_var = new SideVariable<NDIM, double>("coef", 1);
+            const int coef_idx = var_db->registerVariableAndContext(coef_var, ctx, IntVector<NDIM>(0));
+            const string coef_name = input_db->getString("patch_data_coefficient");
+            if (coef_name == "C")
+            {
+                solver_spec.setCPatchDataId(coef_idx);
+            }
+            else if (coef_name == "D")
+            {
+                solver_spec.setDPatchDataId(coef_idx);
+            }
+            else
+            {
+                TBOX_ERROR("unknown patch_data_coefficient: " << coef_name << "\n");
+            }
+        }
+        poisson_solver->setPoissonSpecifications(solver_spec);
         poisson_solver->setPhysicalBcCoefs(bc_coefs);
         poisson_solver->initializeSolverState(u_vec, f_vec);
 

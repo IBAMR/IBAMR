@@ -121,6 +121,13 @@ public:
     } // allocate
 
     /*!
+     * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
+     * the coefficients of the operator. C must be zero or constant, and D must
+     * be constant.
+     */
+    void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec) override;
+
+    /*!
      * \name Implementation of FACPreconditionerStrategy interface.
      */
     //\{
