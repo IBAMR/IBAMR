@@ -193,7 +193,7 @@ private:
     /*!
      * \brief Compute enthalpy based on (nonlinear) h-T relation.
      */
-    void computeEnthalpyBasedOnTemperature(int h_idx, int T_idx, int H_idx);
+    void computeEnthalpyBasedOnTemperature(int h_idx, int T_idx, int H_idx, int lf_idx);
 
     /*!
      * \brief Compute temperature based on (nonlinear) h-T relation.
@@ -228,6 +228,11 @@ private:
      */
     void
     computeAdvectionVelocityForExtrapolation(int u_adv_fc_lf_extrap_current_idx, double current_time, double new_time);
+
+    /*!
+     * \brief Boolean to control which formulation, non-isothermal or isothermal to use.
+     */
+    bool d_use_non_isothermal_formulation = true;
 
     /*!
      * Get the convective operator for solving lf extrapolation equation.

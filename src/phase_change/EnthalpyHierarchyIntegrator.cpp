@@ -427,7 +427,7 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 
         // Compute initial enthalpy and liquid fraction
         const int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
-        computeEnthalpyBasedOnTemperature(d_h_current_idx, d_T_current_idx, H_current_idx);
+        computeEnthalpyBasedOnTemperature(d_h_current_idx, d_T_current_idx, H_current_idx, d_lf_current_idx);
         computeLiquidFractionBasedOnEnthalpy(d_lf_current_idx, d_h_current_idx, H_current_idx);
 
         // Update material properties based on initial enthalpy and liquid fraction.
@@ -615,7 +615,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     double h_correction_error = 0.0;
     double lf_correction_error = 0.0;
 
-    for (int inner_iterations = 0; inner_iterations < d_max_newton_iterations; ++inner_iterations)
+    for (int iteration = 0; iteration < d_max_newton_iterations; ++iteration)
     {
         // beta = dT/dh at the current nonlinear iterate.
         computeTemperatureDerivative(d_dT_dh_scratch_idx, d_h_new_idx, H_new_idx);
@@ -638,7 +638,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
         // Set the C = rho^{n+1}/dt coefficient of the temperature correction solver.
         // Since rho^{n+1} does not change during the Newton iterations, we need to do
         // this only at the first iteration.
-        if (inner_iterations == 0)
+        if (iteration == 0)
         {
             d_hier_cc_data_ops->scale(d_T_C_idx, 1.0 / dt, d_rho_new_idx);
         }
@@ -719,7 +719,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
         d_hier_cc_data_ops->subtract(d_lf_pre_idx, d_lf_new_idx, d_lf_pre_idx);
         lf_correction_error = d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx) / (1.0 + lf_old_norm);
 
-        plog << "At Newton iteration: " << inner_iterations + 1 << "\n"
+        plog << "At Newton iteration: " << iteration + 1 << "\n"
              << "Residual of enthalpy equation before correction: " << residual_enthalpy << "\n"
              << "Relative liquid fraction correction error:       " << lf_correction_error << "\n"
              << "Relative enthalpy correction error:              " << h_correction_error << "\n";
@@ -824,6 +824,7 @@ EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putInteger("max_newton_iterations", d_max_newton_iterations);
     db->putDouble("newton_error_tolerance", d_newton_error_tolerance);
     db->putBool("require_lf_extrapolation", d_require_lf_extrapolation);
+    db->putBool("use_non_isothermal_formulation", d_use_non_isothermal_formulation);
     if (d_require_lf_extrapolation)
     {
         db->putInteger("lf_extrap_max_num_time_steps", d_lf_extrap_max_num_time_steps);
@@ -964,7 +965,6 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
             const Box<NDIM>& patch_box = patch->getBox();
 
             Pointer<CellData<NDIM, double>> h_data = patch->getPatchData(d_h_new_idx);
-            Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(d_T_new_idx);
             Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(d_lf_new_idx);
             Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_new_idx);
             Pointer<CellData<NDIM, double>> Div_U_F_data = patch->getPatchData(Div_U_F_idx);
@@ -998,9 +998,9 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
                 // No phase-change divergence outside the active interval.
                 if (h_cell < hs || h_cell > hl) continue;
 
-                const double T_cell = (*T_data)(ci);
-                const double phi = clamp((T_cell - d_solidus_temperature) / delta_T, 0.0, 1.0);
-                const double rho_p = (1.0 - phi) * d_rho_solid + phi * d_rho_liquid;
+                const double phi_p =
+                    clamp((*lf_data)(ci) / alpha_p, 0.0, 1.0); // alpha_p .ne. 0.0 is already checked above
+                const double rho_p = (1.0 - phi_p) * d_rho_solid + phi_p * d_rho_liquid;
 
                 const double denominator = alpha_g * d_rho_gas * d_specific_heat_gas * rho_p * delta_T +
                                            alpha_p * d_rho_solid * d_rho_liquid * B;
@@ -1014,7 +1014,7 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
 } // computeDivergenceVelocitySourceTerm
 
 void
-EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx, const int T_idx, const int H_idx)
+EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx, const int T_idx, const int H_idx, int lf_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1035,6 +1035,7 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx, const 
             Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_idx);
             Pointer<CellData<NDIM, double>> h_data = patch->getPatchData(h_idx);
             Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -1060,21 +1061,43 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx, const 
                     (R0 + R1);
 
                 const double T = (*T_data)(ci);
-                if (T < d_solidus_temperature)
+                double& h = (*h_data)(ci);
+
+                if (T < d_solidus_temperature) // It should not be <= here to avoid partial melting case with isothermal
+                                               // phase change, where Tsol = Tliq = Tm
                 {
-                    (*h_data)(ci) = (T - d_reference_temperature) * c_gs;
+                    h = c_gs * (T - d_reference_temperature);
                 }
                 else if (T > d_liquidus_temperature)
                 {
                     const double hl = (H0 + H1) / (R0 + R1);
 
-                    (*h_data)(ci) = hl + c_gl * (T - d_liquidus_temperature);
+                    h = hl + c_gl * (T - d_liquidus_temperature);
                 }
                 else
                 {
-                    const double phi_p = clamp(
-                        (T - d_solidus_temperature) / delta_T, 0.0, 1.0); // bounded liquid fraction within the PCM
-                    (*h_data)(ci) = (H0 + H1 * phi_p) / (R0 + R1 * phi_p);
+                    double phi_p = 0.0;
+                    if (d_use_non_isothermal_formulation)
+                    {
+                        phi_p = clamp((T - d_solidus_temperature) / delta_T, 0.0, 1.0);
+                    }
+                    else
+                    {
+                        // At T_melt, use the independently initialized liquid fraction.
+                        const double alpha_l = (*lf_data)(ci);
+
+                        if (!std::isfinite(alpha_l) || alpha_l < 0.0 || alpha_l > alpha_p)
+                        {
+                            TBOX_ERROR(d_object_name << ": initial liquid fraction must satisfy 0 <= lf <= H.\n");
+                        }
+
+                        if (alpha_p > 0.0)
+                        {
+                            phi_p = alpha_l / alpha_p;
+                        }
+                    }
+
+                    h = (H0 + H1 * phi_p) / (R0 + R1 * phi_p);
                 }
             }
         }
@@ -1089,7 +1112,8 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(const int T_idx, 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     const double delta_rho = d_rho_liquid - d_rho_solid;
-    const double delta_T = d_liquidus_temperature - d_solidus_temperature;
+    const double delta_T =
+        d_liquidus_temperature - d_solidus_temperature; // For isothermal formulation, this becomes zero correctly.
     const double hp_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
     const double B = d_latent_heat + d_specific_heat_mushy * delta_T;
 
@@ -1135,18 +1159,26 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(const int T_idx, 
 
                 const double h = (*h_data)(ci);
                 double& T = (*T_data)(ci);
-                if (h < hs)
+
+                if (h <= hs)
                 {
                     T = d_reference_temperature + h / c_gs;
                 }
-                else if (h > hl)
+                else if (h >= hl)
                 {
                     T = d_liquidus_temperature + (h - hl) / c_gl;
                 }
                 else
                 {
-                    const double phi = clamp((h * R0 - H0) / (H1 - h * R1), 0.0, 1.0);
-                    T = d_solidus_temperature + delta_T * phi;
+                    if (d_use_non_isothermal_formulation)
+                    {
+                        const double phi = clamp((h * R0 - H0) / (H1 - h * R1), 0.0, 1.0);
+                        T = d_solidus_temperature + delta_T * phi;
+                    }
+                    else
+                    {
+                        T = d_T_melt;
+                    }
                 }
             }
         }
@@ -1206,19 +1238,27 @@ EnthalpyHierarchyIntegrator::computeTemperatureDerivative(const int dT_dh_idx, c
 
                 const double h = (*h_data)(ci);
                 double& beta = (*dT_dh_data)(ci);
-                if (h < hs)
+
+                if (h <= hs)
                 {
                     beta = 1.0 / c_gs;
                 }
-                else if (h > hl)
+                else if (h >= hl)
                 {
                     beta = 1.0 / c_gl;
                 }
                 else
                 {
-                    const double denominator = H1 - h * R1;
-                    const double D = H1 * R0 - H0 * R1;
-                    beta = delta_T * D / (denominator * denominator);
+                    if (d_use_non_isothermal_formulation)
+                    {
+                        const double denominator = H1 - h * R1;
+                        const double D = H1 * R0 - H0 * R1;
+                        beta = delta_T * D / (denominator * denominator);
+                    }
+                    else
+                    {
+                        beta = 0.0; // Latent heat changes while temperature remains at T_melt.
+                    }
                 }
             }
         }
@@ -1623,12 +1663,25 @@ EnthalpyHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_fr
     // Read in data members from input database.
     if (!is_from_restart)
     {
+        d_use_non_isothermal_formulation =
+            input_db->getBoolWithDefault("use_non_isothermal_formulation", d_use_non_isothermal_formulation);
+
+        if (d_use_non_isothermal_formulation)
+        {
+            d_solidus_temperature = input_db->getDouble("solidus_temperature");
+            d_liquidus_temperature = input_db->getDouble("liquidus_temperature");
+        }
+        else
+        {
+            // T_melt is already read by PhaseChangeHierarchyIntegrator.
+            d_solidus_temperature = d_T_melt;
+            d_liquidus_temperature = d_T_melt;
+        }
+        d_reference_temperature = input_db->getDouble("reference_temperature");
+
         d_specific_heat_liquid = input_db->getDouble("specific_heat_liquid");
         d_specific_heat_solid = input_db->getDouble("specific_heat_solid");
         d_specific_heat_gas = input_db->getDouble("specific_heat_gas");
-        d_liquidus_temperature = input_db->getDouble("liquidus_temperature");
-        d_solidus_temperature = input_db->getDouble("solidus_temperature");
-        d_reference_temperature = input_db->getDouble("reference_temperature");
 
         if (input_db->keyExists("specific_heat_mushy"))
             d_specific_heat_mushy = input_db->getDouble("specific_heat_mushy");
@@ -1682,6 +1735,7 @@ EnthalpyHierarchyIntegrator::getFromRestart()
     d_max_newton_iterations = db->getInteger("max_newton_iterations");
     d_newton_error_tolerance = db->getDouble("newton_error_tolerance");
     d_require_lf_extrapolation = db->getBool("require_lf_extrapolation");
+    d_use_non_isothermal_formulation = db->getBool("use_non_isothermal_formulation");
     if (d_require_lf_extrapolation)
     {
         d_lf_extrap_max_num_time_steps = db->getInteger("lf_extrap_max_num_time_steps");

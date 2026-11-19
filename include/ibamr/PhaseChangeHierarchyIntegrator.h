@@ -222,7 +222,8 @@ public:
                                      bool output_T_var = true);
 
     /*!
-     * \brief Set a grid function to provide initial conditions for \f$ \varphi \f$ variable.
+     * \brief Set a grid function to provide initial conditions for the liquid fraction (within the cell) variable.
+     * NOTE: Initial condition for the liquid fraction is used only for the isothermal formulation.
      */
     void setLiquidFractionInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
                                            SAMRAI::tbox::Pointer<IBTK::CartGridFunction> lf_init);

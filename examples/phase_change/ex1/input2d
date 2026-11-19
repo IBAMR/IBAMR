@@ -29,9 +29,10 @@ SOLID_TEMPERATURE = 298.6
 INITIAL_INTERFACE_POSITION = 0.0
 NUMBER_OF_INTERFACE_CELLS  = 2.0
 
-LIQUIDUS_TEMPERATURE = 938.6
-SOLIDUS_TEMPERATURE = 928.6
+LIQUIDUS_TEMPERATURE = 940.6
+SOLIDUS_TEMPERATURE = 926.6
 REFERENCE_TEMPERATURE = 933.6
+USE_NON_ISOTHERMAL_FORMULATION = TRUE
 
 MIN_TAG_VAL = 0.3
 MAX_TAG_VAL = 0.8
@@ -51,6 +52,10 @@ HFINEST = L/NFINEST
 
 TemperatureInitialConditions{
   function = "973.6"
+}
+
+LiquidFractionInitialConditions{
+  function = "1.0"
 }
 
 VelocityInitialConditions{
@@ -413,6 +418,7 @@ EnthalpyHierarchyIntegrator {
    liquidus_temperature            = LIQUIDUS_TEMPERATURE
    solidus_temperature             = SOLIDUS_TEMPERATURE
    reference_temperature           = REFERENCE_TEMPERATURE
+   use_non_isothermal_formulation  = USE_NON_ISOTHERMAL_FORMULATION
 
    T_solver_type = "SCALED_PETSC_KRYLOV_SOLVER"
    T_precond_type = "SCALED_POINT_RELAXATION_FAC_PRECONDITIONER"

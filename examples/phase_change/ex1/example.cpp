@@ -282,6 +282,14 @@ main(int argc, char* argv[])
             new LevelSetInitialCondition("ls_init", initial_liquid_gas_interface_position);
         adv_diff_integrator->setInitialConditions(ls_var, ls_init);
 
+        Pointer<CartGridFunction> lf_init = nullptr; 
+        bool use_non_isothermal_formulation = input_db->getBool("USE_NON_ISOTHERMAL_FORMULATION");
+        if (!use_non_isothermal_formulation)
+        { 
+            lf_init = new muParserCartGridFunction("lf_init", app_initializer->getComponentDatabase("LiquidFractionInitialConditions"), grid_geometry);
+        }
+        enthalpy_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
+
         Pointer<CartGridFunction> vof_init =
             new IBAMR::VCINSVOFUtilities::VOFInitialConditionFromLevelSet("vof_init", ls_init);
         adv_diff_integrator->setInitialConditions(pcm_vof_var, vof_init);
