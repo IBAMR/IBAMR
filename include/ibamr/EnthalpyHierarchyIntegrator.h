@@ -299,7 +299,7 @@ private:
     /*!
      * Inner iteration parameters.
      */
-    int d_max_newton_iterations = 30;
+    int d_max_newton_iterations = 5;
     double d_newton_error_tolerance = 1e-8;
 
     /*!
