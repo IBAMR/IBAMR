@@ -1,3 +1,3 @@
-Fixed: IBAMR::IBMethod and IBAMR::IBInterpolantMethod now raise the tag buffer to the ghost cell width after a restart, as they do in a run that is not restarted. A restarted simulation regrids as the continuous simulation does.
+Fixed: Raise the tag buffer of IBAMR::IBMethod and IBAMR::IBInterpolantMethod to the ghost cell width after a restart, as in a run that is not restarted. A restarted simulation regrids as the continuous simulation does.
 <br>
 (Boyce Griffith, 2026/11/04)

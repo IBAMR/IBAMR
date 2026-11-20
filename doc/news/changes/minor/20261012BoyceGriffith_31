@@ -1,3 +1,3 @@
-Fixed: IBTK::CartExtrapPhysBdryOp extrapolates quadratically where two or three physical boundaries meet when "QUADRATIC" extrapolation is selected. It previously used linear extrapolation there.
+Fixed: Extrapolate quadratically, instead of linearly, where two or three physical boundaries meet in IBTK::CartExtrapPhysBdryOp if "QUADRATIC" extrapolation is selected.
 <br>
 (Boyce Griffith, 2026/10/12)
