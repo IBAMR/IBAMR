@@ -23,6 +23,15 @@ if ($1.lt.0) then
          endif
          $3=$2*$4
 ')dnl'
+define(tangential_weight,`dnl
+$1=(dble($2-$3)+0.5d0)/dble($4)-0.5d0
+         if ($1.lt.0.d0) then
+            $5=$6-1
+            $1=-$1
+         else
+            $5=$6+1
+         endif
+')dnl
 define(d_dx0_C,0.5d0*($1($2+1,$3,$4)-$1($2-1,$3,$4)))dnl
 define(d_dx0_L,($1($2,$3,$4)-$1($2-1,$3,$4)))dnl
 define(d_dx0_R,($1($2+1,$3,$4)-$1($2,$3,$4)))dnl
@@ -318,6 +327,154 @@ c
                du2_dx1 = d_dx1_MC(u2_c,i_c0,i_c1,i_c2+1)/dx1
                u2_f(i0,i1,i2) = u2_f(i0,i1,i2)+
      &              w2*(u2_c(i_c0,i_c1,i_c2+1)+w0*du2_dx0+w1*du2_dx1)
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Perform side-centered refine operation that employs linear
+c     interpolation in the normal direction and linear interpolation
+c     between the nearest coarse side values in each tangential
+c     direction.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine cart_side_linear_refine3d(
+     &     u0_f,u1_f,u2_f,u_fine_gcw,
+     &     flower0,fupper0,
+     &     flower1,fupper1,
+     &     flower2,fupper2,
+     &     u0_c,u1_c,u2_c,u_coarse_gcw,
+     &     clower0,cupper0,
+     &     clower1,cupper1,
+     &     clower2,cupper2,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     ratio)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_fine_gcw
+      INTEGER flower0,fupper0
+      INTEGER flower1,fupper1
+      INTEGER flower2,fupper2
+      INTEGER u_coarse_gcw
+      INTEGER clower0,cupper0
+      INTEGER clower1,cupper1
+      INTEGER clower2,cupper2
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER ratio(0:NDIM-1)
+
+      REAL u0_c(SIDE3d0(clower,cupper,u_coarse_gcw))
+      REAL u1_c(SIDE3d1(clower,cupper,u_coarse_gcw))
+      REAL u2_c(SIDE3d2(clower,cupper,u_coarse_gcw))
+c
+c     Output.
+c
+      REAL u0_f(SIDE3d0(flower,fupper,u_fine_gcw))
+      REAL u1_f(SIDE3d1(flower,fupper,u_fine_gcw))
+      REAL u2_f(SIDE3d2(flower,fupper,u_fine_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      INTEGER i_c0,i_c1,i_c2
+      INTEGER i_f0,i_f1,i_f2
+      INTEGER j_c0,j_c1,j_c2
+      REAL wn,wt0,wt1,wt2
+      REAL v_lo,v_hi
+c
+c     Refine data.
+c
+      do i2=ilower2,iupper2
+         coarsen_index(i2,i_c2,i_f2,ratio(2))
+         tangential_weight(wt2,i2,i_f2,ratio(2),j_c2,i_c2)
+         do i1=ilower1,iupper1
+            coarsen_index(i1,i_c1,i_f1,ratio(1))
+            tangential_weight(wt1,i1,i_f1,ratio(1),j_c1,i_c1)
+            do i0=ilower0,iupper0+1
+               coarsen_index(i0,i_c0,i_f0,ratio(0))
+               v_lo =
+     &              (1.d0-wt1)*((1.d0-wt2)*u0_c(i_c0,i_c1,i_c2)+
+     &                          wt2*u0_c(i_c0,i_c1,j_c2))+
+     &              wt1*((1.d0-wt2)*u0_c(i_c0,j_c1,i_c2)+
+     &                   wt2*u0_c(i_c0,j_c1,j_c2))
+               if ( i0 .eq. i_f0 ) then
+                  u0_f(i0,i1,i2) = v_lo
+               else
+                  wn = dble(i0-i_f0)/dble(ratio(0))
+                  v_hi =
+     &                 (1.d0-wt1)*((1.d0-wt2)*u0_c(i_c0+1,i_c1,i_c2)+
+     &                             wt2*u0_c(i_c0+1,i_c1,j_c2))+
+     &                 wt1*((1.d0-wt2)*u0_c(i_c0+1,j_c1,i_c2)+
+     &                      wt2*u0_c(i_c0+1,j_c1,j_c2))
+                  u0_f(i0,i1,i2) = (1.d0-wn)*v_lo+wn*v_hi
+               endif
+            enddo
+         enddo
+      enddo
+
+      do i2=ilower2,iupper2
+         coarsen_index(i2,i_c2,i_f2,ratio(2))
+         tangential_weight(wt2,i2,i_f2,ratio(2),j_c2,i_c2)
+         do i1=ilower1,iupper1+1
+            coarsen_index(i1,i_c1,i_f1,ratio(1))
+            do i0=ilower0,iupper0
+               coarsen_index(i0,i_c0,i_f0,ratio(0))
+               tangential_weight(wt0,i0,i_f0,ratio(0),j_c0,i_c0)
+               v_lo =
+     &              (1.d0-wt0)*((1.d0-wt2)*u1_c(i_c0,i_c1,i_c2)+
+     &                          wt2*u1_c(i_c0,i_c1,j_c2))+
+     &              wt0*((1.d0-wt2)*u1_c(j_c0,i_c1,i_c2)+
+     &                   wt2*u1_c(j_c0,i_c1,j_c2))
+               if ( i1 .eq. i_f1 ) then
+                  u1_f(i0,i1,i2) = v_lo
+               else
+                  wn = dble(i1-i_f1)/dble(ratio(1))
+                  v_hi =
+     &                 (1.d0-wt0)*((1.d0-wt2)*u1_c(i_c0,i_c1+1,i_c2)+
+     &                             wt2*u1_c(i_c0,i_c1+1,j_c2))+
+     &                 wt0*((1.d0-wt2)*u1_c(j_c0,i_c1+1,i_c2)+
+     &                      wt2*u1_c(j_c0,i_c1+1,j_c2))
+                  u1_f(i0,i1,i2) = (1.d0-wn)*v_lo+wn*v_hi
+               endif
+            enddo
+         enddo
+      enddo
+
+      do i2=ilower2,iupper2+1
+         coarsen_index(i2,i_c2,i_f2,ratio(2))
+         do i1=ilower1,iupper1
+            coarsen_index(i1,i_c1,i_f1,ratio(1))
+            tangential_weight(wt1,i1,i_f1,ratio(1),j_c1,i_c1)
+            do i0=ilower0,iupper0
+               coarsen_index(i0,i_c0,i_f0,ratio(0))
+               tangential_weight(wt0,i0,i_f0,ratio(0),j_c0,i_c0)
+               v_lo =
+     &              (1.d0-wt0)*((1.d0-wt1)*u2_c(i_c0,i_c1,i_c2)+
+     &                          wt1*u2_c(i_c0,j_c1,i_c2))+
+     &              wt0*((1.d0-wt1)*u2_c(j_c0,i_c1,i_c2)+
+     &                   wt1*u2_c(j_c0,j_c1,i_c2))
+               if ( i2 .eq. i_f2 ) then
+                  u2_f(i0,i1,i2) = v_lo
+               else
+                  wn = dble(i2-i_f2)/dble(ratio(2))
+                  v_hi =
+     &                 (1.d0-wt0)*((1.d0-wt1)*u2_c(i_c0,i_c1,i_c2+1)+
+     &                             wt1*u2_c(i_c0,j_c1,i_c2+1))+
+     &                 wt0*((1.d0-wt1)*u2_c(j_c0,i_c1,i_c2+1)+
+     &                      wt1*u2_c(j_c0,j_c1,i_c2+1))
+                  u2_f(i0,i1,i2) = (1.d0-wn)*v_lo+wn*v_hi
+               endif
             enddo
          enddo
       enddo

@@ -12,7 +12,6 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/AppInitializer.h>
-#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/IBTKInit.h>
@@ -92,7 +91,6 @@ main(int argc, char** argv)
     Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
     grid_geometry->addSpatialRefineOperator(new CartesianCellDoubleLinearRefine<NDIM>());
-    grid_geometry->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
 
     Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
     Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(

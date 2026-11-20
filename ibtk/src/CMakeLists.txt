@@ -122,6 +122,7 @@ SET(CXX_SRC
 
   # refine ops
   refine_ops/CartCellDoubleQuadraticRefine.cpp
+  refine_ops/CartSideDoubleLinearRefine.cpp
   refine_ops/CartSideDoubleSpecializedLinearRefine.cpp
   refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
   refine_ops/CartSideDoubleDivPreservingRefine.cpp
