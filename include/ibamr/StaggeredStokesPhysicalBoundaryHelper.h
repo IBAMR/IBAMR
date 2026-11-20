@@ -21,6 +21,7 @@
 #include <ibamr/config.h>
 
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
 
@@ -149,6 +150,22 @@ public:
                                       double viscous_coef,
                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                       const std::string& bdry_interp_type) const;
+
+    /*!
+     * \brief Add the viscous part of the TRACTION and PSEUDO_TRACTION conditions to \a f_data_idx at the boundary faces
+     * where the normal velocity is not prescribed. Pass the same \a u_data_idx, \a viscous_coef_data_idx, and
+     * \a viscous_coef_interp_type as to IBTK::HierarchyMathOps::vc_laplace(). At a TRACTION or PSEUDO_TRACTION boundary
+     * face where the normal velocity is not prescribed and the viscous coefficient is nonzero,
+     * \a bdry_interp_type must be "LINEAR".
+     */
+    void addNormalTractionViscousTerm(int f_data_idx,
+                                      int u_data_idx,
+                                      int viscous_coef_data_idx,
+                                      IBTK::VCInterpType viscous_coef_interp_type,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      const std::string& bdry_interp_type,
+                                      int coarsest_ln = IBTK::invalid_level_number,
+                                      int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
      * \brief Setup physical boundary condition specification objects for

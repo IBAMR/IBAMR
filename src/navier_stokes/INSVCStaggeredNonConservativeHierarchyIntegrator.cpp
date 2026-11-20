@@ -456,8 +456,17 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ nullptr);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     // RHS^n = (C_rhs*I + L(D_rhs))*U^n
+    //
+    // Add the traction term before vc_laplace(), whose coarse-fine synchronization restricts the complete fine value.
+    // The pressure extrapolation is linear, because the boundary interpolation of the operator is LINEAR.
+    d_hier_sc_data_ops->setToScalar(U_rhs_idx, 0.0, /*interior_only*/ false);
+    d_bc_helper->addNormalTractionViscousTerm(U_rhs_idx,
+                                              d_U_scratch_idx,
+                                              U_rhs_problem_coefs.getDPatchDataId(),
+                                              d_mu_vc_interp_type,
+                                              d_U_bc_coefs,
+                                              /*bdry_interp_type*/ "LINEAR");
     d_hier_math_ops->vc_laplace(U_rhs_idx,
                                 U_rhs_var,
                                 1.0,
@@ -472,7 +481,12 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                 d_U_var,
                                 d_no_fill_op,
                                 current_time,
-                                d_mu_vc_interp_type);
+                                d_mu_vc_interp_type,
+                                invalid_index,
+                                Pointer<SideVariable<NDIM, double>>(nullptr),
+                                1.0,
+                                U_rhs_idx,
+                                U_rhs_var);
     d_hier_sc_data_ops->copyData(d_U_src_idx,
                                  d_U_scratch_idx,
                                  /*interior_only*/ false);
