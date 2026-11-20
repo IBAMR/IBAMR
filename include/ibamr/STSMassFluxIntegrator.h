@@ -20,7 +20,6 @@
 
 #include <ibamr/config.h>
 
-#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/CartGridFunction.h>
@@ -220,9 +219,6 @@ protected:
     // Book keeping
     std::string d_object_name;
 
-    // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
-
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     std::string d_density_bdry_extrap_type = "CONSTANT";
@@ -232,9 +228,6 @@ protected:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
-
-    // Boundary condition object for velocity field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
 
     // Boundary condition object for side-centered density field.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_bc_coefs;

@@ -28,8 +28,6 @@ namespace solv
 {
 template <int DIM, class TYPE>
 class SAMRAIVectorReal;
-template <int DIM>
-class RobinBcCoefStrategy;
 } // namespace solv
 namespace hier
 {

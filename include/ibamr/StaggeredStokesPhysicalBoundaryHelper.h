@@ -60,11 +60,6 @@ class StaggeredStokesPhysicalBoundaryHelper : public IBTK::StaggeredPhysicalBoun
 {
 public:
     /*!
-     * \brief Boundary tags.
-     */
-    static const short int NORMAL_TRACTION_BDRY, NORMAL_VELOCITY_BDRY, ALL_BDRY;
-
-    /*!
      * \brief Default constructor.
      */
     StaggeredStokesPhysicalBoundaryHelper() = default;
@@ -100,31 +95,6 @@ public:
                                   int u_data_idx,
                                   double fill_time,
                                   int wgt_cc_idx) const;
-
-    /*!
-     * \brief Set normal velocity ghost cell values to enforce discrete
-     * divergence-free condition in the ghost cells abutting the physical boundary.
-     *
-     * \note The default behavior is to set these values only in cells adjacent to
-     * boundary locations where normal traction conditions are imposed. Values can also
-     * be set where normal velocity boundary conditions, or both.
-     */
-    void enforceDivergenceFreeConditionAtBoundary(int u_data_idx,
-                                                  int coarsest_ln = IBTK::invalid_level_number,
-                                                  int finest_ln = IBTK::invalid_level_number,
-                                                  short int bdry_tag = NORMAL_TRACTION_BDRY) const;
-
-    /*!
-     * \brief Set normal velocity ghost cell values to enforce discrete
-     * divergence-free condition in the ghost cells abutting the physical boundary.
-     *
-     * \note The default behavior is to set these values only in cells adjacent to
-     * boundary locations where normal traction conditions are imposed. Values can also
-     * be set where normal velocity boundary conditions, or both.
-     */
-    void enforceDivergenceFreeConditionAtBoundary(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                                                  short int bdry_tag = NORMAL_TRACTION_BDRY) const;
 
     /*!
      * \brief Add the viscous part of the TRACTION conditions to \a f_data_idx at the boundary faces where the normal
