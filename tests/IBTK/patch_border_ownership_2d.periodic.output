@@ -1,0 +1,8 @@
+Side data, refine schedule without a refine operator: two patches = owner (64)
+SideDataSynchronization: two patches = owner (64)
+Face data, refine schedule without a refine operator: two patches = owner (64)
+FaceDataSynchronization: two patches = owner (64)
+Edge data, refine schedule without a refine operator: two patches = owner (64)
+EdgeDataSynchronization: two patches = owner (64)
+Node data, refine schedule without a refine operator: two patches = owner (60); junctions = owner (4)
+NodeDataSynchronization: two patches = owner (60); junctions = owner (4)
