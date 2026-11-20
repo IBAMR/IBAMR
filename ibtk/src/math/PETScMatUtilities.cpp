@@ -106,6 +106,27 @@ get_shift(int dir, int shift)
     return iv;
 } // get_shift
 
+// Add to the stencil map sm the offsets of the sides in the second layer from a physical boundary normal to the axis
+// normal_axis, which quadratic ghost values couple to: two along the normal axis and one along another axis. The
+// positions in the list of coefficients follow last_index. The function returns the last position that it uses.
+template <class StencilMap>
+inline int
+add_second_layer_offsets(StencilMap& sm, const int normal_axis, int last_index)
+{
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (d == normal_axis) continue;
+        for (int s = -2; s <= 2; s += 4)
+        {
+            for (int t = -1; t <= 1; t += 2)
+            {
+                sm[get_shift(normal_axis, s) + get_shift(d, t)] = ++last_index;
+            }
+        }
+    }
+    return last_index;
+} // add_second_layer_offsets
+
 static const int LOWER = 0;
 static const int UPPER = 1;
 static const std::string CONSERVATIVE = "CONSERVATIVE";
@@ -122,6 +143,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                   const PoissonSpecifications& poisson_spec,
                                                   RobinBcCoefStrategy<NDIM>* bc_coef,
                                                   double data_time,
+                                                  const std::string& bdry_interp_type,
                                                   const std::vector<int>& num_dofs_per_proc,
                                                   const int dof_index_idx,
                                                   Pointer<PatchLevel<NDIM>> patch_level)
@@ -130,6 +152,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                    poisson_spec,
                                    std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef),
                                    data_time,
+                                   bdry_interp_type,
                                    num_dofs_per_proc,
                                    dof_index_idx,
                                    patch_level);
@@ -141,6 +164,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                   const PoissonSpecifications& poisson_spec,
                                                   const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                   double data_time,
+                                                  const std::string& bdry_interp_type,
                                                   const std::vector<int>& num_dofs_per_proc,
                                                   const int dof_index_idx,
                                                   Pointer<PatchLevel<NDIM>> patch_level)
@@ -242,7 +266,8 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         // Compute matrix coefficients.
         const IntVector<NDIM> no_ghosts(0);
         CellData<NDIM, double> matrix_coefs(patch_box, stencil_sz * depth, no_ghosts);
-        PoissonUtilities::computeMatrixCoefficients(matrix_coefs, patch, stencil, poisson_spec, bc_coefs, data_time);
+        PoissonUtilities::computeMatrixCoefficients(
+            matrix_coefs, patch, stencil, poisson_spec, bc_coefs, data_time, bdry_interp_type);
 
         // Copy matrix entries to the PETSc matrix structure.
         Pointer<CellData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
@@ -290,6 +315,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                                                   const PoissonSpecifications& poisson_spec,
                                                   const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                   double data_time,
+                                                  const std::string& bdry_interp_type,
                                                   const std::vector<int>& num_dofs_per_proc,
                                                   const int dof_index_idx,
                                                   Pointer<PatchLevel<NDIM>> patch_level)
@@ -389,7 +415,8 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         // Compute matrix coefficients.
         const IntVector<NDIM> no_ghosts(0);
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, no_ghosts);
-        PoissonUtilities::computeMatrixCoefficients(matrix_coefs, patch, stencil, poisson_spec, bc_coefs, data_time);
+        PoissonUtilities::computeMatrixCoefficients(
+            matrix_coefs, patch, stencil, poisson_spec, bc_coefs, data_time, bdry_interp_type);
 
         // Copy matrix entries to the PETSc matrix structure.
         Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
@@ -439,6 +466,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
     double beta,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     double data_time,
+    const std::string& bdry_interp_type,
     const std::vector<int>& num_dofs_per_proc,
     int dof_index_idx,
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
@@ -446,7 +474,9 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
+    TBOX_ASSERT(bdry_interp_type == "LINEAR" || bdry_interp_type == "QUADRATIC");
 #endif
+    const bool quadratic = bdry_interp_type == "QUADRATIC";
 
     int ierr;
     if (mat)
@@ -469,6 +499,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         Pointer<Patch<NDIM>> patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<PatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
 #if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 #endif
@@ -484,6 +515,16 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                     // Stencil for finite difference operator.
                     const int local_idx = i_dof_index - proc_lower;
                     d_nnz[local_idx] += 1;
+
+                    // A quadratic ghost value couples the sides at a physical boundary normal to the component to the
+                    // tangential sides in the second layer from the boundary, which may belong to another processor.
+                    if (quadratic &&
+                        ((cc(axis) == patch_box.lower(axis) && pgeom->getTouchesRegularBoundary(axis, 0)) ||
+                         (cc(axis) == patch_box.upper(axis) + 1 && pgeom->getTouchesRegularBoundary(axis, 1))))
+                    {
+                        d_nnz[local_idx] += 2 * (NDIM - 1);
+                        o_nnz[local_idx] += 2 * (NDIM - 1);
+                    }
 
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -603,7 +644,8 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
 
     using StencilMapType = std::map<hier::Index<NDIM>, int, IndexFortranOrder>;
     static std::vector<StencilMapType> stencil_map_vec;
-    static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
+    static const int n_base_cols = (2 * NDIM + 1) + 4 * (NDIM - 1);
+    static const int stencil_sz = n_base_cols + 8;
     static const hier::Index<NDIM> ORIGIN(0);
 
 #if (NDIM == 2)
@@ -629,6 +671,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                  sm[get_shift(Y, 1) + get_shift(X, -1)] = NORTHWEST;
                  sm[get_shift(Y, -1) + get_shift(X, 1)] = SOUTHEAST;
                  sm[get_shift(Y, -1) + get_shift(X, -1)] = SOUTHWEST;
+                 add_second_layer_offsets(sm, Y, add_second_layer_offsets(sm, X, SOUTHWEST));
                  stencil_map_vec.push_back(sm););
 
 #elif (NDIM == 3)
@@ -671,6 +714,8 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
             idx += 1;
             sm[get_shift(axis, -1) + get_shift(d, -1)] = idx;
         }
+
+        add_second_layer_offsets(sm, axis, idx);
         stencil_map_vec.push_back(sm);
     });
 #endif
@@ -685,8 +730,16 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         // Compute matrix coefficients.
         const IntVector<NDIM> no_ghosts(0);
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, no_ghosts);
-        PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
-            matrix_coefs, patch, stencil_map_vec, poisson_spec, alpha, beta, bc_coefs, data_time, mu_interp_type);
+        PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(matrix_coefs,
+                                                                 patch,
+                                                                 stencil_map_vec,
+                                                                 poisson_spec,
+                                                                 alpha,
+                                                                 beta,
+                                                                 bc_coefs,
+                                                                 data_time,
+                                                                 bdry_interp_type,
+                                                                 mu_interp_type);
 
         // Copy matrix entries to the PETSc matrix structure.
         Pointer<SideData<NDIM, int>> dof_index_data = patch->getPatchData(dof_index_idx);
@@ -764,10 +817,36 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         }
                     }
 #if !defined(NDEBUG)
-                    TBOX_ASSERT(idx == (stencil_sz - 1));
+                    TBOX_ASSERT(idx == (n_base_cols - 1));
 #endif
-                    ierr =
-                        MatSetValues(mat, 1, &dof_index, stencil_sz, mat_cols.data(), mat_vals.data(), INSERT_VALUES);
+
+                    // A quadratic ghost value couples a side at a physical boundary normal to its component to the
+                    // tangential sides in the second layer from the boundary.
+                    int n_cols = n_base_cols;
+                    if (quadratic)
+                    {
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            if (d == axis) continue;
+                            for (int s = -2; s <= 2; s += 4)
+                            {
+                                const hier::Index<NDIM> second_cell = cc + get_shift(axis, s > 0 ? s - 1 : s);
+                                for (int t = -1; t <= 1; t += 2)
+                                {
+                                    const double value =
+                                        matrix_coefs(i, stencil_map[get_shift(axis, s) + get_shift(d, t)]);
+                                    if (value != 0.0)
+                                    {
+                                        mat_vals[n_cols] = value;
+                                        mat_cols[n_cols] = (*dof_index_data)(SideIndex<NDIM>(
+                                            second_cell, d, t < 0 ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper));
+                                        ++n_cols;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    ierr = MatSetValues(mat, 1, &dof_index, n_cols, mat_cols.data(), mat_vals.data(), INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }

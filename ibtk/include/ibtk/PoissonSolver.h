@@ -89,6 +89,21 @@ public:
      */
     virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
+    /*!
+     * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC", at physical boundaries at which boundary conditions are present.
+     *
+     * The default implementation supports only linear interpolation.
+     */
+    virtual bool supportsBdryInterpType(const std::string& bdry_interp_type) const;
+
+    /*!
+     * \brief Set the interpolation type at physical boundaries at which boundary conditions are present.
+     *
+     * The solver reports an error if it does not support the interpolation type.
+     */
+    virtual void setBdryInterpType(const std::string& bdry_interp_type);
+
 protected:
     // Specialized solver initialization.
     void initSpecialized(const std::string& object_name, bool homogeneous_bc) override;
@@ -97,6 +112,9 @@ protected:
     SAMRAI::solv::PoissonSpecifications d_poisson_spec = SAMRAI::solv::PoissonSpecifications("");
     std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM>> d_default_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    // Type of interpolation to use at physical boundaries at which boundary conditions are present.
+    std::string d_bdry_interp_type = "LINEAR";
 
 private:
     /*!

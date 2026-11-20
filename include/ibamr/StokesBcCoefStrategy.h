@@ -27,6 +27,7 @@
 
 #include <SideIndex.h>
 
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -123,6 +124,8 @@ public:
      * \param bdry_box  Boundary box of the faces.
      * \param bc_coef_box  Faces, in the index space of the Robin coefficients, at which the traction is prescribed.
      * \param ghost_box  Ghost box of the data that the returned side indices refer to.
+     * \param bdry_interp_type  Interpolation type, "LINEAR" or "QUADRATIC", of the assembled matrix. The type
+     * determines the extrapolation of the normal velocity beyond a corner.
      * \param fill_time  Time at which the boundary conditions are evaluated.
      *
      * \note The default implementation returns empty stencils for the PSEUDO_TRACTION type, whose conditions do not
@@ -133,6 +136,7 @@ public:
                        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
                        const SAMRAI::hier::Box<NDIM>& bc_coef_box,
                        const SAMRAI::hier::Box<NDIM>& ghost_box,
+                       const std::string& bdry_interp_type,
                        double fill_time) const;
 
 protected:

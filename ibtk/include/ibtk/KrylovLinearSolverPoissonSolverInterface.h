@@ -93,6 +93,16 @@ public:
      */
     void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) override;
 
+    /*!
+     * \brief Return whether the operator of the solver can apply the interpolation type \a bdry_interp_type.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the interpolation type of the operator of the solver, but not that of its preconditioner.
+     */
+    void setBdryInterpType(const std::string& bdry_interp_type) override;
+
 private:
     /*!
      * \brief Copy constructor.

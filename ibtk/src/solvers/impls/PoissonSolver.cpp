@@ -18,6 +18,7 @@
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <Box.h>
 #include <LocationIndexRobinBcCoefs.h>
@@ -68,6 +69,25 @@ PoissonSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>&
     }
     return;
 } // setPhysicalBcCoefs
+
+bool
+PoissonSolver::supportsBdryInterpType(const std::string& bdry_interp_type) const
+{
+    return bdry_interp_type == "LINEAR";
+} // supportsBdryInterpType
+
+void
+PoissonSolver::setBdryInterpType(const std::string& bdry_interp_type)
+{
+    if (!supportsBdryInterpType(bdry_interp_type))
+    {
+        TBOX_ERROR(d_object_name << "::setBdryInterpType():\n"
+                                 << "  this solver does not support bdry_interp_type = " << bdry_interp_type << "\n"
+                                 << "  use bdry_interp_type = LINEAR" << std::endl);
+    }
+    d_bdry_interp_type = bdry_interp_type;
+    return;
+} // setBdryInterpType
 
 void
 PoissonSolver::initSpecialized(const std::string& object_name, const bool /*homogeneous_bc*/)

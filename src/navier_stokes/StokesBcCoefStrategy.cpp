@@ -98,6 +98,7 @@ StokesBcCoefStrategy::getTractionStencil(const Patch<NDIM>& /*patch*/,
                                          const BoundaryBox<NDIM>& /*bdry_box*/,
                                          const Box<NDIM>& bc_coef_box,
                                          const Box<NDIM>& /*ghost_box*/,
+                                         const std::string& /*bdry_interp_type*/,
                                          const double /*fill_time*/) const
 {
     if (d_traction_bc_type == TRACTION)

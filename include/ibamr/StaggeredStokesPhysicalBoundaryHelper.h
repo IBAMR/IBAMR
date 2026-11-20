@@ -125,9 +125,8 @@ public:
     /*!
      * \brief Add the viscous part of the TRACTION and PSEUDO_TRACTION conditions to \a f_data_idx at the boundary faces
      * where the normal velocity is not prescribed. Pass the same \a u_data_idx, \a viscous_coef_data_idx, and
-     * \a viscous_coef_interp_type as to IBTK::HierarchyMathOps::vc_laplace(). At a TRACTION or PSEUDO_TRACTION boundary
-     * face where the normal velocity is not prescribed and the viscous coefficient is nonzero,
-     * \a bdry_interp_type must be "LINEAR".
+     * \a viscous_coef_interp_type as to IBTK::HierarchyMathOps::vc_laplace(). Pass the interpolation type of the
+     * pressure ghost values, "LINEAR" or "QUADRATIC", as \a bdry_interp_type.
      */
     void addNormalTractionViscousTerm(int f_data_idx,
                                       int u_data_idx,
