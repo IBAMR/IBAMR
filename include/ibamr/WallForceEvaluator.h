@@ -26,6 +26,7 @@
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LNodeSetData.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
 
@@ -56,7 +57,11 @@ class Database;
 
 namespace IBAMR
 {
-class WallForceEvaluator : public IBLagrangianForceStrategy
+/*!
+ * @deprecated IBAMR does not use this class, which will be removed in a future release.
+ */
+class IBTK_DEPRECATED("IBAMR does not use this class, which will be removed in a future release.") WallForceEvaluator
+    : public IBLagrangianForceStrategy
 {
 public:
     // Constructor.

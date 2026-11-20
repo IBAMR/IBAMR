@@ -24,6 +24,7 @@
 
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
@@ -47,12 +48,16 @@ class Database;
 
 namespace IBAMR
 {
-// Simple wall class to store information about a wall specified in the input file.
-//
-// This wall only interacts directly with particles in a specified distance from it,
-// and only applies forces to particles on one side (a 2-sided wall can be made by
-// specifying 2 separate walls, one with side = 0, one with side = 1).
-class Wall
+/*!
+ * \brief Simple wall class to store information about a wall specified in the input file.
+ *
+ * This wall only interacts directly with particles in a specified distance from it,
+ * and only applies forces to particles on one side (a 2-sided wall can be made by
+ * specifying 2 separate walls, one with side = 0, one with side = 1).
+ *
+ * @deprecated IBAMR does not use this class, which will be removed in a future release.
+ */
+class IBTK_DEPRECATED("IBAMR does not use this class, which will be removed in a future release.") Wall
 {
 public:
     // typedef for Wall Force Function Pointer
