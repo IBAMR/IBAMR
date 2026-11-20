@@ -289,7 +289,7 @@ TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
 SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
 # Do not use -Werror at this point, even if the user requested it for IBAMR
 SET(_old_cxx_flags "${CMAKE_CXX_FLAGS}")
-STRING(REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+STRING(REGEX REPLACE "-Werror(=[^ ]+)*" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 SET(CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
 CHECK_CXX_SOURCE_COMPILES(
@@ -981,7 +981,7 @@ FUNCTION(IBAMR_CHECK_COMPILATION_WITH_MPI _dependency_name _src _dependency_libr
   # we need to avoid -Werror here since we may get warnings from external
   # project headers that are totally irrelevant to checking MPI versions
   SET(_old_cxx_flags "${CMAKE_CXX_FLAGS}")
-  STRING(REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  STRING(REGEX REPLACE "-Werror(=[^ ]+)*" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
   SET(_test_name "${_dependency_name}_SAME_MPI_COMPILE_TEST")
   CHECK_CXX_SOURCE_COMPILES("${_src}" ${_test_name})
