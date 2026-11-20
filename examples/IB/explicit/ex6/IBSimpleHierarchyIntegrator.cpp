@@ -104,7 +104,6 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
                            d_X_current_data,
                            d_u_phys_bdry_op,
                            finest_level_num,
-                           getProlongRefineSchedules(d_object_name + "::f"),
                            /*F_needs_ghost_fill*/ true,
                            /*X_needs_ghost_fill*/ true);
 
@@ -137,7 +136,6 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
                            d_U_data,
                            d_X_current_data,
                            finest_level_num,
-                           getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                            getGhostfillRefineSchedules(d_object_name + "::u"),
                            current_time);
     ierr = VecWAXPY(d_X_new_data->getVec(), dt, d_U_data->getVec(), d_X_current_data->getVec());
