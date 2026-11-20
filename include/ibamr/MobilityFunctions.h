@@ -55,7 +55,7 @@ public:
      * periodic domain correction. Set it to zero if not needed.
      *
      * \param l_domain Length of the domain.
-     * \note This is used only only for 2 dimensional steady stokes.
+     * \note This parameter is used only for steady Stokes flow in two spatial dimensions.
      *
      * \param mm Pointer to mobility matrix.
      */
@@ -72,7 +72,7 @@ public:
                                                  double* mm);
 
     /*!
-     * \brief Construct the mobility matrix from Rotne-Pragner-Yamakawa tensor.
+     * \brief Construct the mobility matrix from Rotne-Prager-Yamakawa tensor.
      *
      * \param kernel_name IB kernel function.
      * \note Supported IB kernels are "IB_3", "IB_4" and "IB_6".
@@ -87,8 +87,6 @@ public:
      *
      * \param periodic_correction Input parameter for incorporating
      * periodic domain correction. Set it to zero if not known.
-     *
-     * \param l_domain Length of the domain.
      *
      * \param mm Pointer to mobility matrix.
      */

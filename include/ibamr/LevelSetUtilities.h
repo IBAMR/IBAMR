@@ -182,21 +182,21 @@ void tagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hi
                 void* ctx);
 
 /*!
- * \brief Correct a regularized phase volume by a uniform level-set shift.
+ * \brief Class LevelSetMassLossFixer corrects a regularized phase volume by a uniform shift q of the level set
+ * \f$\phi\f$.
  *
- * The two-phase correction targets gas volume \f$\int H(-(\phi+q))\,dV\f$;
- * the three-phase correction targets liquid volume \f$\int H(\phi+q)H(\psi)\,dV\f$.
- * Set the initial volume after hierarchy initialization; setTargetVolume() may
- * update the target before a later correction. The half-width is half_width
+ * With the regularized Heaviside function H, the two-phase correction targets the gas volume
+ * \f$\int H(-(\phi+q))\,dV\f$. The three-phase correction targets the liquid volume \f$\int H(\phi+q)H(\psi)\,dV\f$,
+ * in which \f$\psi\f$ is the solid level set. Call setInitialVolume() after hierarchy initialization.
+ * setTargetVolume() may change the target before a later correction. The half-width of H is half_width
  * times the geometric mean cell spacing on each patch.
  *
- * The volume tolerance is abs_tol + rel_tol*abs(target), with default rel_tol
- * 1e-12 and default abs_tol 64 machine epsilons times the current fluid
- * capacity. max_its (default 64) bounds the trial evaluations. The correction
- * either reaches the tolerance or stops with an error before changing the field.
+ * The volume tolerance is abs_tol + rel_tol*abs(target), with default rel_tol 1e-12 and default abs_tol 64 machine
+ * epsilons times the fluid volume \f$\int H(\psi)\,dV\f$ (the domain volume for two phases). max_its (default 64)
+ * bounds the trial evaluations. The correction either reaches the tolerance or stops with an error before changing
+ * the field.
  *
- * Restart restores the initial volume, target, and half-width; the other
- * settings come from the current input.
+ * A restart restores the initial volume, target, and half-width. The other settings come from the current input.
  */
 class LevelSetMassLossFixer : public SAMRAI::tbox::Serializable
 {
@@ -290,8 +290,8 @@ public:
     /*!
      * \brief Correct the NEW-context level set if a correction is due.
      *
-     * three_phase selects the liquid volume, with the second level set marking
-     * the solid; otherwise the gas volume is corrected.
+     * If \p three_phase is true, the function corrects the liquid volume and uses the second level set to indicate
+     * the solid. Otherwise, the function corrects the gas volume.
      */
     void correctVolume(double new_time, bool three_phase);
 
@@ -332,10 +332,10 @@ private:
 };
 
 /*!
- * \brief Postprocess-integration callback correcting NEW gas volume.
+ * \brief Correct the gas volume in the NEW context after integration.
  *
- * Register with registerPostprocessIntegrateHierarchyCallback(). ctx points to
- * a LevelSetMassLossFixer; its target must be set before the callback.
+ * Register with registerPostprocessIntegrateHierarchyCallback(). \p ctx points to a LevelSetMassLossFixer whose
+ * target volume must be set before the callback.
  * \see LevelSetMassLossFixer::correctVolume
  */
 void fixMassLoss2PhaseFlows(double current_time,
@@ -345,11 +345,11 @@ void fixMassLoss2PhaseFlows(double current_time,
                             void* ctx);
 
 /*!
- * \brief Postprocess-integration callback correcting NEW liquid volume in a
- * three-phase flow, preserving the second (solid) level-set field.
+ * \brief Correct the liquid volume of a three-phase flow in the NEW context after integration, preserving the
+ * second (solid) level set.
  *
- * Register with registerPostprocessIntegrateHierarchyCallback(). ctx points to
- * a LevelSetMassLossFixer; its target must be set before the callback.
+ * Register with registerPostprocessIntegrateHierarchyCallback(). \p ctx points to a LevelSetMassLossFixer whose
+ * target volume must be set before the callback.
  * \see LevelSetMassLossFixer::correctVolume
  */
 void fixMassLoss3PhaseFlows(double current_time,
@@ -366,9 +366,9 @@ void fixMassLoss3PhaseFlows(double current_time,
  *
  * \f$ \phi \f$ is taken to be positive in the liquid domain and negative in the gas domain.
  *
- * Physically, these three integrals represent volume of the gas region, liquid region, and
- * a regularized interface-area estimate, respectively. The delta integral
- * represents area when phi is a resolved signed-distance field.
+ * Physically, these three integrals represent the volume of the gas region, the volume of the liquid region, and a
+ * regularized interface-area estimate, respectively. The delta integral represents area if \f$\phi\f$ is a resolved
+ * signed-distance field.
  */
 std::vector<double> computeHeavisideIntegrals2PhaseFlows(const LevelSetContainer& lsc);
 
@@ -379,9 +379,9 @@ std::vector<double> computeHeavisideIntegrals2PhaseFlows(const LevelSetContainer
  * Here, \f$ H(\phi) \f$ is the Heaviside function demarcating liquid and gas domains,  and \f$ H(\Psi) \f$ is
  * the Heaviside function demarcating solid and fluid (fluid = liquid and gas) domains.
  *
- * Physically, these four integrals represents volume of the gas region, liquid region, solid region, and
- * a regularized fluid-interface-area estimate, respectively. The delta integral
- * represents area when phi is a resolved signed-distance field.
+ * Physically, these four integrals represent the volume of the gas region, the volume of the liquid region, the volume
+ * of the solid region, and a regularized fluid-interface-area estimate, respectively. The delta integral represents
+ * area if \f$\phi\f$ is a resolved signed-distance field.
  *
  * \f$ \phi \f$ is taken to be positive in the liquid domain and negative in the gas domain.
  *

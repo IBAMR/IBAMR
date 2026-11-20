@@ -53,8 +53,7 @@ main(int argc, char* argv[])
         }
         out << "\n";
     };
-    std::vector<std::function<bool(double, double)>> fcns; // = {IBTK::rel_equal_eps, IBTK::abs_equal_eps,
-                                                           // MathUtilities<double>::equalEps};
+    std::vector<std::function<bool(double, double)>> fcns;
     fcns.push_back([](double a, double b) -> bool { return IBTK::rel_equal_eps(a, b); });
     fcns.push_back([](double a, double b) -> bool { return IBTK::abs_equal_eps(a, b); });
     fcns.push_back(MathUtilities<double>::equalEps);

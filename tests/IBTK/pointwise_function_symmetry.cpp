@@ -28,8 +28,8 @@
 
 #include <ibtk/app_namespaces.h>
 
-// Evaluate a pointwise function that returns a nonsymmetric tensor for data
-// with symmetric tensor storage. The library should reject the result.
+// Check that evaluation stops with an error if a pointwise function returns a nonsymmetric tensor for data with
+// symmetric tensor storage.
 
 int
 main(int argc, char* argv[])
@@ -66,7 +66,6 @@ main(int argc, char* argv[])
         TensorStorage::SYMMETRIC);
     function->setDataOnPatchHierarchy(idx, var, hierarchy, 0.0);
 
-    // The evaluation should have failed. Return normally so that the
-    // expected-error case is rejected.
+    // The evaluation stops with an error before this point. Return normally so that attest reports the missing error.
     return 0;
 }

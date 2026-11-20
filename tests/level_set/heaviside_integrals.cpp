@@ -11,20 +11,11 @@
 //
 // ---------------------------------------------------------------------
 
-// This test checks the regularized Heaviside and delta functions
-// (smooth_heaviside, smooth_delta in ibtk_utilities-inl.h) and the
-// Heaviside integrals computed from them (LevelSetUtilities). When the
-// input file sets check_scalars = true (the default), check_scalar_functions()
-// runs first: it compares H and its complement against 100-digit reference
-// values to an absolute tolerance, then sweeps the interface half-width alpha
-// and the offset eta from the cutoffs to check boundedness, monotonicity,
-// complement symmetry, exact cutoff/saturation values, and the resolved
-// derivative. The remaining, always-run part of the test builds a two-component
-// level set on the patch hierarchy from the input file's Initial database,
-// sweeps the interface half-width (in cells) and eta, and checks that the
-// two- and three-phase Heaviside integrals sum to the domain volume (and, for
-// the three-phase case, to the live-phase capacity) to within a tolerance
-// scaled by cell count and machine epsilon.
+// Check the regularized Heaviside function H and delta function of ibtk_utilities-inl.h and the
+// Heaviside integrals of LevelSetUtilities. check_scalar_functions() compares H with reference values
+// and checks its properties. On the hierarchy, the two- and three-phase integrals must sum to the
+// domain volume within a rounding tolerance. The first two three-phase integrals must also sum to the
+// integral of H(psi), with psi the second level set.
 
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/LevelSetUtilities.h>
@@ -57,11 +48,8 @@ void
 check_scalar_functions()
 {
     const double eps = std::numeric_limits<double>::epsilon();
-    // (phi, H(phi), delta(phi)) at alpha = 1, computed to 100 decimal digits
-    // from (1+phi+sin(pi*phi)/pi)/2 and (1+cos(pi*phi))/2, then rounded to double.
-    // Hexadecimal literals and power-of-two scaling preserve the sampled inputs.
-    // Phase fractions need only absolute accuracy; tiny values near the cutoffs
-    // do not have full relative accuracy.
+    // (phi, H(phi), delta(phi)) at alpha = 1 from (1+phi+sin(pi*phi)/pi)/2 and (1+cos(pi*phi))/2, to 100 digits.
+    // The check of H uses an absolute tolerance: tiny values near the cutoffs lack full relative accuracy.
     const std::array<double, 3> references[] = {
         { -0x1.0000000000000p+0, 0x0.0p+0, 0x0.0p+0 },
         { -0x1.fffffffffffffp-1, 0x1.a51a6625307d3p-160, 0x1.3bd3cc9be45dep-105 },
@@ -89,15 +77,15 @@ check_scalar_functions()
             const double ref_delta = std::ldexp(reference[2], -exponent);
             if (!(std::abs(smooth_heaviside(phi, alpha) - reference[1]) <= 4.0 * eps))
             {
-                TBOX_ERROR("Heaviside regression: phase-fraction accuracy\n");
+                TBOX_ERROR("Heaviside regression: smooth_heaviside() differs from the reference value\n");
             }
             if (!(std::abs(smooth_heaviside(-phi, alpha) - (1.0 - reference[1])) <= 4.0 * eps))
             {
-                TBOX_ERROR("Heaviside regression: reflected phase-fraction accuracy\n");
+                TBOX_ERROR("Heaviside regression: smooth_heaviside(-phi) differs from one minus the reference value\n");
             }
             if (!(std::abs(smooth_delta(phi, alpha) - ref_delta) <= 32.0 * eps * ref_delta))
             {
-                TBOX_ERROR("Heaviside regression: delta accuracy\n");
+                TBOX_ERROR("Heaviside regression: smooth_delta() differs from the reference value\n");
             }
         }
     }
@@ -130,7 +118,7 @@ check_scalar_functions()
             }
             if (!(std::isfinite(delta) && delta >= 0.0))
             {
-                TBOX_ERROR("Heaviside regression: invalid delta\n");
+                TBOX_ERROR("Heaviside regression: delta is negative or not finite\n");
             }
             if (!(h + 4.0 * eps >= previous))
             {
@@ -138,11 +126,11 @@ check_scalar_functions()
             }
             if (!(std::abs(h + smooth_heaviside(-phi, alpha) - 1.0) <= 2.0 * eps))
             {
-                TBOX_ERROR("Heaviside regression: complement symmetry\n");
+                TBOX_ERROR("Heaviside regression: H(phi) + H(-phi) differs from 1\n");
             }
             if (!(delta == smooth_delta(-phi, alpha)))
             {
-                TBOX_ERROR("Heaviside regression: delta symmetry\n");
+                TBOX_ERROR("Heaviside regression: delta(phi) differs from delta(-phi)\n");
             }
             previous = h;
             if (phi <= -alpha || phi >= alpha)
@@ -155,7 +143,7 @@ check_scalar_functions()
         }
         if (!(smooth_heaviside(0.0, alpha) == 0.5))
         {
-            TBOX_ERROR("Heaviside regression: center value\n");
+            TBOX_ERROR("Heaviside regression: H(0) differs from 0.5\n");
         }
         previous = 0.0;
         for (int i = 0; i <= 4096; ++i)
@@ -164,7 +152,7 @@ check_scalar_functions()
             const double h = smooth_heaviside(phi, alpha);
             if (!(h + 4.0 * eps >= previous))
             {
-                TBOX_ERROR("Heaviside regression: interior monotonicity\n");
+                TBOX_ERROR("Heaviside regression: phase fraction is not monotone in the interior\n");
             }
             previous = h;
         }
@@ -176,7 +164,7 @@ check_scalar_functions()
                 (2.0 * step);
             if (!(std::abs(derivative - alpha * smooth_delta(alpha * r, alpha)) <= 5.0e-9))
             {
-                TBOX_ERROR("Heaviside regression: resolved analytic derivative\n");
+                TBOX_ERROR("Heaviside regression: difference quotient of H differs from alpha delta\n");
             }
         }
     }
@@ -298,7 +286,8 @@ main(int argc, char* argv[])
                                   std::isfinite(contribution) && contribution >= 0.0))
                             {
                                 TBOX_ERROR(
-                                    "Heaviside regression: negative live phase or redistribution contribution\n");
+                                    "Heaviside regression: phase fraction outside [0,1] or invalid redistribution "
+                                    "contribution\n");
                             }
                             capacity += h * (*weight)(i());
                         }
@@ -318,15 +307,15 @@ main(int argc, char* argv[])
                                                std::abs(v3[0] + v3[1] + v3[2] - domain_volume) });
                 if (!(std::abs(v2[0] + v2[1] - domain_volume) <= tol))
                 {
-                    TBOX_ERROR("Heaviside regression: two-phase composite identity\n");
+                    TBOX_ERROR("Heaviside regression: two-phase volumes do not sum to the domain volume\n");
                 }
                 if (!(std::abs(v3[0] + v3[1] - capacity) <= tol))
                 {
-                    TBOX_ERROR("Heaviside regression: three-phase fluid capacity\n");
+                    TBOX_ERROR("Heaviside regression: gas and liquid volumes do not sum to the fluid capacity\n");
                 }
                 if (!(std::abs(v3[0] + v3[1] + v3[2] - domain_volume) <= tol))
                 {
-                    TBOX_ERROR("Heaviside regression: three-phase composite identity\n");
+                    TBOX_ERROR("Heaviside regression: three-phase volumes do not sum to the domain volume\n");
                 }
                 if (ncells == 1.0 && (eta == 0.0 || eta == 1.0e-3 || eta == 0.5))
                 {
