@@ -67,11 +67,15 @@
   files; put visible template, `constexpr`, and inline definitions in matching
   private inline headers included by the declaration header. A one-line body is
   still an implementation.
-- Keep algorithm-specific helper types in their owning implementation, not the
-  public API. A source-private shared header is appropriate for two genuine
-  implementation consumers. Do not install it merely to make inclusion easier.
-  Reusable kernel evaluation, for example, need not belong to PETSc matrix
-  utilities.
+- Keep algorithm-specific helper types and functions in their owning
+  implementation, not the public API. Reusable kernel evaluation, for example,
+  need not belong to PETSc matrix utilities. Do not add C++ headers under `src/`
+  or `ibtk/src/`. Put a helper that several implementation files share, and
+  that is not meant for users, in an installed header under
+  `include/ibamr/private/` or `ibtk/include/ibtk/private/`, in the
+  `IBAMR::detail` or `IBTK::detail` namespace, respectively. Such a header is not
+  the inline header of a public class. Code in a `detail` namespace is internal
+  and outside the supported API.
 - Pass only the information a helper needs; use an input filename rather than
   `argc` and `argv` when that is sufficient. A helper used only in one `.cpp` and
   needing no class access normally belongs in its unnamed namespace.
