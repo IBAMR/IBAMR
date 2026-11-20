@@ -323,6 +323,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                new_time,
                                d_reset_mu_fcns_ctx[k]);
         }
+        if (d_viscosity_model) setViscosityFromModel(d_mu_current_idx, d_U_current_idx, apply_time);
     }
 
     // Get the current value of viscosity
@@ -611,6 +612,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchySpecialized(
                                new_time,
                                d_reset_mu_fcns_ctx[k]);
         }
+        if (d_viscosity_model) setViscosityFromModel(d_mu_new_idx, d_U_new_idx, apply_time);
     }
 
     // Get the newest values of rho and mu if necessary
@@ -827,6 +829,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchySpecialized(
                                    new_time,
                                    d_reset_mu_fcns_ctx[k]);
             }
+            if (d_viscosity_model) setViscosityFromModel(d_mu_new_idx, d_U_new_idx, apply_time);
         }
         if (!d_rho_is_const && d_rho_var)
         {

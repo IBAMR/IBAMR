@@ -1,0 +1,3 @@
+New: IBAMR::INSVCStaggeredHierarchyIntegrator::setViscosityModel() computes the viscosity from the velocity with an IBAMR::ViscosityModel, such as the new IBAMR::CarreauYasudaViscosity for generalized Newtonian fluids.
+<br>
+(Marshall Davey, 2026/11/12)

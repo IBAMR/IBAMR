@@ -1,0 +1,112 @@
+// Decaying periodic shear wave u = (sin(2*pi*y), 0) of a shear-thinning Carreau-Yasuda fluid on a
+// two-level grid whose fine level covers the middle half of the domain.
+N = 16
+
+VelocityInitialConditions {
+   function_0 = "sin(2*PI*X_1)"
+   function_1 = "0.0"
+}
+
+CarreauYasudaViscosity {
+   zero_shear_viscosity     = 1.0
+   infinite_shear_viscosity = 0.1
+   relaxation_time          = 1.0
+   power_law_index          = 0.5
+   yasuda_exponent          = 2.0
+}
+
+INSVCStaggeredNonConservativeHierarchyIntegrator {
+   rho_is_const                  = TRUE
+   rho                           = 1.0
+   mu                            = 1.0      // unused; avoids a warning
+   mu_is_const                   = FALSE    // FALSE by default
+   start_time                    = 0.0
+   end_time                      = 0.1
+   dt_max                        = 0.01
+   num_cycles                    = 2
+   convective_time_stepping_type = "MIDPOINT_RULE"
+   convective_op_type            = "CUI"
+   cfl                           = 0.5
+   enable_logging                = FALSE
+
+   velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 5
+      rel_residual_tol = 1.0e-5
+   }
+   velocity_precond_db {
+      num_pre_sweeps = 0
+      num_post_sweeps = 3
+      prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+      restriction_method = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_prefix = "bottom_velocity_"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 10
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
+      }
+   }
+   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   pressure_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 5
+      rel_residual_tol = 1.0e-5
+   }
+   pressure_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 10
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
+      }
+   }
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = 1,1
+   periodic_dimension = 1,1
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 4,4
+   }
+   largest_patch_size {
+      level_0 = 512,512
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
