@@ -29,17 +29,11 @@
 #include <petscmat.h>
 #include <petscvec.h>
 
-#include <array>
 #include <string>
 #include <vector>
 
 namespace SAMRAI
 {
-namespace hier
-{
-template <int DIM>
-class BoxList;
-} // namespace hier
 namespace solv
 {
 template <int DIM, class TYPE>
@@ -169,12 +163,6 @@ private:
     std::vector<Mat> d_box_op;
     std::vector<Vec> d_box_e, d_box_r;
     std::vector<KSP> d_box_ksp;
-
-    /*
-     * Mappings from patch indices to patch operators.
-     */
-    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM>>> d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_cell_bc_box_overlap;
 };
 } // namespace IBAMR
 

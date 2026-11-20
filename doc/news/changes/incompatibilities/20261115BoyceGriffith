@@ -1,0 +1,3 @@
+Changed: Make smoothError() of the FAC operators derived from IBTK::PoissonFACPreconditionerStrategy and IBAMR::StaggeredStokesFACPreconditionerStrategy stop with an error on a level above the coarsest level of the solve if performing_pre_sweeps and performing_post_sweeps are both false.
+<br>
+(Boyce Griffith, 2026/11/15)

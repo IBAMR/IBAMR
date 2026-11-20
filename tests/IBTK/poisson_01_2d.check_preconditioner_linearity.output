@@ -1,4 +1,4 @@
-poisson_solver::solveSystem(): KSP type fgmres, relative additivity defect of the preconditioner = 3.940e-03
+poisson_solver::solveSystem(): KSP type fgmres, relative additivity defect of the preconditioner = 3.939e-03
 |e|_oo = 0.0135852
 |e|_2  = 0.00557651
 |e|_1  = 0.00448269

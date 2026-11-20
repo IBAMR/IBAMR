@@ -14,10 +14,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): integrating hierarch
 AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 AdvDiffSemiImplicitHierarchyIntegrator: Initializing Helmholtz solvers for variable number 0
 AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve number of iterations = 2
-AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve residual norm        = 4.62547e-07
+AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve residual norm        = 4.50262e-07
 AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve number of iterations = 2
-AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve residual norm        = 2.30168e-07
+AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve residual norm        = 2.29922e-07
 AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.186838
 AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 Coarsening

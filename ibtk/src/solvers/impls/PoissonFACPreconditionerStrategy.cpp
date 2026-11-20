@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/CFOwnerFill.h>
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/FACPreconditionerStrategy.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
@@ -331,14 +331,10 @@ PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<
         d_level_data_ops[dst_ln - 1]->add(dst_idx, dst_idx, src_idx, /*interior_only*/ false);
     }
     xeqScheduleProlongation(d_scratch_idx, src_idx, dst_ln);
+    if (d_cf_fill_wide && d_cf_fill->hasValues(dst_ln)) d_cf_fill_wide->copyTangentialValues(*d_cf_fill, dst_ln);
 
-    // Correct the interior values and overwrite the ghost values with the prolonged correction. Coarse-fine
-    // interpolation requires the coarse-fine ghost values to hold data interpolated from the coarse level alone.
+    // Correct the interior values, then refill the physical-boundary and same-level ghost cells.
     d_level_data_ops[dst_ln]->add(dst_idx, dst_idx, d_scratch_idx, /*interior_only*/ true);
-    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(dst_ln);
-    copy_ghost_region(*level, dst_idx, d_scratch_idx);
-
-    // Refill the physical-boundary and same-level ghost cells; the coarse-fine ghost cells keep the prolonged values.
     xeqScheduleGhostFillNoCoarse(dst_idx, dst_ln);
 
     IBTK_TIMER_STOP(t_prolong_error_and_correct);
@@ -404,7 +400,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_op);
-    TBOX_ASSERT(d_cf_bdry_op);
+    TBOX_ASSERT(d_residual_fill_pattern);
 #endif
 
     // Setup level operators.
@@ -433,18 +429,28 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     Pointer<CartesianGridGeometry<NDIM>> geometry = d_hierarchy->getGridGeometry();
     d_prolongation_refine_operator = geometry->lookupRefineOperator(sol_var, d_prolongation_method);
     d_restriction_coarsen_operator = geometry->lookupCoarsenOperator(sol_var, d_restriction_method);
-    d_cf_bdry_op->setConsistentInterpolationScheme(false);
-    d_cf_bdry_op->setPatchDataIndex(d_scratch_idx);
-    d_cf_bdry_op->setPatchHierarchy(d_hierarchy);
+    d_cf_fill = std::make_unique<CFOwnerFill>(
+        d_hierarchy, d_coarsest_ln + 1, d_finest_ln, d_scratch_idx, d_scratch_idx, d_residual_fill_pattern);
+    if (sol_gcw != d_gcw)
+    {
+        d_cf_fill_wide = std::make_unique<CFOwnerFill>(
+            d_hierarchy, d_coarsest_ln + 1, d_finest_ln, sol_idx, sol_idx, d_residual_fill_pattern);
+    }
 
     // Make space for saving communication schedules.  There is no need to
     // delete the old schedules first because we have deallocated the solver
     // state above.
     std::vector<RefinePatchStrategy<NDIM>*> prolongation_refine_patch_strategies;
-    prolongation_refine_patch_strategies.push_back(d_cf_bdry_op);
+    prolongation_refine_patch_strategies.push_back(d_cf_fill.get());
     prolongation_refine_patch_strategies.push_back(d_bc_op);
     d_prolongation_refine_patch_strategy = new RefinePatchStrategySet(
         prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
+    if (d_cf_fill_wide)
+    {
+        prolongation_refine_patch_strategies[0] = d_cf_fill_wide.get();
+        d_prolongation_wide_refine_patch_strategy = new RefinePatchStrategySet(
+            prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
+    }
 
     d_prolongation_refine_schedules.resize(d_finest_ln + 1);
     d_prolongation_wide_refine_schedules.resize(d_finest_ln + 1);
@@ -523,6 +529,8 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
                                     d_finest_reset_ln :
                                     d_finest_ln;
     deallocateOperatorStateSpecialized(coarsest_reset_ln, finest_reset_ln);
+    d_cf_fill.reset();
+    d_cf_fill_wide.reset();
 
     // Deallocate scratch data.
     for (int ln = coarsest_reset_ln;
@@ -554,6 +562,7 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
 
         d_prolongation_refine_operator.setNull();
         d_prolongation_refine_patch_strategy.setNull();
+        d_prolongation_wide_refine_patch_strategy.setNull();
         d_prolongation_refine_algorithm.setNull();
         d_prolongation_refine_schedules.resize(0);
         d_prolongation_wide_refine_algorithm.setNull();
@@ -588,7 +597,9 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
 void
 PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, const int src_idx, const int dst_ln)
 {
-    d_cf_bdry_op->setPatchDataIndex(dst_idx);
+    const bool dst_is_wide = dst_idx != d_scratch_idx && !d_prolongation_wide_refine_algorithm.isNull();
+    CFOwnerFill* cf_fill = dst_is_wide ? d_cf_fill_wide.get() : d_cf_fill.get();
+    cf_fill->resetPatchDataIndex(dst_ln, dst_idx);
     d_bc_op->setPatchDataIndex(dst_idx);
     d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
     d_bc_op->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
@@ -602,7 +613,6 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, con
         }
     }
 
-    const bool dst_is_wide = dst_idx != d_scratch_idx && !d_prolongation_wide_refine_algorithm.isNull();
     const Pointer<RefineAlgorithm<NDIM>>& algorithm =
         dst_is_wide ? d_prolongation_wide_refine_algorithm : d_prolongation_refine_algorithm;
     Pointer<RefineSchedule<NDIM>>& schedule =
@@ -613,13 +623,16 @@ PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx, con
                                              Pointer<PatchLevel<NDIM>>(),
                                              dst_ln - 1,
                                              d_hierarchy,
-                                             d_prolongation_refine_patch_strategy.getPointer());
+                                             dst_is_wide ? d_prolongation_wide_refine_patch_strategy.getPointer() :
+                                                           d_prolongation_refine_patch_strategy.getPointer());
     }
     RefineAlgorithm<NDIM> refiner;
     refiner.registerRefine(dst_idx, src_idx, dst_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     refiner.resetSchedule(schedule);
     schedule->fillData(d_solution_time);
     algorithm->resetSchedule(schedule);
+    const int persistent_idx = dst_is_wide ? d_solution->getComponentDescriptorIndex(0) : d_scratch_idx;
+    cf_fill->resetPatchDataIndex(dst_ln, persistent_idx);
     for (const auto& bc_coef : d_bc_coefs)
     {
         auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
@@ -698,6 +711,45 @@ PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const 
     d_synch_refine_algorithm->resetSchedule(schedule);
     return;
 } // xeqScheduleDataSynch
+
+void
+PoissonFACPreconditionerStrategy::prepareCoarseFineValues(const int error_idx,
+                                                          const int level_num,
+                                                          const bool performing_pre_sweeps,
+                                                          const bool performing_post_sweeps)
+{
+    if (level_num > d_coarsest_ln && !performing_pre_sweeps && !performing_post_sweeps)
+    {
+        TBOX_ERROR(d_object_name << "::smoothError():\n"
+                                 << "  level " << level_num << " is above the coarsest level " << d_coarsest_ln
+                                 << " and performing_pre_sweeps and performing_post_sweeps are false\n"
+                                 << "  set one of them to true" << std::endl);
+    }
+    d_smoother_cf_fill = d_cf_fill_wide ? d_cf_fill_wide.get() : d_cf_fill.get();
+    d_smoother_cf_fill->resetPatchDataIndex(level_num, error_idx);
+    if (performing_pre_sweeps && d_smoother_cf_fill->hasValues(level_num))
+    {
+        d_smoother_cf_fill->zeroTangentialValues(level_num);
+    }
+}
+
+void
+PoissonFACPreconditionerStrategy::fillCoarseFineValues(const int level_num)
+{
+    if (d_smoother_cf_fill->hasValues(level_num))
+    {
+        d_smoother_cf_fill->computeValues(level_num);
+        d_smoother_cf_fill->copyValues(level_num, d_solution_time);
+    }
+}
+
+void
+PoissonFACPreconditionerStrategy::finishCoarseFineValues(const int level_num)
+{
+    const int persistent_idx = d_cf_fill_wide ? d_solution->getComponentDescriptorIndex(0) : d_scratch_idx;
+    d_smoother_cf_fill->resetPatchDataIndex(level_num, persistent_idx);
+    d_smoother_cf_fill = nullptr;
+}
 
 void
 PoissonFACPreconditionerStrategy::negatePoissonSpecifications(PoissonSpecifications& negated_spec) const

@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
 
@@ -91,8 +92,11 @@ namespace IBTK
  *
  * Note: This class is specialized for the case of a single ghost cell width. Additional ghost cells are not guaranteed
  * to be filled correctly.
+ *
+ * @deprecated Use HierarchyGhostCellInterpolation, or CFOwnerFill in a FAC preconditioner.
  */
-class CartCellDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
+class IBTK_DEPRECATED("Use HierarchyGhostCellInterpolation, or CFOwnerFill in a FAC preconditioner.")
+    CartCellDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!
