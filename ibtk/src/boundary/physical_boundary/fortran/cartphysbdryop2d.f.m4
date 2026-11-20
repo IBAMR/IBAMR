@@ -76,7 +76,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine ccrobinphysbdryop1x2d(
-     &     U,U_gcw,
+     &     U,U_gcw,n_fill,
      &     acoef,bcoef,gcoef,
      &     location_index,
      &     ilower0,iupper0,
@@ -90,6 +90,7 @@ c
 c     Input.
 c
       INTEGER U_gcw
+      INTEGER n_fill
 
       INTEGER location_index
 
@@ -144,7 +145,7 @@ c
             a = acoef(j)
             b = bcoef(j)
             g = gcoef(j)
-            do i = 0,U_gcw-1
+            do i = 0,n_fill-1
                n = 1.d0+2.d0*i
                f_i = -(a*n*h-2.d0*b)/(a*n*h+2.d0*b)
                f_g = 2.d0*n*h/(a*n*h+2.d0*b)
@@ -171,7 +172,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine ccrobinphysbdryop1y2d(
-     &     U,U_gcw,
+     &     U,U_gcw,n_fill,
      &     acoef,bcoef,gcoef,
      &     location_index,
      &     ilower0,iupper0,
@@ -185,6 +186,7 @@ c
 c     Input.
 c
       INTEGER U_gcw
+      INTEGER n_fill
 
       INTEGER location_index
 
@@ -239,7 +241,7 @@ c
             a = acoef(i)
             b = bcoef(i)
             g = gcoef(i)
-            do j = 0,U_gcw-1
+            do j = 0,n_fill-1
                n = 1.d0+2.d0*j
                f_i = -(a*n*h-2.d0*b)/(a*n*h+2.d0*b)
                f_g = 2.d0*n*h/(a*n*h+2.d0*b)
@@ -367,7 +369,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine scrobinphysbdryop1x2d(
-     &     u0,u_gcw,
+     &     u0,u_gcw,n_fill,
      &     acoef,bcoef,gcoef,
      &     location_index,
      &     ilower0,iupper0,
@@ -381,6 +383,7 @@ c
 c     Input.
 c
       INTEGER u_gcw
+      INTEGER n_fill
 
       INTEGER location_index
 
@@ -439,7 +442,7 @@ c
 c     Dirichlet boundary conditions
                u_b = g/a
                u0(i_b,j) = u_b
-               do i = 1,u_gcw
+               do i = 1,n_fill
                   f_i = -1.d0
                   f_b = 2.d0
                   if (adjoint_op .eq. 1) then
@@ -454,7 +457,7 @@ c     Dirichlet boundary conditions
             else
 c     Robin boundary conditions
                u_b = u0(i_b,j)
-               do i = 1,u_gcw
+               do i = 1,n_fill
                   n = 2.d0*i
                   f_i = 1.d0
                   f_b = -a*n*h/b
@@ -484,7 +487,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine scrobinphysbdryop1y2d(
-     &     u1,u_gcw,
+     &     u1,u_gcw,n_fill,
      &     acoef,bcoef,gcoef,
      &     location_index,
      &     ilower0,iupper0,
@@ -498,6 +501,7 @@ c
 c     Input.
 c
       INTEGER u_gcw
+      INTEGER n_fill
 
       INTEGER location_index
 
@@ -556,7 +560,7 @@ c
 c     Dirichlet boundary conditions
                u_b = g/a
                u1(i,j_b) = u_b
-               do j = 1,u_gcw
+               do j = 1,n_fill
                   f_i = -1.d0
                   f_b = 2.d0
                   if (adjoint_op .eq. 1) then
@@ -571,7 +575,7 @@ c     Dirichlet boundary conditions
             else
 c     Robin boundary conditions
                u_b = u1(i,j_b)
-               do j = 1,u_gcw
+               do j = 1,n_fill
                   n = 2.d0*j
                   f_i = 1.d0
                   f_b = -a*n*h/b
@@ -721,19 +725,21 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine ccrobinphysbdryquadop1x2d(
-     &     U,U_gcw,
+     &     U,U_gcw,n_fill,
      &     acoef,bcoef,gcoef,
      &     location_index,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     blower1,bupper1,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
 c     Input.
 c
       INTEGER U_gcw
+      INTEGER n_fill
 
       INTEGER location_index
 
@@ -747,6 +753,8 @@ c
       REAL gcoef(blower1:bupper1)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -787,15 +795,21 @@ c
             a = acoef(j)
             b = bcoef(j)
             g = gcoef(j)
-            do i = 0,U_gcw-1
+            do i = 0,n_fill-1
                n = 1.d0+2.d0*i
                den = 1.d0/(4.d0*b*(1.d0+n)+a*h*n*(2.d0+n))
                f_i = den*(1.d0+n)*(4.d0*b-a*h*n*(2.d0+n))
                f_g = den*(4.d0*h*n*(1.d0+n))
                f_i2 = den*(a*h*n*n*n)
-               u_i = U(i_i-sgn*i,j)
-               u_i2 = U(i_i-sgn*(i+1),j)
-               U(i_g+sgn*i,j) = f_i*u_i + f_g*g + f_i2*u_i2
+               if (adjoint_op .eq. 1) then
+                  u_g = U(i_g+sgn*i,j)
+                  U(i_i-sgn*i,j) = U(i_i-sgn*i,j) + f_i*u_g
+                  U(i_i-sgn*(i+1),j) = U(i_i-sgn*(i+1),j) + f_i2*u_g
+               else
+                  u_i = U(i_i-sgn*i,j)
+                  u_i2 = U(i_i-sgn*(i+1),j)
+                  U(i_g+sgn*i,j) = f_i*u_i + f_g*g + f_i2*u_i2
+               endif
             enddo
          enddo
 
@@ -812,19 +826,21 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine ccrobinphysbdryquadop1y2d(
-     &     U,U_gcw,
+     &     U,U_gcw,n_fill,
      &     acoef,bcoef,gcoef,
      &     location_index,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     blower0,bupper0,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
 c     Input.
 c
       INTEGER U_gcw
+      INTEGER n_fill
 
       INTEGER location_index
 
@@ -838,6 +854,8 @@ c
       REAL gcoef(blower0:bupper0)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -878,15 +896,21 @@ c
             a = acoef(i)
             b = bcoef(i)
             g = gcoef(i)
-            do j = 0,U_gcw-1
+            do j = 0,n_fill-1
                n = 1.d0+2.d0*j
                den = 1.d0/(4.d0*b*(1.d0+n)+a*h*n*(2.d0+n))
                f_i = den*(1.d0+n)*(4.d0*b-a*h*n*(2.d0+n))
                f_g = den*4.d0*h*n*(1.d0+n)
                f_i2 = den*a*h*n*n*n
-               u_i = U(i,j_i-sgn*j)
-               u_i2 = U(i,j_i-sgn*(j+1))
-               U(i,j_g+sgn*j) = f_i*u_i + f_g*g + f_i2*u_i2
+               if (adjoint_op .eq. 1) then
+                  u_g = U(i,j_g+sgn*j)
+                  U(i,j_i-sgn*j) = U(i,j_i-sgn*j) + f_i*u_g
+                  U(i,j_i-sgn*(j+1)) = U(i,j_i-sgn*(j+1)) + f_i2*u_g
+               else
+                  u_i = U(i,j_i-sgn*j)
+                  u_i2 = U(i,j_i-sgn*(j+1))
+                  U(i,j_g+sgn*j) = f_i*u_i + f_g*g + f_i2*u_i2
+               endif
             enddo
          enddo
 
@@ -903,19 +927,21 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine scrobinphysbdryquadop1x2d(
-     &     u0,u_gcw,
+     &     u0,u_gcw,n_fill,
      &     acoef,bcoef,gcoef,
      &     location_index,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     blower1,bupper1,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
 c     Input.
 c
       INTEGER u_gcw
+      INTEGER n_fill
 
       INTEGER location_index
 
@@ -929,6 +955,8 @@ c
       REAL gcoef(blower1:bupper1)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -973,25 +1001,39 @@ c
 c     Dirichlet boundary conditions
                u_b = g/a
                u0(i_b,j) = u_b
-               do i = 1,u_gcw
+               do i = 1,n_fill
 c     The quadratic through u_b and the two nearest interior faces.
                   f_b = 0.5d0*dble((i+1)*(i+2))
                   f_i = -dble(i*(i+2))
                   f_i2 = 0.5d0*dble(i*(i+1))
-                  u_i = u0(i_b-sgn,j)
-                  u_i2 = u0(i_b-2*sgn,j)
-                  u0(i_b+sgn*i,j) = f_i2*u_i2 + f_i*u_i + f_b*u_b
+                  if (adjoint_op .eq. 1) then
+                     u_g = u0(i_b+sgn*i,j)
+                     u0(i_b-sgn,j) = u0(i_b-sgn,j) + f_i*u_g
+                     u0(i_b-2*sgn,j) = u0(i_b-2*sgn,j)
+     &                  + f_i2*u_g
+                     u0(i_b,j) = u0(i_b,j) + f_b*u_g
+                  else
+                     u_i = u0(i_b-sgn,j)
+                     u_i2 = u0(i_b-2*sgn,j)
+                     u0(i_b+sgn*i,j) = f_i2*u_i2 + f_i*u_i + f_b*u_b
+                  endif
                enddo
             else
 c     Robin boundary conditions
                u_b = u0(i_b,j)
-               do i = 1,u_gcw
+               do i = 1,n_fill
                   n = 2.d0*i
                   f_i = 1.d0
                   f_b = -a*n*h/b
                   f_g = n*h/b
-                  u_i = u0(i_b-sgn*i,j)
-                  u0(i_b+sgn*i,j) = f_i*u_i + f_b*u_b + f_g*g
+                  if (adjoint_op .eq. 1) then
+                     u_g = u0(i_b+sgn*i,j)
+                     u0(i_b-sgn*i,j) = u0(i_b-sgn*i,j) + f_i*u_g
+                     u0(i_b,j) = u0(i_b,j) + f_b*u_g
+                  else
+                     u_i = u0(i_b-sgn*i,j)
+                     u0(i_b+sgn*i,j) = f_i*u_i + f_b*u_b + f_g*g
+                  endif
                enddo
             endif
          enddo
@@ -1009,19 +1051,21 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine scrobinphysbdryquadop1y2d(
-     &     u1,u_gcw,
+     &     u1,u_gcw,n_fill,
      &     acoef,bcoef,gcoef,
      &     location_index,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     blower0,bupper0,
-     &     dx)
+     &     dx,
+     &     adjoint_op)
 c
       implicit none
 c
 c     Input.
 c
       INTEGER u_gcw
+      INTEGER n_fill
 
       INTEGER location_index
 
@@ -1035,6 +1079,8 @@ c
       REAL gcoef(blower0:bupper0)
 
       REAL dx(0:NDIM-1)
+
+      INTEGER adjoint_op
 c
 c     Input/Output.
 c
@@ -1079,30 +1125,283 @@ c
 c     Dirichlet boundary conditions
                u_b = g/a
                u1(i,j_b) = u_b
-               do j = 1,u_gcw
+               do j = 1,n_fill
 c     The quadratic through u_b and the two nearest interior faces.
                   f_b = 0.5d0*dble((j+1)*(j+2))
                   f_i = -dble(j*(j+2))
                   f_i2 = 0.5d0*dble(j*(j+1))
-                  u_i = u1(i,j_b-sgn)
-                  u_i2 = u1(i,j_b-2*sgn)
-                  u1(i,j_b+sgn*j) = f_i2*u_i2 + f_i*u_i + f_b*u_b
+                  if (adjoint_op .eq. 1) then
+                     u_g = u1(i,j_b+sgn*j)
+                     u1(i,j_b-sgn) = u1(i,j_b-sgn) + f_i*u_g
+                     u1(i,j_b-2*sgn) = u1(i,j_b-2*sgn)
+     &                  + f_i2*u_g
+                     u1(i,j_b) = u1(i,j_b) + f_b*u_g
+                  else
+                     u_i = u1(i,j_b-sgn)
+                     u_i2 = u1(i,j_b-2*sgn)
+                     u1(i,j_b+sgn*j) = f_i2*u_i2 + f_i*u_i + f_b*u_b
+                  endif
                enddo
             else
 c     Robin boundary conditions
                u_b = u1(i,j_b)
-               do j = 1,u_gcw
+               do j = 1,n_fill
                   n = 2.d0*j
                   f_i = 1.d0
                   f_b = -a*n*h/b
                   f_g = n*h/b
-                  u_i = u1(i,j_b-sgn*j)
-                  u1(i,j_b+sgn*j) = f_i*u_i + f_b*u_b + f_g*g
+                  if (adjoint_op .eq. 1) then
+                     u_g = u1(i,j_b+sgn*j)
+                     u1(i,j_b-sgn*j) = u1(i,j_b-sgn*j) + f_i*u_g
+                     u1(i,j_b) = u1(i,j_b) + f_b*u_g
+                  else
+                     u_i = u1(i,j_b-sgn*j)
+                     u1(i,j_b+sgn*j) = f_i*u_i + f_b*u_b + f_g*g
+                  endif
                enddo
             endif
          enddo
 
       endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Set cell centered boundary values along the codimension 2 boundary
+c     from the codimension 1 boundary values, exactly for quadratic
+c     functions.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ccrobinphysbdryquadop22d(
+     &     U,U_gcw,
+     &     location_index,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     blower0,bupper0,
+     &     blower1,bupper1,
+     &     adjoint_op)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw
+
+      INTEGER location_index
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      INTEGER blower0,bupper0
+      INTEGER blower1,bupper1
+
+      INTEGER adjoint_op
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      REAL    U_g,p
+      INTEGER i,i_bdry,i_next
+      INTEGER j,j_bdry,j_next
+c
+c     With the corner cell at (0,0), the value at (a,b) is U(a,0) +
+c     U(0,b) - U(0,0) + a*b*(U(1,1) - U(1,0) - U(0,1) + U(0,0)).
+c
+      if     (location_index .eq. 0) then
+
+         i_bdry = ilower0       ! lower x, lower y
+         j_bdry = ilower1
+         i_next = ilower0+1
+         j_next = ilower1+1
+
+      elseif (location_index .eq. 1) then
+
+         i_bdry = iupper0       ! upper x, lower y
+         j_bdry = ilower1
+         i_next = iupper0-1
+         j_next = ilower1+1
+
+      elseif (location_index .eq. 2) then
+
+         i_bdry = ilower0       ! lower x, upper y
+         j_bdry = iupper1
+         i_next = ilower0+1
+         j_next = iupper1-1
+
+      else
+
+         i_bdry = iupper0       ! upper x, upper y
+         j_bdry = iupper1
+         i_next = iupper0-1
+         j_next = iupper1-1
+
+      endif
+
+      do j = blower1,bupper1
+         do i = blower0,bupper0
+            p = dble(abs(i-i_bdry)*abs(j-j_bdry))
+            if (adjoint_op .eq. 1) then
+               U_g = U(i,j)
+               U(i,j_bdry) = U(i,j_bdry) + U_g
+               U(i_bdry,j) = U(i_bdry,j) + U_g
+               U(i_bdry,j_bdry) = U(i_bdry,j_bdry) + (p-1.d0)*U_g
+               U(i_next,j_next) = U(i_next,j_next) + p*U_g
+               U(i_next,j_bdry) = U(i_next,j_bdry) - p*U_g
+               U(i_bdry,j_next) = U(i_bdry,j_next) - p*U_g
+            else
+               U(i,j) = U(i,j_bdry) + U(i_bdry,j)
+     &              + (p-1.d0)*U(i_bdry,j_bdry)
+     &              + p*(U(i_next,j_next) - U(i_next,j_bdry)
+     &              - U(i_bdry,j_next))
+            endif
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Set side centered boundary values along the codimension 2 boundary
+c     from the codimension 1 boundary values, exactly for quadratic
+c     functions.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine scrobinphysbdryquadop22d(
+     &     u0,u1,u_gcw,
+     &     location_index,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     blower0,bupper0,
+     &     blower1,bupper1,
+     &     adjoint_op)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_gcw
+
+      INTEGER location_index
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      INTEGER blower0,bupper0
+      INTEGER blower1,bupper1
+
+      INTEGER adjoint_op
+c
+c     Input/Output.
+c
+      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      REAL    u_g,p
+      INTEGER i,i_bdry,i_face,i_shift
+      INTEGER j,j_bdry,j_face,j_shift
+c
+c     As for cell centered values, with the corner at the boundary face
+c     along the axis of the component and at the corner cell otherwise.
+c
+      if     (location_index .eq. 0) then
+
+         i_bdry = ilower0       ! lower x, lower y
+         j_bdry = ilower1
+         i_face = ilower0
+         j_face = ilower1
+         i_shift = +1
+         j_shift = +1
+
+      elseif (location_index .eq. 1) then
+
+         i_bdry = iupper0       ! upper x, lower y
+         j_bdry = ilower1
+         i_face = iupper0+1
+         j_face = ilower1
+         i_shift = -1
+         j_shift = +1
+
+      elseif (location_index .eq. 2) then
+
+         i_bdry = ilower0       ! lower x, upper y
+         j_bdry = iupper1
+         i_face = ilower0
+         j_face = iupper1+1
+         i_shift = +1
+         j_shift = -1
+
+      else
+
+         i_bdry = iupper0       ! upper x, upper y
+         j_bdry = iupper1
+         i_face = iupper0+1
+         j_face = iupper1+1
+         i_shift = -1
+         j_shift = -1
+
+      endif
+
+      do j = blower1,bupper1
+         do i = blower0,bupper0+1
+            if ( (i .lt. ilower0) .or. (i .gt. iupper0+1) ) then
+               p = dble(abs(i-i_face)*abs(j-j_bdry))
+               if (adjoint_op .eq. 1) then
+                  u_g = u0(i,j)
+                  u0(i,j_bdry) = u0(i,j_bdry) + u_g
+                  u0(i_face,j) = u0(i_face,j) + u_g
+                  u0(i_face,j_bdry) = u0(i_face,j_bdry) + (p-1.d0)*u_g
+                  u0(i_face+i_shift,j_bdry+j_shift) =
+     &                 u0(i_face+i_shift,j_bdry+j_shift) + p*u_g
+                  u0(i_face+i_shift,j_bdry) =
+     &                 u0(i_face+i_shift,j_bdry) - p*u_g
+                  u0(i_face,j_bdry+j_shift) =
+     &                 u0(i_face,j_bdry+j_shift) - p*u_g
+               else
+                  u0(i,j) = u0(i,j_bdry) + u0(i_face,j)
+     &                 + (p-1.d0)*u0(i_face,j_bdry)
+     &                 + p*(u0(i_face+i_shift,j_bdry+j_shift)
+     &                 - u0(i_face+i_shift,j_bdry)
+     &                 - u0(i_face,j_bdry+j_shift))
+               endif
+            endif
+         enddo
+      enddo
+
+      do j = blower1,bupper1+1
+         if ( (j .lt. ilower1) .or. (j .gt. iupper1+1) ) then
+            do i = blower0,bupper0
+               p = dble(abs(i-i_bdry)*abs(j-j_face))
+               if (adjoint_op .eq. 1) then
+                  u_g = u1(i,j)
+                  u1(i_bdry,j) = u1(i_bdry,j) + u_g
+                  u1(i,j_face) = u1(i,j_face) + u_g
+                  u1(i_bdry,j_face) = u1(i_bdry,j_face) + (p-1.d0)*u_g
+                  u1(i_bdry+i_shift,j_face+j_shift) =
+     &                 u1(i_bdry+i_shift,j_face+j_shift) + p*u_g
+                  u1(i_bdry+i_shift,j_face) =
+     &                 u1(i_bdry+i_shift,j_face) - p*u_g
+                  u1(i_bdry,j_face+j_shift) =
+     &                 u1(i_bdry,j_face+j_shift) - p*u_g
+               else
+                  u1(i,j) = u1(i_bdry,j) + u1(i,j_face)
+     &                 + (p-1.d0)*u1(i_bdry,j_face)
+     &                 + p*(u1(i_bdry+i_shift,j_face+j_shift)
+     &                 - u1(i_bdry+i_shift,j_face)
+     &                 - u1(i_bdry,j_face+j_shift))
+               endif
+            enddo
+         endif
+      enddo
 c
       return
       end
