@@ -1,0 +1,9 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+Program abort called with error message
+
+    StaggeredStokesPETScLevelSolver::initializeSolverState():
+  the velocity data of the solution vector has ghost cell width 0
+  allocate the velocity and pressure data with a ghost cell width of at least one
+
