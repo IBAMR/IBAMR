@@ -13,11 +13,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolver.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <IntVector.h>
 #include <LocationIndexRobinBcCoefs.h>
@@ -122,6 +124,26 @@ StaggeredStokesSolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysical
     d_bc_helper = bc_helper;
     return;
 } // setPhysicalBoundaryHelper
+
+bool
+StaggeredStokesSolver::supportsBdryInterpType(const std::string& bdry_interp_type) const
+{
+    return bdry_interp_type == "LINEAR";
+} // supportsBdryInterpType
+
+void
+StaggeredStokesSolver::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    if (!supportsBdryInterpType(bdry_treatment.bdry_interp_type))
+    {
+        TBOX_ERROR(d_object_name << "::setBoundaryTreatment():\n"
+                                 << "  this solver does not support bdry_interp_type = "
+                                 << bdry_treatment.bdry_interp_type << "\n"
+                                 << "  use bdry_interp_type = LINEAR" << std::endl);
+    }
+    d_bdry_treatment = bdry_treatment;
+    return;
+} // setBoundaryTreatment
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

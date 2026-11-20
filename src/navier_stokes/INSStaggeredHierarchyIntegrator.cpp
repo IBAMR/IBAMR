@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
@@ -48,6 +49,7 @@
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/PoissonUtilities.h>
+#include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonSolverManager.h>
 #include <ibtk/SideDataSynchronization.h>
 #include <ibtk/ibtk_enums.h>
@@ -410,6 +412,7 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy
     }
     return;
 } // copy_side_to_face
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -573,7 +576,14 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     }
     d_staggered_pressure_bc_coef = new INSStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
     d_P_bc_coef = d_staggered_pressure_bc_coef;
-    d_U_P_bdry_interp_type = input_db->getStringWithDefault("U_P_bdry_interp_type", d_U_P_bdry_interp_type);
+
+    if (input_db->keyExists("U_P_bdry_interp_type"))
+    {
+        TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
+                                 << "  input key U_P_bdry_interp_type is no longer supported\n"
+                                 << "  set bdry_interp_type instead" << std::endl);
+    }
+    getBoundaryTreatmentFromInput(input_db, "INSStaggeredHierarchyIntegrator", d_stokes_solver_db);
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -742,6 +752,7 @@ INSStaggeredHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()
     {
         d_divergence_free_velocity_phys_bdry_op =
             std::make_unique<INSStaggeredDivergenceFreePhysBdryOp>(this, /*homogeneous_bc*/ false);
+        d_divergence_free_velocity_phys_bdry_op->setBoundaryTreatment(getBoundaryTreatment());
     }
     return d_divergence_free_velocity_phys_bdry_op.get();
 } // getDivergenceFreeVelocityPhysBdryOp
@@ -1043,6 +1054,31 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
         if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
     }
+
+    // Pass the discretization at physical boundaries to the Stokes solver and the velocity boundary conditions. The
+    // Stokes preconditioners use it unless their databases set bdry_interp_type or bdry_extrap_type.
+    const BoundaryTreatment bdry_treatment = getBoundaryTreatment();
+    d_stokes_solver->setBoundaryTreatment(bdry_treatment);
+    for (const auto& U_bc_coef : d_staggered_velocity_bc_coefs)
+    {
+        U_bc_coef->setBoundaryTreatment(bdry_treatment);
+    }
+    Pointer<KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
+    Pointer<StaggeredStokesSolver> p_stokes_precond =
+        p_stokes_krylov_solver ? p_stokes_krylov_solver->getPreconditioner() : nullptr;
+    if (p_stokes_precond)
+    {
+        setPreconditionerBoundaryTreatment(*p_stokes_precond, "Stokes preconditioner", d_stokes_precond_db);
+        Pointer<KrylovLinearSolver> p_stokes_krylov_precond = p_stokes_precond;
+        Pointer<StaggeredStokesSolver> p_stokes_sub_precond =
+            p_stokes_krylov_precond ? p_stokes_krylov_precond->getPreconditioner() : nullptr;
+        if (p_stokes_sub_precond)
+        {
+            setPreconditionerBoundaryTreatment(
+                *p_stokes_sub_precond, "Stokes sub-preconditioner", d_stokes_sub_precond_db);
+        }
+    }
+
     if (p_stokes_linear_solver)
     {
         Pointer<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
@@ -1075,7 +1111,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
     // Setup a boundary op to set velocity boundary conditions on regrid.
     d_fill_after_regrid_phys_bdry_bc_op =
-        std::make_unique<CartSideRobinPhysBdryOp>(d_U_scratch_idx, d_U_bc_coefs, false);
+        std::make_unique<CartSideRobinPhysBdryOp>(d_U_scratch_idx, d_U_bc_coefs, false, d_bdry_interp_type);
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
@@ -1232,7 +1268,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
 
         // Add the traction term before the coarse-fine synchronization, which restricts the complete fine value.
         d_bc_helper->addNormalTractionViscousTerm(
-            U_rhs_idx, d_U_scratch_idx, U_rhs_problem_coefs.getDConstant(), d_U_bc_coefs, d_U_P_bdry_interp_type);
+            U_rhs_idx, d_U_scratch_idx, U_rhs_problem_coefs.getDConstant(), d_U_bc_coefs, d_bdry_interp_type);
         d_hier_math_ops->synchronizeCoarseFineBoundary({ U_rhs_idx });
     }
 
@@ -2010,7 +2046,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      CONSISTENT_TYPE_2_BDRY,
                                                      d_U_bc_coefs,
                                                      nullptr,
-                                                     d_U_P_bdry_interp_type);
+                                                     d_bdry_interp_type);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
@@ -2203,7 +2239,9 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                          DATA_COARSEN_TYPE,
                                                          d_bdry_extrap_type, // TODO: update variable name
                                                          CONSISTENT_TYPE_2_BDRY,
-                                                         d_U_bc_coefs);
+                                                         d_U_bc_coefs,
+                                                         nullptr,
+                                                         d_bdry_interp_type);
         HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
         U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, coarsest_ln, finest_ln);
         U_bdry_bc_fill_op.fillData(d_integrator_time);

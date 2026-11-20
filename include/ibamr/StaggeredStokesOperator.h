@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
@@ -75,8 +76,7 @@ public:
      * which physical boundary conditions are not present, default "LINEAR"
      *
      * <code>bdry_interp_type<\code>: String that specifies how to fill ghost cells at physical boundaries at which
-     * physical boundary conditions are present, default "LINEAR".  The value must be "LINEAR" if TRACTION conditions
-     * are imposed on the normal velocity.
+     * physical boundary conditions are present, "LINEAR" (default) or "QUADRATIC"
      *
      * <code>use_cf_interpolation<\code>: Bool that specifies whether to use interpolation involving both coarse and
      * fine components, default TRUE
@@ -130,6 +130,13 @@ public:
      * conditions are TRACTION conditions and the domain is not periodic in every direction.
      */
     virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+
+    /*!
+     * \brief Set the interpolation type at physical boundaries at which boundary conditions are present and the
+     * extrapolation type at the other physical boundaries, as the input keys <code>bdry_interp_type</code> and
+     * <code>bdry_extrap_type</code> do.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment);
 
     /*!
      * \name Linear operator functionality.

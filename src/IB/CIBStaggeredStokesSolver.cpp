@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/CIBSaddlePointSolver.h>
 #include <ibamr/CIBStaggeredStokesSolver.h>
 #include <ibamr/CIBStrategy.h>
@@ -252,6 +253,20 @@ CIBStaggeredStokesSolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysi
     d_sp_solver->setPhysicalBoundaryHelper(bc_helper);
     return;
 } // setPhysicalBoundaryHelper
+
+bool
+CIBStaggeredStokesSolver::supportsBdryInterpType(const std::string& /*bdry_interp_type*/) const
+{
+    return true;
+} // supportsBdryInterpType
+
+void
+CIBStaggeredStokesSolver::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_bdry_treatment = bdry_treatment;
+    d_sp_solver->setBoundaryTreatment(d_bdry_treatment);
+    return;
+} // setBoundaryTreatment
 
 bool
 CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)

@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/BoundaryTreatment.h>
+
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 
 #include <tbox/DescribedClass.h>
@@ -169,6 +171,12 @@ public:
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
     void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+
+    /*!
+     * \brief Set the discretization at physical boundaries of the extended Stokes operator, but not of the
+     * preconditioner.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment);
 
     /*!
      * \brief Return the linear operator for the saddle-point solver.

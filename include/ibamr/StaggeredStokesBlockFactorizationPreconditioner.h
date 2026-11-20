@@ -96,6 +96,17 @@ public:
     void setFactorizationType(FactorizationType factorization_type);
 
     /*!
+     * \brief Return true: the preconditioner applies any interpolation type.
+     */
+    bool supportsBdryInterpType(const std::string& bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries. The preconditioner uses its interpolation and extrapolation
+     * types to fill the ghost values of the pressure.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
+
+    /*!
      * \name Linear solver functionality.
      */
     //\{
