@@ -1,0 +1,3 @@
+Fixed: Make IBAMR::VCStaggeredStokesOperator and IBAMR::CIBStaggeredStokesOperator apply without a physical boundary helper, as IBAMR::StaggeredStokesOperator does, instead of dereferencing a null pointer.
+<br>
+(Boyce Griffith, 2026/10/30)

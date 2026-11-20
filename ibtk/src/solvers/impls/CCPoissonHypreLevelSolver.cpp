@@ -30,7 +30,6 @@
 
 #include <BoundaryBox.h>
 #include <Box.h>
-#include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 #include <CellDataFactory.h>
@@ -198,6 +197,8 @@ bool
 CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
+
+    if (d_enable_logging) plog << d_object_name << "::solveSystem():" << std::endl;
 
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -367,10 +368,6 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid.
-    Pointer<CartesianGridGeometry<NDIM>> grid_geometry = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_level->getRatio();
-    const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift(ratio);
-
     HYPRE_StructGridCreate(communicator, NDIM, &d_grid);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
@@ -383,7 +380,8 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     std::array<HYPRE_Int, 3> hypre_periodic_shift;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        hypre_periodic_shift[d] = periodic_shift(d);
+        hypre_periodic_shift[d] =
+            get_hypre_periodic_shift(*d_level, d_object_name, d, /*require_periodic_images*/ false);
     }
     for (int d = NDIM; d < 3; ++d)
     {

@@ -88,6 +88,17 @@ void initialize_hypre();
 std::array<HYPRE_Int, NDIM> hypre_array(const SAMRAI::hier::Index<NDIM>& index);
 
 /*!
+ * \brief Return the periodic shift to give hypre in direction \a d for the grid of \a level: the periodic shift of the
+ * domain if the level has cells at both ends of the domain in that direction, and zero otherwise. If
+ * \a require_periodic_images, throw an error naming \a object_name unless those cells are periodic images of each
+ * other, as the side-centered solvers require.
+ */
+int get_hypre_periodic_shift(const SAMRAI::hier::PatchLevel<NDIM>& level,
+                             const std::string& object_name,
+                             unsigned int d,
+                             bool require_periodic_images);
+
+/*!
  * \brief Copy data from a vector of Hypre vectors to SAMRAI cell centered data with depth equal to number of Hypre
  * vectors.
  *
