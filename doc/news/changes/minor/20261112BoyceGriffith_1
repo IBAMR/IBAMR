@@ -1,0 +1,3 @@
+Fixed: The surface tension and Marangoni coefficients of SurfaceTensionForceFunction and MarangoniSurfaceTensionForceFunction, and the Marangoni force, are now applied once per fill. With more than one patch on a process, they were applied to the whole hierarchy once per patch, so the force depended on the patch layout unless the surface tension coefficient was zero or one, no Marangoni force was present, and no coefficient function was registered.
+<br>
+(Boyce Griffith, 2026/11/12)

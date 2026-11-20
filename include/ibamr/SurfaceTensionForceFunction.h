@@ -210,6 +210,13 @@ protected:
      */
     int getMinimumGhostWidth(const std::string& kernel_fcn);
 
+    /*!
+     * Add other forces to the force with patch data index \p data_idx after the surface tension coefficient is
+     * applied on every patch and before the force is masked. setDataOnPatchHierarchy() calls this function except at
+     * the initial time. The default implementation does nothing.
+     */
+    virtual void addForcesOnPatchHierarchy(int data_idx, double data_time);
+
     const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_ls_var;
     TimeSteppingType d_ts_type;
