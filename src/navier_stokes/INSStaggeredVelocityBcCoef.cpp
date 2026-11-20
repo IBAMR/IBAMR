@@ -207,6 +207,45 @@ INSStaggeredVelocityBcCoef::dependsOnTargetPatchData(const Patch<NDIM>& patch,
            traction_data_depend_on_velocity(d_bc_coefs[d_comp_idx], d_comp_idx, patch, bdry_box, fill_time);
 } // dependsOnTargetPatchData
 
+std::vector<std::vector<std::pair<SideIndex<NDIM>, double>>>
+INSStaggeredVelocityBcCoef::getTractionStencil(const Patch<NDIM>& patch,
+                                               const BoundaryBox<NDIM>& bdry_box,
+                                               const Box<NDIM>& bc_coef_box,
+                                               const Box<NDIM>& ghost_box,
+                                               const double fill_time) const
+{
+    std::vector<std::vector<std::pair<SideIndex<NDIM>, double>>> stencils(bc_coef_box.size());
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index / 2;
+    if (d_traction_bc_type != TRACTION || d_comp_idx == bdry_normal_axis)
+    {
+        return stencils;
+    }
+    if (!d_fluid_solver->getPatchHierarchy())
+    {
+        TBOX_ERROR("INSStaggeredVelocityBcCoef::getTractionStencil():\n"
+                   << "  the fluid solver has no patch hierarchy\n"
+                   << "  call initializePatchHierarchy() on the fluid solver before applying these boundary "
+                      "conditions\n");
+    }
+    const BoxArray<NDIM> domain = PhysicalBoundaryUtilities::getPeriodicPhysicalDomain(
+        d_fluid_solver->getPatchHierarchy()->getGridGeometry(), patch.getPatchGeometry()->getRatio());
+    const NormalVelocityPatch normal_velocity_patch(patch, bdry_normal_axis, d_comp_idx);
+    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    {
+        stencils[bc_coef_box.offset(it())] = get_traction_stencil(it(),
+                                                                  bdry_normal_axis,
+                                                                  location_index % 2 == 0,
+                                                                  d_comp_idx,
+                                                                  d_bc_coefs[bdry_normal_axis],
+                                                                  normal_velocity_patch,
+                                                                  domain,
+                                                                  ghost_box,
+                                                                  fill_time);
+    }
+    return stencils;
+} // getTractionStencil
+
 void
 INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
                                        Pointer<ArrayData<NDIM, double>>& bcoef_data,

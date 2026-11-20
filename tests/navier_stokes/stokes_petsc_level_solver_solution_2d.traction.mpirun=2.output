@@ -3,4 +3,4 @@ INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 number_of_patches = 6
 number_of_sides = 1440
-velocity_l2_norm = 69.345
+velocity_l2_norm = 69.211
