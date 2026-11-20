@@ -1255,6 +1255,19 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             }
             else if (u_sc_data && d_use_u_interp_correction)
             {
+                // The point x_qp -/+ n dh is at most ceil(dh / patch_dx_min) cells from a quadrature point in the
+                // patch. The kernel uses getMinimumGhostWidth() - 1 more cells. The outermost ghost layer is unused.
+                const int required_gcw = static_cast<int>(std::ceil(dh / patch_dx_min)) +
+                                         LEInteractor::getMinimumGhostWidth(d_default_interp_spec.kernel_fcn);
+                if (u_sc_data->getGhostCellWidth().min() < required_gcw)
+                {
+                    TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
+                                             << "  the velocity ghost cell width "
+                                             << u_sc_data->getGhostCellWidth().min() << " is less than " << required_gcw
+                                             << ", the width that use_u_interp_correction requires\n"
+                                             << "  increase min_ghost_cell_width\n");
+                }
+
                 LEInteractor::interpolate(
                     U_in_qp, NDIM, x_in_qp, NDIM, u_sc_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 

@@ -1,0 +1,3 @@
+Changed: Emit an error in IBAMR::IIMethod if use_u_interp_correction is on and the velocity ghost cell width is too small for the interpolation of the correction. The message states the required width and names the input key min_ghost_cell_width.
+<br>
+(Boyce Griffith, 2026/11/02)
