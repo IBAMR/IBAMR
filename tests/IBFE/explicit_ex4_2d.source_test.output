@@ -36,20 +36,20 @@ IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source s
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 11
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.3730300296377628623e-15
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.0779502274754670268e-15
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.2690272032459310763e-15
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.4432961793972263905e-16
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0033334021315537323837
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.0033334021315537323837
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0033334021421607277005
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.0033334021421607277005
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -80,8 +80,8 @@ IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to 
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003332089372
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.006665491504
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003332089392
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.006665491534
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -112,8 +112,8 @@ IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to 
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003331215401
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.009996706905
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003331215409
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.009996706943
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -144,8 +144,8 @@ IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to 
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003330341731
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.013327048636
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003330341714
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.013327048657
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -176,8 +176,8 @@ IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to 
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003329468277
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.016656516913
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003329468221
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.016656516878
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -208,8 +208,8 @@ IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to 
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003328594853
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.019985111765
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003328594744
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.019985111622
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -240,8 +240,8 @@ IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to 
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003327721731
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.023312833496
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003327721558
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.023312833180
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -272,8 +272,8 @@ IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to 
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003326851056
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.026639684552
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003326850806
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.026639683986
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -304,8 +304,8 @@ IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to 
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003325980512
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.029965665063
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003325980175
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.029965664162
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -336,8 +336,8 @@ IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to 
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003325110005
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.033290775068
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003325109570
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.033290773732
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 

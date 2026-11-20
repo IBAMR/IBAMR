@@ -1,0 +1,3 @@
+Fixed: Set the pressure boundary value at TRACTION open boundaries to minus the normal traction at the time level of the pressure, and add the viscous part of the TRACTION condition, in IBAMR::INSStaggeredHierarchyIntegrator and IBAMR::StaggeredStokesOperator.
+<br>
+(Boyce Griffith, 2026/10/01)

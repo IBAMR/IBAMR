@@ -139,6 +139,12 @@ public:
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> getStokesSolver();
 
     /*!
+     * Return the time at which the pressure is defined and the body force is evaluated. This time is the new time for
+     * BDF viscous time stepping and the middle of the time step otherwise.
+     */
+    double getPressureTime(double current_time, double new_time) const override;
+
+    /*!
      * Indicate that the Stokes solver should be (re-)initialized before the
      * next time step.
      */
