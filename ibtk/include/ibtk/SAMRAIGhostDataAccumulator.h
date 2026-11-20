@@ -84,7 +84,8 @@ public:
      * of \a bdry_op. All processes must call this function.
      *
      * \param idx  Patch data index of the data, with the ghost cell width of the constructor.
-     * \param bdry_op  Boundary operator whose patch data index is set to \a idx, or null for no transpose.
+     * \param bdry_op  Boundary operator, or null for no transpose. Its patch data indices are set to \a idx during the
+     * call and restored on return.
      * \param fill_time  Time at which the boundary operator is evaluated.
      * \param active_patch_nums  If not null, one vector per level, coarsest first, of the numbers of the patches owned
      * by this process whose data may be nonzero. The function skips the other patches, whose data must be zero.

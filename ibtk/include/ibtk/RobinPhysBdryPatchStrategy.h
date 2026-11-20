@@ -83,6 +83,11 @@ public:
     void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices);
 
     /*!
+     * \brief Return the patch data indices operated upon by this class.
+     */
+    const std::set<int>& getPatchDataIndices() const;
+
+    /*!
      * \brief Reset the Robin boundary condition specification object employed
      * by this class to set physical boundary conditions.
      *

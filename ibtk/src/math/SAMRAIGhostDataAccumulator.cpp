@@ -56,6 +56,7 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <set>
 #include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
@@ -762,8 +763,10 @@ SAMRAIGhostDataAccumulator::accumulateGhostData(const int idx,
         IBTK_MPI::sumReduction(active_flags.data(), static_cast<int>(active_flags.size()));
     }
 
+    std::set<int> bdry_op_indices;
     if (bdry_op)
     {
+        bdry_op_indices = bdry_op->getPatchDataIndices();
         bdry_op->setPatchDataIndex(idx);
     }
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -819,6 +822,10 @@ SAMRAIGhostDataAccumulator::accumulateGhostData(const int idx,
         {
             level_schedules.gap_schedule->communicate();
         }
+    }
+    if (bdry_op)
+    {
+        bdry_op->setPatchDataIndices(bdry_op_indices);
     }
     IBTK_TIMER_STOP(t_accumulate_ghost_data);
 }
