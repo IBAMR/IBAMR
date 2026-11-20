@@ -62,9 +62,6 @@ static const std::string DATA_REFINE_TYPE = "NONE";
 static const bool USE_CF_INTERPOLATION = true;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
-// Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
@@ -142,7 +139,7 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
                                                       DATA_REFINE_TYPE,
                                                       USE_CF_INTERPOLATION,
                                                       DATA_COARSEN_TYPE,
-                                                      BDRY_EXTRAP_TYPE,
+                                                      d_bdry_extrap_type,
                                                       CONSISTENT_TYPE_2_BDRY,
                                                       d_bc_coefs,
                                                       d_fill_pattern,
@@ -246,7 +243,7 @@ VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
                                                     DATA_REFINE_TYPE,
                                                     USE_CF_INTERPOLATION,
                                                     DATA_COARSEN_TYPE,
-                                                    BDRY_EXTRAP_TYPE,
+                                                    d_bdry_extrap_type,
                                                     CONSISTENT_TYPE_2_BDRY,
                                                     d_bc_coefs,
                                                     d_fill_pattern,

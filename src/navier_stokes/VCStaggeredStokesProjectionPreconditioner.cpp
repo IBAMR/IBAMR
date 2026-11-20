@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/VCStaggeredStokesProjectionPreconditioner.h>
 #include <ibamr/ibamr_utilities.h>
@@ -66,9 +67,6 @@ static const int CELLG = 1;
 static const std::string DATA_REFINE_TYPE = "NONE";
 static const bool USE_CF_INTERPOLATION = true;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
@@ -153,6 +151,19 @@ VCStaggeredStokesProjectionPreconditioner::~VCStaggeredStokesProjectionPrecondit
     deallocateSolverState();
     return;
 } // ~VCStaggeredStokesProjectionPreconditioner
+
+bool
+VCStaggeredStokesProjectionPreconditioner::supportsBdryInterpType(const std::string& /*bdry_interp_type*/) const
+{
+    return true;
+} // supportsBdryInterpType
+
+void
+VCStaggeredStokesProjectionPreconditioner::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_bdry_treatment = bdry_treatment;
+    return;
+} // setBoundaryTreatment
 
 bool
 VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
@@ -386,10 +397,11 @@ VCStaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVec
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
                                                           DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
+                                                          d_bdry_treatment.bdry_extrap_type,
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           d_P_bc_coef,
-                                                          fill_pattern);
+                                                          fill_pattern,
+                                                          d_bdry_treatment.bdry_interp_type);
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
     d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);

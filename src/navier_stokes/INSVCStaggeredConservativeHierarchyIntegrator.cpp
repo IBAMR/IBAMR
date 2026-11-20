@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/BrinkmanPenalizationStrategy.h>
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
@@ -147,11 +148,25 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
 
     // Give the mass and momentum integrator the bdry_extrap_type of this integrator, unless mass_momentum_integrator_db
     // sets one.
-    if (!mass_momentum_db->keyExists("bdry_extrap_type") && !mass_momentum_db->keyExists("velocity_bdry_extrap_type"))
+    BoundaryTreatment bdry_treatment = getBoundaryTreatment();
+    const bool sets_bdry_extrap_type =
+        mass_momentum_db->keyExists("bdry_extrap_type") || mass_momentum_db->keyExists("velocity_bdry_extrap_type");
+    if (sets_bdry_extrap_type)
+    {
+        bdry_treatment.bdry_extrap_type = mass_momentum_db->keyExists("velocity_bdry_extrap_type") ?
+                                              mass_momentum_db->getString("velocity_bdry_extrap_type") :
+                                              mass_momentum_db->getString("bdry_extrap_type");
+    }
+    else
     {
         Pointer<INSVCStaggeredConservativeMassMomentumRKIntegrator> rho_p_rk_integrator = d_rho_p_integrator;
         rho_p_rk_integrator->setVelocityBdryExtrapType(d_bdry_extrap_type);
     }
+    logBoundaryTreatment("INSVCStaggeredConservativeHierarchyIntegrator",
+                         "mass and momentum integrator",
+                         bdry_treatment,
+                         /*uses_bdry_extrap_type*/ true,
+                         sets_bdry_extrap_type ? "mass_momentum_integrator_db" : "");
 
     d_convective_op_type = "NONE";
 
@@ -396,7 +411,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                               U_rhs_problem_coefs.getDPatchDataId(),
                                               d_mu_vc_interp_type,
                                               d_U_bc_coefs,
-                                              /*bdry_interp_type*/ "LINEAR");
+                                              d_bdry_interp_type);
     d_hier_math_ops->vc_laplace(U_rhs_idx,
                                 U_rhs_var,
                                 1.0,
