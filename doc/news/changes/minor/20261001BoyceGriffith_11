@@ -1,0 +1,3 @@
+Fixed: Set the tangential TRACTION velocity ghost values of IBAMR::INSStaggeredVelocityBcCoef at physical boundary corners from the normal velocity prescribed on the adjacent boundary or extrapolated along the boundary.
+<br>
+(Boyce Griffith, 2026/10/01)

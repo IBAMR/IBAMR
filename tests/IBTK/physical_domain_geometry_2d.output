@@ -1,2 +1,12 @@
 sum over patches of the shift of the lower corner along axis 0, in cells = -2
 sum over patches of the shift of the lower corner along axis 1, in cells = -2
+ratio 1: cells in the periodic physical domain = 192
+ratio 1: faces on the lower boundary normal to axis 0 = 8
+ratio 1: faces on the upper boundary normal to axis 0 = 8
+ratio 1: faces on the lower boundary normal to axis 1 = 24
+ratio 1: faces on the upper boundary normal to axis 1 = 24
+ratio 2: cells in the periodic physical domain = 768
+ratio 2: faces on the lower boundary normal to axis 0 = 16
+ratio 2: faces on the upper boundary normal to axis 0 = 16
+ratio 2: faces on the lower boundary normal to axis 1 = 48
+ratio 2: faces on the upper boundary normal to axis 1 = 48

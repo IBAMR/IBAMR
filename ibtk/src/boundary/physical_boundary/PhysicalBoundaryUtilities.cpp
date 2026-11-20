@@ -21,10 +21,16 @@
 
 #include <BoundaryBox.h>
 #include <Box.h>
+#include <BoxArray.h>
+#include <BoxList.h>
+#include <GridGeometry.h>
+#include <Index.h>
+#include <IntVector.h>
 #include <Patch.h>
 #include <PatchGeometry.h>
 
 #include <algorithm>
+#include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -248,6 +254,67 @@ PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(const BoundaryBox<NDIM>& bd
     }
     return side_bdry_box;
 } // makeSideBoundaryCodim1Box
+
+std::vector<IntVector<NDIM>>
+PhysicalBoundaryUtilities::getPeriodicImageShifts(const IntVector<NDIM>& periodic_shift)
+{
+    std::vector<IntVector<NDIM>> shifts;
+    int num_offsets = 1;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        num_offsets *= 3;
+    }
+    for (int offset = 0; offset < num_offsets; ++offset)
+    {
+        IntVector<NDIM> image_shift(0);
+        bool is_image = false;
+        bool is_valid = true;
+        for (unsigned int d = 0, k = offset; d < NDIM; ++d, k /= 3)
+        {
+            const int n = static_cast<int>(k % 3) - 1;
+            image_shift(d) = n * periodic_shift(d);
+            is_image = is_image || n != 0;
+            is_valid = is_valid && (n == 0 || periodic_shift(d) != 0);
+        }
+        if (is_image && is_valid)
+        {
+            shifts.push_back(image_shift);
+        }
+    }
+    return shifts;
+} // getPeriodicImageShifts
+
+BoxArray<NDIM>
+PhysicalBoundaryUtilities::getPeriodicPhysicalDomain(const Pointer<GridGeometry<NDIM>>& grid_geom,
+                                                     const IntVector<NDIM>& ratio)
+{
+    BoxArray<NDIM> domain = grid_geom->getPhysicalDomain();
+    domain.refine(ratio);
+    BoxList<NDIM> domain_list(domain);
+    for (const IntVector<NDIM>& image_shift : getPeriodicImageShifts(grid_geom->getPeriodicShift(ratio)))
+    {
+        BoxArray<NDIM> image_domain = domain;
+        for (int b = 0; b < image_domain.size(); ++b)
+        {
+            image_domain[b].shift(image_shift);
+        }
+        domain_list.unionBoxes(BoxList<NDIM>(image_domain));
+    }
+    return BoxArray<NDIM>(domain_list);
+} // getPeriodicPhysicalDomain
+
+bool
+PhysicalBoundaryUtilities::isBoundaryFace(hier::Index<NDIM> i_face,
+                                          const unsigned int bdry_normal_axis,
+                                          const bool bdry_is_lower,
+                                          const BoxArray<NDIM>& domain)
+{
+    if (!bdry_is_lower)
+    {
+        i_face(bdry_normal_axis) -= 1;
+    }
+    return domain.contains(i_face);
+} // isBoundaryFace
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

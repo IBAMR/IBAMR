@@ -10,7 +10,8 @@ INSStaggeredHierarchyIntegrator {
    rho = 1.0
 }
 test {
-   ghost_width = 1
+   pressure_constant = 0.0
+   pressure_gradient = 0.0, 0.0
 }
 Main {
    log_file_name = "output"
