@@ -235,6 +235,13 @@ INSStaggeredWavePropConvectiveOperator::~INSStaggeredWavePropConvectiveOperator(
 } // ~INSStaggeredWavePropConvectiveOperator
 
 void
+INSStaggeredWavePropConvectiveOperator::setBdryExtrapType(const std::string& bdry_extrap_type)
+{
+    d_bdry_extrap_type = bdry_extrap_type;
+    return;
+} // setBdryExtrapType
+
+void
 INSStaggeredWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
 #if !defined(NDEBUG)

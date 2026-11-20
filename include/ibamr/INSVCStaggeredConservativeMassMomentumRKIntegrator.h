@@ -123,6 +123,12 @@ public:
     void setSideCenteredVelocityBoundaryConditions(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op);
 
     /*!
+     * \brief Set the type of extrapolation of the velocity beyond physical boundaries for coarse-fine interpolation.
+     * The physical boundary values come from the velocity boundary operator.
+     */
+    void setVelocityBdryExtrapType(const std::string& bdry_extrap_type);
+
+    /*!
      * \brief Get the newly constructed side-centered density patch data index.
      *
      * \note This data is produced as a part of the apply() routine and should be used
@@ -210,7 +216,7 @@ protected:
     IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;
 
     // Cached communications operators.
-    std::string d_velocity_bdry_extrap_type = "CONSTANT";
+    std::string d_velocity_bdry_extrap_type = "LINEAR";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_v_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_v_bdry_fill;
 

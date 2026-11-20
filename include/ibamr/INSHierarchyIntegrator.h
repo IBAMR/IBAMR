@@ -489,6 +489,11 @@ protected:
                            bool register_for_restart);
 
     /*!
+     * Give the convective operator the bdry_extrap_type of this integrator, unless convective_op_db sets one.
+     */
+    void setConvectiveOperatorBdryExtrapType();
+
+    /*!
      * Pure virtual method to project the velocity field following a regridding operation.
      */
     virtual void regridProjection(const bool initial_time) = 0;

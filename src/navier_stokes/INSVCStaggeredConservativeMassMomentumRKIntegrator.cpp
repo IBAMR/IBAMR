@@ -1598,6 +1598,13 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredVelocityBound
     return;
 } // setSideCenteredVelocityBoundaryConditions
 
+void
+INSVCStaggeredConservativeMassMomentumRKIntegrator::setVelocityBdryExtrapType(const std::string& bdry_extrap_type)
+{
+    d_velocity_bdry_extrap_type = bdry_extrap_type;
+    return;
+} // setVelocityBdryExtrapType
+
 int
 INSVCStaggeredConservativeMassMomentumRKIntegrator::getUpdatedSideCenteredDensityPatchDataIndex()
 {
