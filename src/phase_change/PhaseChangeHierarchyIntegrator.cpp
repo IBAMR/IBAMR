@@ -156,8 +156,8 @@ static const int NOGHOSTS = 0;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE = "NONE";
-static const bool USE_CF_INTERPOLATION = true;
+static const std::string DATA_REFINE_TYPE = "LINEAR_REFINE";
+static const bool USE_CF_INTERPOLATION = false;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.

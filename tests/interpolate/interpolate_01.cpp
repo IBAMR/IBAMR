@@ -130,7 +130,7 @@ main(int argc, char** argv)
         std::vector<ITC> ghost_cell_components(1);
         ghost_cell_components[0] = ITC(u_cc_idx,
                                        "LINEAR_REFINE",
-                                       true,
+                                       false,
                                        "CONSERVATIVE_COARSEN",
                                        "LINEAR",
                                        false,

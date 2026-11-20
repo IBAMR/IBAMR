@@ -410,7 +410,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
 
     Pointer<RefineAlgorithm<NDIM>> refine_alg = new RefineAlgorithm<NDIM>();
     Pointer<RefineOperator<NDIM>> refine_op;
-    refine_op = grid_geom->lookupRefineOperator(d_u_var, "CONSERVATIVE_LINEAR_REFINE");
+    // The instrumentation interpolates fine-side velocity values only, so the velocity fill uses no refine operator.
+    refine_op = nullptr;
     refine_alg->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_op);
     refine_op = grid_geom->lookupRefineOperator(d_p_var, "LINEAR_REFINE");
     refine_alg->registerRefine(p_scratch_idx, p_new_idx, p_scratch_idx, refine_op);

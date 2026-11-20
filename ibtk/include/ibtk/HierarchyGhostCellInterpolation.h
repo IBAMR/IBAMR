@@ -20,7 +20,8 @@
 
 #include <ibtk/config.h>
 
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/CFOwnerFill.h>
+#include <ibtk/InterfaceFaceGhostCopy.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/DescribedClass.h>
@@ -35,9 +36,11 @@
 #include <RefineAlgorithm.h>
 #include <VariableFillPattern.h>
 
+#include <array>
 #include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace IBTK
@@ -313,11 +316,17 @@ public:
 
     /*!
      * \brief Reset transaction component with the interpolation operator.
+     *
+     * The component must keep the centering and depth of its data, the use of coarse-fine interpolation, the fill
+     * width, and whether it fills in place with a refine operator. Otherwise call initializeOperatorState().
      */
     void resetTransactionComponent(const InterpolationTransactionComponent& transaction_comps);
 
     /*!
      * \brief Reset transaction components with the interpolation operator.
+     *
+     * Each component must keep the centering and depth of its data, the use of coarse-fine interpolation, the fill
+     * width, and whether it fills in place with a refine operator. Otherwise call initializeOperatorState().
      */
     void resetTransactionComponents(const std::vector<InterpolationTransactionComponent>& transaction_comps);
 
@@ -384,10 +393,14 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_refine_scheds;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.
-    std::vector<SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy>> d_cf_bdry_ops;
+    std::vector<std::unique_ptr<CFOwnerFill>> d_cf_fills;
+    std::vector<std::unique_ptr<InterfaceFaceGhostCopy>> d_face_ghost_copies;
     std::vector<SAMRAI::tbox::Pointer<CartExtrapPhysBdryOp>> d_extrap_bc_ops;
     std::vector<SAMRAI::tbox::Pointer<CartCellRobinPhysBdryOp>> d_cc_robin_bc_ops;
     std::vector<SAMRAI::tbox::Pointer<CartSideRobinPhysBdryOp>> d_sc_robin_bc_ops;
+
+    // The centering and depth of the destination and source data of each component, which a reset must not change.
+    std::vector<std::array<std::pair<int, int>, 2>> d_data_kinds;
 };
 } // namespace IBTK
 

@@ -1,0 +1,46 @@
+// Three levels with refinement ratio 2 and ghost width 4: the interpolation reaches at most the ratio, so the fill stops with an error.
+MAX_LEVELS = 3
+N = 8
+REF_RATIO = 2,2,2
+REF_RATIO_2 = 2,2,2
+CENTERING = "SIDE"
+GHOST_WIDTH = 4
+REFINE_OP = "CONSERVATIVE_LINEAR_REFINE"
+FINE_BOXES = [(4,4,4),(11,11,11)]
+FINE_BOXES_2 = [(10,10,10),(15,21,21)], [(16,10,10),(21,21,21)]
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = 0,0,0
+   x_up               = 1,1,1
+   periodic_dimension = 0,0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = 2,2,2
+      level_2 = 2,2,2
+   }
+   largest_patch_size {
+      level_0 = 512,512,512
+   }
+   smallest_patch_size {
+      level_0 = 4,4,4
+   }
+}
+
+StandardTagAndInitialize {
+  tagging_method = "REFINE_BOXES"
+  RefineBoxes {
+    level_0 = [(0,0,0),(N - 1,N - 1,N - 1)]
+  }
+}
+
+LoadBalancer {
+}

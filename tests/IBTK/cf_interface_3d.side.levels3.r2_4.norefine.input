@@ -1,0 +1,46 @@
+// Three levels with refinement ratios 2 and 4 and ghost width 2, the second fine level one coarse cell inside the first, with no refine operator, so that the fill sets only the coarse-fine ghost cells.
+MAX_LEVELS = 3
+N = 8
+REF_RATIO = 2,2,2
+REF_RATIO_2 = 4,4,4
+CENTERING = "SIDE"
+GHOST_WIDTH = 2
+REFINE_OP = "NONE"
+FINE_BOXES = [(4,4,4),(11,11,11)]
+FINE_BOXES_2 = [(20,20,20),(31,43,43)], [(32,20,20),(43,43,43)]
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = 0,0,0
+   x_up               = 1,1,1
+   periodic_dimension = 0,0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = 2,2,2
+      level_2 = 4,4,4
+   }
+   largest_patch_size {
+      level_0 = 512,512,512
+   }
+   smallest_patch_size {
+      level_0 = 4,4,4
+   }
+}
+
+StandardTagAndInitialize {
+  tagging_method = "REFINE_BOXES"
+  RefineBoxes {
+    level_0 = [(0,0,0),(N - 1,N - 1,N - 1)]
+  }
+}
+
+LoadBalancer {
+}

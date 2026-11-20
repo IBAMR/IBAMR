@@ -76,6 +76,8 @@ ENDFOREACH()
 SET(CXX_SRC
   # boundary
   boundary/HierarchyGhostCellInterpolation.cpp
+  boundary/cf_interface/CFOwnerFill.cpp
+  boundary/cf_interface/InterfaceFaceGhostCopy.cpp
   boundary/cf_interface/CartCellDoubleLinearCFInterpolation.cpp
   boundary/cf_interface/CartSideDoubleQuadraticCFInterpolation.cpp
   boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.cpp
@@ -202,6 +204,7 @@ SET(CXX_SRC
   utilities/NodeDataSynchronization.cpp
   utilities/MarkerPatchHierarchy.cpp
   utilities/ParallelMap.cpp
+  utilities/RegionFillPattern.cpp
   utilities/SideNoCornersFillPattern.cpp
   utilities/box_utilities.cpp
   utilities/Streamable.cpp

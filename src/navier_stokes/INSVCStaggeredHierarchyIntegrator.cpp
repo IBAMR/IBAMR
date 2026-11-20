@@ -1742,18 +1742,6 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
 
-    if (d_Q_fcn)
-    {
-        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
-                                                         DATA_REFINE_TYPE,
-                                                         USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE,
-                                                         d_bdry_extrap_type, // TODO: update variable name
-                                                         CONSISTENT_TYPE_2_BDRY);
-        d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
-    }
-
     if (!d_mu_is_const)
     {
         // These options are chosen to ensure that information is propagated

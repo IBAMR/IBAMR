@@ -1631,12 +1631,8 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
     if (d_Q_fcn)
     {
-        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
-                                                         DATA_REFINE_TYPE,
-                                                         USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE,
-                                                         d_bdry_extrap_type,
-                                                         CONSISTENT_TYPE_2_BDRY);
+        InterpolationTransactionComponent Q_bc_component(
+            d_Q_scratch_idx, "LINEAR_REFINE", false, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
         d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
     }

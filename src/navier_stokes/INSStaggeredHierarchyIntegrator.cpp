@@ -1990,8 +1990,8 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     if (d_Q_fcn)
     {
         InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
-                                                         DATA_REFINE_TYPE,
-                                                         USE_CF_INTERPOLATION,
+                                                         "LINEAR_REFINE",
+                                                         false,
                                                          DATA_COARSEN_TYPE,
                                                          d_bdry_extrap_type, // TODO: update variable name
                                                          CONSISTENT_TYPE_2_BDRY);
@@ -2108,7 +2108,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
             InterpolationTransactionComponent comp(d_U_scratch_idx,
                                                    U_sc_idx,
                                                    "CONSERVATIVE_LINEAR_REFINE",
-                                                   true,
+                                                   false,
                                                    "CONSERVATIVE_COARSEN",
                                                    "LINEAR",
                                                    false,
@@ -2140,7 +2140,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
             InterpolationTransactionComponent comp(d_P_scratch_idx,
                                                    P_cc_idx,
                                                    "CONSERVATIVE_LINEAR_REFINE",
-                                                   true,
+                                                   false,
                                                    "CONSERVATIVE_COARSEN",
                                                    "LINEAR",
                                                    false,
@@ -2172,7 +2172,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
                                                          "SPECIALIZED_LINEAR_REFINE",
-                                                         USE_CF_INTERPOLATION,
+                                                         false,
                                                          DATA_COARSEN_TYPE,
                                                          d_bdry_extrap_type, // TODO: update variable name
                                                          CONSISTENT_TYPE_2_BDRY,
