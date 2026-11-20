@@ -29,6 +29,9 @@
 #include <RefineSchedule.h>
 #include <StandardTagAndInitialize.h>
 
+#include <string>
+#include <utility>
+
 #include <ibtk/app_namespaces.h>
 
 /*******************************************************************************
@@ -147,12 +150,13 @@ main(int argc, char* argv[])
             }
         }
 
-        // Test out the filling of coarse fine interfaces. We only use the coarse fine interface operator, which fills
-        // one layer of ghost cells using quadratic interpolation.
+        // Test out the filling of coarse fine interfaces. We use the coarse fine interface operator, which fills one
+        // layer of ghost cells using quadratic interpolation, optionally after refining data from the coarser level.
+        const std::string refine_type = input_db->getStringWithDefault("REFINE_TYPE", "NONE");
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_cell_comps(1);
         ghost_cell_comps[0] =
-            InterpolationTransactionComponent(Q_idx, "NONE", true, "NONE", "NONE", false, nullptr /*bdry_conds*/);
+            InterpolationTransactionComponent(Q_idx, refine_type, true, "NONE", "NONE", false, nullptr /*bdry_conds*/);
         HierarchyGhostCellInterpolation hier_ghost_cell;
         hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
         hier_ghost_cell.fillData(0.0);
@@ -184,40 +188,47 @@ main(int argc, char* argv[])
                     ghost_box.shorten(d, -2);
                 }
 
-                if (Q_cc_data)
+                // Filling ghost cells must not change the values in the patch interior, including those on the patch
+                // boundary, so check them as well.
+                const std::pair<Box<NDIM>, std::string> boxes[] = { { ghost_box, "ghost" },
+                                                                    { patch->getBox(), "interior" } };
+                for (const auto& box : boxes)
                 {
-                    for (CellIterator<NDIM> ci(ghost_box); ci; ci++)
+                    if (Q_cc_data)
                     {
-                        const CellIndex<NDIM>& idx = ci();
-                        VectorNd x;
-                        for (int d = 0; d < NDIM; ++d)
-                            x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
-                        if (!IBTK::abs_equal_eps((*Q_cc_data)(idx)-Q_fcn(x), 0.0))
+                        for (CellIterator<NDIM> ci(box.first); ci; ci++)
                         {
-                            pout << "Incorrect ghost value!\n";
-                            pout << "On ghost cell " << idx << "\n";
-                            pout << "Computed value " << (*Q_cc_data)(idx) << "\n";
-                            pout << "Exact value:   " << Q_fcn(x) << "\n";
-                        }
-                    }
-                }
-                else if (Q_sc_data)
-                {
-                    for (int axis = 0; axis < NDIM; ++axis)
-                    {
-                        for (SideIterator<NDIM> si(ghost_box, axis); si; si++)
-                        {
-                            const SideIndex<NDIM>& idx = si();
+                            const CellIndex<NDIM>& idx = ci();
                             VectorNd x;
                             for (int d = 0; d < NDIM; ++d)
-                                x[d] = xlow[d] +
-                                       dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + (d == axis ? 0.0 : 0.5));
-                            if (!IBTK::abs_equal_eps((*Q_sc_data)(idx)-Q_fcn(x), 0.0))
+                                x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
+                            if (!IBTK::abs_equal_eps((*Q_cc_data)(idx)-Q_fcn(x), 0.0))
                             {
-                                pout << "Incorrect ghost value!\n";
-                                pout << "On ghost cell " << idx << " and axis " << axis << "\n";
-                                pout << "Computed value " << (*Q_sc_data)(idx) << "\n";
+                                pout << "Incorrect " << box.second << " value!\n";
+                                pout << "On " << box.second << " cell " << idx << "\n";
+                                pout << "Computed value " << (*Q_cc_data)(idx) << "\n";
                                 pout << "Exact value:   " << Q_fcn(x) << "\n";
+                            }
+                        }
+                    }
+                    else if (Q_sc_data)
+                    {
+                        for (int axis = 0; axis < NDIM; ++axis)
+                        {
+                            for (SideIterator<NDIM> si(box.first, axis); si; si++)
+                            {
+                                const SideIndex<NDIM>& idx = si();
+                                VectorNd x;
+                                for (int d = 0; d < NDIM; ++d)
+                                    x[d] = xlow[d] +
+                                           dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + (d == axis ? 0.0 : 0.5));
+                                if (!IBTK::abs_equal_eps((*Q_sc_data)(idx)-Q_fcn(x), 0.0))
+                                {
+                                    pout << "Incorrect " << box.second << " value!\n";
+                                    pout << "On " << box.second << " cell " << idx << " and axis " << axis << "\n";
+                                    pout << "Computed value " << (*Q_sc_data)(idx) << "\n";
+                                    pout << "Exact value:   " << Q_fcn(x) << "\n";
+                                }
                             }
                         }
                     }
