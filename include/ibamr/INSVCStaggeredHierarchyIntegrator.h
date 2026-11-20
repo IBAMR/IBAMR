@@ -348,7 +348,7 @@ public:
     /*!
      * \brief Get whether or not viscosity is constant
      */
-    inline bool muIsConstant() const
+    inline bool muIsConstant() const override
     {
         return d_mu_is_const;
     }
@@ -372,7 +372,7 @@ public:
      * \note These patch data will not be deallocated at the end of the time step, so they can be used for various
      * applications
      */
-    inline int getInterpolatedLinearOperatorMuPatchDataIndex() const
+    inline int getInterpolatedLinearOperatorMuPatchDataIndex() const override
     {
         return d_mu_interp_linear_op_idx;
     }
@@ -420,7 +420,8 @@ protected:
     void limitMuGhostCells(double fill_time);
 
     /*!
-     * \brief Set d_mu_linear_op_idx and d_mu_interp_linear_op_idx from the viscosity with patch data index mu_idx.
+     * \brief Set d_mu_linear_op_idx and d_mu_interp_linear_op_idx from the viscosity with patch data index mu_idx at
+     * time, including the ghost values of the interpolated viscosity inside the domain.
      *
      * d_mu_scratch_idx and d_mu_interp_idx must be allocated.
      */
@@ -557,7 +558,8 @@ protected:
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_rho_bdry_bc_fill_op, d_mu_bdry_bc_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_rho_bdry_bc_fill_op, d_mu_bdry_bc_fill_op,
+        d_mu_interp_ghost_fill_op;
 
     /*!
      * Double precision values are (optional) factors used to rescale the

@@ -190,6 +190,21 @@ INSHierarchyIntegrator::getStokesSpecifications() const
     return &d_problem_coefs;
 } // getStokesSpecifications
 
+bool
+INSHierarchyIntegrator::muIsConstant() const
+{
+    return true;
+} // muIsConstant
+
+int
+INSHierarchyIntegrator::getInterpolatedLinearOperatorMuPatchDataIndex() const
+{
+    TBOX_ERROR(d_object_name << "::getInterpolatedLinearOperatorMuPatchDataIndex():\n"
+                             << "  the viscosity is constant and is not stored in patch data\n"
+                             << "  call this function only if muIsConstant() returns false\n");
+    return invalid_index;
+} // getInterpolatedLinearOperatorMuPatchDataIndex
+
 void
 INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
@@ -207,6 +222,18 @@ INSHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
 } // getVelocityBoundaryConditions
+
+const std::vector<RobinBcCoefStrategy<NDIM>*>&
+INSHierarchyIntegrator::getPhysicalBoundaryConditions() const
+{
+    return d_bc_coefs;
+} // getPhysicalBoundaryConditions
+
+TractionBcType
+INSHierarchyIntegrator::getTractionBcType() const
+{
+    return d_traction_bc_type;
+} // getTractionBcType
 
 RobinBcCoefStrategy<NDIM>*
 INSHierarchyIntegrator::getPressureBoundaryConditions() const
@@ -299,6 +326,12 @@ INSHierarchyIntegrator::registerVelocityDivergenceFunction(Pointer<CartGridFunct
     }
     return;
 } // registerVelocityDivergenceFunction
+
+bool
+INSHierarchyIntegrator::hasVelocityDivergenceFunction() const
+{
+    return static_cast<bool>(d_Q_fcn);
+} // hasVelocityDivergenceFunction
 
 Pointer<Variable<NDIM>>
 INSHierarchyIntegrator::getVelocityVariable() const
