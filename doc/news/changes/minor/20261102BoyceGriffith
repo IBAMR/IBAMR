@@ -1,0 +1,3 @@
+Fixed: Prevent negative viscosity values in the ghost cells outside physical boundaries in IBAMR::INSVCStaggeredHierarchyIntegrator.
+<br>
+(Boyce Griffith, 2026/11/02)
