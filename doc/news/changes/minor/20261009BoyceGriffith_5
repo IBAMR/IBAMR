@@ -1,0 +1,3 @@
+Fixed: Set the residual at Dirichlet boundaries to the right-hand side in IBTK::SCPoissonPointRelaxationFACOperator::computeResidual() and IBTK::VCSCViscousOpPointRelaxationFACOperator::computeResidual(), as the identity rows of the operators require.
+<br>
+(Boyce Griffith, 2026/10/09)

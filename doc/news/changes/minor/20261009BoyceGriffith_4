@@ -1,0 +1,3 @@
+Fixed: Include the viscous normal-stress term of TRACTION conditions at open boundaries in IBAMR::StaggeredStokesPETScLevelSolver, IBAMR::StaggeredStokesBoxRelaxationFACOperator, and IBAMR::StaggeredStokesFACPreconditionerStrategy, as IBAMR::StaggeredStokesOperator does.
+<br>
+(Boyce Griffith, 2026/10/09)
