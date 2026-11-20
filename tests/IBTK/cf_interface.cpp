@@ -260,6 +260,10 @@ main(int argc, char* argv[])
         const int depth_limit = ghost_width;
         const std::string refine_op_name = input_db->getStringWithDefault("REFINE_OP", "NONE");
         const bool is_cell = input_db->getString("CENTERING").compare("CELL") == 0;
+        // With EXTRAP_TYPE, the test fills the ghost cells with linear refinement and the extrapolation at the physical
+        // boundary instead of the coarse-fine interpolation, for a linear function that both reproduce.
+        const std::string extrap_type = input_db->getStringWithDefault("EXTRAP_TYPE", "NONE");
+        const bool test_extrap = extrap_type != "NONE";
 
         // Create cell-centered or side-centered quantities, and initialize them with a quadratic function. The second
         // quantity is filled with a no-corners fill pattern.
@@ -291,7 +295,7 @@ main(int argc, char* argv[])
                 }
                 else
                 {
-                    val += x[d] + x[d] * x[d];
+                    val += x[d] + (test_extrap ? 0.0 : x[d] * x[d]);
                 }
             }
             return val;
@@ -406,8 +410,16 @@ main(int argc, char* argv[])
         // no-corners fill pattern.
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_cell_comps(1);
-        ghost_cell_comps[0] = InterpolationTransactionComponent(
-            Q_idx, refine_op_name, cf_fixup, "NONE", "NONE", false, nullptr /*bdry_conds*/);
+        ghost_cell_comps[0] = test_extrap ?
+                                  InterpolationTransactionComponent(Q_idx,
+                                                                    "CONSERVATIVE_LINEAR_REFINE",
+                                                                    false,
+                                                                    "CONSERVATIVE_COARSEN",
+                                                                    extrap_type,
+                                                                    false,
+                                                                    nullptr /*bdry_conds*/) :
+                                  InterpolationTransactionComponent(
+                                      Q_idx, refine_op_name, cf_fixup, "NONE", "NONE", false, nullptr /*bdry_conds*/);
         HierarchyGhostCellInterpolation hier_ghost_cell;
         hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
         hier_ghost_cell.fillData(0.0);
@@ -467,7 +479,7 @@ main(int argc, char* argv[])
         // on one side at distances one and two gets the exact value of the quadratic function. Such a cell is at the
         // coarse-fine interface of some patch of the level, whatever its position relative to the patch whose ghost box
         // contains it: beyond the end of the patch, deep in its ghost region, or at a convex or a concave corner.
-        if (cf_fixup)
+        if (cf_fixup && !test_extrap)
         {
             int num_checked = 0, num_wrong = 0;
             std::string wrong_cells;
@@ -515,7 +527,7 @@ main(int argc, char* argv[])
         // Check that all patches agree, to the bit, on the value of every ghost cell (or face) that is not in the fine
         // level. Set A is every such ghost cell. Set B is the cells that are in the first ghost layer of some patch,
         // within one cell of the tangential range of that patch; it is a diagnostic, a subset of set A.
-        if (cf_fixup)
+        if (cf_fixup && !test_extrap)
         {
             std::vector<GhostValue> mine;
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -619,6 +631,7 @@ main(int argc, char* argv[])
         // belongs to the fine level, so the ghost copies of it in other patches, on this or another process, must equal
         // the value of the patch that contains it, also for patches that do not touch that patch. Cells and faces at
         // periodic images are the same cell or face.
+        if (!test_extrap)
         {
             const IntVector<NDIM> shift = grid_geometry->getPeriodicShift(level->getRatio());
             std::vector<GhostValue> mine;
@@ -705,7 +718,7 @@ main(int argc, char* argv[])
 
         // Check that the cells that the no-corners fill fills have the values of the default fill, to the bit: the
         // cells of the face slabs of each patch, as wide as the ghost width.
-        if (cf_fixup)
+        if (cf_fixup && !test_extrap)
         {
             int num_compared = 0, num_differ = 0;
             std::string first_differ;
@@ -768,6 +781,7 @@ main(int argc, char* argv[])
 
         // Check that the fill does not change the values in the interiors of the patches, including the faces of their
         // boundaries, to the bit.
+        if (!test_extrap)
         {
             int num_compared = 0, num_changed = 0;
             std::string first_changed;
@@ -807,6 +821,51 @@ main(int argc, char* argv[])
                          << " interior values changed by the fill; first on process with a change: " << first_changed
                          << "\n";
             }
+        }
+
+        // Check the ghost cells between the lower boundary and a patch within the ghost cell width of it. The cells are
+        // filled from a temporary coarse patch whose ghost cells are set by extrapolation.
+        if (test_extrap)
+        {
+            int num_checked = 0;
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
+                const double* const xlow = pgeom->getXLower();
+                const hier::Index<NDIM>& idx_low = patch->getBox().lower();
+                Pointer<CellData<NDIM, double>> Q_cc_data = patch->getPatchData(Q_idx);
+                TBOX_ASSERT(Q_cc_data);
+                // The ghost cells below the patch, away from its corners and from the other boundaries.
+                Box<NDIM> below = patch->getBox();
+                below.upper(1) = below.lower(1) - 1;
+                below.lower(1) -= ghost_width;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    if (d != 1)
+                    {
+                        below.lower(d) += 2;
+                        below.upper(d) -= 2;
+                    }
+                }
+                below = below * fine.domain;
+                if (below.empty()) continue;
+                for (CellIterator<NDIM> ci(below); ci; ci++)
+                {
+                    const CellIndex<NDIM>& idx = ci();
+                    VectorNd x;
+                    for (int d = 0; d < NDIM; ++d)
+                        x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
+                    ++num_checked;
+                    if (!IBTK::abs_equal_eps((*Q_cc_data)(idx)-Q_fcn(x), 0.0))
+                    {
+                        failures << "  incorrect ghost value on cell " << idx << ", patch " << patch->getBox()
+                                 << ": computed " << (*Q_cc_data)(idx) << ", exact " << Q_fcn(x) << "\n";
+                    }
+                }
+            }
+            pout << "Checked " << num_checked << " values below patches.\n";
         }
 
         if (!failures.str().empty())

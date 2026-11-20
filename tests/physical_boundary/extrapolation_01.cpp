@@ -37,6 +37,8 @@
 
 #include <LocationIndexRobinBcCoefs.h>
 
+#include "../tests.h"
+
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
@@ -87,6 +89,9 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+
+    // Do not print file names or line numbers to the output file.
+    Logger::getInstance()->setAbortAppender(Pointer<Logger::Appender>(new TestAppender()));
 
     { // cleanup dynamically allocated objects prior to shutdown
         // prevent a warning about timer initializations

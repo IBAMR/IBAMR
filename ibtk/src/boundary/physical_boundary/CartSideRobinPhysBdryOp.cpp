@@ -26,6 +26,8 @@
 #include <CartesianPatchGeometry.h>
 #include <ComponentSelector.h>
 #include <Patch.h>
+#include <PatchDataFactory.h>
+#include <PatchDescriptor.h>
 #include <PatchGeometry.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
@@ -33,6 +35,7 @@
 #include <Variable.h>
 #include <VariableDatabase.h>
 
+#include <algorithm>
 #include <array>
 #include <ostream>
 #include <set>
@@ -416,6 +419,30 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
+
+// Stop with an error if the patch and its filled ghost cells contain fewer than num_inward_layers cells inward from the
+// boundary along axis. If opposite_face_is_set, the face on the opposite boundary of the patch is not one of them.
+void
+check_inward_layers_available(const std::string& caller,
+                              const Box<NDIM>& patch_box,
+                              const unsigned int axis,
+                              const int num_inward_layers,
+                              const int filled_width,
+                              const bool opposite_face_is_set = false)
+{
+    const int opposite_width = opposite_face_is_set ? 1 : 0;
+    if (patch_box.numberCells(axis) + filled_width - opposite_width < num_inward_layers)
+    {
+        TBOX_ERROR("CartSideRobinPhysBdryOp::"
+                   << caller << "():\n"
+                   << "  QUADRATIC interpolation along axis " << axis << " uses " << num_inward_layers
+                   << " cells inward from the boundary, more than the patch width (" << patch_box.numberCells(axis)
+                   << ") plus the filled ghost width (" << filled_width << ")"
+                   << (opposite_face_is_set ? ", less the Dirichlet face of the opposite boundary" : "") << "\n"
+                   << "  the domain must be at least " << num_inward_layers + opposite_width
+                   << " cells wide along axis " << axis << "\n");
+    }
+}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -546,7 +573,17 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
 IntVector<NDIM>
 CartSideRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
-    return REFINE_OP_STENCIL_WIDTH;
+    // QUADRATIC interpolation uses g cells beyond the first, in which g is the ghost cell width of the data.
+    int width = REFINE_OP_STENCIL_WIDTH;
+    if (d_type == "QUADRATIC")
+    {
+        Pointer<PatchDescriptor<NDIM>> patch_descriptor = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
+        for (const int patch_data_idx : d_patch_data_indices)
+        {
+            width = std::max(width, patch_descriptor->getPatchDataFactory(patch_data_idx)->getGhostCellWidth().max());
+        }
+    }
+    return IntVector<NDIM>(width);
 } // getRefineOpStencilWidth
 
 void
@@ -651,6 +688,53 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_data_id
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
 
+    // Set the boundary condition coefficients of depth d on a boundary box.
+    auto set_bc_coefs = [&](const BoundaryBox<NDIM>& trimmed_bdry_box,
+                            const int d,
+                            Pointer<ArrayData<NDIM, double>> acoef_data,
+                            Pointer<ArrayData<NDIM, double>> bcoef_data,
+                            Pointer<ArrayData<NDIM, double>> gcoef_data)
+    {
+        RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[NDIM * d + trimmed_bdry_box.getLocationIndex() / 2];
+        auto const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
+        if (extended_bc_coef)
+        {
+            extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
+            extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
+        }
+        bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
+        if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+        if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
+    };
+    auto trim_bdry_box = [&](const BoundaryBox<NDIM>& bdry_box)
+    {
+        const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
+        return BoundaryBox<NDIM>(
+            bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+    };
+    // Return whether the patch touches the opposite boundary and the boundary condition of depth d is Dirichlet on one
+    // of its faces.
+    auto opposite_has_dirichlet_face = [&](const int location_index, const int d)
+    {
+        const int opposite_index = location_index % 2 == 0 ? location_index + 1 : location_index - 1;
+        for (int n = 0; n < n_physical_codim1_boxes; ++n)
+        {
+            if (physical_codim1_boxes[n].getLocationIndex() == opposite_index)
+            {
+                const BoundaryBox<NDIM> trimmed_bdry_box = trim_bdry_box(physical_codim1_boxes[n]);
+                const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+                Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                set_bc_coefs(trimmed_bdry_box, d, acoef_data, bcoef_data, gcoef_data);
+                const double* const b = bcoef_data->getPointer();
+                const double* const b_end = b + bcoef_data->getBox().size();
+                return std::find(b, b_end, 0.0) != b_end;
+            }
+        }
+        return false;
+    };
+
     // Set the boundary condition coefficients and then set the ghost cell
     // values.
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
@@ -658,25 +742,36 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_data_id
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
         const unsigned int location_index = bdry_box.getLocationIndex();
         const unsigned int bdry_normal_axis = location_index / 2;
-        const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-        const BoundaryBox<NDIM> trimmed_bdry_box(
-            bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
+        const bool touches_opposite_bdry =
+            PhysicalBoundaryUtilities::touchesOppositeBoundary(physical_codim1_boxes, location_index);
+        const int filled_width = touches_opposite_bdry ? 0 : gcw_to_fill(bdry_normal_axis);
+        const BoundaryBox<NDIM> trimmed_bdry_box = trim_bdry_box(bdry_box);
         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
         Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
         Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
         Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
         for (int d = 0; d < patch_data_depth; ++d)
         {
-            RobinBcCoefStrategy<NDIM>* bc_coef = d_bc_coefs[NDIM * d + bdry_normal_axis];
-            auto const extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
-            if (extended_bc_coef)
+            set_bc_coefs(trimmed_bdry_box, d, acoef_data, bcoef_data, gcoef_data);
+            if (d_type == "QUADRATIC")
             {
-                extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
-                extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
+                // The interpolation uses two faces inward from the boundary where b = 0 (Dirichlet) and g faces
+                // elsewhere, but only two faces where every face is Dirichlet.
+                const double* const b = bcoef_data->getPointer();
+                const double* const b_end = b + bcoef_data->getBox().size();
+                const bool has_dirichlet = std::find(b, b_end, 0.0) != b_end;
+                const bool has_robin = std::any_of(b, b_end, [](const double b_i) { return b_i != 0.0; });
+
+                // The face on the opposite boundary is not an interior value where the opposite boundary has a
+                // Dirichlet face, because the fill of that boundary sets it.
+                const bool opposite_face_is_set = opposite_has_dirichlet_face(location_index, d);
+                check_inward_layers_available("fillGhostCellValuesCodim1Normal",
+                                              patch_box,
+                                              bdry_normal_axis,
+                                              has_robin ? std::max(patch_data_gcw, has_dirichlet ? 2 : 0) : 2,
+                                              filled_width,
+                                              opposite_face_is_set);
             }
-            bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
-            if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
-            if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
             if (location_index == 0 || location_index == 1)
             {
                 if (d_type == "LINEAR")
@@ -903,6 +998,17 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
         const unsigned int location_index = bdry_box.getLocationIndex();
         const unsigned int bdry_normal_axis = location_index / 2;
+        if (d_type == "QUADRATIC")
+        {
+            check_inward_layers_available(
+                "fillGhostCellValuesCodim1Transverse",
+                patch_box,
+                bdry_normal_axis,
+                patch_data_gcw + 1,
+                PhysicalBoundaryUtilities::touchesOppositeBoundary(physical_codim1_boxes, location_index) ?
+                    0 :
+                    gcw_to_fill(bdry_normal_axis));
+        }
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         const BoundaryBox<NDIM> trimmed_bdry_box(
             bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
