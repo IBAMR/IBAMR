@@ -1,0 +1,3 @@
+Fixed: Select the points of each patch in IBAMR::IMPMethod::interpolateVelocity() by their current positions, as IBTK::LDataManager::interp() does. Before, the interpolation at a point that had crossed into another patch used the ghost values of its old patch. The result depended on the patch layout.
+<br>
+(Boyce Griffith, 2026/11/07)

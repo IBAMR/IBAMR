@@ -40,6 +40,7 @@
 #include <SAMRAIVectorReal.h>
 #include <SideVariable.h>
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -47,6 +48,7 @@
 namespace IBAMR
 {
 class ConvectiveOperator;
+class INSStaggeredDivergenceFreePhysBdryOp;
 class INSStaggeredPressureBcCoef;
 class INSStaggeredVelocityBcCoef;
 } // namespace IBAMR
@@ -143,6 +145,11 @@ public:
      * BDF viscous time stepping and the middle of the time step otherwise.
      */
     double getPressureTime(double current_time, double new_time) const override;
+
+    /*!
+     * Get the divergence-free velocity boundary operator.
+     */
+    IBTK::RobinPhysBdryPatchStrategy* getDivergenceFreeVelocityPhysBdryOp() override;
 
     /*!
      * Indicate that the Stokes solver should be (re-)initialized before the
@@ -446,6 +453,11 @@ private:
      * relative to rho / dt, for which the solvers were last set up.
      */
     std::optional<double> d_K1_previous;
+
+    /*!
+     * The divergence-free velocity boundary operator, created when first requested.
+     */
+    std::unique_ptr<INSStaggeredDivergenceFreePhysBdryOp> d_divergence_free_velocity_phys_bdry_op;
 
     /*!
      * Fluid solver variables.

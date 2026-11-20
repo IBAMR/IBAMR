@@ -20,6 +20,10 @@
 
 #include <ibamr/config.h>
 
+#include <BoundaryBox.h>
+#include <Patch.h>
+#include <RobinBcCoefStrategy.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 // Classification of the velocity boundary conditions of the incompressible Navier-Stokes classes. This header is not
@@ -37,6 +41,17 @@ enum class VelocityBcType
  * with an error for any other coefficients.
  */
 VelocityBcType get_velocity_bc_type(double a, double b);
+
+/*!
+ * Return whether the TRACTION conditions of the velocity component with the Robin coefficient object \a comp_bc_coef
+ * make its boundary data on \a bdry_box of \a patch at \a fill_time depend on the velocity: the component is tangential
+ * to the box and a face that the fill sets has TRACTION coefficients.
+ */
+bool traction_data_depend_on_velocity(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* comp_bc_coef,
+                                      unsigned int comp_idx,
+                                      const SAMRAI::hier::Patch<NDIM>& patch,
+                                      const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                      double fill_time);
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

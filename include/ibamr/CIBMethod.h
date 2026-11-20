@@ -376,6 +376,13 @@ public:
      */
     void getInterpolatedVelocity(Vec V, const double data_time, const double scale = 1.0) override;
 
+    // \see CIBStrategy::fillVelocityPhysBdryGhostValues() method
+    /*!
+     * \brief Set the velocity ghost values outside the physical boundaries with the operator from
+     * setVelocityPhysBdryOp(), or with the operator of the fluid solver if none is set.
+     */
+    void fillVelocityPhysBdryGhostValues(int u_data_idx, bool homogeneous_bc, double fill_time) override;
+
     // \see CIBStrategy::computeMobilityRegularization method
     /*!
      * \brief Compute regularization vector for the mobility problem.
@@ -469,8 +476,9 @@ public:
      */
     bool flagRegrid() const;
 
-    /*
-     * Set velocity physical boundary options
+    /*!
+     * \brief Set the boundary operator for the velocity ghost fill and the spreading. If none is set, the operator of
+     * the fluid solver is used.
      */
     void setVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op);
 
@@ -543,6 +551,12 @@ protected:
     bool d_use_steady_stokes = false;
 
 private:
+    /*!
+     * \brief Return the velocity physical boundary operator of the ghost fill and the spreading: the one set by
+     * setVelocityPhysBdryOp(), or the operator of the fluid solver if none is set.
+     */
+    IBTK::RobinPhysBdryPatchStrategy* getVelocityPhysBdryOp() const;
+
     /*!
      * \brief Set additional values from input database.
      */

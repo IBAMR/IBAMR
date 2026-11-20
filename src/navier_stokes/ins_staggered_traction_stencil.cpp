@@ -57,25 +57,6 @@ namespace IBAMR
 
 namespace
 {
-// Return a copy of patch that shares its patch data. Replacing the geometry of the copy leaves patch unchanged.
-Pointer<Patch<NDIM>>
-copy_patch(const Patch<NDIM>& patch)
-{
-    Pointer<Patch<NDIM>> copy = new Patch<NDIM>(patch.getBox(), patch.getPatchDescriptor());
-    copy->setPatchGeometry(patch.getPatchGeometry());
-    // allocatePatchData() with an empty selector sizes the patch data array of the copy without allocating data.
-    copy->allocatePatchData(ComponentSelector());
-    const int num_components = patch.getPatchDescriptor()->getMaxNumberRegisteredComponents();
-    for (int id = 0; id < num_components; ++id)
-    {
-        if (patch.checkAllocated(id))
-        {
-            copy->setPatchData(id, patch.getPatchData(id));
-        }
-    }
-    return copy;
-} // copy_patch
-
 // Return the displacement of the geometry of a patch from the faces of velocity component tangential_axis to the faces
 // of component bdry_normal_axis.
 std::array<double, NDIM>
@@ -224,6 +205,24 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+Pointer<Patch<NDIM>>
+copy_patch(const Patch<NDIM>& patch)
+{
+    Pointer<Patch<NDIM>> copy = new Patch<NDIM>(patch.getBox(), patch.getPatchDescriptor());
+    copy->setPatchGeometry(patch.getPatchGeometry());
+    // allocatePatchData() with an empty selector sizes the patch data array of the copy without allocating data.
+    copy->allocatePatchData(ComponentSelector());
+    const int num_components = patch.getPatchDescriptor()->getMaxNumberRegisteredComponents();
+    for (int id = 0; id < num_components; ++id)
+    {
+        if (patch.checkAllocated(id))
+        {
+            copy->setPatchData(id, patch.getPatchData(id));
+        }
+    }
+    return copy;
+} // copy_patch
 
 void
 NormalVelocityStencil::useAdjacentBoundaryValue()

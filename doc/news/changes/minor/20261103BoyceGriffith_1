@@ -1,0 +1,3 @@
+Changed: Set the velocity ghost values outside physical boundaries with the CIB strategy instead of Robin boundary conditions in the CIB saddle point solver, mobility solver, and Stokes operator.
+<br>
+(Boyce Griffith, 2026/11/03)

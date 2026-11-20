@@ -1,0 +1,221 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+IBRedundantInitializer:  Deallocating initialization data.
+Enclosed area at time 0: 0.1963495399961207
+  extrapolated enclosed area: 0.1963495408493611
+  lowest and highest marker heights: 0.003124999999999989 0.403125
+At beginning of timestep # 0
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.14638e-14
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.69218e-13
+At beginning of timestep # 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.0216e-14
+At beginning of timestep # 2
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.56311e-14
+At beginning of timestep # 3
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.48031e-14
+At beginning of timestep # 4
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.39806e-14
+At beginning of timestep # 5
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.31965e-14
+At beginning of timestep # 6
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.24216e-14
+At beginning of timestep # 7
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.16357e-14
+At beginning of timestep # 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.09729e-14
+At beginning of timestep # 9
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.02672e-14
+At beginning of timestep # 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.97007e-14
+At beginning of timestep # 11
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.90708e-14
+At beginning of timestep # 12
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.84304e-14
+At beginning of timestep # 13
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77871e-14
+At beginning of timestep # 14
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.71536e-14
+At beginning of timestep # 15
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.14434e-13
+At beginning of timestep # 16
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.12133e-13
+At beginning of timestep # 17
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.36611e-14
+At beginning of timestep # 18
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.02041e-14
+At beginning of timestep # 19
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.7396e-14
+At beginning of timestep # 20
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.40459e-14
+At beginning of timestep # 21
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.03069e-14
+At beginning of timestep # 22
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 7.69021e-14
+At beginning of timestep # 23
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 7.31882e-14
+At beginning of timestep # 24
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 6.99945e-14
+At beginning of timestep # 25
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 6.6322e-14
+At beginning of timestep # 26
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.94417e-12
+At beginning of timestep # 27
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.80835e-13
+At beginning of timestep # 28
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.90324e-12
+At beginning of timestep # 29
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.91311e-12
+At beginning of timestep # 30
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.93588e-12
+At beginning of timestep # 31
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.02269e-12
+At beginning of timestep # 32
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.0348e-12
+At beginning of timestep # 33
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.09125e-12
+At beginning of timestep # 34
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.21559e-12
+At beginning of timestep # 35
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.31376e-12
+At beginning of timestep # 36
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.35369e-12
+At beginning of timestep # 37
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.48446e-12
+At beginning of timestep # 38
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.585e-12
+At beginning of timestep # 39
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.92704e-14
+At beginning of timestep # 40
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.32399e-12
+At beginning of timestep # 41
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.34482e-12
+At beginning of timestep # 42
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.39063e-12
+At beginning of timestep # 43
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.39854e-12
+At beginning of timestep # 44
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.45547e-12
+At beginning of timestep # 45
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.47765e-12
+At beginning of timestep # 46
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.49151e-12
+At beginning of timestep # 47
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.52402e-12
+At beginning of timestep # 48
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.51656e-12
+At beginning of timestep # 49
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.54631e-12
+At beginning of timestep # 50
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.55253e-12
+At beginning of timestep # 51
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.56914e-12
+At beginning of timestep # 52
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.55477e-12
+At beginning of timestep # 53
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58483e-12
+At beginning of timestep # 54
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.5707e-12
+At beginning of timestep # 55
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.56418e-12
+At beginning of timestep # 56
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58561e-12
+At beginning of timestep # 57
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.57201e-12
+At beginning of timestep # 58
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59136e-12
+At beginning of timestep # 59
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.57712e-12
+At beginning of timestep # 60
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59618e-12
+At beginning of timestep # 61
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59837e-12
+At beginning of timestep # 62
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59657e-12
+At beginning of timestep # 63
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58384e-12
+At beginning of timestep # 64
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58236e-12
+At beginning of timestep # 65
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.60209e-12
+At beginning of timestep # 66
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.51006e-12
+At beginning of timestep # 67
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.61883e-12
+At beginning of timestep # 68
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58446e-12
+At beginning of timestep # 69
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.60244e-12
+At beginning of timestep # 70
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59443e-12
+At beginning of timestep # 71
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59118e-12
+At beginning of timestep # 72
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58288e-12
+At beginning of timestep # 73
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58962e-12
+At beginning of timestep # 74
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.57836e-12
+At beginning of timestep # 75
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59297e-12
+At beginning of timestep # 76
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58399e-12
+At beginning of timestep # 77
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.57848e-12
+At beginning of timestep # 78
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.57156e-12
+At beginning of timestep # 79
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58256e-12
+At beginning of timestep # 80
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.56557e-12
+At beginning of timestep # 81
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.57023e-12
+At beginning of timestep # 82
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.56436e-12
+At beginning of timestep # 83
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.56198e-12
+At beginning of timestep # 84
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.54996e-12
+At beginning of timestep # 85
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.54628e-12
+At beginning of timestep # 86
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.54387e-12
+At beginning of timestep # 87
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.53608e-12
+At beginning of timestep # 88
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.53307e-12
+At beginning of timestep # 89
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.52684e-12
+At beginning of timestep # 90
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.51917e-12
+At beginning of timestep # 91
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.51727e-12
+At beginning of timestep # 92
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.50657e-12
+At beginning of timestep # 93
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.50527e-12
+At beginning of timestep # 94
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.49805e-12
+At beginning of timestep # 95
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.48958e-12
+At beginning of timestep # 96
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.4834e-12
+At beginning of timestep # 97
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.47441e-12
+At beginning of timestep # 98
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.46831e-12
+At beginning of timestep # 99
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.46076e-12
+Enclosed area at time 0.025: 0.1963495426738309
+  relative change from the initial area: 1.363746608481883e-08
+  maximum relative change over the run: 1.370114389969414e-08
+  extrapolated enclosed area: 0.1963495435304491
+  relative change of the extrapolated area: 1.36546688683601e-08
+  maximum relative change of the extrapolated area over the run: 1.374459643685574e-08
+  lowest and highest marker heights: 0.003454251528017115 0.4043498817572238
+  lowest marker height over the run: 0.003124999999999989

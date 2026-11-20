@@ -40,7 +40,6 @@
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
 
-#include <algorithm>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -202,6 +201,15 @@ INSVCStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
+bool
+INSVCStaggeredVelocityBcCoef::dependsOnTargetPatchData(const Patch<NDIM>& patch,
+                                                       const BoundaryBox<NDIM>& bdry_box,
+                                                       const double fill_time) const
+{
+    return d_traction_bc_type == TRACTION &&
+           traction_data_depend_on_velocity(d_bc_coefs[d_comp_idx], d_comp_idx, patch, bdry_box, fill_time);
+} // dependsOnTargetPatchData
+
 void
 INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
                                          Pointer<ArrayData<NDIM, double>>& bcoef_data,
@@ -260,7 +268,6 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
-    const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
@@ -278,28 +285,34 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
 #endif
         mu_data = patch.getPatchData(mu_idx);
     }
-    // The viscosity at the face i of the tangential velocity component.
-    const auto get_mu = [&](const hier::Index<NDIM>& i) -> double
+    // The viscosity at the face i of the tangential velocity component, where g is the traction datum.
+    const auto get_mu = [&](const hier::Index<NDIM>& i, const double g) -> double
     {
         if (d_fluid_solver->muIsConstant()) return d_problem_coefs->getMu();
 
-        // In certain use cases with traction boundary conditions, this class
-        // will attempt to fill Robin BC coefficient values along an extended
-        // physical boundary outside of the physical domain that will never be
-        // used. However, viscosity values will not be available at those
-        // locations, so we need to ensure we don't access those unallocated
-        // data. The unphysical value should result in bad stuff if it gets
-        // used for whatever reason.
-        if (!mu_data) return -1.0e305;
-        hier::Index<NDIM> i_upper(i);
-        i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
+        // Use mu = 1 on a patch without viscosity data (a temporary coarse patch, or a new patch of a regrid),
+        // which is exact for g = 0.
+        if (!mu_data)
+        {
+            if (g != 0.0)
+            {
+                TBOX_ERROR("INSVCStaggeredVelocityBcCoef::setBcCoefs():\n"
+                           << "  a nonzero tangential traction at the face " << i << " of axis " << d_comp_idx
+                           << " is not supported on a patch without viscosity data (a temporary coarse patch, "
+                              "or a new patch filled during a regrid)\n"
+                           << "  use a zero tangential traction or a constant viscosity\n");
+            }
+            return 1.0;
+        }
+        // The fill can set faces beyond the viscosity data. There the viscosity is NaN, so that
+        // a ghost value computed from it is NaN.
 #if (NDIM == 2)
         const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
 #elif (NDIM == 3)
         const int perp = 2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
         const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
 #endif
-        return (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
+        return mu_array_data.getBox().contains(i) ? mu_array_data(i, 0) : std::numeric_limits<double>::quiet_NaN();
     };
 
     // The TRACTION condition on a tangential component uses the normal velocity along the boundary, evaluated on a
@@ -332,6 +345,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
             {
                 // mu*(du_tan/dx_norm + du_norm/dx_tan) = g. Compute the tangential derivative of the normal component
                 // of the velocity at the boundary and correct the boundary condition value.
+                const double mu = get_mu(i, gamma);
                 const double du_norm_dx_tan = get_normal_velocity_difference(*u_target_data,
                                                                              i,
                                                                              bdry_normal_axis,
@@ -345,7 +359,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                                               dx[d_comp_idx];
                 alpha = 0.0;
                 beta = 1.0;
-                gamma = (is_lower ? -1.0 : +1.0) * (gamma / get_mu(i) - du_norm_dx_tan);
+                gamma = (is_lower ? -1.0 : +1.0) * (gamma / mu - du_norm_dx_tan);
             }
         }
         return;
@@ -375,7 +389,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
             {
                 alpha = 0.0;
                 beta = 1.0;
-                gamma = (is_lower ? -1.0 : +1.0) * (gamma / get_mu(i));
+                gamma = (is_lower ? -1.0 : +1.0) * (gamma / get_mu(i, gamma));
             }
             else
             {
