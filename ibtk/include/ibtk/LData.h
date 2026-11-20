@@ -277,6 +277,18 @@ public:
     void endGhostUpdate();
 
     /*!
+     * \brief Begin adding the ghost values to the values of the nodes that own
+     * them. The ghost values are unchanged.
+     */
+    void beginGhostAccumulation();
+
+    /*!
+     * \brief End adding the ghost values to the values of the nodes that own
+     * them.
+     */
+    void endGhostAccumulation();
+
+    /*!
      * \brief Write out object state to the given database.
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
