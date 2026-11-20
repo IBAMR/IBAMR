@@ -47,6 +47,7 @@
 #include <vector>
 
 #include "./ins_staggered_traction_stencil.h"
+#include "./ins_velocity_bc.h"
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -307,7 +308,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
     for (Box<NDIM>::Iterator it(bc_coef_box); it && !has_traction_face; it++)
     {
         has_traction_face =
-            !IBTK::rel_equal_eps((*acoef_data)(it(), 0), 1.0) && IBTK::rel_equal_eps((*bcoef_data)(it(), 0), 1.0);
+            get_velocity_bc_type((*acoef_data)(it(), 0), (*bcoef_data)(it(), 0)) == VelocityBcType::TRACTION;
     }
     if (has_traction_face && d_comp_idx != bdry_normal_axis && d_traction_bc_type == TRACTION)
     {
@@ -327,17 +328,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
             double& alpha = (*acoef_data)(i, 0);
             double& beta = (*bcoef_data)(i, 0);
             double& gamma = (*gcoef_data)(i, 0);
-            const bool velocity_bc = IBTK::rel_equal_eps(alpha, 1.0);
-            const bool traction_bc = IBTK::rel_equal_eps(beta, 1.0);
-#if !defined(NDEBUG)
-            TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
-            if (velocity_bc)
-            {
-                alpha = 1.0;
-                beta = 0.0;
-            }
-            else if (traction_bc)
+            if (get_velocity_bc_type(alpha, beta) == VelocityBcType::TRACTION)
             {
                 // mu*(du_tan/dx_norm + du_norm/dx_tan) = g. Compute the tangential derivative of the normal component
                 // of the velocity at the boundary and correct the boundary condition value.
@@ -356,10 +347,6 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                 beta = 1.0;
                 gamma = (is_lower ? -1.0 : +1.0) * (gamma / get_mu(i) - du_norm_dx_tan);
             }
-            else
-            {
-                TBOX_ERROR("this statement should not be reached!\n");
-            }
         }
         return;
     }
@@ -369,17 +356,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);
-        const bool velocity_bc = IBTK::rel_equal_eps(alpha, 1.0);
-        const bool traction_bc = IBTK::rel_equal_eps(beta, 1.0);
-#if !defined(NDEBUG)
-        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
-        if (velocity_bc)
-        {
-            alpha = 1.0;
-            beta = 0.0;
-        }
-        else if (traction_bc)
+        if (get_velocity_bc_type(alpha, beta) == VelocityBcType::TRACTION)
         {
             if (d_comp_idx == bdry_normal_axis)
             {
@@ -408,10 +385,6 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                     "traction boundary condition type: "
                     << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
             }
-        }
-        else
-        {
-            TBOX_ERROR("this statement should not be reached!\n");
         }
     }
     return;
