@@ -3159,7 +3159,7 @@ IIMethod::spreadForce(const int f_data_idx,
             level->getPatchDescriptor()->getPatchDataFactory(f_scratch_data_idx)->getGhostCellWidth();
         d_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(d_hierarchy, f_var, gcw, 0, finest_ln);
     }
-    d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
+    d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx, nullptr, 0.0);
     f_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
