@@ -13,12 +13,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/CartCellDoubleCubicCoarsen.h>
+#include <ibtk/CartSideDoubleCubicCoarsen.h>
+#include <ibtk/CartSideDoubleRT0Coarsen.h>
+#include <ibtk/CartSideDoubleRT0Refine.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
 
+#include <Box.h>
 #include <BoxGeometry.h>
 #include <BoxOverlap.h>
 #include <CartesianPatchGeometry.h>
+#include <CoarsenOperator.h>
+#include <Geometry.h>
+#include <IntVector.h>
 #include <Patch.h>
 #include <PatchData.h>
 #include <PatchDataFactory.h>
@@ -27,12 +35,90 @@
 
 #include <algorithm>
 #include <cmath>
+#include <set>
+#include <string>
 
 #include <ibtk/app_namespaces.h>
 
 namespace IBTK
 {
+/////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+// The geometries that have received the transfer operators. The set is never destroyed, so a geometry that is destroyed
+// during static destruction can still erase its entry.
+std::set<const void*>&
+registered_geometries()
+{
+    static auto& geometries = *new std::set<const void*>();
+    return geometries;
+}
+
+// Coarsen operator that matches no request. The geometry owns it, and its destructor erases the geometry's entry from
+// the set.
+class RegistrationSentinel : public CoarsenOperator<NDIM>
+{
+public:
+    explicit RegistrationSentinel(const void* geometry) : d_geometry(geometry)
+    {
+    }
+
+    ~RegistrationSentinel() override
+    {
+        registered_geometries().erase(d_geometry);
+    }
+
+    bool findCoarsenOperator(const Pointer<Variable<NDIM>>& /*var*/, const std::string& /*op_name*/) const override
+    {
+        return false;
+    }
+
+    const std::string& getOperatorName() const override
+    {
+        return d_name;
+    }
+
+    int getOperatorPriority() const override
+    {
+        return 0;
+    }
+
+    IntVector<NDIM> getStencilWidth() const override
+    {
+        return IntVector<NDIM>(0);
+    }
+
+    void coarsen(Patch<NDIM>& /*coarse*/,
+                 const Patch<NDIM>& /*fine*/,
+                 int /*dst_component*/,
+                 int /*src_component*/,
+                 const Box<NDIM>& /*coarse_box*/,
+                 const IntVector<NDIM>& /*ratio*/) const override
+    {
+    }
+
+private:
+    const void* const d_geometry;
+    const std::string d_name = "REGISTRATION_SENTINEL";
+};
+} // namespace
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+void
+register_ibtk_transfer_operators(xfer::Geometry<NDIM>& geometry)
+{
+    const void* const key = &geometry;
+    if (!registered_geometries().insert(key).second) return;
+
+    geometry.addSpatialCoarsenOperator(new RegistrationSentinel(key));
+    geometry.addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
+    geometry.addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
+    geometry.addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen());
+    geometry.addSpatialRefineOperator(new CartSideDoubleRT0Refine());
+} // register_ibtk_transfer_operators
+
 double
 get_min_patch_dx(const PatchLevel<NDIM>& patch_level)
 {
