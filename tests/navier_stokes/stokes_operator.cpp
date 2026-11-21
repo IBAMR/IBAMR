@@ -85,7 +85,7 @@ main(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
-        // Setup the Boundary Conditions
+        // Set up the boundary conditions.
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
@@ -155,7 +155,7 @@ main(int argc, char* argv[])
             level->allocatePatchData(e_cc_idx, 0.0);
         }
 
-        // Setup vector objects.
+        // Set up vector objects.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int h_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
         const int h_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
@@ -177,11 +177,11 @@ main(int argc, char* argv[])
         e_vec.setToScalar(0.0);
         r_vec.setToScalar(0.0);
 
-        // Setup velocity and pressures functions.
+        // Set up velocity and pressure functions.
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
         muParserCartGridFunction p_fcn("p", app_initializer->getComponentDatabase("p"), grid_geometry);
 
-        // Setup exact solution functions
+        // Set up the exact right-hand side functions.
         muParserCartGridFunction f_u_fcn("f_u", app_initializer->getComponentDatabase("f_u"), grid_geometry);
         muParserCartGridFunction f_p_fcn("f_p", app_initializer->getComponentDatabase("f_p"), grid_geometry);
 
@@ -191,7 +191,7 @@ main(int argc, char* argv[])
         f_u_fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
         f_p_fcn.setDataOnPatchHierarchy(e_cc_idx, e_cc_var, patch_hierarchy, 0.0);
 
-        // Setup stokes poisson specifications
+        // Set up the Stokes Poisson specifications.
         PoissonSpecifications poisson_spec("poisson_spec");
         const double D = input_db->getDouble("D");
         const double C = input_db->getDouble("C");
@@ -285,7 +285,7 @@ main(int argc, char* argv[])
                 Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
                 bc_helper->cacheBcCoefData(u_bc_coefs, 0.0, patch_hierarchy);
                 bc_helper->copyDataAtDirichletBoundaries(e_sc_idx, u_sc_idx);
-                // Setup the stokes operator
+                // Set up the Stokes operator
                 StaggeredStokesOperator stokes_op("stokes_op", false, input_db);
                 stokes_op.setPhysicalBcCoefs(u_bc_coefs, nullptr);
                 stokes_op.setVelocityPoissonSpecifications(poisson_spec);
@@ -305,7 +305,8 @@ main(int argc, char* argv[])
             pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
         }
 
-        // Fully periodic domains need no RHS correction even with homogeneous BCs disabled.
+        // The operator requires no right-hand-side correction on a fully periodic domain, even with homogeneous
+        // boundary conditions disabled.
         StaggeredStokesOperator bc_op("bc_op", false, input_db);
         bc_op.setVelocityPoissonSpecifications(poisson_spec);
         bc_op.setPhysicalBcCoefs(u_bc_coefs, nullptr);
@@ -330,8 +331,7 @@ main(int argc, char* argv[])
         plog << "Boundary RHS change = " << rhs_change_norm << '\n';
         bc_op.deallocateOperatorState();
 
-        // Deallocate level data
-        // Allocate data on each level of the patch hierarchy.
+        // Deallocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);

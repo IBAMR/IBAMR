@@ -91,12 +91,12 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
         if (!d_is_initialized)
         {
             TBOX_ERROR(d_object_name << "::formJacobian():\n"
-                                     << "  outside a nonlinear solve, the operator state must be initialized.\n");
+                                     << "  outside a nonlinear solve, the operator state must be initialized\n");
         }
         if (!d_F)
         {
             TBOX_ERROR(d_object_name << "::formJacobian():\n"
-                                     << "  outside a nonlinear solve, setOperator() must supply the function first.\n");
+                                     << "  outside a nonlinear solve, setOperator() must supply the function first\n");
         }
         d_op_u->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&u, false), false);
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_u, d_op_u);

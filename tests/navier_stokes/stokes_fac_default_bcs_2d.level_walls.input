@@ -1,4 +1,4 @@
-// Level relaxation on walls; the solver receives no boundary condition objects.
+// Level relaxation on walls, with no boundary condition objects given to the solver.
 solver_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
 f_u {
    function_0 = "1 + sin(2*PI*X_1)"

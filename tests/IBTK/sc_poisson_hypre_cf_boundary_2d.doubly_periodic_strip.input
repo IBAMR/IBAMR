@@ -1,4 +1,4 @@
-// A fine strip across x, in the interior in y; the domain is periodic in x and y.
+// A fine strip across x, in the interior in y, on a domain periodic in x and y.
 exact_solution = 2.0
 error_tolerance = 1.0e-6
 solver_db {

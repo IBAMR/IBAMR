@@ -75,8 +75,8 @@ void set_fixed_iteration_ksp_defaults(GeneralSolver* solver,
 /*!
  * \brief Initialize Hypre if it is not already initialized, and then finalize it when PETSc is finalized.
  *
- * Call this function before creating Hypre objects. It calls HYPRE_Initialize() with Hypre 2.29 and newer and
- * HYPRE_Init() with Hypre 2.21 through 2.28. It does nothing with older versions of Hypre.
+ * Call this function before creating Hypre objects. This function calls HYPRE_Initialize() with Hypre 2.29 and newer
+ * and HYPRE_Init() with Hypre 2.21 through 2.28, and does nothing with older versions.
  */
 void initialize_hypre();
 
@@ -142,13 +142,14 @@ void copyToHypre(HYPRE_SStructVector& vector,
 
 /*!
  * \brief Set to zero the entries of a cell-centered matrix that couple a cell of a patch to a cell of the physical
- * domain that is not a cell of the patch level, which is a cell on the coarse side of a coarse-fine boundary.
+ * domain outside the patch level.
  *
- * hypre's multigrid solvers form the matrices of the coarser grids from such entries and converge only if they are
- * zero. Cells of other patches of the level, including across a periodic boundary, are cells of the level. Entries
- * that couple to cells outside the physical domain are left to the boundary condition treatment. The diagonal entry is
- * unchanged, and PoissonUtilities::adjustRHSAtCoarseFineBoundary() moves the dropped terms to the right-hand side.
- * This function does nothing on the coarsest level.
+ * Such a cell lies on the coarse side of a coarse-fine boundary. hypre's multigrid solvers form the matrices of the
+ * coarser grids from such entries and converge only if they are zero. Cells of other patches of the level, including
+ * across a periodic boundary, are cells of the level. Entries that couple to cells outside the physical domain are left
+ * to the boundary condition treatment. The diagonal entry is unchanged.
+ * PoissonUtilities::adjustRHSAtCoarseFineBoundary() accounts for the dropped terms in the right-hand side. This
+ * function does nothing on the coarsest level.
  *
  * \param[in,out] matrix_coefficients Matrix coefficients on the box of a patch of \p level with one depth per entry of
  * \p stencil and no ghost cells.
@@ -161,7 +162,7 @@ void clearOffLevelMatrixEntries(SAMRAI::pdat::CellData<NDIM, double>& matrix_coe
 
 /*!
  * \brief Set to zero the entries of a side-centered matrix that couple a side of a patch to a side of the same
- * component that lies in the physical domain but is not a side of the patch level.
+ * component in the physical domain outside the patch level.
  *
  * The sides of the level are the sides of the cells of its patches, including the sides that patches share. See the
  * cell-centered version for the reason.

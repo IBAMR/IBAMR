@@ -37,8 +37,8 @@
 
 #include <ibamr/app_namespaces.h>
 
-// Apply one cycle of a Stokes FAC preconditioner on a two-level hierarchy that has no boundary condition objects. A
-// hierarchy with physical boundaries has a boundary helper; a fully periodic hierarchy has none.
+// Apply one cycle of a Stokes FAC preconditioner without boundary condition objects on a two-level hierarchy. The
+// preconditioner has a boundary helper only if the domain has physical boundaries.
 int
 main(int argc, char* argv[])
 {

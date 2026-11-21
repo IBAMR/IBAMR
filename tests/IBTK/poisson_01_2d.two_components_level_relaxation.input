@@ -1,5 +1,5 @@
 // Two-component Poisson problem on a locally refined periodic grid, solved by GMRES with a level-relaxation FAC preconditioner.
-// Both components are identical, and the cycle presmooths.
+// Both components are identical. The cycle presmooths.
 
 depth = 2
 

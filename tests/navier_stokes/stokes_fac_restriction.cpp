@@ -35,8 +35,8 @@
 
 #include <ibamr/app_namespaces.h>
 
-// Restrict fine velocity data whose ghost cells hold arbitrary values with the restriction of the Stokes FAC
-// preconditioner on a two-level hierarchy.
+// Restrict fine velocity data whose ghost cells contain arbitrary values with
+// StaggeredStokesLevelRelaxationFACOperator::restrictResidual() on a two-level hierarchy.
 int
 main(int argc, char* argv[])
 {
@@ -95,7 +95,7 @@ main(int argc, char* argv[])
     f_vec.setToScalar(0.0, /*interior_only*/ false);
     r_vec.setToScalar(0.0, /*interior_only*/ false);
 
-    // The fine ghost cells hold a large value; the coarse data are zero.
+    // The fine ghost cells contain a large value. The coarse data are zero.
     HierarchySideDataOpsReal<NDIM, double> coarse_ops(hierarchy, 0, 0), fine_ops(hierarchy, 1, 1);
     fine_ops.setToScalar(f_u_idx, 1000.0, /*interior_only*/ false);
     muParserCartGridFunction f_u_fcn("f_u", input_db->getDatabase("f_u"), grid_geometry);

@@ -232,8 +232,8 @@ public:
      * Uses centered differences.  The depths (components) of dst, src2, and src3
      * are l, m, and n, respectively.
      *
-     * \note The term beta src2_m is omitted when src2 is null or beta is zero,
-     * and the term gamma src3_n is omitted when src3 is null or gamma is zero.
+     * \note The term beta src2_m is omitted if src2 is null or beta is zero.
+     * The term gamma src3_n is omitted if src3 is null or gamma is zero.
      */
     void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dst,
              double alpha,
@@ -423,7 +423,8 @@ public:
     /*!
      * \brief Computes dst_l = alpha L src1_m + beta src1_m + gamma src2_n.
      *
-     * Uses the standard 5 point stencil in 2D (7 point stencil in 3D).
+     * Uses the standard five-point stencil in two spatial dimensions
+     * (seven-point stencil in three spatial dimensions).
      */
     void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dst,
                  double alpha,
@@ -439,7 +440,8 @@ public:
     /*!
      * \brief Computes dst_l = alpha L src1_m + beta src1_m + gamma src2_n.
      *
-     * Uses the standard 5 point stencil in 2D (7 point stencil in 3D).
+     * Uses the standard five-point stencil in two spatial dimensions
+     * (seven-point stencil in three spatial dimensions).
      */
     void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> dst,
                  double alpha,
@@ -455,12 +457,13 @@ public:
     /*!
      * \brief Computes dst = alpha L src1 + beta src1 + gamma grad src2 + delta src3.
      *
-     * Uses the standard 5 point stencil in 2D (7 point stencil in 3D) for L and
-     * centered differences for grad.
+     * Uses the standard five-point stencil in two spatial dimensions
+     * (seven-point stencil in three spatial dimensions) for L and centered
+     * differences for grad.
      *
-     * \note src2 and src3 are required, and dst must differ from src1 and src3.
-     * The terms gamma grad src2 and delta src3 are evaluated even when gamma or
-     * delta is zero.
+     * \note The sources src2 and src3 are required. The destination dst must
+     * differ from src1 and src3. The terms gamma grad src2 and delta src3 are
+     * evaluated even if gamma or delta is zero.
      */
     void laplace_grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> dst,
                       double alpha,
@@ -476,7 +479,8 @@ public:
      * \brief Computes dst_l = div alpha grad src1_m + beta src1_m + gamma
      * src2_n.
      *
-     * Uses a 9 point stencil in 2D (19 point stencil in 3D).
+     * Uses a nine-point stencil in two spatial dimensions
+     * (19-point stencil in three spatial dimensions).
      */
     void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dst,
                  SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> alpha,
@@ -493,7 +497,8 @@ public:
      * \brief Computes dst_l = div alpha grad src1_m + beta src1_m + gamma
      * src2_n.
      *
-     * Uses a 9 point stencil in 2D (19 point stencil in 3D).
+     * Uses a nine-point stencil in two spatial dimensions
+     * (19-point stencil in three spatial dimensions).
      */
     void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>> dst,
                  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> alpha,

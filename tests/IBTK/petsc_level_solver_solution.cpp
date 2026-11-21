@@ -39,10 +39,10 @@
 
 #include <ibtk/app_namespaces.h>
 
-// Solve a Helmholtz problem with a constant solution on a periodic level of several patches. The solution starts with
-// garbage in the interior and a sentinel in every ghost cell; on return every copy of a shared side holds the solution
-// and every ghost value is unchanged. One Richardson iteration from garbage and from zero must agree, because the
-// default ignores the interior values.
+// Solve a Helmholtz problem with a constant solution on a periodic level of several patches. The initial guess has
+// garbage in the interior and a sentinel in every ghost cell. On return, every copy of a shared side contains the
+// solution. The ghost values are unchanged. One Richardson iteration gives identical results from garbage and from zero
+// because, by default, the solver ignores the interior values of the initial guess.
 
 namespace
 {
@@ -137,8 +137,8 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy, Pointer<Database> input_db)
     f.addComponent(f_var, f_idx);
     f.setToScalar(exact);
 
-    // The initial value of u: garbage in the interior (or zero) and the sentinel in all ghost cells. The garbage is not
-    // constant, because a Richardson iteration for this operator maps every constant to the same result.
+    // The initial value of u: garbage in the interior (or zero) and the sentinel in all ghost cells. The garbage values
+    // vary because a Richardson iteration for this operator maps every constant to the same result.
     auto set_u = [&](const bool use_garbage)
     {
         int counter = 0;

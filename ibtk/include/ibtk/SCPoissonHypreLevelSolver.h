@@ -87,16 +87,15 @@ namespace IBTK
  *    in SAMRAI::solv::SAMRAIVectorReal objects corresponding to \f$u\f$ and
  *    \f$f\f$.
  *
- * The solver treats the ghost values of \a x at coarse-fine interfaces as
- * Dirichlet data: it reads them and does not change them.  A caller that wants
- * homogeneous data there sets them to zero.  On return, the interior values of
- * \a x contain the solution.
+ * Because the hypre SStruct interface has no null-space support, a null space
+ * set with setNullSpace() has no effect, and the caller must remove the
+ * null-space component of the solution.
  *
- * In a periodic direction the hypre grid of a level is periodic only if the
- * level has patches adjacent to both periodic boundaries, and the solver stops
- * with an error unless these patches are periodic images of each other.
- * Otherwise a periodic boundary that the level touches is a coarse-fine
- * boundary.
+ * In a periodic direction, a periodic boundary that the level touches is a
+ * coarse-fine boundary unless the level has patches adjacent to both periodic
+ * boundaries.  In that case, the hypre grid of the level is periodic.  The
+ * solver stops with an error unless these patches are periodic images of each
+ * other.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
@@ -163,6 +162,11 @@ public:
      *
      * \param x solution vector
      * \param b right-hand-side vector
+     *
+     * The solver uses the ghost values of \a x at coarse-fine interfaces as
+     * Dirichlet data and leaves them unchanged.  For homogeneous Dirichlet
+     * data, set these ghost values to zero before the call.  On return, the
+     * interior values of \a x contain the solution.
      *
      * <b>Conditions on Parameters:</b>
      * - vectors \a x and \a b must have same patch hierarchy

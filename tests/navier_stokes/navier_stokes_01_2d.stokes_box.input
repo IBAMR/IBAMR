@@ -1,6 +1,6 @@
 // Stokes solver with a box-relaxation (Vanka) FAC preconditioner on a locally refined grid with prescribed
-// normal velocity and zero tangential traction at the physical boundaries. The refined region touches the lower x
-// boundary. Each Stokes solve is limited to 5 iterations.
+// normal velocity and zero tangential traction at the physical boundaries. Each Stokes solve is limited to 5
+// iterations.
 
 // physical parameters
 MU  = 1.0e-2                              // fluid viscosity

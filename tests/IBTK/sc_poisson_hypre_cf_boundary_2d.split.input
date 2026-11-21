@@ -1,4 +1,4 @@
-// A taller fine patch that spans the periodic direction, solved by the Split solver with PFMG.
+// A fine patch 12 coarse cells tall that spans the periodic direction, solved by the Split solver with PFMG.
 exact_solution = 2.0
 error_tolerance = 1.0e-6
 solver_db {

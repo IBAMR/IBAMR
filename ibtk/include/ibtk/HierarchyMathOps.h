@@ -454,7 +454,7 @@ public:
      * Sets dst = alpha div src1 + beta src2.
      *
      * Compute the divergence of a vector field using centered differences.
-     * When specified, coarse values on each coarse-fine interface are
+     * If requested, coarse values on each coarse-fine interface are
      * synchronized prior to performing the differencing.
      *
      * \see setPatchHierarchy
@@ -481,7 +481,7 @@ public:
      * Sets dst = alpha div src1 + beta src2.
      *
      * Compute the divergence of a vector field using centered differences.
-     * When specified, coarse values on each coarse-fine interface are
+     * If requested, coarse values on each coarse-fine interface are
      * synchronized prior to performing the differencing.
      *
      * \see setPatchHierarchy
@@ -508,9 +508,9 @@ public:
      * Sets dst = alpha div src1 + beta src2 + gamma src3.
      *
      * Compute the divergence of a vector field using centered differences.
-     * When specified, coarse values on each coarse-fine interface are
+     * If requested, coarse values on each coarse-fine interface are
      * synchronized prior to performing the differencing.  The term beta src2
-     * is omitted when beta is zero or src2_idx is invalid, and likewise for
+     * is omitted if beta is zero or src2_idx is invalid, and likewise for
      * gamma src3.
      *
      * \see setPatchHierarchy
@@ -564,7 +564,7 @@ public:
      * Sets dst = alpha grad src1 + beta src2.
      *
      * Compute the gradient of a scalar quantity using centered differences.
-     * When specified, coarse values on each coarse-fine interface are
+     * If requested, coarse values on each coarse-fine interface are
      * synchronized after performing the differencing.
      *
      * \see setPatchHierarchy
@@ -590,7 +590,7 @@ public:
      * Sets dst = alpha grad src1 + beta src2.
      *
      * Compute the gradient of a scalar quantity using centered differences.
-     * When specified, coarse values on each coarse-fine interface are
+     * If requested, coarse values on each coarse-fine interface are
      * synchronized after performing the differencing.
      *
      * \see setPatchHierarchy
@@ -664,7 +664,7 @@ public:
      * Sets dst = alpha grad src1 + beta src2.
      *
      * Compute the gradient of a scalar quantity using centered differences.
-     * When specified, coarse values on each coarse-fine interface are
+     * If requested, coarse values on each coarse-fine interface are
      * synchronized after performing the differencing.
      *
      * \note Homogeneous Neumann boundary conditions are explicitly enforced in
@@ -694,7 +694,7 @@ public:
      * Sets dst = alpha grad src1 + beta src2.
      *
      * Compute the gradient of a scalar quantity using centered differences.
-     * When specified, coarse values on each coarse-fine interface are
+     * If requested, coarse values on each coarse-fine interface are
      * synchronized after performing the differencing.
      *
      * \note Homogeneous Neumann boundary conditions are explicitly enforced in
@@ -722,7 +722,7 @@ public:
      * face-centered normal vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, coarse values
+     * using (second-order accurate) averaging.  If requested, coarse values
      * on each coarse-fine interface are synchronized prior to performing the
      * interpolation.
      *
@@ -742,7 +742,7 @@ public:
      * side-centered normal vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, coarse values
+     * using (second-order accurate) averaging.  If requested, coarse values
      * on each coarse-fine interface are synchronized prior to performing the
      * interpolation.
      *
@@ -765,7 +765,7 @@ public:
      * using (second-order accurate) averaging.  When the interpolation occurs
      * over over multiple levels of the hierarchy, second order interpolation is
      * used at the coarse-fine interface to correct fine values along the
-     * interface.  When specified, coarse values on each coarse-fine interface
+     * interface.  If requested, coarse values on each coarse-fine interface
      * are synchronized after performing the interpolation.
      *
      * \see setPatchHierarchy
@@ -787,7 +787,7 @@ public:
      * using (second-order accurate) averaging.  When the interpolation occurs
      * over multiple levels of the hierarchy, second order interpolation is used
      * at the coarse-fine interface to correct fine values along the interface.
-     * When specified, coarse values on each coarse-fine interface are
+     * If requested, coarse values on each coarse-fine interface are
      * synchronized after performing the interpolation.
      *
      * \see setPatchHierarchy
@@ -860,7 +860,7 @@ public:
      * face-centered normal vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, coarse values
+     * using (second-order accurate) averaging.  If requested, coarse values
      * on each coarse-fine interface are synchronized prior to performing the
      * interpolation.
      *
@@ -881,7 +881,7 @@ public:
      * side-centered normal vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, coarse values
+     * using (second-order accurate) averaging.  If requested, coarse values
      * on each coarse-fine interface are synchronized prior to performing the
      * interpolation.
      *
@@ -902,7 +902,7 @@ public:
      * cell-centered vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * using (second-order accurate) averaging.  If requested, the ghost cells
      * of the edge centered variable are computed as averages of the cell centered
      * variable
      *
@@ -926,7 +926,7 @@ public:
      * using (second-order accurate) harmonic averaging.  When the interpolation occurs
      * over multiple levels of the hierarchy, second order interpolation is used
      * at the coarse-fine interface to correct fine values along the interface.
-     * When specified, coarse values on each coarse-fine interface are
+     * If requested, coarse values on each coarse-fine interface are
      * synchronized after performing the interpolation.
      *
      * \see setPatchHierarchy
@@ -946,7 +946,7 @@ public:
      * quantity are large
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * using (second-order accurate) averaging.  If requested, the ghost cells
      * of the node centered variable are computed as averages of the cell centered
      * variable
      *
@@ -966,7 +966,7 @@ public:
      * quantity are large
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * using (second-order accurate) averaging.  If requested, the ghost cells
      * of the edge centered variable are computed as averages of the cell centered
      * variable
      *
@@ -1007,7 +1007,7 @@ public:
      * cell-centered vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * using (second-order accurate) averaging.  If requested, the ghost cells
      * of the edge centered variable are computed as averages of the cell centered
      * variable
      *
@@ -1031,7 +1031,7 @@ public:
      * quantity are large
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * using (second-order accurate) averaging.  If requested, the ghost cells
      * of the node centered variable are computed as averages of the cell centered
      * variable
      *
@@ -1055,7 +1055,7 @@ public:
      * quantity are large
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * using (second-order accurate) averaging.  If requested, the ghost cells
      * of the edge centered variable are computed as averages of the cell centered
      * variable
      *
@@ -1086,7 +1086,7 @@ public:
      * divergence operators are employed to obtain a consistent discretization
      * of the Laplace operator.
      *
-     * \note When src2_idx is invalid, the term gamma src2 is omitted and gamma
+     * \note If src2_idx is invalid, the term gamma src2 is omitted and gamma
      * is ignored.
      *
      * \see setPatchHierarchy
@@ -1144,14 +1144,14 @@ public:
      * cell-centered gradient using centered differences.
      *
      * Sets dst = C src1 + div D grad src1 + gamma grad src2 + delta src3, for
-     * side-centered src1 and src3 and cell-centered src2. This is equivalent
-     * to passing gamma grad src2 + delta src3 as the additive source of
-     * laplace(), but is evaluated in one pass over each patch.
+     * side-centered src1 and src3 and cell-centered src2. The result equals
+     * that of laplace() with gamma grad src2 + delta src3 as the additive
+     * source. laplace_grad() evaluates it in one pass over each patch.
      *
      * \note The present implementation of this operator \em requires that
      * damping factor C and diffusivity D be spatially constant and
-     * scalar-valued. The sources src2 and src3 are required, and dst must
-     * differ from src1 and src3.
+     * scalar-valued. The sources src2 and src3 are required. The destination
+     * dst must differ from src1 and src3.
      *
      * \see setPatchHierarchy
      * \see resetLevels

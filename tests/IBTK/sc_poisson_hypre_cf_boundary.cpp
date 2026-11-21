@@ -35,11 +35,10 @@
 
 #include <ibtk/app_namespaces.h>
 
-// Solve a side-centered Poisson problem with SCPoissonHypreLevelSolver on the finest level of a two-level hierarchy,
+// Solve a side-centered Poisson problem with SCPoissonHypreLevelSolver on the finest level of a two-level hierarchy
 // whose coarse-fine boundaries do not touch the physical boundary. The input selects a multigrid configuration that
-// converges only if the matrix has no entries that couple to sides outside the level. The exact solution is a
-// constant, with exact ghost sides that hold the boundary data. The solver solves twice, from large interior values
-// and from zero, and the solutions must be identical because the input sets initial_guess_nonzero = FALSE.
+// converges only if no matrix entry couples to a side outside the level. The ghost sides contain the constant exact
+// solution.
 int
 main(int argc, char* argv[])
 {
@@ -80,8 +79,8 @@ main(int argc, char* argv[])
     f.addComponent(f_var, f_idx);
     solver.initializeSolverState(u, f);
 
-    // Solve from large interior values that vary from one side to the next, and from zero. The solver ignores the
-    // interior values, so the solutions are identical.
+    // Solve from large interior values that vary from side to side, and from zero. With initial_guess_nonzero = FALSE,
+    // the solutions are identical because the solver ignores the interior values.
     f.setToScalar(0.0);
     std::vector<double> solution[2];
     bool converged = true;

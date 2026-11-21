@@ -1,4 +1,4 @@
-// A patch that spans the periodic direction, and a patch on top of it that reaches one periodic boundary only.
+// A patch across the periodic direction, and a patch on top of it that reaches only one periodic boundary.
 exact_solution = 2.0
 error_tolerance = 1.0e-6
 solver_db {

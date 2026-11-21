@@ -172,8 +172,8 @@ namespace IBTK
 
 namespace
 {
-// Computes dst = alpha div grad src1 + beta src1 + gamma src2 on a patch, evaluating each flux once, and stores the
-// fluxes on the outer sides of the patch box in os_data.  src2 is unused when gamma is zero.
+// Compute dst = alpha div grad src1 + beta src1 + gamma src2 on a patch, evaluating each flux once, and store the
+// fluxes on the outer sides of the patch box in os_data.  src2 is unused if gamma is zero.
 void
 flux_laplace(const Pointer<CellData<NDIM, double>> dst_data,
              const double alpha,
@@ -2773,7 +2773,7 @@ HierarchyMathOps::laplace(const int dst_idx,
 #endif
     }
 
-    // The term gamma src2 is omitted when gamma is zero or src2_idx is invalid.
+    // The term gamma src2 is omitted if gamma is zero or src2_idx is invalid.
     const bool use_src2 = src2_idx >= 0 && gamma != 0.0;
 
     if ((d_coarsest_ln == d_finest_ln) && (alpha_idx == invalid_index) && (!nonaligned_anisotropy))
@@ -2798,8 +2798,8 @@ HierarchyMathOps::laplace(const int dst_idx,
     }
     else if (alpha_idx == invalid_index && dst_idx != src1_idx && !(use_src2 && dst_idx == src2_idx))
     {
-        // As in the general case below, except that the fluxes on the finest level are computed once, in the pass
-        // that takes their divergence, and only those on the outer sides of its patches are stored.
+        // Proceed as in the general case below, except that the fluxes on the finest level are computed once, in the
+        // pass that computes dst, and only those on the outer sides of its patches are stored.
         for (int ln = d_coarsest_ln; ln < d_finest_ln; ++ln)
         {
             d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_sc_idx);

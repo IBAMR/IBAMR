@@ -435,9 +435,7 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
     const bool red_black_ordering = use_red_black_ordering(smoother_type);
     const bool update_local_data = do_local_data_update(smoother_type);
 
-    // Red-black ordering does two passes (red, then black) per requested sweep, so double num_sweeps before
-    // deciding whether to cache the coarse-fine ghost values below: that decision depends on the actual number
-    // of passes that will run, not the number of sweeps the caller requested.
+    // Count passes, not sweeps, for the caching test below: red-black ordering makes two passes per sweep.
     if (red_black_ordering) num_sweeps *= 2;
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln && num_sweeps > 1)
@@ -1000,8 +998,8 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
             {
                 const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
 
-                // Keep the cells of the boundary box that lie along the patch face; the corner cells are not part
-                // of the interface. The location index is 2 * (axis normal to the face) + side.
+                // Remove from the boundary box the corner cells, which are not part of the interface. The location
+                // index is 2 * (axis normal to the face) + side.
                 const int bdry_axis = bdry_box.getLocationIndex() / 2;
                 Box<NDIM> face_box = patch_box;
                 face_box.grow(bdry_axis, 1);

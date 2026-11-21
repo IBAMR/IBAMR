@@ -43,7 +43,7 @@ solver_db {
    max_iterations   = 100
 }
 
-// A level solver takes no preconditioner.
+// A level solver uses no preconditioner.
 precond_type = ""
 precond_db {
 }

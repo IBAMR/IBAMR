@@ -109,10 +109,11 @@ namespace IBTK
  petsc_options_prefix = "cc_poisson_fac_"     // PETSc options prefix of the patch solvers
  \endverbatim
  *
- * With \c "PROCESSOR_GAUSS_SEIDEL", a sweep reads values that neighboring patches on the same process updated
- * earlier in that sweep, so results depend on the patch layout.
+ * With \c "PROCESSOR_GAUSS_SEIDEL", a sweep uses values on neighboring patches of the same process that were updated
+ * earlier in that sweep. The results therefore depend on the patch layout.
  *
- * By default, each smoothing sweep applies one Richardson iteration with an ILU preconditioner to each patch problem.
+ * By default, each smoothing sweep applies one Richardson iteration with an ILU preconditioner to the linear system on
+ * each patch.
  * The PETSc options database, with the prefix \c petsc_options_prefix, selects other patch solvers, for example
  * <code>-cc_poisson_fac_ksp_type preonly -cc_poisson_fac_pc_type lu</code> for a direct solve.
 */
@@ -285,7 +286,7 @@ private:
     std::vector<std::vector<Vec>> d_patch_vec_e, d_patch_vec_f;
 
     /*
-     * Copies of the patch error and residual data with d_gcw ghost cells, null when the vectors have d_gcw ghost cells.
+     * Copies of the patch error and residual data with d_gcw ghost cells, null if the vectors have d_gcw ghost cells.
      */
     std::vector<std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double>>>> d_patch_e_data,
         d_patch_f_data;

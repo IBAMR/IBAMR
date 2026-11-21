@@ -1,4 +1,4 @@
-// Solve directly on an L-shaped refined level, with a pressure that is not zero outside the level.
+// Solve directly on an L-shaped refined level, with a nonzero pressure outside the level.
 solver_db {
    ksp_type = "preonly"
    pc_type = "svd"

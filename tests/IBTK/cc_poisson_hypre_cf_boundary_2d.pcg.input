@@ -1,4 +1,4 @@
-// A larger fine patch in the interior of the domain, solved by PCG preconditioned by PFMG.
+// A fine patch over 10 x 10 coarse cells in the interior of the domain, solved by PCG preconditioned by PFMG.
 exact_solution = 2.0
 error_tolerance = 1.0e-6
 solver_db {

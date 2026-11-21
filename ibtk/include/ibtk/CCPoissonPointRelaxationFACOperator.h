@@ -104,8 +104,8 @@ namespace IBTK
  }
  \endverbatim
  *
- * With \c "PROCESSOR_GAUSS_SEIDEL", a sweep reads values that neighboring patches on the same process updated
- * earlier in that sweep, so results depend on the patch layout.
+ * With \c "PROCESSOR_GAUSS_SEIDEL", a sweep uses values on neighboring patches of the same process that were updated
+ * earlier in that sweep. The results therefore depend on the patch layout.
 */
 class CCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {
@@ -239,8 +239,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
-     * Ghost cells along the coarse-fine interface of each local patch, empty for a patch without one; smoothError()
-     * saves and restores them between sweeps.
+     * Boxes of the ghost cells along the coarse-fine interface of each local patch, empty for a patch without one.
+     * smoothError() saves and restores the values in these cells between sweeps.
      */
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM>>> d_patch_cf_bdry_ghost_boxes;
 

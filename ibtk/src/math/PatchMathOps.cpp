@@ -1628,13 +1628,13 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -1720,13 +1720,13 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -1809,13 +1809,13 @@ PatchMathOps::curl(Pointer<FaceData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -1904,13 +1904,13 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -1993,13 +1993,13 @@ PatchMathOps::curl(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -2088,13 +2088,13 @@ PatchMathOps::curl(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -2177,13 +2177,13 @@ PatchMathOps::curl(Pointer<EdgeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -2257,13 +2257,13 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -2369,13 +2369,13 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     const Box<NDIM>& U_box = src->getGhostBox();
@@ -2493,13 +2493,13 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -2651,13 +2651,13 @@ PatchMathOps::rot(Pointer<SideData<NDIM, double>> dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::rot():\n"
-                       << "  dst and src must live on the same patch" << std::endl);
+                       << "  dst and src must be defined on the same patch\n");
         }
 
         if (patch_box != src->getBox())
         {
             TBOX_ERROR("PatchMathOps::rot():\n"
-                       << "  dst and src must live on the same patch" << std::endl);
+                       << "  dst and src must be defined on the same patch\n");
         }
 #endif
 
@@ -2751,13 +2751,13 @@ PatchMathOps::div(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -2793,7 +2793,7 @@ PatchMathOps::div(Pointer<CellData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         C_TO_C_DIV_ADD_FC(D,
@@ -2858,13 +2858,13 @@ PatchMathOps::div(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -2904,7 +2904,7 @@ PatchMathOps::div(Pointer<CellData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         F_TO_C_DIV_ADD_FC(D,
@@ -2973,13 +2973,13 @@ PatchMathOps::div(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -3019,7 +3019,7 @@ PatchMathOps::div(Pointer<CellData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         S_TO_C_DIV_ADD_FC(D,
@@ -3120,25 +3120,25 @@ PatchMathOps::div(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+                   << "  dst, src1, src2, and src3 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+                   << "  dst, src1, src2, and src3 must all be defined on the same patch\n");
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+                   << "  dst, src1, src2, and src3 must all be defined on the same patch\n");
     }
 
     if (patch_box != src3->getBox())
     {
         TBOX_ERROR("PatchMathOps::div():\n"
-                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+                   << "  dst, src1, src2, and src3 must all be defined on the same patch\n");
     }
 #endif
 
@@ -3234,13 +3234,13 @@ PatchMathOps::grad(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -3284,7 +3284,7 @@ PatchMathOps::grad(Pointer<CellData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         C_TO_C_GRAD_ADD_FC(G,
@@ -3358,13 +3358,13 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -3408,7 +3408,7 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         C_TO_F_GRAD_ADD_FC(g0,
@@ -3490,13 +3490,13 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -3540,7 +3540,7 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         C_TO_S_GRAD_ADD_FC(g0,
@@ -3651,19 +3651,19 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
     if (alpha->getDepth() == 1)
@@ -3721,7 +3721,7 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double>> dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
             }
 #endif
             C_TO_F_FLUX_ADD_FC(g0,
@@ -3812,7 +3812,7 @@ PatchMathOps::grad(Pointer<FaceData<NDIM, double>> dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
             }
 #endif
             C_TO_F_ANISO_FLUX_ADD_FC(g0,
@@ -3922,19 +3922,19 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
     if (alpha->getDepth() == 1)
@@ -3991,7 +3991,7 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double>> dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
             }
 #endif
             C_TO_S_FLUX_ADD_FC(g0,
@@ -4080,7 +4080,7 @@ PatchMathOps::grad(Pointer<SideData<NDIM, double>> dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
             }
 #endif
             C_TO_S_ANISO_FLUX_ADD_FC(g0,
@@ -4150,13 +4150,13 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -4225,13 +4225,13 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -4309,13 +4309,13 @@ PatchMathOps::interp(Pointer<FaceData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -4392,13 +4392,13 @@ PatchMathOps::interp(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -4474,13 +4474,13 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     const Box<NDIM>& V_box = src->getGhostBox();
@@ -4547,13 +4547,13 @@ PatchMathOps::interp(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     const Box<NDIM>& v_box = src->getGhostBox();
@@ -4645,13 +4645,13 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -4721,13 +4721,13 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -4804,13 +4804,13 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -4907,13 +4907,13 @@ PatchMathOps::interp(Pointer<EdgeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -4986,13 +4986,13 @@ PatchMathOps::harmonic_interp(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -5090,13 +5090,13 @@ PatchMathOps::harmonic_interp(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -5183,13 +5183,13 @@ PatchMathOps::harmonic_interp(Pointer<EdgeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::harmonic_interp():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -5281,13 +5281,13 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -5344,7 +5344,7 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         if (beta == 0.0)
@@ -5460,13 +5460,13 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -5538,7 +5538,7 @@ PatchMathOps::laplace(Pointer<SideData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         std::array<int, NDIM> ilower, iupper;
@@ -5652,7 +5652,7 @@ PatchMathOps::laplace_grad(Pointer<SideData<NDIM, double>> dst,
         patch_box != src3->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace_grad():\n"
-                   << "  dst, src1, src2, and src3 must all live on the same patch" << std::endl);
+                   << "  dst, src1, src2, and src3 must all be defined on the same patch\n");
     }
 #endif
 
@@ -5765,19 +5765,19 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (alpha->getDepth() != 1)
@@ -5850,7 +5850,7 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         if (beta == 0.0)
@@ -5981,19 +5981,19 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (alpha->getDepth() != 1)
@@ -6066,7 +6066,7 @@ PatchMathOps::laplace(Pointer<CellData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         if (beta == 0.0)
@@ -6237,25 +6237,25 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != coef1->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
     S_TO_S_VC_LAPLACE_FC(f0,
@@ -6421,25 +6421,25 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != coef1->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, coef, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
     S_TO_S_VC_LAPLACE_FC(f0,
@@ -6529,13 +6529,13 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -6572,7 +6572,7 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         MULTIPLY_ADD1_FC(D,
@@ -6642,19 +6642,19 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -6692,7 +6692,7 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         MULTIPLY_ADD2_FC(D,
@@ -6789,31 +6789,31 @@ PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != beta->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -6878,13 +6878,13 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double>> dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
 
@@ -6921,7 +6921,7 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double>> dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, src1, and src2 must all be defined on the same patch\n");
             }
 #endif
             MULTIPLY_ADD1_FC(D,
@@ -6995,19 +6995,19 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double>> dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
 
@@ -7045,7 +7045,7 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double>> dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
             }
 #endif
             MULTIPLY_ADD2_FC(D,
@@ -7146,31 +7146,31 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double>> dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != beta->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 #endif
 
@@ -7234,13 +7234,13 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -7277,7 +7277,7 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         MULTIPLY_ADD1_FC(D,
@@ -7348,19 +7348,19 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -7398,7 +7398,7 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double>> dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
         MULTIPLY_ADD2_FC(D,
@@ -7496,31 +7496,31 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 
     if (patch_box != beta->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
     }
 #endif
 
@@ -7585,13 +7585,13 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double>> dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
 
@@ -7628,7 +7628,7 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double>> dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, src1, and src2 must all be defined on the same patch\n");
             }
 #endif
             MULTIPLY_ADD1_FC(D,
@@ -7702,19 +7702,19 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double>> dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
         }
 #endif
 
@@ -7752,7 +7752,7 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double>> dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
+                           << "  dst, alpha, src1, and src2 must all be defined on the same patch\n");
             }
 #endif
             MULTIPLY_ADD2_FC(D,
@@ -7853,31 +7853,31 @@ PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double>> dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 
         if (patch_box != beta->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all be defined on the same patch\n");
         }
 #endif
 
@@ -7942,13 +7942,13 @@ PatchMathOps::pointwiseL1Norm(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -8007,13 +8007,13 @@ PatchMathOps::pointwiseL2Norm(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -8072,13 +8072,13 @@ PatchMathOps::pointwiseMaxNorm(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -8138,13 +8138,13 @@ PatchMathOps::pointwiseL1Norm(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -8204,13 +8204,13 @@ PatchMathOps::pointwiseL2Norm(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -8270,13 +8270,13 @@ PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -8380,19 +8380,19 @@ PatchMathOps::strain_rate(Pointer<CellData<NDIM, double>> dst1,
     if (patch_box != dst1->getBox())
     {
         TBOX_ERROR("PatchMathOps::strain_rate():\n"
-                   << "  dst1 and src must live on the same patch" << std::endl);
+                   << "  dst1 and src must be defined on the same patch\n");
     }
 
     if (patch_box != dst2->getBox())
     {
         TBOX_ERROR("PatchMathOps::strain_rate():\n"
-                   << "  dst2 and src must live on the same patch" << std::endl);
+                   << "  dst2 and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::strain_rate():\n"
-                   << "  dst and src must live on the same patch" << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
 
@@ -8475,13 +8475,13 @@ PatchMathOps::strain_rate(Pointer<CellData<NDIM, double>> dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::strain_rate():\n"
-                   << "  dst and src must live on same patch." << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 
     if (patch_box != src->getBox())
     {
         TBOX_ERROR("PatchMathOps::strain_rate():\n"
-                   << "  dst and src must live on same patch." << std::endl);
+                   << "  dst and src must be defined on the same patch\n");
     }
 #endif
     if (E_depth == NDIM * (NDIM + 1) / 2)

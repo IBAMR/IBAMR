@@ -101,8 +101,8 @@ main(int argc, char* argv[])
     solver.setPhysicalBoundaryHelper(helper);
     solver.setHomogeneousBc(false);
 
-    // The solver is used on each level of the hierarchy in turn, and each solve initializes and deallocates the
-    // solver state again.
+    // Use the solver on each level of the hierarchy in turn. Each solve initializes and deallocates the solver state
+    // again.
     const int n_solves = app->getInputDatabase()->getIntegerWithDefault("n_solves", 1);
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
@@ -119,8 +119,8 @@ main(int argc, char* argv[])
         x.setToScalar(0.0);
         b.setToScalar(0.0);
 
-        // The velocity component axis has the constant value axis + 1, which solves
-        // -Laplace(u) + u + grad(p) = u with p = 0, so the force equals the velocity.
+        // Velocity component axis is the constant axis + 1, which solves -Laplace(u) + u + grad(p) = f with p = 0 and
+        // f = u.
         for (PatchLevel<NDIM>::Iterator patch_number(level); patch_number; patch_number++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(patch_number());

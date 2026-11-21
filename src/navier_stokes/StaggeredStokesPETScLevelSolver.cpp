@@ -223,9 +223,11 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                TBOX_ERROR(d_object_name << "::initializeSolverStateSpecialized():\n"
-                                         << "  physical boundaries require a StaggeredStokesPhysicalBoundaryHelper "
-                                         << "provided via setPhysicalBoundaryHelper().\n");
+                TBOX_ERROR(
+                    d_object_name << "::initializeSolverStateSpecialized():\n"
+                                  << "  no StaggeredStokesPhysicalBoundaryHelper is set for a level that touches a "
+                                     "physical boundary\n"
+                                  << "  call setPhysicalBoundaryHelper()\n");
             }
         }
     }

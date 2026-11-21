@@ -264,8 +264,8 @@ main(int argc, char* argv[])
             TBOX_ERROR("The solver did not converge.\n");
         }
 
-        // Copy the solution to the check data and synchronize the sides that patches share. This changes nothing if
-        // every copy of a shared side holds the solution already.
+        // Copy the solution to the check data and synchronize the sides that patches share. The synchronization changes
+        // nothing if every copy of a shared side already contains the solution.
         double synchronization_change = 0.0, distance_from_caller = 0.0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {

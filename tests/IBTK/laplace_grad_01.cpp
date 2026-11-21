@@ -34,8 +34,8 @@
 
 #include <ibtk/app_namespaces.h>
 
-// A test program to check that HierarchyMathOps::laplace_grad() agrees with HierarchyMathOps::grad() followed by
-// HierarchyMathOps::laplace() and yields the expected order of accuracy.
+// Check that HierarchyMathOps::laplace_grad() agrees with HierarchyMathOps::grad() followed by
+// HierarchyMathOps::laplace() and has the expected order of accuracy.
 
 namespace
 {
@@ -96,8 +96,8 @@ main(int argc, char* argv[])
         Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("u");
         Pointer<CellVariable<NDIM, double>> p_var = new CellVariable<NDIM, double>("p");
         Pointer<SideVariable<NDIM, double>> v_var = new SideVariable<NDIM, double>("v");
-        // r holds the result of laplace_grad(), s the result of grad() followed by laplace(), f the exact result,
-        // and e a difference.
+        // r contains the result of laplace_grad(), s that of grad() followed by laplace(), f the exact result, and e
+        // the difference r - s or r - f.
         Pointer<SideVariable<NDIM, double>> r_var = new SideVariable<NDIM, double>("r");
         Pointer<SideVariable<NDIM, double>> s_var = new SideVariable<NDIM, double>("s");
         Pointer<SideVariable<NDIM, double>> f_var = new SideVariable<NDIM, double>("f");

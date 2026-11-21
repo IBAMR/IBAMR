@@ -148,7 +148,7 @@ public:
      * Laplacian.
      *
      * This function leaves unchanged the entry of each side on a Dirichlet boundary (Robin coefficient b exactly zero),
-     * which holds the boundary value.
+     * which is the boundary value.
      */
     static void adjustRHSAtPhysicalBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
@@ -163,10 +163,10 @@ public:
      * variable-coefficient viscous operator.
      *
      * This function leaves unchanged the entry of each side on a Dirichlet boundary (Robin coefficient b exactly zero),
-     * which holds the boundary value.
+     * which is the boundary value.
      *
-     * \note The scaling factors of \f$ D \f$ variable in the PoissonSpecification object
-     * is passed separately and is denoted \f$ \alpha \f$.
+     * \note The scaling factor of the variable \f$ D \f$ in the PoissonSpecifications object is passed separately and
+     * is denoted \f$ \alpha \f$.
      */
     static void
     adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
@@ -182,7 +182,7 @@ public:
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
      * cell-centered discretization of the Laplacian.
      *
-     * \note This function simply uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
+     * \note This function uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
      * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
      * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
      */
@@ -198,17 +198,16 @@ public:
      * side-centered discretization of the Laplacian.
      *
      * For each side of the patch, this function subtracts from the right-hand side the contribution of each stencil
-     * neighbor that is not a side of any patch of the level, using the ghost values in sol_data; neighbors across a
-     * physical boundary contribute nothing. It modifies only rhs_data in the side box of the patch, so rhs_data needs
-     * no ghost cells.
+     * neighbor that is not a side of any patch of the level, using the ghost values in sol_data. Neighbors across a
+     * physical boundary contribute nothing. This function modifies rhs_data only in the side box of the patch and
+     * requires no ghost cells of rhs_data.
      *
-     * The boundary boxes of codimension 2 (the corner cells in 2D and the edge cells in 3D) determine which ghost cells
-     * that touch the patch only along an edge or a corner belong to the level. This function does not modify the
-     * entries of the sides on a physical boundary normal to their component at which the coefficient b of bc_coefs is
-     * exactly zero, because such an entry is the Dirichlet value. It evaluates the coefficients as
-     * adjustRHSAtPhysicalBoundary() does.
+     * The coarse-fine boundary boxes of codimension two in type2_cf_bdry determine which ghost cells that touch the
+     * patch only along an edge or a corner belong to the level. This function leaves unchanged the entry of each side
+     * on a Dirichlet boundary (Robin coefficient b of bc_coefs exactly zero), which is the boundary value. The
+     * coefficients are evaluated as in adjustRHSAtPhysicalBoundary().
      *
-     * \note This function simply uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
+     * \note This function uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
      * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
      * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
      */
@@ -226,18 +225,19 @@ public:
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
      * side-centered discretization of the variable coefficient viscous operator.
      *
-     * For each side of the patch, this function subtracts from rhs_data the contribution of each stencil entry that the
-     * matrix of the level solver does not contain, using the ghost values in sol_data. It modifies only rhs_data in the
-     * side box of the patch and leaves the entries of Dirichlet identity rows unchanged. The boundary boxes of
-     * codimension 2 (the corner cells in 2D and the edge cells in 3D) tell which ghost cells that touch the patch only
-     * along an edge or corner belong to the level; bc_coefs are evaluated at data_time.
+     * For each side of the patch, this function subtracts from rhs_data the contribution of each stencil neighbor that
+     * is not a side of any patch of the level, using the ghost values in sol_data. Neighbors across a physical boundary
+     * contribute nothing. This function modifies rhs_data only in the side box of the patch and leaves unchanged the
+     * entry of each side on a Dirichlet boundary. The coarse-fine boundary boxes of codimension two in type2_cf_bdry
+     * determine which ghost cells that touch the patch only along an edge or a corner belong to the level. The
+     * coefficients bc_coefs are evaluated at data_time.
      *
-     * \note This function simply uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
+     * \note This function uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
      * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
      * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
      *
-     * \note The scaling factors of \f$ D \f$ variable in the PoissonSpecification object
-     * is passed separately and is denoted \f$ \alpha \f$.
+     * \note The scaling factor of the variable \f$ D \f$ in the PoissonSpecifications object is passed separately and
+     * is denoted \f$ \alpha \f$.
      */
     static void adjustVCSCViscousOpRHSAtCoarseFineBoundary(
         SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
@@ -257,8 +257,8 @@ public:
     static bool isDamped(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
 
     /*!
-     * Emit an error if C or D is patch data that is not registered or whose depth is not one.  C and D are shared by
-     * all components of the solution.  The error message begins with the given object name.
+     * Emit an error if C or D is patch data with an unregistered index or a depth other than one.  C and D are shared
+     * by all components of the solution.  The error message begins with the given object name.
      */
     static void checkCoefficientDepths(const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                        const std::string& object_name);

@@ -48,9 +48,9 @@
 
 #include <ibtk/app_namespaces.h>
 
-// Solve a side-centered problem with variable viscosity on the finest level of a hierarchy. The solution is a constant,
-// which the solver reproduces only if the correction at coarse-fine boundaries is exact and the identity rows hold the
-// boundary values.
+// Solve a side-centered viscous system with variable viscosity on the finest level of a hierarchy. The solver
+// reproduces the constant solution only if the correction at coarse-fine boundaries is exact and each identity row has
+// its boundary value on the right-hand side.
 int
 main(int argc, char* argv[])
 {
@@ -139,8 +139,8 @@ main(int argc, char* argv[])
         bc_coefs[axis] = bc_storage.back().get();
     }
 
-    // The exact solution is the constant axis + 1 for each component. The ghost values are exact and the initial guess
-    // is zero. The right-hand side vanishes except at Dirichlet sides on the physical boundary, which hold the data.
+    // The exact solution is axis + 1 in each component. The initial guess is zero, with exact ghost values.
+    // The right-hand side equals the boundary data at Dirichlet sides on the physical boundary and is zero elsewhere.
     const Box<NDIM>& domain_box = level->getPhysicalDomain()[0];
     const IntVector<NDIM>& periodic_shift = hierarchy->getGridGeometry()->getPeriodicShift();
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)

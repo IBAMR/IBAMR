@@ -109,8 +109,8 @@ namespace IBTK
  \endverbatim
  *
  * By default, PETSc level solvers apply level_solver_max_iterations Richardson iterations with no convergence test. A
- * KSP type in level_solver_db or the PETSc options database overrides this. A level solver with KSP type preonly
- * cannot apply post-smoothing sweeps; use richardson.
+ * KSP type set in level_solver_db or in the PETSc options database takes precedence. A level solver with KSP type
+ * preonly cannot apply post-smoothing sweeps. Use richardson instead.
 */
 class CCPoissonLevelRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {
