@@ -282,7 +282,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string object_name,
                                                                    Pointer<Database> input_db,
                                                                    bool register_for_restart)
-    : INSHierarchyIntegrator(std::move(object_name),
+    : INSHierarchyIntegrator(object_name,
                              input_db,
                              new CellVariable<NDIM, double>(object_name + "::U", NDIM),
                              "CONSERVATIVE_COARSEN",

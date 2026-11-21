@@ -1,0 +1,15 @@
+staggered:
+  velocity: StaggeredIntegrator::U
+  pressure: StaggeredIntegrator::P
+  body force: StaggeredIntegrator::F
+  velocity divergence: StaggeredIntegrator::Q
+collocated:
+  velocity: CollocatedIntegrator::U
+  pressure: CollocatedIntegrator::P
+  body force: CollocatedIntegrator::F
+  velocity divergence: CollocatedIntegrator::Q
+variable coefficient:
+  velocity: VCIntegrator::U
+  pressure: VCIntegrator::P
+  body force: VCIntegrator::F
+  velocity divergence: VCIntegrator::Q

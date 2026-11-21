@@ -1,0 +1,17 @@
+// Constant fluid properties for each integrator.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+StaggeredIntegrator {
+   rho = 1.0
+   mu = 1.0
+}
+CollocatedIntegrator {
+   rho = 1.0
+   mu = 1.0
+}
+VCIntegrator {
+   rho = 1.0
+   mu = 1.0
+}
