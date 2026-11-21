@@ -314,6 +314,7 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     d_T_rhs_op = getEnergyEquationHelmholtzRHSOperator(d_T_var);
 
     // Register additional variables required for present time stepping algorithm.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const IntVector<NDIM> cell_ghosts = CELLG;
     const IntVector<NDIM> face_ghosts = FACEG;
     const IntVector<NDIM> no_ghosts = NOGHOSTS;
@@ -372,13 +373,18 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
                      "CONSERVATIVE_LINEAR_REFINE");
 
     if (d_u_adv_var)
-        registerVariable(d_u_adv_current_idx,
-                         d_u_adv_new_idx,
-                         d_u_adv_scratch_idx,
-                         d_u_adv_var,
-                         face_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE");
+    {
+        d_u_adv_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
+        d_u_adv_new_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getNewContext());
+        d_u_adv_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getScratchContext());
+
+        if (d_u_adv_current_idx < 0 || d_u_adv_new_idx < 0 || d_u_adv_scratch_idx < 0)
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                                     << "  the advection velocity must be registered "
+                                        "with AdvDiffHierarchyIntegrator before initialization.\n");
+        }
+    }
 
     d_T_diffusion_coef_rhs_var = new SideVariable<NDIM, double>(d_T_var->getName() + "::Diff");
     registerVariable(d_T_diffusion_coef_rhs_scratch_idx, d_T_diffusion_coef_rhs_var, cell_ghosts, getScratchContext());
@@ -386,7 +392,6 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     registerVariable(d_T_rhs_scratch_idx, d_T_rhs_var, cell_ghosts, getScratchContext());
 
     // T_C contains the C coefficient of the temperature equation
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_T_C_var = new CellVariable<NDIM, double>(d_T_var->getName() + "::C");
     d_T_C_idx = var_db->registerVariableAndContext(d_T_C_var, getCurrentContext(), no_ghosts);
 

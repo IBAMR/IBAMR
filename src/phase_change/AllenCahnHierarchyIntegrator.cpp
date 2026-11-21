@@ -459,7 +459,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
 
     if (d_solve_energy)
     {
-        if (d_solve_mass_conservation)
+        if (d_solve_mass_conservation && d_u_adv_var)
         {
             Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
             // Set the velocities used to update the density and the previous time step
@@ -877,48 +877,51 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
         // momentum integrator.
         Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         // Update N_idx if necessary
-        if (cycle_num > 0 && d_solve_mass_conservation && d_u_adv_var)
+        if (d_solve_mass_conservation && d_u_adv_var)
         {
-            const double dt = new_time - current_time;
-            const double half_time = current_time + 0.5 * dt;
-            d_rho_p_integrator->setSolutionTime(half_time);
-
-            // Set the cycle number
-            d_rho_p_integrator->setCycleNumber(cycle_num);
-
-            // Set the patch data index for convective derivative.
-            d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(d_T_N_scratch_idx);
-
-            // Always set to current because we want to update rho^{n} to rho^{n+1}
-            d_rho_p_integrator->setDensityPatchDataIndex(d_rho_current_idx);
-
-            // Set the velocities used to update the density
-            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+            if (cycle_num > 0)
             {
-                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ d_u_adv_new_idx);
-                rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
-                    /*current*/ d_specific_heat_current_idx, /*new*/ d_specific_heat_new_idx);
-                rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                    /*current*/ d_T_current_idx, /*new*/ d_T_new_idx);
-            }
-            else
-            {
-                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ d_U_old_current_idx,
-                    /*current*/ d_u_adv_current_idx,
-                    /*new*/ d_u_adv_new_idx);
-                rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
-                    /*current*/ d_specific_heat_current_idx,
-                    /*new*/ d_specific_heat_new_idx);
-                rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                    /*current*/ d_T_current_idx,
-                    /*new*/ d_T_new_idx);
+                const double dt = new_time - current_time;
+                const double half_time = current_time + 0.5 * dt;
+                d_rho_p_integrator->setSolutionTime(half_time);
 
-                d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
-            }
+                // Set the cycle number
+                d_rho_p_integrator->setCycleNumber(cycle_num);
 
-            d_rho_p_integrator->integrate(dt);
+                // Set the patch data index for convective derivative.
+                d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(d_T_N_scratch_idx);
+
+                // Always set to current because we want to update rho^{n} to rho^{n+1}
+                d_rho_p_integrator->setDensityPatchDataIndex(d_rho_current_idx);
+
+                // Set the velocities used to update the density
+                if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+                {
+                    d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                        /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ d_u_adv_new_idx);
+                    rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
+                        /*current*/ d_specific_heat_current_idx, /*new*/ d_specific_heat_new_idx);
+                    rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
+                        /*current*/ d_T_current_idx, /*new*/ d_T_new_idx);
+                }
+                else
+                {
+                    d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                        /*old*/ d_U_old_current_idx,
+                        /*current*/ d_u_adv_current_idx,
+                        /*new*/ d_u_adv_new_idx);
+                    rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
+                        /*current*/ d_specific_heat_current_idx,
+                        /*new*/ d_specific_heat_new_idx);
+                    rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
+                        /*current*/ d_T_current_idx,
+                        /*new*/ d_T_new_idx);
+
+                    d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
+                }
+
+                d_rho_p_integrator->integrate(dt);
+            }
 
             const int updated_rho_idx = d_rho_p_integrator->getUpdatedDensityPatchDataIndex();
             d_hier_cc_data_ops->copyData(d_rho_new_idx, updated_rho_idx, /*interior_only*/ true);
