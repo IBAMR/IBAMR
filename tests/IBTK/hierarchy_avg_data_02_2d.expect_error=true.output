@@ -1,0 +1,4 @@
+Program abort called with error message
+
+    AvgManager::HierarchyAveragedDataManager(): NaN found in the time point!
+
