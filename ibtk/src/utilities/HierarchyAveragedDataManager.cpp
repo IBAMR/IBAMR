@@ -124,7 +124,7 @@ HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_na
       d_snapshot_cache(d_object_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart)
 {
     // Bad things can happen if the snapshot time points contain NaN's.
-    for (const auto& time_point : snapshot_time_points)
+    for (const auto& time_point : d_snapshot_time_pts)
     {
         if (std::isnan(time_point))
             TBOX_ERROR(d_object_name + "::HierarchyAveragedDataManager(): NaN found in the time point!\n");
