@@ -1,0 +1,3 @@
+Fixed: Avoid a null-pointer dereference in IBAMR::INSVCStaggeredHierarchyIntegrator if the velocity preconditioner is not a FAC preconditioner or its coarse solve is a smoother. Make the integrator stop with an error if the coarse solver is a level solver other than VC_VELOCITY_PETSC_LEVEL_SOLVER.
+<br>
+(Boyce Griffith, 2026/11/06)

@@ -1108,8 +1108,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     if (p_velocity_solver)
     {
         Pointer<PoissonFACPreconditioner> p_poisson_fac_pc = p_velocity_solver->getPreconditioner();
-        Pointer<VCSCViscousOpPointRelaxationFACOperator> p_vc_point_fac_op =
-            p_poisson_fac_pc->getFACPreconditionerStrategy();
+        Pointer<VCSCViscousOpPointRelaxationFACOperator> p_vc_point_fac_op;
+        if (p_poisson_fac_pc) p_vc_point_fac_op = p_poisson_fac_pc->getFACPreconditionerStrategy();
         if (p_vc_point_fac_op) p_vc_point_fac_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
         if (p_vc_point_fac_op) p_vc_point_fac_op->setOperatorScaling(d_A_scale);
 
@@ -1118,8 +1118,20 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
         if (p_vc_point_fac_op)
         {
-            Pointer<VCSCViscousPETScLevelSolver> p_vc_level_solver = p_vc_point_fac_op->getCoarseSolver();
-            if (p_poisson_fac_pc) p_vc_level_solver->setViscosityInterpolationType(d_mu_vc_interp_type);
+            // A smoother coarse solve has no coarse solver object.
+            Pointer<PoissonSolver> coarse_solver = p_vc_point_fac_op->getCoarseSolver();
+            Pointer<VCSCViscousPETScLevelSolver> p_vc_level_solver = coarse_solver;
+            if (p_vc_level_solver)
+            {
+                p_vc_level_solver->setViscosityInterpolationType(d_mu_vc_interp_type);
+            }
+            else if (coarse_solver)
+            {
+                TBOX_ERROR("INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
+                           << "  the coarse_solver_type of the velocity preconditioner does not support variable "
+                              "viscosity\n"
+                           << "  use VC_VELOCITY_PETSC_LEVEL_SOLVER, PATCH_GAUSS_SEIDEL, or PROCESSOR_GAUSS_SEIDEL\n");
+            }
         }
     }
 
