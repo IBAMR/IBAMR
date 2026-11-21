@@ -301,7 +301,7 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
 INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string object_name,
                                                                      Pointer<Database> input_db,
                                                                      bool register_for_restart)
-    : INSHierarchyIntegrator(std::move(object_name),
+    : INSHierarchyIntegrator(object_name,
                              input_db,
                              new SideVariable<NDIM, double>(object_name + "::U"),
                              "CONSERVATIVE_COARSEN",

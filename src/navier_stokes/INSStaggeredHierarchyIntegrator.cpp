@@ -415,7 +415,7 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy
 INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string object_name,
                                                                  Pointer<Database> input_db,
                                                                  bool register_for_restart)
-    : INSHierarchyIntegrator(std::move(object_name),
+    : INSHierarchyIntegrator(object_name,
                              input_db,
                              new SideVariable<NDIM, double>(object_name + "::U"),
                              "CONSERVATIVE_COARSEN",
