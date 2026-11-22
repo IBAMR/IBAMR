@@ -17,9 +17,12 @@
 #include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LinearSolver.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
@@ -28,6 +31,7 @@
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
+#include <ibtk/VCSCViscousPETScLevelSolver.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/solver_utilities.h>
 
@@ -48,7 +52,9 @@
 #include <CartesianPatchGeometry.h>
 #include <CoarseFineBoundary.h>
 #include <CoarsenOperator.h>
+#include <EdgeData.h>
 #include <MultiblockDataTranslator.h>
+#include <NodeData.h>
 #include <Patch.h>
 #include <PatchDescriptor.h>
 #include <PatchHierarchy.h>
@@ -67,10 +73,13 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <limits>
 #include <map>
 #include <memory>
 #include <ostream>
 #include <string>
+#include <typeinfo>
 #include <utility>
 #include <vector>
 
@@ -291,6 +300,20 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
                                        << "  ``petsc_solver'' input entry is no longer used\n"
                                        << "  use ``coarse_solver_db'' input entry instead" << std::endl);
         }
+        if (input_db->isBool("reuse_unchanged_coarse_solver"))
+        {
+            d_reuse_unchanged_coarse_solver = input_db->getBool("reuse_unchanged_coarse_solver");
+        }
+        if (input_db->keyExists("coarse_solver_reuse_rel_tol"))
+        {
+            d_coarse_solver_reuse_rel_tol = input_db->getDouble("coarse_solver_reuse_rel_tol");
+            if (!std::isfinite(d_coarse_solver_reuse_rel_tol) || d_coarse_solver_reuse_rel_tol < 0.0)
+            {
+                TBOX_ERROR(d_object_name << "::SCPoissonPointRelaxationFACOperator():\n"
+                                         << "  coarse_solver_reuse_rel_tol must be finite and >= 0.0, got "
+                                         << d_coarse_solver_reuse_rel_tol << "\n");
+            }
+        }
     }
 
     // Check the smoother type and configure the coarse level solver.
@@ -333,9 +356,353 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
     return;
 } // SCPoissonPointRelaxationFACOperator
 
+namespace
+{
+inline bool
+scalars_match_rel(const double a, const double b, const double rel_tol)
+{
+    if (!std::isfinite(a) || !std::isfinite(b))
+    {
+        return false;
+    }
+    const double scale = std::max(1.0, std::max(std::abs(a), std::abs(b)));
+    return std::abs(a - b) <= rel_tol * scale;
+}
+
+bool
+bc_coefs_match_exact(const std::vector<double>& cur, const std::vector<double>& cached, double& max_rel_diff)
+{
+    max_rel_diff = 0.0;
+    if (cur.size() != cached.size())
+    {
+        max_rel_diff = std::numeric_limits<double>::infinity();
+        return false;
+    }
+    bool all_match = true;
+    for (size_t i = 0; i < cur.size(); ++i)
+    {
+        const double a = cur[i];
+        const double b = cached[i];
+        if (!std::isfinite(a) || !std::isfinite(b))
+        {
+            max_rel_diff = std::numeric_limits<double>::infinity();
+            all_match = false;
+            continue;
+        }
+        if (a != b)
+        {
+            all_match = false;
+            const double denom = std::max(std::abs(a), std::abs(b));
+            const double rel = (denom > 0.0) ? (std::abs(a - b) / denom) : 1.0;
+            if (rel > max_rel_diff)
+            {
+                max_rel_diff = rel;
+            }
+        }
+    }
+    return all_match;
+}
+
+template <typename EnumType>
+EnumType
+classify_coarse_solver(const PoissonSolver* solver,
+                       const EnumType unsupported_val,
+                       const EnumType vcsc_petsc_val,
+                       IBTK::VCInterpType& mu_interp_out)
+{
+    mu_interp_out = IBTK::VC_HARMONIC_INTERP;
+    if (!solver)
+    {
+        return unsupported_val;
+    }
+    const std::type_info& ti = typeid(*solver);
+    if (ti == typeid(VCSCViscousPETScLevelSolver))
+    {
+        mu_interp_out = static_cast<const VCSCViscousPETScLevelSolver*>(solver)->getViscosityInterpolationType();
+        return vcsc_petsc_val;
+    }
+    return unsupported_val;
+}
+
+bool
+coeff_vectors_match_rel(const std::vector<double>& cur,
+                        const std::vector<double>& cached,
+                        const double rel_tol,
+                        double& max_rel_diff)
+{
+    max_rel_diff = 0.0;
+    if (cur.size() != cached.size())
+    {
+        max_rel_diff = std::numeric_limits<double>::infinity();
+        return false;
+    }
+    bool all_match = true;
+    for (size_t i = 0; i < cur.size(); ++i)
+    {
+        const double a = cur[i];
+        const double b = cached[i];
+        if (!std::isfinite(a) || !std::isfinite(b))
+        {
+            max_rel_diff = std::numeric_limits<double>::infinity();
+            all_match = false;
+            continue;
+        }
+        const double scale = std::max(1.0, std::max(std::abs(a), std::abs(b)));
+        const double rel = std::abs(a - b) / scale;
+        if (rel > max_rel_diff)
+        {
+            max_rel_diff = rel;
+        }
+        if (rel > rel_tol)
+        {
+            all_match = false;
+        }
+    }
+    return all_match;
+}
+
+inline void
+append_array_data(const SAMRAI::pdat::ArrayData<NDIM, double>& arr, std::vector<double>& out)
+{
+    const int n = arr.getOffset() * arr.getDepth();
+    if (n > 0)
+    {
+        const double* ptr = arr.getPointer(0);
+        out.insert(out.end(), ptr, ptr + n);
+    }
+}
+
+bool
+append_patch_data_values(const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>>& patch,
+                         const int data_id,
+                         std::vector<double>& out)
+{
+    if (!patch || data_id < 0 || !patch->checkAllocated(data_id))
+    {
+        return false;
+    }
+    const SAMRAI::hier::PatchData<NDIM>* raw = patch->getPatchData(data_id).getPointer();
+    if (const auto* sd = dynamic_cast<const SAMRAI::pdat::SideData<NDIM, double>*>(raw))
+    {
+        for (int d = 0; d < NDIM; ++d)
+        {
+            append_array_data(sd->getArrayData(d), out);
+        }
+        return true;
+    }
+    if (const auto* ed = dynamic_cast<const SAMRAI::pdat::EdgeData<NDIM, double>*>(raw))
+    {
+        for (int d = 0; d < NDIM; ++d)
+        {
+            append_array_data(ed->getArrayData(d), out);
+        }
+        return true;
+    }
+    if (const auto* nd = dynamic_cast<const SAMRAI::pdat::NodeData<NDIM, double>*>(raw))
+    {
+        append_array_data(nd->getArrayData(), out);
+        return true;
+    }
+    return false;
+}
+
+bool
+snapshot_l0_coeff_values(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>& l0_level,
+                         const int data_id,
+                         std::vector<double>& out)
+{
+    out.clear();
+    if (!l0_level)
+    {
+        return false;
+    }
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(l0_level); p; p++)
+    {
+        if (!append_patch_data_values(l0_level->getPatch(p()), data_id, out))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void
+capture_l0_boxes_and_procs(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>& l0_level,
+                           std::vector<SAMRAI::hier::Box<NDIM>>& boxes_out,
+                           std::vector<int>& procs_out)
+{
+    const SAMRAI::hier::BoxArray<NDIM>& boxes = l0_level->getBoxes();
+    const SAMRAI::hier::ProcessorMapping& procs = l0_level->getProcessorMapping();
+    const int n_boxes = boxes.size();
+    boxes_out.resize(n_boxes);
+    procs_out.resize(n_boxes);
+    for (int i = 0; i < n_boxes; ++i)
+    {
+        boxes_out[i] = boxes[i];
+        procs_out[i] = procs.getProcessorAssignment(i);
+    }
+}
+
+bool
+matches_l0_boxes_and_procs(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>& l0_level,
+                           const std::vector<SAMRAI::hier::Box<NDIM>>& cached_boxes,
+                           const std::vector<int>& cached_procs)
+{
+    const SAMRAI::hier::BoxArray<NDIM>& boxes = l0_level->getBoxes();
+    const SAMRAI::hier::ProcessorMapping& procs = l0_level->getProcessorMapping();
+    const int n_boxes = boxes.size();
+    if (static_cast<int>(cached_boxes.size()) != n_boxes || static_cast<int>(cached_procs.size()) != n_boxes)
+    {
+        return false;
+    }
+    for (int i = 0; i < n_boxes; ++i)
+    {
+        if (boxes[i] != cached_boxes[i] || procs.getProcessorAssignment(i) != cached_procs[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool
+snapshot_l0_robin_bc_matrix_coefs(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>& l0_level,
+                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                  const double solution_time,
+                                  std::vector<double>& bc_vals_out)
+{
+    bc_vals_out.clear();
+    if (!l0_level)
+    {
+        return false;
+    }
+
+    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(l0_level); p; p++)
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch = l0_level->getPatch(p());
+        if (!patch)
+        {
+            return false;
+        }
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>> physical_codim1_boxes =
+            IBTK::PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+        const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+        if (n_physical_codim1_boxes == 0)
+        {
+            continue;
+        }
+
+        if (static_cast<int>(bc_coefs.size()) < NDIM)
+        {
+            return false;
+        }
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        const double* const dx = pgeom->getDx();
+        const double* const patch_x_lower = pgeom->getXLower();
+        const double* const patch_x_upper = pgeom->getXUpper();
+        const SAMRAI::hier::IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
+        SAMRAI::tbox::Array<SAMRAI::tbox::Array<bool>> touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            touches_regular_bdry[d].resizeArray(2);
+            touches_periodic_bdry[d].resizeArray(2);
+            for (int ul = 0; ul < 2; ++ul)
+            {
+                touches_regular_bdry[d][ul] = pgeom->getTouchesRegularBoundary(d, ul);
+                touches_periodic_bdry[d][ul] = pgeom->getTouchesPeriodicBoundary(d, ul);
+            }
+        }
+
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef = bc_coefs[axis];
+            if (!bc_coef)
+            {
+                return false;
+            }
+            auto* const extended_bc_coef = dynamic_cast<IBTK::ExtendedRobinBcCoefStrategy*>(bc_coef);
+            for (int n = 0; n < n_physical_codim1_boxes; ++n)
+            {
+                const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const unsigned int location_index = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index / 2;
+                const SAMRAI::hier::BoundaryBox<NDIM> trimmed_bdry_box =
+                    IBTK::PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+                SAMRAI::hier::Box<NDIM> bc_coef_box =
+                    IBTK::PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+                const bool shifted = (bdry_normal_axis != axis);
+                if (shifted)
+                {
+                    bc_coef_box.upper()(axis) += 1;
+                    std::array<double, NDIM> shifted_lower, shifted_upper;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        shifted_lower[d] = patch_x_lower[d];
+                        shifted_upper[d] = patch_x_upper[d];
+                    }
+                    shifted_lower[axis] -= 0.5 * dx[axis];
+                    shifted_upper[axis] -= 0.5 * dx[axis];
+                    patch->setPatchGeometry(new SAMRAI::geom::CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                                           touches_regular_bdry,
+                                                                                           touches_periodic_bdry,
+                                                                                           dx,
+                                                                                           shifted_lower.data(),
+                                                                                           shifted_upper.data()));
+                }
+
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>> acoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM, double>(bc_coef_box, 1);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>> bcoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM, double>(bc_coef_box, 1);
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>> gcoef_data =
+                    new SAMRAI::pdat::ArrayData<NDIM, double>(bc_coef_box, 1);
+                if (extended_bc_coef)
+                {
+                    extended_bc_coef->clearTargetPatchDataIndex();
+                    extended_bc_coef->setHomogeneousBc(true);
+                }
+                bc_coef->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, solution_time);
+                if (shifted)
+                {
+                    patch->setPatchGeometry(pgeom);
+                }
+
+                for (SAMRAI::hier::Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+                {
+                    const SAMRAI::hier::Index<NDIM>& idx = bc();
+                    const double a = (*acoef_data)(idx, 0);
+                    const double b = (*bcoef_data)(idx, 0);
+                    if (!std::isfinite(a) || !std::isfinite(b) || (a == 0.0 && b == 0.0))
+                    {
+                        return false;
+                    }
+                    bc_vals_out.push_back(a);
+                    bc_vals_out.push_back(b);
+                }
+            }
+        }
+    }
+    return true;
+}
+} // namespace
+
 SCPoissonPointRelaxationFACOperator::~SCPoissonPointRelaxationFACOperator()
 {
-    if (d_is_initialized) deallocateOperatorState();
+    d_in_destructor = true;
+    if (d_is_initialized)
+    {
+        deallocateOperatorState();
+    }
+    clearCachedCoarseState(/*deallocate_coarse_solver*/ true);
+    if (d_reuse_unchanged_coarse_solver && (d_coarse_solver_reuse_count > 0 || d_coarse_solver_reinit_count > 0))
+    {
+        if (IBTK_MPI::getRank() == 0)
+        {
+            SAMRAI::tbox::pout << d_object_name << ": coarse solver reuse_count=" << d_coarse_solver_reuse_count
+                               << " reinit_count=" << d_coarse_solver_reinit_count << "\n";
+        }
+    }
     return;
 } // ~SCPoissonPointRelaxationFACOperator
 
@@ -357,6 +724,18 @@ SCPoissonPointRelaxationFACOperator::setPoissonSpecifications(const PoissonSpeci
     PoissonFACPreconditionerStrategy::setPoissonSpecifications(poisson_spec);
     return;
 } // setPoissonSpecifications
+
+long
+SCPoissonPointRelaxationFACOperator::getCoarseSolverReuseCount() const
+{
+    return d_coarse_solver_reuse_count;
+} // getCoarseSolverReuseCount
+
+long
+SCPoissonPointRelaxationFACOperator::getCoarseSolverReinitCount() const
+{
+    return d_coarse_solver_reinit_count;
+} // getCoarseSolverReinitCount
 
 void
 SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
@@ -759,15 +1138,194 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver)
     {
-        // Note that since the coarse level solver is solving for the error, it
-        // must always employ homogeneous boundary conditions.
-        d_coarse_solver->setSolutionTime(d_solution_time);
-        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
-        d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
-        d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
-        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
-        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
-                                               *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+        bool reused = false;
+        bool cache_ready = false;
+        const bool was_cached = d_has_cached_coarse_state;
+        const double rel_tol = d_coarse_solver_reuse_rel_tol;
+        double max_rel_dC = 0.0;
+        double max_rel_dD = 0.0;
+        double max_rel_dBC = 0.0;
+        CachedCoarseSolverKind cur_solver_kind = CachedCoarseSolverKind::UNSUPPORTED;
+        IBTK::VCInterpType cur_mu_interp_type = IBTK::VC_HARMONIC_INTERP;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> l0_level;
+        double cur_dt = 0.0;
+        bool c_is_var = false;
+        bool c_is_zero = true;
+        double c_const = 0.0;
+        bool d_is_var = false;
+        double d_const = 0.0;
+        int cur_x_depth = -1;
+        SAMRAI::hier::IntVector<NDIM> cur_x_gcw(-1);
+        int cur_C_id = IBTK::invalid_index;
+        int cur_D_id = IBTK::invalid_index;
+        std::vector<double> cur_C_vals;
+        std::vector<double> cur_D_vals;
+        std::vector<double> cur_bc_vals;
+
+        if (d_reuse_unchanged_coarse_solver && d_coarsest_ln == 0 && d_hierarchy)
+        {
+            cur_solver_kind = classify_coarse_solver(d_coarse_solver.getPointer(),
+                                                     CachedCoarseSolverKind::UNSUPPORTED,
+                                                     CachedCoarseSolverKind::VCSC_PETSC,
+                                                     cur_mu_interp_type);
+            l0_level = d_hierarchy->getPatchLevel(0);
+            const bool have_dt = std::isfinite(d_current_time) && std::isfinite(d_new_time);
+            cur_dt = have_dt ? (d_new_time - d_current_time) : 0.0;
+            c_is_var = d_poisson_spec.cIsVariable();
+            c_is_zero = d_poisson_spec.cIsZero();
+            c_const = (!c_is_var && !c_is_zero) ? d_poisson_spec.getCConstant() : 0.0;
+            d_is_var = d_poisson_spec.dIsVariable();
+            const bool d_is_const = !d_is_var && d_poisson_spec.dIsConstant();
+            d_const = d_is_const ? d_poisson_spec.getDConstant() : 0.0;
+            cur_x_depth = solution_pdat_fac->getDefaultDepth();
+            cur_x_gcw = solution_pdat_fac->getGhostCellWidth();
+            cur_C_id = c_is_var ? d_poisson_spec.getCPatchDataId() : IBTK::invalid_index;
+            cur_D_id = d_is_var ? d_poisson_spec.getDPatchDataId() : IBTK::invalid_index;
+
+            bool local_snapshot_ok = (cur_solver_kind != CachedCoarseSolverKind::UNSUPPORTED) &&
+                                     static_cast<bool>(l0_level) && have_dt && (d_is_var || d_is_const);
+            if (local_snapshot_ok && c_is_var)
+            {
+                local_snapshot_ok = snapshot_l0_coeff_values(l0_level, cur_C_id, cur_C_vals);
+            }
+            if (local_snapshot_ok && d_is_var)
+            {
+                local_snapshot_ok = snapshot_l0_coeff_values(l0_level, cur_D_id, cur_D_vals);
+            }
+            if (local_snapshot_ok)
+            {
+                local_snapshot_ok =
+                    snapshot_l0_robin_bc_matrix_coefs(l0_level, d_bc_coefs, d_solution_time, cur_bc_vals);
+            }
+
+            int snapshot_fail = local_snapshot_ok ? 0 : 1;
+            snapshot_fail = IBTK_MPI::maxReduction(snapshot_fail);
+            cache_ready = (snapshot_fail == 0);
+
+            if (cache_ready && was_cached)
+            {
+                bool local_match = (cur_solver_kind == d_cached_l0_solver_kind) &&
+                                   (cur_solver_kind != CachedCoarseSolverKind::VCSC_PETSC ||
+                                    cur_mu_interp_type == d_cached_l0_mu_interp_type) &&
+                                   (l0_level == d_cached_l0_level) &&
+                                   matches_l0_boxes_and_procs(l0_level, d_cached_l0_boxes, d_cached_l0_procs) &&
+                                   scalars_match_rel(cur_dt, d_cached_l0_dt, rel_tol) &&
+                                   (cur_x_depth == d_cached_l0_x_depth) && (cur_x_gcw == d_cached_l0_x_gcw) &&
+                                   (c_is_var == d_cached_l0_C_is_var) && (c_is_zero == d_cached_l0_C_is_zero) &&
+                                   (d_is_var == d_cached_l0_D_is_var);
+                if (local_match && !c_is_var && !c_is_zero)
+                {
+                    local_match = scalars_match_rel(c_const, d_cached_l0_C_const, rel_tol);
+                }
+                if (local_match && !d_is_var)
+                {
+                    local_match = scalars_match_rel(d_const, d_cached_l0_D_const, rel_tol);
+                }
+                const bool c_vals_match =
+                    (!c_is_var || !d_cached_l0_C_is_var) ?
+                        true :
+                        coeff_vectors_match_rel(cur_C_vals, d_cached_l0_C_vals, rel_tol, max_rel_dC);
+                const bool d_vals_match =
+                    (!d_is_var || !d_cached_l0_D_is_var) ?
+                        true :
+                        coeff_vectors_match_rel(cur_D_vals, d_cached_l0_D_vals, rel_tol, max_rel_dD);
+                const bool bc_vals_match = bc_coefs_match_exact(cur_bc_vals, d_cached_l0_bc_vals, max_rel_dBC);
+                if (local_match && c_is_var)
+                {
+                    local_match = c_vals_match;
+                }
+                if (local_match && d_is_var)
+                {
+                    local_match = d_vals_match;
+                }
+                if (local_match)
+                {
+                    local_match = bc_vals_match;
+                }
+
+                int local_mismatch = local_match ? 0 : 1;
+                local_mismatch = IBTK_MPI::maxReduction(local_mismatch);
+                reused = (local_mismatch == 0);
+                if (!reused)
+                {
+                    max_rel_dC = IBTK_MPI::maxReduction(max_rel_dC);
+                    max_rel_dD = IBTK_MPI::maxReduction(max_rel_dD);
+                    max_rel_dBC = IBTK_MPI::maxReduction(max_rel_dBC);
+                }
+            }
+        }
+
+        if (reused)
+        {
+            d_coarse_solver->setSolutionTime(d_solution_time);
+            d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+            d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
+            d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
+            ++d_coarse_solver_reuse_count;
+            if (d_reuse_unchanged_coarse_solver && d_coarsest_ln == 0 && IBTK_MPI::getRank() == 0)
+            {
+                SAMRAI::tbox::plog << d_object_name
+                                   << ": coarse solver reused (reuse_count=" << d_coarse_solver_reuse_count
+                                   << ", reinit_count=" << d_coarse_solver_reinit_count << ")\n";
+            }
+        }
+        else
+        {
+            clearCachedCoarseState(/*deallocate_coarse_solver*/ true);
+            // Note that since the coarse level solver is solving for the error, it
+            // must always employ homogeneous boundary conditions.
+            d_coarse_solver->setSolutionTime(d_solution_time);
+            d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+            d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
+            d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
+            d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
+
+            Pointer<SAMRAIVectorReal<NDIM, double>> l0_solution = getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln);
+            Pointer<SAMRAIVectorReal<NDIM, double>> l0_rhs = getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln);
+            if (cache_ready)
+            {
+                d_cached_l0_solution = l0_solution->cloneVector(l0_solution->getName() + "::cached");
+                d_cached_l0_rhs = l0_rhs->cloneVector(l0_rhs->getName() + "::cached");
+                d_coarse_solver->initializeSolverState(*d_cached_l0_solution, *d_cached_l0_rhs);
+                d_has_cached_coarse_state = true;
+                d_cached_l0_solver_kind = cur_solver_kind;
+                d_cached_l0_mu_interp_type = cur_mu_interp_type;
+                d_cached_l0_level = l0_level;
+                capture_l0_boxes_and_procs(l0_level, d_cached_l0_boxes, d_cached_l0_procs);
+                d_cached_l0_dt = cur_dt;
+                d_cached_l0_C_is_var = c_is_var;
+                d_cached_l0_C_is_zero = c_is_zero;
+                d_cached_l0_C_const = c_const;
+                d_cached_l0_D_is_var = d_is_var;
+                d_cached_l0_D_const = d_const;
+                d_cached_l0_x_depth = cur_x_depth;
+                d_cached_l0_x_gcw = cur_x_gcw;
+                d_cached_l0_C_vals.swap(cur_C_vals);
+                d_cached_l0_D_vals.swap(cur_D_vals);
+                d_cached_l0_bc_vals.swap(cur_bc_vals);
+            }
+            else
+            {
+                d_coarse_solver->initializeSolverState(*l0_solution, *l0_rhs);
+            }
+
+            if (d_reuse_unchanged_coarse_solver && d_coarsest_ln == 0)
+            {
+                ++d_coarse_solver_reinit_count;
+                if (IBTK_MPI::getRank() == 0)
+                {
+                    SAMRAI::tbox::plog << d_object_name
+                                       << ": coarse solver reinitialized (reuse_count=" << d_coarse_solver_reuse_count
+                                       << ", reinit_count=" << d_coarse_solver_reinit_count;
+                    if (was_cached)
+                    {
+                        SAMRAI::tbox::plog << ", cache_miss=1, max_rel_dC=" << max_rel_dC
+                                           << ", max_rel_dD=" << max_rel_dD << ", max_rel_dBC=" << max_rel_dBC;
+                    }
+                    SAMRAI::tbox::plog << ")\n";
+                }
+            }
+        }
     }
 
     // Setup specialized transfer operators.
@@ -873,12 +1431,47 @@ SCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const in
     {
         d_patch_cf_bdry_ghost_boxes.clear();
         d_patch_neighbor_overlap.clear();
-        if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
+        if (d_coarse_solver && (d_in_destructor || !d_reuse_unchanged_coarse_solver || !d_has_cached_coarse_state))
+        {
+            d_coarse_solver->deallocateSolverState();
+            clearCachedCoarseState(/*deallocate_coarse_solver*/ false);
+        }
     }
     return;
 } // deallocateOperatorStateSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+SCPoissonPointRelaxationFACOperator::clearCachedCoarseState(const bool deallocate_coarse_solver)
+{
+    if (deallocate_coarse_solver && d_coarse_solver && d_has_cached_coarse_state)
+    {
+        d_coarse_solver->deallocateSolverState();
+    }
+    d_has_cached_coarse_state = false;
+    if (d_cached_l0_solution)
+    {
+        free_vector_components(*d_cached_l0_solution);
+        d_cached_l0_solution.setNull();
+    }
+    if (d_cached_l0_rhs)
+    {
+        free_vector_components(*d_cached_l0_rhs);
+        d_cached_l0_rhs.setNull();
+    }
+    d_cached_l0_solver_kind = CachedCoarseSolverKind::UNSUPPORTED;
+    d_cached_l0_mu_interp_type = IBTK::VC_HARMONIC_INTERP;
+    d_cached_l0_level.setNull();
+    d_cached_l0_boxes.clear();
+    d_cached_l0_procs.clear();
+    d_cached_l0_x_depth = -1;
+    d_cached_l0_x_gcw = SAMRAI::hier::IntVector<NDIM>(-1);
+    d_cached_l0_C_vals.clear();
+    d_cached_l0_D_vals.clear();
+    d_cached_l0_bc_vals.clear();
+    return;
+} // clearCachedCoarseState
 
 //////////////////////////////////////////////////////////////////////////////
 

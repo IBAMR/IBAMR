@@ -175,6 +175,12 @@ VCSCViscousPETScLevelSolver::setViscosityInterpolationType(const IBTK::VCInterpT
     return;
 } // setViscosityInterpolationType
 
+IBTK::VCInterpType
+VCSCViscousPETScLevelSolver::getViscosityInterpolationType() const
+{
+    return d_mu_interp_type;
+} // getViscosityInterpolationType
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

@@ -1,0 +1,3 @@
+Improved: IBTK::SCPoissonPointRelaxationFACOperator adds opt-in coarsest-level solver reuse for IBTK::VCSCViscousPETScLevelSolver controlled by reuse_unchanged_coarse_solver.
+<br>
+(Hoseyn Amiri, 2026/11/22)
