@@ -85,12 +85,27 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSVCStaggeredConservativeMassMomentumSSPRKIntegrator() = default;
+    ~INSVCStaggeredConservativeMassMomentumSSPRKIntegrator();
 
     /*!
      * \brief Integrate density and momentum field.
      */
     void integrate(double dt) override;
+
+    /*!
+     * \brief Return count of steps executed via the constant-density fast path.
+     */
+    long getConstantDensityFastPathHits() const;
+
+    /*!
+     * \brief Return count of fallbacks from the fast path to regular SSPRK integration.
+     */
+    long getConstantDensityFallbackCount() const;
+
+    /*!
+     * \brief Return maximum observed stage discrete velocity divergence times dt across checked stages.
+     */
+    double getMaxObservedStageDivDt() const;
 
     //\}
 
@@ -126,6 +141,13 @@ private:
 
     // Number of SSP-RK steps to take. Default is set for SSP-RK3.
     int d_num_steps = 3;
+
+    // Opt-in: skip redundant scalar density SSPRK stages while preserving midpoint CUI momentum advection.
+    bool d_skip_const_density_stages = false;
+    double d_const_density_max_stage_div_dt = 1.0e-6;
+    double d_max_observed_stage_div_dt = 0.0;
+    long d_const_density_fastpath_hits = 0;
+    long d_const_density_fallback_count = 0;
 };
 } // namespace IBAMR
 

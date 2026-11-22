@@ -198,6 +198,7 @@ ENDIF()
 
 # vc_navier_stokes:
 SETUP_2D(vc_navier_stokes vc_navier_stokes_01.cpp)
+SETUP_2D(vc_navier_stokes vc_ssprk3_const_density.cpp)
 SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 
 # wave_tank:
