@@ -17,7 +17,7 @@ DELTA = 0.05                           // Width of smoothed region
 
 // solver parameters
 SOLVER_TYPE         = "STAGGERED"          // the fluid solver to use (STAGGERED or COLLOCATED)
-DISCRETIZATION_FORM = "CONSERVATIVE"    // the discretization form to use (CONSERVATIVE or NON_CONSERVATIVE)
+DISCRETIZATION_FORM = "CONSERVATIVE"    // the discretization form to use (CONSERVATIVE only)
 START_TIME         = 0.0e0                // initial simulation time
 END_TIME           = 0.6                  // final simulation time
 MAX_INTEGRATOR_STEPS = 1000000

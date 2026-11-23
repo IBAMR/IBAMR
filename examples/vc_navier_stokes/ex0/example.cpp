@@ -110,7 +110,8 @@ main(int argc, char* argv[])
         }
         else
         {
-            TBOX_ERROR("Unknown INSVCStaggeredHierarchyIntegrator type");
+            TBOX_ERROR("Unsupported discretization_form: " << discretization_form << "\n"
+                                                           << "Valid options are: NON_CONSERVATIVE\n");
         }
 
         Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(

@@ -1,0 +1,6 @@
+// An unsupported discretization_form, which the driver must reject.
+Main {
+   discretization_form = "NONCONSERVATIVE"
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}

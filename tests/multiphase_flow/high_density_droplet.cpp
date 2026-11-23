@@ -43,6 +43,7 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
+#include "../tests.h"
 #include "LSLocateCircularInterface.h"
 #include "VelocityInitialCondition.h"
 
@@ -62,6 +63,7 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    Logger::getInstance()->setAbortAppender(new TestAppender());
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -107,7 +109,7 @@ main(int argc, char* argv[])
                 "INSVCStaggeredConservativeHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
         }
-        else if (!conservative_form)
+        else if (discretization_form == "NON_CONSERVATIVE")
         {
             time_integrator = new INSVCStaggeredNonConservativeHierarchyIntegrator(
                 "INSVCStaggeredNonConservativeHierarchyIntegrator",
@@ -115,8 +117,8 @@ main(int argc, char* argv[])
         }
         else
         {
-            TBOX_ERROR("Unsupported solver type: " << discretization_form << "\n"
-                                                   << "Valid options are: CONSERVATIVE, NON_CONSERVATIVE");
+            TBOX_ERROR("Unsupported discretization_form: " << discretization_form << "\n"
+                                                           << "Valid options are: CONSERVATIVE, NON_CONSERVATIVE\n");
         }
 
         // Set up the advection diffusion hierarchy integrator
@@ -190,7 +192,7 @@ main(int argc, char* argv[])
         }
 
         // Setup the INS maintained material properties.
-        Pointer<Variable<NDIM>> rho_var;
+        Pointer<hier::Variable<NDIM>> rho_var;
         if (conservative_form)
         {
             rho_var = new SideVariable<NDIM, double>("rho");
