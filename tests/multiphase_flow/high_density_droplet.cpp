@@ -43,6 +43,7 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
+#include "../tests.h"
 #include "LSLocateCircularInterface.h"
 #include "VelocityInitialCondition.h"
 
@@ -62,6 +63,7 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    Logger::getInstance()->setAbortAppender(new TestAppender());
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -190,7 +192,7 @@ main(int argc, char* argv[])
         }
 
         // Setup the INS maintained material properties.
-        Pointer<Variable<NDIM>> rho_var;
+        Pointer<hier::Variable<NDIM>> rho_var;
         if (conservative_form)
         {
             rho_var = new SideVariable<NDIM, double>("rho");
