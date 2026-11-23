@@ -4448,8 +4448,8 @@ LEInteractor::spread(Pointer<EdgeData<NDIM, double>> q_data,
                 x_upper_axis[d] = x_upper[d];
                 if (d != axis)
                 {
-                    x_lower_axis[axis] -= 0.5 * dx[axis];
-                    x_upper_axis[axis] += 0.5 * dx[axis];
+                    x_lower_axis[d] -= 0.5 * dx[d];
+                    x_upper_axis[d] += 0.5 * dx[d];
                 }
             }
             for (const auto& local_index : indices_and_shifts.d_local_indices)
