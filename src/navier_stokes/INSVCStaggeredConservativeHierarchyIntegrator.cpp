@@ -17,6 +17,9 @@
 #include <ibamr/BrinkmanPenalizationStrategy.h>
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
+#if (NDIM == 3)
+#include "INSVCStaggeredConservativeGPUBridge.h"
+#endif
 #include <ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
@@ -144,6 +147,17 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
         d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumRKIntegrator(
             "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumRKIntegrator", mass_momentum_db);
 
+#if (NDIM == 3)
+    const std::string dens_ts = mass_momentum_db->getStringWithDefault("density_time_stepping_type", "SSPRK3");
+    const std::string vel_lim = mass_momentum_db->getStringWithDefault("velocity_convective_limiter", "CUI");
+    const std::string dens_lim = mass_momentum_db->getStringWithDefault("density_convective_limiter", "CUI");
+    d_gpu_ssprk3_cui_ok = (dens_ts == "SSPRK3" && vel_lim == "CUI" && dens_lim == "CUI");
+    if (input_db && input_db->getBoolWithDefault("use_gpu_fluid_backend", false))
+    {
+        d_gpu_bridge = std::make_unique<INSVCStaggeredConservativeGPUBridge>(input_db, d_object_name);
+    }
+#endif
+
     d_convective_op_type = "NONE";
 
     // Side centered state variable for density and interpolated density variable
@@ -153,6 +167,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
 
     return;
 } // INSVCStaggeredConservativeHierarchyIntegrator
+
+INSVCStaggeredConservativeHierarchyIntegrator::~INSVCStaggeredConservativeHierarchyIntegrator() = default;
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
@@ -226,7 +242,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                                                             const int num_cycles)
 {
     INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
-    const double dt = new_time - current_time;
 
     // Get the current value of density and store it in scratch.  Note that
     // for conservative differencing, it is required that the side-centered
@@ -237,23 +252,135 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     TBOX_ASSERT(d_rho_sc_scratch_idx >= 0);
 #endif
 
-    // Note that we always reset current context of state variables here, if
-    // necessary.
-    const double apply_time = current_time;
-    for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+    // Always allocate solver scratch vectors so postprocessIntegrateHierarchy
+    // and any fallback replay operate on valid descriptors.
+    d_U_rhs_vec->allocateVectorData(current_time);
+    d_U_rhs_vec->setToScalar(0.0);
+    d_P_rhs_vec->allocateVectorData(current_time);
+    d_P_rhs_vec->setToScalar(0.0);
+    if (!d_creeping_flow)
     {
-        d_reset_rho_fcns[k](d_rho_sc_current_idx,
-                            d_rho_sc_var,
-                            d_hier_math_ops,
-                            -1 /*cycle_num*/,
-                            apply_time,
-                            current_time,
-                            new_time,
-                            d_reset_rho_fcns_ctx[k]);
+        d_U_adv_vec->allocateVectorData(current_time);
+        d_U_adv_vec->setToScalar(0.0);
+        d_N_vec->allocateVectorData(current_time);
+        d_N_vec->setToScalar(0.0);
     }
-    d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx,
-                                 d_rho_sc_current_idx,
-                                 /*interior_only*/ true);
+
+    bool executed_gpu_preprocess = false;
+    bool rho_already_reset = false;
+#if (NDIM == 3)
+    if (d_gpu_bridge)
+    {
+        d_gpu_step_active = false;
+        const double apply_time = current_time;
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](d_rho_sc_current_idx,
+                                d_rho_sc_var,
+                                d_hier_math_ops,
+                                -1 /*cycle_num*/,
+                                apply_time,
+                                current_time,
+                                new_time,
+                                d_reset_rho_fcns_ctx[k]);
+        }
+        d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx,
+                                     d_rho_sc_current_idx,
+                                     /*interior_only*/ true);
+        rho_already_reset = true;
+
+        std::string gpu_reason;
+        if (canUseGpuCandidate2(current_time, new_time, num_cycles, gpu_reason))
+        {
+            double rel_tol = 1.0e-5, abs_tol = 1.0e-50;
+            int max_iters = 100;
+            std::string ksp_type_unused;
+            INSVCStaggeredConservativeGPUBridge::extractEffectiveSolverSettings(
+                d_stokes_solver, d_stokes_solver_db, rel_tol, abs_tol, max_iters, ksp_type_unused);
+            const double dt = new_time - current_time;
+            const bool is_first_step = IBTK::rel_equal_eps(d_integrator_time, d_start_time) || d_dt_previous.empty();
+            const double dt_prev = is_first_step ? dt : d_dt_previous[0];
+            const int u_old_idx = is_first_step ? -1 : d_U_old_current_idx;
+            const double mu0 = d_problem_coefs.getMu();
+            const double fallback_rho0 = d_problem_coefs.getRho();
+            if (d_gpu_bridge->runPreprocess(d_hierarchy,
+                                            d_U_current_idx,
+                                            u_old_idx,
+                                            d_P_current_idx,
+                                            d_rho_sc_current_idx,
+                                            mu0,
+                                            fallback_rho0,
+                                            dt,
+                                            dt_prev,
+                                            d_integrator_step,
+                                            is_first_step,
+                                            d_gpu_hierarchy_dirty,
+                                            rel_tol,
+                                            abs_tol,
+                                            max_iters,
+                                            d_gpu_uniform_rho,
+                                            d_gpu_uniform_rho_val,
+                                            gpu_reason))
+            {
+                d_gpu_step_active = true;
+                d_gpu_hierarchy_dirty = false;
+                executed_gpu_preprocess = true;
+            }
+        }
+        if (!executed_gpu_preprocess)
+        {
+            if (!d_gpu_bridge->fallbackToCpu())
+            {
+                TBOX_ERROR(d_object_name
+                           << "::preprocessIntegrateHierarchy(): GPU backend unavailable or failed with fallback_to_cpu=FALSE: "
+                           << gpu_reason << "\n");
+            }
+            if (IBTK::IBTK_MPI::getRank() == 0)
+            {
+                plog << "[C2_GPU_FALLBACK_CPU] phase=preprocess step=" << d_integrator_step
+                     << " reason=" << gpu_reason << "\n" << std::flush;
+            }
+            d_gpu_step_active = false;
+            d_gpu_hierarchy_dirty = true;
+            d_gpu_brinkman_dirty = true;
+        }
+    }
+#endif
+
+    if (!executed_gpu_preprocess)
+    {
+        runCpuPreprocessFluidPrep(current_time, new_time, rho_already_reset);
+    }
+
+    // Execute any registered callbacks.
+    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
+    return;
+} // preprocessIntegrateHierarchy
+
+void
+INSVCStaggeredConservativeHierarchyIntegrator::runCpuPreprocessFluidPrep(const double current_time,
+                                                                          const double new_time,
+                                                                          const bool rho_already_reset)
+{
+    const double dt = new_time - current_time;
+    const double apply_time = current_time;
+    if (!rho_already_reset)
+    {
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](d_rho_sc_current_idx,
+                                d_rho_sc_var,
+                                d_hier_math_ops,
+                                -1 /*cycle_num*/,
+                                apply_time,
+                                current_time,
+                                new_time,
+                                d_reset_rho_fcns_ctx[k]);
+        }
+        d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx,
+                                     d_rho_sc_current_idx,
+                                     /*interior_only*/ true);
+    }
 
     if (!d_mu_is_const && d_mu_var)
     {
@@ -321,16 +448,12 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 #endif
     }
 
-    // Allocate solver vectors.
-    d_U_rhs_vec->allocateVectorData(current_time);
+    // Zero pre-allocated solver scratch vectors cleanly for CPU prep or fallback replay.
     d_U_rhs_vec->setToScalar(0.0);
-    d_P_rhs_vec->allocateVectorData(current_time);
     d_P_rhs_vec->setToScalar(0.0);
     if (!d_creeping_flow)
     {
-        d_U_adv_vec->allocateVectorData(current_time);
         d_U_adv_vec->setToScalar(0.0);
-        d_N_vec->allocateVectorData(current_time);
         d_N_vec->setToScalar(0.0);
     }
 
@@ -515,10 +638,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         d_rho_p_integrator->integrate(dt);
     }
 
-    // Execute any registered callbacks.
-    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
-} // preprocessIntegrateHierarchy
+} // runCpuPreprocessFluidPrep
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
@@ -526,6 +647,200 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchySpecialized(con
                                                                              const int cycle_num)
 {
     INSVCStaggeredHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
+
+#if (NDIM == 3)
+    if (d_gpu_step_active && d_gpu_bridge)
+    {
+        const double dt = new_time - current_time;
+        const double half_time = current_time + 0.5 * dt;
+        std::string gpu_reason;
+        double p_in_new = 0.0;
+        bool gpu_ok = true;
+
+        if (cycle_num != 0)
+        {
+            gpu_ok = false;
+            gpu_reason = "cycle_num_gt_0";
+        }
+        else if (d_gpu_bridge->forceCpuFallbackStep() >= 0 &&
+                 d_integrator_step == d_gpu_bridge->forceCpuFallbackStep())
+        {
+            gpu_ok = false;
+            gpu_reason = "forced_cpu_fallback_step";
+        }
+        else if (!INSVCStaggeredConservativeGPUBridge::inspectPressureDrivenHalfZBcs(
+                     d_hierarchy, d_U_var, d_U_scratch_idx, d_bc_coefs, half_time, p_in_new, gpu_reason))
+        {
+            gpu_ok = false;
+        }
+
+        if (gpu_ok)
+        {
+            using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
+            SynchronizationTransactionComponent default_synch_transaction =
+                SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
+
+            // Evaluate and synchronize Brinkman penalization mask L_b on CPU
+            d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+            for (auto& brinkman_force : d_brinkman_force)
+            {
+                brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
+            }
+            SynchronizationTransactionComponent L_synch_transaction =
+                SynchronizationTransactionComponent(d_velocity_L_idx, "CONSERVATIVE_COARSEN");
+            d_side_synch_op->resetTransactionComponent(L_synch_transaction);
+            d_side_synch_op->synchronizeData(d_integrator_time);
+            d_side_synch_op->resetTransactionComponent(default_synch_transaction);
+
+            // Check optional Brinkman target velocity and external body force
+            int f_idx = -1;
+            bool has_f = false;
+            if (!d_brinkman_force.empty())
+            {
+                d_hier_sc_data_ops->setToScalar(d_temp_sc_idx, 0.0);
+                for (auto& brinkman_force : d_brinkman_force)
+                {
+                    brinkman_force->computeBrinkmanVelocity(d_temp_sc_idx, new_time, cycle_num);
+                }
+                int local_has_bvel = 0;
+                const int finest_ln_check = d_hierarchy->getFinestLevelNumber();
+                for (int ln = 0; ln <= finest_ln_check && !local_has_bvel; ++ln)
+                {
+                    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+                    for (PatchLevel<NDIM>::Iterator p(level); p && !local_has_bvel; p++)
+                    {
+                        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                        Pointer<SideData<NDIM, double>> tmp_data = patch->getPatchData(d_temp_sc_idx);
+                        for (int a = 0; a < NDIM && !local_has_bvel; ++a)
+                        {
+                            const Box<NDIM> sbox = SideGeometry<NDIM>::toSideBox(patch->getBox(), a);
+                            const ArrayData<NDIM, double>& arr = tmp_data->getArrayData(a);
+                            const Box<NDIM>& abox = arr.getBox();
+                            const double* ptr = arr.getPointer(0);
+                            const int gnx = abox.numberCells(0);
+                            const int gny = abox.numberCells(1);
+                            const int ox = sbox.lower(0) - abox.lower(0);
+                            const int oy = sbox.lower(1) - abox.lower(1);
+                            const int oz = sbox.lower(2) - abox.lower(2);
+                            const int sx = sbox.numberCells(0);
+                            const int sy = sbox.numberCells(1);
+                            const int sz = sbox.numberCells(2);
+                            for (int k = 0; k < sz && !local_has_bvel; ++k)
+                            {
+                                for (int j = 0; j < sy && !local_has_bvel; ++j)
+                                {
+                                    const size_t base =
+                                        static_cast<size_t>(ox) +
+                                        static_cast<size_t>(gnx) *
+                                            (static_cast<size_t>(oy + j) +
+                                             static_cast<size_t>(gny) * static_cast<size_t>(oz + k));
+                                    for (int i = 0; i < sx; ++i)
+                                    {
+                                        if (ptr[base + static_cast<size_t>(i)] != 0.0)
+                                        {
+                                            local_has_bvel = 1;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (IBTK_MPI::maxReduction(local_has_bvel) != 0)
+                {
+                    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_temp_sc_idx, /*interior_only*/ true);
+                    SynchronizationTransactionComponent bvel_synch(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+                    d_side_synch_op->resetTransactionComponent(bvel_synch);
+                    d_side_synch_op->synchronizeData(d_integrator_time);
+                    d_side_synch_op->resetTransactionComponent(default_synch_transaction);
+                    d_hier_sc_data_ops->copyData(d_temp_sc_idx, d_U_scratch_idx, /*interior_only*/ true);
+                    f_idx = d_temp_sc_idx;
+                    has_f = true;
+                }
+            }
+            if (d_F_fcn)
+            {
+                const double half_time = current_time + 0.5 * dt;
+                d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time);
+                if (has_f)
+                {
+                    d_hier_sc_data_ops->add(d_temp_sc_idx, d_temp_sc_idx, d_F_scratch_idx);
+                }
+                else
+                {
+                    f_idx = d_F_scratch_idx;
+                    has_f = true;
+                }
+            }
+
+            const bool download_rho = (!d_gpu_uniform_rho || d_output_rho);
+            gpu_ok = d_gpu_bridge->runIntegrateSolve(d_hierarchy,
+                                                     d_integrator_step,
+                                                     d_velocity_L_idx,
+                                                     f_idx,
+                                                     has_f,
+                                                     dt,
+                                                     p_in_new,
+                                                     d_gpu_brinkman_dirty,
+                                                     download_rho,
+                                                     d_U_new_idx,
+                                                     d_P_new_idx,
+                                                     d_rho_sc_new_idx,
+                                                     d_enable_logging && d_enable_logging_solver_iterations,
+                                                     d_enable_logging,
+                                                     gpu_reason);
+            if (gpu_ok)
+            {
+                d_gpu_brinkman_dirty = false;
+                d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx, /*interior_only*/ true);
+                d_side_synch_op->resetTransactionComponent(default_synch_transaction);
+                d_side_synch_op->synchronizeData(current_time);
+                d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_scratch_idx, /*interior_only*/ true);
+                if (!download_rho)
+                {
+                    d_hier_sc_data_ops->setToScalar(d_rho_sc_new_idx, d_gpu_uniform_rho_val);
+                    d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx);
+                }
+                else
+                {
+                    d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx);
+                    SynchronizationTransactionComponent rho_new_synch(d_rho_sc_scratch_idx, d_rho_coarsen_type);
+                    d_side_synch_op->resetTransactionComponent(rho_new_synch);
+                    d_side_synch_op->synchronizeData(d_integrator_time);
+                }
+                d_side_synch_op->resetTransactionComponent(default_synch_transaction);
+                d_hier_sc_data_ops->copyData(d_rho_linear_op_idx,
+                                             d_rho_sc_scratch_idx,
+                                             /*interior_only*/ true);
+                if (d_F_fcn)
+                {
+                    d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
+                }
+                return;
+            }
+        }
+
+        if (!d_gpu_bridge->fallbackToCpu())
+        {
+            TBOX_ERROR(d_object_name
+                       << "::integrateHierarchySpecialized(): GPU solve failed with fallback_to_cpu=FALSE: "
+                       << gpu_reason << "\n");
+        }
+        if (IBTK_MPI::getRank() == 0)
+        {
+            plog << "[C2_GPU_FALLBACK_CPU] phase=integrate step=" << d_integrator_step
+                 << " reason=" << gpu_reason << "\n" << std::flush;
+        }
+        d_gpu_step_active = false;
+        d_gpu_hierarchy_dirty = true;
+        d_gpu_brinkman_dirty = true;
+        d_velocity_solver_needs_init = true;
+        d_pressure_solver_needs_init = true;
+        d_stokes_solver_needs_init = true;
+        runCpuPreprocessFluidPrep(current_time, new_time, /*rho_already_reset=*/true);
+    }
+#endif
     // Get the coarsest and finest level numbers.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -912,8 +1227,142 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecia
         base_hierarchy, coarsest_level, finest_level);
     d_rho_p_integrator->setHierarchyMathOps(d_hier_math_ops);
     d_rho_p_integrator->initializeSTSIntegrator(base_hierarchy);
+#if (NDIM == 3)
+    d_gpu_hierarchy_dirty = true;
+    d_gpu_brinkman_dirty = true;
+    if (d_gpu_bridge)
+    {
+        d_gpu_bridge->invalidateBrinkmanCache();
+    }
+#endif
     return;
 } // resetHierarchyConfigurationSpecialized
+
+#if (NDIM == 3)
+bool
+INSVCStaggeredConservativeHierarchyIntegrator::canUseGpuCandidate2(const double /*current_time*/,
+                                                                    const double /*new_time*/,
+                                                                    const int num_cycles,
+                                                                    std::string& reason) const
+{
+    if (!d_gpu_bridge || !d_gpu_bridge->config().enabled)
+    {
+        reason = "gpu_disabled";
+        return false;
+    }
+    if (d_gpu_bridge->config().backend != "candidate2")
+    {
+        reason = "unsupported_backend_name";
+        return false;
+    }
+    if (!d_hierarchy)
+    {
+        reason = "null_hierarchy";
+        return false;
+    }
+    if (num_cycles != 1)
+    {
+        reason = "num_cycles_not_1";
+        return false;
+    }
+    if (!d_gpu_ssprk3_cui_ok)
+    {
+        reason = "requires_ssprk3_and_cui";
+        return false;
+    }
+    if (d_convective_difference_form != CONSERVATIVE)
+    {
+        reason = "convective_form_not_conservative";
+        return false;
+    }
+    if (d_viscous_time_stepping_type != TRAPEZOIDAL_RULE)
+    {
+        reason = "viscous_ts_not_trapezoidal";
+        return false;
+    }
+    if (d_creeping_flow || d_Q_fcn || d_S_fcn || !d_adv_diff_hier_integrators.empty())
+    {
+        reason = "unsupported_physics_term";
+        return false;
+    }
+    if (!d_mu_is_const || d_problem_coefs.getMu() <= 0.0 || !IBTK::rel_equal_eps(d_problem_coefs.getLambda(), 0.0))
+    {
+        reason = "requires_constant_positive_mu_zero_lambda";
+        return false;
+    }
+    if (d_normalize_pressure || d_explicitly_remove_nullspace)
+    {
+        reason = "pressure_normalization_not_supported";
+        return false;
+    }
+
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    if (finest_ln < 0 || finest_ln > 1)
+    {
+        reason = "hierarchy_levels_gt_2";
+        return false;
+    }
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        if (ln < d_A_scale.size() && !IBTK::rel_equal_eps(d_A_scale[ln], 1.0))
+        {
+            reason = "operator_scale_factor_not_1";
+            return false;
+        }
+    }
+
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    if (!grid_geom || !grid_geom->getDomainIsSingleBox())
+    {
+        reason = "domain_not_single_box";
+        return false;
+    }
+    const Box<NDIM>& domain_box = grid_geom->getPhysicalDomain()[0];
+    if (domain_box.lower() != IntVector<NDIM>(0))
+    {
+        reason = "domain_lower_not_zero";
+        return false;
+    }
+    const double* const dx = grid_geom->getDx();
+    const double dx0 = dx[0];
+    if (dx0 <= 0.0 || std::abs(dx[1] - dx0) > 1.0e-12 * dx0 || std::abs(dx[2] - dx0) > 1.0e-12 * dx0)
+    {
+        reason = "anisotropic_l0_grid";
+        return false;
+    }
+    if (grid_geom->getPeriodicShift() != IntVector<NDIM>(0))
+    {
+        reason = "periodic_domain_not_supported";
+        return false;
+    }
+    if (finest_ln == 1)
+    {
+        Pointer<PatchLevel<NDIM>> level1 = d_hierarchy->getPatchLevel(1);
+        if (!level1 || level1->getRatioToCoarserLevel() != IntVector<NDIM>(2))
+        {
+            reason = "ref_ratio_not_2";
+            return false;
+        }
+    }
+
+    if (d_stokes_solver &&
+        dynamic_cast<const IBTK::PETScKrylovLinearSolver*>(d_stokes_solver.getPointer()) == nullptr)
+    {
+        reason = "stokes_solver_not_petsc_krylov";
+        return false;
+    }
+    double rel_tol = 0.0, abs_tol = 0.0;
+    int max_iters = 0;
+    std::string ksp_type;
+    if (!INSVCStaggeredConservativeGPUBridge::extractEffectiveSolverSettings(
+            d_stokes_solver, d_stokes_solver_db, rel_tol, abs_tol, max_iters, ksp_type))
+    {
+        reason = "unsupported_ksp_type:" + ksp_type;
+        return false;
+    }
+    return true;
+}
+#endif
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::applyGradientDetectorSpecialized(
