@@ -1,0 +1,3 @@
+Fixed: IBTK::fill_snapshot_at_time() now weights the two bracketing snapshots correctly at times that are not their midpoint, and no longer dereferences a null pointer when hier_data_ops is null.
+<br>
+(Boyce Griffith, 2026/11/22)
