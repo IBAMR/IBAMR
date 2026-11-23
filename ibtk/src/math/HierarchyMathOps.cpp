@@ -43,7 +43,6 @@
 #include <FaceVariable.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchyDataOpsManager.h>
-#include <HierarchyFaceDataOpsReal.h>
 #include <NodeData.h>
 #include <NodeVariable.h>
 #include <OuteredgeData.h>
@@ -76,6 +75,7 @@
 
 #include <cstddef>
 #include <iterator>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -471,12 +471,6 @@ HierarchyMathOps::setPatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy)
     Pointer<CellVariable<NDIM, double>> cc_var = new CellVariable<NDIM, double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
 
-    Pointer<FaceVariable<NDIM, double>> fc_var = new FaceVariable<NDIM, double>("fc_var");
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, d_hierarchy, true);
-
-    Pointer<SideVariable<NDIM, double>> sc_var = new SideVariable<NDIM, double>("sc_var");
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
-
     // Reset the communications operators.
     resetCoarsenOperators();
     resetRefineOperators();
@@ -495,8 +489,6 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     d_finest_ln = finest_ln;
     d_cached_eulerian_data.resetLevels(d_coarsest_ln, d_finest_ln);
     d_hier_cc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
-    d_hier_fc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
-    d_hier_sc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
 
     // Discard the coarsen schedules.
     resetCoarsenSchedules(d_finest_ln);
@@ -4546,7 +4538,6 @@ HierarchyMathOps::resetCellWeights(const int coarsest_ln, const int finest_ln)
     // on a finer level, in which case the weight is set to zero.  This insures
     // that no part of the physical domain is counted twice when discrete norms
     // and integrals are calculated on the entire hierarchy.
-    ArrayDataBasicOps<NDIM, double> array_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
@@ -4557,9 +4548,6 @@ HierarchyMathOps::resetCellWeights(const int coarsest_ln, const int finest_ln)
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
         }
-
-        const IntVector<NDIM> max_gcw(1);
-        const CoarseFineBoundary<NDIM> cf_bdry(*d_hierarchy, ln, max_gcw);
 
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -4651,8 +4639,12 @@ HierarchyMathOps::resetFaceWeights(const int coarsest_ln, const int finest_ln)
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
         }
 
-        const IntVector<NDIM> max_gcw(1);
-        const CoarseFineBoundary<NDIM> cf_bdry(*d_hierarchy, ln, max_gcw);
+        // Only levels finer than the coarsest level read the coarse-fine boundary.
+        std::optional<CoarseFineBoundary<NDIM>> cf_bdry;
+        if (ln > d_coarsest_ln)
+        {
+            cf_bdry.emplace(*d_hierarchy, ln, IntVector<NDIM>(1));
+        }
 
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -4687,7 +4679,7 @@ HierarchyMathOps::resetFaceWeights(const int coarsest_ln, const int finest_ln)
             {
                 const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
                 const int bdry_type = 1;
-                const Array<BoundaryBox<NDIM>>& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
+                const Array<BoundaryBox<NDIM>>& cf_bdry_boxes = cf_bdry->getBoundaries(p(), bdry_type);
                 for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
                 {
                     const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();
@@ -4779,8 +4771,12 @@ HierarchyMathOps::resetSideWeights(const int coarsest_ln, const int finest_ln)
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
         }
 
-        const IntVector<NDIM> max_gcw(1);
-        const CoarseFineBoundary<NDIM> cf_bdry(*d_hierarchy, ln, max_gcw);
+        // Only levels finer than the coarsest level read the coarse-fine boundary.
+        std::optional<CoarseFineBoundary<NDIM>> cf_bdry;
+        if (ln > d_coarsest_ln)
+        {
+            cf_bdry.emplace(*d_hierarchy, ln, IntVector<NDIM>(1));
+        }
 
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -4816,7 +4812,7 @@ HierarchyMathOps::resetSideWeights(const int coarsest_ln, const int finest_ln)
             {
                 const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
                 const int bdry_type = 1;
-                const Array<BoundaryBox<NDIM>>& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
+                const Array<BoundaryBox<NDIM>>& cf_bdry_boxes = cf_bdry->getBoundaries(p(), bdry_type);
                 for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
                 {
                     const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();

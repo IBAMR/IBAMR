@@ -63,6 +63,7 @@
 #include <array>
 #include <cmath>
 #include <fstream>
+#include <optional>
 
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
@@ -1003,7 +1004,6 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchy<NDIM>> 
     // Away from coarse-fine interfaces and boundaries of the computational
     // domain, each cell face's weight is set to the face area associated with
     // the level of the patch hierarchy.
-    ArrayDataBasicOps<NDIM, double> array_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
@@ -1014,9 +1014,6 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchy<NDIM>> 
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
         }
-
-        const IntVector<NDIM> max_gcw(1);
-        const CoarseFineBoundary<NDIM> cf_bdry(*patch_hierarchy, ln, max_gcw);
 
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -1110,8 +1107,12 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM>> p
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
         }
-        const IntVector<NDIM> max_gcw(1);
-        const CoarseFineBoundary<NDIM> cf_bdry(*patch_hierarchy, ln, max_gcw);
+        // Only levels finer than the coarsest level read the coarse-fine boundary.
+        std::optional<CoarseFineBoundary<NDIM>> cf_bdry;
+        if (ln > coarsest_ln)
+        {
+            cf_bdry.emplace(*patch_hierarchy, ln, IntVector<NDIM>(1));
+        }
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM>> patch = level->getPatch(p());
@@ -1143,7 +1144,7 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM>> p
             {
                 const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
                 const int bdry_type = 1;
-                const tbox::Array<BoundaryBox<NDIM>>& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
+                const tbox::Array<BoundaryBox<NDIM>>& cf_bdry_boxes = cf_bdry->getBoundaries(p(), bdry_type);
                 for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
                 {
                     const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();
