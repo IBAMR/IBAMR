@@ -1,0 +1,4 @@
+Improved: IBAMR::StaggeredStokesPETScLevelSolver sets the normal velocity at physical boundaries in the right-hand side
+in one pass over the patches of the level, instead of one pass for each patch at a physical boundary.
+<br>
+(Boyce Griffith, 2026/11/23)

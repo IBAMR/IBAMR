@@ -359,10 +359,12 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const int h_idx = b.getComponentDescriptorIndex(1);
     const auto f_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_idx);
     const auto h_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(h_idx);
+    bool touches_regular_bdry = false;
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
         Pointer<PatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+        touches_regular_bdry = touches_regular_bdry || pgeom->getTouchesRegularBoundary();
         Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
         Pointer<CellData<NDIM, double>> p_data = patch->getPatchData(p_idx);
         Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(d_p_dof_index_idx);
@@ -380,8 +382,6 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         {
             PoissonUtilities::adjustRHSAtPhysicalBoundary(
                 *f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs, d_solution_time, d_homogeneous_bc);
-            d_bc_helper->enforceNormalVelocityBoundaryConditions(
-                f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
         }
         const Array<BoundaryBox<NDIM>>& type_1_cf_bdry = level_zero ?
                                                              Array<BoundaryBox<NDIM>>() :
@@ -394,10 +394,6 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)
         {
-            // enforceNormalVelocityBoundaryConditions() resets the targets of the boundary condition objects, and the
-            // adjustment evaluates them.
-            StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-                d_U_bc_coefs, d_P_bc_coef, u_idx, p_idx, d_homogeneous_bc);
             PoissonUtilities::adjustRHSAtCoarseFineBoundary(*f_adj_data,
                                                             *u_data,
                                                             patch,
@@ -411,6 +407,14 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         }
     }
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
+
+    // The normal velocity at a velocity boundary is prescribed by an identity row of the matrix, so it is set after the
+    // coarse-fine adjustment, on levels with a local patch at a physical boundary.
+    if (d_bc_helper && touches_regular_bdry)
+    {
+        d_bc_helper->enforceNormalVelocityBoundaryConditions(
+            f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
+    }
 
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx, d_p_dof_index_idx, d_level);
