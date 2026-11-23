@@ -30,6 +30,7 @@
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/LevelSetUtilities.h>
+#include <ibamr/MarangoniSurfaceTensionForceFunction.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/vc_ins_utilities.h>
@@ -235,11 +236,34 @@ main(int argc, char* argv[])
             new VelocityInitialCondition("u_init", num_interface_cells, inside_velocity, outside_velocity, circle);
         time_integrator->registerVelocityInitialConditions(u_init);
 
-        Pointer<CartGridFunction> surface_tension_force =
-            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
-                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-                                            adv_diff_integrator,
-                                            phi_var);
+        // Optionally add a Marangoni force from a transported temperature.
+        Pointer<CartGridFunction> surface_tension_force;
+        if (input_db->getBoolWithDefault("USE_MARANGONI", false))
+        {
+            Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("T");
+            RobinBcCoefStrategy<NDIM>* T_bc_coef = nullptr;
+            adv_diff_integrator->registerTransportedQuantity(T_var);
+            adv_diff_integrator->setDiffusionCoefficient(T_var, 0.0);
+            adv_diff_integrator->setAdvectionVelocity(T_var, time_integrator->getAdvectionVelocityVariable());
+            Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
+                "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);
+            adv_diff_integrator->setInitialConditions(T_var, T_init);
+            surface_tension_force = new MarangoniSurfaceTensionForceFunction(
+                "SurfaceTensionForceFunction",
+                app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+                adv_diff_integrator,
+                phi_var,
+                T_var,
+                T_bc_coef);
+        }
+        else
+        {
+            surface_tension_force =
+                new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
+                                                app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+                                                adv_diff_integrator,
+                                                phi_var);
+        }
         time_integrator->registerBodyForceFunction(surface_tension_force);
 
         if (input_db->keyExists("PressureInitialConditions"))
