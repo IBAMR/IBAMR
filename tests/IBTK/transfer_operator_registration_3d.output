@@ -10,3 +10,4 @@ geometry_2 cell ghost value = 3.5625
 geometry_2 side ghost value = 3.53125
 geometry_2 synchronized side value = 4.3125
 geometry_2 refine operator = RT0_REFINE
+geometry_3 synchronized side value = 4.3125

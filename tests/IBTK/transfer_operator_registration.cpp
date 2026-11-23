@@ -40,7 +40,8 @@
 #include <ibtk/app_namespaces.h>
 
 // Create grid geometries that exist at the same time, each with its own two-level hierarchy, and fill ghost cells and
-// synchronize side data on each. Then destroy one geometry and do the same on a new one.
+// synchronize side data on each. Then destroy one geometry and do the same on a new one, and on a final one only
+// synchronize side data.
 namespace
 {
 struct Mesh
@@ -150,8 +151,25 @@ get_first_patch(const Mesh& mesh, const int ln)
     return level->getPatch(PatchLevel<NDIM>::Iterator(level)());
 }
 
-// Fill ghost cells with cubic coarsening on a cell and a side component, synchronize side data with cubic coarsening,
-// and write one ghost value and one synchronized value.
+// Synchronize side data with cubic coarsening and print one synchronized value.
+void
+synchronize(const std::string& name, const Mesh& mesh, const Indices& indices, std::ostream& out)
+{
+    SideDataSynchronization synchronization;
+    synchronization.initializeOperatorState(
+        SideDataSynchronization::SynchronizationTransactionComponent(indices.side_sync, "CUBIC_COARSEN"),
+        mesh.hierarchy);
+    synchronization.synchronizeData(0.0);
+
+    // A coarse side under the fine patch.
+    Pointer<Patch<NDIM>> coarse_patch = get_first_patch(mesh, 0);
+    Pointer<SideData<NDIM, double>> side_sync_data = coarse_patch->getPatchData(indices.side_sync);
+    out << name << " synchronized side value = "
+        << (*side_sync_data)(SideIndex<NDIM>(hier::Index<NDIM>(4), 0, SideIndex<NDIM>::Lower)) << "\n";
+}
+
+// Fill ghost cells with cubic coarsening on a cell and a side component, print a cell and a side ghost value, and
+// synchronize.
 void
 transfer(const std::string& name, const Mesh& mesh, const Indices& indices, std::ostream& out)
 {
@@ -173,17 +191,7 @@ transfer(const std::string& name, const Mesh& mesh, const Indices& indices, std:
     out << name << " side ghost value = " << (*side_data)(SideIndex<NDIM>(ghost_index, 0, SideIndex<NDIM>::Lower))
         << "\n";
 
-    SideDataSynchronization synchronization;
-    synchronization.initializeOperatorState(
-        SideDataSynchronization::SynchronizationTransactionComponent(indices.side_sync, "CUBIC_COARSEN"),
-        mesh.hierarchy);
-    synchronization.synchronizeData(0.0);
-
-    // A coarse side under the fine patch.
-    Pointer<Patch<NDIM>> coarse_patch = get_first_patch(mesh, 0);
-    Pointer<SideData<NDIM, double>> side_sync_data = coarse_patch->getPatchData(indices.side_sync);
-    out << name << " synchronized side value = "
-        << (*side_sync_data)(SideIndex<NDIM>(hier::Index<NDIM>(4), 0, SideIndex<NDIM>::Lower)) << "\n";
+    synchronize(name, mesh, indices, out);
 }
 
 // Look up the RT0 side refine operator, which the transfer objects above register.
@@ -229,6 +237,10 @@ main(int argc, char* argv[])
         Mesh mesh_2 = make_mesh("geometry_2", indices);
         transfer("geometry_2", mesh_2, indices, out);
         look_up_refine_operator("geometry_2", mesh_2, indices, out);
+
+        // A new geometry on which only the side-data synchronization registers the operators.
+        Mesh mesh_3 = make_mesh("geometry_3", indices);
+        synchronize("geometry_3", mesh_3, indices, out);
     }
     return 0;
 }
