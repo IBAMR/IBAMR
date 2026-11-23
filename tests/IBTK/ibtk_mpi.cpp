@@ -103,8 +103,7 @@ main(int argc, char* argv[])
     if (!rank) output_file << "minMaxReduction: " << x_min << " " << x_max << "\n";
 
     // Integer reductions must be correct for the extreme values of the type.
-    // In the last entry the largest value is small and one rank holds the
-    // lowest value.
+    // In the last entry of i_max, the largest value is small. Rank 0 contributes the lowest value of the type.
     const int i_lowest = std::numeric_limits<int>::lowest(), i_highest = std::numeric_limits<int>::max();
     int i_min[3] = { rank == num_nodes - 1 ? i_lowest : rank, i_highest, rank };
     int i_max[3] = { rank == 0 ? i_highest : -rank, i_lowest, rank == 0 ? i_lowest : -rank };

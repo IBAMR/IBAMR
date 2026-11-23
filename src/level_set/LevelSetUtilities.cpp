@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iterator>
+#include <sstream>
 
 #include <ibamr/app_namespaces.h>
 
@@ -251,10 +252,18 @@ LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
     if (d_interval <= 0 || d_max_its <= 0 || !std::isfinite(d_rel_tol) || d_rel_tol < 0.0 || d_rel_tol >= 1.0 ||
         (d_abs_tol && (!std::isfinite(*d_abs_tol) || *d_abs_tol < 0.0)) || !std::isfinite(ncells) || ncells <= 0.0)
     {
-        TBOX_ERROR(d_object_name
-                   << "::LevelSetMassLossFixer(): invalid correction controls\n"
-                   << "  correction_interval and max_its must be positive; half_width must be finite and positive;\n"
-                   << "  rel_tol must be finite in [0,1), and abs_tol must be finite and nonnegative.\n");
+        std::ostringstream abs_tol_stream;
+        if (d_abs_tol)
+        {
+            abs_tol_stream << ", abs_tol = " << *d_abs_tol;
+        }
+        TBOX_ERROR(
+            d_object_name << "::LevelSetMassLossFixer():\n"
+                          << "  invalid correction settings: correction_interval = " << d_interval
+                          << ", max_its = " << d_max_its << ", half_width = " << ncells << ", rel_tol = " << d_rel_tol
+                          << abs_tol_stream.str() << "\n"
+                          << "  allowed: correction_interval > 0, max_its > 0, half_width > 0, 0 <= rel_tol < 1, "
+                             "abs_tol >= 0\n");
     }
     return;
 } // LevelSetMassLossFixer
@@ -298,7 +307,8 @@ LevelSetMassLossFixer::correctVolume(const double new_time, const bool three_pha
     const int step = integrator->getIntegratorStep();
     if (IBTK_MPI::minReduction(d_interval) != IBTK_MPI::maxReduction(d_interval))
     {
-        TBOX_ERROR(d_object_name << "::correctVolume(): inconsistent correction intervals across ranks\n");
+        TBOX_ERROR(d_object_name << "::correctVolume():\n"
+                                 << "  correction_interval differs across ranks\n");
     }
     if (step % d_interval != 0)
     {
@@ -310,7 +320,8 @@ LevelSetMassLossFixer::correctVolume(const double new_time, const bool three_pha
     int trials = 0;
     const auto fail = [&](const char* reason)
     {
-        TBOX_ERROR(d_object_name << "::correctVolume(): " << reason << '\n'
+        TBOX_ERROR(d_object_name << "::correctVolume():\n"
+                                 << "  " << reason << '\n'
                                  << "  phase = " << (three_phase ? "three-phase liquid" : "two-phase gas")
                                  << ", target = " << d_vol_target << ", capacity = " << capacity
                                  << ", residual = " << residual << ", trials = " << trials << '\n');

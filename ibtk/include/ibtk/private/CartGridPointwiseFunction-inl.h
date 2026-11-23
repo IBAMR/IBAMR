@@ -43,7 +43,9 @@ string_to_enum<TensorStorage>(const std::string& value)
     {
         return TensorStorage::SYMMETRIC;
     }
-    TBOX_ERROR("Unknown TensorStorage: " << value << '\n');
+    TBOX_ERROR("string_to_enum():\n"
+               << "  unknown TensorStorage: " << value << "\n"
+               << "  valid values: FULL, SYMMETRIC\n");
     return TensorStorage::FULL;
 }
 
@@ -58,7 +60,8 @@ enum_to_string<TensorStorage>(const TensorStorage value)
     case TensorStorage::SYMMETRIC:
         return "SYMMETRIC";
     default:
-        TBOX_ERROR("Unknown TensorStorage\n");
+        TBOX_ERROR("enum_to_string():\n"
+                   << "  unknown TensorStorage\n");
     }
     return "";
 }
@@ -100,20 +103,23 @@ CartGridPointwiseFunction<Value, Data, Function>::setDataOnPatch(
     using namespace SAMRAI;
     if (!patch)
     {
-        TBOX_ERROR("CartGridPointwiseFunction: a patch is required\n");
+        TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
+                                 << "  a patch is required\n");
     }
     const tbox::Pointer<hier::PatchData<NDIM>> patch_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     if (!dynamic_cast<Data*>(patch_data.getPointer()))
     {
-        TBOX_ERROR("CartGridPointwiseFunction: incompatible or missing patch data\n");
+        TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
+                                 << "  incompatible or missing patch data\n");
     }
 #endif
     Data* const data = static_cast<Data*>(patch_data.getPointer());
     const tbox::Pointer<geom::CartesianPatchGeometry<NDIM>> geometry = patch->getPatchGeometry();
     if (!geometry)
     {
-        TBOX_ERROR("CartGridPointwiseFunction: Cartesian geometry is required\n");
+        TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
+                                 << "  Cartesian geometry is required\n");
     }
     applyPointwise(*data, patch->getBox(), *geometry, data_time);
 }
@@ -205,7 +211,8 @@ CartGridPointwiseFunction<Value, Data, Function>::Values::tensor_depth(const Ten
     case TensorStorage::SYMMETRIC:
         return NDIM * (NDIM + 1) / 2;
     default:
-        TBOX_ERROR("CartGridPointwiseFunction: invalid tensor storage\n");
+        TBOX_ERROR("CartGridPointwiseFunction::CartGridPointwiseFunction():\n"
+                   << "  invalid tensor storage\n");
     }
     return 0;
 }
@@ -216,20 +223,26 @@ CartGridPointwiseFunction<Value, Data, Function>::Values::validate_depth(const i
 {
     if (depth <= 0)
     {
-        TBOX_ERROR("CartGridPointwiseFunction: patch data must have positive depth\n");
+        TBOX_ERROR("CartGridPointwiseFunction::setDataOnPatch():\n"
+                   << "  patch data depth " << depth << " is not positive\n");
     }
     if constexpr (std::is_same_v<Value, VectorNd>)
     {
         if (depth != NDIM)
         {
-            TBOX_ERROR("CartGridPointwiseFunction: VectorNd requires depth NDIM\n");
+            TBOX_ERROR("CartGridPointwiseFunction::setDataOnPatch():\n"
+                       << "  patch data depth " << depth << " differs from the depth " << NDIM
+                       << " that VectorNd requires\n");
         }
     }
     else if constexpr (std::is_same_v<Value, MatrixNd>)
     {
-        if (depth != (storage == TensorStorage::FULL ? NDIM * NDIM : NDIM * (NDIM + 1) / 2))
+        const int expected_depth = tensor_depth(storage);
+        if (depth != expected_depth)
         {
-            TBOX_ERROR("CartGridPointwiseFunction: tensor storage does not match patch data depth\n");
+            TBOX_ERROR("CartGridPointwiseFunction::setDataOnPatch():\n"
+                       << "  patch data depth " << depth << " differs from the depth " << expected_depth << " that "
+                       << enum_to_string<TensorStorage>(storage) << " tensor storage requires\n");
         }
     }
 }
@@ -270,7 +283,8 @@ CartGridPointwiseFunction<Value, Data, Function>::Values::assign_result(Value& v
         const int cols = std::is_same_v<Value, MatrixNd> ? NDIM : 1;
         if (result.rows() != rows || result.cols() != cols)
         {
-            TBOX_ERROR("CartGridPointwiseFunction: callback result has an incompatible shape\n");
+            TBOX_ERROR("CartGridPointwiseFunction::setDataOnPatch():\n"
+                       << "  callback result has an incompatible shape\n");
         }
     }
     value = std::forward<Result>(result);
@@ -329,7 +343,8 @@ CartGridPointwiseFunction<Value, Data, Function>::Values::store(const Value& val
         {
             if (storage == TensorStorage::SYMMETRIC && !value.isApprox(value.transpose()))
             {
-                TBOX_ERROR("CartGridPointwiseFunction: symmetric storage requires a symmetric callback result\n");
+                TBOX_ERROR("CartGridPointwiseFunction::setDataOnPatch():\n"
+                           << "  symmetric storage requires a symmetric callback result\n");
             }
         }
         for (int d = 0; d < data.getDepth(); ++d)
@@ -403,7 +418,7 @@ CartGridPointwiseFunction<Value, Data, Function>::applyPointwise(
 
 namespace detail
 {
-// Share centering selection between the scalar/vector and tensor factories.
+// Share centering selection between the scalar/vector and MatrixNd overloads.
 template <typename Value, typename Function, typename... Args>
 SAMRAI::tbox::Pointer<CartGridFunction>
 allocate_cart_grid_pointwise_function(std::string object_name,
@@ -414,7 +429,8 @@ allocate_cart_grid_pointwise_function(std::string object_name,
     using namespace SAMRAI;
     if (!var)
     {
-        TBOX_ERROR("CartGridPointwiseFunction: a variable is required\n");
+        TBOX_ERROR("make_cart_grid_pointwise_function():\n"
+                   << "  a variable is required\n");
     }
     const tbox::Pointer<hier::PatchDataFactory<NDIM>> factory = var->getPatchDataFactory();
     if (tbox::Pointer<pdat::CellDataFactory<NDIM, double>> typed_factory = factory)
@@ -442,7 +458,8 @@ allocate_cart_grid_pointwise_function(std::string object_name,
         return new CartGridPointwiseFunction<Value, pdat::EdgeData<NDIM, double>, std::decay_t<Function>>(
             std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
     }
-    TBOX_ERROR("CartGridPointwiseFunction: unsupported variable patch data factory\n");
+    TBOX_ERROR("make_cart_grid_pointwise_function():\n"
+               << "  unsupported variable patch data factory\n");
     return nullptr;
 }
 } // namespace detail

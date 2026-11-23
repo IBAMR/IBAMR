@@ -320,7 +320,7 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy,
     const std::string name = centering + " " + kind;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = var_db->getContext("pointwise");
-    // Select centering from another variable; the actual data supply depth and directions.
+    // The selector variable determines only the centering. The depth and directions come from the actual data.
     Pointer<Var> selector_var = new Var(name + " selector");
     Functions functions;
     if (kind == "scalar")
@@ -340,7 +340,7 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy,
         functions =
             make_tensor_functions(selector_var, kind == "full tensor" ? TensorStorage::FULL : TensorStorage::SYMMETRIC);
     }
-    // The selector is no longer needed after construction.
+    // The functions require the selector only during construction.
     selector_var.setNull();
     TBOX_ASSERT(functions[0]->isTimeDependent());
     IntVector<NDIM> ghosts(1);
@@ -419,8 +419,6 @@ run_case(Pointer<PatchHierarchy<NDIM>> hierarchy,
     plog << name << " errors (initialize, identity, transform): " << initialization_error << ' ' << identity_error
          << ' ' << transformation_error << '\n';
 }
-
-// Preserve the actual abort diagnostic while omitting source paths and line numbers.
 } // namespace
 
 int

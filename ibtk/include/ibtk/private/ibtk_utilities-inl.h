@@ -49,9 +49,8 @@ smooth_heaviside(const double& phi, const double& alpha)
         return 0.5;
     }
 
-    // Evaluate the smaller of H(phi) and 1 - H(phi) from the distance to the nearer
-    // cutoff. This avoids cancellation in 0.5 + 0.5*phi/alpha near phi = -alpha;
-    // the clamp keeps final rounding within [0, 1/2].
+    // Evaluate the smaller of H(phi) and 1 - H(phi) from the distance to the nearer cutoff to avoid cancellation near
+    // phi = -alpha. The clamp confines the rounded result to [0, 1/2].
     const double z = (alpha - std::abs(phi)) / alpha;
     const double fraction = std::max(0.0, std::min(0.5, 0.5 * (z - std::sin(M_PI * z) / M_PI)));
     return phi < 0.0 ? fraction : 1.0 - fraction;

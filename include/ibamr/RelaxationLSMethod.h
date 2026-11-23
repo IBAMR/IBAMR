@@ -129,9 +129,9 @@ public:
     /*!
      * \brief Indicate that the class should apply the volume redistribution algorithm.
      *
-     * Zero source with absent interface support skips redistribution. Nonfinite
-     * or unrepresentable corrections produce TBOX_ERROR before redistribution
-     * changes the reinitialized field.
+     * Redistribution is skipped if the source integral and the weight integral
+     * are both zero. The program stops with an error, before the reinitialized
+     * field changes, if the correction is nonfinite or not representable.
      */
     void setApplyVolumeRedistribution(bool apply_volume_redistribution);
 
