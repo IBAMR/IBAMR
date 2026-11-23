@@ -90,18 +90,18 @@ include(CURRENT_SRCDIR/lagrangian_delta.f.m4)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     piecewise constant delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_piecewise_constant_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -116,11 +116,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -133,19 +132,16 @@ c
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       ibrack(0,0) = ibrack(0,0)
       dx(0) = dx(0)
-      x_lower(0) = x_lower(0)
-      Xshift(0,0) = Xshift(0,0)
-      X(0,indices(0)) = X(0,indices(0))
+      g(0,0) = g(0,0)
 c
 c     Use the piecewise constant delta function to interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
          ic0 = inear(0,l)
          ic1 = inear(1,l)
@@ -166,15 +162,15 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the
+c     Spread V onto u at the points listed in indices using the
 c     piecewise constant delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_piecewise_constant_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -192,10 +188,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -209,18 +204,15 @@ c
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       ibrack(0,0) = ibrack(0,0)
-      x_lower(0) = x_lower(0)
-      Xshift(0,0) = Xshift(0,0)
-      X(0,indices(0)) = X(0,indices(0))
+      g(0,0) = g(0,0)
 c
 c     Use the piecewise constant delta function to spread V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
          ic0 = inear(0,l)
          ic1 = inear(1,l)
@@ -246,18 +238,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     discontinuous linear delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_discontinuous_linear_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+     &     dx,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -272,11 +264,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -290,11 +281,11 @@ c
       INTEGER ic_trimmed_lower(0:NDIM-1),ic_trimmed_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
+      REAL w(0:NDIM-1,0:1)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -315,28 +306,20 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Shift the point by X_shift.
-c
-         do d = 0,NDIM-1
-            X_shifted(d) = X(d,s)+Xshift(d,l)
-         enddo
-c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
             ic_center(d) = inear(d,l)
-            X_cell(d) = x_lower(d) +
-     &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
             if ( d.eq.axis ) then
                if ( ibrack(d,l).lt.inear(d,l) ) then
                   ic_lower(d) = ic_center(d)-1
                   ic_upper(d) = ic_center(d)
-                  w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
+                  w(d,0) = dble(ic_center(d)-ibrack(d,l))-g(d,l)
                   w(d,1) = 1.d0 - w(d,0)
                else
                   ic_lower(d) = ic_center(d)
                   ic_upper(d) = ic_center(d)+1
-                  w(d,0) = 1.d0 + (X_cell(d)-X_shifted(d))/dx(d)
+                  w(d,0) = 1.d0 + dble(ic_center(d)-ibrack(d,l))-g(d,l)
                   w(d,1) = 1.d0 - w(d,0)
                endif
             else
@@ -375,16 +358,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the
+c     Spread V onto u at the points listed in indices using the
 c     discontinuous linear delta function using standard (double) precision
 c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_discontinuous_linear_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,axis,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -402,10 +385,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -420,11 +402,7 @@ c
       INTEGER ic_trimmed_lower(0:NDIM-1),ic_trimmed_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
+      REAL w(0:NDIM-1,0:1)
 c
 c     Setup convenience arrays.
 c
@@ -445,28 +423,20 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Shift the point by X_shift.
-c
-         do d = 0,NDIM-1
-            X_shifted(d) = X(d,s)+Xshift(d,l)
-         enddo
-c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
             ic_center(d) = inear(d,l)
-            X_cell(d) = x_lower(d) +
-     &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
             if ( d.eq.axis ) then
                if ( ibrack(d,l).lt.inear(d,l) ) then
                   ic_lower(d) = ic_center(d)-1
                   ic_upper(d) = ic_center(d)
-                  w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
+                  w(d,0) = dble(ic_center(d)-ibrack(d,l))-g(d,l)
                   w(d,1) = 1.d0 - w(d,0)
                else
                   ic_lower(d) = ic_center(d)
                   ic_upper(d) = ic_center(d)+1
-                  w(d,0) = 1.d0 + (X_cell(d)-X_shifted(d))/dx(d)
+                  w(d,0) = 1.d0 + dble(ic_center(d)-ibrack(d,l))-g(d,l)
                   w(d,1) = 1.d0 - w(d,0)
                endif
             else
@@ -504,18 +474,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     piecewise linear delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_piecewise_linear_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -530,11 +500,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -548,11 +517,11 @@ c
       INTEGER ic_trimmed_lower(0:NDIM-1),ic_trimmed_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
+      REAL w(0:NDIM-1,0:1)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -573,28 +542,20 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Shift the point by X_shift.
-c
-         do d = 0,NDIM-1
-            X_shifted(d) = X(d,s)+Xshift(d,l)
-         enddo
-c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
             ic_center(d) = inear(d,l)
-            X_cell(d) = x_lower(d) +
-     &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 
             if ( ibrack(d,l).lt.inear(d,l) ) then
                ic_lower(d) = ic_center(d)-1
                ic_upper(d) = ic_center(d)
-               w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
+               w(d,0) = dble(ic_center(d)-ibrack(d,l))-g(d,l)
                w(d,1) = 1.d0 - w(d,0)
             else
                ic_lower(d) = ic_center(d)
                ic_upper(d) = ic_center(d)+1
-               w(d,0) = 1.d0 + (X_cell(d)-X_shifted(d))/dx(d)
+               w(d,0) = 1.d0 + dble(ic_center(d)-ibrack(d,l))-g(d,l)
                w(d,1) = 1.d0 - w(d,0)
             endif
 
@@ -628,16 +589,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the
+c     Spread V onto u at the points listed in indices using the
 c     piecewise linear delta function using standard (double) precision
 c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_piecewise_linear_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -655,10 +616,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -673,11 +633,7 @@ c
       INTEGER ic_trimmed_lower(0:NDIM-1),ic_trimmed_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),X_shifted(0:NDIM-1),w(0:NDIM-1,0:1)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
+      REAL w(0:NDIM-1,0:1)
 c
 c     Setup convenience arrays.
 c
@@ -698,28 +654,20 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Shift the point by X_shift.
-c
-         do d = 0,NDIM-1
-            X_shifted(d) = X(d,s)+Xshift(d,l)
-         enddo
-c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
             ic_center(d) = inear(d,l)
-            X_cell(d) = x_lower(d) +
-     &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 
             if ( ibrack(d,l).lt.inear(d,l) ) then
                ic_lower(d) = ic_center(d)-1
                ic_upper(d) = ic_center(d)
-               w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
+               w(d,0) = dble(ic_center(d)-ibrack(d,l))-g(d,l)
                w(d,1) = 1.d0 - w(d,0)
             else
                ic_lower(d) = ic_center(d)
                ic_upper(d) = ic_center(d)+1
-               w(d,0) = 1.d0 + (X_cell(d)-X_shifted(d))/dx(d)
+               w(d,0) = 1.d0 + dble(ic_center(d)-ibrack(d,l))-g(d,l)
                w(d,1) = 1.d0 - w(d,0)
             endif
 
@@ -752,18 +700,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     piecewise cubic delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_piecewise_cubic_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -782,11 +730,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -799,12 +746,12 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
+      REAL w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -825,7 +772,7 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the interpolation stencil from the data point below X(s).
+c     Determine the interpolation stencil from the data point below s.
 c
          do d = 0,NDIM-1
             ic_lower(d) = ibrack(d,l)-1
@@ -836,10 +783,9 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_piecewise_cubic_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -859,16 +805,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the
+c     Spread V onto u at the points listed in indices using the
 c     piecewise cubic delta function using standard (double) precision
 c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_piecewise_cubic_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -890,10 +836,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -907,11 +852,10 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
+      REAL w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
@@ -934,7 +878,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the spreading stencil from the data point below X(s).
+c     Determine the spreading stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-1
             ic_upper(d) = ibrack(d,l)+2
@@ -944,10 +888,9 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_piecewise_cubic_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -967,18 +910,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the IB
+c     Interpolate u onto V at the points listed in indices using the IB
 c     3-point delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_3_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -997,11 +940,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -1014,12 +956,11 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
+      REAL w(0:NDIM-1,0:2)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -1041,14 +982,12 @@ c
          s = indices(l)
          do d = 0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
+c     of point s within the cell.
 c
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
@@ -1058,10 +997,9 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_ib_3_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -1081,16 +1019,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the IB
+c     Spread V onto u at the points listed in indices using the IB
 c     3-point delta function using standard (double) precision
 c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_3_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -1112,10 +1050,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -1129,12 +1066,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      REAL w(0:NDIM-1,0:2)
 c
 c     Setup convenience arrays.
 c
@@ -1156,14 +1088,12 @@ c
          s = indices(l)
          do d = 0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
+c     point s within the cell.
 c
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
@@ -1173,10 +1103,9 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_ib_3_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -1196,18 +1125,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the IB
+c     Interpolate u onto V at the points listed in indices using the IB
 c     4-point delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_4_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -1222,11 +1151,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -1240,14 +1168,14 @@ c
       INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
-      REAL X_o_dx,q0,q1,q2,r0,r1,r2
+      REAL q0,q1,q2,r0,r1,r2
       REAL w0(0:3),w1(0:3),w2(0:3)
       REAL w(0:3,0:3,0:3),wyz,wz
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1264,32 +1192,29 @@ c
          s = indices(l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell and compute the interpolation weights.
+c     of point s within the cell and compute the interpolation weights.
 c
-         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = ibrack(0,l)-1
          ic_upper(0) = ic_lower(0) + 3
-         r0 = X_o_dx - ((ic_lower(0)+1-ilower0)+0.5d0)
+         r0 = g(0,l)
          q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
          w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
          w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
          w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
          w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
-         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
          ic_lower(1) = ibrack(1,l)-1
          ic_upper(1) = ic_lower(1) + 3
-         r1 = X_o_dx - ((ic_lower(1)+1-ilower1)+0.5d0)
+         r1 = g(1,l)
          q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
          w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
          w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
          w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
          w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
 
-         X_o_dx = (X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)
          ic_lower(2) = ibrack(2,l)-1
          ic_upper(2) = ic_lower(2) + 3
-         r2 = X_o_dx - ((ic_lower(2)+1-ilower2)+0.5d0)
+         r2 = g(2,l)
          q2 = sqrt(1.d0+4.d0*r2*(1.d0-r2))
          w2(0) = 0.125d0*(3.d0-2.d0*r2-q2)
          w2(1) = 0.125d0*(3.d0-2.d0*r2+q2)
@@ -1339,16 +1264,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the IB
+c     Spread V onto u at the points listed in indices using the IB
 c     4-point delta function using standard (double) precision
 c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_4_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -1366,10 +1291,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -1384,13 +1308,12 @@ c
       INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
-      REAL X_o_dx,q0,q1,q2,r0,r1,r2
+      REAL q0,q1,q2,r0,r1,r2
       REAL w0(0:3),w1(0:3),w2(0:3)
       REAL w(0:3,0:3,0:3),wyz,wz
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Compute the extents of the ghost box.
@@ -1408,32 +1331,29 @@ c
          s = indices(l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell and compute the interpolation weights.
+c     of point s within the cell and compute the interpolation weights.
 c
-         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = ibrack(0,l)-1
          ic_upper(0) = ic_lower(0) + 3
-         r0 = X_o_dx - ((ic_lower(0)+1-ilower0)+0.5d0)
+         r0 = g(0,l)
          q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
          w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
          w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
          w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
          w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
-         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
          ic_lower(1) = ibrack(1,l)-1
          ic_upper(1) = ic_lower(1) + 3
-         r1 = X_o_dx - ((ic_lower(1)+1-ilower1)+0.5d0)
+         r1 = g(1,l)
          q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
          w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
          w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
          w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
          w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
 
-         X_o_dx = (X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)
          ic_lower(2) = ibrack(2,l)-1
          ic_upper(2) = ic_lower(2) + 3
-         r2 = X_o_dx - ((ic_lower(2)+1-ilower2)+0.5d0)
+         r2 = g(2,l)
          q2 = sqrt(1.d0+4.d0*r2*(1.d0-r2))
          w2(0) = 0.125d0*(3.d0-2.d0*r2-q2)
          w2(1) = 0.125d0*(3.d0-2.d0*r2+q2)
@@ -1483,19 +1403,19 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the IB
+c     Interpolate u onto V at the points listed in indices using the IB
 c     4-point delta function that has been broadened to have a support
 c     of 8 meshwidths.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_4_w8_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -1510,11 +1430,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -1528,14 +1447,14 @@ c
       INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
-      REAL X_o_dx,q0,q1,q2,r0,r1,r2
+      REAL q0,q1,q2,r0,r1,r2
       REAL w0(0:7),w1(0:7),w2(0:7)
       REAL w(0:7,0:7,0:7),wyz,wz
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1553,12 +1472,11 @@ c
          s = indices(l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell and compute the interpolation weights.
+c     of point s within the cell and compute the interpolation weights.
 c
-         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = ibrack(0,l)-3
          ic_upper(0) = ic_lower(0) + 7
-         r0 = 0.5d0*(X_o_dx - ((ic_lower(0)+3-ilower0)+0.5d0))
+         r0 = 0.5d0*g(0,l)
          q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
          w0(1) = 0.0625d0*(3.d0-2.d0*r0-q0)
          w0(3) = 0.0625d0*(3.d0-2.d0*r0+q0)
@@ -1571,10 +1489,9 @@ c
          w0(4) = 0.0625d0*(1.d0+2.d0*r0+q0)
          w0(6) = 0.0625d0*(1.d0+2.d0*r0-q0)
 
-         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
          ic_lower(1) = ibrack(1,l)-3
          ic_upper(1) = ic_lower(1) + 7
-         r1 = 0.5d0*(X_o_dx - ((ic_lower(1)+3-ilower1)+0.5d0))
+         r1 = 0.5d0*g(1,l)
          q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
          w1(1) = 0.0625d0*(3.d0-2.d0*r1-q1)
          w1(3) = 0.0625d0*(3.d0-2.d0*r1+q1)
@@ -1587,10 +1504,9 @@ c
          w1(4) = 0.0625d0*(1.d0+2.d0*r1+q1)
          w1(6) = 0.0625d0*(1.d0+2.d0*r1-q1)
 
-         X_o_dx = (X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)
          ic_lower(2) = ibrack(2,l)-3
          ic_upper(2) = ic_lower(2) + 7
-         r2 = 0.5d0*(X_o_dx - ((ic_lower(2)+3-ilower2)+0.5d0))
+         r2 = 0.5d0*g(2,l)
          q2 = sqrt(1.d0+4.d0*r2*(1.d0-r2))
          w2(1) = 0.0625d0*(3.d0-2.d0*r2-q2)
          w2(3) = 0.0625d0*(3.d0-2.d0*r2+q2)
@@ -1646,16 +1562,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the IB
+c     Spread V onto u at the points listed in indices using the IB
 c     4-point delta function that has been broadened to have a support
 c     of 8 meshwidths.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_4_w8_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -1673,10 +1589,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -1691,13 +1606,12 @@ c
       INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
-      REAL X_o_dx,q0,q1,q2,r0,r1,r2
+      REAL q0,q1,q2,r0,r1,r2
       REAL w0(0:7),w1(0:7),w2(0:7)
       REAL w(0:7,0:7,0:7),wyz,wz
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Compute the extents of the ghost box.
@@ -1716,12 +1630,11 @@ c
          s = indices(l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell and compute the interpolation weights.
+c     of point s within the cell and compute the interpolation weights.
 c
-         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = ibrack(0,l)-3
          ic_upper(0) = ic_lower(0) + 7
-         r0 = 0.5d0*(X_o_dx - ((ic_lower(0)+3-ilower0)+0.5d0))
+         r0 = 0.5d0*g(0,l)
          q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
          w0(1) = 0.0625d0*(3.d0-2.d0*r0-q0)
          w0(3) = 0.0625d0*(3.d0-2.d0*r0+q0)
@@ -1734,10 +1647,9 @@ c
          w0(4) = 0.0625d0*(1.d0+2.d0*r0+q0)
          w0(6) = 0.0625d0*(1.d0+2.d0*r0-q0)
 
-         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
          ic_lower(1) = ibrack(1,l)-3
          ic_upper(1) = ic_lower(1) + 7
-         r1 = 0.5d0*(X_o_dx - ((ic_lower(1)+3-ilower1)+0.5d0))
+         r1 = 0.5d0*g(1,l)
          q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
          w1(1) = 0.0625d0*(3.d0-2.d0*r1-q1)
          w1(3) = 0.0625d0*(3.d0-2.d0*r1+q1)
@@ -1750,10 +1662,9 @@ c
          w1(4) = 0.0625d0*(1.d0+2.d0*r1+q1)
          w1(6) = 0.0625d0*(1.d0+2.d0*r1-q1)
 
-         X_o_dx = (X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)
          ic_lower(2) = ibrack(2,l)-3
          ic_upper(2) = ic_lower(2) + 7
-         r2 = 0.5d0*(X_o_dx - ((ic_lower(2)+3-ilower2)+0.5d0))
+         r2 = 0.5d0*g(2,l)
          q2 = sqrt(1.d0+4.d0*r2*(1.d0-r2))
          w2(1) = 0.0625d0*(3.d0-2.d0*r2-q2)
          w2(3) = 0.0625d0*(3.d0-2.d0*r2+q2)
@@ -1809,18 +1720,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     5-point IB delta with three continuous derivatives
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_5_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -1835,11 +1746,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 
 c
 c     Input/Output.
@@ -1857,14 +1767,13 @@ c
       INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4),w2(0:4)
+      REAL w0(0:4),w1(0:4),w2(0:4)
 
       PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      dx(0) = dx(0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1880,18 +1789,15 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
          ic_center(0) = inear(0,l)
          ic_center(1) = inear(1,l)
          ic_center(2) = inear(2,l)
 
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
-         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
+c     of point s within the cell.
 c
          do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-2
@@ -1901,8 +1807,7 @@ c
 c     Compute the interpolation weights.
 c
          ic0 = ic_center(0)
-         X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-         r = (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0)
+         r = g(0,l)+dble(ibrack(0,l)-ic0)
          phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
      &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
      &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
@@ -1921,8 +1826,7 @@ c
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic1 = ic_center(1)
-         X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-         r = (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1)
+         r = g(1,l)+dble(ibrack(1,l)-ic1)
          phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
      &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
      &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
@@ -1941,8 +1845,7 @@ c
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic2 = ic_center(2)
-         X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-         r = (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2)
+         r = g(2,l)+dble(ibrack(2,l)-ic2)
          phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
      &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
      &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
@@ -1993,7 +1896,7 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the
+c     Spread V onto u at the points listed in indices using the
 c     5-point IB delta with three continuous derivatives
 c     using standard (double) precision
 c     accumulation on the Cartesian grid.
@@ -2001,9 +1904,9 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_5_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -2021,10 +1924,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -2042,14 +1944,9 @@ c
       INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4),w2(0:4)
+      REAL w0(0:4),w1(0:4),w2(0:4)
 
       PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -2065,18 +1962,15 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
          ic_center(0) = inear(0,l)
          ic_center(1) = inear(1,l)
          ic_center(2) = inear(2,l)
 
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
-         X_cell(2) = x_lower(2)+(dble(ic_center(2)-ilower2)+0.5d0)*dx(2)
 c
 c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
+c     point s within the cell.
 c
          do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-2
@@ -2086,8 +1980,7 @@ c
 c     Compute the spreading weights.
 c
          ic0 = ic_center(0)
-         X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-         r = (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0)
+         r = g(0,l)+dble(ibrack(0,l)-ic0)
          phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
      &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
      &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
@@ -2106,8 +1999,7 @@ c
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic1 = ic_center(1)
-         X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-         r = (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1)
+         r = g(1,l)+dble(ibrack(1,l)-ic1)
          phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
      &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
      &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
@@ -2126,8 +2018,7 @@ c
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic2 = ic_center(2)
-         X_cell(2) = x_lower(2)+(dble(ic2-ilower2)+0.5d0)*dx(2)
-         r = (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2)
+         r = g(2,l)+dble(ibrack(2,l)-ic2)
          phi = (136.0d0 - 40.0d0*K - 40.0d0*r**2 + sqrt(2.0d0)
      &          *sqrt(3123.0d0 - 6840.0d0*K + 3600.0d0*(K**2)
      &          - 12440.0d0*(r**2) + 25680.0d0*K*(r**2)
@@ -2178,18 +2069,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the IB
+c     Interpolate u onto V at the points listed in indices using the IB
 c     6-point delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_6_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -2204,11 +2095,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -2222,7 +2112,7 @@ c
       INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
-      REAL X_o_dx,r,alpha,beta,gamma,discr,K
+      REAL r,alpha,beta,gamma,discr,K
       REAL pm3,pm2,pm1,p,pp1,pp2
       REAL w0(0:5),w1(0:5),w2(0:5)
       REAL w(0:5,0:5,0:5),wyz,wz
@@ -2231,8 +2121,8 @@ c
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -2249,12 +2139,11 @@ c
          s = indices(l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell and compute the interpolation weights.
+c     of point s within the cell and compute the interpolation weights.
 c
-         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = ibrack(0,l)-2
          ic_upper(0) = ic_lower(0) + 5
-         r = 1.d0 - X_o_dx + ((ic_lower(0)+2-ilower0)+0.5d0)
+         r = 1.d0 - g(0,l)
 
          alpha = 28.d0
          beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
@@ -2282,10 +2171,9 @@ c
          w0(4) = pp1
          w0(5) = pp2
 
-         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
          ic_lower(1) = ibrack(1,l)-2
          ic_upper(1) = ic_lower(1) + 5
-         r = 1.d0 - X_o_dx + ((ic_lower(1)+2-ilower1)+0.5d0)
+         r = 1.d0 - g(1,l)
 
          alpha = 28.d0
          beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
@@ -2313,10 +2201,9 @@ c
          w1(4) = pp1
          w1(5) = pp2
 
-         X_o_dx = (X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)
          ic_lower(2) = ibrack(2,l)-2
          ic_upper(2) = ic_lower(2) + 5
-         r = 1.d0 - X_o_dx + ((ic_lower(2)+2-ilower2)+0.5d0)
+         r = 1.d0 - g(2,l)
 
          alpha = 28.d0
          beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
@@ -2387,15 +2274,15 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the IB
+c     Spread V onto u at the points listed in indices using the IB
 c     6-point delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_6_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -2413,10 +2300,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -2431,7 +2317,7 @@ c
       INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
-      REAL X_o_dx,r,alpha,beta,gamma,discr,K
+      REAL r,alpha,beta,gamma,discr,K
       REAL pm3,pm2,pm1,p,pp1,pp2
       REAL w0(0:5),w1(0:5),w2(0:5)
       REAL w(0:5,0:5,0:5),wyz,wz
@@ -2440,7 +2326,6 @@ c
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Compute the extents of the ghost box.
@@ -2459,12 +2344,11 @@ c
          s = indices(l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell and compute the interpolation weights.
+c     of point s within the cell and compute the interpolation weights.
 c
-         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
          ic_lower(0) = ibrack(0,l)-2
          ic_upper(0) = ic_lower(0) + 5
-         r = 1.d0 - X_o_dx + ((ic_lower(0)+2-ilower0)+0.5d0)
+         r = 1.d0 - g(0,l)
 
          alpha = 28.d0
          beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
@@ -2492,10 +2376,9 @@ c
          w0(4) = pp1
          w0(5) = pp2
 
-         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
          ic_lower(1) = ibrack(1,l)-2
          ic_upper(1) = ic_lower(1) + 5
-         r = 1.d0 - X_o_dx + ((ic_lower(1)+2-ilower1)+0.5d0)
+         r = 1.d0 - g(1,l)
 
          alpha = 28.d0
          beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
@@ -2523,10 +2406,9 @@ c
          w1(4) = pp1
          w1(5) = pp2
 
-         X_o_dx = (X(2,s)+Xshift(2,l)-x_lower(2))/dx(2)
          ic_lower(2) = ibrack(2,l)-2
          ic_upper(2) = ic_lower(2) + 5
-         r = 1.d0 - X_o_dx + ((ic_lower(2)+2-ilower2)+0.5d0)
+         r = 1.d0 - g(2,l)
 
          alpha = 28.d0
          beta = (9.d0/4.d0)-(3.d0/2.d0)*(K+r**2)+((22.d0/3.d0)-7.d0*K)*r
@@ -2597,18 +2479,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     3-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_3_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -2627,11 +2509,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -2644,12 +2525,11 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
+      REAL w(0:NDIM-1,0:2)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -2671,12 +2551,12 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
+c     of point s within the cell.
 c
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
@@ -2686,10 +2566,9 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_bspline_3_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -2709,16 +2588,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the 3-point
+c     Spread V onto u at the points listed in indices using the 3-point
 c     B-spline delta function using standard (double) precision
 c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_3_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -2740,10 +2619,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -2757,12 +2635,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      REAL w(0:NDIM-1,0:2)
 c
 c     Setup convenience arrays.
 c
@@ -2784,12 +2657,12 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
 c
 c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
+c     point s within the cell.
 c
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
@@ -2799,10 +2672,9 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_bspline_3_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -2822,18 +2694,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     4-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_4_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -2852,11 +2724,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -2869,12 +2740,12 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
+      REAL w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -2896,7 +2767,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the interpolation stencil from the data point below X(s).
+c     Determine the interpolation stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-1
             ic_upper(d) = ibrack(d,l)+2
@@ -2906,10 +2777,9 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_bspline_4_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -2929,16 +2799,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the 4-point
+c     Spread V onto u at the points listed in indices using the 4-point
 c     B-spline delta function using standard (double) precision
 c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_4_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -2960,10 +2830,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -2977,11 +2846,10 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
+      REAL w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
@@ -3004,7 +2872,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the spreading stencil from the data point below X(s).
+c     Determine the spreading stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-1
             ic_upper(d) = ibrack(d,l)+2
@@ -3014,10 +2882,9 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_bspline_4_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -3037,18 +2904,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     5-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_5_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -3067,11 +2934,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -3084,12 +2950,11 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
+      REAL w(0:NDIM-1,0:4)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -3110,13 +2975,13 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
          do d=0,NDIM-1
             ic_center(d) = inear(d,l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
+c     of point s within the cell.
 c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
@@ -3126,10 +2991,9 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_bspline_5_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -3149,16 +3013,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the 5-point
+c     Spread V onto u at the points listed in indices using the 5-point
 c     B-spline delta function using standard (double) precision
 c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_5_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -3180,10 +3044,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -3197,12 +3060,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      REAL w(0:NDIM-1,0:4)
 c
 c     Setup convenience arrays.
 c
@@ -3224,12 +3082,12 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
 c
 c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
+c     point s within the cell.
 c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
@@ -3239,10 +3097,9 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_bspline_5_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -3262,18 +3119,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     6-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_6_interp3d(
-     &     dx,x_lower,x_upper,depth,
+     &     dx,depth,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -3292,11 +3149,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -3309,12 +3165,12 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
+      REAL w(0:NDIM-1,0:5)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -3336,7 +3192,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the interpolation stencil from the data point below X(s).
+c     Determine the interpolation stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-2
             ic_upper(d) = ibrack(d,l)+3
@@ -3346,10 +3202,9 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_bspline_6_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -3369,16 +3224,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the 6-point
+c     Spread V onto u at the points listed in indices using the 6-point
 c     B-spline delta function using standard (double) precision
 c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_6_spread3d(
-     &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -3400,10 +3255,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -3417,11 +3271,10 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
+      REAL w(0:NDIM-1,0:5)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
@@ -3444,7 +3297,7 @@ c
          s = indices(l)
          do d = 0,NDIM-1
 c
-c     Determine the spreading stencil from the data point below X(s).
+c     Determine the spreading stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-2
             ic_upper(d) = ibrack(d,l)+3
@@ -3454,10 +3307,9 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                w(d,ic-ic_lower(d)) =
      &              lagrangian_bspline_6_delta(
-     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &              g(d,l)+dble(ibrack(d,l)-ic))
             enddo
          enddo
 c
@@ -3477,18 +3329,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     composite 3-point/2-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_32_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+     &     dx,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -3508,11 +3360,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -3525,12 +3376,11 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
+      REAL w(0:NDIM-1,0:2)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -3552,12 +3402,12 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
+c     of point s within the cell.
 c
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
@@ -3567,15 +3417,14 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_3_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_piecewise_linear_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -3596,18 +3445,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     composite 2-point/3-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_23_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+     &     dx,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -3627,11 +3476,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -3644,12 +3492,11 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
+      REAL w(0:NDIM-1,0:2)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -3671,12 +3518,12 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
+c     of point s within the cell.
 c
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
@@ -3686,15 +3533,14 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_piecewise_linear_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_3_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -3715,16 +3561,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the composite
+c     Spread V onto u at the points listed in indices using the composite
 c     3-point/2-point B-spline delta function using standard (double)
 c     precision accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_32_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,axis,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -3747,10 +3593,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -3764,12 +3609,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      REAL w(0:NDIM-1,0:2)
 c
 c     Setup convenience arrays.
 c
@@ -3791,12 +3631,12 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
 c
 c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
+c     point s within the cell.
 c
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
@@ -3806,15 +3646,14 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_3_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_piecewise_linear_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -3835,16 +3674,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the composite
+c     Spread V onto u at the points listed in indices using the composite
 c     2-point/3-point B-spline delta function using standard (double)
 c     precision accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_23_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,axis,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -3867,10 +3706,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -3884,12 +3722,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      REAL w(0:NDIM-1,0:2)
 c
 c     Setup convenience arrays.
 c
@@ -3911,12 +3744,12 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
 c
 c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
+c     point s within the cell.
 c
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
@@ -3926,15 +3759,14 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_piecewise_linear_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_3_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -3955,18 +3787,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     composite 4-point/3-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_43_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+     &     dx,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -3986,11 +3818,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -4003,12 +3834,12 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
+      REAL w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -4030,7 +3861,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the interpolation stencil from the data point below X(s).
+c     Determine the interpolation stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-1
             ic_upper(d) = ibrack(d,l)+2
@@ -4040,15 +3871,14 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_4_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_3_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -4069,18 +3899,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     composite 3-point/4-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_34_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+     &     dx,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -4100,11 +3930,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -4117,12 +3946,12 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
+      REAL w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -4144,7 +3973,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the interpolation stencil from the data point below X(s).
+c     Determine the interpolation stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-1
             ic_upper(d) = ibrack(d,l)+2
@@ -4154,15 +3983,14 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_3_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_4_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -4183,16 +4011,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the composite
+c     Spread V onto u at the points listed in indices using the composite
 c     4-point/3-point B-spline delta function using standard (double)
 c     precision accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_43_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,axis,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -4215,10 +4043,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -4232,11 +4059,10 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
+      REAL w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
@@ -4259,7 +4085,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the spreading stencil from the data point below X(s).
+c     Determine the spreading stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-1
             ic_upper(d) = ibrack(d,l)+2
@@ -4269,15 +4095,14 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_4_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_3_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -4298,16 +4123,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the composite
+c     Spread V onto u at the points listed in indices using the composite
 c     3-point/4-point B-spline delta function using standard (double)
 c     precision accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_34_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,axis,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -4330,10 +4155,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -4347,11 +4171,10 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
+      REAL w(0:NDIM-1,0:3)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
@@ -4374,7 +4197,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the spreading stencil from the data point below X(s).
+c     Determine the spreading stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-1
             ic_upper(d) = ibrack(d,l)+2
@@ -4384,15 +4207,14 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_3_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_4_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -4413,18 +4235,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     composite 5-point/4-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_54_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+     &     dx,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -4444,11 +4266,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -4461,12 +4282,11 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
+      REAL w(0:NDIM-1,0:4)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -4487,13 +4307,13 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
          do d=0,NDIM-1
             ic_center(d) = inear(d,l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
+c     of point s within the cell.
 c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
@@ -4503,15 +4323,14 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_5_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_4_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -4532,18 +4351,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     composite 4-point/5-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_45_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+     &     dx,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -4563,11 +4382,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -4580,12 +4398,11 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
+      REAL w(0:NDIM-1,0:4)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -4606,13 +4423,13 @@ c
       do l = 0,nindices-1
          s = indices(l)
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
          do d=0,NDIM-1
             ic_center(d) = inear(d,l)
 c
 c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
+c     of point s within the cell.
 c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
@@ -4622,15 +4439,14 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_4_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_5_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -4651,16 +4467,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the composite
+c     Spread V onto u at the points listed in indices using the composite
 c     5-point/4-point B-spline delta function using standard (double)
 c     precision accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_54_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,axis,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -4683,10 +4499,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -4700,12 +4515,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      REAL w(0:NDIM-1,0:4)
 c
 c     Setup convenience arrays.
 c
@@ -4727,12 +4537,12 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
 c
 c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
+c     point s within the cell.
 c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
@@ -4742,15 +4552,14 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_5_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_4_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -4771,16 +4580,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the composite
+c     Spread V onto u at the points listed in indices using the composite
 c     4-point/5-point B-spline delta function using standard (double)
 c     precision accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_45_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,axis,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -4803,10 +4612,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -4820,12 +4628,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
-c
-c     Prevent compiler warning about unused variables.
-c
-      x_upper(0) = x_upper(0)
-      ibrack(0,0) = ibrack(0,0)
+      REAL w(0:NDIM-1,0:4)
 c
 c     Setup convenience arrays.
 c
@@ -4847,12 +4650,12 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the Cartesian cell in which point s is located.
 c
             ic_center(d) = inear(d,l)
 c
 c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
+c     point s within the cell.
 c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
@@ -4862,15 +4665,14 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_4_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_5_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -4891,18 +4693,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     composite 6-point/5-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_65_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+     &     dx,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -4922,11 +4724,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -4939,12 +4740,12 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
+      REAL w(0:NDIM-1,0:5)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -4966,7 +4767,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the interpolation stencil from the data point below X(s).
+c     Determine the interpolation stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-2
             ic_upper(d) = ibrack(d,l)+3
@@ -4976,15 +4777,14 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_6_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_5_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -5005,18 +4805,18 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Interpolate u onto V at the positions specified by X using the
+c     Interpolate u onto V at the points listed in indices using the
 c     composite 5-point/6-point B-spline delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_56_interp3d(
-     &     dx,x_lower,x_upper,depth,axis,
+     &     dx,depth,axis,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V)
+     &     indices,g,inear,ibrack,nindices,
+     &     V)
 c
       implicit none
 c
@@ -5036,11 +4836,10 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL dx(0:NDIM-1)
       REAL u(CELL3dVECG(ilower,iupper,nugc),0:depth-1)
-      REAL X(0:NDIM-1,0:*)
 c
 c     Input/Output.
 c
@@ -5053,12 +4852,12 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
+      REAL w(0:NDIM-1,0:5)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
+      dx(0) = dx(0)
 c
 c     Setup convenience arrays.
 c
@@ -5080,7 +4879,7 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the interpolation stencil from the data point below X(s).
+c     Determine the interpolation stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-2
             ic_upper(d) = ibrack(d,l)+3
@@ -5090,15 +4889,14 @@ c
 c     Compute the interpolation weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d .eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_5_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_6_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -5119,16 +4917,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the composite
+c     Spread V onto u at the points listed in indices using the composite
 c     6-point/5-point B-spline delta function using standard (double)
 c     precision accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_65_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,axis,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -5151,10 +4949,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -5168,11 +4965,10 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
+      REAL w(0:NDIM-1,0:5)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
@@ -5195,7 +4991,7 @@ c
          s = indices(l)
          do d = 0,NDIM-1
 c
-c     Determine the spreading stencil from the data point below X(s).
+c     Determine the spreading stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-2
             ic_upper(d) = ibrack(d,l)+3
@@ -5205,15 +5001,14 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d. eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_6_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_5_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo
@@ -5234,16 +5029,16 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Spread V onto u at the positions specified by X using the composite
+c     Spread V onto u at the points listed in indices using the composite
 c     5-point/6-point B-spline delta function using standard (double)
 c     precision accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_56_spread3d(
-     &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,inear,ibrack,nindices,
-     &     X,V,
+     &     dx,depth,axis,
+     &     indices,g,inear,ibrack,nindices,
+     &     V,
      &     ilower0,iupper0,ilower1,iupper1,ilower2,iupper2,
      &     nugc0,nugc1,nugc2,
      &     u)
@@ -5266,10 +5061,9 @@ c
       INTEGER inear(0:NDIM-1,0:nindices-1)
       INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
-      REAL Xshift(0:NDIM-1,0:nindices-1)
+      REAL g(0:NDIM-1,0:nindices-1)
 
-      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
-      REAL X(0:NDIM-1,0:*)
+      REAL dx(0:NDIM-1)
       REAL V(0:depth-1,0:*)
 c
 c     Input/Output: spreading adds to the existing Cartesian grid values u.
@@ -5283,11 +5077,10 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
+      REAL w(0:NDIM-1,0:5)
 c
 c     Prevent compiler warning about unused variables.
 c
-      x_upper(0) = x_upper(0)
       inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
@@ -5310,7 +5103,7 @@ c
          s = indices(l)
          do d = 0,NDIM-1
 c
-c     Determine the spreading stencil from the data point below X(s).
+c     Determine the spreading stencil from the data point below s.
 c
             ic_lower(d) = ibrack(d,l)-2
             ic_upper(d) = ibrack(d,l)+3
@@ -5320,15 +5113,14 @@ c
 c     Compute the spreading weights.
 c
             do ic = ic_lower(d),ic_upper(d)
-               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
                if (d. eq. axis) then
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_5_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                else
                   w(d,ic-ic_lower(d)) =
      &                 lagrangian_bspline_6_delta(
-     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+     &                 g(d,l)+dble(ibrack(d,l)-ic))
                endif
             enddo
          enddo

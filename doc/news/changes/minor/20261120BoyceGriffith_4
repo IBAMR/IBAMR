@@ -1,0 +1,3 @@
+Improved: Compute the kernel weights of the points of an IBTK::LIndexSetData in IBTK::LEInteractor from the offset of each point from its lower bracketing data point in the level frame. The interpolated values are then independent of the patch layout and the periodic image, bit for bit, if the ghost values are. Interpolated values change in the last bits.
+<br>
+(Boyce Griffith, 2026/11/20)

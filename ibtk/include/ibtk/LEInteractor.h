@@ -1302,7 +1302,9 @@ private:
      *
      * nearest_indices and bracket_indices give, NDIM per entry of local_indices and in the index space of q_data_box,
      * the data point nearest each point and the data point below it, which the kernels with an odd and an even stencil
-     * width use. If they are null, the function computes them from X_data, periodic_shifts, x_lower, and dx.
+     * width use. offsets gives, in the same layout, the distance of each point from the data point below it in units of
+     * dx, from which the kernels compute their weights. If they are null, the function computes all three from X_data,
+     * periodic_shifts, x_lower, and dx.
      */
     static void interpolate(double* Q_data,
                             int Q_depth,
@@ -1312,7 +1314,6 @@ private:
                             const SAMRAI::hier::IntVector<NDIM>& q_gcw,
                             int q_depth,
                             const double* x_lower,
-                            const double* x_upper,
                             const double* dx,
                             const std::array<int, NDIM>& patch_touches_lower_physical_bdry,
                             const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
@@ -1321,12 +1322,13 @@ private:
                             const std::string& interp_fcn,
                             int axis = 0,
                             const int* nearest_indices = nullptr,
-                            const int* bracket_indices = nullptr);
+                            const int* bracket_indices = nullptr,
+                            const double* offsets = nullptr);
 
     /*!
      * Implementation of the IB spreading operation.
      *
-     * nearest_indices and bracket_indices are as in interpolate().
+     * nearest_indices, bracket_indices, and offsets are as in interpolate().
      */
     static void spread(double* q_data,
                        const SAMRAI::hier::Box<NDIM>& q_data_box,
@@ -1336,7 +1338,6 @@ private:
                        int Q_depth,
                        const double* X_data,
                        const double* x_lower,
-                       const double* x_upper,
                        const double* dx,
                        const std::array<int, NDIM>& patch_touches_lower_physical_bdry,
                        const std::array<int, NDIM>& patch_touches_upper_physical_bdry,
@@ -1345,7 +1346,8 @@ private:
                        const std::string& spread_fcn,
                        int axis = 0,
                        const int* nearest_indices = nullptr,
-                       const int* bracket_indices = nullptr);
+                       const int* bracket_indices = nullptr,
+                       const double* offsets = nullptr);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box
@@ -1365,16 +1367,12 @@ private:
      */
     static void userDefinedInterpolate(double* Q,
                                        int Q_depth,
-                                       const double* X,
                                        const double* q,
                                        const SAMRAI::hier::Box<NDIM>& q_data_box,
                                        const int* q_gcw,
                                        int q_depth,
-                                       const double* x_lower,
-                                       const double* x_upper,
-                                       const double* dx,
                                        const int* local_indices,
-                                       const double* X_shift,
+                                       const double* offsets,
                                        const int* nearest_indices,
                                        const int* bracket_indices,
                                        int num_local_indices);
@@ -1386,14 +1384,11 @@ private:
                                   const SAMRAI::hier::Box<NDIM>& q_data_box,
                                   const int* q_gcw,
                                   int q_depth,
-                                  const double* x_lower,
-                                  const double* x_upper,
                                   const double* dx,
                                   const double* Q,
                                   int Q_depth,
-                                  const double* X,
                                   const int* local_indices,
-                                  const double* X_shift,
+                                  const double* offsets,
                                   const int* nearest_indices,
                                   const int* bracket_indices,
                                   int num_local_indices);

@@ -1,89 +1,177 @@
 points = 1014, of which outside the domain = 139
+PIECEWISE_CONSTANT, cell data: reproduces polynomials of its degree
 PIECEWISE_CONSTANT, cell data: passed, sum of the interpolated values = 2964.124244
+PIECEWISE_CONSTANT, node data: reproduces polynomials of its degree
 PIECEWISE_CONSTANT, node data: passed, sum of the interpolated values = 3109.283205
+PIECEWISE_CONSTANT, side data: reproduces polynomials of its degree
 PIECEWISE_CONSTANT, side data: passed, sum of the interpolated values = 9369.702098
+PIECEWISE_CONSTANT, edge data: reproduces polynomials of its degree
 PIECEWISE_CONSTANT, edge data: passed, sum of the interpolated values = 9492.686754
+DISCONTINUOUS_LINEAR, cell data: reproduces polynomials of its degree
 DISCONTINUOUS_LINEAR, cell data: passed, sum of the interpolated values = 2965.730563
+DISCONTINUOUS_LINEAR, node data: reproduces polynomials of its degree
 DISCONTINUOUS_LINEAR, node data: passed, sum of the interpolated values = 3114.195743
+DISCONTINUOUS_LINEAR, side data: reproduces polynomials of its degree
 DISCONTINUOUS_LINEAR, side data: passed, sum of the interpolated values = 9372.529298
+DISCONTINUOUS_LINEAR, edge data: reproduces polynomials of its degree
 DISCONTINUOUS_LINEAR, edge data: passed, sum of the interpolated values = 9507.067833
+PIECEWISE_LINEAR, cell data: reproduces polynomials of its degree
 PIECEWISE_LINEAR, cell data: passed, sum of the interpolated values = 2982.325493
+PIECEWISE_LINEAR, node data: reproduces polynomials of its degree
 PIECEWISE_LINEAR, node data: passed, sum of the interpolated values = 3116.909199
+PIECEWISE_LINEAR, side data: reproduces polynomials of its degree
 PIECEWISE_LINEAR, side data: passed, sum of the interpolated values = 9415.776304
+PIECEWISE_LINEAR, edge data: reproduces polynomials of its degree
 PIECEWISE_LINEAR, edge data: passed, sum of the interpolated values = 9517.421897
+PIECEWISE_CUBIC, cell data: reproduces polynomials of its degree
 PIECEWISE_CUBIC, cell data: passed, sum of the interpolated values = 2996.995834
+PIECEWISE_CUBIC, node data: reproduces polynomials of its degree
 PIECEWISE_CUBIC, node data: passed, sum of the interpolated values = 3133.053627
+PIECEWISE_CUBIC, side data: reproduces polynomials of its degree
 PIECEWISE_CUBIC, side data: passed, sum of the interpolated values = 9468.044164
+PIECEWISE_CUBIC, edge data: reproduces polynomials of its degree
 PIECEWISE_CUBIC, edge data: passed, sum of the interpolated values = 9564.183937
+IB_3, cell data: reproduces polynomials of its degree
 IB_3, cell data: passed, sum of the interpolated values = 2957.251293
+IB_3, node data: reproduces polynomials of its degree
 IB_3, node data: passed, sum of the interpolated values = 3071.67579
+IB_3, side data: reproduces polynomials of its degree
 IB_3, side data: passed, sum of the interpolated values = 9317.950395
+IB_3, edge data: reproduces polynomials of its degree
 IB_3, edge data: passed, sum of the interpolated values = 9402.656807
+IB_4, cell data: reproduces polynomials of its degree
 IB_4, cell data: passed, sum of the interpolated values = 2927.086336
+IB_4, node data: reproduces polynomials of its degree
 IB_4, node data: passed, sum of the interpolated values = 3029.947043
+IB_4, side data: reproduces polynomials of its degree
 IB_4, side data: passed, sum of the interpolated values = 9207.08266
+IB_4, edge data: reproduces polynomials of its degree
 IB_4, edge data: passed, sum of the interpolated values = 9289.664952
+IB_4_W8, cell data: reproduces polynomials of its degree
 IB_4_W8, cell data: passed, sum of the interpolated values = 2860.179157
+IB_4_W8, node data: reproduces polynomials of its degree
 IB_4_W8, node data: passed, sum of the interpolated values = 2935.032671
+IB_4_W8, side data: reproduces polynomials of its degree
 IB_4_W8, side data: passed, sum of the interpolated values = 8958.665602
+IB_4_W8, edge data: reproduces polynomials of its degree
 IB_4_W8, edge data: passed, sum of the interpolated values = 9034.521216
+IB_5, cell data: reproduces polynomials of its degree
 IB_5, cell data: passed, sum of the interpolated values = 2932.483238
+IB_5, node data: reproduces polynomials of its degree
 IB_5, node data: passed, sum of the interpolated values = 3037.457958
+IB_5, side data: reproduces polynomials of its degree
 IB_5, side data: passed, sum of the interpolated values = 9226.799158
+IB_5, edge data: reproduces polynomials of its degree
 IB_5, edge data: passed, sum of the interpolated values = 9309.973478
+IB_6, cell data: reproduces polynomials of its degree
 IB_6, cell data: passed, sum of the interpolated values = 2911.327963
+IB_6, node data: reproduces polynomials of its degree
 IB_6, node data: passed, sum of the interpolated values = 3007.602156
+IB_6, side data: reproduces polynomials of its degree
 IB_6, side data: passed, sum of the interpolated values = 9148.424494
+IB_6, edge data: reproduces polynomials of its degree
 IB_6, edge data: passed, sum of the interpolated values = 9229.611263
+BSPLINE_3, cell data: reproduces polynomials of its degree
 BSPLINE_3, cell data: passed, sum of the interpolated values = 2963.396339
+BSPLINE_3, node data: reproduces polynomials of its degree
 BSPLINE_3, node data: passed, sum of the interpolated values = 3082.949586
+BSPLINE_3, side data: reproduces polynomials of its degree
 BSPLINE_3, side data: passed, sum of the interpolated values = 9342.286028
+BSPLINE_3, edge data: reproduces polynomials of its degree
 BSPLINE_3, edge data: passed, sum of the interpolated values = 9431.448496
+BSPLINE_4, cell data: reproduces polynomials of its degree
 BSPLINE_4, cell data: passed, sum of the interpolated values = 2952.169538
+BSPLINE_4, node data: reproduces polynomials of its degree
 BSPLINE_4, node data: passed, sum of the interpolated values = 3066.20218
+BSPLINE_4, side data: reproduces polynomials of its degree
 BSPLINE_4, side data: passed, sum of the interpolated values = 9300.245613
+BSPLINE_4, edge data: reproduces polynomials of its degree
 BSPLINE_4, edge data: passed, sum of the interpolated values = 9386.754238
+BSPLINE_5, cell data: reproduces polynomials of its degree
 BSPLINE_5, cell data: passed, sum of the interpolated values = 2941.855946
+BSPLINE_5, node data: reproduces polynomials of its degree
 BSPLINE_5, node data: passed, sum of the interpolated values = 3051.094915
+BSPLINE_5, side data: reproduces polynomials of its degree
 BSPLINE_5, side data: passed, sum of the interpolated values = 9261.746665
+BSPLINE_5, edge data: reproduces polynomials of its degree
 BSPLINE_5, edge data: passed, sum of the interpolated values = 9346.437134
+BSPLINE_6, cell data: reproduces polynomials of its degree
 BSPLINE_6, cell data: passed, sum of the interpolated values = 2932.745524
+BSPLINE_6, node data: reproduces polynomials of its degree
 BSPLINE_6, node data: passed, sum of the interpolated values = 3038.049337
+BSPLINE_6, side data: reproduces polynomials of its degree
 BSPLINE_6, side data: passed, sum of the interpolated values = 9227.894895
+BSPLINE_6, edge data: reproduces polynomials of its degree
 BSPLINE_6, edge data: passed, sum of the interpolated values = 9311.43124
+COMPOSITE_BSPLINE_23, cell data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_23, cell data: passed, sum of the interpolated values = 2963.013417
+COMPOSITE_BSPLINE_23, node data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_23, node data: passed, sum of the interpolated values = 3092.955391
+COMPOSITE_BSPLINE_23, side data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_23, side data: passed, sum of the interpolated values = 9366.842546
+COMPOSITE_BSPLINE_23, edge data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_23, edge data: passed, sum of the interpolated values = 9449.014462
+COMPOSITE_BSPLINE_32, cell data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_32, cell data: passed, sum of the interpolated values = 2982.708415
+COMPOSITE_BSPLINE_32, node data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_32, node data: passed, sum of the interpolated values = 3106.903394
+COMPOSITE_BSPLINE_32, side data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_32, side data: passed, sum of the interpolated values = 9391.219787
+COMPOSITE_BSPLINE_32, edge data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_32, edge data: passed, sum of the interpolated values = 9499.855931
+COMPOSITE_BSPLINE_34, cell data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_34, cell data: passed, sum of the interpolated values = 2951.490361
+COMPOSITE_BSPLINE_34, node data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_34, node data: passed, sum of the interpolated values = 3071.000762
+COMPOSITE_BSPLINE_34, side data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_34, side data: passed, sum of the interpolated values = 9312.444213
+COMPOSITE_BSPLINE_34, edge data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_34, edge data: passed, sum of the interpolated values = 9397.466686
+COMPOSITE_BSPLINE_43, cell data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_43, cell data: passed, sum of the interpolated values = 2964.075515
+COMPOSITE_BSPLINE_43, node data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_43, node data: passed, sum of the interpolated values = 3078.151004
+COMPOSITE_BSPLINE_43, side data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_43, side data: passed, sum of the interpolated values = 9330.087428
+COMPOSITE_BSPLINE_43, edge data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_43, edge data: passed, sum of the interpolated values = 9420.736048
+COMPOSITE_BSPLINE_45, cell data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_45, cell data: passed, sum of the interpolated values = 2941.140559
+COMPOSITE_BSPLINE_45, node data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_45, node data: passed, sum of the interpolated values = 3055.554478
+COMPOSITE_BSPLINE_45, side data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_45, side data: passed, sum of the interpolated values = 9272.665417
+COMPOSITE_BSPLINE_45, edge data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_45, edge data: passed, sum of the interpolated values = 9356.337719
+COMPOSITE_BSPLINE_54, cell data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_54, cell data: passed, sum of the interpolated values = 2952.884925
+COMPOSITE_BSPLINE_54, node data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_54, node data: passed, sum of the interpolated values = 3061.742616
+COMPOSITE_BSPLINE_54, side data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_54, side data: passed, sum of the interpolated values = 9289.326861
+COMPOSITE_BSPLINE_54, edge data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_54, edge data: passed, sum of the interpolated values = 9376.853654
+COMPOSITE_BSPLINE_56, cell data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_56, cell data: passed, sum of the interpolated values = 2932.074158
+COMPOSITE_BSPLINE_56, node data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_56, node data: passed, sum of the interpolated values = 3041.917374
+COMPOSITE_BSPLINE_56, side data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_56, side data: passed, sum of the interpolated values = 9237.312459
+COMPOSITE_BSPLINE_56, edge data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_56, edge data: passed, sum of the interpolated values = 9320.202495
+COMPOSITE_BSPLINE_65, cell data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_65, cell data: passed, sum of the interpolated values = 2942.527311
+COMPOSITE_BSPLINE_65, node data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_65, node data: passed, sum of the interpolated values = 3047.226879
+COMPOSITE_BSPLINE_65, side data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_65, side data: passed, sum of the interpolated values = 9252.329101
+COMPOSITE_BSPLINE_65, edge data: reproduces polynomials of its degree
 COMPOSITE_BSPLINE_65, edge data: passed, sum of the interpolated values = 9337.66588
+USER_DEFINED, cell data: reproduces polynomials of its degree
 USER_DEFINED, cell data: passed, sum of the interpolated values = 2927.086336
+USER_DEFINED, node data: reproduces polynomials of its degree
 USER_DEFINED, node data: passed, sum of the interpolated values = 3029.947043
+USER_DEFINED, side data: reproduces polynomials of its degree
 USER_DEFINED, side data: passed, sum of the interpolated values = 9207.08266
+USER_DEFINED, edge data: reproduces polynomials of its degree
 USER_DEFINED, edge data: passed, sum of the interpolated values = 9289.664952
