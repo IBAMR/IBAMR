@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/snapshot_utilities.h>
 
@@ -22,6 +23,7 @@
 #include <RefineOperator.h>
 
 #include <algorithm>
+#include <limits>
 
 #include <ibtk/app_namespaces.h> // IWYU pragma: keep
 
@@ -106,8 +108,14 @@ fill_snapshot_on_hierarchy(SnapshotCache& cache,
 
         // RefineSchedule requires that patch data be stored at the same points.
         // We reset the snapshot patch data time to that of the current time.
-        double allocated_time =
-            cur_level->getPatch(*PatchLevel<NDIM>::Iterator(cur_level))->getPatchData(u_idx)->getTime();
+        // Get the time from the ranks that own patches on this level.
+        double local_time = std::numeric_limits<double>::lowest();
+        const PatchLevel<NDIM>::Iterator first_patch(cur_level);
+        if (first_patch)
+        {
+            local_time = cur_level->getPatch(*first_patch)->getPatchData(u_idx)->getTime();
+        }
+        const double allocated_time = IBTK_MPI::maxReduction(local_time);
         // Note we need scratch allocated on the current hierarchy. Use the snapshot for that.
         cur_level->allocatePatchData(scr_idx, allocated_time);
         snp_level->setTime(allocated_time, snapshot_idx);
@@ -181,11 +189,7 @@ fill_snapshot_at_time(SnapshotCache& cache,
     if (!hier_data_ops)
     {
         auto hier_math_ops = HierarchyDataOpsManager<NDIM>::getManager();
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<Variable<NDIM>> var;
-        var_db->mapIndexToVariable(u_idx, var);
-        Pointer<HierarchyDataOpsReal<NDIM, double>> hier_data_ops =
-            hier_math_ops->getOperationsDouble(cache.getVariable(), hierarchy, true);
+        hier_data_ops = hier_math_ops->getOperationsDouble(cache.getVariable(), hierarchy, true);
     }
 
     // Now grab the indices from the snapshot.
@@ -193,7 +197,7 @@ fill_snapshot_at_time(SnapshotCache& cache,
     fill_snapshot_on_hierarchy(cache, u_idx, snapshot_time_low, hierarchy, refine_type, 1.0e-8);
     fill_snapshot_on_hierarchy(cache, scr_idx, snapshot_time_up, hierarchy, refine_type, 1.0e-8);
     // We have the upper and lower indices, now we can interpolate in time.
-    hier_data_ops->linearSum(u_idx, (time - t_low) / (t_up - t_low), u_idx, -(time - t_up) / (t_up - t_low), scr_idx);
+    hier_data_ops->linearSum(u_idx, (t_up - time) / (t_up - t_low), u_idx, (time - t_low) / (t_up - t_low), scr_idx);
 }
 //////////////////////////////////////////////////////////////////////////////
 

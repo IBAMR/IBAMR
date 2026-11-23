@@ -47,7 +47,8 @@ void test_data(Pointer<Variable<NDIM>> var,
                Pointer<muParserCartGridFunction> fcn,
                const std::set<double>& interp_pts,
                const std::string& refine_type,
-               const int wgt_idx);
+               const int wgt_idx,
+               const bool use_default_data_ops);
 
 int
 main(int argc, char* argv[])
@@ -125,8 +126,12 @@ main(int argc, char* argv[])
         const double dt = (t_end - t_start) / static_cast<double>(num_snaps);
         std::set<double> time_pts, interp_pts;
         for (unsigned int i = 0; i < num_snaps; ++i) time_pts.insert(t_start + static_cast<double>(i) * dt);
+        // Fraction of the way between snapshots at which to interpolate (0.5 is the midpoint).
+        const double interp_fraction = input_db->getDoubleWithDefault("interp_fraction", 0.5);
+        // If true, omit the hier_data_ops argument of fill_snapshot_at_time().
+        const bool use_default_data_ops = input_db->getBoolWithDefault("use_default_data_ops", false);
         for (unsigned int i = 0; i < num_snaps - 1; ++i)
-            interp_pts.insert(t_start + (static_cast<double>(i) + 0.5) * dt);
+            interp_pts.insert(t_start + (static_cast<double>(i) + interp_fraction) * dt);
 
         bool register_for_restart = input_db->getBool("register_for_restart");
 
@@ -185,19 +190,47 @@ main(int argc, char* argv[])
 
         // Now test data
         pout << "Testing with cell variable\n";
-        test_data(c_var, c_cache, new_patch_hierarchy, fcn, interp_pts, "CONSERVATIVE_LINEAR_REFINE", -1);
+        test_data(c_var,
+                  c_cache,
+                  new_patch_hierarchy,
+                  fcn,
+                  interp_pts,
+                  "CONSERVATIVE_LINEAR_REFINE",
+                  -1,
+                  use_default_data_ops);
 
         pout << "Testing with node variable\n";
-        test_data(n_var, n_cache, new_patch_hierarchy, fcn, interp_pts, "LINEAR_REFINE", -1);
+        test_data(n_var, n_cache, new_patch_hierarchy, fcn, interp_pts, "LINEAR_REFINE", -1, use_default_data_ops);
 
         pout << "Testing with side variable\n";
-        test_data(s_var, s_cache, new_patch_hierarchy, fcn, interp_pts, "CONSERVATIVE_LINEAR_REFINE", -1);
+        test_data(s_var,
+                  s_cache,
+                  new_patch_hierarchy,
+                  fcn,
+                  interp_pts,
+                  "CONSERVATIVE_LINEAR_REFINE",
+                  -1,
+                  use_default_data_ops);
 
         pout << "Testing with edge variable\n";
-        test_data(e_var, e_cache, new_patch_hierarchy, fcn, interp_pts, "CONSERVATIVE_LINEAR_REFINE", -1);
+        test_data(e_var,
+                  e_cache,
+                  new_patch_hierarchy,
+                  fcn,
+                  interp_pts,
+                  "CONSERVATIVE_LINEAR_REFINE",
+                  -1,
+                  use_default_data_ops);
 
         pout << "Testing with face variable\n";
-        test_data(f_var, f_cache, new_patch_hierarchy, fcn, interp_pts, "CONSERVATIVE_LINEAR_REFINE", -1);
+        test_data(f_var,
+                  f_cache,
+                  new_patch_hierarchy,
+                  fcn,
+                  interp_pts,
+                  "CONSERVATIVE_LINEAR_REFINE",
+                  -1,
+                  use_default_data_ops);
     }
 } // main()
 
@@ -249,7 +282,8 @@ test_data(Pointer<Variable<NDIM>> var,
           Pointer<muParserCartGridFunction> fcn,
           const std::set<double>& interp_pts,
           const std::string& refine_type,
-          const int wgt_idx)
+          const int wgt_idx,
+          const bool use_default_data_ops)
 {
     // Actually do the test.
     // Create the index that we fill with data
@@ -270,7 +304,13 @@ test_data(Pointer<Variable<NDIM>> var,
             level->allocatePatchData(err_idx, t);
             level->allocatePatchData(var_idx, t);
         }
-        fill_snapshot_at_time(*snapshot_cache, var_idx, t, err_idx, new_hierarchy, refine_type, hier_data_ops);
+        fill_snapshot_at_time(*snapshot_cache,
+                              var_idx,
+                              t,
+                              err_idx,
+                              new_hierarchy,
+                              refine_type,
+                              use_default_data_ops ? nullptr : hier_data_ops);
 
         // Compute and output error
         fcn->setDataOnPatchHierarchy(err_idx, var, new_hierarchy, t);
