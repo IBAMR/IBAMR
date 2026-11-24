@@ -1,3 +1,3 @@
-Fixed: The coarse-solver iteration limit and tolerance setters of the CC level relaxation FAC operator and the Stokes FAC preconditioners now take effect after set-up.
+Fixed: Make the coarse-solver iteration limit and tolerance setters of IBTK::CCPoissonLevelRelaxationFACOperator and the Stokes FAC preconditioners take effect when called after set-up.
 <br>
 (Boyce Griffith, 2026/11/04)

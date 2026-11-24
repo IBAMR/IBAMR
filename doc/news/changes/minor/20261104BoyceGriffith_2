@@ -1,0 +1,3 @@
+Fixed: Give correct results for multi-component solutions with a variable D coefficient of depth 1 in the IBTK cell-centered Poisson solvers and FAC operators.
+<br>
+(Boyce Griffith, 2026/11/04)

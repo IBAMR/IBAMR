@@ -1,3 +1,3 @@
-Changed: The hierarchy integrators and the IB methods now identify the first time step from the integrator step counter.
+Changed: Identify the first time step from the integrator step counter in the hierarchy integrators and the IB methods.
 <br>
 (Boyce Griffith, 2026/10/05)

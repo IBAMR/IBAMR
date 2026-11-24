@@ -1,3 +1,3 @@
-Fixed: LDataManager no longer reads out of bounds in its destructor when no patch hierarchy was ever set up.
+Fixed: Prevent an out-of-bounds read in the IBTK::LDataManager destructor if no patch hierarchy was set up.
 <br>
 (Boyce Griffith, 2026/09/19)

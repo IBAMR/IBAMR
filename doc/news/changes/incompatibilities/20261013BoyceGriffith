@@ -1,3 +1,3 @@
-Changed: IBTK::CCPoissonLevelRelaxationFACOperator, IBAMR::StaggeredStokesLevelRelaxationFACOperator and IBAMR::StaggeredStokesIBLevelRelaxationFACOperator stop with an error when a level solver with KSP type preonly is asked to apply post-smoothing sweeps, which discarded the coarse-grid correction. Use KSP type richardson.
+Changed: Make IBTK::CCPoissonLevelRelaxationFACOperator, IBAMR::StaggeredStokesLevelRelaxationFACOperator, and IBAMR::StaggeredStokesIBLevelRelaxationFACOperator stop with an error if post-smoothing sweeps are requested from a level solver with KSP type preonly. Such sweeps discarded the coarse-grid correction. Use KSP type richardson.
 <br>
 (Boyce Griffith, 2026/10/13)

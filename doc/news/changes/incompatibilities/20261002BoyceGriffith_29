@@ -1,3 +1,3 @@
-Removed: IBTK::FMG_CYCLE and the protected IBTK::FACPreconditioner members FMGCycle() and muCycle(); use F_CYCLE.
+Removed: IBTK::FMG_CYCLE and the protected IBTK::FACPreconditioner members FMGCycle() and muCycle(). Use F_CYCLE instead.
 <br>
 (Boyce Griffith, 2026/10/02)

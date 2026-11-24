@@ -1,3 +1,3 @@
-Fixed: IBTK::CCPoissonPointRelaxationFACOperator, IBTK::CCPoissonLevelRelaxationFACOperator, and IBTK::CCPoissonBoxRelaxationFACOperator now compute the residual of every component of a multi-component solution.
+Fixed: Compute the residual of every component of a multi-component solution in IBTK::CCPoissonPointRelaxationFACOperator, IBTK::CCPoissonLevelRelaxationFACOperator, and IBTK::CCPoissonBoxRelaxationFACOperator.
 <br>
 (Boyce Griffith, 2026/10/21)
