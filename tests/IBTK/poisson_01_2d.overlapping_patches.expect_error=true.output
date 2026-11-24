@@ -1,0 +1,5 @@
+Program abort called with error message
+
+    PatchLevel has patches which overlap in index space
+See GriddingAlgorithm::checkOverlappingPatches()
+
