@@ -33,6 +33,7 @@
 #include <tbox/Pointer.h>
 
 #include <CoarseFineBoundary.h>
+#include <HierarchyFaceDataOpsReal.h>
 #include <HierarchySideDataOpsReal.h>
 #include <IntVector.h>
 #include <PatchHierarchy.h>

@@ -34,8 +34,6 @@
 #include <CoarsenOperator.h>
 #include <FaceVariable.h>
 #include <HierarchyCellDataOpsReal.h>
-#include <HierarchyFaceDataOpsReal.h>
-#include <HierarchySideDataOpsReal.h>
 #include <IntVector.h>
 #include <MultiblockDataTranslator.h>
 #include <NodeVariable.h>
@@ -1749,8 +1747,6 @@ private:
 
     // Hierarchy data operations.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double>> d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double>> d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double>> d_hier_sc_data_ops;
 
     // Patch math operations.
     PatchMathOps d_patch_math_ops;

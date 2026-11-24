@@ -30,6 +30,7 @@
 #include <tbox/Pointer.h>
 
 #include <CartesianGridGeometry.h>
+#include <HierarchySideDataOpsReal.h>
 #include <IntVector.h>
 #include <PatchLevel.h>
 
