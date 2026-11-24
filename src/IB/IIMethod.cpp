@@ -223,6 +223,8 @@ IIMethod::IIMethod(const std::string& object_name,
 
 IIMethod::~IIMethod()
 {
+    d_p_ghost_fill_schedule.setNull();
+    d_p_scratch_cached_idx.reset();
     d_ghost_data_accumulator.reset();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -2471,18 +2473,23 @@ IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time
                                  << std::endl);
     }
 
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const auto p_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_p_scratch_idx);
-    RefineAlgorithm<NDIM> ghost_fill_alg_p;
-    // TODO: Can we cache this algorithm/schedule?
-    ghost_fill_alg_p.registerRefine(p_scratch_data_idx, p_data_idx, p_scratch_data_idx, nullptr);
-    Pointer<RefineSchedule<NDIM>> ghost_fill_schd_p =
-        ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
+    if (!d_p_scratch_cached_idx)
+    {
+        d_p_scratch_cached_idx.emplace(d_eulerian_data_cache->getCachedPatchDataIndex(d_p_scratch_idx));
+    }
+    const int p_scratch_data_idx = *d_p_scratch_cached_idx;
+    if (!d_p_ghost_fill_schedule || d_p_ghost_fill_source_idx != p_data_idx)
+    {
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        RefineAlgorithm<NDIM> ghost_fill_alg_p;
+        ghost_fill_alg_p.registerRefine(p_scratch_data_idx, p_data_idx, p_scratch_data_idx, nullptr);
+        d_p_ghost_fill_schedule = ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
+        d_p_ghost_fill_source_idx = p_data_idx;
+    }
 
+    d_p_ghost_fill_schedule->fillData(data_time);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
-        // TODO: Does this need to be re-filled for each part?
-        ghost_fill_schd_p->fillData(data_time);
         extrapolatePressureForTraction(p_scratch_data_idx, data_time, part);
         computeFluidTraction(data_time, part);
     }
@@ -3515,6 +3522,8 @@ IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM>> /*hierarchy*/,
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // clear data that is specific to the current patch hierarchy
     d_ghost_data_accumulator.reset();
+    d_p_ghost_fill_schedule.setNull();
+    d_p_scratch_cached_idx.reset();
     IBAMR_TIMER_STOP(t_begin_data_redistribution);
     return;
 } // beginDataRedistribution

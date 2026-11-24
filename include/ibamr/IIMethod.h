@@ -21,6 +21,7 @@
 #include <ibamr/IBStrategy.h>
 
 #include <ibtk/FEDataManager.h>
+#include <ibtk/SAMRAIDataCache.h>
 #include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
@@ -41,6 +42,7 @@
 #include <deque>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -48,7 +50,6 @@
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
-class SAMRAIDataCache;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -620,6 +621,15 @@ protected:
      * patches that own those cells.
      */
     std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_ghost_data_accumulator;
+
+    /*
+     * Cached scratch pressure and the schedule that fills it for the traction
+     * calculation.  Both are built on first use and cleared on regridding.  The
+     * schedule is rebuilt if the source pressure index changes.
+     */
+    std::optional<IBTK::SAMRAIDataCache::CachedPatchDataIndex> d_p_scratch_cached_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_p_ghost_fill_schedule;
+    int d_p_ghost_fill_source_idx = IBTK::invalid_index;
 
     /*
      * The current time step interval.
