@@ -21,7 +21,10 @@
 #include <ibamr/config.h>
 
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/SideDataSynchronization.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
@@ -195,6 +198,15 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_F_sc_var;
     int d_F_sc_idx = IBTK::invalid_index;
     std::vector<int> d_F_sc_idxs;
+
+    /*!
+     * Cached ghost-cell fill of the concentration, with the index it fills, and synchronization of the flux, with the
+     * hierarchy levels they were built for.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_C_ghost_fill;
+    int d_C_ghost_fill_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_F_synch;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
 };
 } // namespace IBAMR
 
