@@ -24,6 +24,7 @@
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/StaggeredPhysicalBoundaryHelper.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -40,6 +41,8 @@ template <int DIM>
 class Box;
 template <int DIM>
 class BoxList;
+template <int DIM>
+class PatchLevel;
 } // namespace hier
 namespace solv
 {
@@ -126,6 +129,16 @@ public:
      * be constant.
      */
     void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec) override;
+
+    /*!
+     * \brief Return the number of coarse-level solver reuses.
+     */
+    long getCoarseSolverReuseCount() const;
+
+    /*!
+     * \brief Return the number of coarse-level solver initializations when reuse caching is enabled.
+     */
+    long getCoarseSolverReinitCount() const;
 
     /*!
      * \name Implementation of FACPreconditionerStrategy interface.
@@ -246,6 +259,40 @@ private:
      * \return A reference to this object.
      */
     SCPoissonPointRelaxationFACOperator& operator=(const SCPoissonPointRelaxationFACOperator& that) = delete;
+
+    // Coarsest-level solver caching state for opt-in reuse across resets.
+    enum class CachedCoarseSolverKind
+    {
+        UNSUPPORTED = 0,
+        VCSC_PETSC = 1
+    };
+
+    void clearCachedCoarseState(bool deallocate_coarse_solver);
+
+    bool d_reuse_unchanged_coarse_solver = false;
+    double d_coarse_solver_reuse_rel_tol = 1.0e-6;
+    bool d_has_cached_coarse_state = false;
+    bool d_in_destructor = false;
+    CachedCoarseSolverKind d_cached_l0_solver_kind = CachedCoarseSolverKind::UNSUPPORTED;
+    IBTK::VCInterpType d_cached_l0_mu_interp_type = IBTK::VC_HARMONIC_INTERP;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_cached_l0_level;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_cached_l0_solution;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_cached_l0_rhs;
+    std::vector<SAMRAI::hier::Box<NDIM>> d_cached_l0_boxes;
+    std::vector<int> d_cached_l0_procs;
+    double d_cached_l0_dt = 0.0;
+    bool d_cached_l0_C_is_var = false;
+    bool d_cached_l0_C_is_zero = true;
+    double d_cached_l0_C_const = 0.0;
+    bool d_cached_l0_D_is_var = false;
+    double d_cached_l0_D_const = 0.0;
+    int d_cached_l0_x_depth = -1;
+    SAMRAI::hier::IntVector<NDIM> d_cached_l0_x_gcw = SAMRAI::hier::IntVector<NDIM>(-1);
+    std::vector<double> d_cached_l0_C_vals;
+    std::vector<double> d_cached_l0_D_vals;
+    std::vector<double> d_cached_l0_bc_vals;
+    long d_coarse_solver_reuse_count = 0;
+    long d_coarse_solver_reinit_count = 0;
 };
 } // namespace IBTK
 

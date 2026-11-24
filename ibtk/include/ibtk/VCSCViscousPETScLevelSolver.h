@@ -116,6 +116,11 @@ public:
      */
     void setViscosityInterpolationType(IBTK::VCInterpType mu_interp_type);
 
+    /*!
+     * \brief Get the interpolation type used in interpolating the viscosity.
+     */
+    IBTK::VCInterpType getViscosityInterpolationType() const;
+
 protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.

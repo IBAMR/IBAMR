@@ -1,0 +1,5 @@
+cycle_0: reuse = 0, reinit = 1, u_l2 = 1.501806558, u_max = 1.272516219
+cycle_1: reuse = 1, reinit = 1, u_l2 = 3.768109425, u_max = 3.2094877
+cycle_2: reuse = 1, reinit = 2, u_l2 = 1.879489766, u_max = 3.48078528
+cycle_3: reuse = 1, reinit = 3, u_l2 = 3.627842854, u_max = 3.480784283
+cycle_4: reuse = 1, reinit = 4, u_l2 = 3.626145799, u_max = 3.480784263
