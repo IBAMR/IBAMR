@@ -19,6 +19,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/BoxArrayIndex.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -1011,12 +1012,14 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchy<NDIM>> 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        BoxArray<NDIM> refined_region_boxes;
+        // Index the refined region and its periodic images once for all patches of the level.
+        IBTK::detail::BoxArrayIndex refined_region;
+        std::vector<Box<NDIM>> refined_intersections;
         if (ln < finest_ln)
         {
             Pointer<PatchLevel<NDIM>> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
-            refined_region_boxes = next_finer_level->getBoxes();
-            refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+            refined_region = IBTK::detail::refined_region_index(
+                *next_finer_level, level->getGridGeometry()->getPeriodicShift(level->getRatio()));
         }
 
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -1041,33 +1044,10 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchy<NDIM>> 
             // Zero-out weights within the refined region.
             if (ln < finest_ln)
             {
-                const IntVector<NDIM>& periodic_shift = level->getGridGeometry()->getPeriodicShift(level->getRatio());
-                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                refined_region.findIntersections(refined_intersections, Box<NDIM>::grow(patch_box, 1));
+                for (const Box<NDIM>& intersection : refined_intersections)
                 {
-                    for (unsigned int axis = 0; axis < NDIM; ++axis)
-                    {
-                        if (periodic_shift(axis) != 0)
-                        {
-                            for (int sgn = -1; sgn <= 1; sgn += 2)
-                            {
-                                IntVector<NDIM> periodic_offset = 0;
-                                periodic_offset(axis) = sgn * periodic_shift(axis);
-                                const Box<NDIM> refined_box =
-                                    Box<NDIM>::shift(refined_region_boxes[i], periodic_offset);
-                                const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
-                                if (!intersection.empty())
-                                {
-                                    face_wgt_sc_data->fillAll(0.0, intersection);
-                                }
-                            }
-                        }
-                    }
-                    const Box<NDIM>& refined_box = refined_region_boxes[i];
-                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
-                    if (!intersection.empty())
-                    {
-                        face_wgt_sc_data->fillAll(0.0, intersection);
-                    }
+                    face_wgt_sc_data->fillAll(0.0, intersection);
                 }
             }
         }
@@ -1104,12 +1084,14 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM>> p
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-        BoxArray<NDIM> refined_region_boxes;
+        // Index the refined region and its periodic images once for all patches of the level.
+        IBTK::detail::BoxArrayIndex refined_region;
+        std::vector<Box<NDIM>> refined_intersections;
         if (ln < finest_ln)
         {
             Pointer<PatchLevel<NDIM>> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
-            refined_region_boxes = next_finer_level->getBoxes();
-            refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+            refined_region = IBTK::detail::refined_region_index(
+                *next_finer_level, level->getGridGeometry()->getPeriodicShift(level->getRatio()));
         }
         // Only levels finer than the coarsest level read the coarse-fine boundary.
         std::optional<CoarseFineBoundary<NDIM>> cf_bdry;
@@ -1166,33 +1148,10 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM>> p
             // Zero-out weights within the refined region.
             if (ln < finest_ln)
             {
-                const IntVector<NDIM>& periodic_shift = level->getGridGeometry()->getPeriodicShift(level->getRatio());
-                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                refined_region.findIntersections(refined_intersections, Box<NDIM>::grow(patch_box, 1));
+                for (const Box<NDIM>& intersection : refined_intersections)
                 {
-                    for (unsigned int axis = 0; axis < NDIM; ++axis)
-                    {
-                        if (periodic_shift(axis) != 0)
-                        {
-                            for (int sgn = -1; sgn <= 1; sgn += 2)
-                            {
-                                IntVector<NDIM> periodic_offset = 0;
-                                periodic_offset(axis) = sgn * periodic_shift(axis);
-                                const Box<NDIM> refined_box =
-                                    Box<NDIM>::shift(refined_region_boxes[i], periodic_offset);
-                                const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
-                                if (!intersection.empty())
-                                {
-                                    wgt_sc_data->fillAll(0.0, intersection);
-                                }
-                            }
-                        }
-                    }
-                    const Box<NDIM>& refined_box = refined_region_boxes[i];
-                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
-                    if (!intersection.empty())
-                    {
-                        wgt_sc_data->fillAll(0.0, intersection);
-                    }
+                    wgt_sc_data->fillAll(0.0, intersection);
                 }
             }
         }
