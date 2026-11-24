@@ -33,6 +33,11 @@ CoarseFineBoundaryCache::getCoarseFineBoundary(const PatchHierarchy<NDIM>& hiera
     // Update both keys, even when the first differs.
     const bool level_changed = d_level_key.changed(hierarchy, ln, ln);
     const bool level0_changed = d_level0_key.changed(hierarchy, 0, 0);
+    d_ln = ln;
+    if (level_changed)
+    {
+        d_level_box_index_is_current = false;
+    }
     if (d_coarse_fine_boundary && !level_changed && !level0_changed && ghost_width == d_ghost_width)
     {
         return d_coarse_fine_boundary;
@@ -41,6 +46,18 @@ CoarseFineBoundaryCache::getCoarseFineBoundary(const PatchHierarchy<NDIM>& hiera
     d_ghost_width = ghost_width;
     return d_coarse_fine_boundary;
 } // getCoarseFineBoundary
+
+const BoxArrayIndex&
+CoarseFineBoundaryCache::getLevelBoxIndex(const PatchHierarchy<NDIM>& hierarchy)
+{
+    if (d_ln >= 0 && !d_level_box_index_is_current)
+    {
+        const Pointer<PatchLevel<NDIM>> level = hierarchy.getPatchLevel(d_ln);
+        d_level_box_index = periodic_level_box_index(*level);
+        d_level_box_index_is_current = true;
+    }
+    return d_level_box_index;
+} // getLevelBoxIndex
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -16,12 +16,12 @@
 #include <ibtk/GeneralSolver.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScLevelSolver.h>
+#include <ibtk/private/off_level_matrix_entries.h>
 #include <ibtk/solver_utilities.h>
 
 #include <tbox/Utilities.h>
 
 #include <BoxList.h>
-#include <GridGeometry.h>
 #include <PatchLevel.h>
 #include <SideGeometry.h>
 
@@ -32,32 +32,6 @@ namespace IBTK
 {
 namespace
 {
-// Return the offsets of the periodic images of a box of the level, including the zero offset.
-std::vector<SAMRAI::hier::IntVector<NDIM>>
-periodic_image_offsets(const SAMRAI::hier::PatchLevel<NDIM>& level)
-{
-    const SAMRAI::hier::IntVector<NDIM> periodic_shift = level.getGridGeometry()->getPeriodicShift(level.getRatio());
-    std::vector<SAMRAI::hier::IntVector<NDIM>> offsets(1, SAMRAI::hier::IntVector<NDIM>(0));
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (periodic_shift(d) == 0)
-        {
-            continue;
-        }
-        const auto n = offsets.size();
-        for (int image = -1; image <= 1; image += 2)
-        {
-            for (std::size_t k = 0; k < n; ++k)
-            {
-                SAMRAI::hier::IntVector<NDIM> offset = offsets[k];
-                offset(d) = image * periodic_shift(d);
-                offsets.push_back(offset);
-            }
-        }
-    }
-    return offsets;
-}
-
 // Call zero_entry(i, k) for each index i of the box of degrees of freedom of a patch and each entry k of the stencil
 // such that the index i + stencil[k] is in the physical domain but is not a degree of freedom of the level. The degrees
 // of freedom are the cells if side_axis is negative, and otherwise the sides normal to the axis side_axis.
@@ -65,6 +39,7 @@ template <class ZeroEntry>
 void
 for_each_off_level_entry(const SAMRAI::hier::PatchLevel<NDIM>& level,
                          const SAMRAI::hier::Box<NDIM>& patch_box,
+                         const detail::BoxArrayIndex& level_boxes,
                          const int side_axis,
                          const std::vector<SAMRAI::hier::Index<NDIM>>& stencil,
                          ZeroEntry zero_entry)
@@ -86,13 +61,14 @@ for_each_off_level_entry(const SAMRAI::hier::PatchLevel<NDIM>& level,
         }
     }
     const hier::Box<NDIM> ghost_box = hier::Box<NDIM>::grow(dof_box, reach);
-    const std::vector<hier::IntVector<NDIM>> offsets = periodic_image_offsets(level);
+    const std::vector<hier::IntVector<NDIM>>& offsets = level_boxes.getOffsets();
 
     // Collect the ghost degrees of freedom of the patch that lie in the physical domain or its periodic images but are
     // not degrees of freedom of the level.
     hier::BoxList<NDIM> ghost_dofs(ghost_box);
     ghost_dofs.removeIntersections(dof_box);
     hier::BoxList<NDIM> off_level_dofs;
+    std::vector<int> level_box_indices;
     for (hier::BoxList<NDIM>::Iterator g(ghost_dofs); g; g++)
     {
         for (int n = 0; n < level.getPhysicalDomain().getNumberOfBoxes(); ++n)
@@ -109,11 +85,19 @@ for_each_off_level_entry(const SAMRAI::hier::PatchLevel<NDIM>& level,
             }
         }
     }
-    for (int n = 0; n < level.getBoxes().getNumberOfBoxes(); ++n)
+    // Only the boxes of the level with an image that intersects the ghost box can remove degrees of freedom. A side box
+    // of the level extends one side beyond its cell box, so the query reaches one cell below the ghost box.
+    hier::Box<NDIM> query = ghost_box;
+    if (side_axis >= 0)
+    {
+        query.lower()(side_axis) -= 1;
+    }
+    level_boxes.findOverlapIndices(level_box_indices, query);
+    for (const int n : level_box_indices)
     {
         for (const hier::IntVector<NDIM>& offset : offsets)
         {
-            const hier::Box<NDIM> level_box = hier::Box<NDIM>::shift(to_dof_box(level.getBoxes()[n]), offset);
+            const hier::Box<NDIM> level_box = hier::Box<NDIM>::shift(to_dof_box(level_boxes.getBoxes()[n]), offset);
             if (level_box.intersects(ghost_box))
             {
                 off_level_dofs.removeIntersections(level_box);
@@ -511,13 +495,17 @@ copyToHypre(HYPRE_SStructVector& vector,
     return;
 } // copyToHypre
 
+namespace detail
+{
 void
 clearOffLevelMatrixEntries(SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
                            const SAMRAI::hier::PatchLevel<NDIM>& level,
+                           const BoxArrayIndex& level_boxes,
                            const std::vector<SAMRAI::hier::Index<NDIM>>& stencil)
 {
     for_each_off_level_entry(level,
                              matrix_coefficients.getBox(),
+                             level_boxes,
                              /*side_axis*/ -1,
                              stencil,
                              [&matrix_coefficients](const SAMRAI::hier::Index<NDIM>& i, const int k)
@@ -527,6 +515,7 @@ clearOffLevelMatrixEntries(SAMRAI::pdat::CellData<NDIM, double>& matrix_coeffici
 void
 clearOffLevelMatrixEntries(SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
                            const SAMRAI::hier::PatchLevel<NDIM>& level,
+                           const BoxArrayIndex& level_boxes,
                            const std::vector<SAMRAI::hier::Index<NDIM>>& stencil)
 {
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -534,6 +523,7 @@ clearOffLevelMatrixEntries(SAMRAI::pdat::SideData<NDIM, double>& matrix_coeffici
         for_each_off_level_entry(
             level,
             matrix_coefficients.getBox(),
+            level_boxes,
             static_cast<int>(axis),
             stencil,
             [&matrix_coefficients, axis](const SAMRAI::hier::Index<NDIM>& i, const int k) {
@@ -542,4 +532,5 @@ clearOffLevelMatrixEntries(SAMRAI::pdat::SideData<NDIM, double>& matrix_coeffici
             });
     }
 }
+} // namespace detail
 } // namespace IBTK

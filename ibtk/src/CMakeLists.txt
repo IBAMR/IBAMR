@@ -202,6 +202,7 @@ SET(CXX_SRC
   utilities/HierarchyLayoutKey.cpp
   utilities/EdgeDataSynchronization.cpp
   utilities/NodeDataSynchronization.cpp
+  utilities/BoxArrayIndex.cpp
   utilities/MarkerPatchHierarchy.cpp
   utilities/ParallelMap.cpp
   utilities/SideNoCornersFillPattern.cpp
