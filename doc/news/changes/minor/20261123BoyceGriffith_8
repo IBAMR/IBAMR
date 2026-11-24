@@ -1,0 +1,3 @@
+Improved: IBAMR::BrinkmanAdvDiffBcHelper, IBAMR::BrinkmanPenalizationRigidBodyDynamics, and IBAMR::CarmanKozenyDragForce now build the operators that fill the ghost cells of their level sets (the Heaviside and liquid fraction, for IBAMR::CarmanKozenyDragForce) only after a regrid replaces a level, instead of at every call.
+<br>
+(Boyce Griffith, 2026/11/23)

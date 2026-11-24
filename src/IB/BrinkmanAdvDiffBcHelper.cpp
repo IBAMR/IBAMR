@@ -417,25 +417,11 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
         // Get the BC specifications for each zone.
         Pointer<CellVariable<NDIM, double>> ls_solid_var = bc_prop.ls_solid_var;
         double num_interface_cells = bc_prop.num_interface_cells;
-        const int phi_new_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
         const int phi_scratch_idx =
             var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
 
         // Fill the ghost cells of phi_scratch.
-        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
-        phi_transaction_comps[0] =
-            InterpolationTransactionComponent(phi_scratch_idx,
-                                              phi_new_idx,
-                                              "CONSERVATIVE_LINEAR_REFINE",
-                                              false,
-                                              "CONSERVATIVE_COARSEN",
-                                              "LINEAR",
-                                              false,
-                                              d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
-        hier_bdry_fill->fillData(d_new_time);
+        getLevelSetFill({ ls_solid_var })->fillData(d_new_time);
 
         // Computing the normal at the edges (resp. faces) for 2D (resp. 3D) cases.
         hier_math_ops->grad(d_n_scratch_idx, d_n_var, true, -1.0, phi_scratch_idx, ls_solid_var, nullptr, d_new_time);
@@ -534,28 +520,12 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
     Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
     // Fill the ghost cells for each solid level set, which is required to obtain appropriate side-centered data.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> phi_transaction_comps(brinkman_zones.size());
-    for (std::size_t i = 0; i < brinkman_zones.size(); ++i)
+    std::vector<Pointer<CellVariable<NDIM, double>>> ls_solid_vars;
+    for (const auto& bc_prop : brinkman_zones)
     {
-        const auto& bc_prop = brinkman_zones[i];
-        Pointer<CellVariable<NDIM, double>> ls_solid_var = bc_prop.ls_solid_var;
-        const int phi_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-        const int phi_scratch_idx =
-            var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
-        phi_transaction_comps[i] =
-            InterpolationTransactionComponent(phi_scratch_idx,
-                                              phi_idx,
-                                              "CONSERVATIVE_LINEAR_REFINE",
-                                              false,
-                                              "CONSERVATIVE_COARSEN",
-                                              "LINEAR",
-                                              false,
-                                              d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
+        ls_solid_vars.push_back(bc_prop.ls_solid_var);
     }
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
-    hier_bdry_fill->fillData(d_new_time);
+    getLevelSetFill(ls_solid_vars)->fillData(d_new_time);
 
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -777,26 +747,11 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
             bp_fcn(d_B_scratch_idx, ls_solid_var, hier_math_ops, d_current_time, bp_ctx);
 
             // Compute chi*B throughout the hierarchy
-            const int phi_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
             const int phi_scratch_idx =
                 var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
 
             // Fill the ghost cells of phi_scratch
-            using InterpolationTransactionComponent =
-                HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-            std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
-            phi_transaction_comps[0] =
-                InterpolationTransactionComponent(phi_scratch_idx,
-                                                  phi_idx,
-                                                  "CONSERVATIVE_LINEAR_REFINE",
-                                                  false,
-                                                  "CONSERVATIVE_COARSEN",
-                                                  "LINEAR",
-                                                  false,
-                                                  d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
-            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
-            hier_bdry_fill->fillData(d_new_time);
+            getLevelSetFill({ ls_solid_var })->fillData(d_new_time);
 
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
@@ -952,6 +907,41 @@ BrinkmanAdvDiffBcHelper::maskForcingTerm(int N_idx,
     return;
 } // maskForcingTerm
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+Pointer<HierarchyGhostCellInterpolation>
+BrinkmanAdvDiffBcHelper::getLevelSetFill(const std::vector<Pointer<CellVariable<NDIM, double>>>& ls_solid_vars)
+{
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    if (d_fill_levels.changed(*patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber()))
+    {
+        d_ls_fills.clear();
+    }
+
+    Pointer<HierarchyGhostCellInterpolation>& fill = d_ls_fills[ls_solid_vars];
+    if (!fill)
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        std::vector<InterpolationTransactionComponent> phi_transaction_comps;
+        for (const auto& ls_solid_var : ls_solid_vars)
+        {
+            const int phi_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
+            const int phi_scratch_idx =
+                var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
+            phi_transaction_comps.emplace_back(phi_scratch_idx,
+                                               phi_idx,
+                                               "CONSERVATIVE_LINEAR_REFINE",
+                                               false,
+                                               "CONSERVATIVE_COARSEN",
+                                               "LINEAR",
+                                               false,
+                                               d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
+        }
+        fill = new HierarchyGhostCellInterpolation();
+        fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    }
+    return fill;
+} // getLevelSetFill
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

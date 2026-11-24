@@ -23,7 +23,9 @@
 #include <ibamr/BrinkmanPenalizationStrategy.h>
 #include <ibamr/IBHydrodynamicSurfaceForceEvaluator.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Pointer.h>
 
@@ -390,6 +392,18 @@ private:
     void demarcateBrinkmanZoneWithoutSplitting(int u_idx, double time, int cycle_num);
 
     void demarcateBrinkmanZoneWithSplitting(int u_idx, double time, int cycle_num);
+
+    /*!
+     * Return the operator that fills the ghost cells of the level set, and of the velocity if \a fill_velocity is
+     * true, building it if the hierarchy levels have changed since it was last built.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> getGhostFill(bool fill_velocity);
+
+    /*!
+     * Cached ghost-cell fill operators and the levels they were built for.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_ls_fill, d_ls_u_fill;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
 };
 
 } // namespace IBAMR

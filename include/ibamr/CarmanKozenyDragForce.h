@@ -22,6 +22,9 @@
 
 #include <ibamr/BrinkmanPenalizationStrategy.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -155,10 +158,22 @@ private:
     void getFromRestart();
 
     /*!
+     * Return the operator that fills the ghost cells of the heaviside and liquid fraction, building it if the
+     * hierarchy levels have changed since it was last built.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> getGhostFill();
+
+    /*!
      * Constant needed to avoid division by zero. This constant also controls the strength
      * of the penalty factor.
      */
     double d_avoid_division_by_zero_factor = 1e-3;
+
+    /*!
+     * Cached ghost-cell fill operator and the levels it was built for.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_fill;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
 };
 
 } // namespace IBAMR

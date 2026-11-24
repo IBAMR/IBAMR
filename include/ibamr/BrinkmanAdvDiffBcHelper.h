@@ -21,7 +21,9 @@
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/ibamr_enums.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Database.h>
 #include <tbox/DescribedClass.h>
@@ -269,6 +271,13 @@ private:
     };
 
     /*!
+     * Return the operator that fills the ghost cells of the scratch copies of the given level sets, building it if
+     * the hierarchy levels have changed since it was last built.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>
+    getLevelSetFill(const std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>>& ls_solid_vars);
+
+    /*!
      * Object name.
      */
     std::string d_object_name;
@@ -301,6 +310,14 @@ private:
     int d_n_scratch_idx = IBTK::invalid_index, d_n_chi_scratch_idx = IBTK::invalid_index;
     int d_div_n_scratch_idx = IBTK::invalid_index, d_div_n_chi_scratch_idx = IBTK::invalid_index;
     int d_variable_g_scratch_idx = IBTK::invalid_index;
+
+    /*!
+     * Cached level set fill operators, keyed by the level sets they fill, and the levels they were built for.
+     */
+    std::map<std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>>,
+             SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>>
+        d_ls_fills;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
 };
 
 } // namespace IBAMR
