@@ -1,0 +1,3 @@
+Fixed: INSVCStaggeredConservativeHierarchyIntegrator now reinitializes the pressure subdomain solver when the time step size changes with registered Brinkman penalization strategies.
+<br>
+(Hoseyn Amiri, 2026/11/22)

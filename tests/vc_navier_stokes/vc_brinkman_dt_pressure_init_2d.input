@@ -1,0 +1,197 @@
+// Pressure subdomain solver reinitialization across a time step change with Brinkman penalization.
+
+RHO = 1.0
+MU = 1.0
+rho_val = RHO
+brinkman_penalty_factor = 1.0e4
+dt_0 = 0.005
+dt_1 = 0.05
+dt_2 = 0.05
+rel_res_tol = 1.0e-8
+
+INSVCStaggeredConservativeHierarchyIntegrator {
+   start_time                    = 0.0
+   end_time                      = 10.0
+   grow_dt                       = 20.0
+   max_integrator_steps          = 10
+   convective_difference_form    = "CONSERVATIVE"
+   normalize_pressure            = FALSE
+   cfl                           = 0.3
+   dt_max                        = 0.5
+   regrid_interval               = 0
+   using_vorticity_tagging       = FALSE
+   tag_buffer                    = 1
+   output_U                      = FALSE
+   output_P                      = FALSE
+   output_F                      = FALSE
+   output_Omega                  = FALSE
+   output_Div_U                  = FALSE
+   output_rho                    = FALSE
+   output_mu                     = FALSE
+   rho_is_const                  = FALSE
+   mu_is_const                   = TRUE
+   rho                           = RHO
+   mu                            = MU
+   precond_reinit_interval       = 10000
+   operator_scale_factors        = 1.0
+   vc_interpolation_type         = "VC_HARMONIC_INTERP"
+   enable_logging                = TRUE
+   explicitly_remove_nullspace   = FALSE
+   num_cycles                    = 1
+
+   stokes_solver_type = "VC_STAGGERED_STOKES_PETSC_KRYLOV_SOLVER"
+   stokes_solver_db {
+      ksp_type         = "fgmres"
+      max_iterations   = 100
+      rel_residual_tol = 1.0e-8
+      abs_residual_tol = 1.0e-50
+   }
+
+   velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type         = "richardson"
+      max_iterations   = 1
+      rel_residual_tol = 1.0e-1
+   }
+   velocity_precond_db {
+      num_pre_sweeps                 = 0
+      num_post_sweeps                = 1
+      prolongation_method            = "CONSERVATIVE_LINEAR_REFINE"
+      restriction_method             = "CONSERVATIVE_COARSEN"
+      coarse_solver_type             = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-3
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations   = 15
+      coarse_solver_db {
+         ksp_type = "bcgs"
+         pc_type  = "jacobi"
+      }
+   }
+
+   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   pressure_solver_db {
+      ksp_type         = "richardson"
+      max_iterations   = 1
+      rel_residual_tol = 1.0e-12
+      abs_residual_tol = 1.0e-50
+   }
+   pressure_precond_db {
+      num_pre_sweeps                 = 0
+      num_post_sweeps                = 0
+      coarse_solver_type             = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations   = 200
+      coarse_solver_db {
+         solver_type         = "PCG"
+         precond_type        = "PFMG"
+         num_pre_relax_steps = 1
+         num_post_relax_steps = 1
+         rel_residual_tol    = 1.0e-12
+         abs_residual_tol    = 1.0e-50
+         max_iterations      = 200
+      }
+   }
+
+   mass_momentum_integrator_db {
+      density_time_stepping_type = "SSPRK3"
+      velocity_convective_limiter = "CUI"
+      density_convective_limiter  = "CUI"
+   }
+}
+
+VelocityInitialConditions {
+   function_0 = "0.0"
+   function_1 = "0.0"
+}
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "-10.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+DensityBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+Main {
+   log_file_name = "vc_brinkman_dt_pressure_init.log"
+   log_all_nodes = FALSE
+}
+
+N = 16
+
+CartesianGeometry {
+   domain_boxes       = [(0, 0), (N - 1, N - 1)]
+   x_lo               = 0.0, 0.0
+   x_up               = 1.0, 1.0
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 64, 64
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+   efficiency_tolerance = 0.80e0
+   combine_efficiency   = 0.80e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(4, 4), (11, 11)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}

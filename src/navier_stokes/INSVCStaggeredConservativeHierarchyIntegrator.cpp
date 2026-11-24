@@ -1267,6 +1267,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     else if (dt_change)
     {
         d_velocity_solver_needs_init = true;
+        // D depends on dt only through the Brinkman term L.
+        if (!d_brinkman_force.empty())
+        {
+            d_pressure_solver_needs_init = true;
+        }
         d_stokes_solver_needs_init = true;
     }
 
