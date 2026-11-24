@@ -29,11 +29,6 @@ class LaplaceOperator;
 class PoissonSolver;
 } // namespace IBTK
 
-namespace IBAMR
-{
-class ConvectiveOperator;
-} // namespace IBAMR
-
 namespace SAMRAI
 {
 namespace hier
@@ -136,6 +131,13 @@ protected:
      */
     void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
 
+    /*!
+     * Reset cached hierarchy dependent data.
+     */
+    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -210,6 +212,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_dh_dT_var;
 
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_h_bc_coef = nullptr;
+
+    /*!
+     * Data synchronization operator for \f$ T \f$.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_T_bdry_bc_fill_op;
 
     /*!
      * Patch data descriptor indices for all "state" variables managed by the

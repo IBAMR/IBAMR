@@ -58,6 +58,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <iterator>
 #include <map>
 #include <ostream>
 #include <set>
@@ -371,7 +372,11 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
 
     // Interpolate the cell-centered Heaviside to side-centered.
     d_hier_cc_data_ops->copyData(H_scratch_idx, H_current_idx);
-    d_H_bdry_bc_fill_op->fillData(current_time);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), d_H_var) != d_Q_var.end());
+#endif
+    const size_t H_fill_op_idx = std::distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), d_H_var));
+    d_hier_bdry_fill_ops[H_fill_op_idx]->fillData(current_time);
 
     interpolateCCToSCSimpleAveraging(d_lf_diff_coef_current_idx, H_scratch_idx);
 
@@ -660,7 +665,11 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
 
     // Interpolate the cell-centered Heaviside to side-centered.
     d_hier_cc_data_ops->copyData(H_scratch_idx, H_new_idx);
-    d_H_bdry_bc_fill_op->fillData(new_time);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), d_H_var) != d_Q_var.end());
+#endif
+    const size_t H_fill_op_idx = std::distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), d_H_var));
+    d_hier_bdry_fill_ops[H_fill_op_idx]->fillData(new_time);
 
     interpolateCCToSCSimpleAveraging(d_lf_diff_coef_new_idx, H_scratch_idx);
 
@@ -1247,7 +1256,6 @@ AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putString("lf_convective_difference_form",
                   enum_to_string<ConvectiveDifferencingType>(d_lf_convective_difference_form));
     db->putString("lf_convective_op_type", d_lf_convective_op_type);
-    d_lf_convective_op_input_db = db->putDatabase("lf_convective_op_input_db");
 
     db->putDouble("mobility_lf", d_mobility_lf);
     db->putDouble("mixing_energy_density_lf", d_mixing_energy_density_lf);
@@ -1256,7 +1264,7 @@ AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("numerical_diffusion", d_numerical_diffusion);
     db->putString("interpolation_function_profile", d_interpolation_function_profile);
 
-    AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
+    PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
 } // putToDatabaseSpecialized
 
@@ -1305,19 +1313,7 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
 
     // Filling ghost cells for liquid fraction.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
-    lf_transaction_comps[0] = InterpolationTransactionComponent(d_lf_scratch_idx,
-                                                                d_lf_new_idx,
-                                                                "CONSERVATIVE_LINEAR_REFINE",
-                                                                false,
-                                                                "CONSERVATIVE_COARSEN",
-                                                                "LINEAR",
-                                                                false,
-                                                                d_lf_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(lf_transaction_comps, d_hierarchy);
-    hier_bdry_fill->fillData(new_time);
+    d_lf_bdry_bc_fill_op->fillData(new_time);
 
     // perform gradient of liquid fraction.
     d_hier_math_ops->grad(d_grad_lf_idx, d_grad_lf_var, true, 1.0, d_lf_scratch_idx, d_lf_var, nullptr, new_time);
@@ -1397,13 +1393,26 @@ AllenCahnHierarchyIntegrator::regridHierarchyBeginSpecialized()
 } // regridHierarchyBeginSpecialized
 
 void
-AllenCahnHierarchyIntegrator::regridHierarchyEndSpecialized()
+AllenCahnHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+                                                                     const int coarsest_level,
+                                                                     const int finest_level)
 {
-    PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized();
+    PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(hierarchy, coarsest_level, finest_level);
 
-    std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
+    // Set up the patch boundary filling object.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
+    lf_transaction_comps[0] = InterpolationTransactionComponent(d_lf_scratch_idx,
+                                                                d_lf_new_idx,
+                                                                "CONSERVATIVE_LINEAR_REFINE",
+                                                                false,
+                                                                "CONSERVATIVE_COARSEN",
+                                                                "LINEAR",
+                                                                false,
+                                                                d_lf_bc_coef);
+    d_lf_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_lf_bdry_bc_fill_op->initializeOperatorState(lf_transaction_comps, d_hierarchy);
 
-    // Setup the patch boundary filling objects.
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
 
     // Reset the solution and rhs vectors.
@@ -1421,7 +1430,7 @@ AllenCahnHierarchyIntegrator::regridHierarchyEndSpecialized()
     d_lf_rhs_op_needs_init = true;
     d_lf_convective_op_needs_init = true;
     return;
-} // regridHierarchyEndSpecialized
+} // resetHierarchyConfigurationSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1656,11 +1665,6 @@ AllenCahnHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_f
         else if (input_db->keyExists("default_lf_convective_operator_type"))
             d_lf_convective_op_type = input_db->getString("default_lf_convective_operator_type");
 
-        if (input_db->keyExists("lf_convective_op_db"))
-            d_lf_convective_op_input_db = input_db->getDatabase("lf_convective_op_db");
-        else if (input_db->keyExists("default_lf_convective_op_db"))
-            d_lf_convective_op_input_db = input_db->getDatabase("default_lf_convective_op_db");
-
         if (input_db->keyExists("lf_convective_time_stepping_type"))
             d_lf_convective_time_stepping_type =
                 string_to_enum<TimeSteppingType>(input_db->getString("lf_convective_time_stepping_type"));
@@ -1672,6 +1676,15 @@ AllenCahnHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_f
             d_numerical_diffusion = input_db->getDouble("numerical_diffusion");
         if (input_db->keyExists("interpolation_function_profile"))
             d_interpolation_function_profile = input_db->getString("interpolation_function_profile");
+    }
+
+    if (input_db->keyExists("lf_convective_op_db"))
+    {
+        d_lf_convective_op_input_db = input_db->getDatabase("lf_convective_op_db");
+    }
+    else if (input_db->keyExists("default_lf_convective_op_db"))
+    {
+        d_lf_convective_op_input_db = input_db->getDatabase("default_lf_convective_op_db");
     }
 }
 
@@ -1704,7 +1717,6 @@ AllenCahnHierarchyIntegrator::getFromRestart()
     d_lf_convective_difference_form =
         string_to_enum<ConvectiveDifferencingType>(db->getString("lf_convective_difference_form"));
     d_lf_convective_op_type = db->getString("lf_convective_op_type");
-    d_lf_convective_op_input_db = db->getDatabase("lf_convective_op_db");
 
     d_mobility_lf = db->getDouble("mobility_lf");
     d_mixing_energy_density_lf = db->getDouble("mixing_energy_density_lf");

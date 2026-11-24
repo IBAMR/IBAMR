@@ -1,0 +1,3 @@
+Fixed: IBAMR::AllenCahnHierarchyIntegrator and IBAMR::EnthalpyHierarchyIntegrator can now be restarted.
+<br>
+(Boyce Griffith, 2026/11/23)

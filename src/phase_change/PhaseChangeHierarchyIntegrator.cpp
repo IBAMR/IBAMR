@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h>
-#include <ibamr/AdvDiffConvectiveOperatorManager.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/PhaseChangeHierarchyIntegrator.h>
 #include <ibamr/ibamr_enums.h>
@@ -609,21 +608,7 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
     if (d_lf_gradient_var)
     {
         // Ghost cell filling for liquid fraction
-        std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef =
-            getPhysicalBcCoefs(d_H_var); // Using H bc for now since I dont have lf_bc
-        // in this class.
-        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        InterpolationTransactionComponent lf_bc_component(d_lf_scratch_idx,
-                                                          d_lf_new_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          d_bdry_extrap_type, // TODO: update variable name
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          H_bc_coef);
-        HierarchyGhostCellInterpolation lf_bdry_bc_fill_op;
-        lf_bdry_bc_fill_op.initializeOperatorState(lf_bc_component, d_hierarchy);
-        lf_bdry_bc_fill_op.fillData(new_time);
+        d_lf_gradient_bdry_bc_fill_op->fillData(new_time);
 
         // Find gradient of liquid fraction.
         d_hier_math_ops->grad(
@@ -840,7 +825,6 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putString("T_convective_difference_form",
                   enum_to_string<ConvectiveDifferencingType>(d_T_convective_difference_form));
     db->putString("T_convective_op_type", d_T_convective_op_type);
-    d_T_convective_op_input_db = db->putDatabase("T_convective_op_db");
 
     db->putDouble("latent_heat", d_latent_heat);
     db->putDouble("rho_liquid", d_rho_liquid);
@@ -866,37 +850,23 @@ PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized()
 
     d_T_solver_needs_init = true;
     d_T_rhs_op_needs_init = true;
-    d_T_convective_op_needs_init = true;
 
     return;
 } // regridHierarchyBeginSpecialized
 
 void
-PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
+PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+    const int coarsest_level,
+    const int finest_level)
 {
-    AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyEndSpecialized();
+    AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+        hierarchy, coarsest_level, finest_level);
 
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    const int coarsest_hier_level = 0;
-    d_hier_math_ops->setPatchHierarchy(d_hierarchy);
-    d_hier_math_ops->resetLevels(coarsest_hier_level, finest_hier_level);
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, getScratchContext());
-    std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
-
-    // Setup the patch boundary filling objects.
+    // Set up the patch boundary filling objects.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent H_bc_component(H_scratch_idx,
-                                                     DATA_REFINE_TYPE,
-                                                     USE_CF_INTERPOLATION,
-                                                     DATA_COARSEN_TYPE,
-                                                     BDRY_EXTRAP_TYPE,
-                                                     CONSISTENT_TYPE_2_BDRY,
-                                                     H_bc_coef);
-    d_H_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_H_bdry_bc_fill_op->initializeOperatorState(H_bc_component, d_hierarchy);
-
     InterpolationTransactionComponent k_bc_component(d_T_diffusion_coef_cc_scratch_idx,
                                                      DATA_REFINE_TYPE,
                                                      USE_CF_INTERPOLATION,
@@ -906,6 +876,22 @@ PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
                                                      d_k_bc_coef);
     d_k_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_k_bdry_bc_fill_op->initializeOperatorState(k_bc_component, d_hierarchy);
+
+    if (d_lf_gradient_var)
+    {
+        // Use the Heaviside function boundary conditions for the liquid fraction.
+        std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
+        InterpolationTransactionComponent lf_bc_component(d_lf_scratch_idx,
+                                                          d_lf_new_idx,
+                                                          DATA_REFINE_TYPE,
+                                                          USE_CF_INTERPOLATION,
+                                                          DATA_COARSEN_TYPE,
+                                                          d_bdry_extrap_type, // TODO: update variable name
+                                                          CONSISTENT_TYPE_2_BDRY,
+                                                          H_bc_coef);
+        d_lf_gradient_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+        d_lf_gradient_bdry_bc_fill_op->initializeOperatorState(lf_bc_component, d_hierarchy);
+    }
 
     // Reset the solution and rhs vectors.
     const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
@@ -919,7 +905,6 @@ PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
 
     d_T_solver_needs_init = true;
     d_T_rhs_op_needs_init = true;
-    d_T_convective_op_needs_init = true;
 
     if (d_solve_mass_conservation)
     {
@@ -927,7 +912,7 @@ PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
         d_rho_p_integrator->initializeSTSIntegrator(d_hierarchy);
     }
     return;
-} // regridHierarchyEndSpecialized
+} // resetHierarchyConfigurationSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
@@ -1115,11 +1100,6 @@ PhaseChangeHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is
         else if (input_db->keyExists("default_T_convective_operator_type"))
             d_T_convective_op_type = input_db->getString("default_T_convective_operator_type");
 
-        if (input_db->keyExists("T_convective_op_db"))
-            d_T_convective_op_input_db = input_db->getDatabase("T_convective_op_db");
-        else if (input_db->keyExists("default_T_convective_op_db"))
-            d_T_convective_op_input_db = input_db->getDatabase("default_T_convective_op_db");
-
         if (input_db->keyExists("T_convective_difference_form"))
             d_T_convective_difference_form =
                 string_to_enum<ConvectiveDifferencingType>(input_db->getString("T_convective_difference_form"));
@@ -1167,7 +1147,6 @@ PhaseChangeHierarchyIntegrator::getFromRestart()
     d_T_convective_difference_form =
         string_to_enum<ConvectiveDifferencingType>(db->getString("T_convective_difference_form"));
     d_T_convective_op_type = db->getString("T_convective_op_type");
-    d_T_convective_op_input_db = db->getDatabase("T_convective_op_db");
 
     d_latent_heat = db->getDouble("latent_heat");
     d_rho_liquid = db->getDouble("rho_liquid");

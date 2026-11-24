@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h>
-#include <ibamr/AdvDiffConvectiveOperatorManager.h>
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/EnthalpyHierarchyIntegrator.h>
@@ -626,9 +625,34 @@ EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putInteger("max_inner_iterations", d_max_inner_iterations);
     db->putDouble("lf_iteration_error_tolerance", d_lf_iteration_error_tolerance);
 
-    AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
+    PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
 } // putToDatabaseSpecialized
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+EnthalpyHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+                                                                    const int coarsest_level,
+                                                                    const int finest_level)
+{
+    PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(hierarchy, coarsest_level, finest_level);
+
+    // Set up the patch boundary filling object.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> T_transaction_comps(1);
+    T_transaction_comps[0] = InterpolationTransactionComponent(d_T_scratch_idx,
+                                                               d_T_new_idx,
+                                                               "CONSERVATIVE_LINEAR_REFINE",
+                                                               false,
+                                                               "CONSERVATIVE_COARSEN",
+                                                               "LINEAR",
+                                                               false,
+                                                               d_T_bc_coef);
+    d_T_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_T_bdry_bc_fill_op->initializeOperatorState(T_transaction_comps, d_hierarchy);
+    return;
+} // resetHierarchyConfigurationSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -675,19 +699,7 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
 
     // Filling ghost cells for temperature.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> T_transaction_comps(1);
-    T_transaction_comps[0] = InterpolationTransactionComponent(d_T_scratch_idx,
-                                                               d_T_new_idx,
-                                                               "CONSERVATIVE_LINEAR_REFINE",
-                                                               false,
-                                                               "CONSERVATIVE_COARSEN",
-                                                               "LINEAR",
-                                                               false,
-                                                               d_T_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(T_transaction_comps, d_hierarchy);
-    hier_bdry_fill->fillData(new_time);
+    d_T_bdry_bc_fill_op->fillData(new_time);
 
     // Compute gradient of temperature.
     d_hier_math_ops->grad(d_grad_T_idx, d_grad_T_var, true, 1.0, d_T_scratch_idx, d_T_var, nullptr, new_time);

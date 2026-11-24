@@ -33,11 +33,6 @@ class LaplaceOperator;
 class PoissonSolver;
 } // namespace IBTK
 
-namespace IBAMR
-{
-class ConvectiveOperator;
-} // namespace IBAMR
-
 namespace SAMRAI
 {
 namespace hier
@@ -342,9 +337,11 @@ protected:
     virtual void regridHierarchyBeginSpecialized() override;
 
     /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     * Reset cached hierarchy dependent data.
      */
-    virtual void regridHierarchyEndSpecialized() override;
+    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
 
     /*!
      * Bound the liquid fraction, if necessary.
@@ -389,18 +386,15 @@ protected:
          d_output_Cp = false, d_output_Div_U_F = false, d_output_temp_k = false;
 
     /*!
-     * Data shynchronization operator.
+     * Data synchronization operators.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_H_bdry_bc_fill_op, d_k_bdry_bc_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_k_bdry_bc_fill_op, d_lf_gradient_bdry_bc_fill_op;
 
     /*!
      * Convective operator and difference type for the energy equation.
      */
     ConvectiveDifferencingType d_T_convective_difference_form = d_default_convective_difference_form;
     std::string d_T_convective_op_type = d_default_convective_op_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_T_convective_op_input_db = d_default_convective_op_input_db;
-    SAMRAI::tbox::Pointer<ConvectiveOperator> d_T_convective_op = nullptr;
-    bool d_T_convective_op_needs_init = false;
 
     /*!
      * Hierarchy operators, solvers and related data for the energy equation.

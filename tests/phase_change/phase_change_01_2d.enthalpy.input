@@ -1,0 +1,187 @@
+// Enthalpy integrator on two levels; the grid is regridded only before the first step.
+INTEGRATOR_TYPE = "ENTHALPY"
+
+RHO_L   = 2475.0
+RHO_S   = 2475.0
+KAPPA_L = 91.0
+KAPPA_S = 211.0
+CP_L    = 1.0424e3
+CP_S    = 0.91e3
+LATENT_HEAT = 3.8384e5
+
+MELT_TEMPERATURE = 933.6
+LIQUIDUS_TEMPERATURE = 938.6
+SOLIDUS_TEMPERATURE = 928.6
+
+MIN_TAG_VAL = 0.02
+MAX_TAG_VAL = 0.98
+
+MAX_LEVELS = 2
+REF_RATIO  = 4
+N  = 16
+LX = 0.01
+LY = 0.0025
+
+START_TIME      = 0.0
+END_TIME        = 6.0e-3
+DT_MAX          = 1.0e-3
+REGRID_INTERVAL = 0
+TAG_BUFFER      = 1
+
+// A smooth front at X_0 = LX/2 between liquid (left) and solid (right).
+LIQUID_FRACTION = "0.5*(1.0 - tanh((X_0 - 0.005)/0.0006))"
+
+EnthalpyHierarchyIntegrator {
+   start_time                      = START_TIME
+   end_time                        = END_TIME
+   grow_dt                         = 2.0
+   num_cycles                      = 2
+   convective_time_stepping_type   = "MIDPOINT_RULE"
+   convective_op_type              = "CUI"
+   convective_difference_form      = "CONSERVATIVE"
+   T_diffusion_time_stepping_type  = "TRAPEZOIDAL_RULE"
+   T_convective_time_stepping_type = "MIDPOINT_RULE"
+   T_convective_op_type            = "CUI"
+   T_convective_difference_form    = "CONSERVATIVE"
+   cfl                             = 0.5
+   dt_max                          = DT_MAX
+   tag_buffer                      = TAG_BUFFER
+   regrid_interval                 = REGRID_INTERVAL
+   latent_heat                     = LATENT_HEAT
+   rho_liquid                      = RHO_L
+   rho_solid                       = RHO_S
+   specific_heat_liquid            = CP_L
+   specific_heat_solid             = CP_S
+   specific_heat_gas               = CP_L
+   T_melt                          = MELT_TEMPERATURE
+   liquidus_temperature            = LIQUIDUS_TEMPERATURE
+   solidus_temperature             = SOLIDUS_TEMPERATURE
+   solve_mass_conservation         = FALSE
+   k_vc_interpolation_type         = "VC_HARMONIC_INTERP"
+
+   T_solver_type  = "PETSC_KRYLOV_SOLVER"
+   T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+   T_solver_db {
+      ksp_type         = "fgmres"
+      rel_residual_tol = 1.0e-12
+      max_iterations   = 1000
+   }
+   T_precond_db {
+      num_pre_sweeps                 = 0
+      num_post_sweeps                = 3
+      prolongation_method            = "LINEAR_REFINE"
+      restriction_method             = "CONSERVATIVE_COARSEN"
+      coarse_solver_type             = "PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations   = 100
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type  = "jacobi"
+      }
+   }
+}
+
+HeavisideInitialConditions {
+   function = "1.0"
+}
+
+LiquidFractionInitialConditions {
+   function = LIQUID_FRACTION
+}
+
+TemperatureInitialConditions {
+   function = "298.6 + 675.0*0.5*(1.0 - tanh((X_0 - 0.005)/0.0006))"
+}
+
+TemperatureBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+HeavisideBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+ThermalConductivityBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+Main {
+   log_file_name               = "phase_change.log"
+   log_all_nodes               = FALSE
+
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart"
+
+   timer_dump_interval         = 0
+}
+
+CartesianGeometry {
+   domain_boxes       = [ (0,0),(N - 1,N/4 - 1) ]
+   x_lo               = 0,0
+   x_up               = LX,LY
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 16,16
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+   }
+   efficiency_tolerance = 0.80e0
+   combine_efficiency   = 0.80e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
