@@ -202,6 +202,8 @@ SET(CXX_SRC
   utilities/ibtk_utilities.cpp
   utilities/FaceSynchCopyFillPattern.cpp
   utilities/CartGridFunctionSet.cpp
+  utilities/CoarseFineBoundaryCache.cpp
+  utilities/HierarchyLayoutKey.cpp
   utilities/EdgeDataSynchronization.cpp
   utilities/NodeDataSynchronization.cpp
   utilities/MarkerPatchHierarchy.cpp
