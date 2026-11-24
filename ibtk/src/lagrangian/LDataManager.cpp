@@ -1788,25 +1788,31 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
             src_index_set[dst_proc].push_back(component);
         }
 
-        // Setup communication transactions between each pair of processors.
+        // Exchange node counts, and set up transactions only for links that carry nodes.
+        const int rank = IBTK_MPI::getRank();
+        std::vector<int> send_counts(num_procs), recv_counts(num_procs);
+        for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
+        {
+            send_counts[dst_proc] = static_cast<int>(src_index_set[dst_proc].size());
+        }
+        const int ierr =
+            MPI_Alltoall(send_counts.data(), 1, MPI_INT, recv_counts.data(), 1, MPI_INT, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == MPI_SUCCESS);
+
         Schedule lnode_idx_data_mover;
-        std::vector<std::vector<Pointer<Transaction>>> transactions(num_procs,
-                                                                    std::vector<Pointer<Transaction>>(num_procs));
+        std::vector<Pointer<LNodeTransaction>> receive_transactions(num_procs);
+        for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
+        {
+            if (send_counts[dst_proc] == 0) continue;
+            Pointer<LNodeTransaction> transaction = new LNodeTransaction(rank, dst_proc, src_index_set[dst_proc]);
+            lnode_idx_data_mover.appendTransaction(transaction);
+            if (dst_proc == rank) receive_transactions[rank] = transaction;
+        }
         for (int src_proc = 0; src_proc < num_procs; ++src_proc)
         {
-            for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
-            {
-                if (src_proc == IBTK_MPI::getRank())
-                {
-                    transactions[src_proc][dst_proc] =
-                        new LNodeTransaction(src_proc, dst_proc, src_index_set[dst_proc]);
-                }
-                else
-                {
-                    transactions[src_proc][dst_proc] = new LNodeTransaction(src_proc, dst_proc);
-                }
-                lnode_idx_data_mover.appendTransaction(transactions[src_proc][dst_proc]);
-            }
+            if (recv_counts[src_proc] == 0 || src_proc == rank) continue;
+            receive_transactions[src_proc] = new LNodeTransaction(src_proc, rank);
+            lnode_idx_data_mover.appendTransaction(receive_transactions[src_proc]);
         }
 
         // Communicate the data.
@@ -1816,21 +1822,16 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         d_displaced_strct_lnode_idxs[level_number].clear();
         d_displaced_strct_lnode_posns[level_number].clear();
 
-        // Retrieve the communicated values.
+        // Retrieve the communicated values in order of source rank.
         for (int src_proc = 0; src_proc < num_procs; ++src_proc)
         {
-            for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
+            if (!receive_transactions[src_proc]) continue;
+            const std::vector<LNodeTransactionComponent>& dst_index_set =
+                receive_transactions[src_proc]->getDestinationData();
+            for (const auto& transactionComp : dst_index_set)
             {
-                if (dst_proc == IBTK_MPI::getRank())
-                {
-                    Pointer<LNodeTransaction> transaction = transactions[src_proc][dst_proc];
-                    const std::vector<LNodeTransactionComponent>& dst_index_set = transaction->getDestinationData();
-                    for (const auto& transactionComp : dst_index_set)
-                    {
-                        d_displaced_strct_lnode_idxs[level_number].push_back(transactionComp.item);
-                        d_displaced_strct_lnode_posns[level_number].push_back(transactionComp.posn);
-                    }
-                }
+                d_displaced_strct_lnode_idxs[level_number].push_back(transactionComp.item);
+                d_displaced_strct_lnode_posns[level_number].push_back(transactionComp.posn);
             }
         }
 

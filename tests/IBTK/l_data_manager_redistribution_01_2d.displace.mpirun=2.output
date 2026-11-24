@@ -1,0 +1,10 @@
+before displacement
+  index = 0 rank = 0 X = 0.49, 0.49
+  index = 1 rank = 1 X = 0.51, 0.49
+  index = 2 rank = 0 X = 0.49, 0.51
+  index = 3 rank = 1 X = 0.51, 0.51
+after displacement
+  index = 0 rank = 0 X = 0.49, 0.53
+  index = 1 rank = 1 X = 0.51, 0.49
+  index = 2 rank = 1 X = 0.53, 0.51
+  index = 3 rank = 1 X = 0.51, 0.51

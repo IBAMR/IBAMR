@@ -1,0 +1,3 @@
+Improved: IBTK::LDataManager::endDataRedistribution() now creates transactions for displaced Lagrangian structures only for rank pairs that exchange nodes, instead of for every pair of ranks.
+<br>
+(Boyce Griffith, 2026/11/23)
