@@ -23,33 +23,19 @@
 #include <VariableDatabase.h>
 
 #include <string>
-#include <vector>
 
 #include <ibtk/app_namespaces.h>
 
 namespace
 {
-// Count the boxes and fold them, in order, into a checksum. The checksum stays below 10^6, so numdiff's relative
-// tolerance of 1e-6 detects a change of one.
+// Print each boundary box with its location index.
 void
-accumulate(const Array<BoundaryBox<NDIM>>& boxes, int& count, int& checksum)
+print_boxes(const std::string& label, int codim, const Array<BoundaryBox<NDIM>>& boxes)
 {
     for (int k = 0; k < boxes.size(); ++k)
     {
-        const Box<NDIM>& box = boxes[k].getBox();
-        std::vector<int> values;
-        for (int d = 0; d < NDIM; ++d)
-        {
-            values.push_back(box.lower(d));
-            values.push_back(box.upper(d));
-        }
-        values.push_back(boxes[k].getBoundaryType());
-        values.push_back(boxes[k].getLocationIndex());
-        for (const int value : values)
-        {
-            checksum = static_cast<int>((131LL * checksum + value + 1000) % 999983);
-        }
-        ++count;
+        plog << label << " codim " << codim << " location " << boxes[k].getLocationIndex() << " box "
+             << boxes[k].getBox() << '\n';
     }
 }
 
@@ -106,7 +92,7 @@ main(int argc, char** argv)
         for (int ln = 0; ln < 2; ++ln)
         {
             const BoxArray<NDIM> boxes = make_tiles(input_db->getDatabase("Level" + std::to_string(ln)));
-            // Put every patch on rank 0 so that the checksums do not depend on the number of processes.
+            // Put every patch on rank 0 so that the output does not depend on the number of processes.
             ProcessorMapping mapping(boxes.size());
             for (int k = 0; k < boxes.size(); ++k)
             {
@@ -118,32 +104,27 @@ main(int argc, char** argv)
         for (int ln = 0; ln < 2; ++ln)
         {
             Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            int physical_count = 0, physical_checksum = 0;
+            plog << "level " << ln << " patches: " << level->getNumberOfPatches() << '\n';
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
+                const std::string label = "level " + std::to_string(ln) + " patch " + std::to_string(p()) + " physical";
                 for (int codim = 1; codim <= NDIM; ++codim)
                 {
-                    accumulate(level->getPatch(p())->getPatchGeometry()->getCodimensionBoundaries(codim),
-                               physical_count,
-                               physical_checksum);
+                    print_boxes(
+                        label, codim, level->getPatch(p())->getPatchGeometry()->getCodimensionBoundaries(codim));
                 }
             }
-            plog << "level " << ln << " patches: " << level->getNumberOfPatches() << '\n';
-            plog << "level " << ln << " physical boundary boxes: " << physical_count << ", checksum "
-                 << physical_checksum << '\n';
         }
 
         CoarseFineBoundary<NDIM> coarse_fine_boundary(*hierarchy, 1, ghost_width);
         Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(1);
-        int coarse_fine_count = 0, coarse_fine_checksum = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
+            const std::string label = "level 1 patch " + std::to_string(p()) + " coarse-fine";
             for (int codim = 1; codim <= NDIM; ++codim)
             {
-                accumulate(coarse_fine_boundary.getBoundaries(p(), codim), coarse_fine_count, coarse_fine_checksum);
+                print_boxes(label, codim, coarse_fine_boundary.getBoundaries(p(), codim));
             }
         }
-        plog << "level 1 coarse-fine boundary boxes: " << coarse_fine_count << ", checksum " << coarse_fine_checksum
-             << '\n';
     }
 }
