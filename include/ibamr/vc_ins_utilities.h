@@ -23,8 +23,12 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Pointer.h>
+
+#include <vector>
 
 namespace IBTK
 {
@@ -277,6 +281,15 @@ private:
      */
     int d_num_phases = 2;
 
+    /*!
+     * Scratch level set indices, registered on first use, and the cached ghost-cell fill of the scratch level sets with
+     * the source indices and hierarchy levels it was built for.
+     */
+    int d_ls_gas_scratch_idx = IBTK::invalid_index, d_ls_solid_scratch_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_ls_fill;
+    std::vector<int> d_ls_fill_src_idxs;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
+
 }; // SetFluidProperties
 
 /*!
@@ -400,9 +413,13 @@ private:
     int d_num_gas_interface_cells;
 
     /*!
-     * Level set scratch data.
+     * Scratch level set index, registered on first use, and the cached ghost-cell fill of the scratch level set with
+     * the source indices and hierarchy levels it was built for.
      */
     int d_ls_gas_scratch_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_ls_fill;
+    std::vector<int> d_ls_fill_src_idxs;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
 };
 
 } // namespace VCINSUtilities

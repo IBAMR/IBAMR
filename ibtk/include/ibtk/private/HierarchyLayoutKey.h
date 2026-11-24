@@ -43,7 +43,7 @@ namespace detail
  *
  * A regrid can replace a PatchLevel with one that has the same layout, and the key does not detect that. An object
  * that holds a PatchLevel or its patch data, such as a communication schedule or a fill operator, is therefore not
- * safe to reuse when only the key is unchanged.
+ * safe to reuse when only the key is unchanged; use HierarchyLevelsIdentity for such an object.
  */
 class HierarchyLayoutKey
 {
