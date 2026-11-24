@@ -172,7 +172,7 @@ public:
      * Constructor. Registers the object with the restart database: i.e.,
      * inheriting classes should not also register themselves.
      */
-    FEData(std::string object_name, libMesh::EquationSystems& equation_systems, const bool register_for_restart);
+    FEData(const std::string& object_name, libMesh::EquationSystems& equation_systems, const bool register_for_restart);
 
     /*!
      * Destructor.
@@ -1156,7 +1156,7 @@ protected:
      * \brief Constructor, where the FEData object owned by this class may be
      * co-owned by other objects.
      */
-    FEDataManager(std::string object_name,
+    FEDataManager(const std::string& object_name,
                   const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
                   const int max_levels,
                   InterpSpec default_interp_spec,

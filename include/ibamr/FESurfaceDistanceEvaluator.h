@@ -53,7 +53,7 @@ public:
     /*!
      * \brief The only constructor of this class.
      */
-    FESurfaceDistanceEvaluator(std::string object_name,
+    FESurfaceDistanceEvaluator(const std::string& object_name,
                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy,
                                const libMesh::Mesh& mesh,
                                const libMesh::BoundaryMesh& bdry_mesh,

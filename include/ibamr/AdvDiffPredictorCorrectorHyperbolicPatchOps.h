@@ -78,7 +78,7 @@ public:
      * overriding those found in the restart file).
      */
     AdvDiffPredictorCorrectorHyperbolicPatchOps(
-        std::string object_name,
+        const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geom,

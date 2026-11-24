@@ -470,11 +470,11 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvectiveOperator(
-    std::string object_name,
+    const std::string& object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
-    : ConvectiveOperator(std::move(object_name), difference_form),
+    : ConvectiveOperator(object_name, difference_form),
       d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_width(array_constant<double, 2 * NDIM>(0.0)),
       d_bc_coefs(std::move(bc_coefs))

@@ -68,14 +68,14 @@ static Timer* t_deallocate_solver_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(std::string object_name,
+PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name,
                                                  Pointer<Database> input_db,
                                                  std::string default_options_prefix,
                                                  MPI_Comm petsc_comm)
     : d_options_prefix(std::move(default_options_prefix)), d_petsc_comm(petsc_comm)
 {
     // Setup default values.
-    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ false);
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     d_max_iterations = 50;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-8;
@@ -97,10 +97,10 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(std::string object_name,
     common_ctor();
 }
 
-PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(std::string object_name, SNES petsc_snes)
+PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name, SNES petsc_snes)
     : d_petsc_snes(std::move(petsc_snes))
 {
-    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ false);
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     if (d_petsc_snes) resetWrappedSNES(d_petsc_snes);
     common_ctor();
 }

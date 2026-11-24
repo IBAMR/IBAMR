@@ -232,8 +232,8 @@ get_JxW(quadrature_key_type key,
 IBTK_ENABLE_EXTRA_WARNINGS
 } // namespace
 
-FEData::FEData(std::string object_name, EquationSystems& equation_systems, const bool register_for_restart)
-    : d_object_name(std::move(object_name)),
+FEData::FEData(const std::string& object_name, EquationSystems& equation_systems, const bool register_for_restart)
+    : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_es(&equation_systems),
       d_quadrature_cache(d_es->get_mesh().mesh_dimension())
@@ -2814,7 +2814,7 @@ setup_fe_projector_db(const Pointer<Database>& input_db)
 // contexts, so to suppress warnings about COORDINATES_SYSTEM_NAME we disable
 // all warnings for the ctor
 IBTK_DISABLE_EXTRA_WARNINGS
-FEDataManager::FEDataManager(std::string object_name,
+FEDataManager::FEDataManager(const std::string& object_name,
                              const Pointer<Database>& input_db,
                              const int max_levels,
                              FEDataManager::InterpSpec default_interp_spec,
@@ -2833,7 +2833,7 @@ FEDataManager::FEDataManager(std::string object_name,
                                      input_db->getDatabase("subdomain_ids_on_levels") :
                                      nullptr) :
                                 nullptr),
-      d_object_name(std::move(object_name)),
+      d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_max_level_number(max_levels - 1),
       d_eulerian_data_cache(eulerian_data_cache),

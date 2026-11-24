@@ -88,7 +88,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IrregularWaveBcCoef(std::string object_name,
+    IrregularWaveBcCoef(const std::string& object_name,
                         const int comp_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geom);

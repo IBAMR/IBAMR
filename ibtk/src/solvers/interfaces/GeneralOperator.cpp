@@ -35,8 +35,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralOperator::GeneralOperator(std::string object_name, bool homogeneous_bc)
-    : d_object_name(std::move(object_name)), d_homogeneous_bc(homogeneous_bc)
+GeneralOperator::GeneralOperator(const std::string& object_name, bool homogeneous_bc)
+    : d_object_name(object_name), d_homogeneous_bc(homogeneous_bc)
 {
     // intentionally blank
     return;

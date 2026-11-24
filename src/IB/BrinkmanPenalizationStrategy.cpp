@@ -27,8 +27,8 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
-BrinkmanPenalizationStrategy::BrinkmanPenalizationStrategy(std::string object_name, bool register_for_restart)
-    : d_object_name(std::move(object_name)), d_registered_for_restart(register_for_restart)
+BrinkmanPenalizationStrategy::BrinkmanPenalizationStrategy(const std::string& object_name, bool register_for_restart)
+    : d_object_name(object_name), d_registered_for_restart(register_for_restart)
 {
     if (d_registered_for_restart)
     {

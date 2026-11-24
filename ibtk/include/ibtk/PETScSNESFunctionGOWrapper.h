@@ -51,7 +51,7 @@ public:
      * Construct a general operator wrapper corresponding to the provided PETSc
      * SNES function object.
      */
-    PETScSNESFunctionGOWrapper(std::string object_name,
+    PETScSNESFunctionGOWrapper(const std::string& object_name,
                                SNES petsc_snes,
                                PetscErrorCode (*petsc_snes_form_func)(SNES, Vec, Vec, void*),
                                void* petsc_snes_func_ctx);

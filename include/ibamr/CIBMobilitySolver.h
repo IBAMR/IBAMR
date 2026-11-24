@@ -92,7 +92,7 @@ public:
     /*!
      * \brief The only constructor of this class.
      */
-    CIBMobilitySolver(std::string object_name,
+    CIBMobilitySolver(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
                       SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy);

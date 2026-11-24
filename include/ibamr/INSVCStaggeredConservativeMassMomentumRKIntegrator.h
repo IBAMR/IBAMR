@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSVCStaggeredConservativeMassMomentumRKIntegrator(std::string object_name,
+    INSVCStaggeredConservativeMassMomentumRKIntegrator(const std::string& object_name,
                                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!

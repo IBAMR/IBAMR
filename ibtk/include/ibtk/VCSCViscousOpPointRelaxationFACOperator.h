@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    VCSCViscousOpPointRelaxationFACOperator(std::string object_name,
+    VCSCViscousOpPointRelaxationFACOperator(const std::string& object_name,
                                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                             std::string default_options_prefix);
 

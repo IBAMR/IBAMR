@@ -114,12 +114,12 @@ namespace IBAMR
 {
 // Constructor
 AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(
-    std::string object_name,
+    const std::string& object_name,
     Pointer<CellVariable<NDIM, double>> Q_var,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType differencing_form,
     std::vector<RobinBcCoefStrategy<NDIM>*> conc_bc_coefs)
-    : ConvectiveOperator(std::move(object_name), differencing_form),
+    : ConvectiveOperator(object_name, differencing_form),
       d_Q_var(Q_var),
       d_conc_bc_coefs(std::move(conc_bc_coefs)),
       d_difference_form(differencing_form)

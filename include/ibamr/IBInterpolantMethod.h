@@ -98,7 +98,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBInterpolantMethod(std::string object_name,
+    IBInterpolantMethod(const std::string& object_name,
                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                         int no_structures = 1,
                         bool register_for_restart = true);

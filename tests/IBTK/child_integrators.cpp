@@ -37,8 +37,8 @@
 class DummyAdvDiffIntegrator : public AdvDiffHierarchyIntegrator
 {
 public:
-    DummyAdvDiffIntegrator(std::string object_name, Pointer<Database> input_db)
-        : AdvDiffHierarchyIntegrator(std::move(object_name), input_db, true)
+    DummyAdvDiffIntegrator(const std::string& object_name, Pointer<Database> input_db)
+        : AdvDiffHierarchyIntegrator(object_name, input_db, true)
     {
     }
 

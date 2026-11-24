@@ -26,8 +26,8 @@
 // Namespace
 namespace IBAMR
 {
-CFOldroydBStrategy::CFOldroydBStrategy(std::string object_name, Pointer<Database> input_db)
-    : CFStrategy(std::move(object_name))
+CFOldroydBStrategy::CFOldroydBStrategy(const std::string& object_name, Pointer<Database> input_db)
+    : CFStrategy(object_name)
 {
     d_relaxation_time = input_db->getDouble("relaxation_time");
     d_viscosity = input_db->getDouble("viscosity");

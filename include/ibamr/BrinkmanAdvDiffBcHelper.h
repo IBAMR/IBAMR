@@ -69,7 +69,7 @@ public:
     /*!
      * \brief Constructor of the class.
      */
-    BrinkmanAdvDiffBcHelper(std::string object_name,
+    BrinkmanAdvDiffBcHelper(const std::string& object_name,
                             SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver);
 
     /*!

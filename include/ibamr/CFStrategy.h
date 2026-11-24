@@ -61,7 +61,7 @@ public:
     /*!
      * \brief This constructor does nothing interesting.
      */
-    CFStrategy(std::string object_name);
+    CFStrategy(const std::string& object_name);
 
     /*!
      * \brief Compute the action of the relaxation operator, given the conformation tensor.

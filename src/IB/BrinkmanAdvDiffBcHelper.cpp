@@ -61,7 +61,7 @@ namespace
 static const int NOGHOSTS = 0;
 } // namespace
 /////////////////////////////// PUBLIC //////////////////////////////////////
-BrinkmanAdvDiffBcHelper::BrinkmanAdvDiffBcHelper(std::string object_name,
+BrinkmanAdvDiffBcHelper::BrinkmanAdvDiffBcHelper(const std::string& object_name,
                                                  Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver)
     : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver)
 {

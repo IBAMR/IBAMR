@@ -86,6 +86,7 @@
 - Order declarations `public`, `protected`, then `private`; keep definitions in
   declaration order. Avoid public member data. In declarations, omit top-level
   `const` on by-value parameters; definitions may use it for unchanged values.
+- Pass `object_name` by `const std::string&`.
 - End a line of streamed output with `"\n"`, not `std::endl`, which also flushes
   the stream. The flush slows output in loops and does nothing in `TBOX_ERROR()`
   and `TBOX_WARNING()`, which build their message in a string stream. Write

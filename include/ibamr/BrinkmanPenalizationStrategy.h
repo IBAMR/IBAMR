@@ -44,7 +44,7 @@ public:
     /*
      * \brief Constructor of the class.
      */
-    BrinkmanPenalizationStrategy(std::string object_name, bool register_for_restart = true);
+    BrinkmanPenalizationStrategy(const std::string& object_name, bool register_for_restart = true);
 
     /*
      * \brief Destructor of the class.

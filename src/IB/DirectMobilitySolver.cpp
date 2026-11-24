@@ -69,10 +69,10 @@ static Timer* t_deallocate_solver_state;
 
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
-DirectMobilitySolver::DirectMobilitySolver(std::string object_name,
+DirectMobilitySolver::DirectMobilitySolver(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            Pointer<CIBStrategy> cib_strategy)
-    : d_object_name(std::move(object_name)), d_cib_strategy(cib_strategy)
+    : d_object_name(object_name), d_cib_strategy(cib_strategy)
 {
     // Get from input
     if (input_db) getFromInput(input_db);

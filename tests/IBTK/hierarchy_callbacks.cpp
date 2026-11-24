@@ -40,7 +40,7 @@
 struct DummyObject
 {
 public:
-    DummyObject(std::string object_name) : d_object_name(std::move(object_name))
+    DummyObject(const std::string& object_name) : d_object_name(object_name)
     {
     }
     std::string d_object_name;

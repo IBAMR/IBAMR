@@ -85,7 +85,7 @@ public:
     /*
      * \brief Constructor of the class.
      */
-    BrinkmanPenalizationRigidBodyDynamics(std::string object_name,
+    BrinkmanPenalizationRigidBodyDynamics(const std::string& object_name,
                                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_solid_var,
                                           SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                                           SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> fluid_solver,

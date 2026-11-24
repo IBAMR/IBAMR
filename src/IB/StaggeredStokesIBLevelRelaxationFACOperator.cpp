@@ -84,13 +84,10 @@ static const int NOGHOST = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFACOperator(
-    std::string object_name,
+    const std::string& object_name,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditionerStrategy(std::move(object_name),
-                                               std::max(SIDEG, CELLG),
-                                               input_db,
-                                               default_options_prefix),
+    : StaggeredStokesFACPreconditionerStrategy(object_name, std::max(SIDEG, CELLG), input_db, default_options_prefix),
       d_res_rediscretized_stokes(d_rediscretize_stokes),
       d_level_solver_default_options_prefix(default_options_prefix + "level_")
 {

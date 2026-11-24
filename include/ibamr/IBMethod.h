@@ -96,7 +96,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBMethod(std::string object_name,
+    IBMethod(const std::string& object_name,
              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
              bool register_for_restart = true);
 

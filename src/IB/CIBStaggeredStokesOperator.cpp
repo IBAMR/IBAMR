@@ -60,11 +60,11 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBStaggeredStokesOperator::CIBStaggeredStokesOperator(std::string object_name,
+CIBStaggeredStokesOperator::CIBStaggeredStokesOperator(const std::string& object_name,
                                                        Pointer<CIBStrategy> cib_strategy,
                                                        bool homogeneous_bc,
                                                        Pointer<Database> input_db)
-    : StaggeredStokesOperator(std::move(object_name), homogeneous_bc, input_db), d_cib_strategy(cib_strategy)
+    : StaggeredStokesOperator(object_name, homogeneous_bc, input_db), d_cib_strategy(cib_strategy)
 {
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::CIBStaggeredStokesOperator::apply()");

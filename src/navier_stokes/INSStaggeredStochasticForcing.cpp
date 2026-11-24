@@ -165,12 +165,10 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_name,
+INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& object_name,
                                                              Pointer<Database> input_db,
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
-    : d_object_name(std::move(object_name)),
-      d_fluid_solver(fluid_solver),
-      d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0)
+    : d_object_name(object_name), d_fluid_solver(fluid_solver), d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0)
 {
     if (input_db)
     {

@@ -59,7 +59,7 @@ public:
      * \brief Constructor for \f$ [T M^{-1} T^{*}]^{-1} \f$ solver that employs the
      * PETSc KSP solver framework.
      */
-    KrylovFreeBodyMobilitySolver(std::string object_name,
+    KrylovFreeBodyMobilitySolver(const std::string& object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                  std::string default_options_prefix,
                                  SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,

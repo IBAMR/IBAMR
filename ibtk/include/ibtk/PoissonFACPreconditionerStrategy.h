@@ -119,7 +119,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    PoissonFACPreconditionerStrategy(std::string object_name,
+    PoissonFACPreconditionerStrategy(const std::string& object_name,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> scratch_var,
                                      int ghost_cell_width,
                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,

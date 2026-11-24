@@ -36,7 +36,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    CellConvectiveOperator(std::string object_name,
+    CellConvectiveOperator(const std::string& object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_cell_var,
                            int Q_min_ghost_cell_width,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,

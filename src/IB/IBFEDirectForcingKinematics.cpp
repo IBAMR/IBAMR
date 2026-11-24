@@ -130,12 +130,12 @@ set_rotation_matrix(const Eigen::Vector3d& rot_vel,
 } // namespace
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBFEDirectForcingKinematics::IBFEDirectForcingKinematics(std::string object_name,
+IBFEDirectForcingKinematics::IBFEDirectForcingKinematics(const std::string& object_name,
                                                          Pointer<Database> input_db,
                                                          Pointer<IBFEMethod> ibfe_method_ops,
                                                          int part,
                                                          bool register_for_restart)
-    : d_ibfe_method_ops(ibfe_method_ops), d_part(part), d_object_name(std::move(object_name))
+    : d_ibfe_method_ops(ibfe_method_ops), d_part(part), d_object_name(object_name)
 {
     d_registered_for_restart = false;
     if (register_for_restart)

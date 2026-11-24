@@ -35,7 +35,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditionerStrategy::FACPreconditionerStrategy(std::string object_name) : d_object_name(std::move(object_name))
+FACPreconditionerStrategy::FACPreconditionerStrategy(const std::string& object_name) : d_object_name(object_name)
 {
     // intentionally blank
     return;

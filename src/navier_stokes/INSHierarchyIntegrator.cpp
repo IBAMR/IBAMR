@@ -493,14 +493,14 @@ INSHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
+INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                Pointer<Database> input_db,
                                                Pointer<Variable<NDIM>> U_var,
                                                Pointer<Variable<NDIM>> P_var,
                                                Pointer<Variable<NDIM>> F_var,
                                                Pointer<Variable<NDIM>> Q_var,
                                                bool register_for_restart)
-    : INSHierarchyIntegrator(std::move(object_name),
+    : INSHierarchyIntegrator(object_name,
                              input_db,
                              U_var,
                              "CONSERVATIVE_COARSEN",
@@ -518,7 +518,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
 {
 }
 
-INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
+INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                Pointer<Database> input_db,
                                                Pointer<Variable<NDIM>> U_var,
                                                std::string U_default_coarsen_type,
@@ -533,7 +533,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
                                                std::string Q_default_coarsen_type,
                                                std::string Q_default_refine_type,
                                                bool register_for_restart)
-    : HierarchyIntegrator(std::move(object_name), input_db, register_for_restart),
+    : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_U_var(U_var),
       d_U_coarsen_type(std::move(U_default_coarsen_type)),
       d_U_refine_type(std::move(U_default_refine_type)),

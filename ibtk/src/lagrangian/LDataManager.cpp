@@ -2823,13 +2823,13 @@ LDataManager::registerUserDefinedLData(const std::string& data_name, int depth)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-LDataManager::LDataManager(std::string object_name,
+LDataManager::LDataManager(const std::string& object_name,
                            std::string default_interp_kernel_fcn,
                            std::string default_spread_kernel_fcn,
                            bool error_if_points_leave_domain,
                            IntVector<NDIM> ghost_width,
                            bool register_for_restart)
-    : d_object_name(std::move(object_name)),
+    : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_default_interp_kernel_fcn(std::move(default_interp_kernel_fcn)),
       d_default_spread_kernel_fcn(std::move(default_spread_kernel_fcn)),

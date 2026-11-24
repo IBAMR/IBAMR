@@ -451,11 +451,11 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(std::string object_name,
+INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(const std::string& object_name,
                                                                      Pointer<Database> input_db,
                                                                      const ConvectiveDifferencingType difference_form,
                                                                      std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
-    : ConvectiveOperator(std::move(object_name), difference_form), d_bc_coefs(std::move(bc_coefs))
+    : ConvectiveOperator(object_name, difference_form), d_bc_coefs(std::move(bc_coefs))
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {

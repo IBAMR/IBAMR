@@ -69,7 +69,7 @@ public:
     /*!
      * \brief Constructor
      */
-    RelaxationLSBcCoefs(std::string name);
+    RelaxationLSBcCoefs(const std::string& name);
 
     /*!
      * \brief Destructor.

@@ -91,8 +91,10 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Database> db, bool register_for_restart)
-    : LSInitStrategy(std::move(object_name), register_for_restart)
+FastSweepingLSMethod::FastSweepingLSMethod(const std::string& object_name,
+                                           Pointer<Database> db,
+                                           bool register_for_restart)
+    : LSInitStrategy(object_name, register_for_restart)
 {
     for (int& wall_idx : d_wall_location_idx) wall_idx = 0;
 

@@ -77,7 +77,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    IBExplicitHierarchyIntegrator(std::string object_name,
+    IBExplicitHierarchyIntegrator(const std::string& object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                   SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
                                   SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,

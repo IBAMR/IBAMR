@@ -95,8 +95,10 @@ const std::string HierarchyIntegrator::SYNCH_NEW_DATA_ALG = "SYNCH_NEW_DATA";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
-    : d_object_name(std::move(object_name))
+HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
+                                         Pointer<Database> input_db,
+                                         bool register_for_restart)
+    : d_object_name(object_name)
 {
     auto set_timer = [&](const char* name) { return tbox::TimerManager::getManager()->getTimer(name); };
     IBTK_DO_ONCE(t_apply_gradient_detector = set_timer("IBTK::HierarchyIntegrator::applyGradientDetector()");

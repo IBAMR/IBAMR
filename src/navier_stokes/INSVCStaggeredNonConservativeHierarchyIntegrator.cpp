@@ -121,10 +121,10 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSVCStaggeredNonConservativeHierarchyIntegrator::INSVCStaggeredNonConservativeHierarchyIntegrator(
-    std::string object_name,
+    const std::string& object_name,
     Pointer<Database> input_db,
     bool register_for_restart)
-    : INSVCStaggeredHierarchyIntegrator(std::move(object_name), input_db, register_for_restart)
+    : INSVCStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart)
 {
     switch (d_convective_time_stepping_type)
     {

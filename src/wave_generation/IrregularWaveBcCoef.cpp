@@ -52,11 +52,11 @@ static const unsigned SEED = 1234567;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IrregularWaveBcCoef::IrregularWaveBcCoef(std::string object_name,
+IrregularWaveBcCoef::IrregularWaveBcCoef(const std::string& object_name,
                                          const int comp_idx,
                                          Pointer<Database> input_db,
                                          Pointer<CartesianGridGeometry<NDIM>> grid_geom)
-    : d_object_name(std::move(object_name)),
+    : d_object_name(object_name),
       d_comp_idx(comp_idx),
       d_muparser_bcs(d_object_name + "::muParser", input_db, grid_geom),
       d_grid_geom(grid_geom)

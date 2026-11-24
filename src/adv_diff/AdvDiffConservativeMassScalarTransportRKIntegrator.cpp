@@ -465,7 +465,7 @@ static Timer* t_deallocate_integrator;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffConservativeMassScalarTransportRKIntegrator::AdvDiffConservativeMassScalarTransportRKIntegrator(
-    std::string object_name,
+    const std::string& object_name,
     Pointer<Database> input_db)
     : STSMassFluxIntegrator(object_name, input_db)
 {

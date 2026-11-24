@@ -45,7 +45,7 @@ public:
      * \brief Constructor for class VCSCViscousOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    VCSCViscousOperator(std::string object_name, bool homogeneous_bc = true);
+    VCSCViscousOperator(const std::string& object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.

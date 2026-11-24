@@ -39,8 +39,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScMatLOWrapper::PETScMatLOWrapper(std::string object_name, Mat petsc_mat)
-    : LinearOperator(std::move(object_name)), d_petsc_mat(std::move(petsc_mat))
+PETScMatLOWrapper::PETScMatLOWrapper(const std::string& object_name, Mat petsc_mat)
+    : LinearOperator(object_name), d_petsc_mat(std::move(petsc_mat))
 {
     // intentionally blank
     return;

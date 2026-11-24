@@ -133,13 +133,11 @@ set_rotation_matrix(const std::vector<Eigen::Vector3d>& rot_vel,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInterpolantMethod::IBInterpolantMethod(std::string object_name,
+IBInterpolantMethod::IBInterpolantMethod(const std::string& object_name,
                                          Pointer<Database> input_db,
                                          int no_structures,
                                          bool register_for_restart)
-    : d_num_rigid_parts(no_structures),
-      d_object_name(std::move(object_name)),
-      d_registered_for_restart(register_for_restart)
+    : d_num_rigid_parts(no_structures), d_object_name(object_name), d_registered_for_restart(register_for_restart)
 {
     // Register object with the restart manager.
     if (d_registered_for_restart)

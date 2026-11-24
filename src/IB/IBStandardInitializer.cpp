@@ -89,8 +89,8 @@ discard_comments(const std::string& input_string)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStandardInitializer::IBStandardInitializer(std::string object_name, Pointer<Database> input_db)
-    : IBRedundantInitializer(std::move(object_name), input_db), d_posn_shift(Vector::Zero())
+IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Pointer<Database> input_db)
+    : IBRedundantInitializer(object_name, input_db), d_posn_shift(Vector::Zero())
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_object_name.empty());

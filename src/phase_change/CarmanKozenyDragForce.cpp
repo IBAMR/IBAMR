@@ -57,14 +57,14 @@
 namespace IBAMR
 {
 /////////////////////////////// PUBLIC //////////////////////////////////////
-CarmanKozenyDragForce::CarmanKozenyDragForce(std::string object_name,
+CarmanKozenyDragForce::CarmanKozenyDragForce(const std::string& object_name,
                                              Pointer<CellVariable<NDIM, double>> H_var,
                                              Pointer<CellVariable<NDIM, double>> lf_var,
                                              Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                              Pointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
                                              Pointer<Database> input_db,
                                              bool register_for_restart)
-    : BrinkmanPenalizationStrategy(std::move(object_name), register_for_restart),
+    : BrinkmanPenalizationStrategy(object_name, register_for_restart),
       d_adv_diff_solver(adv_diff_solver),
       d_fluid_solver(fluid_solver),
       d_H_var(H_var),

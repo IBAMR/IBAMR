@@ -88,7 +88,7 @@ static Timer* t_deallocate_integrator;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(
-    std::string object_name,
+    const std::string& object_name,
     Pointer<Database> input_db)
     : INSVCStaggeredConservativeMassMomentumRKIntegrator(object_name, input_db)
 {

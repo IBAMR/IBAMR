@@ -32,12 +32,12 @@
 
 namespace IBTK
 {
-SnapshotCache::SnapshotCache(std::string object_name,
+SnapshotCache::SnapshotCache(const std::string& object_name,
                              Pointer<Variable<NDIM>> var,
                              Pointer<Database> input_db,
                              Pointer<GridGeometry<NDIM>> grid_geom,
                              bool register_for_restart)
-    : d_object_name(std::move(object_name)), d_snapshot_var(var)
+    : d_object_name(object_name), d_snapshot_var(var)
 {
     TBOX_ASSERT(grid_geom);
 

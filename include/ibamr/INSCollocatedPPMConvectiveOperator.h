@@ -78,7 +78,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSCollocatedPPMConvectiveOperator(std::string object_name,
+    INSCollocatedPPMConvectiveOperator(const std::string& object_name,
                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                        ConvectiveDifferencingType difference_form,
                                        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);

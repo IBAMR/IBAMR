@@ -93,12 +93,12 @@ public:
     /*!
      * \brief Construct a scalar or vector function, owning the supplied functor.
      */
-    CartGridPointwiseFunction(std::string object_name, Function function);
+    CartGridPointwiseFunction(const std::string& object_name, Function function);
 
     /*!
      * \brief Construct a MatrixNd function with explicit tensor storage.
      */
-    CartGridPointwiseFunction(std::string object_name, Function function, TensorStorage storage);
+    CartGridPointwiseFunction(const std::string& object_name, Function function, TensorStorage storage);
 
     /*!
      * \brief Return true, because the functor may depend on time.
@@ -204,7 +204,7 @@ private:
  */
 template <typename Value, typename Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
-make_cart_grid_pointwise_function(std::string object_name,
+make_cart_grid_pointwise_function(const std::string& object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                   Function&& function);
 
@@ -215,7 +215,7 @@ make_cart_grid_pointwise_function(std::string object_name,
  */
 template <typename Value, typename Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
-make_cart_grid_pointwise_function(std::string object_name,
+make_cart_grid_pointwise_function(const std::string& object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                   Function&& function,
                                   TensorStorage storage);

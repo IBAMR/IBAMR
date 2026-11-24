@@ -53,8 +53,10 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CCLaplaceOperator::CCLaplaceOperator(std::string object_name, Pointer<Database> input_db, const bool homogeneous_bc)
-    : LaplaceOperator(std::move(object_name), homogeneous_bc)
+CCLaplaceOperator::CCLaplaceOperator(const std::string& object_name,
+                                     Pointer<Database> input_db,
+                                     const bool homogeneous_bc)
+    : LaplaceOperator(object_name, homogeneous_bc)
 {
     if (input_db)
     {

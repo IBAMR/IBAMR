@@ -197,11 +197,11 @@ solveSystemOfEqns(std::vector<double>& ang_mom, const Eigen::Matrix3d& inertiaTe
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
+ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
                                        Pointer<Database> input_db,
                                        const int no_structures,
                                        bool register_for_restart)
-    : IBMethod(std::move(object_name), input_db, register_for_restart),
+    : IBMethod(object_name, input_db, register_for_restart),
       d_no_structures(no_structures),
       d_ib_kinematics(d_no_structures, Pointer<ConstraintIBKinematics>(nullptr)),
       d_vol_element(d_no_structures, 0.0),

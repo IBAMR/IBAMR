@@ -163,8 +163,8 @@ static const int IMP_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPMethod::IMPMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
-    : d_ghosts(LEInteractor::getMinimumGhostWidth(KERNEL_FCN)), d_object_name(std::move(object_name))
+IMPMethod::IMPMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
+    : d_ghosts(LEInteractor::getMinimumGhostWidth(KERNEL_FCN)), d_object_name(object_name)
 {
     // Set the object name and register it with the restart manager.
     d_registered_for_restart = false;

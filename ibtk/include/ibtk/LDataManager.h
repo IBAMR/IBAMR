@@ -1013,7 +1013,7 @@ protected:
     /*!
      * \brief Constructor.
      */
-    LDataManager(std::string object_name,
+    LDataManager(const std::string& object_name,
                  std::string default_interp_kernel_fcn,
                  std::string default_spread_kernel_fcn,
                  bool error_if_points_leave_domain,

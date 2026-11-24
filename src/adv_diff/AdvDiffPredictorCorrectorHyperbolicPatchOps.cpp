@@ -162,12 +162,12 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolicPatchOps(
-    std::string object_name,
+    const std::string& object_name,
     Pointer<Database> input_db,
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     Pointer<CartesianGridGeometry<NDIM>> grid_geom,
     bool register_for_restart)
-    : AdvectorPredictorCorrectorHyperbolicPatchOps(std::move(object_name),
+    : AdvectorPredictorCorrectorHyperbolicPatchOps(object_name,
                                                    input_db,
                                                    explicit_predictor,
                                                    grid_geom,

@@ -133,10 +133,10 @@ static const int IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBMethod::IBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
     : d_ghosts(std::max(LEInteractor::getMinimumGhostWidth(d_interp_kernel_fcn),
                         LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn))),
-      d_object_name(std::move(object_name))
+      d_object_name(object_name)
 {
     // Set the object name and register it with the restart manager.
     d_registered_for_restart = false;

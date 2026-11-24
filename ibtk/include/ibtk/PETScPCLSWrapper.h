@@ -50,7 +50,7 @@ public:
      * \param petsc_pc PETSc PC object "wrapped" by this object
      *
      */
-    PETScPCLSWrapper(std::string object_name, PC petsc_pc);
+    PETScPCLSWrapper(const std::string& object_name, PC petsc_pc);
 
     /*!
      * \brief Destructor.

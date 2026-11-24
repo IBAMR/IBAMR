@@ -30,8 +30,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LSInitStrategy::LSInitStrategy(std::string object_name, bool register_for_restart)
-    : d_object_name(std::move(object_name)), d_registered_for_restart(register_for_restart)
+LSInitStrategy::LSInitStrategy(const std::string& object_name, bool register_for_restart)
+    : d_object_name(object_name), d_registered_for_restart(register_for_restart)
 {
     if (d_registered_for_restart)
     {
