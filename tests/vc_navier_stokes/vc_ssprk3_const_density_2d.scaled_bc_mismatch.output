@@ -1,0 +1,4 @@
+fast_path_hits = 0
+fallback_count = 1
+rho_min = 1.25, rho_max = 2.5, rho_l2 = 1.81231467
+N_l2 = 62.70062592, N_max = 453.7881062
