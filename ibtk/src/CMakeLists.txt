@@ -204,6 +204,7 @@ SET(CXX_SRC
   utilities/CartGridFunctionSet.cpp
   utilities/CoarseFineBoundaryCache.cpp
   utilities/HierarchyLayoutKey.cpp
+  utilities/HierarchyLevelsIdentity.cpp
   utilities/EdgeDataSynchronization.cpp
   utilities/NodeDataSynchronization.cpp
   utilities/BoxArrayIndex.cpp

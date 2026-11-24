@@ -25,6 +25,7 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/SAMRAIDataCache.h>
 #include <ibtk/private/HierarchyLayoutKey.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <CellVariable.h>
 #include <EdgeVariable.h>
@@ -194,18 +195,28 @@ main(int argc, char* argv[])
         }
         print_patch_descriptor_data(patch_hierarchy->getPatchDescriptor());
 
-        // Replace the finest level by a new level with the same layout, which the layout key must not report, and then
-        // by a level with a different box, which it must report. This check prints nothing.
+        // Replace the finest level by a new level with the same layout, which the layout key must not report and the
+        // levels identity must, and then by a level with a different box, which both must report. This check prints
+        // nothing.
         {
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
             IBTK::detail::HierarchyLayoutKey layout_key;
+            IBTK::detail::HierarchyLevelsIdentity identity;
             if (!layout_key.changed(*patch_hierarchy, 0, finest_ln))
             {
                 TBOX_ERROR("the layout key did not change on its first call\n");
             }
+            if (!identity.changed(*patch_hierarchy, 0, finest_ln))
+            {
+                TBOX_ERROR("the levels identity did not change on its first call\n");
+            }
             if (layout_key.changed(*patch_hierarchy, 0, finest_ln))
             {
                 TBOX_ERROR("the layout key changed although the hierarchy did not\n");
+            }
+            if (identity.changed(*patch_hierarchy, 0, finest_ln))
+            {
+                TBOX_ERROR("the levels identity changed although the hierarchy did not\n");
             }
 
             auto replace_finest_level = [&](const BoxArray<NDIM>& boxes, const ProcessorMapping& mapping)
@@ -223,12 +234,20 @@ main(int argc, char* argv[])
             {
                 TBOX_ERROR("the layout key changed when the finest level was replaced by an equal one\n");
             }
+            if (!identity.changed(*patch_hierarchy, 0, finest_ln))
+            {
+                TBOX_ERROR("the levels identity did not change when the finest level was replaced by an equal one\n");
+            }
 
             boxes[0].upper(0) -= 1;
             replace_finest_level(boxes, mapping);
             if (!layout_key.changed(*patch_hierarchy, 0, finest_ln))
             {
                 TBOX_ERROR("the layout key did not change when the finest level got a different box\n");
+            }
+            if (!identity.changed(*patch_hierarchy, 0, finest_ln))
+            {
+                TBOX_ERROR("the levels identity did not change when the finest level got a different box\n");
             }
         }
 

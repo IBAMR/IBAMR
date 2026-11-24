@@ -400,9 +400,15 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
         var_db->mapVariableAndContextToIndex(phi_cc_var, ptr_wave_damper->d_adv_diff_hier_integrator->getNewContext());
 
     // Allocate scratch data
-    IntVector<NDIM> cell_ghosts = 1;
-    const int phi_scratch_idx = var_db->registerVariableAndContext(
-        phi_cc_var, var_db->getContext("callConservedWaveAbsorbingCallbackFunction::phi_cc_var::SCRATCH"), cell_ghosts);
+    if (ptr_wave_damper->d_phi_scratch_idx == IBTK::invalid_index)
+    {
+        IntVector<NDIM> cell_ghosts = 1;
+        ptr_wave_damper->d_phi_scratch_idx = var_db->registerVariableAndContext(
+            phi_cc_var,
+            var_db->getContext("callConservedWaveAbsorbingCallbackFunction::phi_cc_var::SCRATCH"),
+            cell_ghosts);
+    }
+    const int phi_scratch_idx = ptr_wave_damper->d_phi_scratch_idx;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
@@ -421,9 +427,12 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
                                                       "LINEAR",
                                                       false,
                                                       phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction, patch_hierarchy);
-    hier_bdry_fill->fillData(new_time);
+    if (ptr_wave_damper->d_fill_levels.changed(*patch_hierarchy, coarsest_ln, finest_ln))
+    {
+        ptr_wave_damper->d_phi_fill = new HierarchyGhostCellInterpolation();
+        ptr_wave_damper->d_phi_fill->initializeOperatorState(phi_transaction, patch_hierarchy);
+    }
+    ptr_wave_damper->d_phi_fill->fillData(new_time);
 
     // Create the functor and set its options
     MassConservationFunctor mass_eval_functor;
@@ -528,7 +537,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
         }
     }
 
-    // Deallocate patch data and remove indices
+    // Deallocate patch data and remove the integrand indices. The level set scratch index stays registered.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(I_idx);
@@ -537,7 +546,6 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     }
     var_db->removePatchDataIndex(I_idx);
     var_db->removePatchDataIndex(dI_idx);
-    var_db->removePatchDataIndex(phi_scratch_idx);
 
     return;
 
