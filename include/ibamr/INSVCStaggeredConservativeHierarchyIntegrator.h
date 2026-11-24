@@ -23,8 +23,16 @@
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/STSMassFluxIntegrator.h>
 
+#include <memory>
 #include <string>
 #include <vector>
+
+namespace IBAMR
+{
+#if (NDIM == 3)
+class INSVCStaggeredConservativeGPUBridge;
+#endif
+} // namespace IBAMR
 
 namespace IBTK
 {
@@ -76,7 +84,7 @@ public:
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~INSVCStaggeredConservativeHierarchyIntegrator() = default;
+    ~INSVCStaggeredConservativeHierarchyIntegrator() override;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -258,6 +266,21 @@ private:
                             double current_time,
                             double new_time,
                             int cycle_num);
+
+    void runCpuPreprocessFluidPrep(double current_time, double new_time, bool rho_already_reset);
+
+#if (NDIM == 3)
+    bool canUseGpuCandidate2(double current_time, double new_time, int num_cycles, std::string& reason) const;
+
+    std::unique_ptr<INSVCStaggeredConservativeGPUBridge> d_gpu_bridge;
+    bool d_gpu_step_active = false;
+    bool d_gpu_hierarchy_dirty = true;
+    bool d_gpu_brinkman_dirty = true;
+    bool d_gpu_uniform_rho = false;
+    double d_gpu_uniform_rho_val = 1.0;
+    bool d_gpu_ssprk3_cui_ok = false;
+#endif
+
     /*!
      * Side-centered density variable required for conservative discretization
      */
