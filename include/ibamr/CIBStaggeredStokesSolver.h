@@ -38,6 +38,11 @@ namespace tbox
 {
 class Database;
 } // namespace tbox
+namespace xfer
+{
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
 } // namespace SAMRAI
 namespace IBAMR
 {
@@ -184,6 +189,9 @@ private:
 
     // SVR for holding widened u/f.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_x_wide, d_b_wide;
+
+    // Fills the ghost cells of the widened velocity on level 0.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_wide_u_fill_schedule;
 
     // Bools to control initialization and deallocation
     bool d_is_initialized = false, d_reinitializing_solver = false;

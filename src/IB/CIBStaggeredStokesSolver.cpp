@@ -157,6 +157,10 @@ CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, dou
         if (!level->checkAllocated(d_wide_f_idx)) level->allocatePatchData(d_wide_f_idx);
     }
 
+    RefineAlgorithm<NDIM> ghost_fill_alg;
+    ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, nullptr);
+    d_wide_u_fill_schedule = ghost_fill_alg.createSchedule(hierarchy->getPatchLevel(0));
+
     Pointer<CellVariable<NDIM, double>> x_p_cc_var = x.getComponentVariable(1);
     Pointer<CellVariable<NDIM, double>> b_p_cc_var = b.getComponentVariable(1);
     const int x_p_idx = x.getComponentDescriptorIndex(1);
@@ -334,11 +338,7 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
          << "Interpolating velocity on structure at time  " << half_time << "....\n"
          << std::endl;
 
-    RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, nullptr);
-    Pointer<PatchHierarchy<NDIM>> hierarchy = x.getPatchHierarchy();
-    Pointer<RefineSchedule<NDIM>> ghost_fill_schd = ghost_fill_alg.createSchedule(hierarchy->getPatchLevel(0));
-    ghost_fill_schd->fillData(half_time);
+    d_wide_u_fill_schedule->fillData(half_time);
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
 
 #if 0
@@ -396,7 +396,8 @@ CIBStaggeredStokesSolver::deallocateSolverState()
         if (level->checkAllocated(d_wide_f_idx)) level->deallocatePatchData(d_wide_f_idx);
     }
 
-    // Free the vectors.
+    // Free the fill schedule and the vectors.
+    d_wide_u_fill_schedule.setNull();
     d_x_wide.setNull();
     d_b_wide.setNull();
 
