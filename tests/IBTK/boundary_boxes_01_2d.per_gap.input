@@ -1,0 +1,29 @@
+// Two fine patches across a periodic boundary, one coarse cell apart.
+GHOST_WIDTH = 3
+REF_RATIO = 2
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (15,15)]
+   x_lo = 0, 0
+   x_up = 1, 1
+   periodic_dimension = 1, 0
+}
+
+Level0 {
+   lower = 0, 0
+   size = 8, 8
+   gap = 0, 0
+   number = 2, 2
+}
+
+Level1 {
+   lower = 0, 8
+   size = 8, 12
+   gap = 14, 0
+   number = 2, 1
+}

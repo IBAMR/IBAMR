@@ -1,0 +1,29 @@
+// 81 fine patches separated by gaps, inside 16 coarse patches.
+GHOST_WIDTH = 2
+REF_RATIO = 2
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (39,39)]
+   x_lo = 0, 0
+   x_up = 1, 1
+   periodic_dimension = 0, 0
+}
+
+Level0 {
+   lower = 0, 0
+   size = 10, 10
+   gap = 0, 0
+   number = 4, 4
+}
+
+Level1 {
+   lower = 4, 4
+   size = 6, 6
+   gap = 2, 2
+   number = 9, 9
+}
