@@ -114,11 +114,11 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarchyIntegrator(std::string object_name,
-                                                                                             Pointer<Database> input_db,
-                                                                                             bool register_for_restart)
-    : INSVCStaggeredHierarchyIntegrator(std::move(object_name), input_db, register_for_restart),
-      d_rho_sc_bc_coefs(NDIM, nullptr)
+INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarchyIntegrator(
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    bool register_for_restart)
+    : INSVCStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart), d_rho_sc_bc_coefs(NDIM, nullptr)
 {
     if (!(d_convective_difference_form == CONSERVATIVE))
     {

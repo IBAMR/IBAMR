@@ -50,7 +50,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    PETScKrylovPoissonSolver(std::string object_name,
+    PETScKrylovPoissonSolver(const std::string& object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                              std::string default_options_prefix);
 

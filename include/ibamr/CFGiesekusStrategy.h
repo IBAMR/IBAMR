@@ -63,7 +63,7 @@ public:
     /*!
      * \brief This constructor reads in the parameters for the model from the input database.
      */
-    CFGiesekusStrategy(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    CFGiesekusStrategy(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     void computeRelaxation(int R_idx,
                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> R_var,

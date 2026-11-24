@@ -76,7 +76,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBRedundantInitializer(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBRedundantInitializer(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.

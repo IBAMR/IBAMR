@@ -70,7 +70,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    FACPreconditionerStrategy(std::string object_name);
+    FACPreconditionerStrategy(const std::string& object_name);
 
     /*!
      * \brief Empty virtual desctructor.

@@ -119,13 +119,13 @@ make_edge(T2 n0, T2 n1)
 const double FESurfaceDistanceEvaluator::s_large_distance = 1234567.0;
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
-FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(std::string object_name,
+FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(const std::string& object_name,
                                                        Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
                                                        const libMesh::Mesh& mesh,
                                                        const BoundaryMesh& bdry_mesh,
                                                        const int gcw,
                                                        bool use_extracted_bdry_mesh)
-    : d_object_name(std::move(object_name)),
+    : d_object_name(object_name),
       d_patch_hierarchy(patch_hierarchy),
       d_mesh(mesh),
       d_bdry_mesh(bdry_mesh),

@@ -94,7 +94,7 @@ public:
     /*!
      * \brief Constructor
      */
-    ConstraintIBMethod(std::string object_name,
+    ConstraintIBMethod(const std::string& object_name,
                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                        const int no_structures,
                        bool register_for_restart = true);

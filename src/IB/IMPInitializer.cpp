@@ -95,11 +95,11 @@ static const double POINT_FACTOR = 2.0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPInitializer::IMPInitializer(std::string object_name,
+IMPInitializer::IMPInitializer(const std::string& object_name,
                                Pointer<Database> input_db,
                                Pointer<PatchHierarchy<NDIM>> hierarchy,
                                Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
-    : d_object_name(std::move(object_name)),
+    : d_object_name(object_name),
       d_hierarchy(hierarchy),
       d_gridding_alg(gridding_alg),
       d_level_is_initialized(d_gridding_alg->getMaxLevels(), false),

@@ -99,12 +99,12 @@ static const int Q_MIN_GCW = 4;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(std::string object_name,
+AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& object_name,
                                                            Pointer<CellVariable<NDIM, double>> Q_var,
                                                            Pointer<Database> input_db,
                                                            const ConvectiveDifferencingType difference_form,
                                                            std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
-    : CellConvectiveOperator(std::move(object_name), Q_var, Q_MIN_GCW, input_db, difference_form, std::move(bc_coefs))
+    : CellConvectiveOperator(object_name, Q_var, Q_MIN_GCW, input_db, difference_form, std::move(bc_coefs))
 {
     // intentionally blank
     return;

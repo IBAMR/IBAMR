@@ -70,14 +70,14 @@ allocate_range_vector(const SAMRAIVectorReal<NDIM, double>& vector, const std::s
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditioner::FACPreconditioner(std::string object_name,
+FACPreconditioner::FACPreconditioner(const std::string& object_name,
                                      Pointer<FACPreconditionerStrategy> fac_strategy,
                                      tbox::Pointer<tbox::Database> input_db,
                                      const std::string& /*default_options_prefix*/)
     : d_fac_strategy(fac_strategy)
 {
     // Set up default options.
-    GeneralSolver::init(std::move(object_name), FACPreconditionerStrategy::ALWAYS_HOMOGENEOUS_BC);
+    GeneralSolver::init(object_name, FACPreconditionerStrategy::ALWAYS_HOMOGENEOUS_BC);
     d_initial_guess_nonzero = false;
     d_rel_residual_tol = 1.0e-5;
     d_abs_residual_tol = 1.0e-50;

@@ -117,13 +117,13 @@ static Timer* t_deallocate_solver_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
+CIBSaddlePointSolver::CIBSaddlePointSolver(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
                                            Pointer<CIBStrategy> cib_strategy,
                                            std::string default_options_prefix,
                                            MPI_Comm petsc_comm)
-    : d_object_name(std::move(object_name)),
+    : d_object_name(object_name),
       d_options_prefix(std::move(default_options_prefix)),
       d_petsc_comm(petsc_comm),
       d_ins_integrator(navier_stokes_integrator),

@@ -74,7 +74,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBFEDirectForcingKinematics(std::string object_name,
+    IBFEDirectForcingKinematics(const std::string& object_name,
                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                 SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> ibfe_method_ops,
                                 int part,

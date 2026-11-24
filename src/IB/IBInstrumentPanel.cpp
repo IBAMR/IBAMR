@@ -493,8 +493,8 @@ linear_interp(const Point& X,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInstrumentPanel::IBInstrumentPanel(std::string object_name, Pointer<Database> input_db)
-    : d_object_name(std::move(object_name)),
+IBInstrumentPanel::IBInstrumentPanel(const std::string& object_name, Pointer<Database> input_db)
+    : d_object_name(object_name),
       d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
       d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log")
 {

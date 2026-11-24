@@ -225,12 +225,12 @@ tagLSCells(Pointer<BasePatchHierarchy<NDIM>> hierarchy,
     return;
 } // tagLSCells
 
-LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
+LevelSetMassLossFixer::LevelSetMassLossFixer(const std::string& object_name,
                                              Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
                                              std::vector<Pointer<CellVariable<NDIM, double>>> ls_vars,
                                              Pointer<Database> input_db,
                                              bool register_for_restart)
-    : d_object_name(std::move(object_name)),
+    : d_object_name(object_name),
       d_ls_container(adv_diff_integrator, ls_vars),
       d_registered_for_restart(register_for_restart)
 {

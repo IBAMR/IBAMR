@@ -63,7 +63,7 @@ public:
      * values and reads in configuration information from input and restart
      * databases.
      */
-    IBInterpolantHierarchyIntegrator(std::string object_name,
+    IBInterpolantHierarchyIntegrator(const std::string& object_name,
                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                      SAMRAI::tbox::Pointer<IBAMR::IBLevelSetMethod> ib_ls_method_ops,
                                      SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,

@@ -75,12 +75,12 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBHydrodynamicForceEvaluator::IBHydrodynamicForceEvaluator(std::string object_name,
+IBHydrodynamicForceEvaluator::IBHydrodynamicForceEvaluator(const std::string& object_name,
                                                            double rho,
                                                            double mu,
                                                            double current_time,
                                                            bool register_for_restart)
-    : d_object_name(std::move(object_name)), d_rho(rho), d_mu(mu), d_current_time(current_time)
+    : d_object_name(object_name), d_rho(rho), d_mu(mu), d_current_time(current_time)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_u_var = new SideVariable<NDIM, double>(d_object_name + "::u_var", 1);

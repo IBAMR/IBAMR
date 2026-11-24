@@ -1,0 +1,3 @@
+Improved: Pass object_name in IBAMR and IBTK constructors and factories and kernel_fcn in IBTK::interpolate() by const std::string&.
+<br>
+(Hoseyn Amiri, 2026/11/24)

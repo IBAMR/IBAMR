@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSCollocatedWavePropConvectiveOperator(std::string object_name,
+    INSCollocatedWavePropConvectiveOperator(const std::string& object_name,
                                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                             ConvectiveDifferencingType difference_form,
                                             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);

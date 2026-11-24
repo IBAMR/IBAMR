@@ -54,7 +54,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    GeneralOperator(std::string object_name, bool homogeneous_bc = false);
+    GeneralOperator(const std::string& object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Empty virtual destructor.

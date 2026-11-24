@@ -67,7 +67,7 @@ public:
      * \brief Constructor for mobility solver that employs the
      * PETSc KSP solver framework.
      */
-    KrylovMobilitySolver(std::string object_name,
+    KrylovMobilitySolver(const std::string& object_name,
                          SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
                          SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,

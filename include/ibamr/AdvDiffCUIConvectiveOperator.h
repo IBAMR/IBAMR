@@ -51,7 +51,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    AdvDiffCUIConvectiveOperator(std::string object_name,
+    AdvDiffCUIConvectiveOperator(const std::string& object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> Q_var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                  ConvectiveDifferencingType difference_form,

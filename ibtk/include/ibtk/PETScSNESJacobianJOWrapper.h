@@ -51,7 +51,7 @@ public:
      * Construct a Jacobian operator wrapper corresponding to the provided PETSc
      * SNES Jacobian object.
      */
-    PETScSNESJacobianJOWrapper(std::string object_name,
+    PETScSNESJacobianJOWrapper(const std::string& object_name,
                                SNES petsc_snes,
                                PetscErrorCode (*petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*),
                                void* petsc_snes_jac_ctx);

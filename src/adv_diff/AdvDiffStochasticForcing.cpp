@@ -85,11 +85,11 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffStochasticForcing::AdvDiffStochasticForcing(std::string object_name,
+AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_name,
                                                    Pointer<Database> input_db,
                                                    Pointer<CellVariable<NDIM, double>> C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
-    : d_object_name(std::move(object_name)), d_C_var(C_var), d_adv_diff_solver(adv_diff_solver)
+    : d_object_name(object_name), d_C_var(C_var), d_adv_diff_solver(adv_diff_solver)
 {
     std::string f_expression = "1.0";
     if (input_db)

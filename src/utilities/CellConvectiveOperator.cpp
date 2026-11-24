@@ -207,16 +207,14 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
+CellConvectiveOperator::CellConvectiveOperator(const std::string& object_name,
                                                Pointer<CellVariable<NDIM, double>> Q_cell_var,
                                                const int Q_min_ghost_cell_width,
                                                Pointer<Database> input_db,
                                                const ConvectiveDifferencingType difference_form,
                                                std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
 
-    : ConvectiveOperator(std::move(object_name), difference_form),
-      d_bc_coefs(std::move(bc_coefs)),
-      d_Q_cell_var(Q_cell_var)
+    : ConvectiveOperator(object_name, difference_form), d_bc_coefs(std::move(bc_coefs)), d_Q_cell_var(Q_cell_var)
 {
     if (input_db)
     {

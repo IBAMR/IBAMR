@@ -85,8 +85,8 @@ static Timer* t_deallocate_integrator;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-STSMassFluxIntegrator::STSMassFluxIntegrator(std::string object_name, Pointer<Database> input_db)
-    : d_object_name(std::move(object_name)), d_u_bc_coefs(NDIM), d_rho_bc_coefs(NDIM)
+STSMassFluxIntegrator::STSMassFluxIntegrator(const std::string& object_name, Pointer<Database> input_db)
+    : d_object_name(object_name), d_u_bc_coefs(NDIM), d_rho_bc_coefs(NDIM)
 {
     if (input_db)
     {

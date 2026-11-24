@@ -99,7 +99,7 @@ public:
      * \brief Constructor for a concrete NewtonKrylovSolver that employs the
      * PETSc SNES solver framework.
      */
-    PETScNewtonKrylovSolver(std::string object_name,
+    PETScNewtonKrylovSolver(const std::string& object_name,
                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                             std::string default_options_prefix,
                             MPI_Comm petsc_comm = PETSC_COMM_WORLD);
@@ -115,7 +115,7 @@ public:
      * acts as a "wrapper" for the provided SNES object.  Note that memory
      * management of the provided SNES object is \em NOT handled by this class.
      */
-    PETScNewtonKrylovSolver(std::string object_name, SNES petsc_snes);
+    PETScNewtonKrylovSolver(const std::string& object_name, SNES petsc_snes);
 
     /*!
      * \brief Destructor.

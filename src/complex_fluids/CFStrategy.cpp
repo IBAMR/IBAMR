@@ -26,7 +26,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 // Namespace
 namespace IBAMR
 {
-CFStrategy::CFStrategy(std::string object_name) : d_object_name(std::move(object_name))
+CFStrategy::CFStrategy(const std::string& object_name) : d_object_name(object_name)
 {
     return;
 } // Constructor

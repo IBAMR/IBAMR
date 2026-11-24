@@ -50,7 +50,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    JacobianOperator(std::string object_name);
+    JacobianOperator(const std::string& object_name);
 
     /*!
      * \brief Empty destructor.

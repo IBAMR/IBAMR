@@ -117,7 +117,7 @@ public:
      * \brief Constructor for a saddle-point solver that employs the
      * PETSc KSP solver framework.
      */
-    CIBSaddlePointSolver(std::string object_name,
+    CIBSaddlePointSolver(const std::string& object_name,
                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                          SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
                          SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,

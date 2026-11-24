@@ -76,7 +76,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IMPInitializer(std::string object_name,
+    IMPInitializer(const std::string& object_name,
                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg);

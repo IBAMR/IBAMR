@@ -206,7 +206,7 @@ public:
      * @param input_db provides parameters enable_logging, correction_interval, max_its, rel_tol, abs_tol, and
      * half_width.
      */
-    LevelSetMassLossFixer(std::string object_name,
+    LevelSetMassLossFixer(const std::string& object_name,
                           SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
                           std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>>> ls_vars,
                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,

@@ -52,10 +52,10 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCSCViscousPETScLevelSolver::VCSCViscousPETScLevelSolver(std::string object_name,
+VCSCViscousPETScLevelSolver::VCSCViscousPETScLevelSolver(const std::string& object_name,
                                                          Pointer<Database> input_db,
                                                          std::string default_options_prefix)
-    : SCPoissonPETScLevelSolver(std::move(object_name), input_db, std::move(default_options_prefix))
+    : SCPoissonPETScLevelSolver(object_name, input_db, std::move(default_options_prefix))
 {
     // Set a default interpolation type.
     d_mu_interp_type = VC_HARMONIC_INTERP;

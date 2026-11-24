@@ -72,7 +72,7 @@ public:
      * \param register_for_restart  Boolean indicating whether to register this object with the
      *restart manager.
      */
-    LSiloDataWriter(std::string object_name, std::string dump_directory_name, bool register_for_restart = true);
+    LSiloDataWriter(const std::string& object_name, std::string dump_directory_name, bool register_for_restart = true);
 
     /*!
      * \brief Destructor.

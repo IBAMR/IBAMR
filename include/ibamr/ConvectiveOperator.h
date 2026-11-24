@@ -50,7 +50,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    ConvectiveOperator(std::string object_name, ConvectiveDifferencingType difference_form);
+    ConvectiveOperator(const std::string& object_name, ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Destructor.

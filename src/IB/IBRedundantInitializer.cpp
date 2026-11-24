@@ -78,8 +78,8 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBRedundantInitializer::IBRedundantInitializer(std::string object_name, Pointer<Database> input_db)
-    : d_object_name(std::move(object_name)), d_posn_shift(Vector::Zero())
+IBRedundantInitializer::IBRedundantInitializer(const std::string& object_name, Pointer<Database> input_db)
+    : d_object_name(object_name), d_posn_shift(Vector::Zero())
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_object_name.empty());

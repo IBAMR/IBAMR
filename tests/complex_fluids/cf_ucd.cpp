@@ -44,7 +44,7 @@
 class DummyCFStrategy : public CFStrategy
 {
 public:
-    DummyCFStrategy(std::string object_name) : CFStrategy(std::move(object_name))
+    DummyCFStrategy(const std::string& object_name) : CFStrategy(object_name)
     {
     }
 
@@ -81,7 +81,7 @@ public:
 class DummyConvectiveOperator : public ConvectiveOperator
 {
 public:
-    DummyConvectiveOperator(std::string object_name) : ConvectiveOperator(std::move(object_name), ADVECTIVE)
+    DummyConvectiveOperator(const std::string& object_name) : ConvectiveOperator(object_name, ADVECTIVE)
     {
     }
 

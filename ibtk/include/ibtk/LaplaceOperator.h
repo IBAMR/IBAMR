@@ -43,7 +43,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LaplaceOperator(std::string object_name, bool homogeneous_bc = false);
+    LaplaceOperator(const std::string& object_name, bool homogeneous_bc = false);
 
     /*!
      * \brief Default destructor.

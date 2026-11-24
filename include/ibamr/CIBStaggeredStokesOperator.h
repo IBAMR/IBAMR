@@ -66,7 +66,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    CIBStaggeredStokesOperator(std::string object_name,
+    CIBStaggeredStokesOperator(const std::string& object_name,
                                SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
                                bool homogeneous_bc = true,
                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);

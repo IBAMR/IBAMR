@@ -90,14 +90,14 @@ ksp_tolerates_varying_preconditioner(const std::string& ksp_type)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScKrylovLinearSolver::PETScKrylovLinearSolver(std::string object_name,
+PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
                                                  Pointer<Database> input_db,
                                                  std::string default_options_prefix,
                                                  MPI_Comm petsc_comm)
     : d_ksp_type(KSPGMRES), d_options_prefix(std::move(default_options_prefix)), d_petsc_comm(petsc_comm)
 {
     // Setup default values.
-    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ false);
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
@@ -127,10 +127,10 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(std::string object_name,
     return;
 } // PETScKrylovLinearSolver()
 
-PETScKrylovLinearSolver::PETScKrylovLinearSolver(std::string object_name, const KSP& petsc_ksp)
+PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name, const KSP& petsc_ksp)
     : d_petsc_comm(PETSC_COMM_WORLD), d_petsc_ksp(petsc_ksp), d_managing_petsc_ksp(false)
 {
-    GeneralSolver::init(std::move(object_name), /*homogeneous_bc*/ false);
+    GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     if (d_petsc_ksp) resetWrappedKSP(d_petsc_ksp);
     common_ctor();
     return;

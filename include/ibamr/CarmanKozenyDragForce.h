@@ -62,7 +62,7 @@ public:
     /*
      * \brief Constructor of the class.
      */
-    CarmanKozenyDragForce(std::string object_name,
+    CarmanKozenyDragForce(const std::string& object_name,
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> H_var,
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
                           SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,

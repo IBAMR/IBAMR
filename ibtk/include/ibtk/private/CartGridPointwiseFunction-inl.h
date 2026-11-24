@@ -67,17 +67,18 @@ enum_to_string<TensorStorage>(const TensorStorage value)
 }
 
 template <typename Value, typename Data, typename Function>
-CartGridPointwiseFunction<Value, Data, Function>::CartGridPointwiseFunction(std::string object_name, Function function)
-    : CartGridFunction(std::move(object_name)), d_function(std::move(function)), d_tensor_storage(TensorStorage::FULL)
+CartGridPointwiseFunction<Value, Data, Function>::CartGridPointwiseFunction(const std::string& object_name,
+                                                                            Function function)
+    : CartGridFunction(object_name), d_function(std::move(function)), d_tensor_storage(TensorStorage::FULL)
 {
     static_assert(!std::is_same_v<Value, MatrixNd>, "MatrixNd requires explicit TensorStorage.");
 }
 
 template <typename Value, typename Data, typename Function>
-CartGridPointwiseFunction<Value, Data, Function>::CartGridPointwiseFunction(std::string object_name,
+CartGridPointwiseFunction<Value, Data, Function>::CartGridPointwiseFunction(const std::string& object_name,
                                                                             Function function,
                                                                             const TensorStorage storage)
-    : CartGridFunction(std::move(object_name)), d_function(std::move(function)), d_tensor_storage(storage)
+    : CartGridFunction(object_name), d_function(std::move(function)), d_tensor_storage(storage)
 {
     static_assert(std::is_same_v<Value, MatrixNd>, "TensorStorage is only applicable to MatrixNd.");
     Values::tensor_depth(storage);
@@ -421,7 +422,7 @@ namespace detail
 // Share centering selection between the scalar/vector and MatrixNd overloads.
 template <typename Value, typename Function, typename... Args>
 SAMRAI::tbox::Pointer<CartGridFunction>
-allocate_cart_grid_pointwise_function(std::string object_name,
+allocate_cart_grid_pointwise_function(const std::string& object_name,
                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                       Function&& function,
                                       Args&&... args)
@@ -436,27 +437,27 @@ allocate_cart_grid_pointwise_function(std::string object_name,
     if (tbox::Pointer<pdat::CellDataFactory<NDIM, double>> typed_factory = factory)
     {
         return new CartGridPointwiseFunction<Value, pdat::CellData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
+            object_name, std::forward<Function>(function), std::forward<Args>(args)...);
     }
     if (tbox::Pointer<pdat::NodeDataFactory<NDIM, double>> typed_factory = factory)
     {
         return new CartGridPointwiseFunction<Value, pdat::NodeData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
+            object_name, std::forward<Function>(function), std::forward<Args>(args)...);
     }
     if (tbox::Pointer<pdat::SideDataFactory<NDIM, double>> typed_factory = factory)
     {
         return new CartGridPointwiseFunction<Value, pdat::SideData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
+            object_name, std::forward<Function>(function), std::forward<Args>(args)...);
     }
     if (tbox::Pointer<pdat::FaceDataFactory<NDIM, double>> typed_factory = factory)
     {
         return new CartGridPointwiseFunction<Value, pdat::FaceData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
+            object_name, std::forward<Function>(function), std::forward<Args>(args)...);
     }
     if (tbox::Pointer<pdat::EdgeDataFactory<NDIM, double>> typed_factory = factory)
     {
         return new CartGridPointwiseFunction<Value, pdat::EdgeData<NDIM, double>, std::decay_t<Function>>(
-            std::move(object_name), std::forward<Function>(function), std::forward<Args>(args)...);
+            object_name, std::forward<Function>(function), std::forward<Args>(args)...);
     }
     TBOX_ERROR("make_cart_grid_pointwise_function():\n"
                << "  unsupported variable patch data factory\n");
@@ -466,25 +467,24 @@ allocate_cart_grid_pointwise_function(std::string object_name,
 
 template <typename Value, typename Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
-make_cart_grid_pointwise_function(std::string object_name,
+make_cart_grid_pointwise_function(const std::string& object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                   Function&& function)
 {
     static_assert(!std::is_same_v<Value, MatrixNd>, "MatrixNd requires explicit TensorStorage.");
-    return detail::allocate_cart_grid_pointwise_function<Value>(
-        std::move(object_name), var, std::forward<Function>(function));
+    return detail::allocate_cart_grid_pointwise_function<Value>(object_name, var, std::forward<Function>(function));
 }
 
 template <typename Value, typename Function>
 SAMRAI::tbox::Pointer<CartGridFunction>
-make_cart_grid_pointwise_function(std::string object_name,
+make_cart_grid_pointwise_function(const std::string& object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                   Function&& function,
                                   const TensorStorage storage)
 {
     static_assert(std::is_same_v<Value, MatrixNd>, "TensorStorage is only applicable to MatrixNd.");
     return detail::allocate_cart_grid_pointwise_function<Value>(
-        std::move(object_name), var, std::forward<Function>(function), storage);
+        object_name, var, std::forward<Function>(function), storage);
 }
 } // namespace IBTK
 

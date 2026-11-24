@@ -52,7 +52,7 @@ public:
      * \brief Constructor for class CCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    CCLaplaceOperator(std::string object_name,
+    CCLaplaceOperator(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
                       bool homogeneous_bc = true);
 

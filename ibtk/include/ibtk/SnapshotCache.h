@@ -72,7 +72,7 @@ public:
      * If the input database is an invalid pointer, the ghost cell width is 1. Note that this value should be set as the
      * maximum ghost cell width needed to perform any needed refinement operation upon snapshot retrieval.
      */
-    SnapshotCache(std::string object_name,
+    SnapshotCache(const std::string& object_name,
                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                   SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM>> grid_geom,

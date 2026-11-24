@@ -56,7 +56,7 @@ public:
      * \brief Constructor for class SCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    SCLaplaceOperator(std::string object_name,
+    SCLaplaceOperator(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
                       bool homogeneous_bc = true);
 

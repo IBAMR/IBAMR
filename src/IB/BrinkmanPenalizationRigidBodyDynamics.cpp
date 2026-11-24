@@ -100,13 +100,13 @@ solve_3x3_system(const Eigen::Vector3d& L, const Eigen::Matrix3d& T)
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 BrinkmanPenalizationRigidBodyDynamics::BrinkmanPenalizationRigidBodyDynamics(
-    std::string object_name,
+    const std::string& object_name,
     Pointer<CellVariable<NDIM, double>> ls_solid_var,
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
     Pointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
     Pointer<Database> input_db,
     bool register_for_restart)
-    : BrinkmanPenalizationStrategy(std::move(object_name), register_for_restart),
+    : BrinkmanPenalizationStrategy(object_name, register_for_restart),
       d_adv_diff_solver(adv_diff_solver),
       d_fluid_solver(fluid_solver),
       d_ls_solid_var(ls_solid_var),

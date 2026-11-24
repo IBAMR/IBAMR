@@ -83,7 +83,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    StokesFirstOrderWaveBcCoef(std::string object_name,
+    StokesFirstOrderWaveBcCoef(const std::string& object_name,
                                const int comp_idx,
                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM>> grid_geom);

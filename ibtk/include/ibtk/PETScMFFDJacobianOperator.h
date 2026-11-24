@@ -50,7 +50,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    PETScMFFDJacobianOperator(std::string object_name, std::string options_prefix = "");
+    PETScMFFDJacobianOperator(const std::string& object_name, std::string options_prefix = "");
 
     /*!
      * \brief Deallocate operator state and destroy the operator.

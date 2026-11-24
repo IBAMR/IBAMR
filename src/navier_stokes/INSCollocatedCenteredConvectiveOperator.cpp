@@ -284,11 +284,11 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator(
-    std::string object_name,
+    const std::string& object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& /*bc_coefs*/)
-    : ConvectiveOperator(std::move(object_name), difference_form)
+    : ConvectiveOperator(object_name, difference_form)
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {

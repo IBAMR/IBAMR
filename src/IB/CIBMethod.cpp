@@ -92,11 +92,11 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBMethod::CIBMethod(std::string object_name,
+CIBMethod::CIBMethod(const std::string& object_name,
                      Pointer<Database> input_db,
                      const int no_structures,
                      bool register_for_restart)
-    : IBMethod(std::move(object_name), input_db, register_for_restart), CIBStrategy(no_structures)
+    : IBMethod(object_name, input_db, register_for_restart), CIBStrategy(no_structures)
 {
     // Resize some arrays.
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);

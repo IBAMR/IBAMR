@@ -80,12 +80,12 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string object_name,
+PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::string& object_name,
                                                                    Pointer<Variable<NDIM>> scratch_var,
                                                                    const int ghost_cell_width,
                                                                    const Pointer<Database> input_db,
                                                                    const std::string& default_options_prefix)
-    : FACPreconditionerStrategy(std::move(object_name)),
+    : FACPreconditionerStrategy(object_name),
       d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
