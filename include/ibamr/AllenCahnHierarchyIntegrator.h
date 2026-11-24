@@ -170,9 +170,11 @@ protected:
     virtual void regridHierarchyBeginSpecialized() override;
 
     /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     * Reset cached hierarchy dependent data.
      */
-    virtual void regridHierarchyEndSpecialized() override;
+    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
 
 private:
     /*!
@@ -274,6 +276,11 @@ private:
      * Boundary condition object for \f$ \varphi \f$.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
+
+    /*!
+     * Data synchronization operator for \f$ \varphi \f$.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_lf_bdry_bc_fill_op;
 
     /*!
      * Convective operator and difference type for the Allen-Cahn equation.

@@ -20,7 +20,7 @@ ADD_CUSTOM_TARGET(tests)
 #    their corresponding build directories.
 SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IIM IMP IBTK adv_diff advect coarsen
   complex_fluids external fe_mechanics interpolate level_set multiphase_flow
-  navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank)
+  navier_stokes phase_change physical_boundary refine spread vc_navier_stokes wave_tank)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_TARGET("tests-${_dir}")
@@ -168,6 +168,9 @@ SETUP_2D(navier_stokes stokes_operator.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
 SETUP_2D(navier_stokes stokes_fac_restriction.cpp)
 SETUP_2D(navier_stokes stokes_fac_default_bcs.cpp)
+
+# phase_change:
+SETUP_2D(phase_change phase_change_01.cpp)
 
 # physical_boundary:
 SETUP(physical_boundary extrapolation_01.cpp IBAMR2d)
