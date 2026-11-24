@@ -1,0 +1,5 @@
+level 0 patches: 8
+level 0 physical boundary boxes: 8, checksum 913668
+level 1 patches: 100
+level 1 physical boundary boxes: 25, checksum 797516
+level 1 coarse-fine boundary boxes: 7832, checksum 861247

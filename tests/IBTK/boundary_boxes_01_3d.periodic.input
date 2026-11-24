@@ -1,0 +1,29 @@
+// 100 fine patches, periodic in x and y with a gap at the upper x and y boundaries, touching the lower z boundary.
+GHOST_WIDTH = 4
+REF_RATIO = 2
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0,0), (19,19,19)]
+   x_lo = 0, 0, 0
+   x_up = 1, 1, 1
+   periodic_dimension = 1, 1, 0
+}
+
+Level0 {
+   lower = 0, 0, 0
+   size = 10, 10, 10
+   gap = 0, 0, 0
+   number = 2, 2, 2
+}
+
+Level1 {
+   lower = 0, 0, 0
+   size = 6, 6, 6
+   gap = 2, 2, 2
+   number = 5, 5, 4
+}
