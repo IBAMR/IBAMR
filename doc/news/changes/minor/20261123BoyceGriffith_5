@@ -1,0 +1,3 @@
+Improved: IBAMR::IIMethod now builds the schedule that fills the ghost cells of the pressure used for the fluid traction only after the grid changes, instead of at every time step, and fills those ghost cells once per time step instead of once per part.
+<br>
+(Boyce Griffith, 2026/11/23)
