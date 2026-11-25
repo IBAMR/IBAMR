@@ -36,6 +36,7 @@
 #include <StandardTagAndInitialize.h>
 
 #include <array>
+#include <cmath>
 #include <sstream>
 #include <vector>
 
@@ -275,6 +276,42 @@ print_patch_data(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     U_data->restoreArrays();
     plog << out.str();
 }
+
+// Print the owner rank and position of each marker; the lists of all ranks are gathered on rank 0.
+void
+print_marker_data(Pointer<IBTK::LData> X_data,
+                  IBTK::LDataManager* l_data_manager,
+                  const std::string& label,
+                  const std::array<IBTK::Point, N_MARKERS>& X_exact)
+{
+    std::array<double, 3 * N_MARKERS> data{};
+    boost::multi_array_ref<double, 2>& X_array = *X_data->getGhostedLocalFormVecArray();
+    for (IBTK::LNode* node : l_data_manager->getLMesh(0)->getLocalNodes())
+    {
+        const int idx = node->getLagrangianIndex();
+        const int local_idx = node->getLocalPETScIndex();
+        for (int d = 0; d < NDIM; ++d)
+        {
+            if (std::abs(X_array[local_idx][d] - X_exact[idx][d]) > 1.0e-14)
+            {
+                TBOX_ERROR("marker " << idx << " is not at its exact position\n");
+            }
+            data[3 * idx + d] = X_array[local_idx][d];
+        }
+        data[3 * idx + 2] = IBTK_MPI::getRank() + 1.0;
+    }
+    X_data->restoreArrays();
+    IBTK_MPI::sumReduction(data.data(), static_cast<int>(data.size()));
+
+    std::ostringstream out;
+    out << label << '\n';
+    for (int k = 0; k < N_MARKERS; ++k)
+    {
+        out << "  index = " << k << " rank = " << static_cast<int>(data[3 * k + 2]) - 1 << " X = " << data[3 * k]
+            << ", " << data[3 * k + 1] << '\n';
+    }
+    plog << out.str();
+}
 } // namespace
 
 int
@@ -284,9 +321,11 @@ main(int argc, char** argv)
     Logger::getInstance()->setWarning(false);
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
 
-    if (IBTK_MPI::getNodes() != 4)
+    const bool displace_structures =
+        app_initializer->getComponentDatabase("Main")->getBoolWithDefault("displace_structures", false);
+    if (IBTK_MPI::getNodes() != (displace_structures ? 2 : 4))
     {
-        TBOX_ERROR("This test must be run with exactly 4 MPI processes.\n");
+        TBOX_ERROR("This test must be run with exactly " << (displace_structures ? 2 : 4) << " MPI processes.\n");
     }
 
     Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -316,6 +355,25 @@ main(int argc, char** argv)
 
     Pointer<IBTK::LData> X_data = l_data_manager->getLData(IBTK::LDataManager::POSN_DATA_NAME, 0);
     Pointer<IBTK::LData> U_data = l_data_manager->getLData(IBTK::LDataManager::VEL_DATA_NAME, 0);
+    if (displace_structures)
+    {
+        // Displace the structures left of x = 0.5: marker 0 moves to another patch of the same rank, and the others
+        // move across x = 0.5, so that nodes move from only one rank to the other.
+        auto X_exact = get_initial_positions();
+        print_marker_data(X_data, l_data_manager, "before displacement", X_exact);
+        for (int k = 0; k < N_MARKERS; ++k)
+        {
+            if (X_exact[k][0] > 0.5) continue;
+            const IBTK::Vector dX = (k == 0) ? IBTK::Vector(0.0, 0.04) : IBTK::Vector(0.04, 0.0);
+            X_exact[k] += dX;
+            l_data_manager->displaceLagrangianStructure(dX, k, 0);
+        }
+        l_data_manager->beginDataRedistribution(0, 0);
+        l_data_manager->endDataRedistribution(0, 0);
+        X_data = l_data_manager->getLData(IBTK::LDataManager::POSN_DATA_NAME, 0);
+        print_marker_data(X_data, l_data_manager, "after displacement", X_exact);
+        return 0;
+    }
     print_patch_data(patch_hierarchy, l_data_manager, X_data, U_data, "before redistribution", 0);
     const auto step_translations = get_step_translations();
     for (std::size_t step = 0; step < step_translations.size(); ++step)
