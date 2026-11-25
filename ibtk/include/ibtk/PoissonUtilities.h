@@ -191,7 +191,7 @@ public:
                                   const SAMRAI::pdat::CellData<NDIM, double>& sol_data,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                  const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry);
+                                  const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_coarse_fine_bdry);
 
     /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
@@ -202,24 +202,25 @@ public:
      * physical boundary contribute nothing. This function modifies rhs_data only in the side box of the patch and
      * requires no ghost cells of rhs_data.
      *
-     * The coarse-fine boundary boxes of codimension two in type2_cf_bdry determine which ghost cells that touch the
-     * patch only along an edge or a corner belong to the level. This function leaves unchanged the entry of each side
-     * on a Dirichlet boundary (Robin coefficient b of bc_coefs exactly zero), which is the boundary value. The
-     * coefficients are evaluated as in adjustRHSAtPhysicalBoundary().
+     * The coarse-fine boundary boxes of codimension two in type2_coarse_fine_bdry determine which ghost cells that
+     * touch the patch only along an edge or a corner belong to the level. This function leaves unchanged the entry of
+     * each side on a Dirichlet boundary (Robin coefficient b of bc_coefs exactly zero), which is the boundary value.
+     * The coefficients are evaluated as in adjustRHSAtPhysicalBoundary().
      *
      * \note This function uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
      * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
      * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
      */
-    static void adjustRHSAtCoarseFineBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
-                                              const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                                              const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                              const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry,
-                                              const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type2_cf_bdry,
-                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                              double data_time,
-                                              bool homogeneous_bc);
+    static void
+    adjustRHSAtCoarseFineBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+                                  const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                  const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                  const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_coarse_fine_bdry,
+                                  const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type2_coarse_fine_bdry,
+                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                  double data_time,
+                                  bool homogeneous_bc);
 
     /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
@@ -228,9 +229,9 @@ public:
      * For each side of the patch, this function subtracts from rhs_data the contribution of each stencil neighbor that
      * is not a side of any patch of the level, using the ghost values in sol_data. Neighbors across a physical boundary
      * contribute nothing. This function modifies rhs_data only in the side box of the patch and leaves unchanged the
-     * entry of each side on a Dirichlet boundary. The coarse-fine boundary boxes of codimension two in type2_cf_bdry
-     * determine which ghost cells that touch the patch only along an edge or a corner belong to the level. The
-     * coefficients bc_coefs are evaluated at data_time.
+     * entry of each side on a Dirichlet boundary. The coarse-fine boundary boxes of codimension two in
+     * type2_coarse_fine_bdry determine which ghost cells that touch the patch only along an edge or a corner belong to
+     * the level. The coefficients bc_coefs are evaluated at data_time.
      *
      * \note This function uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
      * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
@@ -245,8 +246,8 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         double alpha,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_cf_bdry,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type2_cf_bdry,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type1_coarse_fine_bdry,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& type2_coarse_fine_bdry,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         double data_time,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);

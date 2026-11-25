@@ -1063,11 +1063,11 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
         Pointer<CellData<NDIM, double>> b_data = patch->getPatchData(b_idx);
-        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+        const Array<BoundaryBox<NDIM>>& type_1_coarse_fine_bdry =
             level_zero ? Array<BoundaryBox<NDIM>>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
-        const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
+        const bool at_cf_bdry = type_1_coarse_fine_bdry.size() > 0;
         if (at_physical_bdry || at_cf_bdry)
         {
             CellData<NDIM, double> b_adj_data(patch_box, b_data->getDepth(), IntVector<NDIM>(0));
@@ -1080,7 +1080,7 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             if (at_cf_bdry)
             {
                 PoissonUtilities::adjustRHSAtCoarseFineBoundary(
-                    b_adj_data, *x_data, patch, d_poisson_spec, type_1_cf_bdry);
+                    b_adj_data, *x_data, patch, d_poisson_spec, type_1_coarse_fine_bdry);
             }
             copyToHypre(d_rhs_vecs, b_adj_data, patch_box);
         }

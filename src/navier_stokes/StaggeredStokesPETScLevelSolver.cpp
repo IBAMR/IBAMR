@@ -80,19 +80,19 @@ static const int NOGHOST = 0;
 // Subtract from the right-hand side of each velocity side on a coarse-fine interface the term of the pressure in the
 // cell across the interface, which has no degree of freedom.
 void
-adjust_rhs_for_pressure_at_cf_boundary(SideData<NDIM, double>& rhs_data,
-                                       const CellData<NDIM, double>& p_data,
-                                       const CellData<NDIM, int>& p_dof_index_data,
-                                       Pointer<Patch<NDIM>> patch,
-                                       const Array<BoundaryBox<NDIM>>& type_1_cf_bdry)
+adjust_rhs_for_pressure_at_coarse_fine_boundary(SideData<NDIM, double>& rhs_data,
+                                                const CellData<NDIM, double>& p_data,
+                                                const CellData<NDIM, int>& p_dof_index_data,
+                                                Pointer<Patch<NDIM>> patch,
+                                                const Array<BoundaryBox<NDIM>>& type_1_coarse_fine_bdry)
 {
     TBOX_ASSERT(p_data.getGhostCellWidth().min() >= 1);
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    for (int n = 0; n < type_1_cf_bdry.size(); ++n)
+    for (int n = 0; n < type_1_coarse_fine_bdry.size(); ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box = type_1_cf_bdry[n];
+        const BoundaryBox<NDIM>& bdry_box = type_1_coarse_fine_bdry[n];
         const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(trimmed_bdry_box, patch_box, IntVector<NDIM>(1));
         const unsigned int location_index = bdry_box.getLocationIndex();
@@ -118,7 +118,7 @@ adjust_rhs_for_pressure_at_cf_boundary(SideData<NDIM, double>& rhs_data,
         }
     }
     return;
-} // adjust_rhs_for_pressure_at_cf_boundary
+} // adjust_rhs_for_pressure_at_coarse_fine_boundary
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -265,9 +265,9 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
             {
                 Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
-                const Array<BoundaryBox<NDIM>>& type_1_cf_bdry = d_cf_boundary->getBoundaries(patch->getPatchNumber(),
-                                                                                              /* boundary type */ 1);
-                local_cf_bdry_box_size += type_1_cf_bdry.size();
+                const Array<BoundaryBox<NDIM>>& type_1_coarse_fine_bdry =
+                    d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+                local_cf_bdry_box_size += type_1_coarse_fine_bdry.size();
             }
             level_covers_entire_domain = IBTK_MPI::sumReduction(local_cf_bdry_box_size) == 0;
         }
@@ -383,27 +383,28 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
             PoissonUtilities::adjustRHSAtPhysicalBoundary(
                 *f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs, d_solution_time, d_homogeneous_bc);
         }
-        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry = level_zero ?
-                                                             Array<BoundaryBox<NDIM>>() :
-                                                             d_cf_boundary->getBoundaries(patch->getPatchNumber(),
-                                                                                          /* boundary type */ 1);
-        const Array<BoundaryBox<NDIM>>& type_2_cf_bdry = level_zero ?
-                                                             Array<BoundaryBox<NDIM>>() :
-                                                             d_cf_boundary->getBoundaries(patch->getPatchNumber(),
-                                                                                          /* boundary type */ 2);
-        const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
+        const Array<BoundaryBox<NDIM>>& type_1_coarse_fine_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(),
+                                                      /* boundary type */ 1);
+        const Array<BoundaryBox<NDIM>>& type_2_coarse_fine_bdry =
+            level_zero ? Array<BoundaryBox<NDIM>>() :
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(),
+                                                      /* boundary type */ 2);
+        const bool at_cf_bdry = type_1_coarse_fine_bdry.size() > 0;
         if (at_cf_bdry)
         {
             PoissonUtilities::adjustRHSAtCoarseFineBoundary(*f_adj_data,
                                                             *u_data,
                                                             patch,
                                                             d_U_problem_coefs,
-                                                            type_1_cf_bdry,
-                                                            type_2_cf_bdry,
+                                                            type_1_coarse_fine_bdry,
+                                                            type_2_coarse_fine_bdry,
                                                             d_U_bc_coefs,
                                                             d_solution_time,
                                                             d_homogeneous_bc);
-            adjust_rhs_for_pressure_at_cf_boundary(*f_adj_data, *p_data, *p_dof_index_data, patch, type_1_cf_bdry);
+            adjust_rhs_for_pressure_at_coarse_fine_boundary(
+                *f_adj_data, *p_data, *p_dof_index_data, patch, type_1_coarse_fine_bdry);
         }
     }
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
