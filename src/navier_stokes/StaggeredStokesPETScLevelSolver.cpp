@@ -255,6 +255,9 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                      d_level);
     d_petsc_pc = d_petsc_mat;
 
+    // Clear the null space of a previous level: a level that does not cover the domain has none.
+    LinearSolver::setNullSpace(/*const vec*/ false, {});
+
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
     {

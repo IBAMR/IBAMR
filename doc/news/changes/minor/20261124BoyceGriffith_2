@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesPETScLevelSolver no longer crashes after a regrid turns a level that covered the whole domain into one that covers part of it.
+<br>
+(Boyce Griffith, 2026/11/24)
