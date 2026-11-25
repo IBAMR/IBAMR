@@ -24,8 +24,6 @@ KAPPA_M = 0.5*(KAPPA_L + KAPPA_S)
 LATENT_HEAT = 3.8384e5
 
 MELT_TEMPERATURE = 933.6
-LIQUID_TEMPERATURE = 973.6
-SOLID_TEMPERATURE = 298.6
 INITIAL_INTERFACE_POSITION = 0.0
 NUMBER_OF_INTERFACE_CELLS  = 2.0
 
@@ -422,15 +420,13 @@ EnthalpyHierarchyIntegrator {
 
    T_solver_type = "SCALED_PETSC_KRYLOV_SOLVER"
    T_precond_type = "SCALED_POINT_RELAXATION_FAC_PRECONDITIONER"
-   T_solver_db
-   {
+   T_solver_db {
       ksp_type             = "fgmres"
       rel_residual_tol     = 1.0e-12
       max_iterations       = 1000
    }
 
-   T_precond_db
-   {
+   T_precond_db {
       cycle_type = "V_CYCLE"
       num_pre_sweeps = 1
       num_post_sweeps = 2
@@ -443,19 +439,18 @@ EnthalpyHierarchyIntegrator {
       coarse_solver_abs_residual_tol = 1.0e-12
       coarse_solver_max_iterations = 100
 
-      coarse_solver_db
-      {
+      coarse_solver_db {
          ksp_type = "gmres"
          pc_type = "jacobi"
       }
    } 
 
    mass_scalar_transport_integrator_db {
-         density_time_stepping_type = DENSITY_TS
-         temperature_convective_limiter = DENSITY_CONVECTIVE_LIMITER
-         specific_heat_convective_limiter = DENSITY_CONVECTIVE_LIMITER
-         density_convective_limiter = DENSITY_CONVECTIVE_LIMITER
-         enable_logging = ENABLE_LOGGING
+      density_time_stepping_type = DENSITY_TS
+      temperature_convective_limiter = DENSITY_CONVECTIVE_LIMITER
+      specific_heat_convective_limiter = DENSITY_CONVECTIVE_LIMITER
+      density_convective_limiter = DENSITY_CONVECTIVE_LIMITER
+      enable_logging = ENABLE_LOGGING
    }
 }
 

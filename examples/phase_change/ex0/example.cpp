@@ -147,9 +147,18 @@ main(int argc, char* argv[])
             "ls_init", app_initializer->getComponentDatabase("LevelSetInitialConditions"), grid_geometry);
         time_integrator->setInitialConditions(ls_var, ls_init);
 
-        Pointer<CartGridFunction> pcm_vof_init = new muParserCartGridFunction(
-            "pcm_vof_init", app_initializer->getComponentDatabase("PCMVoFInitialConditions"), grid_geometry);
-        time_integrator->setInitialConditions(pcm_vof_var, pcm_vof_init);
+        Pointer<CartGridFunction> lf_init = nullptr;
+        bool use_non_isothermal_formulation = input_db->getBool("USE_NON_ISOTHERMAL_FORMULATION");
+        if (!use_non_isothermal_formulation)
+        {
+            lf_init = new muParserCartGridFunction(
+                "lf_init", app_initializer->getComponentDatabase("LiquidFractionInitialConditions"), grid_geometry);
+        }
+        enthalpy_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
+
+        Pointer<CartGridFunction> vof_init =
+            new IBAMR::VCINSVOFUtilities::VOFInitialConditionFromLevelSet("vof_init", ls_init);
+        time_integrator->setInitialConditions(pcm_vof_var, vof_init);
 
         Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
             "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);

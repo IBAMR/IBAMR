@@ -11,13 +11,12 @@ CP_S    = 0.91e3
 LATENT_HEAT = 3.8384e5
 
 MELT_TEMPERATURE = 933.6
-LIQUID_TEMPERATURE = 973.6
-SOLID_TEMPERATURE = 298.6
 INITIAL_INTERFACE_POSITION = 0.0
 
-LIQUIDUS_TEMPERATURE = 938.6
-SOLIDUS_TEMPERATURE = 928.6
+LIQUIDUS_TEMPERATURE = 940.6
+SOLIDUS_TEMPERATURE = 926.6
 REFERENCE_TEMPERATURE = 933.6
+USE_NON_ISOTHERMAL_FORMULATION = TRUE
 
 MIN_TAG_VAL = 0.3
 MAX_TAG_VAL = 0.8
@@ -42,7 +41,7 @@ LevelSetInitialConditions{
   function = "10.0"   // Put a positive number as the whole domain is PCM 
 }
 
-PCMVoFInitialConditions{
+LiquidFractionInitialConditions{
   function = "1.0"
 }
 
@@ -213,6 +212,7 @@ EnthalpyHierarchyIntegrator {
    solidus_temperature             = SOLIDUS_TEMPERATURE
    reference_temperature           = REFERENCE_TEMPERATURE
    output_temp_k                   = TRUE
+   use_non_isothermal_formulation  = USE_NON_ISOTHERMAL_FORMULATION
 
    T_solver_type = "SCALED_PETSC_KRYLOV_SOLVER"
    T_precond_type = "SCALED_POINT_RELAXATION_FAC_PRECONDITIONER"

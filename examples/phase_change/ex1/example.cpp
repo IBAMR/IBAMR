@@ -231,10 +231,10 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateInterface* ptr_LSLocateInterface = new LSLocateInterface(
+        std::unique_ptr<LSLocateInterface> ptr_LSLocateInterface = std::make_unique<LSLocateInterface>(
             "LSLocateInterface", adv_diff_integrator, ls_var, initial_liquid_gas_interface_position);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateInterfaceCallbackFunction,
-                                                                static_cast<void*>(ptr_LSLocateInterface));
+                                                                static_cast<void*>(ptr_LSLocateInterface.get()));
         IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
             ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
@@ -252,12 +252,12 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> h_var = new CellVariable<NDIM, double>("h_var");
         enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
-        // Register pcm vof
+        // Register PCM VOF
         Pointer<CellVariable<NDIM, double>> pcm_vof_var = new CellVariable<NDIM, double>("pcm_vof_var");
         adv_diff_integrator->registerTransportedQuantity(pcm_vof_var, true);
         adv_diff_integrator->setDiffusionCoefficient(pcm_vof_var, 0.0);
 
-        // Set pcm vof and level set variables with enthalpy integrator
+        // Set PCM VOF and level set variables with enthalpy integrator
         enthalpy_hier_integrator->registerHeavisideVariable(pcm_vof_var);
         enthalpy_hier_integrator->registerLevelSetVariable(ls_var);
 
@@ -265,7 +265,7 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
         enthalpy_hier_integrator->registerTemperatureVariable(T_var, true);
 
-        // Set Advection velocity.
+        // Set advection velocity.
         adv_diff_integrator->setAdvectionVelocity(ls_var, time_integrator->getAdvectionVelocityVariable());
         enthalpy_hier_integrator->setAdvectionVelocity(time_integrator->getAdvectionVelocityVariable());
 
@@ -282,11 +282,12 @@ main(int argc, char* argv[])
             new LevelSetInitialCondition("ls_init", initial_liquid_gas_interface_position);
         adv_diff_integrator->setInitialConditions(ls_var, ls_init);
 
-        Pointer<CartGridFunction> lf_init = nullptr; 
+        Pointer<CartGridFunction> lf_init = nullptr;
         bool use_non_isothermal_formulation = input_db->getBool("USE_NON_ISOTHERMAL_FORMULATION");
         if (!use_non_isothermal_formulation)
-        { 
-            lf_init = new muParserCartGridFunction("lf_init", app_initializer->getComponentDatabase("LiquidFractionInitialConditions"), grid_geometry);
+        {
+            lf_init = new muParserCartGridFunction(
+                "lf_init", app_initializer->getComponentDatabase("LiquidFractionInitialConditions"), grid_geometry);
         }
         enthalpy_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
 
