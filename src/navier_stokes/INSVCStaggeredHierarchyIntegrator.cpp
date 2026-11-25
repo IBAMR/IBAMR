@@ -115,6 +115,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -787,14 +788,11 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                      "CONSERVATIVE_LINEAR_REFINE",
                      d_U_init);
 
-    registerVariable(d_U_current_idx,
-                     d_U_new_idx,
-                     d_U_scratch_idx,
-                     d_U_var,
-                     side_ghosts,
-                     d_U_coarsen_type,
-                     d_U_refine_type,
-                     d_U_init);
+    // The scratch velocity also provides the velocity, with filled ghost cells, to the viscosity model.
+    const IntVector<NDIM> U_ghosts =
+        d_viscosity_model ? std::max(SIDEG, d_viscosity_model->getVelocityGhostWidth()) : SIDEG;
+    registerVariable(
+        d_U_current_idx, d_U_new_idx, d_U_scratch_idx, d_U_var, U_ghosts, d_U_coarsen_type, d_U_refine_type, d_U_init);
 
     registerVariable(d_P_current_idx,
                      d_P_new_idx,
@@ -849,6 +847,19 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
                      d_N_coarsen_type,
                      d_N_refine_type);
 
+    // A viscosity model computes the viscosity in a variable created here.
+    if (d_viscosity_model)
+    {
+        if (d_mu_is_const || d_mu_var || d_mu_init_fcn || d_mu_adv_diff_var || !d_reset_mu_fcns.empty())
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                                     << "  a viscosity model computes the viscosity, so mu_is_const must be FALSE and\n"
+                                     << "  no viscosity variable, initial conditions, transported viscosity variable,\n"
+                                     << "  or viscosity reset function may be registered\n");
+        }
+        d_mu_var = new CellVariable<NDIM, double>(d_object_name + "::mu");
+    }
+
     // Get the viscosity variable, which can either be an advected field
     // maintained by an appropriate advection-diffusion integrator, or a set
     // field with some functional form maintained by the INS integrator
@@ -894,7 +905,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 #if !defined(NDEBUG)
         // INSVCStaggeredHierarchyIntegrator should initialize the viscosity
         // variable.
-        TBOX_ASSERT(d_mu_init_fcn || d_reset_mu_fcns.size() > 0);
+        TBOX_ASSERT(d_mu_init_fcn || d_reset_mu_fcns.size() > 0 || d_viscosity_model);
 #endif
         // The regrid fill puts mu in one refine class with P, and that class
         // fills mu on the coarser level only to P's ghost width.
@@ -1324,6 +1335,17 @@ INSVCStaggeredHierarchyIntegrator::registerViscosityVariable(Pointer<Variable<ND
     return;
 } // registerViscosityVariable
 
+void
+INSVCStaggeredHierarchyIntegrator::setViscosityModel(std::unique_ptr<ViscosityModel> viscosity_model)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(viscosity_model);
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_viscosity_model = std::move(viscosity_model);
+    return;
+} // setViscosityModel
+
 Pointer<Variable<NDIM>>
 INSVCStaggeredHierarchyIntegrator::getViscosityVariable() const
 {
@@ -1571,18 +1593,32 @@ INSVCStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
 } // regridHierarchyEndSpecialized
 
 void
-INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
+INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double init_data_time,
                                                                                const bool initial_time)
 {
-    if (initial_time && d_Q_fcn) return;
-
     // Project the interpolated velocity if needed.
-    if (initial_time || d_do_regrid_projection)
+    if (initial_time ? !d_Q_fcn : d_do_regrid_projection)
     {
         plog << d_object_name << "::initializeCompositeHierarchyData():\n"
              << "  projecting the interpolated velocity field\n";
         regridProjection(initial_time);
         d_do_regrid_projection = false;
+    }
+
+    // Compute the viscosity of the initial velocity. Each time step recomputes the viscosity at the current time, so
+    // regridding does not need to.
+    if (initial_time && d_viscosity_model)
+    {
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = 0; ln <= finest_ln; ++ln)
+        {
+            d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_U_scratch_idx, init_data_time);
+        }
+        setViscosityFromModel(d_mu_current_idx, d_U_current_idx, init_data_time);
+        for (int ln = 0; ln <= finest_ln; ++ln)
+        {
+            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_U_scratch_idx);
+        }
     }
     return;
 } // initializeCompositeHierarchyDataSpecialized
@@ -1944,6 +1980,21 @@ INSVCStaggeredHierarchyIntegrator::copySideToFace(const int U_fc_idx,
     copy_side_to_face(U_fc_idx, U_sc_idx, hierarchy);
     return;
 } // copySideToFace
+
+void
+INSVCStaggeredHierarchyIntegrator::setViscosityFromModel(const int mu_idx, const int U_idx, const double time)
+{
+    d_hier_sc_data_ops->copyData(d_U_scratch_idx, U_idx);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
+                                                              /*P_bc_coef*/ nullptr,
+                                                              d_U_scratch_idx,
+                                                              /*P_data_idx*/ -1,
+                                                              /*homogeneous_bc*/ false);
+    d_U_bdry_bc_fill_op->fillData(time);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, /*P_bc_coef*/ nullptr);
+    d_viscosity_model->setDataOnPatchHierarchy(mu_idx, d_U_scratch_idx, *d_hier_math_ops, time);
+    return;
+} // setViscosityFromModel
 
 void
 INSVCStaggeredHierarchyIntegrator::setSolverPhysicalBcCoefs(const SolverPhysicalBcCoefs bc_coefs)
