@@ -1,0 +1,3 @@
+Improved: IBAMR::CIBStaggeredStokesSolver now builds the schedule that fills the ghost cells of its widened velocity when the solver state is initialized, instead of on every solve.
+<br>
+(Boyce Griffith, 2026/11/23)
