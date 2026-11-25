@@ -87,7 +87,7 @@ PETScSAMRAIVectorReal::restoreSAMRAIVector(
 #if !defined(NDEBUG)
     TBOX_ASSERT(psv);
     TBOX_ASSERT(psv->d_vector_checked_out_read_write);
-    TBOX_ASSERT(psv->d_samrai_vector.getPointer() == *samrai_vec);
+    TBOX_ASSERT(psv->d_samrai_vector == *samrai_vec);
 #endif
     psv->d_vector_checked_out_read_write = false;
     *samrai_vec = nullptr;
@@ -124,7 +124,7 @@ PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(
 #if !defined(NDEBUG)
     TBOX_ASSERT(psv);
     TBOX_ASSERT(psv->d_vector_checked_out_read);
-    TBOX_ASSERT(psv->d_samrai_vector.getPointer() == *samrai_vec);
+    TBOX_ASSERT(psv->d_samrai_vector == *samrai_vec);
 #endif
     psv->d_vector_checked_out_read = false;
     *samrai_vec = nullptr;
