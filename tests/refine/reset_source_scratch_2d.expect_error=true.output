@@ -1,0 +1,7 @@
+Program abort called with error message
+
+    RefineSchedule<DIM>::reset
+The schedule does not copy data from a patch to itself for an item whose
+source and scratch data are the same, so they must stay the same.
+Create a new schedule instead.
+
