@@ -1034,11 +1034,15 @@ AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> db, bool 
             d_default_convective_op_type = db->getString("default_convective_op_type");
         else if (db->keyExists("default_convective_operator_type"))
             d_default_convective_op_type = db->getString("default_convective_operator_type");
+    }
 
-        if (db->keyExists("convective_op_db"))
-            d_default_convective_op_input_db = db->getDatabase("convective_op_db");
-        else if (db->keyExists("default_convective_op_db"))
-            d_default_convective_op_input_db = db->getDatabase("default_convective_op_db");
+    if (db->keyExists("convective_op_db"))
+    {
+        d_default_convective_op_input_db = db->getDatabase("convective_op_db");
+    }
+    else if (db->keyExists("default_convective_op_db"))
+    {
+        d_default_convective_op_input_db = db->getDatabase("default_convective_op_db");
     }
     return;
 } // getFromInput
