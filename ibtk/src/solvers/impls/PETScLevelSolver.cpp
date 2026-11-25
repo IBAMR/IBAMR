@@ -191,7 +191,17 @@ PETScLevelSolver::setNullSpace(bool contains_constant_vec,
                                const std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>& nullspace_basis_vecs)
 {
     LinearSolver::setNullSpace(contains_constant_vec, nullspace_basis_vecs);
-    if (d_is_initialized) setupNullSpace();
+    if (d_petsc_nullsp)
+    {
+        int ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
+        IBTK_CHKERRQ(ierr);
+        if (d_petsc_mat)
+        {
+            ierr = MatSetNullSpace(d_petsc_mat, nullptr);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    d_nullspace_out_of_date = true;
     return;
 } // setNullSpace
 
@@ -214,6 +224,13 @@ PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
     resetKSPNormType();
     ierr = KSPSetInitialGuessNonzero(d_petsc_ksp, d_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE);
     IBTK_CHKERRQ(ierr);
+
+    // Rebuild the nullspace object if the nullspace was changed after the solver was initialized.
+    if (d_nullspace_out_of_date)
+    {
+        d_nullspace_out_of_date = false;
+        if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty()) setupNullSpace();
+    }
 
     // Solve the system.
     setupKSPVecs(d_petsc_x, d_petsc_b, x, b);
@@ -372,6 +389,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     d_pc_type = pc_type;
 
     // Set the nullspace.
+    d_nullspace_out_of_date = false;
     if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty()) setupNullSpace();
 
     // Setup the preconditioner.
@@ -664,11 +682,8 @@ PETScLevelSolver::deallocateSolverState()
     }
     ierr = MatDestroy(&d_petsc_mat);
     IBTK_CHKERRQ(ierr);
-    if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty())
-    {
-        ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
-        IBTK_CHKERRQ(ierr);
-    }
+    ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
+    IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_x);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_b);
@@ -797,7 +812,8 @@ PETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::string>& /*field
 void
 PETScLevelSolver::setupNullSpace()
 {
-    int ierr;
+    int ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
+    IBTK_CHKERRQ(ierr);
     std::vector<Vec> petsc_nullspace_basis_vecs(d_nullspace_basis_vecs.size());
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {
