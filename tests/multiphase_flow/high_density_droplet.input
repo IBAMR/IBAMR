@@ -398,6 +398,12 @@ RelaxationLSMethod {
 }
 
 
+SurfaceTensionForceFunction {
+   sigma               = 0.0
+   smoother            = "IB_4"
+   num_interface_cells = 2.5
+}
+
 Main {
    solver_type = SOLVER_TYPE
    discretization_form = DISCRETIZATION_FORM
