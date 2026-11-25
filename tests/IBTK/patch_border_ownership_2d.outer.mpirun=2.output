@@ -1,0 +1,7 @@
+Side data, copy from outer data: level border = owner (64); two patches = owner (480); elsewhere = not set (240)
+Side data, coarsening from outer data: level border = owner (48); two patches = owner (112); elsewhere = not set (624)
+Face data, copy from outer data: level border = owner (64); two patches = owner (480); elsewhere = not set (240)
+Face data, coarsening from outer data: level border = owner (48); two patches = owner (112); elsewhere = not set (624)
+Edge data, copy from outer data: level border = owner (64); two patches = owner (480); elsewhere = not set (240)
+Node data, copy from outer data: level border = owner (34); two patches = owner (450); junctions = owner (60)
+Node data, coarsening from outer data: level border = owner (36); two patches = owner (98); junctions = owner (28); elsewhere = not set (382)
