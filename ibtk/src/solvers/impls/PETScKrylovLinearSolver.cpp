@@ -201,7 +201,7 @@ PETScKrylovLinearSolver::setNullSpace(const bool contains_constant_vec,
 {
     deallocateNullSpaceData();
     KrylovLinearSolver::setNullSpace(contains_constant_vec, nullspace_basis_vecs);
-    resetMatNullSpace();
+    d_nullspace_out_of_date = true;
     return;
 } // setNullSpace
 
@@ -222,6 +222,12 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     TBOX_ASSERT(d_petsc_ksp);
 #endif
     resetKSPOptions();
+
+    // Rebuild the nullspace object if the nullspace was changed after the solver was initialized.
+    if (d_nullspace_out_of_date)
+    {
+        resetMatNullSpace();
+    }
 
     // Solve the system using a PETSc KSP object.
     d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double>>(&b, false));
@@ -766,6 +772,7 @@ PETScKrylovLinearSolver::checkPreconditionerLinearity()
 void
 PETScKrylovLinearSolver::resetMatNullSpace()
 {
+    d_nullspace_out_of_date = false;
     if (!d_petsc_ksp) return;
     int ierr;
     PetscBool flg;

@@ -206,6 +206,8 @@ public:
      *
      * Basis vectors must be orthogonal but are not required to be orthonormal.
      * Basis vectors will be normalized automatically.
+     *
+     * \note The nullspace takes effect at the next initializeSolverState() or solveSystem().
      */
     void setNullSpace(
         bool contains_constant_vec,
@@ -430,6 +432,7 @@ private:
     Vec d_petsc_nullspace_constant_vec = nullptr;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
     bool d_solver_has_attached_nullspace = false;
+    bool d_nullspace_out_of_date = false;
 };
 } // namespace IBTK
 

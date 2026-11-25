@@ -1,0 +1,3 @@
+Fixed: IBTK::PETScKrylovLinearSolver::setNullSpace() no longer builds the PETSc null space from the vectors of an earlier hierarchy, which aborted or crashed the INS integrators after a regrid.
+<br>
+(Boyce Griffith, 2026/11/24)
