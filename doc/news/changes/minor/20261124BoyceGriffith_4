@@ -1,0 +1,3 @@
+Fixed: IBAMR::IIMethod now fills the pressure ghost cells at physical boundaries before it computes the fluid traction, and stops with an error when a one-sided pressure or traction L2 projection does not converge.
+<br>
+(Boyce Griffith, 2026/11/24)
