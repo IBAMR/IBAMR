@@ -53,7 +53,7 @@ main(int argc, char* argv[])
     const double tolerance = input_db->getDouble("error_tolerance");
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("cc_poisson_hypre_cf_boundary");
+    Pointer<VariableContext> context = var_db->getContext("cc_poisson_hypre_coarse_fine_boundary");
     Pointer<CellVariable<NDIM, double>> u_var = new CellVariable<NDIM, double>("u");
     Pointer<CellVariable<NDIM, double>> f_var = new CellVariable<NDIM, double>("f");
     const int u_idx = var_db->registerVariableAndContext(u_var, context, IntVector<NDIM>(1));

@@ -99,12 +99,12 @@ class LevelCellClassifier
 {
 public:
     LevelCellClassifier(const Patch<NDIM>& patch,
-                        const Array<BoundaryBox<NDIM>>& type1_cf_bdry,
-                        const Array<BoundaryBox<NDIM>>& type2_cf_bdry)
+                        const Array<BoundaryBox<NDIM>>& type1_coarse_fine_bdry,
+                        const Array<BoundaryBox<NDIM>>& type2_coarse_fine_bdry)
         : d_patch_box(patch.getBox()),
           d_ghost_box(Box<NDIM>::grow(patch.getBox(), IntVector<NDIM>(1))),
-          d_type1_cf_bdry(type1_cf_bdry),
-          d_type2_cf_bdry(type2_cf_bdry)
+          d_type1_coarse_fine_bdry(type1_coarse_fine_bdry),
+          d_type2_coarse_fine_bdry(type2_coarse_fine_bdry)
     {
         Pointer<PatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -137,7 +137,7 @@ public:
         {
             return false;
         }
-        if (isInBoxes(d_type1_cf_bdry, cell))
+        if (isInBoxes(d_type1_coarse_fine_bdry, cell))
         {
             return false;
         }
@@ -154,7 +154,7 @@ public:
         {
             return true;
         }
-        return !isInBoxes(d_type2_cf_bdry, cell);
+        return !isInBoxes(d_type2_coarse_fine_bdry, cell);
     }
 
 private:
@@ -171,8 +171,8 @@ private:
     }
 
     const Box<NDIM> d_patch_box, d_ghost_box;
-    const Array<BoundaryBox<NDIM>>& d_type1_cf_bdry;
-    const Array<BoundaryBox<NDIM>>& d_type2_cf_bdry;
+    const Array<BoundaryBox<NDIM>>& d_type1_coarse_fine_bdry;
+    const Array<BoundaryBox<NDIM>>& d_type2_coarse_fine_bdry;
     bool d_touches_regular_bdry[NDIM][2];
 };
 
@@ -263,15 +263,15 @@ private:
 // Subtract from the right-hand side of each side of a patch the contribution of the ghost values that are omitted from
 // the matrix of a side-centered level solver.
 void
-adjust_sc_rhs_at_cf_boundary(SideData<NDIM, double>& rhs_data,
-                             const SideData<NDIM, double>& sol_data,
-                             Pointer<Patch<NDIM>> patch,
-                             const PoissonSpecifications& poisson_spec,
-                             const Array<BoundaryBox<NDIM>>& type1_cf_bdry,
-                             const Array<BoundaryBox<NDIM>>& type2_cf_bdry,
-                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                             const double data_time,
-                             const bool homogeneous_bc)
+adjust_sc_rhs_at_coarse_fine_boundary(SideData<NDIM, double>& rhs_data,
+                                      const SideData<NDIM, double>& sol_data,
+                                      Pointer<Patch<NDIM>> patch,
+                                      const PoissonSpecifications& poisson_spec,
+                                      const Array<BoundaryBox<NDIM>>& type1_coarse_fine_bdry,
+                                      const Array<BoundaryBox<NDIM>>& type2_coarse_fine_bdry,
+                                      const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                      const double data_time,
+                                      const bool homogeneous_bc)
 {
     const int depth = rhs_data.getDepth();
     TBOX_ASSERT(depth == sol_data.getDepth());
@@ -285,7 +285,7 @@ adjust_sc_rhs_at_cf_boundary(SideData<NDIM, double>& rhs_data,
     const double D = poisson_spec.getDConstant();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const LevelCellClassifier cells(*patch, type1_cf_bdry, type2_cf_bdry);
+    const LevelCellClassifier cells(*patch, type1_coarse_fine_bdry, type2_coarse_fine_bdry);
     DirichletRowClassifier dirichlet_rows(patch, bc_coefs, data_time, homogeneous_bc);
 
     // Only sides in the first or last layer of the side box of the patch have a stencil neighbor outside it. The
@@ -2311,7 +2311,7 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs_data
                                                 const CellData<NDIM, double>& sol_data,
                                                 Pointer<Patch<NDIM>> patch,
                                                 const PoissonSpecifications& poisson_spec,
-                                                const Array<BoundaryBox<NDIM>>& type1_cf_bdry)
+                                                const Array<BoundaryBox<NDIM>>& type1_coarse_fine_bdry)
 {
     const int depth = rhs_data.getDepth();
     TBOX_ASSERT(depth == sol_data.getDepth());
@@ -2334,11 +2334,11 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs_data
     const double* const dx = pgeom->getDx();
 
     // Modify the rhs entries to account for coarse-fine interface boundary conditions.
-    const int n_bdry_boxes = type1_cf_bdry.size();
+    const int n_bdry_boxes = type1_coarse_fine_bdry.size();
     const IntVector<NDIM> ghost_width_to_fill(1);
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
+        const BoundaryBox<NDIM>& bdry_box = type1_coarse_fine_bdry[n];
         const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(trimmed_bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
@@ -2373,8 +2373,8 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data
                                                 const SideData<NDIM, double>& sol_data,
                                                 Pointer<Patch<NDIM>> patch,
                                                 const PoissonSpecifications& poisson_spec,
-                                                const Array<BoundaryBox<NDIM>>& type1_cf_bdry,
-                                                const Array<BoundaryBox<NDIM>>& type2_cf_bdry,
+                                                const Array<BoundaryBox<NDIM>>& type1_coarse_fine_bdry,
+                                                const Array<BoundaryBox<NDIM>>& type2_coarse_fine_bdry,
                                                 const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                 double data_time,
                                                 bool homogeneous_bc)
@@ -2382,8 +2382,15 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data
 #if !defined(NDEBUG)
     TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
 #endif
-    adjust_sc_rhs_at_cf_boundary(
-        rhs_data, sol_data, patch, poisson_spec, type1_cf_bdry, type2_cf_bdry, bc_coefs, data_time, homogeneous_bc);
+    adjust_sc_rhs_at_coarse_fine_boundary(rhs_data,
+                                          sol_data,
+                                          patch,
+                                          poisson_spec,
+                                          type1_coarse_fine_bdry,
+                                          type2_coarse_fine_bdry,
+                                          bc_coefs,
+                                          data_time,
+                                          homogeneous_bc);
     return;
 } // adjustRHSAtCoarseFineBoundary
 
@@ -2393,15 +2400,15 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                                                              Pointer<Patch<NDIM>> patch,
                                                              const PoissonSpecifications& poisson_spec,
                                                              double alpha,
-                                                             const Array<BoundaryBox<NDIM>>& type1_cf_bdry,
-                                                             const Array<BoundaryBox<NDIM>>& type2_cf_bdry,
+                                                             const Array<BoundaryBox<NDIM>>& type1_coarse_fine_bdry,
+                                                             const Array<BoundaryBox<NDIM>>& type2_coarse_fine_bdry,
                                                              const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                              double data_time,
                                                              VCInterpType mu_interp_type)
 {
     TBOX_ASSERT(static_cast<int>(bc_coefs.size()) == NDIM);
     const Box<NDIM>& patch_box = patch->getBox();
-    const LevelCellClassifier cells(*patch, type1_cf_bdry, type2_cf_bdry);
+    const LevelCellClassifier cells(*patch, type1_coarse_fine_bdry, type2_coarse_fine_bdry);
 
     // The coefficient of a stencil entry whose side is not a degree of freedom of the level is the coefficient of the
     // term that is omitted from the matrix of the level solver.

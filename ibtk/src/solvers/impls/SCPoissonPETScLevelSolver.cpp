@@ -192,21 +192,21 @@ SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
             PoissonUtilities::adjustRHSAtPhysicalBoundary(
                 *b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
         }
-        const Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
+        const Array<BoundaryBox<NDIM>>& type_1_coarse_fine_bdry =
             level_zero ? Array<BoundaryBox<NDIM>>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
-        const Array<BoundaryBox<NDIM>>& type_2_cf_bdry =
+        const Array<BoundaryBox<NDIM>>& type_2_coarse_fine_bdry =
             level_zero ? Array<BoundaryBox<NDIM>>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 2);
-        const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
+        const bool at_cf_bdry = type_1_coarse_fine_bdry.size() > 0;
         if (at_cf_bdry)
         {
             PoissonUtilities::adjustRHSAtCoarseFineBoundary(*b_adj_data,
                                                             *x_data,
                                                             patch,
                                                             d_poisson_spec,
-                                                            type_1_cf_bdry,
-                                                            type_2_cf_bdry,
+                                                            type_1_coarse_fine_bdry,
+                                                            type_2_coarse_fine_bdry,
                                                             d_bc_coefs,
                                                             d_solution_time,
                                                             d_homogeneous_bc);
