@@ -94,12 +94,13 @@ namespace IBAMR
 LaserSourceFunction::LaserSourceFunction(const std::string& object_name,
                                          Pointer<Database> input_db,
                                          Pointer<PhaseChangeHierarchyIntegrator> phase_change_solver,
-                                         Pointer<Variable<NDIM>> phi_var)
-    : CartGridFunction(object_name), d_phase_change_solver(phase_change_solver), d_phi_var(phi_var)
+                                         Pointer<Variable<NDIM>> ls_var)
+    : CartGridFunction(object_name), d_phase_change_solver(phase_change_solver), d_ls_var(ls_var)
 {
     // Set some default values
     d_ts_type = BACKWARD_EULER;
     d_kernel_fcn = "none";
+    d_H_var = new CellVariable<NDIM, double>(d_object_name + "::H_var");
     d_grad_H_var = new CellVariable<NDIM, double>(d_object_name + "::grad_H_var", NDIM);
     d_num_interface_cells = 2.0;
 
@@ -117,6 +118,15 @@ LaserSourceFunction::LaserSourceFunction(const std::string& object_name,
 
         d_num_interface_cells = input_db->getDoubleWithDefault("num_interface_cells", d_num_interface_cells);
     }
+
+    IntVector<NDIM> no_ghosts = 0;
+    IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    d_H_scratch_idx =
+        var_db->registerVariableAndContext(d_H_var, var_db->getContext(d_object_name + "::H"), cell_ghosts);
+    d_grad_H_scratch_idx =
+        var_db->registerVariableAndContext(d_grad_H_var, var_db->getContext(d_object_name + "::grad_H"), no_ghosts);
+
     return;
 } // LaserSourceFunction
 
@@ -140,27 +150,21 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
     // Get the newest patch data index for the Heaviside variable
-    Pointer<CellVariable<NDIM, double>> phi_cc_var = d_phi_var;
+    Pointer<CellVariable<NDIM, double>> phi_var = d_ls_var;
 #if !defined(NDEBUG)
-    TBOX_ASSERT(!phi_cc_var.isNull());
+    TBOX_ASSERT(!phi_var.isNull());
 #endif
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int phi_new_idx = var_db->mapVariableAndContextToIndex(phi_cc_var, d_phase_change_solver->getNewContext());
+    const int phi_new_idx = var_db->mapVariableAndContextToIndex(phi_var, d_phase_change_solver->getNewContext());
     const int phi_scratch_idx =
-        var_db->mapVariableAndContextToIndex(phi_cc_var, d_phase_change_solver->getScratchContext());
+        var_db->mapVariableAndContextToIndex(phi_var, d_phase_change_solver->getScratchContext());
     const int phi_current_idx =
-        var_db->mapVariableAndContextToIndex(phi_cc_var, d_phase_change_solver->getCurrentContext());
+        var_db->mapVariableAndContextToIndex(phi_var, d_phase_change_solver->getCurrentContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(phi_new_idx >= 0);
     TBOX_ASSERT(phi_current_idx >= 0);
+    TBOX_ASSERT(phi_scratch_idx >= 0);
 #endif
-
-    IntVector<NDIM> no_ghosts = 0;
-    IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
-    d_H_scratch_idx =
-        var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::H"), cell_ghosts);
-    d_grad_H_scratch_idx =
-        var_db->registerVariableAndContext(d_grad_H_var, var_db->getContext(d_object_name + "::grad_H"), no_ghosts);
 
     const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
     const int finest_ln =
@@ -171,7 +175,7 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
         hierarchy->getPatchLevel(ln)->allocatePatchData(d_grad_H_scratch_idx, data_time);
     }
 
-    // Based on time stepping copy H index into H_scratch index.
+    // Based on time stepping copy phi index into phi_scratch index.
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
     if (d_ts_type == MIDPOINT_RULE)
     {
@@ -202,10 +206,11 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
                    << std::endl);
     }
 
+    // Convert level set to smooth Heaviside function H
     convertToHeaviside(d_H_scratch_idx, phi_scratch_idx, coarsest_ln, finest_ln, hierarchy);
 
-    // Fill ghost cells
-    RobinBcCoefStrategy<NDIM>* H_bc_coef = (d_phase_change_solver->getPhysicalBcCoefs(phi_cc_var)).front();
+    // Fill ghost cells of H
+    RobinBcCoefStrategy<NDIM>* H_bc_coef = (d_phase_change_solver->getPhysicalBcCoefs(phi_var)).front();
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent H_transaction(
         d_H_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, H_bc_coef);
@@ -218,8 +223,8 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
     mollifyData(d_H_scratch_idx, coarsest_ln, finest_ln, data_time, hierarchy, H_fill_op);
 
     // Find grad H.
-    HierarchyMathOps* hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
-    hier_math_ops->grad(d_grad_H_scratch_idx, d_grad_H_var, 1.0, d_H_scratch_idx, phi_cc_var, nullptr, data_time);
+    Pointer<HierarchyMathOps> hier_math_ops = d_phase_change_solver->getHierarchyMathOps();
+    hier_math_ops->grad(d_grad_H_scratch_idx, d_grad_H_var, 1.0, d_H_scratch_idx, d_H_var, nullptr, data_time);
 
     // Fill data on each patch level
     CartGridFunction::setDataOnPatchHierarchy(
@@ -235,14 +240,12 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
         (*d_heat_flux)(data_idx, hier_math_ops, -1 /*cycle_num*/, apply_time, current_time, new_time, d_heat_flux_ctx);
     }
 
-    // Deallocate and remove scratch variables.
+    // Deallocate scratch variables.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->deallocatePatchData(d_H_scratch_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(d_grad_H_scratch_idx);
     }
-    var_db->removePatchDataIndex(d_H_scratch_idx);
-    var_db->removePatchDataIndex(d_grad_H_scratch_idx);
 
     return;
 } // setDataOnPatchHierarchy

@@ -197,7 +197,8 @@ private:
     /*!
      *  Variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_ls_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_H_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_grad_H_var;
 
     /*!
