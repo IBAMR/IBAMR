@@ -39,6 +39,9 @@ auto clamp = [](double x, double lower, double upper) { return (x < lower) ? low
 namespace VCINSVOFUtilities
 {
 
+// The 2D routine follows "Pijl et al. A mass-conserving Level-Set method for modelling of multi-phase flows. Int. J.
+// Numer. Meth. Fluids (2005)". The 3D routine follows "Pijl et al. Computing three-dimensional two-phase flows with a
+// mass-conserving level set method. Comput Visual Sci (2008) 11:221–235"
 double
 vof_alpha(const double& phi, const std::array<double, NDIM>& dPhi)
 {
@@ -100,10 +103,110 @@ vof_alpha(const double& phi, const std::array<double, NDIM>& dPhi)
     return alpha;
 
 #else
-    TBOX_ERROR("vof_alpha() not implemented for NDIM != 2");
-    return 0.0;
+
+    const double ax = std::abs(dPhi[0]);
+    const double ay = std::abs(dPhi[1]);
+    const double az = std::abs(dPhi[2]);
+
+    // Sort scaled gradient magnitudes: a >= b >= c >= 0.
+    std::array<double, 3> g = { ax, ay, az };
+    std::sort(g.begin(), g.end(), std::greater<double>());
+
+    const double a = g[0];
+    const double b = g[1];
+    const double c = g[2];
+
+    const auto positive_part_cube = [](double x) { return x > 0.0 ? x * x * x : 0.0; };
+
+    // Constant level-set function.
+    if (tbox::MathUtilities<double>::equalEps(a, 0.0))
+    {
+        return IBTK::discontinuous_heaviside(phi);
+    }
+
+    // If c = 0, the interface is independent of one coordinate.
+    // Reduce to the 2D formula.
+    if (tbox::MathUtilities<double>::equalEps(c, 0.0))
+    {
+        const double phi_max = 0.5 * (a + b);
+        const double phi_mid = 0.5 * std::abs(a - b);
+        const double denom = phi_max * phi_max - phi_mid * phi_mid;
+
+        // One-dimensional degenerate case: b = 0.
+        if (tbox::MathUtilities<double>::equalEps(denom, 0.0))
+        {
+            return clamp(0.5 + phi / a, 0.0, 1.0);
+        }
+
+        double alpha = 0.0;
+
+        if (phi <= -phi_max)
+        {
+            alpha = 0.0;
+        }
+        else if (phi < -phi_mid)
+        {
+            alpha = 0.5 * (phi_max + phi) * (phi_max + phi) / denom;
+        }
+        else if (phi <= phi_mid)
+        {
+            alpha = 0.5 + phi / (phi_max + phi_mid);
+        }
+        else if (phi < phi_max)
+        {
+            alpha = 1.0 - 0.5 * (phi_max - phi) * (phi_max - phi) / denom;
+        }
+        else
+        {
+            alpha = 1.0;
+        }
+
+        return clamp(alpha, 0.0, 1.0);
+    }
+
+    /*
+     * For phi <= 0, define
+     *
+     *     q = phi + (a + b + c)/2.
+     *
+     * The 3D volume fraction is
+     *
+     * alpha =
+     * [q]_+^3
+     * - [q-a]_+^3
+     * - [q-b]_+^3
+     * - [q-c]_+^3
+     * + [q-b-c]_+^3
+     * --------------------------------
+     *             6abc
+     *
+     * For phi > 0, use alpha(phi) = 1 - alpha(-phi).
+     */
+    const auto alpha_nonpositive_phi = [&](const double level_set_value)
+    {
+        const double phi_max = 0.5 * (a + b + c);
+        const double q = level_set_value + phi_max;
+
+        const double numerator = positive_part_cube(q) - positive_part_cube(q - a) - positive_part_cube(q - b) -
+                                 positive_part_cube(q - c) + positive_part_cube(q - b - c);
+
+        return numerator / (6.0 * a * b * c);
+    };
+
+    double alpha;
+
+    if (phi <= 0.0)
+    {
+        alpha = alpha_nonpositive_phi(phi);
+    }
+    else
+    {
+        alpha = 1.0 - alpha_nonpositive_phi(-phi);
+    }
+
+    return clamp(alpha, 0.0, 1.0);
 #endif
-}
+} // vof_alpha
 
 ////////////////////////// VOFInitialConditionFromLevelSet ///////////////////
 
