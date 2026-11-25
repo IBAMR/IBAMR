@@ -128,6 +128,8 @@ public:
 
     /*!
      * \brief Set the nullspace of the linear system.
+     *
+     * \note The nullspace takes effect at the next initializeSolverState() or solveSystem().
      */
     void setNullSpace(
         bool contains_constant_vec,
@@ -323,6 +325,13 @@ protected:
     Mat d_petsc_mat = nullptr, d_petsc_pc = nullptr;
     MatNullSpace d_petsc_nullsp = nullptr;
     Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
+    //\}
+
+    /*!
+     * \name Nullspace state.
+     */
+    //\{
+    bool d_nullspace_out_of_date = false;
     //\}
 
     /*!

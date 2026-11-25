@@ -1,0 +1,3 @@
+Fixed: IBTK::PETScLevelSolver::setNullSpace() no longer leaks the PETSc null space when the null space is set or cleared after the solver is initialized.
+<br>
+(Boyce Griffith, 2026/11/24)
