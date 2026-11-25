@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -35,8 +36,11 @@ namespace IBTK
 /*!
  * \brief Class KrylovLinearSolverManager is a singleton manager class to
  * provide access to generic KrylovLinearSolver implementations.
+ *
+ * @deprecated IBAMR does not use this class, which will be removed in a future release.
  */
-class KrylovLinearSolverManager
+class IBTK_DEPRECATED("IBAMR does not use this class, which will be removed in a future release.")
+    KrylovLinearSolverManager
 {
 public:
     /*!

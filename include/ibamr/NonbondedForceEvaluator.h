@@ -24,6 +24,7 @@
 
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
@@ -55,7 +56,11 @@ class Database;
 
 namespace IBAMR
 {
-class NonbondedForceEvaluator : public IBLagrangianForceStrategy
+/*!
+ * @deprecated IBAMR does not use this class, which will be removed in a future release.
+ */
+class IBTK_DEPRECATED("IBAMR does not use this class, which will be removed in a future release.")
+    NonbondedForceEvaluator : public IBLagrangianForceStrategy
 {
 public:
     // Nonbonded Force Function Pointer.

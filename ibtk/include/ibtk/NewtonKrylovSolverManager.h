@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/NewtonKrylovSolver.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -35,8 +36,11 @@ namespace IBTK
 /*!
  * \brief Class NewtonKrylovSolverManager is a singleton manager class to
  * provide access to generic NewtonKrylovSolver implementations.
+ *
+ * @deprecated IBAMR does not use this class, which will be removed in a future release.
  */
-class NewtonKrylovSolverManager
+class IBTK_DEPRECATED("IBAMR does not use this class, which will be removed in a future release.")
+    NewtonKrylovSolverManager
 {
 public:
     /*!
