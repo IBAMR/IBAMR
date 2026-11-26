@@ -62,7 +62,6 @@ GriddingAlgorithm {
       level_0 =   2,  2,  2  // all finer levels will use same values as level_0
    }
 
-   allow_patches_smaller_than_ghostwidth = TRUE
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
    coalesce_boxes = TRUE
    extend_tags_to_bdry = TRUE

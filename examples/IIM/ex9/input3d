@@ -251,7 +251,6 @@ GriddingAlgorithm {
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 
-   allow_patches_smaller_than_ghostwidth = TRUE
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
    coalesce_boxes = TRUE
    extend_tags_to_bdry = TRUE
