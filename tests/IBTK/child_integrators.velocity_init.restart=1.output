@@ -1,0 +1,25 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+CheckedAdvDiff [post-initializePatchHierarchy]: u_adv_max=1.49815, max_diff=0, adv_diff_dt=0.001
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49815, max_diff=0, adv_diff_dt=0.001
+CheckedAdvDiff [post-regrid]: u_adv_max=1.49815, max_diff=0, adv_diff_dt=0.001
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.0005
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.18325e-05
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00223274
+CheckedAdvDiff::postprocessIntegrateHierarchy(): CFL number = 0.0239672
+
+At end       of timestep # 1
+Simulation time is 0.001
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing restart files...
+
+CheckedAdvDiff [post-advance]: u_adv_max=1.49795, max_diff=0, adv_diff_dt=0.001
+IBRedundantInitializer:  Deallocating initialization data.

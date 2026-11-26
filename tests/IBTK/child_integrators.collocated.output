@@ -1,0 +1,42 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSCollocatedHierarchyIntegrator::regridProjection(): projection solve residual norm        = 2.86013e-10
+CheckedAdvDiff [initializeCompositeHierarchyData(initial)]: u_adv_max=1.49842, max_diff=0, adv_diff_dt=0.00625658
+CheckedAdvDiff [post-initializePatchHierarchy]: u_adv_max=1.49842, max_diff=0, adv_diff_dt=0.00625658
+INSCollocatedHierarchyIntegrator::regridProjection(): projection solve residual norm        = 4.47143e-11
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49846, max_diff=0, adv_diff_dt=0.00625644
+CheckedAdvDiff [post-regrid]: u_adv_max=1.49846, max_diff=0, adv_diff_dt=0.00625644
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+INSCollocatedHierarchyIntegrator::regridProjection(): projection solve residual norm        = 2.46421e-11
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49846, max_diff=0, adv_diff_dt=0.00625644
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 1.71747e-08
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 3.81232e-07
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 1.12489e-06
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 3.72326e-08
+CheckedAdvDiff::postprocessIntegrateHierarchy(): CFL number = 0.0239704
+
+At end       of timestep # 0
+Simulation time is 0.0005
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.0005
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 1.71698e-08
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 3.89864e-07
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): velocity solve residual norm        = 1.10632e-06
+INSCollocatedHierarchyIntegrator::integrateHierarchy(): pressure solve residual norm        = 3.09893e-08
+CheckedAdvDiff::postprocessIntegrateHierarchy(): CFL number = 0.0239661
+
+At end       of timestep # 1
+Simulation time is 0.001
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+CheckedAdvDiff [post-advance]: u_adv_max=1.49788, max_diff=0, adv_diff_dt=0.001
+IBRedundantInitializer:  Deallocating initialization data.

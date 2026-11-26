@@ -1,0 +1,3 @@
+Fixed: Copy initial and regridded Navier-Stokes velocity fields to coupled advection-diffusion integrators during composite hierarchy initialization instead of initializePatchHierarchy().
+<br>
+(Hoseyn Amiri, 2026/11/26)

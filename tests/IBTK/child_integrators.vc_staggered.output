@@ -1,0 +1,45 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+CheckedAdvDiff [initializeCompositeHierarchyData(initial)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff [post-initializePatchHierarchy]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff [post-regrid]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
+CheckedAdvDiff::postprocessIntegrateHierarchy(): CFL number = 0.0239615
+
+At end       of timestep # 0
+Simulation time is 0.0005
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.0005
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
+CheckedAdvDiff::postprocessIntegrateHierarchy(): CFL number = 0.0239615
+
+At end       of timestep # 1
+Simulation time is 0.001
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+CheckedAdvDiff [post-advance]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.001
+IBRedundantInitializer:  Deallocating initialization data.

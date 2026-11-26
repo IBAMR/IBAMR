@@ -1,0 +1,59 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 1
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+CheckedAdvDiff [initializeCompositeHierarchyData(initial)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff [post-initializePatchHierarchy]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff [post-regrid]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.0005], dt = 0.0005
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.24324e-05
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00588016
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0239704
+CheckedAdvDiff::postprocessIntegrateHierarchy(): CFL number = 0.0239704
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 0
+Simulation time is 0.0005
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.0005
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): time interval = [0.0005,0.001], dt = 0.0005
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 1
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49815, max_diff=0, adv_diff_dt=0.001
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.18325e-05
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00223274
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0239672
+CheckedAdvDiff::postprocessIntegrateHierarchy(): CFL number = 0.0239672
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 1
+Simulation time is 0.001
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+CheckedAdvDiff [post-advance]: u_adv_max=1.49795, max_diff=0, adv_diff_dt=0.001
