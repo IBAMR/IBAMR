@@ -131,6 +131,18 @@ protected:
                                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
+     * \brief Append the velocity and pressure null space flags to \a key.
+     */
+    bool getLayoutKeySpecialized(std::vector<int>& key) const override;
+
+    /*!
+     * \brief Compute the matrix, preallocation, and null space, reusing the DOF indices, vectors, and communication
+     * objects.
+     */
+    void initializeCoefficientsSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+
+    /*!
      * \brief Remove all hierarchy dependent data allocated by
      * initializeSolverStateSpecialized().
      */

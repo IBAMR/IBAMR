@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/PETScLevelSolver.h>
+#include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/SAMRAIDataCache.h>
 #include <ibtk/ibtk_utilities.h>
@@ -147,6 +148,17 @@ protected:
                                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
+     * \brief Append the number of boundary condition objects to \a key.
+     */
+    bool getLayoutKeySpecialized(std::vector<int>& key) const override;
+
+    /*!
+     * \brief Compute the matrix, reusing the DOF indices, vectors, and communication objects.
+     */
+    void initializeCoefficientsSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+
+    /*!
      * \brief Remove all hierarchy dependent data allocated by
      * initializeSolverStateSpecialized().
      */
@@ -209,6 +221,7 @@ private:
     int d_dof_index_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched;
+    PETScMatUtilities::Preallocation d_preallocation;
     //\}
 };
 } // namespace IBTK

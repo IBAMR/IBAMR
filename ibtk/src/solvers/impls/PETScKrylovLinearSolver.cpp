@@ -324,12 +324,21 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
         }
     }
 #endif
-    // Deallocate the solver state if the solver is already initialized.
+    // Deallocate the solver state if the solver is already initialized, but reuse the clones of x and b if the new
+    // vectors have the same structure. The reused clones still use their descriptor indices, which the solvers below
+    // the wrapper may use.
+    const IBTK::detail::VectorSignature x_signature(x), b_signature(b);
+    const bool reuse_vectors =
+        d_is_initialized && x_signature.hasSameStructure(d_x_signature) && b_signature.hasSameStructure(d_b_signature);
     if (d_is_initialized)
     {
         d_reinitializing_solver = true;
+        d_reuse_vectors = reuse_vectors;
         deallocateSolverState();
+        d_reuse_vectors = false;
     }
+    d_x_signature = x_signature;
+    d_b_signature = b_signature;
 
     // Create the KSP solver.
     if (d_managing_petsc_ksp)
@@ -347,10 +356,17 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     }
 
     // Setup solution and rhs vectors.
-    d_x = x.cloneVector(x.getName());
+    if (reuse_vectors)
+    {
+        d_x->resetLevels(x.getCoarsestLevelNumber(), x.getFinestLevelNumber());
+        d_b->resetLevels(b.getCoarsestLevelNumber(), b.getFinestLevelNumber());
+    }
+    else
+    {
+        d_x = x.cloneVector(x.getName());
+        d_b = b.cloneVector(b.getName());
+    }
     d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_x, d_petsc_comm);
-
-    d_b = b.cloneVector(b.getName());
     d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
 
     // Allocate scratch data.
@@ -421,16 +437,24 @@ PETScKrylovLinearSolver::deallocateSolverState()
     // Dealocate scratch data.
     deallocate_vector_data(*d_b);
 
-    // Delete the solution and rhs vectors.
+    // Delete the solution and rhs vectors, unless the next initialization reuses their clones.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = nullptr;
-    free_vector_components(*d_x);
-    d_x.setNull();
+    if (!d_reuse_vectors)
+    {
+        free_vector_components(*d_x);
+        d_x.setNull();
+        d_x_signature = IBTK::detail::VectorSignature();
+    }
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = nullptr;
-    free_vector_components(*d_b);
-    d_b.setNull();
+    if (!d_reuse_vectors)
+    {
+        free_vector_components(*d_b);
+        d_b.setNull();
+        d_b_signature = IBTK::detail::VectorSignature();
+    }
 
     // Deallocate the nullspace object.
     deallocateNullSpaceData();

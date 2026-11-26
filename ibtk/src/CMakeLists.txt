@@ -206,6 +206,7 @@ SET(CXX_SRC
   utilities/CoarseFineBoundaryCache.cpp
   utilities/HierarchyLayoutKey.cpp
   utilities/HierarchyLevelsIdentity.cpp
+  utilities/VectorSignature.cpp
   utilities/EdgeDataSynchronization.cpp
   utilities/NodeDataSynchronization.cpp
   utilities/BoxArrayIndex.cpp

@@ -418,28 +418,18 @@ StaggeredStokesPETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::s
     return;
 } // generateFieldSplitSubdomains
 
+bool
+StaggeredStokesPETScLevelSolver::getLayoutKeySpecialized(std::vector<int>& key) const
+{
+    key.push_back(d_has_velocity_nullspace ? 1 : 0);
+    key.push_back(d_has_pressure_nullspace ? 1 : 0);
+    return true;
+} // getLayoutKeySpecialized
+
 void
 StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
                                                                   const SAMRAIVectorReal<NDIM, double>& b)
 {
-    // Physical boundary DOFs need the boundary helper. Fully periodic hierarchies
-    // do not require a boundary helper.
-    if (!d_bc_helper)
-    {
-        for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
-        {
-            Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
-            if (patch->getPatchGeometry()->getTouchesRegularBoundary())
-            {
-                TBOX_ERROR(
-                    d_object_name << "::initializeSolverStateSpecialized():\n"
-                                  << "  no StaggeredStokesPhysicalBoundaryHelper is set for a level that touches a "
-                                     "physical boundary\n"
-                                  << "  call setPhysicalBoundaryHelper()\n");
-            }
-        }
-    }
-
     // The velocity and pressure data of both vectors must have a ghost layer. The data may be unallocated.
     const Pointer<PatchDescriptor<NDIM>> patch_descriptor = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
     for (const SAMRAIVectorReal<NDIM, double>* const vec : { &x, &b })
@@ -468,11 +458,6 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     {
         d_level->allocatePatchData(d_u_bc_target_idx);
     }
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
-    {
-        Pointer<SideData<NDIM, double>> u_bc_target_data = d_level->getPatch(p())->getPatchData(d_u_bc_target_idx);
-        u_bc_target_data->fillAll(0.0);
-    }
     StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
         d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, d_level);
 
@@ -483,6 +468,42 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
+
+    const int u_idx = x.getComponentDescriptorIndex(0);
+    const int p_idx = x.getComponentDescriptorIndex(1);
+    d_data_synch_sched = StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, d_level);
+
+    initializeCoefficientsSpecialized(x, b);
+    return;
+} // initializeSolverStateSpecialized
+
+void
+StaggeredStokesPETScLevelSolver::initializeCoefficientsSpecialized(const SAMRAIVectorReal<NDIM, double>& /*x*/,
+                                                                   const SAMRAIVectorReal<NDIM, double>& /*b*/)
+{
+    // Physical boundary DOFs need the boundary helper. Fully periodic hierarchies
+    // do not require a boundary helper.
+    if (!d_bc_helper)
+    {
+        for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
+            if (patch->getPatchGeometry()->getTouchesRegularBoundary())
+            {
+                TBOX_ERROR(
+                    d_object_name << "::initializeCoefficientsSpecialized():\n"
+                                  << "  no StaggeredStokesPhysicalBoundaryHelper is set for a level that touches a "
+                                     "physical boundary\n"
+                                  << "  call setPhysicalBoundaryHelper()\n");
+            }
+        }
+    }
+
+    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    {
+        Pointer<SideData<NDIM, double>> u_bc_target_data = d_level->getPatch(p())->getPatchData(d_u_bc_target_idx);
+        u_bc_target_data->fillAll(0.0);
+    }
     StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat,
                                                                      d_U_problem_coefs,
                                                                      d_U_bc_coefs,
@@ -544,12 +565,8 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             d_pressure_nullspace_vec = nullspace_vec;
         }
     }
-
-    const int u_idx = x.getComponentDescriptorIndex(0);
-    const int p_idx = x.getComponentDescriptorIndex(1);
-    d_data_synch_sched = StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, d_level);
     return;
-} // initializeSolverStateSpecialized
+} // initializeCoefficientsSpecialized
 
 void
 StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()

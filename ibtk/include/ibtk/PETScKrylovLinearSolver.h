@@ -22,6 +22,7 @@
 
 #include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/LinearSolver.h>
+#include <ibtk/private/VectorSignature.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -291,7 +292,8 @@ public:
      *
      * \note It is safe to call initializeSolverState() when the state is
      * already initialized.  In this case, the solver state is first deallocated
-     * and then reinitialized.
+     * and then reinitialized, or the clones of the vectors are reused when the
+     * vectors keep their structure.
      *
      * \see deallocateSolverState
      */
@@ -413,6 +415,13 @@ private:
     std::string d_ksp_type;
 
     bool d_reinitializing_solver = false;
+
+    /*!
+     * \brief The structure of the vectors of the last initialization, and whether the next deallocation reuses their
+     * clones, d_x and d_b.
+     */
+    IBTK::detail::VectorSignature d_x_signature, d_b_signature;
+    bool d_reuse_vectors = false;
 
     Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
 

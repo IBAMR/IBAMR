@@ -24,6 +24,8 @@
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/private/CoarseFineBoundaryCache.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
+#include <ibtk/private/VectorSignature.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -240,7 +242,8 @@ public:
      *
      * \note It is safe to call initializeSolverState() when the state is
      * already initialized.  In this case, the solver state is first deallocated
-     * and then reinitialized.
+     * and then reinitialized, or the hypre grid, stencils, and graph are reused
+     * when the levels and the vectors are unchanged.
      *
      * \see deallocateSolverState
      */
@@ -292,12 +295,14 @@ private:
      * \brief Functions to allocate, initialize, access, and deallocate hypre
      * data structures.
      */
+    void allocateHypreLayout();
     void allocateHypreData();
     void setMatrixCoefficients();
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void destroyHypreSolver();
     void deallocateHypreData();
+    void deallocateHypreLayout();
 
     /*!
      * \brief Associated hierarchy.
@@ -311,6 +316,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary;
     IBTK::detail::CoarseFineBoundaryCache d_coarse_fine_boundary_cache;
+    IBTK::detail::HierarchyLevelsIdentity d_level_identity, d_level_0_identity;
+    IBTK::detail::VectorSignature d_x_signature, d_b_signature;
 
     /*!
      * \name hypre objects.

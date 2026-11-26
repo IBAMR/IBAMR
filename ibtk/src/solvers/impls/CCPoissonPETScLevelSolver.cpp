@@ -117,9 +117,16 @@ CCPoissonPETScLevelSolver::generateASMSubdomains(std::vector<std::set<int>>& /*o
     return;
 } // generateASMSubdomains
 
+bool
+CCPoissonPETScLevelSolver::getLayoutKeySpecialized(std::vector<int>& key) const
+{
+    key.push_back(static_cast<int>(d_bc_coefs.size()));
+    return true;
+} // getLayoutKeySpecialized
+
 void
 CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                            const SAMRAIVectorReal<NDIM, double>& /*b*/)
+                                                            const SAMRAIVectorReal<NDIM, double>& b)
 {
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -139,6 +146,20 @@ CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRe
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
+    d_preallocation = PETScMatUtilities::computePatchLevelCCLaplaceOpPreallocation(
+        static_cast<int>(d_bc_coefs.size()), d_num_dofs_per_proc, d_dof_index_idx, d_level);
+
+    // Setup SAMRAI communication objects.
+    d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
+
+    initializeCoefficientsSpecialized(x, b);
+    return;
+} // initializeSolverStateSpecialized
+
+void
+CCPoissonPETScLevelSolver::initializeCoefficientsSpecialized(const SAMRAIVectorReal<NDIM, double>& /*x*/,
+                                                             const SAMRAIVectorReal<NDIM, double>& /*b*/)
+{
     PETScMatUtilities::constructPatchLevelCCLaplaceOp(d_petsc_mat,
                                                       d_poisson_spec,
                                                       d_bc_coefs,
@@ -146,13 +167,11 @@ CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRe
                                                       d_bdry_interp_type,
                                                       d_num_dofs_per_proc,
                                                       d_dof_index_idx,
-                                                      d_level);
+                                                      d_level,
+                                                      d_preallocation);
     d_petsc_pc = d_petsc_mat;
-
-    // Setup SAMRAI communication objects.
-    d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
     return;
-} // initializeSolverStateSpecialized
+} // initializeCoefficientsSpecialized
 
 void
 CCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()

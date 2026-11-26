@@ -236,21 +236,52 @@ SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
 #else
     NULL_USE(b);
 #endif
-    // Deallocate the solver state if the solver is already initialized.
-    if (d_is_initialized) deallocateSolverState();
+    const IBTK::detail::VectorSignature x_signature(x), b_signature(b);
+
+    // Reuse the grid, stencils, and graph if the solver is already initialized and its level and level 0 are
+    // unchanged. Otherwise, deallocate the solver state if it is initialized.
+    bool reuse_layout = false;
+    if (d_is_initialized)
+    {
+        const int ln = x.getCoarsestLevelNumber();
+        const bool level_changed = d_level_identity.changed(*x.getPatchHierarchy(), ln, ln);
+        const bool level_0_changed = d_level_0_identity.changed(*x.getPatchHierarchy(), 0, 0);
+        reuse_layout =
+            !level_changed && !level_0_changed && x_signature == d_x_signature && b_signature == d_b_signature;
+        if (reuse_layout)
+        {
+            destroyHypreSolver();
+            deallocateHypreData();
+        }
+        else
+        {
+            deallocateSolverState();
+        }
+    }
+    if (!reuse_layout)
+    {
+        d_level_identity.changed(*x.getPatchHierarchy(), x.getCoarsestLevelNumber(), x.getCoarsestLevelNumber());
+        d_level_0_identity.changed(*x.getPatchHierarchy(), 0, 0);
+        d_x_signature = x_signature;
+        d_b_signature = b_signature;
+    }
 
     // Get the hierarchy information.
     d_hierarchy = x.getPatchHierarchy();
     d_level_num = x.getCoarsestLevelNumber();
     TBOX_ASSERT(d_level_num == x.getFinestLevelNumber());
     d_level = d_hierarchy->getPatchLevel(d_level_num);
-    if (d_level_num > 0)
+    if (d_level_num > 0 && !reuse_layout)
     {
         d_cf_boundary =
             d_coarse_fine_boundary_cache.getCoarseFineBoundary(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
     }
 
     // Allocate and initialize the hypre data structures.
+    if (!reuse_layout)
+    {
+        allocateHypreLayout();
+    }
     allocateHypreData();
     setMatrixCoefficients();
     setupHypreSolver();
@@ -272,6 +303,11 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
     // Deallocate the hypre data structures.
     destroyHypreSolver();
     deallocateHypreData();
+    deallocateHypreLayout();
+    d_level_identity = IBTK::detail::HierarchyLevelsIdentity();
+    d_level_0_identity = IBTK::detail::HierarchyLevelsIdentity();
+    d_x_signature = IBTK::detail::VectorSignature();
+    d_b_signature = IBTK::detail::VectorSignature();
 
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
@@ -285,7 +321,7 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-SCPoissonHypreLevelSolver::allocateHypreData()
+SCPoissonHypreLevelSolver::allocateHypreLayout()
 {
     initialize_hypre();
 
@@ -355,6 +391,14 @@ SCPoissonHypreLevelSolver::allocateHypreData()
         HYPRE_SStructGraphSetStencil(d_graph, PART, var, d_stencil[var]);
     }
     HYPRE_SStructGraphAssemble(d_graph);
+    return;
+} // allocateHypreLayout
+
+void
+SCPoissonHypreLevelSolver::allocateHypreData()
+{
+    // Get the MPI communicator.
+    MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Allocate the hypre matrix.
     HYPRE_SStructMatrixCreate(communicator, d_graph, &d_matrix);
@@ -804,25 +848,32 @@ SCPoissonHypreLevelSolver::destroyHypreSolver()
 void
 SCPoissonHypreLevelSolver::deallocateHypreData()
 {
+    if (d_matrix) HYPRE_SStructMatrixDestroy(d_matrix);
+    if (d_sol_vec) HYPRE_SStructVectorDestroy(d_sol_vec);
+    if (d_rhs_vec) HYPRE_SStructVectorDestroy(d_rhs_vec);
+    d_matrix = nullptr;
+    d_sol_vec = nullptr;
+    d_rhs_vec = nullptr;
+    return;
+} // deallocateHypreData
+
+void
+SCPoissonHypreLevelSolver::deallocateHypreLayout()
+{
     if (d_graph) HYPRE_SStructGraphDestroy(d_graph);
     for (const auto& var : d_stencil)
     {
         if (var) HYPRE_SStructStencilDestroy(var);
     }
     if (d_grid) HYPRE_SStructGridDestroy(d_grid);
-    if (d_matrix) HYPRE_SStructMatrixDestroy(d_matrix);
-    if (d_sol_vec) HYPRE_SStructVectorDestroy(d_sol_vec);
-    if (d_rhs_vec) HYPRE_SStructVectorDestroy(d_rhs_vec);
+    d_graph = nullptr;
     d_grid = nullptr;
     for (auto& var : d_stencil)
     {
         var = nullptr;
     }
-    d_matrix = nullptr;
-    d_sol_vec = nullptr;
-    d_rhs_vec = nullptr;
     return;
-} // deallocateHypreData
+} // deallocateHypreLayout
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

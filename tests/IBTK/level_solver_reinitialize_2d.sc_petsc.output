@@ -1,0 +1,9 @@
+number_of_patches = 2
+number_of_values = 724
+iterations_first = 28
+iterations_reinitialized = 28
+iterations_fresh = 28
+max_difference_reinitialized_fresh = 0
+max_change_from_first_problem = 0.941676
+solution_min = 0.5
+solution_max = 2.92381

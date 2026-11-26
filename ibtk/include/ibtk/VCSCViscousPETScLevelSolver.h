@@ -124,6 +124,17 @@ protected:
                                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
+     * \brief Append the interpolation type at physical boundaries, which determines the preallocation, to \a key.
+     */
+    bool getLayoutKeySpecialized(std::vector<int>& key) const override;
+
+    /*!
+     * \brief Compute the matrix, reusing the DOF indices, preallocation, vectors, and communication objects.
+     */
+    void initializeCoefficientsSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+
+    /*!
      * \brief Copy solution and right-hand-side data to the PETSc
      * representation, including any modifications to account for boundary
      * conditions.
