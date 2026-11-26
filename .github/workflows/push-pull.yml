@@ -74,12 +74,42 @@ jobs:
             ibamr-${{ matrix.key }}-master-cache-
             ibamr-${{ matrix.key }}-
             ibamr-
+      # TEMPORARY (remove before this PR is ready for review): test against the IBSAMRAI2 batch before its release.
+      - name: Build the IBSAMRAI2 integration branch
+        id: ibsamrai2-integration
+        run: |
+          set -e
+          cd /tmp
+          URL="https://github.com/IBAMR/IBSAMRAI2/archive/refs/heads/agent/pre-020-integration.tar.gz"
+          if [ -x "$(command -v wget)" ]; then wget -q -O ibsamrai2.tar.gz "$URL"; else curl -L -o ibsamrai2.tar.gz "$URL"; fi
+          tar xf ibsamrai2.tar.gz
+          cd IBSAMRAI2-agent-pre-020-integration
+          mkdir build
+          cd build
+          if grep -q '^#define DEBUG_CHECK_ASSERTIONS' /samrai/include/SAMRAI_config.h; then
+            MODE="--enable-debug --disable-opt"
+          else
+            MODE="--disable-debug --enable-opt"
+          fi
+          SHARED=""
+          if ls /samrai/lib/*.so > /dev/null 2>&1; then SHARED="--enable-shared"; fi
+          HDF5_LIB="$(find /petsc /usr/lib /usr/local -name 'libhdf5.so*' 2> /dev/null | head -1)"
+          HDF5_DIR="$(dirname "$(dirname "$HDF5_LIB")")"
+          echo "IBSAMRAI2 flags: $MODE $SHARED --with-hdf5=$HDF5_DIR"
+          CC="ccache $(which mpicc)" CXX="ccache $(which mpicxx)" CFLAGS="-fPIC -O1" CXXFLAGS="-fPIC -O1" \
+            ../configure --prefix=/ibsamrai2-integration --with-F77="$(which mpif90)" \
+              --with-hdf5="$HDF5_DIR" --without-hypre --without-blaslapack --without-cubes --without-eleven \
+              --without-petsc --without-sundials --without-x --enable-dcomplex \
+              --enable-implicit-template-instantiation --disable-deprecated $MODE $SHARED
+          make -j4
+          make install
+          ccache --show-stats
       - name: Configure IBAMR
         id: configure
         run: |
           mkdir build
           cd build
-          FLAGS="${{ matrix.cmake_flags }} -DHYPRE_ROOT=/petsc -DPETSC_ROOT=/petsc -DSAMRAI_ROOT=/samrai"
+          FLAGS="${{ matrix.cmake_flags }} -DHYPRE_ROOT=/petsc -DPETSC_ROOT=/petsc -DSAMRAI_ROOT=/ibsamrai2-integration"
           # add a subshell to ensure flags are passed as separate arguments
           cmake $(echo "$FLAGS") -DNUMDIFF_ROOT=/numdiff/ \
                 -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
@@ -195,10 +225,11 @@ jobs:
         run: |
           mkdir -p ~/unpack-samrai
           cd ~/unpack-samrai
-          export SAMRAI_VERSION=2026.11.02
-          curl -LO "https://github.com/IBAMR/IBSAMRAI2/archive/refs/tags/$SAMRAI_VERSION.tar.gz"
-          tar xf "$SAMRAI_VERSION.tar.gz"
-          cd "IBSAMRAI2-$SAMRAI_VERSION"
+          # TEMPORARY (restore the release tag before this PR is ready for review)
+          curl -L -o ibsamrai2.tar.gz \
+            "https://github.com/IBAMR/IBSAMRAI2/archive/refs/heads/agent/pre-020-integration.tar.gz"
+          tar xf ibsamrai2.tar.gz
+          cd IBSAMRAI2-agent-pre-020-integration
           mkdir -p build
           cd build
 
@@ -206,7 +237,7 @@ jobs:
           export CXX="$(which mpic++)"
           export FC="$(find -L $(brew --prefix gcc) -name gfortran)"
           export CFLAGS="-fPIC -O1"
-          export CXXFLAGS="-fPIC -O1 -std=c++11"
+          export CXXFLAGS="-fPIC -O1"
           export FFLAGS="-fPIC -O1"
           mkdir -p "$HOME/Applications"
           ../configure --prefix="$HOME/Applications/samrai" \
