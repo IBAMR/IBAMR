@@ -1,0 +1,117 @@
+// Semi-implicit integrator on a non-periodic domain with quadratic extrapolation of the transported quantity
+// at the outflow boundaries.
+MU  = 1.0e-2
+RHO = 1.0
+L   = 1.0
+N   = 16
+
+SOLVER_TYPE = "SEMI_IMPLICIT"
+START_TIME  = 0.0
+END_TIME    = 0.08
+DT_MAX      = 0.01
+
+U = "1 - 2*(cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
+V = "1 + 2*(sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t)))*exp(-8*PI*PI*nu*t)"
+mGP0 = "-4*PI*sin(4*PI*(X_0-t))*exp(-16*PI*PI*nu*t)"
+mGP1 = "-4*PI*sin(4*PI*(X_1-t))*exp(-16*PI*PI*nu*t)"
+
+VelocityInitialConditions {
+   nu = MU/RHO
+   function_0 = U
+   function_1 = V
+}
+
+ForcingFunction {
+   nu = MU/RHO
+   function_0 = mGP0
+   function_1 = mGP1
+}
+
+VelocityBcCoefs_0 {
+   nu = MU/RHO
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = U
+   gcoef_function_1 = U
+   gcoef_function_2 = U
+   gcoef_function_3 = U
+}
+
+VelocityBcCoefs_1 {
+   nu = MU/RHO
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = V
+   gcoef_function_1 = V
+   gcoef_function_2 = V
+   gcoef_function_3 = V
+}
+
+AdvDiffSemiImplicitHierarchyIntegrator {
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   num_cycles                    = 2
+   convective_time_stepping_type = "MIDPOINT_RULE"
+   convective_op_type            = "CUI"
+   convective_difference_form    = "ADVECTIVE"
+   dt_max                        = DT_MAX
+
+   convective_op_db {
+      outflow_bdry_extrap_type = "QUADRATIC"
+   }
+}
+
+Main {
+   solver_type = SOLVER_TYPE
+
+   log_file_name         = "adv_diff2d.log"
+   restart_dump_interval = 0
+   restart_dump_dirname  = "restart"
+}
+
+CartesianGeometry {
+   domain_boxes       = [ (0,0),(N - 1,N - 1) ]
+   x_lo               = 0,0
+   x_up               = L,L
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 512,512
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [ (0,0),(N - 1,N - 1) ]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}

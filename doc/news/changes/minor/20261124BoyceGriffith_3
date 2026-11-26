@@ -1,0 +1,3 @@
+Fixed: IBAMR::AdvDiffSemiImplicitHierarchyIntegrator now reads convective_op_db from the input file when restarting.
+<br>
+(Boyce Griffith, 2026/11/24)
