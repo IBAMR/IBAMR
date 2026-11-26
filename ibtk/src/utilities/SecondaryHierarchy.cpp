@@ -17,12 +17,14 @@
 
 #include <ibtk/MergingLoadBalancer.h>
 #include <ibtk/SecondaryHierarchy.h>
+#include <ibtk/private/patch_level_overlaps.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
 #include <BergerRigoutsos.h>
+#include <BoxArray.h>
 #include <BoxGeneratorStrategy.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsInteger.h>
@@ -237,6 +239,21 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
                                                    std::max(d_coarsest_patch_level_number - 1, 0),
                                                    0.0 /*d_current_time*/,
                                                    tag_buffer);
+    }
+
+    // The patches of a level must not overlap.
+    for (int ln = 0; ln <= new_secondary_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        const Pointer<PatchLevel<NDIM>> level = new_secondary_hierarchy->getPatchLevel(ln);
+        if (const auto overlap = detail::find_overlapping_patches(level))
+        {
+            const BoxArray<NDIM>& boxes = level->getBoxes();
+            TBOX_ERROR(
+                d_object_name << "::reinit():\n"
+                              << "  patches " << overlap->first << " and " << overlap->second << " of level " << ln
+                              << " overlap: " << boxes[overlap->first] << " and " << boxes[overlap->second] << "\n"
+                              << "  check smallest_patch_size in the GriddingAlgorithm database of IBFEMethod\n");
+        }
     }
 
     d_secondary_hierarchy = new_secondary_hierarchy;

@@ -2255,49 +2255,6 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>> hierar
 
     Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
 
-#if !defined(NDEBUG)
-    // Check for overlapping boxes on this level.
-    //
-    // (This is potentially fairly expensive and hence is only done when
-    // assertion checking is active.)
-    BoxList<NDIM> boxes(level->getBoxes());
-
-    std::vector<bool> patch_overlaps(boxes.getNumberOfItems());
-    std::vector<bool>::size_type j, k;
-
-    for (k = 0; k < patch_overlaps.size(); ++k)
-    {
-        patch_overlaps[k] = false;
-    }
-    k = 0;
-    while (!boxes.isEmpty())
-    {
-        j = k + 1;
-        Box<NDIM> tryme = boxes.getFirstItem();
-        boxes.removeFirstItem();
-
-        for (BoxList<NDIM>::Iterator ib(boxes); ib; ib++)
-        {
-            if (tryme.intersects(ib()))
-            {
-                patch_overlaps[k] = true;
-                patch_overlaps[j] = true;
-            }
-            ++j;
-        }
-        ++k;
-    }
-
-    for (k = 0; k < patch_overlaps.size(); ++k)
-    {
-        if (patch_overlaps[k])
-        {
-            TBOX_ERROR(d_object_name << "::initializeLevelData()\n"
-                                     << "  patch " << k << " overlaps another patch!\n");
-        }
-    }
-#endif
-
     // Allocate storage needed to initialize the level and fill data from
     // coarser levels in AMR hierarchy, if any.
     //
