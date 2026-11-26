@@ -553,7 +553,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             ierr = VecGetOwnershipRange(d_petsc_x, &n_lo, &n_hi);
             IBTK_CHKERRQ(ierr);
             IS local_idx;
-            ierr = ISCreateStride(PETSC_COMM_WORLD, n_hi - n_lo, n_lo, 1, &local_idx);
+            ierr = ISCreateStride(PETSC_COMM_SELF, n_hi - n_lo, n_lo, 1, &local_idx);
             IBTK_CHKERRQ(ierr);
             std::vector<IS> local_idxs(d_n_local_subdomains, local_idx);
             ierr = MatCreateSubMatrices(d_petsc_mat,

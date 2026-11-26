@@ -1,0 +1,3 @@
+Fixed: IBTK::PETScLevelSolver with a multiplicative shell preconditioner could hang during initialization when processes owned different numbers of subdomains, for example when a process owned none. It no longer does.
+<br>
+(Boyce Griffith, 2026/11/26)
