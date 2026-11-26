@@ -388,7 +388,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
     // N = grad(phi)
     SideData<NDIM, double> N(patch_box,
                              /*depth*/ NDIM,
-                             /*gcw*/ IntVector<NDIM>(2));
+                             /*gcw*/ IntVector<NDIM>(1));
     Pointer<CellData<NDIM, double>> Phi = patch->getPatchData(d_phi_idx);
 
     const int required_phi_ghost_width = getMinimumGhostWidth(d_kernel_fcn);
@@ -428,7 +428,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
                  dx);
 
     // Find the gradient of T at the side-center.
-    SideData<NDIM, double> grad_T(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
+    SideData<NDIM, double> grad_T(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(1));
     Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(d_T_scratch_idx);
     SC_NORMAL_FC(grad_T.getPointer(0, 0),
                  grad_T.getPointer(0, 1),
@@ -457,7 +457,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
                  dx);
 
     // Find the gradient of C at the side-center.
-    SideData<NDIM, double> grad_C(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
+    SideData<NDIM, double> grad_C(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(1));
     Pointer<CellData<NDIM, double>> C_data = patch->getPatchData(d_C_idx);
     SC_NORMAL_FC(grad_C.getPointer(0, 0),
                  grad_C.getPointer(0, 1),

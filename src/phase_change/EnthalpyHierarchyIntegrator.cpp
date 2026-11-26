@@ -337,7 +337,7 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
         d_normal_lf_extrap_var =
             new SideVariable<NDIM, double>(d_object_name + "::normal_lf_extrap_var", /*depth*/ NDIM);
         d_normal_lf_extrap_current_idx =
-            var_db->registerVariableAndContext(d_normal_lf_extrap_var, getCurrentContext(), /*gcw*/ IntVector<NDIM>(2));
+            var_db->registerVariableAndContext(d_normal_lf_extrap_var, getCurrentContext(), /*gcw*/ IntVector<NDIM>(1));
 
         d_lf_extrap_interp_var = new FaceVariable<NDIM, double>(d_lf_extrap_var->getName() + "::interp");
         d_lf_extrap_interp_idx =
