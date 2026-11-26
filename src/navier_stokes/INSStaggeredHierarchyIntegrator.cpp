@@ -113,7 +113,6 @@
 #include <limits>
 #include <ostream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -412,10 +411,10 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string object_name,
+INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::string& object_name,
                                                                  Pointer<Database> input_db,
                                                                  bool register_for_restart)
-    : INSHierarchyIntegrator(std::move(object_name),
+    : INSHierarchyIntegrator(object_name,
                              input_db,
                              new SideVariable<NDIM, double>(object_name + "::U"),
                              "CONSERVATIVE_COARSEN",
