@@ -237,7 +237,7 @@ main(int argc, char** argv)
                            &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            /*register_for_restart*/ true,
-                           app_initializer->getRestartDumpDirectory(),
+                           app_initializer->getRestartReadDirectory(),
                            app_initializer->getRestartRestoreNumber());
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
