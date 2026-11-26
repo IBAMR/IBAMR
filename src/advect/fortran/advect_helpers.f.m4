@@ -26,7 +26,7 @@ c
 c
       implicit none
       REAL twothird
-      parameter (twothird=0.66666666666667d0)
+      parameter (twothird=2.d0/3.d0)
 c
 c     Input.
 c

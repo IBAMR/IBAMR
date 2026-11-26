@@ -1,0 +1,3 @@
+Fixed: The Fortran kernels that use 1/6, 1/3, 2/3, and 4/3, including the IB_3 delta function, the quadratic coarse-fine side interpolation, and the advection, convective differencing, CUI, and level set kernels, now use exact values rather than decimal constants truncated at 13 to 15 digits. The weights of the IB_3 kernel and of the side interpolation now sum to one to round-off.
+<br>
+(Boyce Griffith, 2026/11/26)

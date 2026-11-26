@@ -125,8 +125,8 @@ c
       implicit none
       double precision lagrangian_ib_3_delta,r
       double precision sixth, third
-      parameter (sixth=0.16666666666667d0)
-      parameter (third=0.333333333333333d0)
+      parameter (sixth=1.d0/6.d0)
+      parameter (third=1.d0/3.d0)
 c
       if ( r.lt.0.d0 ) then
          r = -r

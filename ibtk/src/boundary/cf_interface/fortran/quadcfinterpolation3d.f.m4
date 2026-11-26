@@ -526,7 +526,7 @@ c
       REAL half,fourth,sixth,eighth
       parameter (half=0.5d0)
       parameter (fourth=0.25d0)
-      parameter (sixth=0.16666666666667d0)
+      parameter (sixth=1.d0/6.d0)
       parameter (eighth=0.125d0)
 c
 c     Input.
