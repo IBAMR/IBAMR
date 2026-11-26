@@ -25,6 +25,8 @@
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/private/CachedGhostCellFill.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
@@ -75,6 +77,9 @@ namespace IBAMR
  * the indicator variable can either be a level set function, a volume fraction function,
  * or a phase field function.
  *
+ * \note Objects of this class in one program must have distinct names: each object registers its scratch data and
+ * builds its HierarchyMathOps under its name.
+ *
  * Reference
  * Brackbill et. al, <A HREF="https://www.sciencedirect.com/science/article/pii/002199919290240Y">
  * A continuum method for modeling surface tension</A>
@@ -93,7 +98,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~SurfaceTensionForceFunction() = default;
+    virtual ~SurfaceTensionForceFunction();
 
     /*!
      * \brief Set the smoother (kernel function) to mollify the Heaviside function.
@@ -218,6 +223,13 @@ protected:
      */
     virtual void addForcesOnPatchHierarchy(int data_idx, double data_time);
 
+    /*!
+     * Clear the cached ghost cell fills and remove the scratch patch data indices. setSmoother() and the destructor
+     * call this function. An override must call this function of its base class, and a class that overrides it must
+     * also call it in its own destructor.
+     */
+    virtual void removeScratchIndices();
+
     const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_ls_var;
     TimeSteppingType d_ts_type;
@@ -272,7 +284,7 @@ private:
                      int finest_ln,
                      double data_time,
                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-                     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
+                     IBTK::HierarchyGhostCellInterpolation* fill_op);
 
     /*!
      * Set the data on the patch interior.
@@ -302,6 +314,16 @@ private:
 
     ComputeSurfaceTensionCoefficientPtr d_compute_surface_tension_coef = nullptr;
     void* d_compute_surface_tension_coef_ctx = nullptr;
+
+    /*!
+     * Cached ghost-cell fills of the smoothed level set and of the level set.
+     */
+    IBTK::detail::CachedGhostCellFill d_C_fill, d_phi_fill;
+
+    /*!
+     * The hierarchy levels that d_hier_math_ops was built for.
+     */
+    IBTK::detail::HierarchyLevelsIdentity d_hier_math_ops_levels;
 };
 } // namespace IBAMR
 

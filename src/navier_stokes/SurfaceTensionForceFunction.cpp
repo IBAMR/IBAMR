@@ -217,10 +217,19 @@ SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& obje
     return;
 } // SurfaceTensionForceFunction
 
+SurfaceTensionForceFunction::~SurfaceTensionForceFunction()
+{
+    SurfaceTensionForceFunction::removeScratchIndices();
+    return;
+} // ~SurfaceTensionForceFunction
+
 void
 SurfaceTensionForceFunction::setSmoother(const std::string& kernel_fcn)
 {
     d_kernel_fcn = kernel_fcn;
+
+    // The scratch indices are registered with the ghost cell width of the old kernel.
+    removeScratchIndices();
     return;
 } // setSmoother
 
@@ -260,7 +269,10 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
     const int finest_ln =
         (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-    d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
+    if (d_hier_math_ops_levels.changed(*hierarchy, coarsest_ln, finest_ln))
+    {
+        d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
+    }
     d_hier_sc_data_ops = new HierarchySideDataOpsReal<NDIM, double>(hierarchy, coarsest_ln, finest_ln);
 
     // Get the newest patch data index for the level set variable
@@ -279,9 +291,13 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
     IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
-    d_C_idx = var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::C"), cell_ghosts);
-    d_phi_idx =
-        var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::Phi"), cell_ghosts);
+    if (d_C_idx == IBTK::invalid_index)
+    {
+        d_C_idx =
+            var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::C"), cell_ghosts);
+        d_phi_idx =
+            var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::Phi"), cell_ghosts);
+    }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -332,16 +348,17 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
         d_C_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
     InterpolationTransactionComponent phi_transaction(
         d_phi_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> C_fill_op = new HierarchyGhostCellInterpolation();
-    Pointer<HierarchyGhostCellInterpolation> phi_fill_op = new HierarchyGhostCellInterpolation();
-    C_fill_op->initializeOperatorState(C_transaction, hierarchy, coarsest_ln, finest_ln);
-    phi_fill_op->initializeOperatorState(phi_transaction, hierarchy, coarsest_ln, finest_ln);
 
-    C_fill_op->fillData(data_time);
-    phi_fill_op->fillData(data_time);
+    // The fills are reused until a level object is replaced or a component changes.
+    HierarchyGhostCellInterpolation& C_fill_op = d_C_fill.get({ C_transaction }, hierarchy, coarsest_ln, finest_ln);
+    HierarchyGhostCellInterpolation& phi_fill_op =
+        d_phi_fill.get({ phi_transaction }, hierarchy, coarsest_ln, finest_ln);
+
+    C_fill_op.fillData(data_time);
+    phi_fill_op.fillData(data_time);
 
     // Mollify C.
-    mollifyData(d_C_idx, coarsest_ln, finest_ln, data_time, hierarchy, C_fill_op);
+    mollifyData(d_C_idx, coarsest_ln, finest_ln, data_time, hierarchy, &C_fill_op);
 
     // Fill data on each patch level
     CartGridFunction::setDataOnPatchHierarchy(
@@ -382,14 +399,12 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
                                      d_mask_surface_tension_force_ctx);
     }
 
-    // Deallocate and remove scratch/smooth phi.
+    // Deallocate scratch/smooth phi. The indices stay registered, because the cached fills refer to them.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->deallocatePatchData(d_phi_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(d_C_idx);
     }
-    var_db->removePatchDataIndex(d_phi_idx);
-    var_db->removePatchDataIndex(d_C_idx);
 
     return;
 } // setDataOnPatchHierarchy
@@ -458,6 +473,20 @@ SurfaceTensionForceFunction::addForcesOnPatchHierarchy(const int /*data_idx*/, c
     return;
 } // addForcesOnPatchHierarchy
 
+void
+SurfaceTensionForceFunction::removeScratchIndices()
+{
+    d_C_fill.clear();
+    d_phi_fill.clear();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    for (int* idx : { &d_C_idx, &d_phi_idx })
+    {
+        if (*idx != IBTK::invalid_index) var_db->removePatchDataIndex(*idx);
+        *idx = IBTK::invalid_index;
+    }
+    return;
+} // removeScratchIndices
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -497,7 +526,7 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
                                          int finest_ln,
                                          double data_time,
                                          Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                         Pointer<HierarchyGhostCellInterpolation> fill_op)
+                                         HierarchyGhostCellInterpolation* fill_op)
 {
     if (d_kernel_fcn == "none") return;
 
