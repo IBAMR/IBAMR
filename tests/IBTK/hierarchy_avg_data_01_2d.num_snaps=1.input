@@ -18,6 +18,7 @@ num_snaps = 1
 max_periods = 100
 noise_max = 0.1
 RESTART = FALSE
+output_data = FALSE
 
 CartesianGeometry {
    domain_boxes       = [(0, 0), (N - 1, N - 1)]
