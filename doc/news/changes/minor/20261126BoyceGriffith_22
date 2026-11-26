@@ -1,0 +1,3 @@
+Improved: IBAMR::FastSweepingLSMethod and IBAMR::RelaxationLSMethod now build the operators that fill the ghost cells of their level set (and, for IBAMR::RelaxationLSMethod, its Hamiltonian) only after a regrid replaces a level, instead of at every call to initializeLSData(), when the reinitialization interval is nonzero.
+<br>
+(Boyce Griffith, 2026/11/26)

@@ -23,6 +23,8 @@
 #include <ibamr/LSInitStrategy.h>
 #include <ibamr/ibamr_enums.h>
 
+#include <ibtk/private/CachedGhostCellFill.h>
+
 #include <tbox/Pointer.h>
 #include <tbox/Serializable.h>
 
@@ -76,7 +78,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~FastSweepingLSMethod() = default;
+    virtual ~FastSweepingLSMethod();
 
     /*!
      * \brief Initialize level set data using the fast-sweeping method.
@@ -135,6 +137,21 @@ private:
      * \return A reference to this object.
      */
     FastSweepingLSMethod& operator=(const FastSweepingLSMethod& that) = delete;
+
+    /*!
+     * Cached ghost-cell fill of the level set.
+     */
+    IBTK::detail::CachedGhostCellFill d_fill;
+
+    /*!
+     * Clear the cached fill and remove the registered scratch patch data indices of initializeLSData().
+     */
+    void removeScratchIndices();
+
+    /*!
+     * The scratch patch data indices registered by initializeLSData(), which stay registered between calls.
+     */
+    std::vector<int> d_scratch_idxs;
 };
 } // namespace IBAMR
 
