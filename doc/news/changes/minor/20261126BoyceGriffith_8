@@ -1,0 +1,3 @@
+Fixed: IBAMR::LSInitStrategy now initializes its level set boundary condition pointer to null, so the level set methods use linear extrapolation at physical boundaries when no boundary condition is registered instead of passing an indeterminate pointer to their ghost cell fill.
+<br>
+(Boyce Griffith, 2026/11/26)
