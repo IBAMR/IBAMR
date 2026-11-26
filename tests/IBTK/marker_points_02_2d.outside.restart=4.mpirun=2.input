@@ -1,0 +1,108 @@
+// Markers leave the nonperiodic domain through x_up from both levels, before and after the restart at step 4. One
+// input covers the uninterrupted run and the restart.
+test {
+   set_velocity = TRUE
+   timestep = TRUE
+   collective_print = TRUE
+   num_timesteps = 8
+   kernel = "PIECEWISE_LINEAR"
+
+   U = "1"
+   V = "0.25"
+   u {
+      function_0 = U
+      function_1 = V
+   }
+   positions = 0.875, 0.3125, 0.90625, 0.5, 0.96875, 0.40625, 0.9375, 0.75, 0.875, 0.125, 0.78125, 0.5, 0.8125, 0.1875, 0.25, 0.25, 0.5, 0.75, 0.1875, 0.5
+   velocities = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
+   UBcCoefs_0 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+
+      gcoef_function_0 = U
+      gcoef_function_1 = U
+      gcoef_function_2 = U
+      gcoef_function_3 = U
+   }
+
+   UBcCoefs_1 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+
+      gcoef_function_0 = V
+      gcoef_function_1 = V
+      gcoef_function_2 = V
+      gcoef_function_3 = V
+   }
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+   restart_dump_interval = 4
+   restart_dump_dirname = "restart"
+   timer_enabled = TRUE
+}
+
+N = 16
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+
+   largest_patch_size {
+      level_0 = 8, 8
+   }
+
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(12,4),(15,11)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::*::*"
+}
