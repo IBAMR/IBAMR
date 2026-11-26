@@ -1,0 +1,107 @@
+// Periodic box with variable density, variable viscosity, and a time-varying fluid source.
+
+L   = 1.0
+MU0 = 0.1
+
+N        = 16
+DT       = 0.005
+END_TIME = 10*DT
+
+RHO = "2.0 + cos(2*PI*X_0)"
+MU  = "mu0*(1.0 + 0.5*sin(2*PI*X_1))"
+U   = "0.5*(cos(2*PI*t) + sin(2*PI*t))*cos(2*PI*X_1)/(2.0 + cos(2*PI*X_0))"
+V   = "0.25*sin(2*PI*X_0)"
+P   = "sin(2*PI*X_0)*cos(2*PI*X_1)"
+Q   = "PI*(cos(2*PI*t) + sin(2*PI*t))*sin(2*PI*X_0)*cos(2*PI*X_1)/(2.0 + cos(2*PI*X_0))^2"
+F_U = "PI*(cos(2*PI*t) - sin(2*PI*t))*cos(2*PI*X_1) + 0.5*PI*(cos(2*PI*t) + sin(2*PI*t))^2*sin(2*PI*X_0)*cos(2*PI*X_1)^2/(2.0 + cos(2*PI*X_0))^2 - 0.25*PI*(cos(2*PI*t) + sin(2*PI*t))*sin(2*PI*X_0)*sin(2*PI*X_1) + 2.0*PI*cos(2*PI*X_0)*cos(2*PI*X_1) - 4.0*PI^2*mu0*(1.0 + 0.5*sin(2*PI*X_1))*(cos(2*PI*t) + sin(2*PI*t))*cos(2*PI*X_1)*(cos(2*PI*X_0)*(2.0 + cos(2*PI*X_0)) + 2.0*sin(2*PI*X_0)^2)/(2.0 + cos(2*PI*X_0))^3 - mu0*PI*cos(2*PI*X_1)*(-PI*(cos(2*PI*t) + sin(2*PI*t))*sin(2*PI*X_1)/(2.0 + cos(2*PI*X_0)) + 0.5*PI*cos(2*PI*X_0)) + 2.0*PI^2*mu0*(1.0 + 0.5*sin(2*PI*X_1))*(cos(2*PI*t) + sin(2*PI*t))*cos(2*PI*X_1)/(2.0 + cos(2*PI*X_0))"
+F_V = "0.25*PI*(cos(2*PI*t) + sin(2*PI*t))*cos(2*PI*X_0)*cos(2*PI*X_1) - 2.0*PI*sin(2*PI*X_0)*sin(2*PI*X_1) + mu0*(1.0 + 0.5*sin(2*PI*X_1))*(2.0*PI^2*(cos(2*PI*t) + sin(2*PI*t))*sin(2*PI*X_0)*sin(2*PI*X_1)/(2.0 + cos(2*PI*X_0))^2 + PI^2*sin(2*PI*X_0))"
+
+DensityFunction {
+   function = RHO
+}
+
+ViscosityFunction {
+   function = MU
+   mu0 = MU0
+}
+
+VelocityInitialConditions {
+   function_0 = U
+   function_1 = V
+}
+
+PressureInitialConditions {
+   function = P
+}
+
+ForcingFunction {
+   function_0 = F_U
+   function_1 = F_V
+   mu0 = MU0
+}
+
+FluidSourceFunction {
+   function = Q
+}
+
+INSVCStaggeredNonConservativeHierarchyIntegrator {
+   end_time           = END_TIME
+   dt_max             = DT
+   num_cycles         = 2
+   normalize_pressure = TRUE
+   creeping_flow      = FALSE
+   rho_is_const       = FALSE
+   mu_is_const        = FALSE
+
+   velocity_solver_type  = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type       = "richardson"
+      max_iterations = 5
+   }
+   velocity_precond_db {
+      num_pre_sweeps     = 0
+      num_post_sweeps    = 3
+      coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type  = "jacobi"
+      }
+   }
+
+   stokes_solver_type = "VC_STAGGERED_STOKES_PETSC_KRYLOV_SOLVER"
+   stokes_solver_db {
+      ksp_type         = "fgmres"
+      rel_residual_tol = 1.0e-12
+      abs_residual_tol = 1.0e-50
+      max_iterations   = 100
+   }
+}
+
+Main {
+   discretization_form = "NON_CONSERVATIVE"
+   log_file_name       = "INS2d.log"
+}
+
+CartesianGeometry {
+   domain_boxes       = [ (0,0),(N - 1,N - 1) ]
+   x_lo               = 0,0
+   x_up               = L,L
+   periodic_dimension = 1,1
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 512,512
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+}
