@@ -13,12 +13,17 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/PETScVecUtilities.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/SCPoissonPETScLevelSolver.h>
 
 #include <tbox/Database.h>
 
+#include <petscvec.h>
+
+#include <CartesianGridGeometry.h>
 #include <CoarseFineBoundary.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <PoissonSpecifications.h>
@@ -112,30 +117,65 @@ main(int argc, char* argv[])
         }
     }
 
-    // The correction of the right-hand side at the coarse-fine boundary, for a right-hand side without ghost cells.
+    // For this constant solution on an isotropic grid with spacing h, the coarse-fine RHS correction is O(h^-2) on
+    // O(h^-(NDIM - 1)) sides along the coarse-fine boundary strip. Assemble the signed correction values onto unique
+    // side degrees of freedom using the level solver's ownership rules before taking absolute values, then scale the L1
+    // norm by h^(NDIM + 1) (equivalently multiplying the cell-volume-weighted L1 norm by h) so the diagnostic stays
+    // O(1) under refinement and does not double-count shared patch faces.
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = hierarchy->getGridGeometry();
+    const double* const dx0 = grid_geom->getDx();
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const double h = dx0[0] / static_cast<double>(ratio(0));
+    for (int d = 1; d < NDIM; ++d)
+    {
+        const double hd = dx0[d] / static_cast<double>(ratio(d));
+        if (!(std::abs(hd - h) <= 1.0e-12 * h))
+        {
+            TBOX_ERROR("Expected an isotropic grid.\n");
+        }
+    }
+
+    Pointer<SideVariable<NDIM, double>> correction_var = new SideVariable<NDIM, double>("correction");
+    Pointer<SideVariable<NDIM, int>> dof_index_var = new SideVariable<NDIM, int>("dof_index");
+    const int correction_idx = var_db->registerVariableAndContext(correction_var, context, IntVector<NDIM>(0));
+    const int dof_index_idx = var_db->registerVariableAndContext(dof_index_var, context, IntVector<NDIM>(1));
+    level->allocatePatchData(correction_idx);
+    level->allocatePatchData(dof_index_idx);
+
     CoarseFineBoundary<NDIM> cf_boundary(*hierarchy, ln, IntVector<NDIM>(1));
-    double correction_l1 = 0.0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = level->getPatch(p());
         Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+        Pointer<SideData<NDIM, double>> correction_data = patch->getPatchData(correction_idx);
         const SAMRAI::tbox::Array<BoundaryBox<NDIM>>& type_1_cf_bdry =
             cf_boundary.getBoundaries(patch->getPatchNumber(), 1);
         const SAMRAI::tbox::Array<BoundaryBox<NDIM>>& type_2_cf_bdry =
             cf_boundary.getBoundaries(patch->getPatchNumber(), 2);
-        SideData<NDIM, double> correction(patch->getBox(), 1, IntVector<NDIM>(0));
-        correction.fillAll(0.0);
+        correction_data->fillAll(0.0);
         PoissonUtilities::adjustRHSAtCoarseFineBoundary(
-            correction, *u_data, patch, poisson_spec, type_1_cf_bdry, type_2_cf_bdry, bc_coefs, 0.0, false);
-        for (int axis = 0; axis < NDIM; ++axis)
-        {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch->getBox(), axis)); b; b++)
-            {
-                correction_l1 += std::abs(correction(SideIndex<NDIM>(b(), axis, SideIndex<NDIM>::Lower)));
-            }
-        }
+            *correction_data, *u_data, patch, poisson_spec, type_1_cf_bdry, type_2_cf_bdry, bc_coefs, 0.0, false);
     }
-    correction_l1 = IBTK_MPI::sumReduction(correction_l1);
+
+    std::vector<int> num_dofs_per_proc;
+    PETScVecUtilities::constructPatchLevelDOFIndices(num_dofs_per_proc, dof_index_idx, level);
+    Vec correction_vec = nullptr;
+    int ierr = VecCreateMPI(PETSC_COMM_WORLD, num_dofs_per_proc[IBTK_MPI::getRank()], PETSC_DETERMINE, &correction_vec);
+    IBTK_CHKERRQ(ierr);
+    PETScVecUtilities::copyToPatchLevelVec(correction_vec, correction_idx, dof_index_idx, level);
+    double correction_l1 = 0.0;
+    ierr = VecNorm(correction_vec, NORM_1, &correction_l1);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&correction_vec);
+    IBTK_CHKERRQ(ierr);
+    level->deallocatePatchData(dof_index_idx);
+    level->deallocatePatchData(correction_idx);
+
+    const double scaled_correction_l1 = std::pow(h, NDIM + 1) * correction_l1;
+    if (!std::isfinite(scaled_correction_l1))
+    {
+        TBOX_ERROR("The scaled correction norm is not finite.\n");
+    }
 
     SCPoissonPETScLevelSolver solver("solver", input_db->getDatabase("solver_db"), "solver_");
     solver.setPoissonSpecifications(poisson_spec);
@@ -180,6 +220,6 @@ main(int argc, char* argv[])
     }
 
     plog << "number_of_patches = " << level->getNumberOfPatches() << '\n';
-    plog << "correction_l1 = " << correction_l1 << '\n';
+    plog << "scaled_correction_l1 = " << scaled_correction_l1 << '\n';
     return 0;
 }
