@@ -136,7 +136,7 @@ protected:
     int d_reinit_interval = 0;
 
     // Boundary condition object for level set.
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef = nullptr;
 
     // Neighborhood locating functions.
     std::vector<LocateInterfaceNeighborhoodFcnPtr> d_locate_interface_fcns;
