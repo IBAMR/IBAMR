@@ -33,6 +33,7 @@
 #include <CellVariable.h>
 #include <IntVector.h>
 #include <RefineSchedule.h>
+#include <SAMRAIVectorReal.h>
 #include <SideVariable.h>
 #include <VariableContext.h>
 
@@ -186,6 +187,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_nullspace_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int>> d_p_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_p_nullspace_var;
+    // The pressure null space vector that this class last set, if any.
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_pressure_nullspace_vec;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>> d_data_synch_sched, d_ghost_fill_sched;
 
     //\}
