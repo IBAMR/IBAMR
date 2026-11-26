@@ -41,6 +41,7 @@
 #include <Variable.h>
 #include <VariableDatabase.h>
 
+#include <algorithm>
 #include <utility>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
@@ -166,7 +167,7 @@ SAMRAIDataCache::setPatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy)
         // Clean up allocated patch data on the old hierarchy.
         for (auto cloned_idx : d_all_cloned_patch_data_idxs)
         {
-            for (auto ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+            for (auto ln = d_coarsest_ln; ln <= std::min(d_finest_ln, d_hierarchy->getFinestLevelNumber()); ++ln)
             {
                 Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(cloned_idx)) level->deallocatePatchData(cloned_idx);
@@ -196,7 +197,8 @@ SAMRAIDataCache::resetLevels(const int coarsest_ln, const int finest_ln)
                 Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(cloned_idx)) level->deallocatePatchData(cloned_idx);
             }
-            for (auto ln = finest_ln + 1; ln <= d_finest_ln; ++ln)
+            // A regrid removes levels together with their data, so skip levels the hierarchy lacks.
+            for (auto ln = finest_ln + 1; ln <= std::min(d_finest_ln, d_hierarchy->getFinestLevelNumber()); ++ln)
             {
                 Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(cloned_idx)) level->deallocatePatchData(cloned_idx);
