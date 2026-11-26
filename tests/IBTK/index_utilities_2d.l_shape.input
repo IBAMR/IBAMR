@@ -1,0 +1,51 @@
+// An L-shaped domain of two boxes, with the upper arm listed first, so that the lower corner of box 0 differs from the
+// lower corner of the domain's bounding box. The grid-geometry forms of IndexUtilities must agree with the patch forms.
+test {}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+}
+
+N = 16
+
+CartesianGeometry {
+   domain_boxes       = [(0, 8), (7, N - 1)], [(0, 0), (N - 1, 7)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 0, 0
+}
+
+// Each point is an x and y coordinate. They are dyadic and away from cell faces on both levels, and lie in the upper
+// arm (the first four) and in the right part of the lower arm (the last two).
+compare_grid_forms = TRUE
+points = 0.3203125, 0.8203125, 0.0390625, 0.6015625, 0.1796875, 0.9921875, 0.3515625, 0.5234375, 0.7578125, 0.2578125, 0.9609375, 0.0703125
+
+GriddingAlgorithm {
+   max_levels = 2
+
+   ratio_to_coarser {level_1 = 2, 2}
+
+   largest_patch_size {level_0 = 8, 8}
+
+   smallest_patch_size {level_0 = 4, 4}
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(2, 4), (5, 11)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

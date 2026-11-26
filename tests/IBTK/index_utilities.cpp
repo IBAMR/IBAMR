@@ -11,6 +11,7 @@
 #include <array>
 #include <cmath>
 #include <fstream>
+#include <vector>
 
 #include "../tests.h"
 
@@ -104,6 +105,12 @@ main(int argc, char** argv)
     auto tuple = setup_hierarchy<NDIM>(app_initializer);
     auto patch_hierarchy = std::get<0>(tuple);
 
+    // The patch form of getCellIndex is not globally consistent at faces (IndexUtilities.h:116-121), so the exact
+    // comparison with the grid-geometry form is for points away from cell faces. The default points include points
+    // within rounding distance of faces.
+    const bool compare_grid_forms =
+        app_initializer->getInputDatabase()->getBoolWithDefault("compare_grid_forms", false);
+
     auto print_index = [&](const IBTK::Point& p)
     {
         tbox::pout << "Point = " << p << '\n';
@@ -120,6 +127,19 @@ main(int argc, char** argv)
                 c1 = IndexUtilities::getCellCenter<IBTK::Vector>(
                     patch_hierarchy->getGridGeometry(), level->getRatio(), index);
                 TBOX_ASSERT(c0 == c1);
+                if (compare_grid_forms &&
+                    index != IndexUtilities::getCellIndex(p, patch_hierarchy->getGridGeometry(), level->getRatio()))
+                {
+                    TBOX_ERROR("the patch and grid geometry forms of getCellIndex differ\n");
+                }
+                for (int axis = 0; axis < NDIM; ++axis)
+                {
+                    const pdat::SideIndex<NDIM> side_index(index, axis, pdat::SideIndex<NDIM>::Lower);
+                    const IBTK::Vector s0 = IndexUtilities::getSideCenter(*patch, side_index);
+                    const IBTK::Vector s1 = IndexUtilities::getSideCenter<IBTK::Vector>(
+                        patch_hierarchy->getGridGeometry(), level->getRatio(), side_index);
+                    if (s0 != s1) TBOX_ERROR("the patch and grid geometry forms of getSideCenter differ\n");
+                }
                 tbox::pout << "    Box         = " << patch->getBox() << '\n'
                            << "    Index       = " << index << '\n'
                            << "    cell center = " << c0.transpose() << '\n'
@@ -129,45 +149,25 @@ main(int argc, char** argv)
         }
     };
 
+    // Each point is an x and y coordinate, with the others zero. The default points are the original test points.
+    std::vector<double> coordinates = {
+        -0.35355339059327373086, -0.35355339059327373086, -5.5511151231257827e-17, -0.49999999999999994, -0.25, -0.25,
+        -2.7755575615628914e-17, -0.32322330470336308,    -4.163336342344337e-17,  -0.41161165235168151
+    };
+    if (app_initializer->getInputDatabase()->keyExists("points"))
     {
-        IBTK::Point p0;
-        p0.setZero();
-        p0[0] = -0.35355339059327373086;
-        p0[1] = -0.35355339059327373086;
-
-        print_index(p0);
+        const tbox::Array<double> points = app_initializer->getInputDatabase()->getDoubleArray("points");
+        coordinates.assign(points.getPointer(), points.getPointer() + points.size());
     }
+    TBOX_ASSERT(coordinates.size() % 2 == 0);
+    for (std::size_t k = 0; k + 1 < coordinates.size(); k += 2)
     {
-        IBTK::Point p0;
-        p0.setZero();
-        p0[0] = -5.5511151231257827e-17;
-        p0[1] = -0.49999999999999994;
+        IBTK::Point p;
+        p.setZero();
+        p[0] = coordinates[k];
+        p[1] = coordinates[k + 1];
 
-        print_index(p0);
-    }
-    {
-        IBTK::Point p0;
-        p0.setZero();
-        p0[0] = -0.25;
-        p0[1] = -0.25;
-
-        print_index(p0);
-    }
-    {
-        IBTK::Point p0;
-        p0.setZero();
-        p0[0] = -2.7755575615628914e-17;
-        p0[1] = -0.32322330470336308;
-
-        print_index(p0);
-    }
-    {
-        IBTK::Point p0;
-        p0.setZero();
-        p0[0] = -4.163336342344337e-17;
-        p0[1] = -0.41161165235168151;
-
-        print_index(p0);
+        print_index(p);
     }
 
     app_initializer->getVisItDataWriter()->writePlotData(patch_hierarchy, 0, 0.0);
