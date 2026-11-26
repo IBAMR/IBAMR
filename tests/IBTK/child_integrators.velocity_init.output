@@ -1,0 +1,47 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+CheckedAdvDiff [initializeCompositeHierarchyData(initial)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff2 [initializeCompositeHierarchyData(initial)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff [post-initializePatchHierarchy]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff2 [post-initializePatchHierarchy]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff2 [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff [post-regrid]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff2 [post-regrid]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+CheckedAdvDiff [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+CheckedAdvDiff2 [initializeCompositeHierarchyData(regrid)]: u_adv_max=1.49759, max_diff=0, adv_diff_dt=0.00626005
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.24324e-05
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00588016
+CheckedAdvDiff::postprocessIntegrateHierarchy(): CFL number = 0.0239704
+CheckedAdvDiff2::postprocessIntegrateHierarchy(): CFL number = 0.0239704
+
+At end       of timestep # 0
+Simulation time is 0.0005
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.0005
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.18325e-05
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00223274
+CheckedAdvDiff::postprocessIntegrateHierarchy(): CFL number = 0.0239672
+CheckedAdvDiff2::postprocessIntegrateHierarchy(): CFL number = 0.0239672
+
+At end       of timestep # 1
+Simulation time is 0.001
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+CheckedAdvDiff [post-advance]: u_adv_max=1.49795, max_diff=0, adv_diff_dt=0.001
+CheckedAdvDiff2 [post-advance]: u_adv_max=1.49795, max_diff=0, adv_diff_dt=0.001
+IBRedundantInitializer:  Deallocating initialization data.

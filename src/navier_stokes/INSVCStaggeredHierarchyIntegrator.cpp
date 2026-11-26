@@ -1148,27 +1148,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 } // initializeHierarchyIntegrator
 
 void
-INSVCStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                                            Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
-{
-    HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
-
-    // When necessary, initialize the value of the advection velocity registered
-    // with a coupled advection-diffusion solver.
-    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
-    {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int U_adv_diff_current_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
-        if (isAllocatedPatchData(U_adv_diff_current_idx))
-        {
-            copySideToFace(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
-        }
-    }
-    return;
-} // initializePatchHierarhcy
-
-void
 INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                 const double new_time,
                                                                 const int num_cycles)
@@ -1574,15 +1553,25 @@ void
 INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
                                                                                const bool initial_time)
 {
-    if (initial_time && d_Q_fcn) return;
-
     // Project the interpolated velocity if needed.
-    if (initial_time || d_do_regrid_projection)
+    if (!(initial_time && d_Q_fcn) && (initial_time || d_do_regrid_projection))
     {
         plog << d_object_name << "::initializeCompositeHierarchyData():\n"
              << "  projecting the interpolated velocity field\n";
         regridProjection(initial_time);
         d_do_regrid_projection = false;
+    }
+
+    // Copy the velocity field into any coupled advection-diffusion integrators.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
+    {
+        const int U_adv_diff_current_idx =
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
+        if (isAllocatedPatchData(U_adv_diff_current_idx))
+        {
+            copySideToFace(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
+        }
     }
     return;
 } // initializeCompositeHierarchyDataSpecialized

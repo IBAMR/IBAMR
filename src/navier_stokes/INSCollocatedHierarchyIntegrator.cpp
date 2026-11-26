@@ -827,27 +827,6 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
 } // initializeHierarchyIntegrator
 
 void
-INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                                           Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
-{
-    HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
-
-    // When necessary, initialize the value of the advection velocity registered
-    // with a coupled advection-diffusion solver.
-    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
-    {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int U_adv_diff_current_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
-        if (isAllocatedPatchData(U_adv_diff_current_idx))
-        {
-            d_hier_fc_data_ops->copyData(U_adv_diff_current_idx, d_u_ADV_current_idx);
-        }
-    }
-    return;
-} // initializePatchHierarhcy
-
-void
 INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                const double new_time,
                                                                const int num_cycles)
@@ -1501,6 +1480,18 @@ INSCollocatedHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(co
                                                                               const bool initial_time)
 {
     regridProjection(initial_time);
+
+    // Copy the velocity field into any coupled advection-diffusion integrators.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
+    {
+        const int U_adv_diff_current_idx =
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
+        if (isAllocatedPatchData(U_adv_diff_current_idx))
+        {
+            d_hier_fc_data_ops->copyData(U_adv_diff_current_idx, d_u_ADV_current_idx);
+        }
+    }
     return;
 } // initializeCompositeHierarchyDataSpecialized
 

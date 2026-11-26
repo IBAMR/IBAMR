@@ -191,23 +191,6 @@ public:
                                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg) override;
 
     /*!
-     * Virtual method to initialize the AMR patch hierarchy and data defined on the hierarchy at
-     * the start of a computation.  If the computation is begun from a restart
-     * file, the patch hierarchy and patch data are read from the hierarchy
-     * database.  Otherwise, the patch hierarchy and patch data are initialized
-     * by the gridding algorithm associated with the integrator object.
-     *
-     * The implementation of this function assumes that the hierarchy exists
-     * upon entry to the function, but that it contains no patch levels.  On
-     * return from this function, the state of the integrator object will be
-     * such that it is possible to step through time via the advanceHierarchy()
-     * function.
-     */
-    virtual void
-    initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-                             SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM>> gridding_alg) override;
-
-    /*!
      * Virtual method to prepare to advance the data from current_time to new_time.
      */
     virtual void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;

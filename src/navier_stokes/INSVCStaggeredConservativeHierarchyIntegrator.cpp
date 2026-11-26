@@ -213,14 +213,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
 } // initializeHierarchyIntegrator
 
 void
-INSVCStaggeredConservativeHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM>> hierarchy,
-                                                                        Pointer<GriddingAlgorithm<NDIM>> gridding_alg)
-{
-    INSVCStaggeredHierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
-    return;
-} // initializePatchHierarhcy
-
-void
 INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                             const double new_time,
                                                                             const int num_cycles)
