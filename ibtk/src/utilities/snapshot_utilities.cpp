@@ -13,17 +13,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/snapshot_utilities.h>
 
-#include <CartesianGridGeometry.h>
 #include <HierarchyDataOpsManager.h>
-#include <RefineAlgorithm.h>
-#include <RefineOperator.h>
 
 #include <algorithm>
-#include <limits>
 
 #include <ibtk/app_namespaces.h> // IWYU pragma: keep
 
@@ -38,42 +33,7 @@ update_snapshot(SnapshotCache& cache,
                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> current_hierarchy,
                 double tol)
 {
-    // Make sure we are on a stored snapshot.
-    const std::pair<double, Pointer<PatchHierarchy<NDIM>>>& snapshot = cache.getSnapshot(time, tol);
-    if (!snapshot.second || !IBTK::abs_equal_eps(snapshot.first, time, tol))
-        TBOX_ERROR("Snapshot at time: " << time << " with tolerance " << tol << " does not exist!\n");
-
-    // We need the snapshot index
-    int snapshot_idx = cache.getPatchIndex();
-
-    const Pointer<PatchHierarchy<NDIM>>& snapshot_hierarchy = snapshot.second;
-
-    // Note we can not do the usual trick of making a refined patch hierarchy with refinement ratio 1 because we can't
-    // copy the snapshot_hierarchy's name. Instead, we delete all the snapshot_hierarchy's levels and replace them with
-    // copies of the current_hierarchy.
-    int coarsest_ln = 0;
-    int finest_ln = current_hierarchy->getFinestLevelNumber();
-#ifndef NDEBUG
-    TBOX_ASSERT(snapshot_hierarchy->getFinestLevelNumber() == finest_ln);
-#endif
-    Pointer<GridGeometry<NDIM>> new_geometry =
-        current_hierarchy->getGridGeometry()->makeRefinedGridGeometry("SnapshotGeometry", 1, false);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> current_level = current_hierarchy->getPatchLevel(ln);
-        snapshot_hierarchy->removePatchLevel(ln);
-        snapshot_hierarchy->makeNewPatchLevel(
-            ln, current_level->getRatio(), current_level->getBoxes(), current_level->getProcessorMapping());
-        Pointer<PatchLevel<NDIM>> new_level = snapshot_hierarchy->getPatchLevel(ln);
-
-        // Now allocate data on the new level
-        new_level->allocatePatchData(snapshot_idx, time);
-        Pointer<RefineAlgorithm<NDIM>> refine_alg = new RefineAlgorithm<NDIM>();
-        Pointer<RefineOperator<NDIM>> refine_op = nullptr;
-        refine_alg->registerRefine(snapshot_idx, u_idx, u_idx, refine_op);
-        Pointer<RefineSchedule<NDIM>> schedule = refine_alg->createSchedule(new_level, current_level);
-        schedule->fillData(time);
-    }
+    cache.updateSnapshot(u_idx, time, current_hierarchy, tol);
 }
 
 void
@@ -84,58 +44,7 @@ fill_snapshot_on_hierarchy(SnapshotCache& cache,
                            const std::string& snapshot_refine_type,
                            const double tol)
 {
-    // Make sure we are on a stored snapshot.
-    const std::pair<double, Pointer<PatchHierarchy<NDIM>>>& snapshot = cache.getSnapshot(time, tol);
-    if (!snapshot.second || !IBTK::abs_equal_eps(snapshot.first, time, tol))
-        TBOX_ERROR("Snapshot at time: " << time << " with tolerance " << tol << " does not exist!\n");
-
-    // We need the snapshot index on the snapshot hierarchy and a scratch index on both hierarchies. We use the snapshot
-    // index as the scratch index, but maybe we should clone the index?
-    int snapshot_idx = cache.getPatchIndex();
-    int scr_idx = snapshot_idx;
-
-    // We have our snapshot index. Now copy the data to u_idx.
-    const Pointer<PatchHierarchy<NDIM>>& snapshot_hierarchy = snapshot.second;
-    // Make sure the current hierarchy and snapshot hierarchy have the same number of levels
-    TBOX_ASSERT(current_hierarchy->getFinestLevelNumber() == snapshot_hierarchy->getFinestLevelNumber());
-    // Now transfer data from the snapshot to the current hierarchy
-    int coarsest_ln = 0;
-    int finest_ln = snapshot_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> cur_level = current_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM>> snp_level = snapshot_hierarchy->getPatchLevel(ln);
-
-        // RefineSchedule requires that patch data be stored at the same points.
-        // We reset the snapshot patch data time to that of the current time.
-        // Get the time from the ranks that own patches on this level.
-        double local_time = std::numeric_limits<double>::lowest();
-        const PatchLevel<NDIM>::Iterator first_patch(cur_level);
-        if (first_patch)
-        {
-            local_time = cur_level->getPatch(*first_patch)->getPatchData(u_idx)->getTime();
-        }
-        const double allocated_time = IBTK_MPI::maxReduction(local_time);
-        // Note we need scratch allocated on the current hierarchy. Use the snapshot for that.
-        cur_level->allocatePatchData(scr_idx, allocated_time);
-        snp_level->setTime(allocated_time, snapshot_idx);
-
-        // Now copy the data.
-        Pointer<RefineAlgorithm<NDIM>> refine_alg = new RefineAlgorithm<NDIM>();
-        Pointer<CartesianGridGeometry<NDIM>> grid_geom = current_hierarchy->getGridGeometry();
-        Pointer<RefineOperator<NDIM>> refine_op =
-            grid_geom->lookupRefineOperator(cache.getVariable(), snapshot_refine_type);
-        refine_alg->registerRefine(u_idx, snapshot_idx, scr_idx, refine_op);
-        Pointer<RefineSchedule<NDIM>> schedule =
-            refine_alg->createSchedule(cur_level, snp_level, ln - 1, current_hierarchy);
-        schedule->fillData(allocated_time);
-    }
-
-    for (int ln = 0; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = current_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(scr_idx);
-    }
+    cache.fillSnapshotOnHierarchy(u_idx, time, current_hierarchy, snapshot_refine_type, tol);
 }
 
 void

@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -32,7 +33,9 @@
 #include <HierarchyDataOpsReal.h>
 #include <IntVector.h>
 #include <NodeVariable.h>
+#include <PatchDataFactory.h>
 #include <PatchHierarchy.h>
+#include <RefineSchedule.h>
 #include <SideVariable.h>
 
 #include <map>
@@ -53,6 +56,10 @@ namespace IBTK
  *
  * This class stores snapshots in a list ordered by increasing time values. Iterators to the stored snapshots are
  * provided via the begin(), end(), and getSnapshot() methods.
+ *
+ * Communication schedules for updating and filling snapshots are reused until a level of the current hierarchy or of a
+ * snapshot hierarchy is replaced. Replaced levels of the current hierarchy remain in memory until the next call to
+ * updateSnapshot() or fillSnapshotOnHierarchy(), or to clearSnapshots().
  */
 class SnapshotCache : public SAMRAI::tbox::Serializable
 {
@@ -95,6 +102,29 @@ public:
      * called.
      */
     void storeSnapshot(int u_idx, double time, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy);
+
+    /*!
+     * Update the snapshot at the given time to the data in u_idx on the current hierarchy, and replace the snapshot
+     * hierarchy by the current hierarchy. This outputs an error if no snapshot is stored within the tolerance. Index
+     * u_idx may differ from the index used in storeSnapshot(), but its data layout must match that of the variable of
+     * this object. Free function update_snapshot() calls this function.
+     */
+    void updateSnapshot(int u_idx,
+                        double time,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> current_hierarchy,
+                        double tol = 1.0e-8);
+
+    /*!
+     * Transfer the snapshot at the given time to u_idx on the current hierarchy, using the named refinement operator
+     * and without synchronizing the levels. Index u_idx must have a ghost cell width sufficient for the operator. This
+     * outputs an error if no snapshot is stored within the tolerance. Free function fill_snapshot_on_hierarchy() calls
+     * this function.
+     */
+    void fillSnapshotOnHierarchy(int u_idx,
+                                 double time,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> current_hierarchy,
+                                 const std::string& snapshot_refine_type,
+                                 double tol = 1.0e-8);
 
     /*!
      * Get a copy of the snapshot time and patch hierarchy pair. If a snapshot is not present within the provided
@@ -184,6 +214,38 @@ private:
      */
     SnapshotCache& operator=(const SnapshotCache& that) = delete;
 
+    /*!
+     * Communication schedules of one snapshot hierarchy. The schedules contain the levels of the current hierarchy and
+     * of the snapshot hierarchy, so they are dropped when either changes.
+     */
+    struct Schedules
+    {
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> snapshot_hierarchy;
+        detail::HierarchyLevelsIdentity snapshot_levels;
+
+        // One schedule per level that copies index update_idx on the current hierarchy to the snapshot levels.
+        int update_idx = IBTK::invalid_index;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM>> update_factory;
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> update;
+
+        // One set of schedules per level that transfer the snapshot to index fill_idx on the current hierarchy.
+        struct Fill
+        {
+            int fill_idx = IBTK::invalid_index;
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM>> fill_factory;
+            std::string refine_type;
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> schedules;
+        };
+        std::vector<Fill> fill;
+    };
+
+    /*!
+     * Drop all schedules if the current hierarchy differs from the one they were built on, and return the schedules of
+     * the given snapshot hierarchy, which are dropped if the levels of that hierarchy changed.
+     */
+    Schedules& resetSchedules(const SAMRAI::hier::PatchHierarchy<NDIM>& current_hierarchy,
+                              const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& snapshot_hierarchy);
+
     std::string d_object_name;
 
     /*
@@ -199,6 +261,14 @@ private:
      * data index stored by this class.
      */
     std::vector<value_type> d_snapshots;
+
+    /*!
+     * Schedules for the snapshots, and the levels of the current hierarchy on which they are built.
+     */
+    //\{
+    detail::HierarchyLevelsIdentity d_current_levels;
+    std::vector<Schedules> d_schedules;
+    //\}
 
     bool d_registered_for_restart = false;
 };

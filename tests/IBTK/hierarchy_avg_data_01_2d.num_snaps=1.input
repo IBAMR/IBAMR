@@ -17,6 +17,7 @@ t_end = 1.0
 num_snaps = 1
 max_periods = 100
 noise_max = 0.1
+regrid_interval = 5
 RESTART = FALSE
 
 CartesianGeometry {

@@ -41,6 +41,8 @@ namespace IBTK
  *
  * Calls to this function may use a different patch index than the one used in setSnapshot(), but the underlying
  * data layout must be consistent. This data layout is specified by the variable used to construct the cache.
+ *
+ * \see SnapshotCache::updateSnapshot()
  */
 void update_snapshot(SnapshotCache& cache,
                      int u_idx,
@@ -58,6 +60,8 @@ void update_snapshot(SnapshotCache& cache,
  *
  * This function does not synchronize the data on the current hierarchy (i.e. no coarsening is performed). It
  * transfers the snapshot using the refinement operator.
+ *
+ * \see SnapshotCache::fillSnapshotOnHierarchy()
  */
 void fill_snapshot_on_hierarchy(SnapshotCache& cache,
                                 int u_idx,

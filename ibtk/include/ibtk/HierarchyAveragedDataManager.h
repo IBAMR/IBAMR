@@ -20,8 +20,11 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/SnapshotCache.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -275,6 +278,9 @@ private:
 
     // Drawing stuff
     std::unique_ptr<SAMRAI::appu::VisItDataWriter<NDIM>> d_visit_data_writer;
+    detail::HierarchyLevelsIdentity d_output_levels;
+    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_ghost_fill;
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_mean_var;
     int d_mean_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_dev_var;

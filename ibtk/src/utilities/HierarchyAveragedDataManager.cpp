@@ -250,30 +250,33 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
         allocate_patch_data(d_mean_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
         allocate_patch_data(d_dev_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
         // Copy data to visit index
-        Pointer<HierarchyGhostCellInterpolation> ghost_fill = new HierarchyGhostCellInterpolation();
-        using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<ITC> itc = { ITC(
-            d_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR") };
-        ghost_fill->initializeOperatorState(itc, hierarchy);
-        HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
-        hier_math_ops.resetLevels(0, hierarchy->getFinestLevelNumber());
-        hier_math_ops.setPatchHierarchy(hierarchy);
+        if (d_output_levels.changed(*hierarchy, 0, hierarchy->getFinestLevelNumber()))
+        {
+            d_ghost_fill = new HierarchyGhostCellInterpolation();
+            using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+            std::vector<ITC> itc = { ITC(
+                d_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR") };
+            d_ghost_fill->initializeOperatorState(itc, hierarchy);
+            d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy);
+            d_hier_math_ops->resetLevels(0, hierarchy->getFinestLevelNumber());
+            d_hier_math_ops->setPatchHierarchy(hierarchy);
+        }
         Pointer<SideVariable<NDIM, double>> sc_var = d_var;
         Pointer<NodeVariable<NDIM, double>> nc_var = d_var;
         Pointer<EdgeVariable<NDIM, double>> ec_var = d_var;
         Pointer<FaceVariable<NDIM, double>> fc_var = d_var;
         Pointer<CellVariable<NDIM, double>> cc_var = d_var;
-        if (sc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, sc_var, ghost_fill, time, false);
-        if (nc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, nc_var, ghost_fill, time, false);
-        if (ec_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, ec_var, ghost_fill, time, false);
-        if (fc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, fc_var, ghost_fill, time, false);
+        if (sc_var) d_hier_math_ops->interp(d_mean_idx, d_mean_var, d_scratch_idx, sc_var, d_ghost_fill, time, false);
+        if (nc_var) d_hier_math_ops->interp(d_mean_idx, d_mean_var, d_scratch_idx, nc_var, d_ghost_fill, time, false);
+        if (ec_var) d_hier_math_ops->interp(d_mean_idx, d_mean_var, d_scratch_idx, ec_var, d_ghost_fill, time, false);
+        if (fc_var) d_hier_math_ops->interp(d_mean_idx, d_mean_var, d_scratch_idx, fc_var, d_ghost_fill, time, false);
         if (cc_var) hier_data_ops->copyData(d_mean_idx, d_scratch_idx);
         // Determine our convergence criteria: ||1/(N + 1) * (u_avg - u)||
         hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
-        if (sc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, sc_var, ghost_fill, time, false);
-        if (nc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, nc_var, ghost_fill, time, false);
-        if (ec_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, ec_var, ghost_fill, time, false);
-        if (fc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, fc_var, ghost_fill, time, false);
+        if (sc_var) d_hier_math_ops->interp(d_dev_idx, d_dev_var, d_scratch_idx, sc_var, d_ghost_fill, time, false);
+        if (nc_var) d_hier_math_ops->interp(d_dev_idx, d_dev_var, d_scratch_idx, nc_var, d_ghost_fill, time, false);
+        if (ec_var) d_hier_math_ops->interp(d_dev_idx, d_dev_var, d_scratch_idx, ec_var, d_ghost_fill, time, false);
+        if (fc_var) d_hier_math_ops->interp(d_dev_idx, d_dev_var, d_scratch_idx, fc_var, d_ghost_fill, time, false);
         if (cc_var) hier_data_ops->copyData(d_dev_idx, d_scratch_idx);
         d_visit_data_writer->writePlotData(hierarchy, d_visit_ts++, time);
         deallocate_patch_data(d_mean_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
