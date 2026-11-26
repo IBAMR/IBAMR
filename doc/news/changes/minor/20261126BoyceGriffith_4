@@ -1,0 +1,3 @@
+Fixed: Re-initializing an IBAMR::AdvDiffWavePropConvectiveOperator or IBAMR::CFUpperConvectiveOperator after a regrid removes the finest level no longer fails an assertion in debug builds or dereferences a null level in release builds.
+<br>
+(Boyce Griffith, 2026/11/26)
