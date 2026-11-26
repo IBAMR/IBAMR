@@ -171,7 +171,7 @@ c
 c
       implicit none
       REAL sixth
-      parameter (sixth=0.16666666666667d0)
+      parameter (sixth=1.d0/6.d0)
 c
 c     Input.
 c
