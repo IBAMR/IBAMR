@@ -31,6 +31,7 @@
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -361,6 +362,12 @@ private:
      * Pointers to the previous objects (required by some APIs).
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs_ptrs;
+
+    /*!
+     * Cached ghost-cell fill of the scratch conformation tensor, with the hierarchy levels it was built for.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_ghost_fill_op;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
 

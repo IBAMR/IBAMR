@@ -351,20 +351,25 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy, true);
 
     // Fill in boundary conditions for evolved quantity.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
-    ghost_cell_components[0] = InterpolationTransactionComponent(d_C_scratch_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 "LINEAR",
-                                                                 false,
-                                                                 d_conc_bc_coefs_ptrs,
-                                                                 nullptr,
-                                                                 d_interp_type);
-    HierarchyGhostCellInterpolation ghost_fill_op;
-    ghost_fill_op.initializeOperatorState(ghost_cell_components, hierarchy);
-    ghost_fill_op.fillData(data_time);
+    // commonConstructor() sets the scratch index, the boundary condition objects, and the interpolation type. The fill
+    // operator therefore depends only on the hierarchy levels.
+    if (d_fill_levels.changed(*hierarchy, 0, hierarchy->getFinestLevelNumber())) d_ghost_fill_op.setNull();
+    if (!d_ghost_fill_op)
+    {
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        const InterpolationTransactionComponent ghost_cell_component(d_C_scratch_idx,
+                                                                     "CONSERVATIVE_LINEAR_REFINE",
+                                                                     false,
+                                                                     "CONSERVATIVE_COARSEN",
+                                                                     "LINEAR",
+                                                                     false,
+                                                                     d_conc_bc_coefs_ptrs,
+                                                                     nullptr,
+                                                                     d_interp_type);
+        d_ghost_fill_op = new HierarchyGhostCellInterpolation();
+        d_ghost_fill_op->initializeOperatorState(ghost_cell_component, hierarchy);
+    }
+    d_ghost_fill_op->fillData(data_time);
 
     // Convert evolved quantity including ghost cells to conformation tensor.
     switch (d_evolve_type)
