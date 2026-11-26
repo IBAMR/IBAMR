@@ -413,14 +413,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         d_field_name = field_name;
         const int n_fields = static_cast<int>(field_is.size());
 
-        // Destroy old IS'es and generate new ones.
-        for (auto& is : d_field_is)
-        {
-            ierr = ISDestroy(&is);
-            IBTK_CHKERRQ(ierr);
-        }
-        d_field_is.clear();
-
+        // Generate the field index sets.
         d_field_is.resize(n_fields);
         for (int k = 0; k < n_fields; ++k)
         {
@@ -697,14 +690,10 @@ PETScLevelSolver::deallocateSolverState()
             ierr = VecDestroy(&d_sub_y[i]);
             IBTK_CHKERRQ(ierr);
         }
-        ierr = MatDestroyMatrices(d_n_local_subdomains, &d_sub_mat);
+        ierr = MatDestroySubMatrices(d_n_local_subdomains, &d_sub_mat);
         IBTK_CHKERRQ(ierr);
-        if (d_shell_pc_type == "multiplicative" && d_n_local_subdomains > 0)
-        {
-            ierr = MatDestroyMatrices(d_n_local_subdomains, &d_sub_bc_mat);
-            IBTK_CHKERRQ(ierr);
-        }
-        d_sub_mat = nullptr;
+        ierr = MatDestroySubMatrices(d_n_local_subdomains, &d_sub_bc_mat);
+        IBTK_CHKERRQ(ierr);
         ierr = VecDestroy(&d_local_x);
         IBTK_CHKERRQ(ierr);
         d_local_x = nullptr;
@@ -722,6 +711,15 @@ PETScLevelSolver::deallocateSolverState()
         d_sub_x.clear();
         d_sub_y.clear();
     }
+
+    // Destroy the field-split index sets.
+    for (IS& is : d_field_is)
+    {
+        ierr = ISDestroy(&is);
+        IBTK_CHKERRQ(ierr);
+    }
+    d_field_is.clear();
+    d_field_name.clear();
 
     // Destroy the subdomain index sets, which the next initialization generates again.
     for (IS& is : d_nonoverlap_is)

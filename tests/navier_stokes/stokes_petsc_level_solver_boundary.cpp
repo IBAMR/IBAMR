@@ -77,13 +77,9 @@ main(int argc, char* argv[])
     const int udi = variables->registerVariableAndContext(u_dof, context, IntVector<NDIM>(1));
     const int pdi = variables->registerVariableAndContext(p_dof, context, IntVector<NDIM>(1));
 
-    StaggeredStokesPETScLevelSolver solver(
-        "boundary_rhs_solver", app->getInputDatabase()->getDatabase("solver_db"), "boundary_rhs_");
     PoissonSpecifications coefficients("coefficients");
     coefficients.setCConstant(1.0);
     coefficients.setDConstant(-1.0);
-    solver.setVelocityPoissonSpecifications(coefficients);
-    solver.setComponentsHaveNullSpace(false, true);
     std::vector<std::unique_ptr<LocationIndexRobinBcCoefs<NDIM>>> bc_storage;
     std::vector<RobinBcCoefStrategy<NDIM>*> bcs(NDIM, nullptr);
     for (int axis = 0; axis < NDIM; ++axis)
@@ -97,9 +93,18 @@ main(int argc, char* argv[])
     }
     Pointer<StaggeredStokesPhysicalBoundaryHelper> helper = new StaggeredStokesPhysicalBoundaryHelper();
     helper->cacheBcCoefData(bcs, 0.0, hierarchy);
-    solver.setPhysicalBcCoefs(bcs, nullptr);
-    solver.setPhysicalBoundaryHelper(helper);
-    solver.setHomogeneousBc(false);
+    // Apply the same configuration to every solver in this program.
+    auto configure = [&](StaggeredStokesPETScLevelSolver& s)
+    {
+        s.setVelocityPoissonSpecifications(coefficients);
+        s.setComponentsHaveNullSpace(false, true);
+        s.setPhysicalBcCoefs(bcs, nullptr);
+        s.setPhysicalBoundaryHelper(helper);
+        s.setHomogeneousBc(false);
+    };
+    StaggeredStokesPETScLevelSolver solver(
+        "boundary_rhs_solver", app->getInputDatabase()->getDatabase("solver_db"), "boundary_rhs_");
+    configure(solver);
 
     // Use the solver on each level of the hierarchy in turn. Each solve initializes and deallocates the solver state
     // again.
@@ -144,15 +149,39 @@ main(int argc, char* argv[])
         IBTK_CHKERRQ(ierr);
         StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(expected, fi, udi, hi, pdi, level);
 
+        // Solve once with a second solver on each level so that PETSc's one-time allocations do not count below.
+        {
+            StaggeredStokesPETScLevelSolver warm_up(
+                "boundary_rhs_solver", app->getInputDatabase()->getDatabase("solver_db"), "boundary_rhs_");
+            configure(warm_up);
+            x.setToScalar(0.0);
+            warm_up.initializeSolverState(x, b);
+            if (!warm_up.solveSystem(x, b))
+            {
+                TBOX_ERROR("The solver did not converge.\n");
+            }
+            warm_up.deallocateSolverState();
+        }
+
         for (int solve = 0; solve < n_solves; ++solve)
         {
             x.setToScalar(0.0);
+            // Initialization, the solve, and deallocation must leave no PETSc memory allocated.
+            PetscLogDouble before = 0.0, after = 0.0;
+            ierr = PetscMallocGetCurrentUsage(&before);
+            IBTK_CHKERRQ(ierr);
             solver.initializeSolverState(x, b);
             if (!solver.solveSystem(x, b))
             {
                 TBOX_ERROR("The solver did not converge.\n");
             }
             solver.deallocateSolverState();
+            ierr = PetscMallocGetCurrentUsage(&after);
+            IBTK_CHKERRQ(ierr);
+            if (after > before)
+            {
+                TBOX_ERROR("deallocateSolverState() left " << after - before << " bytes allocated.\n");
+            }
             StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(actual, ui, udi, pi, pdi, level);
             const double solution_norm = norm_inf(actual);
             ierr = VecAXPY(actual, -1.0, expected);

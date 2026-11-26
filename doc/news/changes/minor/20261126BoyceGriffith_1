@@ -1,0 +1,3 @@
+Fixed: IBTK::PETScLevelSolver::deallocateSolverState() no longer leaks the field-split index sets or, on a process that owns no subdomains, the subdomain submatrices.
+<br>
+(Boyce Griffith, 2026/11/26)
