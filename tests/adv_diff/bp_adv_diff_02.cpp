@@ -42,7 +42,6 @@
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
-#include <ibtk/IndexUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -51,6 +50,10 @@
 
 // Application specific includes
 #include "LevelSetInitialConditionHexagram.cpp"
+
+// C++ standard library headers
+#include <algorithm>
+#include <cmath>
 
 // Struct to specify the variables required for inhomogeneous Neumann conditions for Brinkman penalization
 struct BrinkmanPenalizationCtx
@@ -68,6 +71,52 @@ struct BrinkmanPenalizationCtx
     int num_prop_cells;
     int prop_counter_idx;
 };
+
+namespace
+{
+// Return a propagation cell index from the signed gradient step. If a target
+// coordinate lies on a cell face, break the tie toward the source cell.
+CellIndex<NDIM>
+get_propagation_cell_index(const CellIndex<NDIM>& ci,
+                           const CellData<NDIM, double>& grad_phi_cc_data,
+                           const int signed_step)
+{
+    constexpr double face_tie_tol = 1.0e-8;
+    CellIndex<NDIM> nbr_cell;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        const double step = static_cast<double>(signed_step) * grad_phi_cc_data(ci, d);
+        const double shifted = static_cast<double>(ci(d)) + 0.5 + step;
+        const double nearest_face = std::round(shifted);
+        if (std::abs(shifted - nearest_face) <= face_tie_tol)
+        {
+            const int face_idx = static_cast<int>(std::llround(nearest_face));
+            nbr_cell(d) = (step >= 0.0) ? (face_idx - 1) : face_idx;
+        }
+        else
+        {
+            nbr_cell(d) = static_cast<int>(std::floor(shifted));
+        }
+    }
+    return nbr_cell;
+}
+
+// Select the largest signed candidate whose magnitude lies within a fixed
+// relative tolerance of max_abs.
+void
+update_selected_g(const double candidate, const double max_abs, double& selected_g, int& has_selected)
+{
+    constexpr double g_tie_rel_tol = 1.0e-10;
+    if (max_abs - std::abs(candidate) <= g_tie_rel_tol * max_abs)
+    {
+        if (!has_selected || candidate > selected_g)
+        {
+            selected_g = candidate;
+            has_selected = 1;
+        }
+    }
+}
+} // namespace
 
 void
 evaluate_brinkman_bc_callback_fcn(int B_idx,
@@ -228,84 +277,77 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = finest_level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
-        const double* const patch_dx = patch_geom->getDx();
         Pointer<CellData<NDIM, double>> g_cc_data = patch->getPatchData(g_cc_scratch_idx);
         Pointer<CellData<NDIM, double>> interface_cell_data = patch->getPatchData(interface_cell_patch_idx);
         Pointer<CellData<NDIM, double>> prop_counter_data = patch->getPatchData(prop_counter_idx);
         Pointer<CellData<NDIM, double>> grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
         const Box<NDIM>& ghost_box = g_cc_data->getGhostBox();
-        const hier::Index<NDIM>& ghost_lower_idx = ghost_box.lower();
-        const hier::Index<NDIM>& ghost_upper_idx = ghost_box.upper();
+
+        // Copy source data before propagation because neighbor updates write in place.
+        CellData<NDIM, double> g_src(g_cc_data->getBox(), 1, g_cc_data->getGhostCellWidth());
+        g_src.copy(*g_cc_data);
+
+        // Find the largest candidate magnitude at each cell so collision selection is order-independent.
+        CellData<NDIM, double> max_abs_g(g_cc_data->getBox(), 1, g_cc_data->getGhostCellWidth());
+        max_abs_g.fillAll(0.0);
 
         for (Box<NDIM>::Iterator it(ghost_box); it; it++)
         {
-            CellIndex<NDIM> ci(it());
-
+            const CellIndex<NDIM> ci(it());
             if ((*interface_cell_data)(ci) > 0.0)
             {
-                std::vector<CellIndex<NDIM>> nbr_cell_normal(num_prop_cells);     // vector stores cell index of
-                                                                                  // neighbor cells in +n direction
-                std::vector<CellIndex<NDIM>> nbr_cell_neg_normal(num_prop_cells); // vector stores cell index of
-                                                                                  // neighbor cells in -n direction
-                // location of the interface cells.
-                IBTK::VectorNd coord = IBTK::Vector::Zero();
-                IBTK::VectorNd coord_nbr = IBTK::Vector::Zero();
-                const double g = (*g_cc_data)(ci);
-                for (int d = 0; d < NDIM; ++d)
-                    coord[d] = grid_x_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - grid_lower_idx(d)) + 0.5);
-
-                // propagating g in +n direction.
-                int counter = 0;
-                for (auto& nbr_cell : nbr_cell_normal)
+                const double abs_g = std::abs(g_src(ci));
+                max_abs_g(ci) = std::max(max_abs_g(ci), abs_g);
+                for (const int direction : { 1, -1 })
                 {
-                    counter++;
-                    for (int d = 0; d < NDIM; ++d)
+                    for (int counter = 1; counter <= num_prop_cells; ++counter)
                     {
-                        coord_nbr[d] = coord[d] + counter * patch_dx[d] * (*grad_phi_cc_data)(ci, d);
-                    }
-                    nbr_cell = IndexUtilities::getCellIndex(&coord_nbr[0], grid_geom, ratio);
-
-                    if (nbr_cell[0] >= ghost_lower_idx[0] && nbr_cell[0] <= ghost_upper_idx[0] &&
-                        nbr_cell[1] >= ghost_lower_idx[1] && nbr_cell[1] <= ghost_upper_idx[1]
-#if (NDIM == 3)
-                        && nbr_cell[2] >= ghost_lower_idx[2] && nbr_cell[2] <= ghost_upper_idx[2]
-#endif
-                    )
-                    {
-                        (*prop_counter_data)(nbr_cell) = (*prop_counter_data)(nbr_cell) + 1.0;
-                        if (std::abs((*g_cc_data)(nbr_cell)) <= std::abs(g))
+                        const CellIndex<NDIM> nbr_cell =
+                            get_propagation_cell_index(ci, *grad_phi_cc_data, direction * counter);
+                        if (ghost_box.contains(nbr_cell))
                         {
-                            (*g_cc_data)(nbr_cell) = g;
+                            (*prop_counter_data)(nbr_cell) += 1.0;
+                            max_abs_g(nbr_cell) = std::max(max_abs_g(nbr_cell), abs_g);
                         }
                     }
                 }
+            }
+        }
 
-                // propagating g in -n direction.
-                counter = 0;
-                for (auto& nbr_cell : nbr_cell_neg_normal)
+        // Select the winning signed boundary value among candidates near the cell maximum.
+        CellData<NDIM, double> selected_g(g_cc_data->getBox(), 1, g_cc_data->getGhostCellWidth());
+        selected_g.fillAll(0.0);
+        CellData<NDIM, int> has_selected(g_cc_data->getBox(), 1, g_cc_data->getGhostCellWidth());
+        has_selected.fillAll(0);
+
+        for (Box<NDIM>::Iterator it(ghost_box); it; it++)
+        {
+            const CellIndex<NDIM> ci(it());
+            if ((*interface_cell_data)(ci) > 0.0)
+            {
+                const double g = g_src(ci);
+                update_selected_g(g, max_abs_g(ci), selected_g(ci), has_selected(ci));
+                for (const int direction : { 1, -1 })
                 {
-                    counter++;
-                    for (int d = 0; d < NDIM; ++d)
+                    for (int counter = 1; counter <= num_prop_cells; ++counter)
                     {
-                        coord_nbr[d] = coord[d] - counter * patch_dx[d] * (*grad_phi_cc_data)(ci, d);
-                    }
-                    nbr_cell = IndexUtilities::getCellIndex(&coord_nbr[0], grid_geom, ratio);
-
-                    if (nbr_cell[0] >= ghost_lower_idx[0] && nbr_cell[0] <= ghost_upper_idx[0] &&
-                        nbr_cell[1] >= ghost_lower_idx[1] && nbr_cell[1] <= ghost_upper_idx[1]
-#if (NDIM == 3)
-                        && nbr_cell[2] >= ghost_lower_idx[2] && nbr_cell[2] <= ghost_upper_idx[2]
-#endif
-                    )
-                    {
-                        (*prop_counter_data)(nbr_cell) = (*prop_counter_data)(nbr_cell) + 1.0;
-                        if (std::abs((*g_cc_data)(nbr_cell)) <= std::abs(g))
+                        const CellIndex<NDIM> nbr_cell =
+                            get_propagation_cell_index(ci, *grad_phi_cc_data, direction * counter);
+                        if (ghost_box.contains(nbr_cell))
                         {
-                            (*g_cc_data)(nbr_cell) = g;
+                            update_selected_g(g, max_abs_g(nbr_cell), selected_g(nbr_cell), has_selected(nbr_cell));
                         }
                     }
                 }
+            }
+        }
+
+        for (Box<NDIM>::Iterator it(ghost_box); it; it++)
+        {
+            const CellIndex<NDIM> ci(it());
+            if (has_selected(ci))
+            {
+                (*g_cc_data)(ci) = selected_g(ci);
             }
         }
     }
