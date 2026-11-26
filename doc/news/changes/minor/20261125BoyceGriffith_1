@@ -1,0 +1,3 @@
+Fixed: IBTK::SAMRAIDataCache::resetLevels() and setPatchHierarchy() no longer access levels that a regrid removed.
+<br>
+(Boyce Griffith, 2026/11/25)

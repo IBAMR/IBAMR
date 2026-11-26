@@ -193,5 +193,19 @@ main(int argc, char* argv[])
         }
         print_patch_descriptor_data(patch_hierarchy->getPatchDescriptor());
 
+        {
+            // Remove the finest level, as regridding does, while the cache holds cloned data.
+            SAMRAIDataCache cached_data;
+            cached_data.setPatchHierarchy(patch_hierarchy);
+            cached_data.resetLevels(0, patch_hierarchy->getFinestLevelNumber());
+            for (auto idx : double_idxs)
+            {
+                cached_data.getCachedPatchDataIndex(idx);
+            }
+
+            patch_hierarchy->removePatchLevel(patch_hierarchy->getFinestLevelNumber());
+            cached_data.resetLevels(0, patch_hierarchy->getFinestLevelNumber());
+        }
+
     } // cleanup dynamically allocated objects prior to shutdown
 } // main
