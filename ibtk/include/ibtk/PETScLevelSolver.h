@@ -335,7 +335,7 @@ protected:
     std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
     std::vector<VecScatter> d_restriction, d_prolongation;
     std::vector<KSP> d_sub_ksp;
-    Mat *d_sub_mat, *d_sub_bc_mat;
+    Mat *d_sub_mat = nullptr, *d_sub_bc_mat = nullptr;
     std::vector<Vec> d_sub_x, d_sub_y;
     //\}
 
