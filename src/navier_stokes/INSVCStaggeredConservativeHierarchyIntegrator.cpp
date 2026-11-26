@@ -1453,7 +1453,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     // We therefore subract the supplied div u from the RHS vector.
     if (d_Q_fcn)
     {
-        d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, half_time);
+        d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
         d_hier_cc_data_ops->subtract(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
         // The Stokes operator moves the prescribed boundary velocity to the right-hand side.

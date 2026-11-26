@@ -1,0 +1,3 @@
+Fixed: Evaluate the fluid source function at new_time in INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors() and INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors().
+<br>
+(Hoseyn Amiri, 2026/11/26)
