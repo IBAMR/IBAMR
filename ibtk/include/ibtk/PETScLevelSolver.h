@@ -22,6 +22,7 @@
 
 #include <ibtk/LinearSolver.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CoarseFineBoundaryCache.h>
 
 #include <tbox/Pointer.h>
 
@@ -387,6 +388,11 @@ private:
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
     static PetscErrorCode PCApply_RedBlackMultiplicative(PC pc, Vec x, Vec y);
+
+    /*!
+     * \brief Keeps the C-F boundary across reinitializations on an unchanged level.
+     */
+    IBTK::detail::CoarseFineBoundaryCache d_coarse_fine_boundary_cache;
 };
 } // namespace IBTK
 
