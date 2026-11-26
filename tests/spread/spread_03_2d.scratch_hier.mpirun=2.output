@@ -1,0 +1,13 @@
+
+IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB source system
+FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IB source system
+IBFEMethod: starting scratch hierarchy regrid
+IBFEMethod: finished scratch hierarchy regrid
+Number of patches on the finest level = 2
+Lagrangian source integral = 0.24
+Eulerian source integral = 0.24
