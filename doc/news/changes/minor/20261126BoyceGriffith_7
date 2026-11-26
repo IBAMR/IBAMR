@@ -1,0 +1,3 @@
+Fixed: IBAMR::StaggeredStokesOperator, IBAMR::VCStaggeredStokesOperator, and IBAMR::CIBStaggeredStokesOperator now fill ghost values and apply boundary conditions only on the levels of their vectors, and the Stokes projection, VC projection, and block-factorization preconditioners fill ghost values only on those levels, so that a PETSc Krylov coarse solver of a Stokes FAC preconditioner no longer crashes.
+<br>
+(Boyce Griffith, 2026/11/26)

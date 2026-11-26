@@ -196,7 +196,8 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
                          d_no_fill,
                          half_time,
                          /*cf_bdry_synch*/ true);
-    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
+    d_bc_helper->copyDataAtDirichletBoundaries(
+        A_U_idx, U_idx, u_p.getCoarsestLevelNumber(), u_p.getFinestLevelNumber());
 
     // (c) Rigid body velocity constraint.
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
@@ -270,7 +271,8 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, in.getPatchHierarchy());
+    d_hier_bdry_fill->initializeOperatorState(
+        d_transaction_comps, in.getPatchHierarchy(), in.getCoarsestLevelNumber(), in.getFinestLevelNumber());
 
     // Initialize hierarchy math ops object.
     if (!d_hier_math_ops_external)
@@ -346,7 +348,13 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         const int P_idx = x->getComponentDescriptorIndex(1);
         StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
             d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
-        d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+        d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx,
+                                                             P_idx,
+                                                             d_U_bc_coefs,
+                                                             d_new_time,
+                                                             d_homogeneous_bc,
+                                                             x->getCoarsestLevelNumber(),
+                                                             x->getFinestLevelNumber());
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
 
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -361,7 +369,8 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
                                                                    d_U_fill_pattern,
                                                                    d_bdry_interp_type);
         Pointer<HierarchyGhostCellInterpolation> U_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
-        U_bdry_fill->initializeOperatorState(U_transaction_comps, x->getPatchHierarchy());
+        U_bdry_fill->initializeOperatorState(
+            U_transaction_comps, x->getPatchHierarchy(), x->getCoarsestLevelNumber(), x->getFinestLevelNumber());
         U_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
         U_bdry_fill->fillData(d_solution_time);
 

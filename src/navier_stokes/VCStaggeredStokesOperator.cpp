@@ -120,7 +120,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_idx);
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_idx, x.getCoarsestLevelNumber(), x.getFinestLevelNumber());
 
     // Compute the action of the operator:
     //
@@ -168,7 +168,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                          d_no_fill,
                          d_new_time,
                          /*cf_bdry_synch*/ true);
-    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
+    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx, x.getCoarsestLevelNumber(), x.getFinestLevelNumber());
 
     IBAMR_TIMER_STOP(t_apply);
     return;
