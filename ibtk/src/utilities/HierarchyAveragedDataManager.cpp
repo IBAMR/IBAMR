@@ -180,8 +180,22 @@ HierarchyAveragedDataManager::commonConstructor(Pointer<Database> input_db)
         d_mean_idx = var_db->registerVariableAndContext(d_mean_var, var_db->getContext(d_object_name + "::ctx"), 1);
         d_dev_idx = var_db->registerVariableAndContext(d_dev_var, var_db->getContext(d_object_name + "::ctx"), 1);
         d_visit_data_writer = std::make_unique<VisItDataWriter<NDIM>>(d_object_name + "::VisitWriter", dir_dump_name);
-        d_visit_data_writer->registerPlotQuantity("mean_flow_field", "VECTOR", d_mean_idx);
-        d_visit_data_writer->registerPlotQuantity("deviation", "VECTOR", d_dev_idx);
+        // VisItDataWriter needs depth at least NDIM for VECTOR; plot a smaller depth above 1 one component at a time.
+        if (depth == 1 || depth >= NDIM)
+        {
+            const std::string type = depth == 1 ? "SCALAR" : "VECTOR";
+            d_visit_data_writer->registerPlotQuantity("mean_flow_field", type, d_mean_idx);
+            d_visit_data_writer->registerPlotQuantity("deviation", type, d_dev_idx);
+        }
+        else
+        {
+            for (int d = 0; d < depth; ++d)
+            {
+                d_visit_data_writer->registerPlotQuantity(
+                    "mean_flow_field_" + std::to_string(d), "SCALAR", d_mean_idx, d);
+                d_visit_data_writer->registerPlotQuantity("deviation_" + std::to_string(d), "SCALAR", d_dev_idx, d);
+            }
+        }
     }
 }
 

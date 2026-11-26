@@ -1,0 +1,3 @@
+Fixed: IBTK::HierarchyAveragedDataManager no longer aborts in the constructor with output_data = TRUE when the averaged variable has a depth less than NDIM. It now plots the mean and deviation as scalars for depth 1 and one scalar per component for a depth between 1 and NDIM. The output for a depth of at least NDIM is unchanged.
+<br>
+(Boyce Griffith, 2026/11/26)

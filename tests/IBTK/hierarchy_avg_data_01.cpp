@@ -145,9 +145,14 @@ main(int argc, char* argv[])
         Pointer<Database> avg_manager_db = new InputDatabase("AvgManager");
         avg_manager_db->putBool("output_data", false);
         avg_manager_db->putBool("enable_logging", false);
+        // Only the depth-1 cell data exercises the output path: node and edge output still abort in
+        // updateTimeAveragedSnapshot, and side and face data already have depth NDIM.
+        Pointer<Database> c_avg_manager_db = new InputDatabase("CellAvgManager");
+        c_avg_manager_db->putBool("output_data", input_db->getBool("output_data"));
+        c_avg_manager_db->putBool("enable_logging", false);
         Pointer<CellVariable<NDIM, double>> c_var = new CellVariable<NDIM, double>("c_var");
         std::unique_ptr<HierarchyAveragedDataManager> c_avg_manager(new HierarchyAveragedDataManager(
-            "CellAvgManager", c_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
+            "CellAvgManager", c_var, c_avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
         Pointer<NodeVariable<NDIM, double>> n_var = new NodeVariable<NDIM, double>("n_var");
         std::unique_ptr<HierarchyAveragedDataManager> n_avg_manager(new HierarchyAveragedDataManager(
             "NodeAvgManager", n_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
