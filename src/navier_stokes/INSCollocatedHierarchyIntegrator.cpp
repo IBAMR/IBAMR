@@ -88,7 +88,6 @@
 #include <limits>
 #include <ostream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -279,7 +278,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string object_name,
+INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::string& object_name,
                                                                    Pointer<Database> input_db,
                                                                    bool register_for_restart)
     : INSHierarchyIntegrator(object_name,

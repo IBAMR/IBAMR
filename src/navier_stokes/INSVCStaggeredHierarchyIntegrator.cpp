@@ -117,7 +117,6 @@
 #include <limits>
 #include <ostream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -298,7 +297,7 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string object_name,
+INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::string& object_name,
                                                                      Pointer<Database> input_db,
                                                                      bool register_for_restart)
     : INSHierarchyIntegrator(object_name,

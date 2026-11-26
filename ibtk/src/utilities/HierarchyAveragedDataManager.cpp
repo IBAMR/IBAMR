@@ -72,12 +72,12 @@ deallocate_patch_data(const int idx,
 }
 } // namespace
 
-HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_name,
+HierarchyAveragedDataManager::HierarchyAveragedDataManager(const std::string& object_name,
                                                            Pointer<Variable<NDIM>> var,
                                                            Pointer<Database> input_db,
                                                            Pointer<GridGeometry<NDIM>> grid_geom,
                                                            bool register_for_restart)
-    : d_object_name(std::move(object_name)),
+    : d_object_name(object_name),
       d_var(var),
       d_snapshot_cache(d_object_name + "::SnapshotCache", var, input_db, grid_geom, register_for_restart)
 {
@@ -105,7 +105,7 @@ HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_na
     if (from_restart) getFromRestart();
 }
 
-HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_name,
+HierarchyAveragedDataManager::HierarchyAveragedDataManager(const std::string& object_name,
                                                            Pointer<Variable<NDIM>> var,
                                                            Pointer<Database> input_db,
                                                            std::set<double> snapshot_time_points,
@@ -114,7 +114,7 @@ HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_na
                                                            const double threshold,
                                                            Pointer<GridGeometry<NDIM>> grid_geom,
                                                            bool register_for_restart)
-    : d_object_name(std::move(object_name)),
+    : d_object_name(object_name),
       d_var(var),
       d_period_start(period_start),
       d_period_end(period_end),
