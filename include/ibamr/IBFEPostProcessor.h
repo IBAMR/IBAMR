@@ -27,6 +27,7 @@
 #include <ibtk/FEDataManager.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/libmesh_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
@@ -49,6 +50,7 @@
 #include <Variable.h>
 #include <VariableContext.h>
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -377,6 +379,14 @@ private:
      * \return A reference to this object.
      */
     IBFEPostProcessor& operator=(const IBFEPostProcessor& that) = delete;
+
+    /*!
+     * The ghost-cell fill operator of the interpolated Eulerian variables, the levels it was built for, and its number
+     * of transactions. The operator is built again when the levels or the number of variables change.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_scalar_interp_fill;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
+    std::size_t d_fill_num_transactions = 0;
 };
 } // namespace IBAMR
 

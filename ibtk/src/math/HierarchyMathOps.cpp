@@ -4114,9 +4114,11 @@ HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, Pointer<NodeV
         return node_box;
     };
 
+    d_hanging_node_cf_caches.resize(d_finest_ln + 1);
     for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
     {
-        CoarseFineBoundary<NDIM> cf_boundary(*d_hierarchy, ln, 0);
+        Pointer<CoarseFineBoundary<NDIM>> cf_boundary =
+            d_hanging_node_cf_caches[ln].getCoarseFineBoundary(*d_hierarchy, ln, IntVector<NDIM>(0));
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM> ratio = level->getRatioToCoarserLevel();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -4125,7 +4127,7 @@ HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, Pointer<NodeV
             TBOX_ASSERT(patch->getPatchData(dst_idx));
             Pointer<NodeData<NDIM, double>> dst_data_ptr = patch->getPatchData(dst_idx);
             NodeData<NDIM, double>& dst_data = *dst_data_ptr;
-            const tbox::Array<BoundaryBox<NDIM>>& bboxes = cf_boundary.getBoundaries(p(), 1);
+            const tbox::Array<BoundaryBox<NDIM>>& bboxes = cf_boundary->getBoundaries(p(), 1);
 
             for (int k = 0; k < bboxes.size(); ++k)
             {

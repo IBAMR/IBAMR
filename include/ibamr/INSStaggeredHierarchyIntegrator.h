@@ -27,6 +27,7 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/SideDataSynchronization.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -509,6 +510,13 @@ private:
      * Vector of all such plot-only data indices.
      */
     std::vector<int> d_plot_indices;
+
+    /*!
+     * The ghost-cell fill operators used by setupPlotDataSpecialized() and the levels they were built for. They are
+     * discarded when the levels change, which includes the start of a regrid.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_plot_U_fill, d_plot_P_fill, d_plot_Omega_fill;
+    IBTK::detail::HierarchyLevelsIdentity d_plot_fill_levels;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
