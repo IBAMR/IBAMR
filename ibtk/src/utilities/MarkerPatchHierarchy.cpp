@@ -23,7 +23,6 @@
 #include <tbox/RestartManager.h>
 
 #include <BoxArray.h>
-#include <BoxTree.h>
 #include <CartesianGridGeometry.h>
 
 // At this point SAMRAI has already defined these macros, but older versions
@@ -53,7 +52,6 @@
 #include <algorithm>
 #include <array>
 #include <limits>
-#include <map>
 #include <numeric>
 #include <utility>
 
@@ -96,12 +94,12 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM>>& c_level,
     }
     finer_box_list.simplifyBoxes();
 
-    // Remove said boxes from each coarse-level patch. Removing a box that does not intersect the patch changes nothing,
-    // so each patch removes only the boxes that intersect it, in the order of the list:
+    // Remove said boxes from each coarse-level patch, including those that are not on this process. Removing a box that
+    // does not intersect the patch changes nothing, so the loop removes from each patch only the boxes that intersect
+    // it, in the order of the list:
     const detail::BoxArrayIndex finer_boxes(BoxArray<NDIM>(finer_box_list),
                                             std::vector<IntVector<NDIM>>(1, IntVector<NDIM>(0)));
     std::vector<int> finer_box_indices;
-    const auto rank = IBTK_MPI::getRank();
     std::vector<std::vector<Box<NDIM>>> result;
     long coarse_size = 0;
     for (int i = 0; i < coarse_level->getNumberOfPatches(); ++i)
@@ -115,12 +113,11 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM>>& c_level,
             coarse_box_list.removeIntersections(finer_boxes.getBoxes()[j]);
         }
 
-        const bool patch_is_local = rank == coarse_level->getMappingForPatch(i);
-        if (patch_is_local) result.emplace_back();
+        result.emplace_back();
         typename tbox::List<Box<NDIM>>::Iterator it(coarse_box_list);
         while (it)
         {
-            if (patch_is_local) result.back().push_back(*it);
+            result.back().push_back(*it);
             combined_size += (*it).size();
             it++;
         }
@@ -131,13 +128,11 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM>>& c_level,
     return result;
 }
 
-// Gather the markers of all processes. Without velocities (every process passes collect_velocities = false), the
-// returned velocities are empty.
+// Gather the markers of all processes.
 std::tuple<std::vector<double>, std::vector<double>, std::vector<int>>
 collect_markers(const std::vector<double>& local_positions,
                 const std::vector<double>& local_velocities,
-                const std::vector<int>& local_indices,
-                const bool collect_velocities = true)
+                const std::vector<int>& local_indices)
 {
     const auto n_procs = IBTK_MPI::getNodes();
     const int num_indices = local_indices.size();
@@ -158,7 +153,7 @@ collect_markers(const std::vector<double>& local_positions,
 
     std::vector<int> new_indices(num_total_indices);
     std::vector<double> new_positions(num_total_indices * NDIM);
-    std::vector<double> new_velocities(collect_velocities ? num_total_indices * NDIM : 0);
+    std::vector<double> new_velocities(num_total_indices * NDIM);
     ierr = MPI_Allgatherv(local_indices.data(),
                           num_indices,
                           MPI_INT,
@@ -177,18 +172,15 @@ collect_markers(const std::vector<double>& local_positions,
                           MPI_DOUBLE,
                           IBTK_MPI::getCommunicator());
     TBOX_ASSERT(ierr == 0);
-    if (collect_velocities)
-    {
-        ierr = MPI_Allgatherv(local_velocities.data(),
-                              num_indices * NDIM,
-                              MPI_DOUBLE,
-                              new_velocities.data(),
-                              vector_counts.data(),
-                              vector_offsets.data(),
-                              MPI_DOUBLE,
-                              IBTK_MPI::getCommunicator());
-        TBOX_ASSERT(ierr == 0);
-    }
+    ierr = MPI_Allgatherv(local_velocities.data(),
+                          num_indices * NDIM,
+                          MPI_DOUBLE,
+                          new_velocities.data(),
+                          vector_counts.data(),
+                          vector_offsets.data(),
+                          MPI_DOUBLE,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
 
     return std::make_tuple(std::move(new_positions), std::move(new_velocities), std::move(new_indices));
 }
@@ -237,6 +229,90 @@ do_interpolation(const int data_idx,
         }
     }
 #endif
+}
+
+// Tags of the messages between neighboring processes, on the communicator of the MarkerPatchHierarchy.
+constexpr int PRUNE_COUNT_TAG = 1;
+constexpr int PRUNE_INT_TAG = 2;
+constexpr int PRUNE_DOUBLE_TAG = 3;
+constexpr int REQUEST_COUNT_TAG = 4;
+constexpr int REQUEST_INT_TAG = 5;
+constexpr int REQUEST_DOUBLE_TAG = 6;
+constexpr int REPLY_TAG = 7;
+
+inline MPI_Datatype
+mpi_type(const int*)
+{
+    return MPI_INT;
+}
+
+inline MPI_Datatype
+mpi_type(const double*)
+{
+    return MPI_DOUBLE;
+}
+
+// Send send_counts[i] to ranks[i] and return the counts that the ranks send to this process.
+std::vector<int>
+exchange_counts(const MPI_Comm comm, const std::vector<int>& ranks, const int tag, const std::vector<int>& send_counts)
+{
+    const int n = static_cast<int>(ranks.size());
+    std::vector<int> recv_counts(n, 0);
+    std::vector<MPI_Request> requests(2 * n);
+    for (int i = 0; i < n; ++i)
+    {
+        int ierr = MPI_Irecv(&recv_counts[i], 1, MPI_INT, ranks[i], tag, comm, &requests[i]);
+        TBOX_ASSERT(ierr == 0);
+        ierr = MPI_Isend(&send_counts[i], 1, MPI_INT, ranks[i], tag, comm, &requests[n + i]);
+        TBOX_ASSERT(ierr == 0);
+    }
+    const int ierr = MPI_Waitall(2 * n, requests.data(), MPI_STATUSES_IGNORE);
+    TBOX_ASSERT(ierr == 0);
+    return recv_counts;
+}
+
+// Send the nonempty arrays send[i] to ranks[i], and receive recv_sizes[i] values from each rank with a nonzero size.
+template <typename T>
+std::vector<std::vector<T>>
+exchange_arrays(const MPI_Comm comm,
+                const std::vector<int>& ranks,
+                const int tag,
+                const std::vector<std::vector<T>>& send,
+                const std::vector<int>& recv_sizes)
+{
+    const int n = static_cast<int>(ranks.size());
+    std::vector<std::vector<T>> recv(n);
+    std::vector<MPI_Request> requests;
+    requests.reserve(2 * n);
+    for (int i = 0; i < n; ++i)
+    {
+        if (recv_sizes[i] > 0)
+        {
+            recv[i].resize(recv_sizes[i]);
+            requests.emplace_back();
+            const int ierr = MPI_Irecv(
+                recv[i].data(), recv_sizes[i], mpi_type(recv[i].data()), ranks[i], tag, comm, &requests.back());
+            TBOX_ASSERT(ierr == 0);
+        }
+    }
+    for (int i = 0; i < n; ++i)
+    {
+        if (!send[i].empty())
+        {
+            requests.emplace_back();
+            const int ierr = MPI_Isend(send[i].data(),
+                                       static_cast<int>(send[i].size()),
+                                       mpi_type(send[i].data()),
+                                       ranks[i],
+                                       tag,
+                                       comm,
+                                       &requests.back());
+            TBOX_ASSERT(ierr == 0);
+        }
+    }
+    const int ierr = MPI_Waitall(static_cast<int>(requests.size()), requests.data(), MPI_STATUSES_IGNORE);
+    TBOX_ASSERT(ierr == 0);
+    return recv;
 }
 
 // Return true if the position X, which lies in the bounding box of the physical domain, is in a notch of the domain:
@@ -450,6 +526,9 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
           d_hierarchy->getGridGeometry(),
           IntVector<NDIM>(1))
 {
+    const int ierr = MPI_Comm_dup(IBTK_MPI::getCommunicator(), &d_comm);
+    TBOX_ASSERT(ierr == 0);
+
     auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
     t_reinit = set_timer("IBTK::MarkerPatchHierarchy::reinit()");
     t_collect_all_markers = set_timer("IBTK::MarkerPatchHierarchy::collectAllMarkers()");
@@ -484,6 +563,204 @@ MarkerPatchHierarchy::~MarkerPatchHierarchy()
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
+    // An object that outlives MPI_Finalize() must not call MPI.
+    int finalized = 0;
+    MPI_Finalized(&finalized);
+    if (!finalized && d_comm != MPI_COMM_NULL)
+    {
+        MPI_Comm_free(&d_comm);
+    }
+}
+
+void
+MarkerPatchHierarchy::buildExchangeData()
+{
+    const auto rank = IBTK_MPI::getRank();
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        d_x_lo[d] = grid_geom->getXLower()[d];
+        d_x_up[d] = grid_geom->getXUpper()[d];
+    }
+
+    // The ownership of cells, from the parts of the patch boxes that no finer level covers:
+    d_ownership.clear();
+    d_ownership.resize(finest_ln + 1);
+    for (int ln = finest_ln; ln >= 0; --ln)
+    {
+        Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
+        LevelOwnership& ownership = d_ownership[ln];
+        const IntVector<NDIM>& ratio = current_level->getRatio();
+        if (ln == finest_ln)
+        {
+            for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
+            {
+                ownership.patch_boxes.emplace_back(1, current_level->getBoxForPatch(i));
+            }
+        }
+        else
+        {
+            ownership.patch_boxes =
+                compute_nonoverlapping_patch_boxes(current_level, d_hierarchy->getPatchLevel(ln + 1));
+        }
+        ownership.domain_box = Box<NDIM>::refine(grid_geom->getPhysicalDomain().getBoundingBox(), ratio);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            ownership.dx[d] = grid_geom->getDx()[d] / ratio(d);
+        }
+
+        int num_boxes = 0;
+        for (const auto& boxes : ownership.patch_boxes)
+        {
+            num_boxes += static_cast<int>(boxes.size());
+        }
+        BoxArray<NDIM> all_boxes(num_boxes);
+        int box_number = 0;
+        int local_patch_number = 0;
+        ownership.local_patch.assign(current_level->getNumberOfPatches(), -1);
+        for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
+        {
+            if (rank == current_level->getMappingForPatch(i))
+            {
+                ownership.local_patch[i] = local_patch_number++;
+            }
+            for (const Box<NDIM>& box : ownership.patch_boxes[i])
+            {
+                all_boxes[box_number++] = box;
+                ownership.box_rank.push_back(current_level->getMappingForPatch(i));
+                ownership.box_patch.push_back(i);
+            }
+        }
+        ownership.boxes = detail::BoxArrayIndex(all_boxes, std::vector<IntVector<NDIM>>(1, IntVector<NDIM>(0)));
+#ifndef NDEBUG
+        // Each cell has at most one owner on a level:
+        std::vector<int> overlaps;
+        for (int k = 0; k < num_boxes; ++k)
+        {
+            ownership.boxes.findOverlapIndices(overlaps, all_boxes[k]);
+            TBOX_ASSERT(overlaps.size() == 1);
+        }
+#endif
+    }
+
+    // The neighbors: the ranks of the patches, on any level and including periodic images, within two cells (of the
+    // coarser of the two levels) of a patch of this process.
+    std::vector<detail::BoxArrayIndex> level_indices;
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        const Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        level_indices.push_back(detail::periodic_level_box_index(*level));
+    }
+    d_neighbor_ranks.clear();
+    std::vector<int> overlaps;
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        for (int i = 0; i < level->getNumberOfPatches(); ++i)
+        {
+            if (rank != level->getMappingForPatch(i))
+            {
+                continue;
+            }
+            for (int other_ln = 0; other_ln <= finest_ln; ++other_ln)
+            {
+                Pointer<PatchLevel<NDIM>> other_level = d_hierarchy->getPatchLevel(other_ln);
+                Box<NDIM> box = level->getBoxForPatch(i);
+                IntVector<NDIM> growth(2);
+                if (other_ln > ln)
+                {
+                    IntVector<NDIM> ratio = other_level->getRatio();
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        ratio(d) /= level->getRatio()(d);
+                    }
+                    box.refine(ratio);
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        growth(d) = 2 * ratio(d);
+                    }
+                }
+                else if (other_ln < ln)
+                {
+                    IntVector<NDIM> ratio = level->getRatio();
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        ratio(d) /= other_level->getRatio()(d);
+                    }
+                    box.coarsen(ratio);
+                }
+                box.grow(growth);
+                level_indices[other_ln].findOverlapIndices(overlaps, box);
+                for (const int j : overlaps)
+                {
+                    const int other_rank = other_level->getMappingForPatch(j);
+                    if (other_rank != rank)
+                    {
+                        d_neighbor_ranks.push_back(other_rank);
+                    }
+                }
+            }
+        }
+    }
+    std::sort(d_neighbor_ranks.begin(), d_neighbor_ranks.end());
+    d_neighbor_ranks.erase(std::unique(d_neighbor_ranks.begin(), d_neighbor_ranks.end()), d_neighbor_ranks.end());
+
+#ifndef NDEBUG
+    // The neighbor relation must be symmetric, or the processes would not post matching receives:
+    const int num_ranks = IBTK_MPI::getNodes();
+    std::vector<int> is_neighbor(num_ranks, 0), neighbors_of(num_ranks, 0);
+    for (const int r : d_neighbor_ranks)
+    {
+        is_neighbor[r] = 1;
+    }
+    const int ierr = MPI_Alltoall(is_neighbor.data(), 1, MPI_INT, neighbors_of.data(), 1, MPI_INT, d_comm);
+    TBOX_ASSERT(ierr == 0);
+    for (int r = 0; r < num_ranks; ++r)
+    {
+        if (is_neighbor[r] != neighbors_of[r])
+        {
+            TBOX_ERROR(d_object_name << "::reinit():\n  the neighbor relation of ranks " << rank << " and " << r
+                                     << " is not symmetric\n");
+        }
+    }
+#endif
+}
+
+MarkerPatchHierarchy::Owner
+MarkerPatchHierarchy::findOwner(const double* const X, std::vector<int>& found) const
+{
+    for (int ln = static_cast<int>(d_ownership.size()) - 1; ln >= 0; --ln)
+    {
+        const LevelOwnership& ownership = d_ownership[ln];
+        const hier::Index<NDIM> index = IndexUtilities::getCellIndex(X,
+                                                                     d_x_lo.data(),
+                                                                     d_x_up.data(),
+                                                                     ownership.dx.data(),
+                                                                     ownership.domain_box.lower(),
+                                                                     ownership.domain_box.upper());
+        ownership.boxes.findOverlapIndices(found, Box<NDIM>(index, index));
+        if (!found.empty())
+        {
+            Owner owner;
+            owner.level = ln;
+            owner.rank = ownership.box_rank[found[0]];
+            owner.patch = ownership.box_patch[found[0]];
+            return owner;
+        }
+    }
+    return Owner();
+}
+
+void
+MarkerPatchHierarchy::checkHierarchyIsCurrent(const char* const function) const
+{
+    if (!d_layout_key.matches(*d_hierarchy, 0, d_hierarchy->getFinestLevelNumber()))
+    {
+        TBOX_ERROR(d_object_name << "::" << function
+                                 << "():\n  the layout of the patch hierarchy changed since the last call to reinit()\n"
+                                    "  call reinit() after every regrid\n");
+    }
 }
 
 void
@@ -493,89 +770,60 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
     IBTK_TIMER_START(t_reinit);
     d_num_markers = positions.size();
     const auto rank = IBTK_MPI::getRank();
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     unsigned int num_emplaced_markers = 0;
     std::vector<bool> marker_emplaced(positions.size());
 
-    auto insert_markers = [&](MarkerPatch& marker_patch)
+    // The ownership data depend only on the layout of the levels:
+    if (d_layout_key.changed(*d_hierarchy, 0, finest_ln))
     {
-        for (unsigned int k = 0; k < positions.size(); ++k)
-        {
-            if (!marker_emplaced[k] && marker_patch.contains(positions[k]))
-            {
-                marker_emplaced[k] = true;
-                marker_patch.insert(k, positions[k], velocities[k]);
-                ++num_emplaced_markers;
-            }
-        }
-    };
+        buildExchangeData();
+    }
 
     d_marker_patches.clear();
-    d_marker_patches.resize(d_hierarchy->getFinestLevelNumber() + 1);
-
-    // Assign particles to levels in a top-down way:
-    //
-    // 1. Compute a set of boxes for the patch which do not intersect any
-    //    finer patch level.
-    // 2. Emplace particles in the vector corresponding to the local index of a
-    //    patch in the present level.
-    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    d_marker_patches.resize(finest_ln + 1);
+    for (int ln = finest_ln; ln >= 0; --ln)
     {
         Pointer<PatchLevel<NDIM>> current_level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM>> finer_level =
-            ln == d_hierarchy->getFinestLevelNumber() ? nullptr : d_hierarchy->getPatchLevel(ln + 1);
         const IntVector<NDIM>& ratio = current_level->getRatio();
-
-        // If there is no finer level then each Patch has exactly one
-        // nonoverlapping box
-        if (!finer_level)
+        for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
         {
-            for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
+            if (rank == current_level->getMappingForPatch(i))
             {
-                if (rank == current_level->getMappingForPatch(i))
-                {
-                    const Box<NDIM> box = current_level->getPatch(i)->getBox();
-                    d_marker_patches[ln].emplace_back(box, std::vector<Box<NDIM>>{ box }, grid_geom, ratio);
-                    insert_markers(d_marker_patches[ln].back());
-                }
-            }
-        }
-        // otherwise we need to subtract off the boxes on the finer level first.
-        else
-        {
-            const std::vector<std::vector<hier::Box<NDIM>>> nonoverlapping_patch_boxes =
-                compute_nonoverlapping_patch_boxes(current_level, finer_level);
-            unsigned int local_num = 0;
-            for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
-            {
-                if (rank == current_level->getMappingForPatch(i))
-                {
-                    d_marker_patches[ln].emplace_back(
-                        current_level->getPatch(i)->getBox(), nonoverlapping_patch_boxes[local_num], grid_geom, ratio);
-                    insert_markers(d_marker_patches[ln].back());
-                    ++local_num;
-                }
+                d_marker_patches[ln].emplace_back(
+                    current_level->getBoxForPatch(i), d_ownership[ln].patch_boxes[i], grid_geom, ratio);
             }
         }
     }
 
-    // Handle any markers which may be outside of the domain:
-    if (rank == 0)
-    {
-        d_markers_outside_domain.d_indices.resize(0);
-        d_markers_outside_domain.d_positions.resize(0);
-        d_markers_outside_domain.d_velocities.resize(0);
+    d_markers_outside_domain.d_indices.resize(0);
+    d_markers_outside_domain.d_positions.resize(0);
+    d_markers_outside_domain.d_velocities.resize(0);
 
-        for (unsigned int k = 0; k < positions.size(); ++k)
+    // Every process finds the owner of every marker. The owner stores the marker, and process 0 stores the markers that
+    // are outside of the domain.
+    std::vector<int> found;
+    for (unsigned int k = 0; k < positions.size(); ++k)
+    {
+        const Owner owner = findOwner(positions[k].data(), found);
+        if (owner.level >= 0)
         {
-            if (is_outside_domain(positions[k], grid_geom))
+            if (owner.rank == rank)
             {
                 marker_emplaced[k] = true;
-                IBTK::Vector v;
-                v.fill(0);
-                d_markers_outside_domain.insert(k, positions[k], v);
+                d_marker_patches[owner.level][d_ownership[owner.level].local_patch[owner.patch]].insert(
+                    k, positions[k], velocities[k]);
                 ++num_emplaced_markers;
             }
+        }
+        else if (rank == 0 && is_outside_domain(positions[k], grid_geom))
+        {
+            marker_emplaced[k] = true;
+            IBTK::Vector v;
+            v.fill(0);
+            d_markers_outside_domain.insert(k, positions[k], v);
+            ++num_emplaced_markers;
         }
     }
 
@@ -866,10 +1114,7 @@ MarkerPatchHierarchy::collectAllMarkers() const
             extract_markers(marker_patch);
         }
     }
-    if (IBTK_MPI::getRank() == 0)
-    {
-        extract_markers(d_markers_outside_domain);
-    }
+    extract_markers(d_markers_outside_domain);
 
     auto result = collect_markers(local_positions, local_velocities, local_indices);
     const auto& global_positions = std::get<0>(result);
@@ -894,6 +1139,7 @@ MarkerPatchHierarchy::collectAllMarkers() const
 void
 MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
 {
+    checkHierarchyIsCurrent("setVelocities");
     const auto rank = IBTK_MPI::getRank();
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
@@ -942,192 +1188,185 @@ MarkerPatchHierarchy::interpolateInCurrentPatches(
     std::vector<std::vector<double>>& velocities)
 {
     // Interpolate each marker with the patch whose box contains its position. Another process can own that patch.
+    const auto rank = IBTK_MPI::getRank();
+    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+    const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift();
+    const int num_neighbors = static_cast<int>(d_neighbor_ranks.size());
+
+    // The index in local_marker_patches of the marker patch of the first local patch of each level:
+    std::vector<unsigned int> first_slot(d_marker_patches.size(), 0);
+    for (int ln = static_cast<int>(d_marker_patches.size()) - 2; ln >= 0; --ln)
+    {
+        first_slot[ln] = first_slot[ln + 1] + static_cast<unsigned int>(d_marker_patches[ln + 1].size());
+    }
+
+    // The positions to interpolate with each local patch, and where to put the velocities:
+    struct Batch
+    {
+        std::vector<double> positions;
+        std::vector<double*> velocities;
+    };
+    std::vector<Batch> batches(local_marker_patches.size());
+
     struct DepartingMarker
     {
         unsigned int patch = 0;
         unsigned int marker = 0;
     };
     std::vector<DepartingMarker> departing_markers;
-    std::vector<int> departing_marker_indices;
-    std::vector<double> departing_marker_positions;
     for (unsigned int i = 0; i < local_marker_patches.size(); ++i)
     {
         MarkerPatch& marker_patch = *local_marker_patches[i].first;
         velocities[i].resize(positions[i].size());
-        std::vector<double> inside_positions;
-        std::vector<unsigned int> inside_markers;
         for (unsigned int k = 0; k < marker_patch.size(); ++k)
         {
-            IBTK::Point position(&positions[i][NDIM * k]);
+            const IBTK::Point position(&positions[i][NDIM * k]);
             if (marker_patch.contains(position))
             {
-                inside_markers.push_back(k);
-                inside_positions.insert(inside_positions.end(), position.data(), position.data() + NDIM);
+                batches[i].positions.insert(batches[i].positions.end(), position.data(), position.data() + NDIM);
+                batches[i].velocities.push_back(&velocities[i][NDIM * k]);
             }
             else
             {
                 departing_markers.push_back({ i, k });
-                departing_marker_indices.push_back(marker_patch.d_indices[k]);
-                departing_marker_positions.insert(
-                    departing_marker_positions.end(), position.data(), position.data() + NDIM);
             }
         }
-        std::vector<double> inside_velocities(inside_positions.size());
-        if (!inside_markers.empty())
-        {
-            do_interpolation(u_idx, inside_positions, local_marker_patches[i].second, kernel, inside_velocities);
-        }
-        for (unsigned int n = 0; n < inside_markers.size(); ++n)
-        {
-            std::copy_n(&inside_velocities[NDIM * n], NDIM, &velocities[i][NDIM * inside_markers[n]]);
-        }
     }
 
-    // Most calls have no marker that has left its patch on any process.
-    if (IBTK_MPI::sumReduction(static_cast<int>(departing_marker_indices.size())) == 0)
+    // Send each departing marker to the process of the patch whose box contains it. Beyond a
+    // physical boundary or in a notch of the domain, the owner is the patch whose box contains the nearest point of the
+    // domain. Interpolation uses the ghost values of the owner.
+    std::vector<int> found;
+    std::vector<std::vector<int>> request_ints(num_neighbors);
+    std::vector<std::vector<double>> request_positions(num_neighbors);
+    std::vector<std::vector<DepartingMarker>> request_markers(num_neighbors);
+    for (const DepartingMarker& departing_marker : departing_markers)
     {
-        return;
-    }
-
-    // Send the markers that have left their patches to all processes. Beyond a physical boundary, interpolate with the
-    // patch whose box contains the adjacent cell, from its ghost values outside the domain.
-    std::vector<double> all_positions, all_velocities;
-    std::vector<int> all_indices;
-    std::tie(all_positions, all_velocities, all_indices) =
-        collect_markers(departing_marker_positions, {}, departing_marker_indices, /*collect_velocities*/ false);
-    const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift();
-    for (unsigned int k = 0; k < all_indices.size(); ++k)
-    {
+        const unsigned int i = departing_marker.patch;
+        double* const velocity = &velocities[i][NDIM * departing_marker.marker];
+        std::fill_n(velocity, NDIM, 0.0);
+        std::array<double, NDIM> position, clamped_position;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
+            position[d] = positions[i][NDIM * departing_marker.marker + d];
             if (periodic_shift[d])
             {
-                double& X = all_positions[k * NDIM + d];
-                X = wrap_into_periodic_interval(X, grid_geom->getXLower()[d], grid_geom->getXUpper()[d]);
+                position[d] = wrap_into_periodic_interval(position[d], d_x_lo[d], d_x_up[d]);
             }
+            clamped_position[d] =
+                periodic_shift[d] ? position[d] : IndexUtilities::clampToDomain(position[d], d_x_lo[d], d_x_up[d]);
         }
-    }
-    std::vector<double> clamped_positions(all_positions);
-    for (unsigned int k = 0; k < all_indices.size(); ++k)
-    {
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            if (!periodic_shift[d])
-            {
-                double& X = clamped_positions[k * NDIM + d];
-                X = IndexUtilities::clampToDomain(X, grid_geom->getXLower()[d], grid_geom->getXUpper()[d]);
-            }
-        }
-        move_out_of_domain_notch(&clamped_positions[k * NDIM], grid_geom);
-    }
-
-    // Find the local patch that contains each marker, if any, with a tree of the patch boxes of each level. At most one
-    // patch contains a position, because each patch contains only its nonoverlapping boxes.
-    struct LevelPatches
-    {
-        std::vector<unsigned int> patches;
-        std::array<double, NDIM> dx{};
-        Box<NDIM> domain_box;
-        Pointer<BoxTree<NDIM>> tree;
-    };
-    std::vector<LevelPatches> levels;
-    for (unsigned int i = 0; i < local_marker_patches.size(); ++i)
-    {
-        const int ln = local_marker_patches[i].second->getPatchLevelNumber();
-        if (i == 0 || ln != local_marker_patches[i - 1].second->getPatchLevelNumber())
-        {
-            levels.emplace_back();
-        }
-        levels.back().patches.push_back(i);
-    }
-    for (LevelPatches& level : levels)
-    {
-        const IntVector<NDIM>& ratio = local_marker_patches[level.patches[0]].second->getPatchGeometry()->getRatio();
-        level.domain_box = Box<NDIM>::refine(grid_geom->getPhysicalDomain().getBoundingBox(), ratio);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            level.dx[d] = grid_geom->getDx()[d] / ratio(d);
-        }
-        BoxArray<NDIM> boxes(static_cast<int>(level.patches.size()));
-        for (unsigned int n = 0; n < level.patches.size(); ++n)
-        {
-            boxes[n] = local_marker_patches[level.patches[n]].second->getBox();
-        }
-        level.tree = new BoxTree<NDIM>(boxes);
-    }
-    std::vector<std::vector<unsigned int>> markers_of_patch(local_marker_patches.size());
-    for (unsigned int k = 0; k < all_indices.size(); ++k)
-    {
-        const IBTK::Point position(&clamped_positions[NDIM * k]);
-        bool found = false;
-        for (const LevelPatches& level : levels)
-        {
-            const hier::Index<NDIM> index = IndexUtilities::getCellIndex(position.data(),
-                                                                         grid_geom->getXLower(),
-                                                                         grid_geom->getXUpper(),
-                                                                         level.dx.data(),
-                                                                         level.domain_box.lower(),
-                                                                         level.domain_box.upper());
-            tbox::Array<int> candidates;
-            level.tree->findOverlapIndices(candidates, Box<NDIM>(index, index));
-            for (int j = 0; j < candidates.size(); ++j)
-            {
-                const unsigned int i = level.patches[candidates[j]];
-                if (local_marker_patches[i].first->contains(position))
-                {
-                    markers_of_patch[i].push_back(k);
-                    found = true;
-                    break;
-                }
-            }
-            if (found)
-            {
-                break;
-            }
-        }
-    }
-    std::vector<double> interpolated_velocities(all_positions.size(), 0.0);
-    for (unsigned int i = 0; i < local_marker_patches.size(); ++i)
-    {
-        const std::vector<unsigned int>& markers = markers_of_patch[i];
-        if (markers.empty())
+        move_out_of_domain_notch(clamped_position.data(), grid_geom);
+        const Owner owner = findOwner(clamped_position.data(), found);
+        if (owner.level < 0)
         {
             continue;
         }
-        std::vector<double> patch_positions;
-        for (const unsigned int k : markers)
+        if (owner.rank == rank)
         {
-            patch_positions.insert(patch_positions.end(), &all_positions[NDIM * k], &all_positions[NDIM * k] + NDIM);
+            const unsigned int slot = first_slot[owner.level] + d_ownership[owner.level].local_patch[owner.patch];
+#ifndef NDEBUG
+            TBOX_ASSERT(local_marker_patches[slot].first ==
+                        &d_marker_patches[owner.level][d_ownership[owner.level].local_patch[owner.patch]]);
+#endif
+            batches[slot].positions.insert(batches[slot].positions.end(), position.begin(), position.end());
+            batches[slot].velocities.push_back(velocity);
         }
-        std::vector<double> velocities_i(patch_positions.size());
-        do_interpolation(u_idx, patch_positions, local_marker_patches[i].second, kernel, velocities_i);
-        for (unsigned int n = 0; n < markers.size(); ++n)
+        else
         {
-            std::copy_n(&velocities_i[NDIM * n], NDIM, &interpolated_velocities[NDIM * markers[n]]);
+            const auto neighbor = std::lower_bound(d_neighbor_ranks.begin(), d_neighbor_ranks.end(), owner.rank);
+            const bool is_neighbor = neighbor != d_neighbor_ranks.end() && *neighbor == owner.rank;
+#ifndef NDEBUG
+            TBOX_ASSERT(is_neighbor);
+#endif
+            // In an optimized build, a marker whose owner is not a neighbor has zero velocity:
+            if (!is_neighbor)
+            {
+                continue;
+            }
+            const auto n = neighbor - d_neighbor_ranks.begin();
+            request_ints[n].push_back(owner.level);
+            request_ints[n].push_back(owner.patch);
+            request_positions[n].insert(request_positions[n].end(), position.begin(), position.end());
+            request_markers[n].push_back(departing_marker);
         }
     }
-    IBTK_MPI::sumReduction(interpolated_velocities.data(), static_cast<int>(interpolated_velocities.size()));
 
-    // Give each marker its velocity.
-    std::map<int, unsigned int> entry_of_index;
-    for (unsigned int k = 0; k < all_indices.size(); ++k)
+    // Send the requests to the owners, and interpolate the requests that this process owns:
+    std::vector<int> request_counts(num_neighbors);
+    for (int n = 0; n < num_neighbors; ++n)
     {
-        entry_of_index[all_indices[k]] = k;
+        request_counts[n] = static_cast<int>(request_markers[n].size());
     }
-    for (const DepartingMarker& departing_marker : departing_markers)
+    const std::vector<int> owner_counts = exchange_counts(d_comm, d_neighbor_ranks, REQUEST_COUNT_TAG, request_counts);
+    std::vector<int> int_sizes(num_neighbors), double_sizes(num_neighbors);
+    for (int n = 0; n < num_neighbors; ++n)
     {
-        const unsigned int k =
-            entry_of_index.at(local_marker_patches[departing_marker.patch].first->d_indices[departing_marker.marker]);
-        std::copy_n(&interpolated_velocities[NDIM * k],
-                    NDIM,
-                    &velocities[departing_marker.patch][NDIM * departing_marker.marker]);
+        int_sizes[n] = 2 * owner_counts[n];
+        double_sizes[n] = NDIM * owner_counts[n];
+    }
+    const std::vector<std::vector<int>> owner_ints =
+        exchange_arrays(d_comm, d_neighbor_ranks, REQUEST_INT_TAG, request_ints, int_sizes);
+    const std::vector<std::vector<double>> owner_positions =
+        exchange_arrays(d_comm, d_neighbor_ranks, REQUEST_DOUBLE_TAG, request_positions, double_sizes);
+    std::vector<std::vector<double>> replies(num_neighbors);
+    for (int n = 0; n < num_neighbors; ++n)
+    {
+        replies[n].resize(double_sizes[n]);
+        for (int j = 0; j < owner_counts[n]; ++j)
+        {
+            const int ln = owner_ints[n][2 * j];
+            const int local_patch = d_ownership[ln].local_patch[owner_ints[n][2 * j + 1]];
+            if (local_patch < 0)
+            {
+                TBOX_ERROR(d_object_name << "::interpolateInCurrentPatches():\n  received a request for a patch that "
+                                            "this process does not own\n");
+            }
+            Batch& batch = batches[first_slot[ln] + local_patch];
+            batch.positions.insert(
+                batch.positions.end(), &owner_positions[n][NDIM * j], &owner_positions[n][NDIM * j] + NDIM);
+            batch.velocities.push_back(&replies[n][NDIM * j]);
+        }
+    }
+    for (unsigned int slot = 0; slot < batches.size(); ++slot)
+    {
+        const Batch& batch = batches[slot];
+        if (batch.velocities.empty())
+        {
+            continue;
+        }
+        std::vector<double> batch_velocities(batch.positions.size());
+        do_interpolation(u_idx, batch.positions, local_marker_patches[slot].second, kernel, batch_velocities);
+        for (unsigned int m = 0; m < batch.velocities.size(); ++m)
+        {
+            std::copy_n(&batch_velocities[NDIM * m], NDIM, batch.velocities[m]);
+        }
+    }
+
+    // Return the velocities to the processes that requested them:
+    std::vector<int> reply_sizes(num_neighbors);
+    for (int n = 0; n < num_neighbors; ++n)
+    {
+        reply_sizes[n] = NDIM * request_counts[n];
+    }
+    const std::vector<std::vector<double>> request_velocities =
+        exchange_arrays(d_comm, d_neighbor_ranks, REPLY_TAG, replies, reply_sizes);
+    for (int n = 0; n < num_neighbors; ++n)
+    {
+        for (int j = 0; j < request_counts[n]; ++j)
+        {
+            const DepartingMarker& departing_marker = request_markers[n][j];
+            std::copy_n(&request_velocities[n][NDIM * j],
+                        NDIM,
+                        &velocities[departing_marker.patch][NDIM * departing_marker.marker]);
+        }
     }
 }
 
 void
 MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
 {
+    checkHierarchyIsCurrent("forwardEulerStep");
     IBTK_TIMER_START(t_forward_euler_step);
     const std::vector<std::pair<MarkerPatch*, Pointer<Patch<NDIM>>>> local_marker_patches = getLocalMarkerPatches();
 
@@ -1158,6 +1397,7 @@ MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, con
 void
 MarkerPatchHierarchy::backwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
 {
+    checkHierarchyIsCurrent("backwardEulerStep");
     const std::vector<std::pair<MarkerPatch*, Pointer<Patch<NDIM>>>> local_marker_patches = getLocalMarkerPatches();
 
     // 1. Do a forward Euler step:
@@ -1205,6 +1445,7 @@ MarkerPatchHierarchy::midpointStep(const double dt,
                                    const int u_new_idx,
                                    const std::string& kernel)
 {
+    checkHierarchyIsCurrent("midpointStep");
     IBTK_TIMER_START(t_midpoint_step);
     const std::vector<std::pair<MarkerPatch*, Pointer<Patch<NDIM>>>> local_marker_patches = getLocalMarkerPatches();
 
@@ -1251,6 +1492,7 @@ MarkerPatchHierarchy::midpointStep(const double dt,
 void
 MarkerPatchHierarchy::trapezoidalStep(const double dt, const int u_new_idx, const std::string& kernel)
 {
+    checkHierarchyIsCurrent("trapezoidalStep");
     IBTK_TIMER_START(t_trapezoidal_step);
     const std::vector<std::pair<MarkerPatch*, Pointer<Patch<NDIM>>>> local_marker_patches = getLocalMarkerPatches();
 
@@ -1301,6 +1543,7 @@ MarkerPatchHierarchy::pruneAndRedistribute()
 {
     IBTK_TIMER_START(t_prune_and_redistribute);
     const auto rank = IBTK_MPI::getRank();
+    const int num_neighbors = static_cast<int>(d_neighbor_ranks.size());
 
     // 1. Collect all markers which have left their respective patches:
     std::vector<double> moved_positions;
@@ -1328,82 +1571,122 @@ MarkerPatchHierarchy::pruneAndRedistribute()
         }
     }
 
-    // 2. Communicate data so all processors have all errant marker points:
-    std::vector<double> new_positions;
-    std::vector<double> new_velocities;
-    std::vector<int> new_indices;
-    std::tie(new_positions, new_velocities, new_indices) =
-        collect_markers(moved_positions, moved_velocities, moved_indices);
-
-    // 3. Apply periodicity constraints.
+    // 2. Apply periodicity constraints.
     const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift();
-    for (unsigned int k = 0; k < new_indices.size(); ++k)
+    for (unsigned int k = 0; k < moved_indices.size(); ++k)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (periodic_shift[d])
             {
-                double& X = new_positions[k * NDIM + d];
+                double& X = moved_positions[k * NDIM + d];
                 X = wrap_into_periodic_interval(X, domain_x_lower[d], domain_x_upper[d]);
                 TBOX_ASSERT(X >= domain_x_lower[d] && X < domain_x_upper[d]);
             }
         }
     }
 
-    // 4. Emplace the marker points.
+    // 3. Insert each moved marker into the patch that owns it, or send it to the process of the owner. An unowned
+    // marker
+    //    outside the domain stays on this process with zero velocity.
     unsigned int num_emplaced_markers = 0;
-    std::vector<bool> marker_emplaced(new_indices.size());
-
-    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    std::vector<int> found;
+    std::vector<std::vector<int>> send_ints(num_neighbors);
+    std::vector<std::vector<double>> send_doubles(num_neighbors);
+    for (unsigned int k = 0; k < moved_indices.size(); ++k)
     {
-        for (MarkerPatch& marker_patch : d_marker_patches[ln])
+        const IBTK::Point position(&moved_positions[k * NDIM]);
+        const IBTK::Vector velocity(&moved_velocities[k * NDIM]);
+        const Owner owner = findOwner(position.data(), found);
+        if (owner.level < 0)
         {
-            for (unsigned int k = 0; k < new_indices.size(); ++k)
+            if (is_outside_domain(position, grid_geom))
             {
-                IBTK::Point position(&new_positions[k * NDIM]);
-                IBTK::Vector velocity(&new_velocities[k * NDIM]);
-                if (!marker_emplaced[k] && marker_patch.contains(position))
-                {
-                    marker_emplaced[k] = true;
-                    marker_patch.insert(new_indices[k], position, velocity);
-                    ++num_emplaced_markers;
-                }
+                IBTK::Vector zero_velocity;
+                zero_velocity.fill(0.0);
+                d_markers_outside_domain.insert(moved_indices[k], position, zero_velocity);
+                ++num_emplaced_markers;
             }
+        }
+        else if (owner.rank == rank)
+        {
+            d_marker_patches[owner.level][d_ownership[owner.level].local_patch[owner.patch]].insert(
+                moved_indices[k], position, velocity);
+            ++num_emplaced_markers;
+        }
+        else
+        {
+            const auto neighbor = std::lower_bound(d_neighbor_ranks.begin(), d_neighbor_ranks.end(), owner.rank);
+            const bool is_neighbor = neighbor != d_neighbor_ranks.end() && *neighbor == owner.rank;
+#ifndef NDEBUG
+            TBOX_ASSERT(is_neighbor);
+#endif
+            // In an optimized build, a marker whose owner is not a neighbor is lost:
+            if (!is_neighbor)
+            {
+                continue;
+            }
+            const auto n = neighbor - d_neighbor_ranks.begin();
+            send_ints[n].push_back(moved_indices[k]);
+            send_ints[n].push_back(owner.level);
+            send_ints[n].push_back(owner.patch);
+            send_doubles[n].insert(send_doubles[n].end(), position.data(), position.data() + NDIM);
+            send_doubles[n].insert(send_doubles[n].end(), velocity.data(), velocity.data() + NDIM);
         }
     }
 
-    // 5. Account for points outside the computational domain which could not
-    //    re-enter the domain via a periodic boundary.
-    if (rank == 0)
+    // 4. Exchange markers with the neighbors and insert the markers received.
+    std::vector<int> send_counts(num_neighbors);
+    for (int n = 0; n < num_neighbors; ++n)
     {
-        for (unsigned int k = 0; k < new_indices.size(); ++k)
+        send_counts[n] = static_cast<int>(send_ints[n].size() / 3);
+    }
+    const std::vector<int> recv_counts = exchange_counts(d_comm, d_neighbor_ranks, PRUNE_COUNT_TAG, send_counts);
+    std::vector<int> int_sizes(num_neighbors), double_sizes(num_neighbors);
+    for (int n = 0; n < num_neighbors; ++n)
+    {
+        int_sizes[n] = 3 * recv_counts[n];
+        double_sizes[n] = 2 * NDIM * recv_counts[n];
+    }
+    const std::vector<std::vector<int>> recv_ints =
+        exchange_arrays(d_comm, d_neighbor_ranks, PRUNE_INT_TAG, send_ints, int_sizes);
+    const std::vector<std::vector<double>> recv_doubles =
+        exchange_arrays(d_comm, d_neighbor_ranks, PRUNE_DOUBLE_TAG, send_doubles, double_sizes);
+    for (int n = 0; n < num_neighbors; ++n)
+    {
+        for (int j = 0; j < recv_counts[n]; ++j)
         {
-            if (!marker_emplaced[k])
+            const int ln = recv_ints[n][3 * j + 1];
+            const int local_patch = d_ownership[ln].local_patch[recv_ints[n][3 * j + 2]];
+            if (local_patch < 0)
             {
-                IBTK::Point position(&new_positions[k * NDIM]);
-                // Set external velocities to zero
-                IBTK::Vector velocity;
-                velocity.fill(0.0);
-                if (is_outside_domain(position, grid_geom))
-                {
-                    marker_emplaced[k] = true;
-                    d_markers_outside_domain.insert(new_indices[k], position, velocity);
-                    ++num_emplaced_markers;
-                }
+                TBOX_ERROR(d_object_name << "::pruneAndRedistribute():\n  received a marker for a patch that this "
+                                            "process does not own\n");
             }
+            const IBTK::Point position(&recv_doubles[n][2 * NDIM * j]);
+            const IBTK::Vector velocity(&recv_doubles[n][2 * NDIM * j + NDIM]);
+            MarkerPatch& marker_patch = d_marker_patches[ln][local_patch];
+#ifndef NDEBUG
+            TBOX_ASSERT(marker_patch.contains(position));
+#endif
+            marker_patch.insert(recv_ints[n][3 * j], position, velocity);
+            ++num_emplaced_markers;
         }
     }
 
-    // 6. Check that we accounted for all points.
+    // 5. Check that every point is accounted for.
 #ifndef NDEBUG
     {
-        const int ierr =
+        unsigned int num_moved_markers = static_cast<unsigned int>(moved_indices.size());
+        int ierr =
             MPI_Allreduce(MPI_IN_PLACE, &num_emplaced_markers, 1, MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
         TBOX_ASSERT(ierr == 0);
-        TBOX_ASSERT(num_emplaced_markers == new_indices.size());
+        ierr = MPI_Allreduce(MPI_IN_PLACE, &num_moved_markers, 1, MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == 0);
+        TBOX_ASSERT(num_emplaced_markers == num_moved_markers);
     }
 
     std::vector<unsigned int> marker_check(getNumberOfMarkers());
@@ -1419,14 +1702,11 @@ MarkerPatchHierarchy::pruneAndRedistribute()
             }
         }
     }
-    if (rank == 0)
+    for (unsigned int k = 0; k < d_markers_outside_domain.size(); ++k)
     {
-        for (unsigned int k = 0; k < d_markers_outside_domain.size(); ++k)
-        {
-            const auto index = std::get<0>(d_markers_outside_domain[k]);
-            TBOX_ASSERT(index < long(getNumberOfMarkers()));
-            marker_check[index] += 1;
-        }
+        const auto index = std::get<0>(d_markers_outside_domain[k]);
+        TBOX_ASSERT(index < long(getNumberOfMarkers()));
+        marker_check[index] += 1;
     }
     {
         const int ierr = MPI_Allreduce(

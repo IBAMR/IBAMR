@@ -1,0 +1,3 @@
+Improved: Exchange the markers of IBTK::MarkerPatchHierarchy only with neighboring processes, which requires that a marker move at most one cell of its level per time step and stage. Stop with an error if the patch layout changes without a call to reinit().
+<br>
+(Boyce Griffith, 2026/11/26)

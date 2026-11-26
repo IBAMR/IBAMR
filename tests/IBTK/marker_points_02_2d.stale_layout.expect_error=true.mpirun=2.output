@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    MarkerPoints::setVelocities():
+  the layout of the patch hierarchy changed since the last call to reinit()
+  call reinit() after every regrid
+
