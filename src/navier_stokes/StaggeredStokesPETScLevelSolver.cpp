@@ -495,6 +495,14 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                      d_P_bc_coef);
     d_petsc_pc = d_petsc_mat;
 
+    // Clear a pressure null space that this class set for a previous level, but not one that a caller set.
+    if (d_pressure_nullspace_vec && !d_nullspace_contains_constant_vec && d_nullspace_basis_vecs.size() == 1 &&
+        d_nullspace_basis_vecs[0] == d_pressure_nullspace_vec)
+    {
+        LinearSolver::setNullSpace(/*const vec*/ false, {});
+    }
+    d_pressure_nullspace_vec.setNull();
+
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
     {
@@ -533,6 +541,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
 
             LinearSolver::setNullSpace(
                 /*const vec*/ false, std::vector<Pointer<SAMRAIVectorReal<NDIM, double>>>(1, nullspace_vec));
+            d_pressure_nullspace_vec = nullspace_vec;
         }
     }
 
