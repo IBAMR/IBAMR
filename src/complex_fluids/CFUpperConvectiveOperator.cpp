@@ -38,6 +38,8 @@
 #include <VariableContext.h>
 #include <VariableDatabase.h>
 
+#include <algorithm>
+
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
 namespace SAMRAI
@@ -489,7 +491,7 @@ CFUpperConvectiveOperator::deallocateOperatorState()
     if (!d_is_initialized) return;
     d_convec_oper->deallocateOperatorState();
     // Deallocate scratch data
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    for (int ln = d_coarsest_ln; ln <= std::min(d_finest_ln, d_hierarchy->getFinestLevelNumber()); ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Q_convec_idx)) level->deallocatePatchData(d_Q_convec_idx);
