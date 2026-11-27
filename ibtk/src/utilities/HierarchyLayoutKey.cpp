@@ -67,6 +67,16 @@ HierarchyLayoutKey::changed(const PatchHierarchy<NDIM>& hierarchy, const int coa
     return true;
 } // changed
 
+bool
+HierarchyLayoutKey::matches(const PatchHierarchy<NDIM>& hierarchy, const int coarsest_ln, const int finest_ln) const
+{
+    if (coarsest_ln < 0 || finest_ln < coarsest_ln || finest_ln >= hierarchy.getNumberOfLevels())
+    {
+        return false;
+    }
+    return HierarchyLayoutKey(hierarchy, coarsest_ln, finest_ln) == *this;
+} // matches
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 HierarchyLayoutKey::HierarchyLayoutKey(const PatchHierarchy<NDIM>& hierarchy,
