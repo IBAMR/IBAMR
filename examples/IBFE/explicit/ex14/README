@@ -1,0 +1,23 @@
+This example demonstrates 3D irreversible Marigo continuum surface damage with
+a Peerlings implicit-gradient (Helmholtz) nonlocal energy filter on a closed
+curved TRI6 spherical membrane in simple shear using `IBFESurfaceMethod`
+(`examples/IBFE/explicit/ex14`).
+
+Model helper (`IBFESurfaceDamage.h`):
+Implements two-way elastic softening `(1 - d_eff)` for two-dimensional
+in-plane Barthes-Biesel neo-Hookean (`BARTHES_BIESEL_NEO_HOOKEAN`) and Skalak
+(`SKALAK`) thin-sheet energies on covariant surface tangents `G_0` and `G_t`
+while keeping isotropic cortical prestress `T_0` undegraded. The model freezes
+damage accumulation on folded elements (`Js_nod <= 0`), uses a read-only
+explicit damage multiplier during RK2 substeps, commits damage once per
+accepted time step, solves `(M_0 + l_d^2 K_0) Y_bar = M_0 Y` on the reference
+surface via PETSc `MATAIJ`/`KSPCG`/`PCJACOBI` without altering libMesh
+EquationSystems schemas, and gathers sorted slot keys collectively across MPI
+ranks during SAMRAI restart serialization (`putToDatabase` / `getFromDatabase`).
+
+Discretization note:
+`example.cpp` builds a closed `320`-element `TRI6` spherical shell
+(`R = 1.0`, `2` icosahedral subdivisions) in C++. `IBFESurfaceMethod` selects
+`QGAUSS` / `FIFTH` quadrature automatically for second-order `TRI6` elements,
+and `input3d` sets `IB_delta_fcn = "IB_4"`, `IB_point_density = 1.5`,
+`use_consistent_mass_matrix = TRUE`, and `MAX_LEVELS = 1`.

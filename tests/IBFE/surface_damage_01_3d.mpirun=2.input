@@ -1,0 +1,4 @@
+Main {
+   log_file_name = "surface_damage_01.log"
+   log_all_nodes = FALSE
+}
