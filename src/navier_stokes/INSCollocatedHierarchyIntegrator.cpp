@@ -88,7 +88,6 @@
 #include <limits>
 #include <ostream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -279,10 +278,10 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string object_name,
+INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::string& object_name,
                                                                    Pointer<Database> input_db,
                                                                    bool register_for_restart)
-    : INSHierarchyIntegrator(std::move(object_name),
+    : INSHierarchyIntegrator(object_name,
                              input_db,
                              new CellVariable<NDIM, double>(object_name + "::U", NDIM),
                              "CONSERVATIVE_COARSEN",
@@ -1631,12 +1630,8 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
     if (d_Q_fcn)
     {
-        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
-                                                         DATA_REFINE_TYPE,
-                                                         USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE,
-                                                         d_bdry_extrap_type,
-                                                         CONSISTENT_TYPE_2_BDRY);
+        InterpolationTransactionComponent Q_bc_component(
+            d_Q_scratch_idx, "LINEAR_REFINE", false, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
         d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
     }

@@ -89,7 +89,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSCollocatedHierarchyIntegrator(std::string object_name,
+    INSCollocatedHierarchyIntegrator(const std::string& object_name,
                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                      bool register_for_restart = true);
 

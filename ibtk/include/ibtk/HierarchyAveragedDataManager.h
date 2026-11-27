@@ -107,7 +107,7 @@ public:
      *  - 'refine_type' : String to determine which refine operator will be used by default. Defaults to
      * "CONSERVATIVE_LINEAR_REFINE".
      */
-    HierarchyAveragedDataManager(std::string object_name,
+    HierarchyAveragedDataManager(const std::string& object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM>> grid_geom,
@@ -126,7 +126,7 @@ public:
      *  - 'refine_type' : String to determine which refine operator will be used by default. Defaults to
      * "CONSERVATIVE_LINEAR_REFINE".
      */
-    HierarchyAveragedDataManager(std::string object_name,
+    HierarchyAveragedDataManager(const std::string& object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                  std::set<double> snapshot_time_points,

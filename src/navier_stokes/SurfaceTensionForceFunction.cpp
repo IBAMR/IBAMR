@@ -329,9 +329,9 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     RobinBcCoefStrategy<NDIM>* phi_bc_coef = (d_adv_diff_solver->getPhysicalBcCoefs(phi_cc_var)).front();
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent C_transaction(
-        d_C_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
+        d_C_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
     InterpolationTransactionComponent phi_transaction(
-        d_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
+        d_phi_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> C_fill_op = new HierarchyGhostCellInterpolation();
     Pointer<HierarchyGhostCellInterpolation> phi_fill_op = new HierarchyGhostCellInterpolation();
     C_fill_op->initializeOperatorState(C_transaction, hierarchy, coarsest_ln, finest_ln);

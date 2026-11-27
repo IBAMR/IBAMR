@@ -1,0 +1,3 @@
+Fixed: The velocity, pressure, body force, and velocity divergence variables of IBAMR::INSStaggeredHierarchyIntegrator, IBAMR::INSCollocatedHierarchyIntegrator, and IBAMR::INSVCStaggeredHierarchyIntegrator are now named after the integrator's object name with every compiler, so a program built with Clang can initialize two of these integrators. These variables cannot be restored from restart files written by Clang builds before this fix.
+<br>
+(Boyce Griffith, 2026/11/20)

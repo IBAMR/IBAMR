@@ -117,7 +117,6 @@
 #include <limits>
 #include <ostream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -298,10 +297,10 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string object_name,
+INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(const std::string& object_name,
                                                                      Pointer<Database> input_db,
                                                                      bool register_for_restart)
-    : INSHierarchyIntegrator(std::move(object_name),
+    : INSHierarchyIntegrator(object_name,
                              input_db,
                              new SideVariable<NDIM, double>(object_name + "::U"),
                              "CONSERVATIVE_COARSEN",
@@ -1753,18 +1752,6 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      d_P_bc_coef);
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
-
-    if (d_Q_fcn)
-    {
-        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
-                                                         DATA_REFINE_TYPE,
-                                                         USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE,
-                                                         d_bdry_extrap_type, // TODO: update variable name
-                                                         CONSISTENT_TYPE_2_BDRY);
-        d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
-    }
 
     if (!d_mu_is_const)
     {

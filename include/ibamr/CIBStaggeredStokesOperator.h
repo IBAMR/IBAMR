@@ -23,6 +23,7 @@
 #include <ibamr/CIBStrategy.h>
 #include <ibamr/StaggeredStokesOperator.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/LinearOperator.h>
 
 #include <tbox/Pointer.h>
@@ -76,22 +77,17 @@ public:
      */
     ~CIBStaggeredStokesOperator();
 
-    //\{ // Operator functionality of IBAMR::StaggeredStokesOperator class.
     /*!
-     * \brief Compute hierarchy dependent data required for computing y=Ax.
-     *
-     * \note CIBStaggeredStokesOperator requires a different communication pattern than StaggeredStokes operator.  In
-     * particular, CIBStaggeredStokesOperator needs ghost cells to be filled in corners and (in 3D) edges.
+     * \brief Compute hierarchy dependent data required for computing y=Ax, including the ghost cell fill of the
+     * velocity for interpolation.
      */
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     /*!
-     * \brief Remove all hierarchy dependent data allocated by
-     * initializeOperatorState().
+     * \brief Remove all hierarchy dependent data allocated by initializeOperatorState().
      */
     void deallocateOperatorState() override;
-    //\}
 
     //\{ // Additional functionality of CIBStaggeredStokesOperator.
 
@@ -153,6 +149,30 @@ protected:
     //////////////////////////////////////////////////////////////////////////////
 
 private:
+    /*!
+     * \brief Return the transaction component of the ghost cell fill of the velocity \a U_idx for interpolation.
+     */
+    IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    getVelocityInterpComponent(int U_idx) const;
+
+    /*!
+     * \brief Fill the same-level and physical-boundary ghost cells of the side-centered velocity, for interpolation.
+     *
+     * \note The coarse-fine ghost cells are not set, because IB interpolation uses fine-side values only.
+     */
+    void fillVelocityGhostCells(int U_idx);
+
+    /*!
+     * \brief The ghost cell fill of the velocity for interpolation, built in initializeOperatorState().
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_interp_fill;
+
+    /*!
+     * \brief The transaction component of d_U_interp_fill from initializeOperatorState(), to which
+     * fillVelocityGhostCells() resets the fill after use.
+     */
+    IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent d_U_interp_comp;
+
     /*!
      * \brief Copy constructor.
      *

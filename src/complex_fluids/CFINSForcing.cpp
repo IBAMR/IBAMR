@@ -355,7 +355,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
     ghost_cell_components[0] = InterpolationTransactionComponent(d_C_scratch_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
-                                                                 true,
+                                                                 false,
                                                                  "CONSERVATIVE_COARSEN",
                                                                  "LINEAR",
                                                                  false,

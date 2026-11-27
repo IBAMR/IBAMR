@@ -176,7 +176,8 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
         level->allocatePatchData(d_U_scratch_idx);
     }
 
-    // Fill ghost cell values for all components.
+    // Fill ghost cell values for all components. The coarse-fine ghost cells use the refine operator only: the
+    // reconstruction uses d_k + 1 layers, more than the quadratic coarse-fine fill covers.
     HierarchyMathOps hier_math_ops("HierarchyMathOps", d_hierarchy);
     static const bool homogeneous_bc = false;
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -184,7 +185,7 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
     transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
                                                              U_idx,
                                                              "CONSERVATIVE_LINEAR_REFINE",
-                                                             true,
+                                                             false,
                                                              "CONSERVATIVE_COARSEN",
                                                              d_bdry_extrap_type,
                                                              false,
