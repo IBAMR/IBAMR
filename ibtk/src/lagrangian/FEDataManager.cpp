@@ -571,7 +571,7 @@ FEDataManager::reinitElementMappings()
         collectActivePatchNodes(d_active_patch_node_map[ln], d_active_patch_elem_map[ln]);
     }
 
-    std::set<Elem*> elem_set;
+    std::set<Elem*, ElemComp> elem_set;
     for (const std::vector<std::vector<Elem*>>& level_elems : d_active_patch_elem_map)
     {
         for (const std::vector<Elem*>& patch_elems : level_elems)
@@ -3109,7 +3109,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*>>& activ
     Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(level_number);
     const Pointer<CartesianGridGeometry<NDIM>> grid_geom = level->getGridGeometry();
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
-    std::vector<std::set<Elem*>> local_patch_elems(num_local_patches);
+    // Order the elements by id, not by address, so that sums over them do not depend on memory addresses.
+    std::vector<std::set<Elem*, ElemComp>> local_patch_elems(num_local_patches);
     active_patch_elems.resize(num_local_patches);
 
     // Try to exit quickly if no patches will actually have elements (i.e., if
@@ -3161,7 +3162,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*>>& activ
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
-        std::set<Elem*>& elems = local_patch_elems[local_patch_num];
+        std::set<Elem*, ElemComp>& elems = local_patch_elems[local_patch_num];
         Pointer<Patch<NDIM>> patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
@@ -3197,7 +3198,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*>>& activ
     local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
-        const std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
+        const std::set<Elem*, ElemComp>& local_elems = local_patch_elems[local_patch_num];
         std::vector<Elem*>& active_elems = active_patch_elems[local_patch_num];
         active_elems.resize(local_elems.size());
         std::copy(local_elems.begin(), local_elems.end(), active_elems.begin());

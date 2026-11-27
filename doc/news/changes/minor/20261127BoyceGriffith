@@ -1,0 +1,3 @@
+Fixed: the active elements of each patch in IBTK::FEDataManager are now ordered by element id, so spreading and interpolation sums no longer depend on memory addresses.
+<br>
+(Boyce Griffith, 2026/11/27)

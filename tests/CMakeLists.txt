@@ -289,6 +289,7 @@ IF(${IBAMR_HAVE_LIBMESH})
   SETUP(IBTK mapping_01.cpp IBAMR2d)
   SETUP(IBTK subdomain_level_translation_01.cpp IBAMR2d)
 
+  SETUP_2D(IBTK active_patch_elem_order_01.cpp)
   SETUP_2D(IBTK bounding_boxes_01.cpp)
   SETUP_2D(IBTK multilevel_fe_01.cpp)
 ENDIF()
