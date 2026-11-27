@@ -89,6 +89,8 @@ StaggeredStokesLevelRelaxationFACOperator::StaggeredStokesLevelRelaxationFACOper
         }
     }
 
+    d_reuse_layout = true;
+
     // Setup Timers.
     IBAMR_DO_ONCE(t_smooth_error = TimerManager::getManager()->getTimer(
                       "IBAMR::StaggeredStokesLevelRelaxationFACOperator::smoothError()"););
@@ -181,10 +183,58 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     const int finest_reset_ln)
 {
     // Initialize the level solvers that are used. The coarse solver handles the coarsest level unless
-    // coarse_solver_type is LEVEL_SMOOTHER.
-    d_level_solvers.resize(d_finest_ln + 1);
+    // coarse_solver_type is LEVEL_SMOOTHER. Deallocate the level solvers on other levels, and before the resize
+    // destroys the ones above the finest level.
     const int coarsest_level_solver_ln = d_coarse_solver_type == "LEVEL_SMOOTHER" ? d_coarsest_ln : d_coarsest_ln + 1;
-    for (int ln = std::max(coarsest_level_solver_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
+    for (int ln = 0; ln < static_cast<int>(d_level_solvers.size()); ++ln)
+    {
+        if (d_level_solvers[ln] && (ln < coarsest_level_solver_ln || ln > d_finest_ln))
+        {
+            d_level_solvers[ln]->deallocateSolverState();
+        }
+    }
+    d_level_solvers.resize(d_finest_ln + 1);
+    initializeLevelSolvers(coarsest_reset_ln, finest_reset_ln);
+
+    // Nullify any fill pattern spec objects which maybe set by the base class.
+    // However, we are NOT doing that with this class.
+    return;
+} // initializeOperatorStateSpecialized
+
+void
+StaggeredStokesLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
+                                                                              const int finest_reset_ln)
+{
+    if (!d_is_initialized || d_reinitializing) return;
+    for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
+    {
+        if (d_level_solvers[ln]) d_level_solvers[ln]->deallocateSolverState();
+    }
+    return;
+} // deallocateOperatorStateSpecialized
+
+bool
+StaggeredStokesLevelRelaxationFACOperator::getLayoutKeySpecialized(std::vector<int>& /*key*/) const
+{
+    return true;
+} // getLayoutKeySpecialized
+
+void
+StaggeredStokesLevelRelaxationFACOperator::initializeOperatorCoefficientsSpecialized(
+    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
+    const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
+{
+    initializeLevelSolvers(d_coarsest_ln, d_finest_ln);
+    return;
+} // initializeOperatorCoefficientsSpecialized
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+StaggeredStokesLevelRelaxationFACOperator::initializeLevelSolvers(const int coarsest_ln, const int finest_ln)
+{
+    const int coarsest_level_solver_ln = d_coarse_solver_type == "LEVEL_SMOOTHER" ? d_coarsest_ln : d_coarsest_ln + 1;
+    for (int ln = std::max(coarsest_level_solver_ln, coarsest_ln); ln <= finest_ln; ++ln)
     {
         Pointer<StaggeredStokesSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
@@ -214,25 +264,8 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
     }
-
-    // Nullify any fill pattern spec objects which maybe set by the base class.
-    // However, we are NOT doing that with this class.
     return;
-} // initializeOperatorStateSpecialized
-
-void
-StaggeredStokesLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
-                                                                              const int finest_reset_ln)
-{
-    if (!d_is_initialized) return;
-    for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
-    {
-        if (d_level_solvers[ln]) d_level_solvers[ln]->deallocateSolverState();
-    }
-    return;
-} // deallocateOperatorStateSpecialized
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
+} // initializeLevelSolvers
 
 //////////////////////////////////////////////////////////////////////////////
 

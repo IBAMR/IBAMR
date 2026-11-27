@@ -755,22 +755,25 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
+    // Setup solution and rhs vectors. The operator reuses the clones when it reinitializes. If it reuses its layout,
+    // the algorithms and wide fills refer to the clones, instead of the vectors that the caller passes.
+    cloneOrReuseVector(d_solution, solution);
+    cloneOrReuseVector(d_rhs, rhs);
+    const SAMRAIVectorReal<NDIM, double>& registered_solution = d_reuse_layout ? *d_solution : solution;
+    const SAMRAIVectorReal<NDIM, double>& registered_rhs = d_reuse_layout ? *d_rhs : rhs;
+
     Pointer<PatchDescriptor<NDIM>> pd = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
-    const int U_sol_idx = solution.getComponentDescriptorIndex(0);
-    const int P_sol_idx = solution.getComponentDescriptorIndex(1);
+    const int U_sol_idx = registered_solution.getComponentDescriptorIndex(0);
+    const int P_sol_idx = registered_solution.getComponentDescriptorIndex(1);
     const IntVector<NDIM>& U_sol_gcw = pd->getPatchDataFactory(U_sol_idx)->getGhostCellWidth();
     const IntVector<NDIM>& P_sol_gcw = pd->getPatchDataFactory(P_sol_idx)->getGhostCellWidth();
-    const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
-    const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
+    const int U_rhs_idx = registered_rhs.getComponentDescriptorIndex(0);
+    const int P_rhs_idx = registered_rhs.getComponentDescriptorIndex(1);
     const IntVector<NDIM>& U_rhs_gcw = pd->getPatchDataFactory(U_rhs_idx)->getGhostCellWidth();
     const IntVector<NDIM>& P_rhs_gcw = pd->getPatchDataFactory(P_rhs_idx)->getGhostCellWidth();
     const IntVector<NDIM> scratch_gcw(d_gcw);
     check_ghost_cell_widths(d_object_name, solution, rhs, "velocity", U_sol_gcw, U_rhs_gcw, scratch_gcw);
     check_ghost_cell_widths(d_object_name, solution, rhs, "pressure", P_sol_gcw, P_rhs_gcw, scratch_gcw);
-
-    // Setup solution and rhs vectors.
-    d_solution = solution.cloneVector(solution.getName());
-    d_rhs = rhs.cloneVector(rhs.getName());
 
     // Reset the hierarchy configuration.
     d_hierarchy = solution.getPatchHierarchy();
@@ -793,33 +796,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     if (!d_coarse_solver_init_subclass && coarsest_reset_ln == d_coarsest_ln &&
         d_coarse_solver_type != "LEVEL_SMOOTHER")
     {
-        if (!d_coarse_solver)
-        {
-            d_coarse_solver =
-                StaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
-                                                                           d_object_name + "::coarse_solver",
-                                                                           d_coarse_solver_db,
-                                                                           d_coarse_solver_default_options_prefix);
-            set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
-        }
-#if !defined(NDEBUG)
-        TBOX_ASSERT(d_coarse_solver);
-#endif
-        // Note that since the coarse level solver is solving for the error, it
-        // must always employ homogeneous boundary conditions.
-        d_coarse_solver->setSolutionTime(d_solution_time);
-        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
-        d_coarse_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
-        d_coarse_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
-        if (d_bc_helper)
-        {
-            d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
-        }
-        setSolverBoundaryTreatment(*d_coarse_solver, d_coarse_solver_db, d_bdry_treatment.bdry_interp_type);
-        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
-        d_coarse_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
-                                               *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+        initializeCoarseSolver();
     }
 
     // Perform implementation-specific initialization.
@@ -931,12 +908,12 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_synch_refine_algorithm = new RefineAlgorithm<NDIM>();
 
     d_prolongation_refine_algorithm->registerRefine(d_side_scratch_idx,
-                                                    solution.getComponentDescriptorIndex(0),
+                                                    U_sol_idx,
                                                     d_side_scratch_idx,
                                                     d_U_prolongation_refine_operator,
                                                     d_U_op_stencil_fill_pattern);
     d_prolongation_refine_algorithm->registerRefine(d_cell_scratch_idx,
-                                                    solution.getComponentDescriptorIndex(1),
+                                                    P_sol_idx,
                                                     d_cell_scratch_idx,
                                                     d_P_prolongation_refine_operator,
                                                     d_P_op_stencil_fill_pattern);
@@ -973,22 +950,13 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_restriction_coarsen_algorithm->registerCoarsen(U_rhs_idx, U_rhs_idx, d_U_restriction_coarsen_operator);
     d_restriction_coarsen_algorithm->registerCoarsen(P_rhs_idx, P_rhs_idx, d_P_restriction_coarsen_operator);
 
-    d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
-                                                          solution.getComponentDescriptorIndex(0),
-                                                          solution.getComponentDescriptorIndex(0),
-                                                          Pointer<RefineOperator<NDIM>>(),
-                                                          d_U_op_stencil_fill_pattern);
-    d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(1),
-                                                          solution.getComponentDescriptorIndex(1),
-                                                          solution.getComponentDescriptorIndex(1),
-                                                          Pointer<RefineOperator<NDIM>>(),
-                                                          d_P_op_stencil_fill_pattern);
+    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
+        U_sol_idx, U_sol_idx, U_sol_idx, Pointer<RefineOperator<NDIM>>(), d_U_op_stencil_fill_pattern);
+    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
+        P_sol_idx, P_sol_idx, P_sol_idx, Pointer<RefineOperator<NDIM>>(), d_P_op_stencil_fill_pattern);
 
-    d_synch_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
-                                             solution.getComponentDescriptorIndex(0),
-                                             solution.getComponentDescriptorIndex(0),
-                                             Pointer<RefineOperator<NDIM>>(),
-                                             d_U_synch_fill_pattern);
+    d_synch_refine_algorithm->registerRefine(
+        U_sol_idx, U_sol_idx, U_sol_idx, Pointer<RefineOperator<NDIM>>(), d_U_synch_fill_pattern);
 
     std::vector<RefinePatchStrategy<NDIM>*> bc_op_ptrs(2);
     bc_op_ptrs[0] = d_U_bc_op;
@@ -1019,9 +987,61 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_is_initialized = true;
     d_in_initialize_operator_state = false;
 
+    if (d_reuse_layout) recordLayout(solution, rhs);
+
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
 } // initializeOperatorState
+
+void
+StaggeredStokesFACPreconditionerStrategy::reinitializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                                    const SAMRAIVectorReal<NDIM, double>& rhs)
+{
+    const bool has_reset_levels =
+        d_coarsest_reset_ln != IBTK::invalid_level_number && d_finest_reset_ln != IBTK::invalid_level_number;
+    if (!d_reuse_layout || !d_is_initialized || has_reset_levels)
+    {
+        FACPreconditionerStrategy::reinitializeOperatorState(solution, rhs);
+        return;
+    }
+
+    if (!canReuseLayout(solution, rhs, d_coarsest_ln, d_finest_ln))
+    {
+        d_reinitializing = true;
+        deallocateOperatorState();
+        initializeOperatorState(solution, rhs);
+        d_reinitializing = false;
+        return;
+    }
+
+    IBAMR_TIMER_START(t_initialize_operator_state);
+
+    // Free the scratch data and allocate it again, as deallocateOperatorState() and initializeOperatorState() do.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
+        if (level->checkAllocated(d_cell_scratch_idx)) level->deallocatePatchData(d_cell_scratch_idx);
+        level->allocatePatchData(d_side_scratch_idx);
+        level->allocatePatchData(d_cell_scratch_idx);
+    }
+
+    // The boundary condition objects and coefficients may have changed. Give the physical boundary operators the
+    // current boundary condition objects.
+    d_has_normal_stress_term = detail::has_normal_stress_term(d_U_bc_coefs, d_smoother_bdry_interp_type);
+    d_U_bc_op->setPhysicalBcCoefs(d_U_bc_coefs);
+    d_P_bc_op->setPhysicalBcCoef(d_P_bc_coef);
+
+    if (!d_coarse_solver_init_subclass && d_coarse_solver_type != "LEVEL_SMOOTHER")
+    {
+        initializeCoarseSolver();
+    }
+
+    initializeOperatorCoefficientsSpecialized(solution, rhs);
+
+    IBAMR_TIMER_STOP(t_initialize_operator_state);
+    return;
+} // reinitializeOperatorState
 
 void
 StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
@@ -1057,16 +1077,22 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
         if (level->checkAllocated(d_cell_scratch_idx)) level->deallocatePatchData(d_cell_scratch_idx);
     }
 
-    // Delete the solution and rhs vectors.
-    d_solution->resetLevels(d_solution->getCoarsestLevelNumber(),
-                            std::min(d_solution->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
-    free_vector_components(*d_solution);
-    d_solution.setNull();
+    // Delete the solution and rhs vectors, unless the next initialization reuses their clones. The clones have no
+    // patch data.
+    if (!d_reinitializing)
+    {
+        d_solution->resetLevels(d_solution->getCoarsestLevelNumber(),
+                                std::min(d_solution->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
+        free_vector_components(*d_solution);
+        d_solution.setNull();
 
-    d_rhs->resetLevels(d_rhs->getCoarsestLevelNumber(),
-                       std::min(d_rhs->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
-    free_vector_components(*d_rhs);
-    d_rhs.setNull();
+        d_rhs->resetLevels(d_rhs->getCoarsestLevelNumber(),
+                           std::min(d_rhs->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
+        free_vector_components(*d_rhs);
+        d_rhs.setNull();
+    }
+
+    clearLayoutRecord();
 
     // Only fully deallocate operator data when we are not reinitializing the
     // operator.
@@ -1081,7 +1107,7 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
         d_level_bdry_fill_ops.clear();
         d_level_math_ops.clear();
 
-        if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
+        if (d_coarse_solver && !d_reinitializing) d_coarse_solver->deallocateSolverState();
 
         d_U_prolongation_refine_operator.setNull();
         d_P_prolongation_refine_operator.setNull();
@@ -1310,6 +1336,9 @@ StaggeredStokesFACPreconditionerStrategy::setSolverBoundaryTreatment(StaggeredSt
                                                                      const IBTK::BdryInterpType bdry_interp_type) const
 {
     TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    // An operator that reuses its layout does not deallocate its initialized solvers when it reinitializes. The
+    // boundary treatment is unchanged then, and a FAC solver rejects the setter.
+    if (d_reuse_layout && solver.getIsInitialized()) return;
     if (solver_db && solver_db->keyExists("bdry_interp_type"))
     {
         return;
@@ -1321,6 +1350,39 @@ StaggeredStokesFACPreconditionerStrategy::setSolverBoundaryTreatment(StaggeredSt
 } // setSolverBoundaryTreatment
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+StaggeredStokesFACPreconditionerStrategy::initializeCoarseSolver()
+{
+    if (!d_coarse_solver)
+    {
+        d_coarse_solver =
+            StaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
+                                                                       d_object_name + "::coarse_solver",
+                                                                       d_coarse_solver_db,
+                                                                       d_coarse_solver_default_options_prefix);
+        set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
+    }
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_coarse_solver);
+#endif
+    // Note that since the coarse level solver is solving for the error, it
+    // must always employ homogeneous boundary conditions.
+    d_coarse_solver->setSolutionTime(d_solution_time);
+    d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+    d_coarse_solver->setVelocityPoissonSpecifications(d_U_problem_coefs);
+    d_coarse_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
+    if (d_bc_helper)
+    {
+        d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
+    }
+    setSolverBoundaryTreatment(*d_coarse_solver, d_coarse_solver_db, d_bdry_treatment.bdry_interp_type);
+    d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
+    d_coarse_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
+    d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
+                                           *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+    return;
+} // initializeCoarseSolver
 
 void
 StaggeredStokesFACPreconditionerStrategy::setBoundaryMomentumResidual(const int U_res_idx,

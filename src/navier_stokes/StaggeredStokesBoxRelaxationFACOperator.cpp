@@ -473,6 +473,9 @@ StaggeredStokesBoxRelaxationFACOperator::StaggeredStokesBoxRelaxationFACOperator
     d_boundary_rhs_correction_idx = register_scratch_index(d_object_name + "::boundary_rhs_correction", d_context);
     d_momentum_lhs_idx = register_scratch_index(d_object_name + "::momentum_lhs", d_context);
     d_dirichlet_lhs_idx = register_scratch_index(d_object_name + "::dirichlet_lhs", d_context);
+
+    d_reuse_layout = true;
+
     return;
 } // StaggeredStokesBoxRelaxationFACOperator
 
@@ -627,6 +630,72 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
                                                                             const int coarsest_reset_ln,
                                                                             const int finest_reset_ln)
 {
+    checkBoundaryHelper();
+
+    // Allocate the scratch data that smoothError() uses next to physical boundaries with a normal stress term.
+    if (d_has_normal_stress_term && d_bc_helper)
+    {
+        allocateBoundaryScratchData(std::max(d_coarsest_ln, coarsest_reset_ln), finest_reset_ln);
+    }
+
+    // Initialize the box relaxation data on each level of the patch hierarchy.
+    initializeBoxSolvers(coarsest_reset_ln, finest_reset_ln);
+    return;
+} // initializeOperatorStateSpecialized
+
+void
+StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
+                                                                            const int finest_reset_ln)
+{
+    if (!d_is_initialized) return;
+    // A regrid may have removed levels, and their patch data with them.
+    deallocateBoundaryScratchData(coarsest_reset_ln,
+                                  std::min({ d_finest_ln, finest_reset_ln, d_hierarchy->getFinestLevelNumber() }));
+    deallocateBoxSolvers(coarsest_reset_ln, std::min(d_finest_ln, finest_reset_ln));
+    for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
+    {
+        int ierr;
+        ierr = VecDestroy(&d_box_e[ln]);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&d_box_r[ln]);
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // deallocateOperatorStateSpecialized
+
+bool
+StaggeredStokesBoxRelaxationFACOperator::getLayoutKeySpecialized(std::vector<int>& /*key*/) const
+{
+    return true;
+} // getLayoutKeySpecialized
+
+void
+StaggeredStokesBoxRelaxationFACOperator::initializeOperatorCoefficientsSpecialized(
+    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
+    const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
+{
+    deallocateBoxSolvers(d_coarsest_ln, d_finest_ln);
+    checkBoundaryHelper();
+
+    // The scratch data stay allocated while smoothError() uses them.
+    if (d_has_normal_stress_term && d_bc_helper)
+    {
+        allocateBoundaryScratchData(d_coarsest_ln, d_finest_ln);
+    }
+    else
+    {
+        deallocateBoundaryScratchData(d_coarsest_ln, d_finest_ln);
+    }
+
+    initializeBoxSolvers(d_coarsest_ln, d_finest_ln);
+    return;
+} // initializeOperatorCoefficientsSpecialized
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+StaggeredStokesBoxRelaxationFACOperator::checkBoundaryHelper() const
+{
     // Physical boundary DOFs need correction after each sweep. Fully periodic
     // hierarchies do not require a boundary helper.
     if (!d_bc_helper)
@@ -640,7 +709,7 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
                 if (patch->getPatchGeometry()->getTouchesRegularBoundary())
                 {
                     TBOX_ERROR(d_object_name
-                               << "::initializeOperatorStateSpecialized():\n"
+                               << "::initializeOperatorState():\n"
                                << "  no StaggeredStokesPhysicalBoundaryHelper is set for a level that touches a "
                                   "physical boundary\n"
                                << "  call setPhysicalBoundaryHelper()\n");
@@ -648,32 +717,58 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
             }
         }
     }
+    return;
+} // checkBoundaryHelper
 
-    // Allocate the scratch data that smoothError() uses next to physical boundaries with a normal stress term.
-    if (d_has_normal_stress_term && d_bc_helper)
+void
+StaggeredStokesBoxRelaxationFACOperator::allocateBoundaryScratchData(const int coarsest_ln, const int finest_ln)
+{
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            if (!patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                if (!patch->getPatchGeometry()->getTouchesRegularBoundary())
+                continue;
+            }
+            for (const int idx : { d_boundary_rhs_correction_idx, d_momentum_lhs_idx, d_dirichlet_lhs_idx })
+            {
+                if (!patch->checkAllocated(idx))
                 {
-                    continue;
-                }
-                for (const int idx : { d_boundary_rhs_correction_idx, d_momentum_lhs_idx, d_dirichlet_lhs_idx })
-                {
-                    if (!patch->checkAllocated(idx))
-                    {
-                        patch->allocatePatchData(idx);
-                    }
+                    patch->allocatePatchData(idx);
                 }
             }
         }
     }
+    return;
+} // allocateBoundaryScratchData
 
-    // Initialize the box relaxation data on each level of the patch hierarchy.
+void
+StaggeredStokesBoxRelaxationFACOperator::deallocateBoundaryScratchData(const int coarsest_ln, const int finest_ln)
+{
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            for (const int idx : { d_boundary_rhs_correction_idx, d_momentum_lhs_idx, d_dirichlet_lhs_idx })
+            {
+                if (patch->checkAllocated(idx))
+                {
+                    patch->deallocatePatchData(idx);
+                }
+            }
+        }
+    }
+    return;
+} // deallocateBoundaryScratchData
+
+void
+StaggeredStokesBoxRelaxationFACOperator::initializeBoxSolvers(const int coarsest_ln, const int finest_ln)
+{
     d_box_op.resize(d_finest_ln + 1);
     d_box_e.resize(d_finest_ln + 1);
     d_box_r.resize(d_finest_ln + 1);
@@ -682,7 +777,7 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
     Pointer<CartesianGridGeometry<NDIM>> geometry = d_hierarchy->getGridGeometry();
     const double* const dx_coarsest = geometry->getDx();
     std::array<double, NDIM> dx;
-    for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -691,8 +786,12 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
         }
         buildBoxOperator(d_box_op[ln], d_U_problem_coefs, box, box, dx);
         int ierr;
-        ierr = MatCreateVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
-        IBTK_CHKERRQ(ierr);
+        // MatCreateVecs depends only on the box size, so reuse existing vectors.
+        if (!d_box_e[ln])
+        {
+            ierr = MatCreateVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);
+            IBTK_CHKERRQ(ierr);
+        }
         ierr = KSPCreate(PETSC_COMM_SELF, &d_box_ksp[ln]);
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetOperators(d_box_ksp[ln], d_box_op[ln], d_box_op[ln]);
@@ -712,45 +811,21 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // initializeOperatorStateSpecialized
+} // initializeBoxSolvers
 
 void
-StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
-                                                                            const int finest_reset_ln)
+StaggeredStokesBoxRelaxationFACOperator::deallocateBoxSolvers(const int coarsest_ln, const int finest_ln)
 {
-    if (!d_is_initialized) return;
-    for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        // A regrid may have removed this level, and its patch data with it.
-        if (ln <= d_hierarchy->getFinestLevelNumber())
-        {
-            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                for (const int idx : { d_boundary_rhs_correction_idx, d_momentum_lhs_idx, d_dirichlet_lhs_idx })
-                {
-                    if (patch->checkAllocated(idx))
-                    {
-                        patch->deallocatePatchData(idx);
-                    }
-                }
-            }
-        }
         int ierr;
         ierr = MatDestroy(&d_box_op[ln]);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&d_box_e[ln]);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&d_box_r[ln]);
         IBTK_CHKERRQ(ierr);
         ierr = KSPDestroy(&d_box_ksp[ln]);
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // deallocateOperatorStateSpecialized
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
+} // deallocateBoxSolvers
 
 //////////////////////////////////////////////////////////////////////////////
 

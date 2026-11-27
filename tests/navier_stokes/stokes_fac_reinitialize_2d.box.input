@@ -1,0 +1,67 @@
+// Four patches along the lower boundary of a refined level that is periodic along the boundary, with the Stokes box
+// relaxation FAC operator and a PETSc coarse level solver. The problems alternate slip walls and traction conditions.
+test {
+   operator_class = "StaggeredStokesBoxRelaxationFACOperator"
+}
+operator_db {
+   coarse_solver_type = "PETSC_LEVEL_SOLVER"
+   coarse_solver_rel_residual_tol = 1.0e-14
+   coarse_solver_abs_residual_tol = 1.0e-300
+   coarse_solver_max_iterations = 25
+   coarse_solver_db {
+      initial_guess_nonzero = TRUE
+      ksp_type = "gmres"
+      pc_type = "asm"
+      subdomain_box_size = 8, 8
+      subdomain_overlap_size = 2, 2
+   }
+}
+preconditioner_db {
+   cycle_type = "V_CYCLE"
+   num_pre_sweeps = 1
+   num_post_sweeps = 1
+}
+INSStaggeredHierarchyIntegrator {
+   mu = 1.0
+   rho = 1.0
+}
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+}
+N = 12
+CartesianGeometry {
+   domain_boxes = [(0, 0), (N - 1, N - 1)]
+   x_lo = 0.0, 0.0
+   x_up = 1.0, 1.0
+   periodic_dimension = 1, 0
+}
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = N, N
+      level_1 = 6, 2*N
+   }
+   smallest_patch_size {
+      level_0 = N, N
+      level_1 = 6, 4
+   }
+   efficiency_tolerance = 0.99
+   combine_efficiency = 0.99
+}
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0, 0), (N - 1, N / 2 - 1)]
+   }
+}
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

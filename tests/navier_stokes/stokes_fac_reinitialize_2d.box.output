@@ -1,0 +1,25 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+number_of_levels = 2
+number_of_patches_on_finest_level = 4
+problem = 0
+number_of_values = 1392
+max_difference_reinitialized_fresh = 0
+max_change_from_previous_problem = 0
+solution_min = -0.869322
+solution_max = 1.39434
+problem = 1
+number_of_values = 1392
+max_difference_reinitialized_fresh = 0
+max_change_from_previous_problem = 1.41982
+solution_min = -1.02069
+solution_max = 0.714052
+problem = 2
+number_of_values = 1392
+max_difference_reinitialized_fresh = 0
+max_change_from_previous_problem = 1.47116
+solution_min = -0.929529
+solution_max = 0.900747
+full_initializations = 1
+coefficient_initializations = 2
