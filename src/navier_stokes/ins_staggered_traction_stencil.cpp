@@ -31,10 +31,12 @@
 #include <BoxArray.h>
 #include <CartesianPatchGeometry.h>
 #include <ComponentSelector.h>
+#include <GridGeometry.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <Patch.h>
 #include <PatchDescriptor.h>
+#include <PatchGeometry.h>
 #include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
@@ -43,9 +45,12 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <optional>
+#include <utility>
 #include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
@@ -60,24 +65,35 @@ namespace detail
 
 namespace
 {
-// Return a copy of patch that shares its patch data. Replacing the geometry of the copy leaves patch unchanged.
-Pointer<Patch<NDIM>>
-copy_patch(const Patch<NDIM>& patch)
+// Set the geometry and patch data of copy to those of patch. Patch data that patch does not have are null in copy.
+void
+set_patch_copy_data(Patch<NDIM>& copy, const Patch<NDIM>& patch)
 {
-    Pointer<Patch<NDIM>> copy = new Patch<NDIM>(patch.getBox(), patch.getPatchDescriptor());
-    copy->setPatchGeometry(patch.getPatchGeometry());
+    copy.setPatchGeometry(patch.getPatchGeometry());
     // allocatePatchData() with an empty selector sizes the patch data array of the copy without allocating data.
-    copy->allocatePatchData(ComponentSelector());
+    copy.allocatePatchData(ComponentSelector());
     const int num_components = patch.getPatchDescriptor()->getMaxNumberRegisteredComponents();
     for (int id = 0; id < num_components; ++id)
     {
         if (patch.checkAllocated(id))
         {
-            copy->setPatchData(id, patch.getPatchData(id));
+            copy.setPatchData(id, patch.getPatchData(id));
         }
     }
-    return copy;
-} // copy_patch
+} // set_patch_copy_data
+
+// Return the lower and upper indices of box, the key of the cached values of a box.
+std::array<int, 2 * NDIM>
+get_box_key(const Box<NDIM>& box)
+{
+    std::array<int, 2 * NDIM> key;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        key[d] = box.lower(d);
+        key[NDIM + d] = box.upper(d);
+    }
+    return key;
+} // get_box_key
 
 // Return the displacement of the geometry of patch from the faces of velocity component tangential_axis to the faces of
 // component bdry_normal_axis: half a cell along tangential_axis and minus half a cell along bdry_normal_axis.
@@ -358,17 +374,156 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-NormalVelocityPatch::NormalVelocityPatch(const Patch<NDIM>& patch,
+bool
+TractionPatchCache::Domain::matches(const IntVector<NDIM>& ratio_in,
+                                    const IntVector<NDIM>& periodic_shift_in,
+                                    const BoxArray<NDIM>& coarse_domain_in) const
+{
+    if (ratio != ratio_in || periodic_shift != periodic_shift_in || coarse_domain.size() != coarse_domain_in.size())
+    {
+        return false;
+    }
+    for (int b = 0; b < coarse_domain.size(); ++b)
+    {
+        if (!(coarse_domain[b] == coarse_domain_in[b])) return false;
+    }
+    return true;
+} // matches
+
+const BoxArray<NDIM>&
+TractionPatchCache::getPhysicalDomain(const Patch<NDIM>& patch, const Pointer<PatchHierarchy<NDIM>>& hierarchy)
+{
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    const Pointer<GridGeometry<NDIM>> grid_geom = hierarchy->getGridGeometry();
+    const IntVector<NDIM>& ratio = pgeom->getRatio();
+    const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(ratio);
+    const BoxArray<NDIM>& coarse_domain = grid_geom->getPhysicalDomain();
+    for (const Domain& entry : d_domains)
+    {
+        if (entry.matches(ratio, periodic_shift, coarse_domain)) return entry.domain;
+    }
+    d_domains.push_back({ ratio,
+                          periodic_shift,
+                          coarse_domain,
+                          PhysicalBoundaryUtilities::getPeriodicPhysicalDomain(grid_geom, ratio) });
+    return d_domains.back().domain;
+} // getPhysicalDomain
+
+template <class Value>
+Value*
+TractionPatchCache::UseMap<Value>::find(const Key& key)
+{
+    const auto it = d_entries.find(key);
+    if (it == d_entries.end()) return nullptr;
+    it->second.last_use = ++d_use_count;
+    return &it->second.value;
+} // find
+
+template <class Value>
+Value&
+TractionPatchCache::UseMap<Value>::insert(const Key& key, Value value)
+{
+    if (d_entries.size() >= max_cached_entries)
+    {
+        // Erase the entries with the less recent half of the uses. No heap allocation.
+        std::array<std::uint64_t, max_cached_entries> uses;
+        std::size_t n = 0;
+        for (const auto& entry : d_entries)
+        {
+            uses[n++] = entry.second.last_use;
+        }
+        const auto median = uses.begin() + n / 2;
+        std::nth_element(uses.begin(), median, uses.begin() + n);
+        for (auto it = d_entries.begin(); it != d_entries.end();)
+        {
+            it = it->second.last_use < *median ? d_entries.erase(it) : std::next(it);
+        }
+    }
+    Entry& entry = d_entries.emplace(key, Entry{ std::move(value), ++d_use_count }).first->second;
+    return entry.value;
+} // insert
+
+template <class Value>
+void
+TractionPatchCache::UseMap<Value>::erase(const Key& key)
+{
+    d_entries.erase(key);
+} // erase
+
+Pointer<Patch<NDIM>>
+TractionPatchCache::getPatchCopy(const Patch<NDIM>& patch)
+{
+    const Box<NDIM>& box = patch.getBox();
+    const auto key = get_box_key(box);
+    Pointer<Patch<NDIM>>* cached = d_copies.find(key);
+    if (cached && (*cached)->getPatchDescriptor() != patch.getPatchDescriptor())
+    {
+        d_copies.erase(key);
+        cached = nullptr;
+    }
+    if (!cached)
+    {
+        cached = &d_copies.insert(key, Pointer<Patch<NDIM>>(new Patch<NDIM>(box, patch.getPatchDescriptor())));
+    }
+    Pointer<Patch<NDIM>> copy = *cached;
+    // A copy in use has a geometry. A nested use of the same copy would replace it.
+    TBOX_ASSERT(copy->getPatchGeometry().isNull());
+    set_patch_copy_data(*copy, patch);
+    return copy;
+} // getPatchCopy
+
+std::pair<Pointer<ArrayData<NDIM, double>>, Pointer<ArrayData<NDIM, double>>>
+TractionPatchCache::getCoefficientData(const Box<NDIM>& box)
+{
+    const auto key = get_box_key(box);
+    auto* data = d_coefficient_data.find(key);
+    if (!data)
+    {
+        data = &d_coefficient_data.insert(
+            key,
+            std::make_pair(Pointer<ArrayData<NDIM, double>>(new ArrayData<NDIM, double>(box, 1)),
+                           Pointer<ArrayData<NDIM, double>>(new ArrayData<NDIM, double>(box, 1))));
+    }
+    // A new ArrayData<double> of an IBSAMRAI2 debug build holds the largest double. Set both arrays to that value at
+    // each use in every build, so that an entry that the boundary condition object leaves unset is never a stale value.
+    data->first->fillAll(std::numeric_limits<double>::max());
+    data->second->fillAll(std::numeric_limits<double>::max());
+    return *data;
+} // getCoefficientData
+
+ScopedPatchCopy::ScopedPatchCopy(TractionPatchCache& cache, const Patch<NDIM>& patch)
+    : d_copy(cache.getPatchCopy(patch))
+{
+} // ScopedPatchCopy
+
+ScopedPatchCopy::~ScopedPatchCopy()
+{
+    d_copy->setPatchGeometry(Pointer<PatchGeometry<NDIM>>());
+    const int num_components = d_copy->getPatchDescriptor()->getMaxNumberRegisteredComponents();
+    for (int id = 0; id < num_components; ++id)
+    {
+        d_copy->deallocatePatchData(id);
+    }
+} // ~ScopedPatchCopy
+
+Patch<NDIM>&
+ScopedPatchCopy::get() const
+{
+    return *d_copy;
+} // get
+
+NormalVelocityPatch::NormalVelocityPatch(TractionPatchCache& cache,
+                                         const Patch<NDIM>& patch,
                                          const unsigned int bdry_normal_axis,
                                          const unsigned int tangential_axis)
-    : d_patch(copy_patch(patch)), d_bdry_normal_axis(bdry_normal_axis), d_tangential_axis(tangential_axis)
+    : d_patch(cache, patch), d_bdry_normal_axis(bdry_normal_axis), d_tangential_axis(tangential_axis)
 {
 } // NormalVelocityPatch
 
 const Box<NDIM>&
 NormalVelocityPatch::getBox() const
 {
-    return d_patch->getBox();
+    return d_patch.get().getBox();
 } // getBox
 
 unsigned int
@@ -386,7 +541,7 @@ NormalVelocityPatch::getTangentialAxis() const
 double
 NormalVelocityPatch::getTangentialDx() const
 {
-    Pointer<CartesianPatchGeometry<NDIM>> pgeom = d_patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = d_patch.get().getPatchGeometry();
     return pgeom->getDx()[d_tangential_axis];
 } // getTangentialDx
 
@@ -398,10 +553,11 @@ NormalVelocityPatch::setBcCoefs(RobinBcCoefStrategy<NDIM>* const normal_bc_coef,
                                 const BoundaryBox<NDIM>& bdry_box,
                                 const double fill_time)
 {
+    Patch<NDIM>& patch_copy = d_patch.get();
     const IBTK::detail::ScopedShiftedPatchGeometry shifted_geometry(
-        *d_patch, get_half_cell_shift(*d_patch, d_bdry_normal_axis, d_tangential_axis));
+        patch_copy, get_half_cell_shift(patch_copy, d_bdry_normal_axis, d_tangential_axis));
     normal_bc_coef->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM>>(), *d_patch, bdry_box, fill_time);
+        acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM>>(), patch_copy, bdry_box, fill_time);
 } // setBcCoefs
 
 double
@@ -490,6 +646,7 @@ correct_traction_coefficients(ArrayData<NDIM, double>& acoef_data,
                               RobinBcCoefStrategy<NDIM>* const normal_bc_coef,
                               const bool homogeneous_bc,
                               const Pointer<PatchHierarchy<NDIM>>& patch_hierarchy,
+                              TractionPatchCache& cache,
                               const std::function<double(const hier::Index<NDIM>&, double)>& get_mu,
                               const IBTK::BdryInterpType bdry_interp_type,
                               const double fill_time)
@@ -498,9 +655,8 @@ correct_traction_coefficients(ArrayData<NDIM, double>& acoef_data,
     const Box<NDIM>& bc_coef_box = acoef_data.getBox();
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const BoxArray<NDIM> domain =
-        PhysicalBoundaryUtilities::getPeriodicPhysicalDomain(patch_hierarchy->getGridGeometry(), pgeom->getRatio());
-    NormalVelocityPatch normal_velocity_patch(patch, bdry_normal_axis, tangential_axis);
+    const BoxArray<NDIM>& domain = cache.getPhysicalDomain(patch, patch_hierarchy);
+    NormalVelocityPatch normal_velocity_patch(cache, patch, bdry_normal_axis, tangential_axis);
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
@@ -550,6 +706,7 @@ bool
 traction_data_depend_on_velocity(RobinBcCoefStrategy<NDIM>* const comp_bc_coef,
                                  const unsigned int comp_idx,
                                  const Patch<NDIM>& patch,
+                                 TractionPatchCache& cache,
                                  const BoundaryBox<NDIM>& bdry_box,
                                  const double fill_time)
 {
@@ -562,17 +719,16 @@ traction_data_depend_on_velocity(RobinBcCoefStrategy<NDIM>* const comp_bc_coef,
     // more face along the component axis, with the patch geometry shifted by half a cell along that axis.
     Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bdry_box);
     bc_coef_box.upper()(comp_idx) += 1;
-    Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-    Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+    auto [acoef_data, bcoef_data] = cache.getCoefficientData(bc_coef_box);
     Pointer<ArrayData<NDIM, double>> gcoef_data;
     std::array<double, NDIM> shift{};
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     shift[comp_idx] = -0.5 * pgeom->getDx()[comp_idx];
     // Shifting the geometry of a copy of the patch leaves the patch geometry unchanged.
-    Pointer<Patch<NDIM>> shifted_patch = copy_patch(patch);
-    const IBTK::detail::ScopedShiftedPatchGeometry shifted_geometry(*shifted_patch, shift);
+    const ScopedPatchCopy shifted_patch(cache, patch);
+    const IBTK::detail::ScopedShiftedPatchGeometry shifted_geometry(shifted_patch.get(), shift);
     comp_bc_coef->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM>>(), *shifted_patch, bdry_box, fill_time);
+        acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM>>(), shifted_patch.get(), bdry_box, fill_time);
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         if (classify_velocity_bc((*acoef_data)(it(), 0), (*bcoef_data)(it(), 0)) == VelocityBcType::TRACTION)
