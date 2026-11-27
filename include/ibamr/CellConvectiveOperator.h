@@ -22,6 +22,9 @@
 
 #include <ibamr/ConvectiveOperator.h>
 
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -177,6 +180,11 @@ private:
      */
     CellConvectiveOperator& operator=(const CellConvectiveOperator& that) = delete;
 
+    /*!
+     * \brief Deallocate the scratch data of initializeOperatorState().
+     */
+    void deallocateScratchData();
+
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_Q_cell_refine_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_Q_cell_refine_alg;
@@ -188,6 +196,11 @@ private:
         d_q_interp_coarsen_scheds;
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
+
+    // The levels, the coarsest level, and the source patch data index that the algorithms and schedules were built
+    // from.
+    IBTK::detail::HierarchyLevelsIdentity d_schedules_levels;
+    int d_schedules_coarsest_ln = IBTK::invalid_level_number, d_schedules_src_idx = IBTK::invalid_index;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;

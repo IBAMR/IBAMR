@@ -25,6 +25,7 @@
 
 #include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/LaplaceOperator.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 namespace IBTK
 {
@@ -389,6 +390,8 @@ protected:
      * Data synchronization operators.
      */
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_k_bdry_bc_fill_op, d_lf_gradient_bdry_bc_fill_op;
+    // Owners of the fill operators above.
+    IBTK::detail::CachedGhostCellFill d_k_bdry_bc_fill_cache, d_lf_gradient_bdry_bc_fill_cache;
 
     /*!
      * Convective operator and difference type for the energy equation.

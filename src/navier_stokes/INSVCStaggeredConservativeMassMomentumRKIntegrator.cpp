@@ -1476,7 +1476,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeSTSIntegrator(
     Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
     d_hierarchy = hierarchy;
 
-    if (d_is_initialized) deallocateSTSIntegrator();
+    if (d_is_initialized) deallocateSTSIntegratorData();
 
     // Update the level numbers.
     d_coarsest_ln = 0;
@@ -1507,11 +1507,11 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeSTSIntegrator(
                                                                  "LINEAR",
                                                                  d_u_phys_bdry_op);
 
-    // Initialize the interpolation operators.
-    d_hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_rho_bdry_fill->initializeOperatorState(d_rho_transaction_comps, d_hierarchy);
-    d_hier_v_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_v_bdry_fill->initializeOperatorState(d_v_transaction_comps, d_hierarchy);
+    // Reuse the interpolation operators while the levels are unchanged.
+    d_hier_rho_bdry_fill = Pointer<HierarchyGhostCellInterpolation>(
+        &d_hier_rho_bdry_fill_cache.get(d_rho_transaction_comps, d_hierarchy), /*managed*/ false);
+    d_hier_v_bdry_fill = Pointer<HierarchyGhostCellInterpolation>(
+        &d_hier_v_bdry_fill_cache.get(d_v_transaction_comps, d_hierarchy), /*managed*/ false);
 
     // Create the coarse-fine boundary boxes.
     d_cf_boundary.resize(d_finest_ln + 1);
@@ -1562,6 +1562,18 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateSTSIntegrator()
     IBAMR_TIMER_START(t_deallocate_integrator);
 
     // Deallocate the communications operators.
+    d_hier_rho_bdry_fill_cache.clear();
+    d_hier_v_bdry_fill_cache.clear();
+
+    deallocateSTSIntegratorData();
+
+    IBAMR_TIMER_STOP(t_deallocate_integrator);
+    return;
+} // deallocateSTSIntegrator
+
+void
+INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateSTSIntegratorData()
+{
     d_hier_rho_bdry_fill.setNull();
     d_hier_v_bdry_fill.setNull();
 
@@ -1585,10 +1597,8 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateSTSIntegrator()
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     d_is_initialized = false;
-
-    IBAMR_TIMER_STOP(t_deallocate_integrator);
     return;
-} // deallocateOperatorState
+} // deallocateSTSIntegratorData
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredVelocityPhysBdryOp(

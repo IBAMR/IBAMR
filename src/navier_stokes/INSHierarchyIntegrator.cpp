@@ -116,6 +116,25 @@ set_unit_velocity(const Pointer<PatchHierarchy<NDIM>>& hierarchy,
     }
 }
 
+// Allocate the data of the components of vec on the levels coarsest_ln through finest_ln that lack them.
+void
+allocate_missing_vector_data(PatchHierarchy<NDIM>& hierarchy,
+                             const SAMRAIVectorReal<NDIM, double>& vec,
+                             const int coarsest_ln,
+                             const int finest_ln,
+                             const double data_time)
+{
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy.getPatchLevel(ln);
+        for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
+        {
+            const int idx = vec.getComponentDescriptorIndex(comp);
+            if (!level->checkAllocated(idx)) level->allocatePatchData(idx, data_time);
+        }
+    }
+}
+
 // Return the interpolation type that the key of the database db sets. Stop with an error that begins with location if
 // the value is not an interpolation type.
 BdryInterpType
@@ -909,86 +928,117 @@ INSHierarchyIntegrator::updateNullSpaceVectors(const double current_time,
 
     if (d_nul_vecs_need_init)
     {
-        for (const auto& nul_vec : d_nul_vecs)
-        {
-            if (nul_vec) free_vector_components(*nul_vec);
-        }
-        d_nul_vecs.resize(n_nul_vecs);
-
-        for (const auto& U_nul_vec : d_U_nul_vecs)
-        {
-            if (U_nul_vec) free_vector_components(*U_nul_vec);
-        }
+        // Reuse the vectors while their number is unchanged.
         const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
-        d_U_nul_vecs.resize(n_U_nul_vecs);
-
-        if (has_velocity_nullspace)
+        const bool levels_changed = d_nul_vecs_levels.changed(*d_hierarchy, coarsest_ln, finest_ln);
+        const bool reuse_vecs =
+            static_cast<int>(d_nul_vecs.size()) == n_nul_vecs && static_cast<int>(d_U_nul_vecs.size()) == n_U_nul_vecs;
+        if (!reuse_vecs)
         {
-            for (unsigned int k = 0; k < NDIM; ++k)
+            for (const auto& nul_vec : d_nul_vecs)
+            {
+                if (nul_vec) free_vector_components(*nul_vec);
+            }
+            d_nul_vecs.clear();
+            d_nul_vecs.resize(n_nul_vecs);
+
+            for (const auto& U_nul_vec : d_U_nul_vecs)
+            {
+                if (U_nul_vec) free_vector_components(*U_nul_vec);
+            }
+            d_U_nul_vecs.clear();
+            d_U_nul_vecs.resize(n_U_nul_vecs);
+
+            for (unsigned int k = 0; k < NDIM && has_velocity_nullspace; ++k)
             {
                 if (has_stokes_vec)
                 {
                     d_nul_vecs[k] = sol_vec->cloneVector(d_object_name + "::nul_vec_U_" + std::to_string(k));
-                    d_nul_vecs[k]->allocateVectorData(current_time);
-                    d_nul_vecs[k]->setToScalar(0.0);
-                    set_unit_velocity(d_hierarchy, d_nul_vecs[k], k);
                 }
                 d_U_nul_vecs[k] = U_vec->cloneVector(d_object_name + "::U_nul_vec_U_" + std::to_string(k));
-                d_U_nul_vecs[k]->allocateVectorData(current_time);
-                set_unit_velocity(d_hierarchy, d_U_nul_vecs[k], k);
+            }
+            if (has_stokes_vec && has_pressure_nullspace)
+            {
+                d_nul_vecs.back() = sol_vec->cloneVector(d_object_name + "::nul_vec_p");
             }
         }
 
-        if (has_stokes_vec && has_pressure_nullspace)
+        if (!reuse_vecs || levels_changed)
         {
-            d_nul_vecs.back() = sol_vec->cloneVector(d_object_name + "::nul_vec_p");
-            d_nul_vecs.back()->allocateVectorData(current_time);
-            d_nul_vecs.back()->setToScalar(0.0);
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            // Allocate the data of replaced levels, and compute the values on all levels.
+            for (const auto& nul_vec : d_nul_vecs)
             {
-                Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                nul_vec->resetLevels(coarsest_ln, finest_ln);
+                allocate_missing_vector_data(*d_hierarchy, *nul_vec, coarsest_ln, finest_ln, current_time);
+            }
+            for (const auto& U_nul_vec : d_U_nul_vecs)
+            {
+                U_nul_vec->resetLevels(coarsest_ln, finest_ln);
+                allocate_missing_vector_data(*d_hierarchy, *U_nul_vec, coarsest_ln, finest_ln, current_time);
+            }
+
+            if (has_velocity_nullspace)
+            {
+                for (unsigned int k = 0; k < NDIM; ++k)
                 {
-                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                    Pointer<CellData<NDIM, double>> P_nul_data =
-                        patch->getPatchData(d_nul_vecs.back()->getComponentDescriptorIndex(1));
-                    P_nul_data->fill(1.0, patch->getBox());
+                    if (has_stokes_vec)
+                    {
+                        d_nul_vecs[k]->setToScalar(0.0);
+                        set_unit_velocity(d_hierarchy, d_nul_vecs[k], k);
+                    }
+                    set_unit_velocity(d_hierarchy, d_U_nul_vecs[k], k);
                 }
             }
-        }
 
-        // Normalize the basis vectors for the nullspace.
-        for (const auto& nul_vec : d_nul_vecs)
-        {
-            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
-            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
-        }
+            if (has_stokes_vec && has_pressure_nullspace)
+            {
+                d_nul_vecs.back()->setToScalar(0.0);
+                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+                {
+                    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                        Pointer<CellData<NDIM, double>> P_nul_data =
+                            patch->getPatchData(d_nul_vecs.back()->getComponentDescriptorIndex(1));
+                        P_nul_data->fill(1.0, patch->getBox());
+                    }
+                }
+            }
 
-        for (const auto& nul_vec : d_U_nul_vecs)
-        {
-            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
-            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
-        }
+            // Normalize the basis vectors for the nullspace.
+            for (const auto& nul_vec : d_nul_vecs)
+            {
+                const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
+                nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
+            }
+
+            for (const auto& nul_vec : d_U_nul_vecs)
+            {
+                const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
+                nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
+            }
 
 #if !defined(NDEBUG)
-        for (unsigned int j = 0; j < d_nul_vecs.size(); ++j)
-        {
-            for (unsigned int i = 0; i < d_nul_vecs.size(); ++i)
+            for (unsigned int j = 0; j < d_nul_vecs.size(); ++j)
             {
-                auto dot_product = d_nul_vecs[i]->dot(d_nul_vecs[j]);
-                TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
+                for (unsigned int i = 0; i < d_nul_vecs.size(); ++i)
+                {
+                    auto dot_product = d_nul_vecs[i]->dot(d_nul_vecs[j]);
+                    TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
+                }
             }
-        }
 
-        for (unsigned int j = 0; j < d_U_nul_vecs.size(); ++j)
-        {
-            for (unsigned int i = 0; i < d_U_nul_vecs.size(); ++i)
+            for (unsigned int j = 0; j < d_U_nul_vecs.size(); ++j)
             {
-                auto dot_product = d_U_nul_vecs[i]->dot(d_U_nul_vecs[j]);
-                TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
+                for (unsigned int i = 0; i < d_U_nul_vecs.size(); ++i)
+                {
+                    auto dot_product = d_U_nul_vecs[i]->dot(d_U_nul_vecs[j]);
+                    TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
+                }
             }
-        }
 #endif
+        }
 
         d_nul_vecs_need_init = false;
     }

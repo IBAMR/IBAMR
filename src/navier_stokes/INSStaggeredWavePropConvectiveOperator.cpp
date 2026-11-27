@@ -440,8 +440,6 @@ void
 INSStaggeredWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
                                                                 const SAMRAIVectorReal<NDIM, double>& out)
 {
-    if (d_is_initialized) deallocateOperatorState();
-
     // Get the hierarchy configuration.
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
@@ -469,9 +467,10 @@ INSStaggeredWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVect
                                                                "LINEAR",
                                                                d_u_phys_bdry_op);
 
-    // Initialize the interpolation operators.
-    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy);
+    // Reuse the interpolation operators while the levels are unchanged.
+    d_hier_bdry_fill_cache.clearIfIndicesDiffer(d_transaction_comps);
+    d_hier_bdry_fill = Pointer<HierarchyGhostCellInterpolation>(
+        &d_hier_bdry_fill_cache.get(d_transaction_comps, d_hierarchy), /*managed*/ false);
 
     d_is_initialized = true;
 
@@ -485,6 +484,7 @@ INSStaggeredWavePropConvectiveOperator::deallocateOperatorState()
 
     // Deallocate the communications operators.
     d_hier_bdry_fill.setNull();
+    d_hier_bdry_fill_cache.clear();
 
     d_is_initialized = false;
 

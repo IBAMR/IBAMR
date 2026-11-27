@@ -2015,8 +2015,8 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      d_U_bc_coefs,
                                                      nullptr,
                                                      IBTK::enum_to_string(d_bdry_interp_type));
-    d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+    d_U_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_U_bdry_bc_fill_cache.get({ U_bc_component }, d_hierarchy), /*managed*/ false);
 
     if (!d_mu_is_const)
     {
@@ -2024,8 +2024,8 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         // conservatively from the coarse cells only
         InterpolationTransactionComponent mu_bc_component(
             d_mu_scratch_idx, d_mu_refine_type, false, d_mu_coarsen_type, d_mu_bdry_extrap_type, false, d_mu_bc_coef);
-        d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
+        d_mu_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+            &d_mu_bdry_bc_fill_cache.get({ mu_bc_component }, d_hierarchy), /*managed*/ false);
 
         // Ghost values inside the domain are positive and independent of the patch: each value is a copy of a value in
         // the domain or a convex combination of coarse values. Values outside the domain are not set.
@@ -2037,8 +2037,8 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                               "NONE",
                                                               false,
                                                               nullptr);
-        d_mu_interp_ghost_fill_op = new HierarchyGhostCellInterpolation();
-        d_mu_interp_ghost_fill_op->initializeOperatorState(mu_interp_component, d_hierarchy);
+        d_mu_interp_ghost_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+            &d_mu_interp_ghost_fill_cache.get({ mu_interp_component }, d_hierarchy), /*managed*/ false);
     }
 
     // Setup the patch boundary synchronization objects.
@@ -2244,15 +2244,22 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
             new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
         d_P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        if (d_U_rhs_vec) free_vector_components(*d_U_rhs_vec);
-        if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
-        if (d_N_vec) free_vector_components(*d_N_vec);
-        if (d_P_rhs_vec) free_vector_components(*d_P_rhs_vec);
-
-        d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
-        d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
-        d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
-        d_P_rhs_vec = d_P_scratch_vec->cloneVector(d_object_name + "::P_rhs_vec");
+        // Reuse the right-hand side, advection, and nonlinear term vectors for the run. Their data are allocated in
+        // each time step, so only their levels change.
+        if (d_U_rhs_vec)
+        {
+            d_U_rhs_vec->resetLevels(coarsest_ln, finest_ln);
+            d_U_adv_vec->resetLevels(coarsest_ln, finest_ln);
+            d_N_vec->resetLevels(coarsest_ln, finest_ln);
+            d_P_rhs_vec->resetLevels(coarsest_ln, finest_ln);
+        }
+        else
+        {
+            d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
+            d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
+            d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
+            d_P_rhs_vec = d_P_scratch_vec->cloneVector(d_object_name + "::P_rhs_vec");
+        }
 
         d_sol_vec =
             new SAMRAIVectorReal<NDIM, double>(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);

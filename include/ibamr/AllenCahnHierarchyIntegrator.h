@@ -281,6 +281,8 @@ private:
      * Data synchronization operator for \f$ \varphi \f$.
      */
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_lf_bdry_bc_fill_op;
+    // Owner of the fill operator above.
+    IBTK::detail::CachedGhostCellFill d_lf_bdry_bc_fill_cache;
 
     /*!
      * Convective operator and difference type for the Allen-Cahn equation.

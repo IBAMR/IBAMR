@@ -267,7 +267,7 @@ void
 AdvDiffWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
                                                            const SAMRAIVectorReal<NDIM, double>& out)
 {
-    if (d_is_initialized) deallocateOperatorState();
+    if (d_is_initialized) deallocateScratchData();
     // Get Hierarchy Information
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
@@ -279,6 +279,45 @@ AdvDiffWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
 #else
     NULL_USE(out);
 #endif
+    // Reuse the algorithms and schedules while the levels and the source index are unchanged.
+    const int src_idx = in.getComponentDescriptorIndex(0);
+    const bool levels_changed = d_schedules_levels.changed(*d_hierarchy, 0, d_finest_ln);
+    if (levels_changed || d_coarsest_ln != d_schedules_coarsest_ln || src_idx != d_schedules_src_idx)
+    {
+        setUpSchedules(in);
+        d_schedules_coarsest_ln = d_coarsest_ln;
+        d_schedules_src_idx = src_idx;
+    }
+    // Allocate Patch Data
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_Q_scratch_idx)) level->allocatePatchData(d_Q_scratch_idx);
+    }
+    d_is_initialized = true;
+    return;
+}
+
+void
+AdvDiffWavePropConvectiveOperator::deallocateOperatorState()
+{
+    if (!d_is_initialized) return;
+    // Deallocate the refine algorithm, operator, patch strategy, and schedules.
+    d_ghostfill_alg_Q.setNull();
+    d_ghostfill_strategy_Q.setNull();
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        d_ghostfill_scheds_Q[ln].setNull();
+    }
+    d_ghostfill_scheds_Q.clear();
+    d_schedules_levels = IBTK::detail::HierarchyLevelsIdentity();
+    deallocateScratchData();
+    return;
+}
+
+void
+AdvDiffWavePropConvectiveOperator::setUpSchedules(const SAMRAIVectorReal<NDIM, double>& in)
+{
     /* Set up the coasen operations. These COARSEN the data (i.e. fills data at
      * coarse interfaces)
      * General process:
@@ -321,20 +360,11 @@ AdvDiffWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
         d_ghostfill_scheds_Q[ln] =
             d_ghostfill_alg_Q->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy_Q);
     }
-    // Allocate Patch Data
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_Q_scratch_idx)) level->allocatePatchData(d_Q_scratch_idx);
-    }
-    d_is_initialized = true;
-    return;
 }
 
 void
-AdvDiffWavePropConvectiveOperator::deallocateOperatorState()
+AdvDiffWavePropConvectiveOperator::deallocateScratchData()
 {
-    if (!d_is_initialized) return;
     // Deallocate scratch data
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -344,15 +374,6 @@ AdvDiffWavePropConvectiveOperator::deallocateOperatorState()
             level->deallocatePatchData(d_Q_scratch_idx);
         }
     }
-    // Deallocate the refine algorithm, operator, patch strategy, and schedules.
-    d_ghostfill_alg_Q.setNull();
-    d_ghostfill_strategy_Q.setNull();
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        d_ghostfill_scheds_Q[ln].setNull();
-    }
-    d_ghostfill_scheds_Q.clear();
-
     d_is_initialized = false;
     return;
 }

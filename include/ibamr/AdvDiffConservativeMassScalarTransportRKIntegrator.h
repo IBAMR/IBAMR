@@ -200,6 +200,11 @@ private:
     operator=(const AdvDiffConservativeMassScalarTransportRKIntegrator& that) = delete;
 
     /*!
+     * \brief Deallocate the data and the objects of initializeSTSIntegrator(), except the ghost-fill operators.
+     */
+    void deallocateSTSIntegratorData();
+
+    /*!
      * \brief Compute the interpolation of a quantity Q onto faces of the cell centered control volumes
      */
     void interpolateCellQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double>> Q_half_data,
@@ -262,6 +267,8 @@ private:
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_Q_transaction_comps,
         d_gamma_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_Q_bdry_fill, d_hier_gamma_bdry_fill;
+    // Owners of the fill operators above.
+    IBTK::detail::CachedGhostCellFill d_hier_Q_bdry_fill_cache, d_hier_gamma_bdry_fill_cache;
 
     /*
      * Boundary condition objects

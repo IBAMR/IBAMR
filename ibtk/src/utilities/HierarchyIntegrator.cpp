@@ -48,6 +48,7 @@
 #include <NodeData.h>
 #include <Patch.h>
 #include <PatchData.h>
+#include <PatchDescriptor.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <RefineAlgorithm.h>
@@ -884,6 +885,109 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM>>
     return;
 } // initializeLevelData
 
+bool
+HierarchyIntegrator::canKeepUnchangedLevels() const
+{
+    return true;
+} // canKeepUnchangedLevels
+
+void
+HierarchyIntegrator::initializeKeptLevelData(const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
+                                             const int level_number,
+                                             const double init_data_time,
+                                             const bool can_be_refined)
+{
+    const Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(hierarchy);
+    TBOX_ASSERT((level_number > 0) && (level_number <= hierarchy->getFinestLevelNumber()));
+#endif
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchDescriptor<NDIM>> descriptor = level->getPatchDescriptor();
+    const int num_components = descriptor->getMaxNumberRegisteredComponents();
+
+    // Build a temporary level, not in the hierarchy, with the boxes, mapping, and geometry of the level. The
+    // initialization below reads it as the old level, and no reader tests whether the old level is in the hierarchy.
+    Pointer<PatchLevel<NDIM>> temp_level = new PatchLevel<NDIM>(level->getBoxes(),
+                                                                level->getProcessorMapping(),
+                                                                level->getRatio(),
+                                                                level->getGridGeometry(),
+                                                                descriptor,
+                                                                level->getPatchFactory());
+    temp_level->setLevelNumber(level_number);
+    temp_level->setNextCoarserHierarchyLevelNumber(level->getNextCoarserHierarchyLevelNumber());
+    temp_level->setRatioToCoarserLevel(level->getRatioToCoarserLevel());
+
+    // Move every allocated patch data to the temporary patch, which leaves the level without data.
+    std::map<int, std::vector<int>> moved_idxs;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<Patch<NDIM>> temp_patch = temp_level->getPatch(p());
+        for (int idx = 0; idx < num_components; ++idx)
+        {
+            if (!patch->checkAllocated(idx)) continue;
+#if !defined(NDEBUG)
+            // No two components share a PatchData object, which the move and the move back rely on.
+            for (const int moved_idx : moved_idxs[p()])
+            {
+                TBOX_ASSERT(temp_patch->getPatchData(moved_idx).getPointer() != patch->getPatchData(idx).getPointer());
+            }
+#endif
+            temp_patch->setPatchData(idx, patch->getPatchData(idx));
+            patch->deallocatePatchData(idx);
+            moved_idxs[p()].push_back(idx);
+        }
+    }
+
+    // Initialize the level as a replaced level with the same boxes: the integrators and the objects that they call copy
+    // from the temporary level.
+    initializeLevelData(hierarchy,
+                        level_number,
+                        init_data_time,
+                        can_be_refined,
+                        /*initial_time*/ false,
+                        temp_level,
+                        /*allocate_data*/ true);
+
+    // Move back the patch data that the initialization did not allocate.
+#if !defined(NDEBUG)
+    std::vector<int> moved_back_idxs;
+    bool first_patch = true;
+#endif
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        Pointer<Patch<NDIM>> temp_patch = temp_level->getPatch(p());
+        std::vector<int> patch_moved_back_idxs;
+        for (const int idx : moved_idxs[p()])
+        {
+            if (!patch->checkAllocated(idx))
+            {
+                patch->setPatchData(idx, temp_patch->getPatchData(idx));
+                patch_moved_back_idxs.push_back(idx);
+            }
+        }
+#if !defined(NDEBUG)
+        // Every patch gets the same components back.
+        if (first_patch) moved_back_idxs = patch_moved_back_idxs;
+        first_patch = false;
+        TBOX_ASSERT(patch_moved_back_idxs == moved_back_idxs);
+#endif
+    }
+
+#if !defined(NDEBUG)
+    // A component that an integrator allocates and frees during a time step does not stay on the level. The index of a
+    // component that stays is still registered.
+    for (const int idx : moved_back_idxs)
+    {
+        TBOX_ASSERT(descriptor->getPatchDataFactory(idx));
+        TBOX_ASSERT(!isNewOrScratchData(idx));
+    }
+#endif
+    return;
+} // initializeKeptLevelData
+
 void
 HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
                                                  const int coarsest_level,
@@ -901,9 +1005,10 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
-    // Initialize or reset the hierarchy math operations object.
+    // Initialize or reset the hierarchy math operations object. The weights of a level depend on the next finer level,
+    // so the object is reset unless every level is unchanged.
     d_hier_math_ops = buildHierarchyMathOps(hierarchy);
-    if (d_manage_hier_math_ops)
+    if (d_manage_hier_math_ops && d_hier_math_ops_levels.changed(*hierarchy, 0, finest_hier_level))
     {
         d_hier_math_ops->setPatchHierarchy(hierarchy);
         d_hier_math_ops->resetLevels(0, finest_hier_level);
@@ -914,52 +1019,72 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     for (const auto& ghostfill_alg : d_ghostfill_algs)
     {
         d_ghostfill_scheds[ghostfill_alg.first].resize(finest_hier_level + 1);
+        d_ghostfill_levels[ghostfill_alg.first].resize(finest_hier_level + 1);
     }
 
     for (const auto& prolong_alg : d_prolong_algs)
     {
         d_prolong_scheds[prolong_alg.first].resize(finest_hier_level + 1);
+        d_prolong_levels[prolong_alg.first].resize(finest_hier_level + 1);
     }
 
     for (const auto& coarsen_alg : d_coarsen_algs)
     {
         d_coarsen_scheds[coarsen_alg.first].resize(finest_hier_level + 1);
+        d_coarsen_levels[coarsen_alg.first].resize(finest_hier_level + 1);
     }
 
     // (Re)build ghost cell filling communication schedules.  These are created
-    // for all levels in the hierarchy.
+    // for all levels in the hierarchy.  A schedule is reused while levels 0
+    // through its level are unchanged.
     for (const auto& ghostfill_alg : d_ghostfill_algs)
     {
         for (int ln = coarsest_level; ln <= std::min(finest_level + 1, finest_hier_level); ++ln)
         {
             Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            d_ghostfill_scheds[ghostfill_alg.first][ln] = ghostfill_alg.second->createSchedule(
-                level, ln - 1, hierarchy, d_ghostfill_strategies[ghostfill_alg.first]);
+            const bool levels_changed = d_ghostfill_levels[ghostfill_alg.first][ln].changed(*hierarchy, 0, ln);
+            if (levels_changed || d_ghostfill_scheds[ghostfill_alg.first][ln].isNull())
+            {
+                d_ghostfill_scheds[ghostfill_alg.first][ln] = ghostfill_alg.second->createSchedule(
+                    level, ln - 1, hierarchy, d_ghostfill_strategies[ghostfill_alg.first]);
+            }
         }
     }
 
     // (Re)build data prolongation communication schedules.  These are set only for levels
-    // >= 1.
+    // >= 1.  A schedule is reused while levels 0 through its level are unchanged.
     for (const auto& prolong_alg : d_prolong_algs)
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
             Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-            d_prolong_scheds[prolong_alg.first][ln] = prolong_alg.second->createSchedule(
-                level, Pointer<PatchLevel<NDIM>>(), ln - 1, hierarchy, d_prolong_strategies[prolong_alg.first].get());
+            const bool levels_changed = d_prolong_levels[prolong_alg.first][ln].changed(*hierarchy, 0, ln);
+            if (levels_changed || d_prolong_scheds[prolong_alg.first][ln].isNull())
+            {
+                d_prolong_scheds[prolong_alg.first][ln] =
+                    prolong_alg.second->createSchedule(level,
+                                                       Pointer<PatchLevel<NDIM>>(),
+                                                       ln - 1,
+                                                       hierarchy,
+                                                       d_prolong_strategies[prolong_alg.first].get());
+            }
         }
     }
 
     // (Re)build coarsen communication schedules.  These are set only for levels
-    // >= 1.
+    // >= 1.  A schedule is reused while its level and the next coarser level are unchanged.
     for (const auto& coarsen_alg : d_coarsen_algs)
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
             Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM>> coarser_level = hierarchy->getPatchLevel(ln - 1);
-            d_coarsen_scheds[coarsen_alg.first][ln] =
-                coarsen_alg.second->createSchedule(coarser_level, level, d_coarsen_strategies[coarsen_alg.first].get());
+            const bool levels_changed = d_coarsen_levels[coarsen_alg.first][ln].changed(*hierarchy, ln - 1, ln);
+            if (levels_changed || d_coarsen_scheds[coarsen_alg.first][ln].isNull())
+            {
+                d_coarsen_scheds[coarsen_alg.first][ln] = coarsen_alg.second->createSchedule(
+                    coarser_level, level, d_coarsen_strategies[coarsen_alg.first].get());
+            }
         }
     }
 
@@ -1731,6 +1856,17 @@ HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
     if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
     return;
 } // getFromInput
+
+bool
+HierarchyIntegrator::isNewOrScratchData(const int idx) const
+{
+    if (d_new_data.isSet(idx) || d_scratch_data.isSet(idx)) return true;
+    for (const auto& child_integrator : d_child_integrators)
+    {
+        if (child_integrator->isNewOrScratchData(idx)) return true;
+    }
+    return false;
+} // isNewOrScratchData
 
 void
 HierarchyIntegrator::getFromRestart()

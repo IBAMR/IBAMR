@@ -26,6 +26,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -185,6 +186,8 @@ private:
     // Cached communications operators.
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    // Owner of the fill operator above.
+    IBTK::detail::CachedGhostCellFill d_hier_bdry_fill_cache;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;

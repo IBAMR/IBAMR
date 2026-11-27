@@ -23,6 +23,7 @@
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/ibtk_enums.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
@@ -543,6 +544,25 @@ public:
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>> old_level =
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM>>(nullptr),
                              bool allocate_data = true) override;
+
+    /*!
+     * Return true, because initializeKeptLevelData() initializes a level that a regrid leaves unchanged.
+     *
+     * \see SAMRAI::mesh::StandardTagAndInitStrategy::canKeepUnchangedLevels
+     */
+    bool canKeepUnchangedLevels() const override;
+
+    /*!
+     * Initialize the data of a level that a regrid leaves in place as those of a replaced level with the same boxes.
+     * Patch data that no integrator initializes stay on the level. Subclasses override
+     * initializeLevelDataSpecialized(), not this function.
+     *
+     * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeKeptLevelData
+     */
+    void initializeKeptLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                 int level_number,
+                                 double init_data_time,
+                                 bool can_be_refined) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -1168,6 +1188,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
     bool d_manage_hier_math_ops = true;
+    detail::HierarchyLevelsIdentity d_hier_math_ops_levels;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
@@ -1255,6 +1276,11 @@ private:
     void getFromRestart();
 
     /*
+     * Returns true if patch data index idx is in the new or scratch data of this integrator or of a child integrator.
+     */
+    bool isNewOrScratchData(int idx) const;
+
+    /*
      * Indicates whether we are currently regridding the hierarchy, or whether
      * the time step began by regridding the hierarchy.
      */
@@ -1269,6 +1295,11 @@ private:
     using RefinePatchStrategyMap = std::map<std::string, std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM>>>;
     using RefineScheduleMap =
         std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>>;
+
+    // Level ranges of the cached schedules: levels 0 through ln for a refine schedule of level ln, and levels ln-1 and
+    // ln for a coarsen schedule of level ln.
+    using LevelsIdentityMap = std::map<std::string, std::vector<detail::HierarchyLevelsIdentity>>;
+    LevelsIdentityMap d_ghostfill_levels, d_prolong_levels, d_coarsen_levels;
 
     RefineAlgorithmMap d_ghostfill_algs;
     RefinePatchStrategyMap d_owned_ghostfill_strategies;

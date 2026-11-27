@@ -217,6 +217,8 @@ private:
      * Data synchronization operator for \f$ T \f$.
      */
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_T_bdry_bc_fill_op;
+    // Owner of the fill operator above.
+    IBTK::detail::CachedGhostCellFill d_T_bdry_bc_fill_cache;
 
     /*!
      * Patch data descriptor indices for all "state" variables managed by the

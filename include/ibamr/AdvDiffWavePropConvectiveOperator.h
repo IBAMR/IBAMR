@@ -30,6 +30,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -207,6 +208,16 @@ private:
      */
     AdvDiffWavePropConvectiveOperator& operator=(const AdvDiffWavePropConvectiveOperator& that) = delete;
 
+    /*!
+     * \brief Build the algorithms and schedules for the levels and the source vector \a in.
+     */
+    void setUpSchedules(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in);
+
+    /*!
+     * \brief Deallocate the scratch data of initializeOperatorState().
+     */
+    void deallocateScratchData();
+
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM>> d_coarsen_alg_Q;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM>>> d_coarsen_scheds_Q;
@@ -214,6 +225,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_ghostfill_strategy_Q;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_ghostfill_scheds_Q;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
+
+    // The levels, the coarsest level, and the source patch data index that the algorithms and schedules were built
+    // from.
+    IBTK::detail::HierarchyLevelsIdentity d_schedules_levels;
+    int d_schedules_coarsest_ln = IBTK::invalid_level_number, d_schedules_src_idx = IBTK::invalid_index;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;

@@ -31,6 +31,8 @@
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/ibtk_enums.h>
+#include <ibtk/private/CachedGhostCellFill.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -588,9 +590,10 @@ protected:
 
     /*!
      * Allocate the null-space vectors d_U_nul_vecs of the side- or cell-centered velocity \p U_vec, and d_nul_vecs of
-     * the Stokes system \p sol_vec (none if null), on the first call after a hierarchy reset. A derived class must
-     * call this function in each time step, after it decides which null spaces the problem has and before it
-     * attaches the vectors to a solver.
+     * the Stokes system \p sol_vec (none if null), on the first call after a hierarchy reset. The vectors reuse their
+     * patch data indices, and their values are recomputed when a level is replaced or the number of levels changes. A
+     * derived class must call this function in each time step, after it determines which null spaces the problem has
+     * and before it attaches the vectors to a solver.
      */
     void updateNullSpaceVectors(double current_time,
                                 bool has_velocity_nullspace,
@@ -757,6 +760,7 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_nul_vecs;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>> d_U_nul_vecs;
     bool d_nul_vecs_need_init = true;
+    IBTK::detail::HierarchyLevelsIdentity d_nul_vecs_levels;
 
     /*!
      * This boolean value determines whether the convective acceleration term is
@@ -815,6 +819,8 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
         d_Q_bdry_bc_fill_op, d_no_fill_op;
+    // Owners of the fill operators above.
+    IBTK::detail::CachedGhostCellFill d_U_bdry_bc_fill_cache, d_P_bdry_bc_fill_cache, d_Q_bdry_bc_fill_cache;
 
     bool d_use_div_sink_drag_term = false;
 

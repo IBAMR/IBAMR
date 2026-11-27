@@ -1,0 +1,3 @@
+Changed: On a level that a regrid leaves in place because its boxes and processor mapping are unchanged (the GriddingAlgorithm input key keep_unchanged_levels), persistent patch data that no integrator initializes survive, unlike on a replaced level. Callbacks registered with IBTK::HierarchyIntegrator::registerRegridHierarchyCallback() must check whether data are allocated on levels 1 and finer.
+<br>
+(Boyce Griffith, 2026/11/26)

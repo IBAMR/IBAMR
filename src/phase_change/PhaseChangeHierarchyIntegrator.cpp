@@ -845,9 +845,6 @@ PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyBeginSpecialized();
 
-    d_T_rhs_op->deallocateOperatorState();
-    d_T_solver->deallocateSolverState();
-
     d_T_solver_needs_init = true;
     d_T_rhs_op_needs_init = true;
 
@@ -874,8 +871,8 @@ PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      BDRY_EXTRAP_TYPE,
                                                      CONSISTENT_TYPE_2_BDRY,
                                                      d_k_bc_coef);
-    d_k_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_k_bdry_bc_fill_op->initializeOperatorState(k_bc_component, d_hierarchy);
+    d_k_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_k_bdry_bc_fill_cache.get({ k_bc_component }, d_hierarchy), /*managed*/ false);
 
     if (d_lf_gradient_var)
     {
@@ -889,8 +886,8 @@ PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                           d_bdry_extrap_type, // TODO: update variable name
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           H_bc_coef);
-        d_lf_gradient_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_lf_gradient_bdry_bc_fill_op->initializeOperatorState(lf_bc_component, d_hierarchy);
+        d_lf_gradient_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+            &d_lf_gradient_bdry_bc_fill_cache.get({ lf_bc_component }, d_hierarchy), /*managed*/ false);
     }
 
     // Reset the solution and rhs vectors.

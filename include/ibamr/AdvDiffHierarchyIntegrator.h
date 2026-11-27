@@ -26,6 +26,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -641,6 +642,8 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double>> d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double>> d_hier_sc_data_ops;
     std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>> d_hier_bdry_fill_ops;
+    // Owners of the fill operators above.
+    std::vector<IBTK::detail::CachedGhostCellFill> d_hier_bdry_fill_caches;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
 
     /*

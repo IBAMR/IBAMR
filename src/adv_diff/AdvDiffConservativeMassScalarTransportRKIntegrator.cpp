@@ -1090,7 +1090,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
     Pointer<PatchHierarchy<NDIM>> hierarchy = base_hierarchy;
     d_hierarchy = hierarchy;
 
-    if (d_is_initialized) deallocateSTSIntegrator();
+    if (d_is_initialized) deallocateSTSIntegratorData();
 
     // Update the level numbers.
     d_coarsest_ln = 0;
@@ -1143,13 +1143,13 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
                                                                  false,
                                                                  d_Q_cc_bc_coefs);
 
-    // Initialize the interpolation operators.
-    d_hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_rho_bdry_fill->initializeOperatorState(d_rho_transaction_comps, d_hierarchy);
-    d_hier_gamma_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_gamma_bdry_fill->initializeOperatorState(d_gamma_transaction_comps, d_hierarchy);
-    d_hier_Q_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_Q_bdry_fill->initializeOperatorState(d_Q_transaction_comps, d_hierarchy);
+    // Reuse the interpolation operators while the levels are unchanged.
+    d_hier_rho_bdry_fill = Pointer<HierarchyGhostCellInterpolation>(
+        &d_hier_rho_bdry_fill_cache.get(d_rho_transaction_comps, d_hierarchy), /*managed*/ false);
+    d_hier_gamma_bdry_fill = Pointer<HierarchyGhostCellInterpolation>(
+        &d_hier_gamma_bdry_fill_cache.get(d_gamma_transaction_comps, d_hierarchy), /*managed*/ false);
+    d_hier_Q_bdry_fill = Pointer<HierarchyGhostCellInterpolation>(
+        &d_hier_Q_bdry_fill_cache.get(d_Q_transaction_comps, d_hierarchy), /*managed*/ false);
 
     // Allocate data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1199,6 +1199,19 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::deallocateSTSIntegrator()
     IBAMR_TIMER_START(t_deallocate_integrator);
 
     // Deallocate the communications operators.
+    d_hier_rho_bdry_fill_cache.clear();
+    d_hier_gamma_bdry_fill_cache.clear();
+    d_hier_Q_bdry_fill_cache.clear();
+
+    deallocateSTSIntegratorData();
+
+    IBAMR_TIMER_STOP(t_deallocate_integrator);
+    return;
+} // deallocateSTSIntegrator
+
+void
+AdvDiffConservativeMassScalarTransportRKIntegrator::deallocateSTSIntegratorData()
+{
     d_hier_rho_bdry_fill.setNull();
     d_hier_gamma_bdry_fill.setNull();
     d_hier_Q_bdry_fill.setNull();
@@ -1227,10 +1240,8 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::deallocateSTSIntegrator()
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     d_is_initialized = false;
-
-    IBAMR_TIMER_STOP(t_deallocate_integrator);
     return;
-} // deallocateSTSIntegrator
+} // deallocateSTSIntegratorData
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredMaterialPropertyPatchDataIndex(int gamma_cc_idx)

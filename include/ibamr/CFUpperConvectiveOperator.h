@@ -32,6 +32,7 @@
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -134,6 +135,12 @@ public:
 
 private:
     void commonConstructor(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
+    /*!
+     * \brief Deallocate the scratch data of initializeOperatorState().
+     */
+    void deallocateScratchData();
+
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
@@ -143,6 +150,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_adv_var;
     int d_u_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_u_bdry_fill;
+    // Owner of the fill operator above.
+    IBTK::detail::CachedGhostCellFill d_hier_u_bdry_fill_cache;
 
     // Source function data.
     SAMRAI::tbox::Pointer<IBAMR::CFStrategy> d_cf_strategy;

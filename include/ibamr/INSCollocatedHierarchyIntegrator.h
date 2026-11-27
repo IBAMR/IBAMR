@@ -24,6 +24,7 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Pointer.h>
 
@@ -304,6 +305,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_Phi_rhs_vec;
     bool d_vectors_need_init;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_bc_fill_op;
+    // Owner of the fill operator above.
+    IBTK::detail::CachedGhostCellFill d_Phi_bdry_bc_fill_cache;
 
     /*!
      * Fluid solver variables.

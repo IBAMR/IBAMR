@@ -453,7 +453,7 @@ void
 CFUpperConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
                                                    const SAMRAIVectorReal<NDIM, double>& out)
 {
-    if (d_is_initialized) deallocateOperatorState();
+    if (d_is_initialized) deallocateScratchData();
     // Get Hierarchy Information
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
@@ -475,7 +475,7 @@ CFUpperConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
         if (!level->checkAllocated(d_Q_convec_idx)) level->allocatePatchData(d_Q_convec_idx);
         if (!level->checkAllocated(d_s_idx)) level->allocatePatchData(d_s_idx);
     }
-    // Cache the ghost cell fill for the side centered velocity; it is rebuilt after a regrid.
+    // Cache the ghost cell fill for the side centered velocity; it is reused while the levels are unchanged.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
     ghost_cell_components[0] = InterpolationTransactionComponent(d_u_scratch_idx,
@@ -487,8 +487,9 @@ CFUpperConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
                                                                  d_u_bc_coefs,
                                                                  nullptr,
                                                                  d_interp_type);
-    d_hier_u_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_u_bdry_fill->initializeOperatorState(ghost_cell_components, d_hierarchy);
+    d_hier_u_bdry_fill_cache.clearIfIndicesDiffer(ghost_cell_components);
+    d_hier_u_bdry_fill = Pointer<HierarchyGhostCellInterpolation>(
+        &d_hier_u_bdry_fill_cache.get(ghost_cell_components, d_hierarchy), /*managed*/ false);
     d_is_initialized = true;
     return;
 } // initializeOperatorState
@@ -499,6 +500,14 @@ CFUpperConvectiveOperator::deallocateOperatorState()
     if (!d_is_initialized) return;
     d_convec_oper->deallocateOperatorState();
     d_hier_u_bdry_fill.setNull();
+    d_hier_u_bdry_fill_cache.clear();
+    deallocateScratchData();
+    return;
+} // deallocateOperatorState
+
+void
+CFUpperConvectiveOperator::deallocateScratchData()
+{
     // Deallocate scratch data; after a regrid, levels above the current finest level no longer exist.
     for (int ln = d_coarsest_ln; ln <= std::min(d_finest_ln, d_hierarchy->getFinestLevelNumber()); ++ln)
     {
@@ -509,7 +518,7 @@ CFUpperConvectiveOperator::deallocateOperatorState()
     }
     d_is_initialized = false;
     return;
-} // deallocateOperatorState
+} // deallocateScratchData
 
 void
 CFUpperConvectiveOperator::registerCFStrategy(Pointer<CFStrategy> strategy)

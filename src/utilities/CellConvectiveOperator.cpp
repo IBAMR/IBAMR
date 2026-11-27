@@ -844,7 +844,7 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
-    if (d_is_initialized) deallocateOperatorState();
+    if (d_is_initialized) deallocateScratchData();
 
     // Get the hierarchy configuration.
     d_hierarchy = in.getPatchHierarchy();
@@ -856,32 +856,41 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
 #else
     NULL_USE(out);
 #endif
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
-
-    // Setup the communication operators, algorithms, and schedules.
-    //
-    // TODO: Make the choice of refine and coarsen operators more flexible.
-    d_Q_cell_refine_op = grid_geom->lookupRefineOperator(d_Q_cell_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_Q_cell_refine_alg = new RefineAlgorithm<NDIM>();
-    d_Q_cell_refine_alg->registerRefine(
-        d_Q_ghost_idx, in.getComponentDescriptorIndex(0), d_Q_scratch_idx, d_Q_cell_refine_op);
-    if (d_outflow_bdry_extrap_type != "NONE")
+    // Reuse the algorithms and schedules while the levels and the source index are unchanged.
+    const int src_idx = in.getComponentDescriptorIndex(0);
+    const bool levels_changed = d_schedules_levels.changed(*d_hierarchy, 0, finest_ln);
+    const bool rebuild_schedules =
+        levels_changed || coarsest_ln != d_schedules_coarsest_ln || src_idx != d_schedules_src_idx;
+    if (rebuild_schedules)
     {
-        d_Q_cell_refine_bdry_op = new CartExtrapPhysBdryOp(
-            d_Q_scratch_idx, d_outflow_bdry_extrap_type); // TODO: check if this should be ghost or scratch!
+        Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
+
+        // Setup the communication operators, algorithms, and schedules.
+        //
+        // TODO: Make the choice of refine and coarsen operators more flexible.
+        d_Q_cell_refine_op = grid_geom->lookupRefineOperator(d_Q_cell_var, "CONSERVATIVE_LINEAR_REFINE");
+        d_Q_cell_refine_alg = new RefineAlgorithm<NDIM>();
+        d_Q_cell_refine_alg->registerRefine(d_Q_ghost_idx, src_idx, d_Q_scratch_idx, d_Q_cell_refine_op);
+        if (d_outflow_bdry_extrap_type != "NONE")
+        {
+            d_Q_cell_refine_bdry_op = new CartExtrapPhysBdryOp(
+                d_Q_scratch_idx, d_outflow_bdry_extrap_type); // TODO: check if this should be ghost or scratch!
+        }
+
+        d_q_flux_coarsen_op = grid_geom->lookupCoarsenOperator(d_q_flux_var, "CONSERVATIVE_COARSEN");
+        d_q_flux_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+        d_q_flux_coarsen_alg->registerCoarsen(d_q_flux_idx, d_q_flux_idx, d_q_flux_coarsen_op);
+
+        d_q_interp_coarsen_op = grid_geom->lookupCoarsenOperator(d_q_interp_var, "CONSERVATIVE_COARSEN");
+        d_q_interp_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+        d_q_interp_coarsen_alg->registerCoarsen(d_q_interp_idx, d_q_interp_idx, d_q_interp_coarsen_op);
+
+        d_Q_cell_refine_scheds.resize(finest_ln + 1);
+        d_q_interp_coarsen_scheds.resize(finest_ln + 1);
+        d_q_flux_coarsen_scheds.resize(finest_ln + 1);
+        d_schedules_coarsest_ln = coarsest_ln;
+        d_schedules_src_idx = src_idx;
     }
-
-    d_q_flux_coarsen_op = grid_geom->lookupCoarsenOperator(d_q_flux_var, "CONSERVATIVE_COARSEN");
-    d_q_flux_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    d_q_flux_coarsen_alg->registerCoarsen(d_q_flux_idx, d_q_flux_idx, d_q_flux_coarsen_op);
-
-    d_q_interp_coarsen_op = grid_geom->lookupCoarsenOperator(d_q_interp_var, "CONSERVATIVE_COARSEN");
-    d_q_interp_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    d_q_interp_coarsen_alg->registerCoarsen(d_q_interp_idx, d_q_interp_idx, d_q_interp_coarsen_op);
-
-    d_Q_cell_refine_scheds.resize(finest_ln + 1);
-    d_q_interp_coarsen_scheds.resize(finest_ln + 1);
-    d_q_flux_coarsen_scheds.resize(finest_ln + 1);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -891,6 +900,7 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
         level->allocatePatchData(d_Q_scratch_idx);
         level->allocatePatchData(d_q_flux_idx);
         level->allocatePatchData(d_q_interp_idx);
+        if (!rebuild_schedules) continue;
         d_Q_cell_refine_scheds[ln] =
             d_Q_cell_refine_alg->createSchedule(level, ln - 1, d_hierarchy, d_Q_cell_refine_bdry_op);
         if (ln > coarsest_ln)
@@ -926,7 +936,21 @@ CellConvectiveOperator::deallocateOperatorState()
     d_q_interp_coarsen_op.setNull();
     d_q_interp_coarsen_alg.setNull();
     d_q_interp_coarsen_scheds.clear();
+    d_schedules_levels = IBTK::detail::HierarchyLevelsIdentity();
 
+    deallocateScratchData();
+
+    IBAMR_TIMER_STOP(t_deallocate_operator_state);
+    return;
+} // deallocateOperatorState
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+CellConvectiveOperator::deallocateScratchData()
+{
     // Deallocate scratch data.
     const int coarsest_ln = 0, finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -939,14 +963,8 @@ CellConvectiveOperator::deallocateOperatorState()
     }
 
     d_is_initialized = false;
-
-    IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
-} // deallocateOperatorState
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
+} // deallocateScratchData
 
 //////////////////////////////////////////////////////////////////////////////
 
