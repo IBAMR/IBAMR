@@ -286,54 +286,15 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
         }
     }
 
-    // Ghost fill the level set values.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    const int ls_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
-
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-
-    std::vector<InterpolationTransactionComponent> transaction_comps;
-    transaction_comps.emplace_back(
-        InterpolationTransactionComponent(ls_scratch_idx,
-                                          ls_solid_idx,
-                                          "CONSERVATIVE_LINEAR_REFINE",
-                                          false,
-                                          "CONSERVATIVE_COARSEN",
-                                          "LINEAR",
-                                          false,
-                                          d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var)));
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    // Ghost fill the level set values, and the velocity if the penalty is split.
+    getGhostFill(d_split_penalty)->fillData(time);
 
     if (!d_split_penalty)
     {
-        hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
-        hier_bdry_fill->fillData(time);
-
         computeBrinkmanVelocityWithoutSplitting(u_idx, time, cycle_num);
     }
     else
     {
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
-                                                                   d_fluid_solver->getNewContext());
-        const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
-                                                                       d_fluid_solver->getScratchContext());
-
-        transaction_comps.emplace_back(
-            InterpolationTransactionComponent(u_scratch_idx,
-                                              u_new_idx,
-                                              "NONE",
-                                              false,
-                                              "CUBIC_COARSEN",
-                                              "LINEAR",
-                                              false,
-                                              d_fluid_solver->getVelocityBoundaryConditions()));
-
-        hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
-        hier_bdry_fill->fillData(time);
-
         computeBrinkmanVelocityWithSplitting(u_idx, time, cycle_num);
     }
 
@@ -349,27 +310,8 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
     NULL_USE(time);
 #endif
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    const int ls_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
-
-    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
-
     // Ghost fill the level set values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
-    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
-                                                                 ls_solid_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 "LINEAR",
-                                                                 false,
-                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
-    hier_bdry_fill->fillData(time);
+    getGhostFill(false)->fillData(time);
 
     if (!d_split_penalty)
     {
@@ -1018,6 +960,64 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithSplitting(int u_
 
     return;
 } // demarcateBrinkmanZoneWithSplitting
+
+Pointer<HierarchyGhostCellInterpolation>
+BrinkmanPenalizationRigidBodyDynamics::getGhostFill(const bool fill_velocity)
+{
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    if (d_fill_levels.changed(*patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber()))
+    {
+        d_ls_fill.setNull();
+        d_ls_u_fill.setNull();
+    }
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
+
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+
+    std::vector<InterpolationTransactionComponent> transaction_comps;
+    transaction_comps.emplace_back(
+        InterpolationTransactionComponent(ls_scratch_idx,
+                                          ls_solid_idx,
+                                          "CONSERVATIVE_LINEAR_REFINE",
+                                          false,
+                                          "CONSERVATIVE_COARSEN",
+                                          "LINEAR",
+                                          false,
+                                          d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var)));
+    if (fill_velocity)
+    {
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
+                                                                   d_fluid_solver->getNewContext());
+        const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
+                                                                       d_fluid_solver->getScratchContext());
+
+        transaction_comps.emplace_back(
+            InterpolationTransactionComponent(u_scratch_idx,
+                                              u_new_idx,
+                                              "NONE",
+                                              false,
+                                              "CUBIC_COARSEN",
+                                              "LINEAR",
+                                              false,
+                                              d_fluid_solver->getVelocityBoundaryConditions()));
+    }
+
+    Pointer<HierarchyGhostCellInterpolation>& fill = fill_velocity ? d_ls_u_fill : d_ls_fill;
+    if (!fill)
+    {
+        fill = new HierarchyGhostCellInterpolation();
+        fill->initializeOperatorState(transaction_comps, patch_hierarchy);
+    }
+    else
+    {
+        fill->resetTransactionComponents(transaction_comps);
+    }
+    return fill;
+} // getGhostFill
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
