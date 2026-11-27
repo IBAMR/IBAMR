@@ -27,7 +27,10 @@
 #include <ibtk/CCPoissonSolverManager.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/SideDataSynchronization.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -628,6 +631,17 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velcorrection_projection_solver_db;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velcorrection_projection_precond_db;
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velcorrection_projection_solver;
+
+    /*!
+     * Cached synchronization of the reciprocal density, with the hierarchy levels it was built for.
+     */
+    SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_rho_synch;
+    IBTK::detail::HierarchyLevelsIdentity d_rho_synch_levels;
+
+    /*!
+     * Cached ghost-cell fills of the projection potential and of the copy of the fluid velocity.
+     */
+    IBTK::detail::CachedGhostCellFill d_phi_fill, d_u_cib_fill;
 
     /*!
      * File streams associated for the output.

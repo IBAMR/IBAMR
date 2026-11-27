@@ -2016,13 +2016,21 @@ ConstraintIBMethod::applyProjection()
         d_hier_sc_data_ops->reciprocal(d_rho_scratch_idx, d_rho_scratch_idx);
         d_hier_sc_data_ops->scale(d_rho_scratch_idx, -1.0, d_rho_scratch_idx);
 
+        // Rebuild the synchronization after a regrid replaces a level.
+        if (d_rho_synch_levels.changed(*d_hierarchy, coarsest_ln, finest_ln))
+        {
+            d_rho_synch.setNull();
+        }
+
         // Synchronize the coefficient patch data
-        using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
-        SynchronizationTransactionComponent coef_synch_transaction =
-            SynchronizationTransactionComponent(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
-        Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
-        side_synch_op->initializeOperatorState(coef_synch_transaction, d_hierarchy);
-        side_synch_op->synchronizeData(d_FuRMoRP_new_time);
+        if (!d_rho_synch)
+        {
+            using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
+            SynchronizationTransactionComponent coef_synch_transaction(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
+            d_rho_synch = new SideDataSynchronization();
+            d_rho_synch->initializeOperatorState(coef_synch_transaction, d_hierarchy);
+        }
+        d_rho_synch->synchronizeData(d_FuRMoRP_new_time);
         d_velcorrection_projection_spec->setDPatchDataId(d_rho_scratch_idx);
     }
     else
@@ -2052,14 +2060,13 @@ ConstraintIBMethod::applyProjection()
 
     // Setup the interpolation transaction information.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_bc_component(
+    const InterpolationTransactionComponent Phi_bc_component(
         d_phi_idx, "LINEAR_REFINE", true, "CUBIC_COARSEN", "LINEAR", false, &d_velcorrection_projection_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
 
     // Fill the physical boundary conditions for Phi.
-    Phi_bdry_bc_fill_op->setHomogeneousBc(true);
-    Phi_bdry_bc_fill_op->fillData(d_FuRMoRP_new_time);
+    const bool homogeneous_bc = true;
+    d_phi_fill.get({ Phi_bc_component }, d_hierarchy, coarsest_ln, finest_ln, homogeneous_bc)
+        .fillData(d_FuRMoRP_new_time);
 
     // Set U := U - 1/rho * grad Phi.
     const bool U_scratch_cf_bdry_synch = true;
@@ -2389,11 +2396,8 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
                                                 nullptr);
     transaction_comps.push_back(component);
 
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
     const bool homogeneous_bc = true;
-    hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    hier_bdry_fill->fillData(0.0);
+    d_u_cib_fill.get(transaction_comps, d_hierarchy, coarsest_ln, finest_ln, homogeneous_bc).fillData(0.0);
 
     // Set the ghost values at the physical boundaries with the velocity boundary conditions.
     IBTK::RobinPhysBdryPatchStrategy* const u_phys_bdry_op = getVelocityPhysBdryOp();

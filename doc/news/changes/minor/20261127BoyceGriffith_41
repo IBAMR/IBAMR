@@ -1,0 +1,3 @@
+Improved: Build the ghost-cell fill operators of the projection potential and of the copied fluid velocity, and the synchronization of the reciprocal density, of IBAMR::ConstraintIBMethod on first use and again only after a regrid replaces a level.
+<br>
+(Boyce Griffith, 2026/11/27)
