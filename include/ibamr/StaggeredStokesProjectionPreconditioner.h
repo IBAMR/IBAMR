@@ -59,6 +59,11 @@ namespace IBAMR
                               // the velocity solve
  \endverbatim
  *
+ * Skipping the velocity solve divides by the coefficient C of the velocity problem, so initializeSolverState()
+ * reports an error if skip_velocity_solve is TRUE and C is zero. The check does not detect C patch data that is
+ * zero at some cells, such as a variable density that is zero somewhere. The division gives infinite or NaN
+ * values there.
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class StaggeredStokesProjectionPreconditioner : public StaggeredStokesBlockPreconditioner

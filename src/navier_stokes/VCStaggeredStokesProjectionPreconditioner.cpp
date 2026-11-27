@@ -426,6 +426,15 @@ VCStaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVec
 
     if (d_is_initialized) deallocateSolverState();
 
+    // Skipping the velocity solve divides by C, which a steady problem sets to zero.
+    if (!d_needs_velocity_solver &&
+        (d_U_problem_coefs.cIsZero() || (d_U_problem_coefs.cIsConstant() && d_U_problem_coefs.getCConstant() == 0.0)))
+    {
+        TBOX_ERROR(d_object_name << "::initializeSolverState():\n"
+                                 << "  skip_velocity_solve = TRUE requires a nonzero C coefficient\n"
+                                 << "  the velocity problem is steady, so set skip_velocity_solve = FALSE\n");
+    }
+
     // Parent class initialization.
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 

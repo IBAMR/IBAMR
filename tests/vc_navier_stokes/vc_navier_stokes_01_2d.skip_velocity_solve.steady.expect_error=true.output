@@ -1,0 +1,327 @@
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 1
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 8
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 8.10103e-23
+Input database:
+input_db {
+   L                           = 1                          // input used
+   RHO0                        = 1                          // input used
+   RHO1                        = 999                        // input used
+   MU0                         = 0.0001                     // input used
+   MU1                         = 0.0099                     // input used
+   DELTA                       = 0.05                       // input used
+   MAX_LEVELS                  = 2                          // input used
+   REF_RATIO                   = 2                          // input used
+   N                           = 32                         // input used
+   NFINEST                     = 64                         // input not used
+   SOLVER_TYPE                 = "STAGGERED"                // input used
+   DISCRETIZATION_FORM         = "NON_CONSERVATIVE"         // input used
+   START_TIME                  = 0                          // input used
+   END_TIME                    = 0.003                      // input used
+   MAX_INTEGRATOR_STEPS        = 1000000                    // input used
+   GROW_DT                     = 2                          // input used
+   NUM_CYCLES                  = 2                          // input used
+   INIT_CONVECTIVE_TS_TYPE     = "MIDPOINT_RULE"            // input used
+   CONVECTIVE_TS_TYPE          = "MIDPOINT_RULE"            // input used
+   CONVECTIVE_OP_TYPE          = "CUI"                      // input used
+   CONVECTIVE_FORM             = "ADVECTIVE"                // input used
+   NORMALIZE_PRESSURE          = FALSE                      // input used
+   CFL_MAX                     = 0.5                        // input used
+   DT_MAX                      = 0.001                      // input used
+   VORTICITY_TAGGING           = TRUE                       // input used
+   TAG_BUFFER                  = 1                          // input used
+   REGRID_INTERVAL             = 10000000                   // input used
+   OUTPUT_U                    = TRUE                       // input used
+   OUTPUT_P                    = TRUE                       // input used
+   OUTPUT_F                    = TRUE                       // input used
+   OUTPUT_OMEGA                = TRUE                       // input used
+   OUTPUT_DIV_U                = TRUE                       // input used
+   OUTPUT_RHO                  = TRUE                       // input used
+   OUTPUT_MU                   = TRUE                       // input used
+   RHO_IS_CONST                = TRUE                       // input used
+   MU_IS_CONST                 = FALSE                      // input used
+   PRECOND_REINIT_INTERVAL     = 1                          // input used
+   VC_INTERPOLATION_TYPE       = "VC_AVERAGE_INTERP"        // input used
+   OPERATOR_SCALE_FACTORS      = 1                          // input used
+   EXPLICITLY_REMOVE_NULLSPACE = FALSE                      // input used
+   ENABLE_LOGGING              = TRUE                       // input used
+   U                           = "2*PI*cos(2*PI*X_0)*cos(2*PI*X_1 - 2*PI*t)" // input used
+   V                           = "2*PI*sin(2*PI*X_0)*sin(2*PI*X_1 - 2*PI*t) + sin(2*PI*X_0-2*PI*t)" // input used
+   P                           = "2*PI*sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t))" // input used
+   F_U                         = "4*PI^2*cos(2*PI*t - 2*PI*X_0)*cos(2*PI*t - 2*PI*X_1) - 2*(-8*PI^3*mu1*cos(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0) -   8*PI^3*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0)) -   2*PI^2*mu1*cos(2*PI*t - 2*PI*X_0)*sin(2*PI*X_0)*sin(2*PI*X_1)) + (-8*PI^3*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)^2*sin(2*PI*X_0) -   4*PI^2*cos(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1) + 4*PI^2*cos(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)*(-sin(2*PI*t - 2*PI*X_0) - 2*PI*sin(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)))*(rho0 + (rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta)))/2)" // input used
+   F_V                         = "-4*PI^2*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1) - 2*(2*PI^2*mu1*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_0)*cos(2*PI*X_1) +   2*PI^2*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0))*sin(2*PI*t - 2*PI*X_0) -   8*PI^3*mu1*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0)^2*sin(2*PI*X_1) +   8*PI^3*sin(2*PI*X_0)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0))*sin(2*PI*t - 2*PI*X_1)) + (-2*PI*cos(2*PI*t - 2*PI*X_0) - 4*PI^2*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0) +   2*PI*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)*(2*PI*cos(2*PI*t - 2*PI*X_0) -     4*PI^2*cos(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)) + 4*PI^2*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0)*(-sin(2*PI*t - 2*PI*X_0) - 2*PI*sin(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)))*(rho0 + (rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta)))/2)" // input used
+   T_n                         = "8*PI^2*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0)) + 2*PI*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*t - 2*PI*X_0)" // input used
+   T_t                         = "2*PI*cos(2*PI*t-2*PI*X_0)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0))" // input not used
+   RHO                         = "rho0 + 0.5*rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))" // input used
+   MU                          = "mu1*sin(2*PI*X_0)*cos(2*PI*X_1) + mu1 + mu0" // input used
+   DensityFunction {
+      rho0     = 1                                          // input used
+      rho1     = 999                                        // input used
+      delta    = 0.05                                       // input used
+      function = "rho0 + 0.5*rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))" // input used
+   }
+   ViscosityFunction {
+      mu0      = 0.0001                                     // input used
+      mu1      = 0.0099                                     // input used
+      function = "mu1*sin(2*PI*X_0)*cos(2*PI*X_1) + mu1 + mu0" // input used
+   }
+   VelocityInitialConditions {
+      function_0 = "2*PI*cos(2*PI*X_0)*cos(2*PI*X_1 - 2*PI*t)" // input used
+      function_1 = "2*PI*sin(2*PI*X_0)*sin(2*PI*X_1 - 2*PI*t) + sin(2*PI*X_0-2*PI*t)" // input used
+   }
+   VelocityBcCoefs_0 {
+      mu0              = 0.0001                             // input used
+      mu1              = 0.0099                             // input used
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "1.0"                              // input used
+      acoef_function_2 = "1.0"                              // input used
+      acoef_function_3 = "1.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "0.0"                              // input used
+      bcoef_function_2 = "0.0"                              // input used
+      bcoef_function_3 = "0.0"                              // input used
+      gcoef_function_0 = "2*PI*cos(2*PI*X_0)*cos(2*PI*X_1 - 2*PI*t)" // input used
+      gcoef_function_1 = "2*PI*cos(2*PI*X_0)*cos(2*PI*X_1 - 2*PI*t)" // input used
+      gcoef_function_2 = "2*PI*cos(2*PI*X_0)*cos(2*PI*X_1 - 2*PI*t)" // input used
+      gcoef_function_3 = "2*PI*cos(2*PI*X_0)*cos(2*PI*X_1 - 2*PI*t)" // input used
+   }
+   VelocityBcCoefs_1 {
+      mu0              = 0.0001                             // input used
+      mu1              = 0.0099                             // input used
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "1.0"                              // input used
+      acoef_function_2 = "0.0"                              // input used
+      acoef_function_3 = "0.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "0.0"                              // input used
+      bcoef_function_2 = "1.0"                              // input used
+      bcoef_function_3 = "1.0"                              // input used
+      gcoef_function_0 = "2*PI*sin(2*PI*X_0)*sin(2*PI*X_1 - 2*PI*t) + sin(2*PI*X_0-2*PI*t)" // input used
+      gcoef_function_1 = "2*PI*sin(2*PI*X_0)*sin(2*PI*X_1 - 2*PI*t) + sin(2*PI*X_0-2*PI*t)" // input used
+      gcoef_function_2 = "8*PI^2*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0)) + 2*PI*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*t - 2*PI*X_0)" // input used
+      gcoef_function_3 = "8*PI^2*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0)) + 2*PI*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*t - 2*PI*X_0)" // input used
+   }
+   PressureInitialConditions {
+      function = "2*PI*sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t))" // input used
+   }
+   DensityBoundaryConditions {
+      rho0             = 1                                  // input used
+      rho1             = 999                                // input used
+      delta            = 0.05                               // input used
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "1.0"                              // input used
+      acoef_function_2 = "1.0"                              // input used
+      acoef_function_3 = "1.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "0.0"                              // input used
+      bcoef_function_2 = "0.0"                              // input used
+      bcoef_function_3 = "0.0"                              // input used
+      gcoef_function_0 = "rho0 + 0.5*rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))" // input used
+      gcoef_function_1 = "rho0 + 0.5*rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))" // input used
+      gcoef_function_2 = "rho0 + 0.5*rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))" // input used
+      gcoef_function_3 = "rho0 + 0.5*rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta))" // input used
+   }
+   ViscosityBoundaryConditions {
+      mu0              = 0.0001                             // input used
+      mu1              = 0.0099                             // input used
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "1.0"                              // input used
+      acoef_function_2 = "1.0"                              // input used
+      acoef_function_3 = "1.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "0.0"                              // input used
+      bcoef_function_2 = "0.0"                              // input used
+      bcoef_function_3 = "0.0"                              // input used
+      gcoef_function_0 = "mu1*sin(2*PI*X_0)*cos(2*PI*X_1) + mu1 + mu0" // input used
+      gcoef_function_1 = "mu1*sin(2*PI*X_0)*cos(2*PI*X_1) + mu1 + mu0" // input used
+      gcoef_function_2 = "mu1*sin(2*PI*X_0)*cos(2*PI*X_1) + mu1 + mu0" // input used
+      gcoef_function_3 = "mu1*sin(2*PI*X_0)*cos(2*PI*X_1) + mu1 + mu0" // input used
+   }
+   ForcingFunction {
+      mu0        = 0.0001                                   // input used
+      mu1        = 0.0099                                   // input used
+      rho0       = 1                                        // input used
+      rho1       = 999                                      // input used
+      delta      = 0.05                                     // input used
+      function_0 = "4*PI^2*cos(2*PI*t - 2*PI*X_0)*cos(2*PI*t - 2*PI*X_1) - 2*(-8*PI^3*mu1*cos(2*PI*X_0)*cos(2*PI*X_1)*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0) -   8*PI^3*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0)) -   2*PI^2*mu1*cos(2*PI*t - 2*PI*X_0)*sin(2*PI*X_0)*sin(2*PI*X_1)) + (-8*PI^3*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)^2*sin(2*PI*X_0) -   4*PI^2*cos(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1) + 4*PI^2*cos(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)*(-sin(2*PI*t - 2*PI*X_0) - 2*PI*sin(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)))*(rho0 + (rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta)))/2)" // input used
+      function_1 = "-4*PI^2*sin(2*PI*t - 2*PI*X_0)*sin(2*PI*t - 2*PI*X_1) - 2*(2*PI^2*mu1*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_0)*cos(2*PI*X_1) +   2*PI^2*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0))*sin(2*PI*t - 2*PI*X_0) -   8*PI^3*mu1*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0)^2*sin(2*PI*X_1) +   8*PI^3*sin(2*PI*X_0)*(mu0 + mu1 + mu1*cos(2*PI*X_1)*sin(2*PI*X_0))*sin(2*PI*t - 2*PI*X_1)) + (-2*PI*cos(2*PI*t - 2*PI*X_0) - 4*PI^2*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0) +   2*PI*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)*(2*PI*cos(2*PI*t - 2*PI*X_0) -     4*PI^2*cos(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)) + 4*PI^2*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0)*(-sin(2*PI*t - 2*PI*X_0) - 2*PI*sin(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1)))*(rho0 + (rho1*(1 + tanh((0.1 - sqrt((-0.5 + X_0)^2 + (-0.5 + X_1)^2))/delta)))/2)" // input used
+   }
+   INSVCStaggeredNonConservativeHierarchyIntegrator {
+      start_time                         = 0                // input used
+      end_time                           = 0.003            // input used
+      grow_dt                            = 2                // input used
+      num_cycles                         = 2                // input used
+      init_convective_time_stepping_type = "MIDPOINT_RULE"  // input used
+      convective_time_stepping_type      = "MIDPOINT_RULE"  // input used
+      convective_op_type                 = "CUI"            // input used
+      convective_difference_form         = "ADVECTIVE"      // input used
+      normalize_pressure                 = FALSE            // input used
+      cfl                                = 0.5              // input used
+      dt_max                             = 0.001            // input used
+      using_vorticity_tagging            = TRUE             // input used
+      vorticity_rel_thresh               = 0.25, 0.125      // input used
+      tag_buffer                         = 1                // input used
+      regrid_interval                    = 10000000         // input used
+      output_U                           = TRUE             // input used
+      output_P                           = TRUE             // input used
+      output_F                           = TRUE             // input used
+      output_Omega                       = TRUE             // input used
+      output_Div_U                       = TRUE             // input used
+      output_rho                         = TRUE             // input used
+      output_mu                          = TRUE             // input used
+      rho_is_const                       = TRUE             // input used
+      rho                                = 0                // input used
+      mu                                 = 0.0001           // input used
+      mu_is_const                        = FALSE            // input used
+      operator_scale_factors             = 1                // input used
+      vc_interpolation_type              = "VC_AVERAGE_INTERP" // input used
+      precond_reinit_interval            = 1                // input used
+      enable_logging                     = TRUE             // input used
+      max_integrator_steps               = 1000000          // input used
+      explicitly_remove_nullspace        = FALSE            // input used
+      stokes_precond_type                = "VC_STAGGERED_STOKES_PROJECTION_PRECONDITIONER" // input used
+      velocity_solver_type               = "VC_VELOCITY_PETSC_KRYLOV_SOLVER" // input used
+      velocity_precond_type              = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER" // input used
+      pressure_solver_type               = "PETSC_KRYLOV_SOLVER" // input used
+      pressure_precond_type              = "POINT_RELAXATION_FAC_PRECONDITIONER" // input used
+      stokes_precond_db {
+         skip_velocity_solve            = TRUE              // input used
+         Phi_use_consistent_type_2_bdry = FALSE             // from default
+      }
+      velocity_solver_db {
+         ksp_type         = "richardson"                    // input not used
+         max_iterations   = 5                               // input not used
+         rel_residual_tol = 1e-05                           // input not used
+      }
+      velocity_precond_db {
+         num_pre_sweeps                 = 0                 // input not used
+         num_post_sweeps                = 3                 // input not used
+         prolongation_method            = "CONSERVATIVE_LINEAR_REFINE" // input not used
+         restriction_method             = "CONSERVATIVE_COARSEN" // input not used
+         coarse_solver_type             = "VC_VELOCITY_PETSC_LEVEL_SOLVER" // input not used
+         coarse_solver_prefix           = "bottom_velocity_" // input not used
+         coarse_solver_rel_residual_tol = 1e-12             // input not used
+         coarse_solver_abs_residual_tol = 1e-50             // input not used
+         coarse_solver_max_iterations   = 10                // input not used
+         coarse_solver_db {
+            ksp_type = "gmres"                              // input not used
+            pc_type  = "jacobi"                             // input not used
+         }
+      }
+      pressure_solver_db {
+         ksp_type         = "richardson"                    // input used
+         max_iterations   = 5                               // input used
+         rel_residual_tol = 1e-05                           // input used
+      }
+      pressure_precond_db {
+         num_pre_sweeps                 = 0                 // input used
+         num_post_sweeps                = 3                 // input used
+         prolongation_method            = "LINEAR_REFINE"   // input used
+         restriction_method             = "CONSERVATIVE_COARSEN" // input used
+         coarse_solver_type             = "PETSC_LEVEL_SOLVER" // input used
+         coarse_solver_rel_residual_tol = 1e-12             // input used
+         coarse_solver_abs_residual_tol = 1e-50             // input used
+         coarse_solver_max_iterations   = 10                // input used
+         coarse_solver_db {
+            ksp_type = "gmres"                              // input used
+            pc_type  = "jacobi"                             // input used
+         }
+      }
+   }
+   Main {
+      solver_type                 = "STAGGERED"             // input not used
+      dicretization_form          = "NON_CONSERVATIVE"      // input not used
+      log_file_name               = "output"                // input used
+      log_all_nodes               = FALSE                   // input used
+      viz_writer                  = "VisIt"                 // input used
+      viz_dump_interval           = 0                       // input used
+      viz_dump_dirname            = "viz_INS2d"             // input used
+      visit_number_procs_per_file = 1                       // input used
+      restart_dump_interval       = 0                       // input used
+      restart_dump_dirname        = "restart_INS2d"         // input used
+      timer_dump_interval         = 0                       // input used
+      discretization_form         = "NON_CONSERVATIVE"      // from default
+   }
+   CartesianGeometry {
+      domain_boxes       = [(0,0),(31,31)]                  // input used
+      x_lo               = 0, 0                             // input used
+      x_up               = 1, 1                             // input used
+      periodic_dimension = 1, 0                             // input used
+   }
+   GriddingAlgorithm {
+      max_levels                = 2                         // input used
+      efficiency_tolerance      = 0.85                      // input used
+      combine_efficiency        = 0.85                      // input used
+      check_nonrefined_tags     = 'w'                       // from default
+      check_overlapping_patches = 'i'                       // from default
+      extend_tags_to_bdry       = FALSE                     // from default
+      ratio_to_coarser {
+         level_1 = 2, 2                                     // input used
+         level_2 = 2, 2                                     // input not used
+         level_3 = 2, 2                                     // input not used
+         level_4 = 2, 2                                     // input not used
+         level_5 = 2, 2                                     // input not used
+         level_6 = 2, 2                                     // input not used
+         level_7 = 2, 2                                     // input not used
+      }
+      largest_patch_size {
+         level_0 = 512, 512                                 // input used
+      }
+      smallest_patch_size {
+         level_0 = 4, 4                                     // input used
+      }
+   }
+   StandardTagAndInitialize {
+      tagging_method = "REFINE_BOXES"                       // input used
+      RefineBoxes {
+         level_0 = [(0,0),(31,31)]                          // input used
+         level_1 = [(0,0),(63,63)]                          // input used
+         level_2 = [(0,0),(127,127)]                        // input used
+         level_3 = [(0,0),(255,255)]                        // input used
+         level_4 = [(0,0),(511,511)]                        // input used
+         level_5 = [(0,0),(1023,1023)]                      // input used
+         level_6 = [(0,0),(2047,2047)]                      // input used
+         level_7 = [(0,0),(4095,4095)]                      // input used
+         level_8 = [(0,0),(8191,8191)]                      // input used
+         level_9 = [(0,0),(16383,16383)]                    // input used
+      }
+   }
+   LoadBalancer {
+      bin_pack_method                      = "SPATIAL"      // input used
+      max_workload_factor                  = 1              // input used
+      ignore_level_box_union_is_single_box = FALSE          // from default
+   }
+   TimerManager {
+      print_exclusive      = FALSE                          // input used
+      print_total          = TRUE                           // input used
+      print_threshold      = 0.1                            // input used
+      timer_list           = "IBAMR::*::*", "IBTK::*::*", "*::*::*" // input used
+      print_processor      = TRUE                           // from default
+      print_max            = FALSE                          // from default
+      print_summed         = FALSE                          // from default
+      print_user           = FALSE                          // from default
+      print_sys            = FALSE                          // from default
+      print_wall           = TRUE                           // from default
+      print_percentage     = TRUE                           // from default
+      print_concurrent     = FALSE                          // from default
+      print_timer_overhead = FALSE                          // from default
+   }
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.001], dt = 0.001
+INSVCStaggeredNonConservativeHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSVCStaggeredNonConservativeHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+INSVCStaggeredNonConservativeHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+Program abort called with error message
+
+    INSVCStaggeredNonConservativeHierarchyIntegrator::stokes_precond::initializeSolverState():
+  skip_velocity_solve = TRUE requires a nonzero C coefficient
+  the velocity problem is steady, so set skip_velocity_solve = FALSE
+
