@@ -199,8 +199,9 @@ public:
      *   vectors
      *
      * \note It is safe to call initializeSolverState() when the state is
-     * already initialized.  In this case, the solver state is first deallocated
-     * and then reinitialized.
+     * already initialized.  In this case, the preconditioner frees its cycle
+     * vectors and calls FACPreconditionerStrategy::reinitializeOperatorState(),
+     * which by default deallocates and then initializes the operator.
      *
      * \see deallocateSolverState
      */
@@ -346,6 +347,9 @@ private:
                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
                       int level_num,
                       MGCycleType cycle_type);
+
+    /*! \brief Free the patch data and the descriptor indices of the cycle vectors. */
+    void freeCycleVectors();
 
     /*! \brief Allocate any missing scratch data required by the current cycle options. */
     void allocateCycleScratchData(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,

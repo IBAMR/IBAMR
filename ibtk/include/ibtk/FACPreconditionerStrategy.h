@@ -21,6 +21,8 @@
 #include <ibtk/config.h>
 
 #include <ibtk/FACPreconditioner.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
+#include <ibtk/private/VectorSignature.h>
 
 #include <tbox/ConstPointer.h>
 #include <tbox/DescribedClass.h>
@@ -29,6 +31,7 @@
 #include <iosfwd>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -208,6 +211,14 @@ public:
                                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
 
     /*!
+     * \brief Reinitialize the initialized operator for \a solution and \a rhs, between calls to
+     * deallocateScratchData() and allocateScratchData(). The result must equal that of deallocateOperatorState()
+     * followed by initializeOperatorState(), which the default implementation calls.
+     */
+    virtual void reinitializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+
+    /*!
      * \brief Deallocate any hierarchy-dependent data initialized by
      * initializeOperatorState().
      */
@@ -243,6 +254,66 @@ protected:
     virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>
     getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) const;
 
+    /*!
+     * \brief Append to \a key the values, besides the hierarchy configuration and the structure of the vectors, that
+     * the data which initializeOperatorCoefficientsSpecialized() does not rebuild depend on.
+     *
+     * \return true if the operator can reuse those data when the key is unchanged; the default returns false.
+     */
+    virtual bool getLayoutKeySpecialized(std::vector<int>& key) const;
+
+    /*!
+     * \brief Rebuild the implementation-specific data that depend on the coefficients and the boundary conditions,
+     * when reinitializeOperatorState() reuses the layout: free and rebuild what the initialization builds from them,
+     * in the same order, and nothing else. The default implementation stops with an error.
+     */
+    virtual void initializeOperatorCoefficientsSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                                           const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+
+    /*!
+     * \brief Return true if the hierarchy levels 0 through the finest level of the hierarchy of \a solution, the
+     * level range \a coarsest_ln through \a finest_ln, the structure of \a solution and \a rhs, and the layout key
+     * equal those that recordLayout() recorded. The function records the current levels, so a false result must be
+     * followed by deallocateOperatorState(), which clears the record.
+     */
+    bool canReuseLayout(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+                        int coarsest_ln,
+                        int finest_ln);
+
+    /*!
+     * \brief Record the hierarchy levels, the vector structure, and the layout key of an initialization.
+     */
+    void recordLayout(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                      const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+
+    /*!
+     * \brief Clear the record of recordLayout().
+     */
+    void clearLayoutRecord();
+
+    /*
+     * Whether a subclass's reinitializeOperatorState() may reuse the layout. A subclass that sets it implements
+     * getLayoutKeySpecialized() and initializeOperatorCoefficientsSpecialized(). A subclass constructor sets it.
+     */
+    bool d_reuse_layout = false;
+
+    /*
+     * Whether reinitializeOperatorState() is deallocating the operator to initialize it again. Then
+     * deallocateOperatorState() does not deallocate the coarse and level solvers or free the solution and rhs
+     * clones.
+     */
+    bool d_reinitializing = false;
+
+    /*!
+     * \brief Make \a clone a clone of \a vec.
+     *
+     * If \a clone is not null and has the structure of \a vec, reuse it with its descriptor indices and reset its
+     * levels to those of \a vec. Otherwise, free \a clone, if it is not null, and clone \a vec.
+     */
+    static void cloneOrReuseVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>& clone,
+                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec);
+
     // Pointer to the FACPreconditioner that is using this operator.
     SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
 
@@ -259,6 +330,14 @@ protected:
            d_new_time = std::numeric_limits<double>::quiet_NaN();
 
 private:
+    /*
+     * The hierarchy levels, vector structure, and layout key of the initialization, which canReuseLayout() compares
+     * with those of the next one. The record is empty unless the operator is initialized.
+     */
+    IBTK::detail::HierarchyLevelsIdentity d_levels_identity;
+    IBTK::detail::VectorSignature d_solution_signature, d_rhs_signature;
+    std::vector<int> d_layout_key;
+
     /*!
      * \brief Default constructor.
      *

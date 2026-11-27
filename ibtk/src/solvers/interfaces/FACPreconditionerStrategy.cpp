@@ -14,8 +14,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/FACPreconditionerStrategy.h>
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/VectorSignature.h>
 
 #include <tbox/ConstPointer.h>
+#include <tbox/Utilities.h>
 
 #include <Box.h>
 #include <PatchHierarchy.h>
@@ -24,6 +27,7 @@
 #include <ostream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
@@ -102,6 +106,15 @@ FACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
 } // initializeOperatorState
 
 void
+FACPreconditionerStrategy::reinitializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                     const SAMRAIVectorReal<NDIM, double>& rhs)
+{
+    deallocateOperatorState();
+    initializeOperatorState(solution, rhs);
+    return;
+} // reinitializeOperatorState
+
+void
 FACPreconditionerStrategy::deallocateOperatorState()
 {
     d_is_initialized = false;
@@ -136,6 +149,73 @@ FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<NDIM,
     }
     return level_vec;
 } // getLevelSAMRAIVectorReal
+
+bool
+FACPreconditionerStrategy::getLayoutKeySpecialized(std::vector<int>& /*key*/) const
+{
+    return false;
+} // getLayoutKeySpecialized
+
+void
+FACPreconditionerStrategy::initializeOperatorCoefficientsSpecialized(const SAMRAIVectorReal<NDIM, double>& /*solution*/,
+                                                                     const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
+{
+    TBOX_ERROR(d_object_name << "::initializeOperatorCoefficientsSpecialized():\n"
+                             << "  a subclass that reuses its layout must implement this function\n");
+    return;
+} // initializeOperatorCoefficientsSpecialized
+
+bool
+FACPreconditionerStrategy::canReuseLayout(const SAMRAIVectorReal<NDIM, double>& solution,
+                                          const SAMRAIVectorReal<NDIM, double>& rhs,
+                                          const int coarsest_ln,
+                                          const int finest_ln)
+{
+    std::vector<int> layout_key;
+    const Pointer<PatchHierarchy<NDIM>> hierarchy = solution.getPatchHierarchy();
+    return getLayoutKeySpecialized(layout_key) && layout_key == d_layout_key &&
+           solution.getCoarsestLevelNumber() == coarsest_ln && solution.getFinestLevelNumber() == finest_ln &&
+           detail::VectorSignature(solution).hasSameStructure(d_solution_signature) &&
+           detail::VectorSignature(rhs).hasSameStructure(d_rhs_signature) &&
+           !d_levels_identity.changed(*hierarchy, 0, hierarchy->getFinestLevelNumber());
+} // canReuseLayout
+
+void
+FACPreconditionerStrategy::recordLayout(const SAMRAIVectorReal<NDIM, double>& solution,
+                                        const SAMRAIVectorReal<NDIM, double>& rhs)
+{
+    const Pointer<PatchHierarchy<NDIM>> hierarchy = solution.getPatchHierarchy();
+    d_levels_identity.changed(*hierarchy, 0, hierarchy->getFinestLevelNumber());
+    d_solution_signature = detail::VectorSignature(solution);
+    d_rhs_signature = detail::VectorSignature(rhs);
+    d_layout_key.clear();
+    getLayoutKeySpecialized(d_layout_key);
+    return;
+} // recordLayout
+
+void
+FACPreconditionerStrategy::clearLayoutRecord()
+{
+    d_levels_identity = detail::HierarchyLevelsIdentity();
+    d_solution_signature = detail::VectorSignature();
+    d_rhs_signature = detail::VectorSignature();
+    d_layout_key.clear();
+    return;
+} // clearLayoutRecord
+
+void
+FACPreconditionerStrategy::cloneOrReuseVector(Pointer<SAMRAIVectorReal<NDIM, double>>& clone,
+                                              const SAMRAIVectorReal<NDIM, double>& vec)
+{
+    if (clone && detail::VectorSignature(*clone).hasSameStructure(detail::VectorSignature(vec)))
+    {
+        clone->resetLevels(vec.getCoarsestLevelNumber(), vec.getFinestLevelNumber());
+        return;
+    }
+    if (clone) free_vector_components(*clone);
+    clone = vec.cloneVector(vec.getName());
+    return;
+} // cloneOrReuseVector
 
 void
 FACPreconditionerStrategy::printClassData(std::ostream& stream)

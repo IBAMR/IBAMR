@@ -159,28 +159,41 @@ void
 FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& solution,
                                          const SAMRAIVectorReal<NDIM, double>& rhs)
 {
-    // Deallocate the solver state if the solver is already initialized.
-    if (d_is_initialized)
-    {
-        deallocateSolverState();
-    }
-
-    // Setup operator state.
-    d_hierarchy = solution.getPatchHierarchy();
-    d_coarsest_ln = solution.getCoarsestLevelNumber();
-    d_finest_ln = solution.getFinestLevelNumber();
+    const int coarsest_ln = solution.getCoarsestLevelNumber();
+    const int finest_ln = solution.getFinestLevelNumber();
 
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_hierarchy == rhs.getPatchHierarchy());
-    TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
-    TBOX_ASSERT(d_finest_ln == rhs.getFinestLevelNumber());
+    TBOX_ASSERT(solution.getPatchHierarchy() == rhs.getPatchHierarchy());
+    TBOX_ASSERT(coarsest_ln == rhs.getCoarsestLevelNumber());
+    TBOX_ASSERT(finest_ln == rhs.getFinestLevelNumber());
 #endif
-    if (d_coarsest_ln > 0 && d_finest_ln > d_coarsest_ln)
+    if (coarsest_ln > 0 && finest_ln > coarsest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  vectors that span more than one level must start at level zero\n");
     }
-    d_fac_strategy->initializeOperatorState(solution, rhs);
+
+    // Free the cycle vectors and the scratch data of an initialized preconditioner, and let the operator reinitialize
+    // its state.
+    const bool was_initialized = d_is_initialized;
+    if (was_initialized)
+    {
+        freeCycleVectors();
+        d_fac_strategy->deallocateScratchData();
+    }
+
+    // Setup operator state.
+    d_hierarchy = solution.getPatchHierarchy();
+    d_coarsest_ln = coarsest_ln;
+    d_finest_ln = finest_ln;
+    if (was_initialized)
+    {
+        d_fac_strategy->reinitializeOperatorState(solution, rhs);
+    }
+    else
+    {
+        d_fac_strategy->initializeOperatorState(solution, rhs);
+    }
 
     // Allocate scratch data.
     d_fac_strategy->allocateScratchData();
@@ -199,17 +212,7 @@ FACPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Free the patch data and their descriptor indices.
-    for (auto* vectors : { &d_residual_vectors, &d_rhs_vectors, &d_correction_vectors })
-    {
-        for (auto& vector : *vectors)
-        {
-            if (vector)
-            {
-                free_vector_components(*vector);
-            }
-        }
-        vectors->clear();
-    }
+    freeCycleVectors();
 
     // Deallocate scratch data.
     d_fac_strategy->deallocateScratchData();
@@ -382,6 +385,23 @@ FACPreconditioner::improveCycle(SAMRAIVectorReal<NDIM, double>& u,
     solution->add(solution, correction, /*interior_only*/ false);
     return;
 } // improveCycle
+
+void
+FACPreconditioner::freeCycleVectors()
+{
+    for (auto* vectors : { &d_residual_vectors, &d_rhs_vectors, &d_correction_vectors })
+    {
+        for (auto& vector : *vectors)
+        {
+            if (vector)
+            {
+                free_vector_components(*vector);
+            }
+        }
+        vectors->clear();
+    }
+    return;
+} // freeCycleVectors
 
 void
 FACPreconditioner::allocateCycleScratchData(const SAMRAIVectorReal<NDIM, double>& solution,

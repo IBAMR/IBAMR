@@ -316,6 +316,8 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
     IntVector<NDIM> no_ghosts = 0;
     d_mask_idx = var_db->registerVariableAndContext(mask_var, d_context, no_ghosts);
 
+    d_reuse_layout = true;
+
     // Setup Timers.
     IBTK_DO_ONCE(t_smooth_error =
                      TimerManager::getManager()->getTimer("IBTK::SCPoissonPointRelaxationFACOperator::smoothError()");
@@ -683,28 +685,12 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
 
     // Setup cached BC data.
-    d_bc_helper = new StaggeredPhysicalBoundaryHelper();
-    d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
-    for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
-    }
-    d_bc_helper->setupMaskingFunction(d_mask_idx, d_coarsest_ln, d_finest_ln);
+    initializeBcHelper(coarsest_reset_ln, finest_reset_ln);
 
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver)
     {
-        // Note that since the coarse level solver is solving for the error, it
-        // must always employ homogeneous boundary conditions.
-        d_coarse_solver->setSolutionTime(d_solution_time);
-        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
-        d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
-        d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
-        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
-        setSolverBdryInterpType(*d_coarse_solver, d_coarse_solver_db, d_bdry_interp_type);
-        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
-                                               *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+        initializeCoarseSolver();
     }
 
     // Setup specialized transfer operators.
@@ -767,12 +753,58 @@ SCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const in
     if (!d_in_initialize_operator_state)
     {
         d_patch_neighbor_overlap.clear();
-        if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
+        if (d_coarse_solver && !d_reinitializing) d_coarse_solver->deallocateSolverState();
     }
     return;
 } // deallocateOperatorStateSpecialized
 
+bool
+SCPoissonPointRelaxationFACOperator::getLayoutKeySpecialized(std::vector<int>& /*key*/) const
+{
+    return true;
+} // getLayoutKeySpecialized
+
+void
+SCPoissonPointRelaxationFACOperator::initializeOperatorCoefficientsSpecialized(
+    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
+    const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
+{
+    initializeBcHelper(d_coarsest_ln, d_finest_ln);
+    if (d_coarse_solver) initializeCoarseSolver();
+    return;
+} // initializeOperatorCoefficientsSpecialized
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+SCPoissonPointRelaxationFACOperator::initializeBcHelper(const int coarsest_ln, const int finest_ln)
+{
+    d_bc_helper = new StaggeredPhysicalBoundaryHelper();
+    d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
+    for (int ln = std::max(d_coarsest_ln, coarsest_ln); ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
+    }
+    d_bc_helper->setupMaskingFunction(d_mask_idx, d_coarsest_ln, d_finest_ln);
+    return;
+} // initializeBcHelper
+
+void
+SCPoissonPointRelaxationFACOperator::initializeCoarseSolver()
+{
+    // Note that since the coarse level solver is solving for the error, it
+    // must always employ homogeneous boundary conditions.
+    d_coarse_solver->setSolutionTime(d_solution_time);
+    d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+    d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
+    d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
+    d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
+    setSolverBdryInterpType(*d_coarse_solver, d_coarse_solver_db, d_bdry_interp_type);
+    d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
+                                           *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+    return;
+} // initializeCoarseSolver
 
 //////////////////////////////////////////////////////////////////////////////
 
