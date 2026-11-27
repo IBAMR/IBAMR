@@ -17,12 +17,14 @@
 
 #include <ibtk/MergingLoadBalancer.h>
 #include <ibtk/SecondaryHierarchy.h>
+#include <ibtk/private/BoxArrayIndex.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
 #include <BergerRigoutsos.h>
+#include <BoxArray.h>
 #include <BoxGeneratorStrategy.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchyCellDataOpsInteger.h>
@@ -99,31 +101,28 @@ class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
         // both simultaneously)
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> finer_level = hierarchy->getPatchLevel(level_number + 1);
         const auto& boxes = finer_level->getBoxes();
+        SAMRAI::hier::BoxArray<NDIM> coarsened_boxes = boxes;
+        coarsened_boxes.coarsen(finer_level->getRatioToCoarserLevel());
         for (int i = 0; i < boxes.getNumberOfBoxes(); ++i)
         {
-            const SAMRAI::hier::Box<NDIM> finer_box = boxes[i];
-            auto coarsened_box = finer_box;
-            coarsened_box.coarsen(finer_level->getRatioToCoarserLevel());
-            {
-                // Sanity check that we really do have proper nesting
-                auto check_box = coarsened_box;
-                check_box.refine(finer_level->getRatioToCoarserLevel());
-                TBOX_ASSERT(check_box == finer_box);
-            }
+            // Sanity check that we really do have proper nesting
+            auto check_box = coarsened_boxes[i];
+            check_box.refine(finer_level->getRatioToCoarserLevel());
+            TBOX_ASSERT(check_box == boxes[i]);
+        }
 
-            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        // Each patch tags only the coarsened boxes that intersect it.
+        const IBTK::detail::BoxArrayIndex coarsened_index(
+            coarsened_boxes, std::vector<SAMRAI::hier::IntVector<NDIM>>(1, SAMRAI::hier::IntVector<NDIM>(0)));
+        std::vector<SAMRAI::hier::Box<NDIM>> intersections;
+        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, int>> tag_data = patch->getPatchData(tag_index);
+            coarsened_index.findIntersections(intersections, patch->getBox());
+            for (const SAMRAI::hier::Box<NDIM>& intersection : intersections)
             {
-                const Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                const Box<NDIM> box = patch->getBox();
-                Pointer<CellData<NDIM, int>> tag_data = patch->getPatchData(tag_index);
-
-                // SAMRAI's intersection code is wrong and returns nonsense
-                // answers when the intersection should be empty
-                if (box.intersects(coarsened_box))
-                {
-                    const auto intersection = box * coarsened_box;
-                    tag_data->fill(1, intersection);
-                }
+                tag_data->fill(1, intersection);
             }
         }
     }

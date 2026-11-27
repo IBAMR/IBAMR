@@ -1,0 +1,3 @@
+Improved: IBTK::HierarchyMathOps, IBAMR::IBHydrodynamicForceEvaluator, IBTK::MarkerPatchHierarchy, IBTK::SecondaryHierarchy, and the hypre level solvers no longer test every box of a level for each patch. Results are unchanged.
+<br>
+(Boyce Griffith, 2026/11/23)

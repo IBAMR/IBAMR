@@ -20,6 +20,7 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/private/BoxArrayIndex.h>
 #include <ibtk/private/HierarchyLayoutKey.h>
 
 #include <tbox/Pointer.h>
@@ -35,7 +36,8 @@ namespace IBTK
 namespace detail
 {
 /*!
- * \brief Hold a CoarseFineBoundary and construct it again only when the layout that determines it changes.
+ * \brief Hold a CoarseFineBoundary, and an index of the boxes of its level, and construct them again only when the
+ * layout that determines them changes.
  *
  * Constructing a CoarseFineBoundary costs O(P^2) in the number of patches P on the level.
  */
@@ -52,6 +54,15 @@ public:
                           int ln,
                           const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
+    /*!
+     * \brief Return the index of the boxes, and their periodic images, of the level of the previous call to
+     * getCoarseFineBoundary(). The index is built when it is first requested after the layout of that level changes.
+     * It is empty if getCoarseFineBoundary() has not been called.
+     *
+     * \see periodic_level_box_index
+     */
+    const BoxArrayIndex& getLevelBoxIndex(const SAMRAI::hier::PatchHierarchy<NDIM>& hierarchy);
+
 private:
     /*!
      * \name The data that determine the boundary, and the boundary. The layout of level 0 stands in for the physical
@@ -62,6 +73,16 @@ private:
     HierarchyLayoutKey d_level0_key;
     SAMRAI::hier::IntVector<NDIM> d_ghost_width;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_coarse_fine_boundary;
+    //\}
+
+    /*!
+     * \name The level of the previous call to getCoarseFineBoundary(), and the index of its boxes, which is current
+     * if it was built for the present layout of that level.
+     */
+    //\{
+    int d_ln = -1;
+    BoxArrayIndex d_level_box_index;
+    bool d_level_box_index_is_current = false;
     //\}
 };
 } // namespace detail

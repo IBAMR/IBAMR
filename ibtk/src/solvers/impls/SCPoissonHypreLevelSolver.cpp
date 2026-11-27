@@ -17,6 +17,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/SCPoissonHypreLevelSolver.h>
+#include <ibtk/private/off_level_matrix_entries.h>
 #include <ibtk/solver_utilities.h>
 
 #include <tbox/Array.h>
@@ -361,6 +362,7 @@ SCPoissonHypreLevelSolver::allocateHypreData()
 void
 SCPoissonHypreLevelSolver::setMatrixCoefficients()
 {
+    const detail::BoxArrayIndex& level_boxes = d_coarse_fine_boundary_cache.getLevelBoxIndex(*d_hierarchy);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
@@ -370,7 +372,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients()
         PoissonUtilities::computeMatrixCoefficients(
             matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
         // Drop the couplings to sides that are not sides of the level.
-        clearOffLevelMatrixEntries(matrix_coefs, *d_level, d_stencil_offsets);
+        detail::clearOffLevelMatrixEntries(matrix_coefs, *d_level, level_boxes, d_stencil_offsets);
 
         // Copy matrix entries to the hypre matrix structure.
         std::vector<HYPRE_Int> stencil_indices(stencil_size);
