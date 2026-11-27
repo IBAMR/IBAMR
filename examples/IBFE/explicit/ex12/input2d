@@ -1,0 +1,152 @@
+// Example IBFE/explicit/ex12: 2D parallel-plate neo-Hookean cylinder compression
+// Units: um, us, pg (stresses/moduli in kPa = pg/(um*us^2), 2D force/depth in nN/um = mN/m)
+
+MU  = 1.0
+RHO = 1.0
+LX  = 48.0
+LY  = 48.0
+
+N          = 48
+MAX_LEVELS = 2
+REF_RATIO  = 2
+
+CELL_R            = 6.0
+MESH_REFINE_LEVEL = 3
+ELEM_TYPE         = "QUAD9"
+CELL_X0           = 24.0
+CELL_Y0           = 24.0
+
+// Linear elasticity: E = 1.40 kPa, kappa/G = 50 (nearly incompressible)
+G_SHEAR            = 0.466666666667
+KAPPA_BULK         = 23.333333333333
+PK1_DEV_QUAD_ORDER = "FIFTH"
+PK1_DIL_QUAD_ORDER = "THIRD"
+
+// Short-range C^1 normal wall barrier: k_rep = 20 * E = 28.0 kPa, standoff = 0.02 um
+K_REP        = 28.0
+DELTA_REP    = 0.50
+WALL_LO      = 17.48
+WALL_HI_0    = 30.52
+MAX_APPROACH = 1.50
+T_RAMP       = 60.0
+FILLET_FRAC  = 0.12
+
+IB_DELTA_FUNCTION          = "IB_4"
+SPLIT_FORCES               = FALSE
+USE_JUMP_CONDITIONS        = FALSE
+USE_CONSISTENT_MASS_MATRIX = TRUE
+IB_POINT_DENSITY           = 2.0
+SOLVER_TYPE                = "STAGGERED"
+CFL_MAX                    = 0.3
+DT                         = 0.03
+START_TIME                 = 0.0
+END_TIME                   = 84.0
+GROW_DT                    = 2.0
+NUM_CYCLES                 = 1
+CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"
+CONVECTIVE_OP_TYPE         = "PPM"
+CONVECTIVE_FORM            = "ADVECTIVE"
+NORMALIZE_PRESSURE         = TRUE
+ERROR_ON_DT_CHANGE         = TRUE
+VORTICITY_TAGGING          = FALSE
+TAG_BUFFER                 = 2
+REGRID_CFL_INTERVAL        = 0.5
+OUTPUT_U                   = FALSE
+OUTPUT_P                   = FALSE
+OUTPUT_F                   = FALSE
+OUTPUT_OMEGA               = FALSE
+OUTPUT_DIV_U               = FALSE
+ENABLE_LOGGING             = FALSE
+METRIC_INTERVAL            = 280
+
+VelocityInitialConditions {
+   function_0 = "0.0"
+   function_1 = "0.0"
+}
+
+IBHierarchyIntegrator {
+   start_time          = START_TIME
+   end_time            = END_TIME
+   grow_dt             = GROW_DT
+   num_cycles          = NUM_CYCLES
+   regrid_cfl_interval = REGRID_CFL_INTERVAL
+   dt_max              = DT
+   error_on_dt_change  = ERROR_ON_DT_CHANGE
+   enable_logging      = ENABLE_LOGGING
+}
+
+IBFEMethod {
+   IB_delta_fcn               = IB_DELTA_FUNCTION
+   split_forces               = SPLIT_FORCES
+   use_jump_conditions        = USE_JUMP_CONDITIONS
+   use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density           = IB_POINT_DENSITY
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                            = MU
+   rho                           = RHO
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   convective_time_stepping_type = CONVECTIVE_TS_TYPE
+   convective_op_type            = CONVECTIVE_OP_TYPE
+   convective_difference_form    = CONVECTIVE_FORM
+   normalize_pressure            = NORMALIZE_PRESSURE
+   cfl                           = CFL_MAX
+   dt_max                        = DT
+   using_vorticity_tagging       = VORTICITY_TAGGING
+   tag_buffer                    = TAG_BUFFER
+   output_U                      = OUTPUT_U
+   output_P                      = OUTPUT_P
+   output_F                      = OUTPUT_F
+   output_Omega                  = OUTPUT_OMEGA
+   output_Div_U                  = OUTPUT_DIV_U
+   enable_logging                = ENABLE_LOGGING
+}
+
+Main {
+   solver_type                 = SOLVER_TYPE
+   log_file_name               = "IB2d.log"
+   log_all_nodes               = FALSE
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 0
+   viz_dump_dirname            = "viz_IB2d"
+   visit_number_procs_per_file = 1
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_IB2d"
+   data_dump_interval          = 0
+   data_dump_dirname           = "hier_data_IB2d"
+   timer_dump_interval         = 0
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(47,47) ]
+   x_lo = 0.0, 0.0
+   x_up = LX, LY
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO, REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 8, 8
+   }
+   efficiency_tolerance = 0.80e0
+   combine_efficiency   = 0.80e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}

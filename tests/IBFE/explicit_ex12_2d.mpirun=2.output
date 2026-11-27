@@ -1,0 +1,5 @@
+ANALYTIC_CHECKS PASS
+t_end=84.0000 F0_init=0.0000 eps_end=0.1130
+F_bot=1.0862 F_top=1.0862 F_avg=1.0862 F_hertz_2d=0.9901
+hertz_rel_err_pct=9.7071 F_imbalance_pct=0.0000
+d_min_bot=0.4493 d_min_top=0.4493 area_drift_pct=-0.0067

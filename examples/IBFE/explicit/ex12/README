@@ -1,0 +1,6 @@
+This example tests 2D parallel-plate neo-Hookean cylinder compression with a short-range C^1 normal wall barrier pulled back through Nanson's area factor via IBFEMethod::registerLagSurfaceForceFunction.
+
+2D Hertz Reference Assumptions:
+F_hertz_2d is the plane-strain, small-strain, infinite-half-space cylindrical Hertz contact law (Johnson 1985, Contact Mechanics, Ch. 4.2). The reference calculation solves Johnson's implicit logarithmic relation assuming linear elasticity, small contact half-width, zero-range rigid wall contact, and an unbounded domain.
+
+In input2d, the finite neo-Hookean cylinder (CELL_R = 6.0) reaches finite vertical strain (eps_end ~ 0.113) inside a finite 48 x 48 fluid box with barrier range DELTA_REP = 0.50 and an IB_4 immersed-boundary kernel width. Under these finite-strain, finite-domain, and soft-barrier differences, a ~10% deviation (hertz_rel_err_pct ~ 9.7%) from small-strain Hertz theory is expected and serves as an order-of-magnitude verification check rather than an exact asymptotic match.
