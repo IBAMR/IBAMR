@@ -971,46 +971,50 @@ BrinkmanPenalizationRigidBodyDynamics::getGhostFill(const bool fill_velocity)
         d_ls_u_fill.setNull();
     }
 
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
+
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+
+    std::vector<InterpolationTransactionComponent> transaction_comps;
+    transaction_comps.emplace_back(
+        InterpolationTransactionComponent(ls_scratch_idx,
+                                          ls_solid_idx,
+                                          "CONSERVATIVE_LINEAR_REFINE",
+                                          false,
+                                          "CONSERVATIVE_COARSEN",
+                                          "LINEAR",
+                                          false,
+                                          d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var)));
+    if (fill_velocity)
+    {
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
+                                                                   d_fluid_solver->getNewContext());
+        const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
+                                                                       d_fluid_solver->getScratchContext());
+
+        transaction_comps.emplace_back(
+            InterpolationTransactionComponent(u_scratch_idx,
+                                              u_new_idx,
+                                              "NONE",
+                                              false,
+                                              "CUBIC_COARSEN",
+                                              "LINEAR",
+                                              false,
+                                              d_fluid_solver->getVelocityBoundaryConditions()));
+    }
+
     Pointer<HierarchyGhostCellInterpolation>& fill = fill_velocity ? d_ls_u_fill : d_ls_fill;
     if (!fill)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int ls_solid_idx =
-            var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-        const int ls_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
-
-        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-
-        std::vector<InterpolationTransactionComponent> transaction_comps;
-        transaction_comps.emplace_back(
-            InterpolationTransactionComponent(ls_scratch_idx,
-                                              ls_solid_idx,
-                                              "CONSERVATIVE_LINEAR_REFINE",
-                                              false,
-                                              "CONSERVATIVE_COARSEN",
-                                              "LINEAR",
-                                              false,
-                                              d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var)));
-        if (fill_velocity)
-        {
-            const int u_new_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
-                                                                       d_fluid_solver->getNewContext());
-            const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
-                                                                           d_fluid_solver->getScratchContext());
-
-            transaction_comps.emplace_back(
-                InterpolationTransactionComponent(u_scratch_idx,
-                                                  u_new_idx,
-                                                  "NONE",
-                                                  false,
-                                                  "CUBIC_COARSEN",
-                                                  "LINEAR",
-                                                  false,
-                                                  d_fluid_solver->getVelocityBoundaryConditions()));
-        }
         fill = new HierarchyGhostCellInterpolation();
         fill->initializeOperatorState(transaction_comps, patch_hierarchy);
+    }
+    else
+    {
+        fill->resetTransactionComponents(transaction_comps);
     }
     return fill;
 } // getGhostFill

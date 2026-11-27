@@ -325,39 +325,42 @@ CarmanKozenyDragForce::getGhostFill()
         d_fill.setNull();
     }
 
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int H_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
+    const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getScratchContext());
+
+    const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
+    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
+
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> phi_transaction_comps(2);
+    phi_transaction_comps[0] = InterpolationTransactionComponent(H_scratch_idx,
+                                                                 H_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
+
+    // Using levelset bc for liquid fraction.
+    phi_transaction_comps[1] = InterpolationTransactionComponent(lf_scratch_idx,
+                                                                 lf_new_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
+
     if (!d_fill)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int H_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
-        const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getScratchContext());
-
-        const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
-        const int lf_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
-
-        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> phi_transaction_comps(2);
-        phi_transaction_comps[0] = InterpolationTransactionComponent(H_scratch_idx,
-                                                                     H_idx,
-                                                                     "CONSERVATIVE_LINEAR_REFINE",
-                                                                     false,
-                                                                     "CONSERVATIVE_COARSEN",
-                                                                     "LINEAR",
-                                                                     false,
-                                                                     d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
-
-        // Using levelset bc for liquid fraction.
-        phi_transaction_comps[1] = InterpolationTransactionComponent(lf_scratch_idx,
-                                                                     lf_new_idx,
-                                                                     "CONSERVATIVE_LINEAR_REFINE",
-                                                                     false,
-                                                                     "CONSERVATIVE_COARSEN",
-                                                                     "LINEAR",
-                                                                     false,
-                                                                     d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
-
         d_fill = new HierarchyGhostCellInterpolation();
         d_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    }
+    else
+    {
+        d_fill->resetTransactionComponents(phi_transaction_comps);
     }
     return d_fill;
 } // getGhostFill

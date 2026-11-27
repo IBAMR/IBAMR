@@ -159,7 +159,8 @@ private:
 
     /*!
      * Return the operator that fills the ghost cells of the heaviside and liquid fraction, building it if the
-     * hierarchy levels have changed since it was last built.
+     * hierarchy levels have changed since it was last built and otherwise resetting its components, so that it uses the
+     * current Robin boundary condition coefficient objects.
      */
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> getGhostFill();
 

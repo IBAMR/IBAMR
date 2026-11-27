@@ -917,28 +917,33 @@ BrinkmanAdvDiffBcHelper::getLevelSetFill(const std::vector<Pointer<CellVariable<
         d_ls_fills.clear();
     }
 
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> phi_transaction_comps;
+    for (const auto& ls_solid_var : ls_solid_vars)
+    {
+        const int phi_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
+        const int phi_scratch_idx =
+            var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
+        phi_transaction_comps.emplace_back(phi_scratch_idx,
+                                           phi_idx,
+                                           "CONSERVATIVE_LINEAR_REFINE",
+                                           false,
+                                           "CONSERVATIVE_COARSEN",
+                                           "LINEAR",
+                                           false,
+                                           d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
+    }
+
     Pointer<HierarchyGhostCellInterpolation>& fill = d_ls_fills[ls_solid_vars];
     if (!fill)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> phi_transaction_comps;
-        for (const auto& ls_solid_var : ls_solid_vars)
-        {
-            const int phi_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-            const int phi_scratch_idx =
-                var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
-            phi_transaction_comps.emplace_back(phi_scratch_idx,
-                                               phi_idx,
-                                               "CONSERVATIVE_LINEAR_REFINE",
-                                               false,
-                                               "CONSERVATIVE_COARSEN",
-                                               "LINEAR",
-                                               false,
-                                               d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
-        }
         fill = new HierarchyGhostCellInterpolation();
         fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    }
+    else
+    {
+        fill->resetTransactionComponents(phi_transaction_comps);
     }
     return fill;
 } // getLevelSetFill
