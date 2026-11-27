@@ -1,0 +1,3 @@
+Improved: Reuse the snapshot levels and communication schedules of IBTK::SnapshotCache and IBTK::HierarchyAveragedDataManager until a level is replaced.
+<br>
+(Boyce Griffith, 2026/11/25)

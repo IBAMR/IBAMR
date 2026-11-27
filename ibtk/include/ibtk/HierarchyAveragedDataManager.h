@@ -20,8 +20,11 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/SnapshotCache.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -57,6 +60,9 @@ namespace IBTK
  * (called 'deviation'). Visualization files are written after every call to updateTimeAveragedSnapshot. Side and face
  * centered variables are assumed to represent d-dimensional vector fields, while all other fields output a depth
  * consistent with the provided variable in the constructor.
+ *
+ * This class holds references to the levels of the hierarchy until the next call to updateTimeAveragedSnapshot() or
+ * clearSnapshots(), so the levels that a regrid replaces remain in memory until then.
  *
  * A common use of this class is to determine an average flow field over the course of a simulation. For example, the
  * below code will take snapshots of a flow field at specified intervals.
@@ -275,6 +281,9 @@ private:
 
     // Drawing stuff
     std::unique_ptr<SAMRAI::appu::VisItDataWriter<NDIM>> d_visit_data_writer;
+    detail::HierarchyLevelsIdentity d_output_levels;
+    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_ghost_fill;
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_mean_var;
     int d_mean_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_dev_var;

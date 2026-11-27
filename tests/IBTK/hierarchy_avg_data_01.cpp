@@ -73,7 +73,10 @@ void test(const std::string& test_name,
           const std::string& refine_type,
           const double noise_max,
           const bool do_restart,
-          const std::string restart_dir_name);
+          const std::string restart_dir_name,
+          Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm,
+          const tbox::Array<int>& tag_buffer,
+          const int regrid_interval);
 
 double
 fcn(const VectorNd& x, const double t, const double noise)
@@ -139,6 +142,9 @@ main(int argc, char* argv[])
             interp_pts.insert(t_start + (static_cast<double>(i) + 0.5) * dt);
 
         const unsigned int max_periods = input_db->getInteger("max_periods");
+        const int regrid_interval = input_db->getInteger("regrid_interval");
+        tbox::Array<int> regrid_tag_buffer(gridding_algorithm->getMaxLevels());
+        for (int ln = 0; ln < regrid_tag_buffer.size(); ++ln) regrid_tag_buffer[ln] = tag_buffer;
         const double noise_max = input_db->getDouble("noise_max");
 
         // First fill in the data
@@ -182,7 +188,10 @@ main(int argc, char* argv[])
              "CONSERVATIVE_LINEAR_REFINE",
              noise_max,
              restart,
-             restart_dir_name);
+             restart_dir_name,
+             gridding_algorithm,
+             regrid_tag_buffer,
+             regrid_interval);
         test("Node",
              n_idx,
              n_avg_manager,
@@ -192,7 +201,10 @@ main(int argc, char* argv[])
              "LINEAR_REFINE",
              noise_max,
              restart,
-             restart_dir_name);
+             restart_dir_name,
+             gridding_algorithm,
+             regrid_tag_buffer,
+             regrid_interval);
         test("Side",
              s_idx,
              s_avg_manager,
@@ -202,7 +214,10 @@ main(int argc, char* argv[])
              "CONSERVATIVE_LINEAR_REFINE",
              noise_max,
              restart,
-             restart_dir_name);
+             restart_dir_name,
+             gridding_algorithm,
+             regrid_tag_buffer,
+             regrid_interval);
         test("Edge",
              e_idx,
              e_avg_manager,
@@ -212,7 +227,10 @@ main(int argc, char* argv[])
              "CONSERVATIVE_LINEAR_REFINE",
              noise_max,
              restart,
-             restart_dir_name);
+             restart_dir_name,
+             gridding_algorithm,
+             regrid_tag_buffer,
+             regrid_interval);
         test("Face",
              f_idx,
              f_avg_manager,
@@ -222,7 +240,10 @@ main(int argc, char* argv[])
              "CONSERVATIVE_LINEAR_REFINE",
              noise_max,
              restart,
-             restart_dir_name);
+             restart_dir_name,
+             gridding_algorithm,
+             regrid_tag_buffer,
+             regrid_interval);
     }
 } // main()
 
@@ -236,7 +257,10 @@ test(const std::string& test_name,
      const std::string& refine_type,
      const double noise_max,
      const bool do_restart,
-     const std::string restart_dir_name)
+     const std::string restart_dir_name,
+     Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm,
+     const tbox::Array<int>& tag_buffer,
+     const int regrid_interval)
 {
     // Fill in data.
     std::mt19937 gen(1);
@@ -248,6 +272,21 @@ test(const std::string& test_name,
     if (from_restart) plog << "Starting after " << period << " periods.\n";
     for (; period < max_periods; ++period)
     {
+        if (period > 0 && period % regrid_interval == 0)
+        {
+            gridding_algorithm->regridAllFinerLevels(hierarchy, 0, static_cast<double>(period), tag_buffer);
+            // With REFINE_BOXES, GriddingAlgorithm reuses a finer level whose boxes are unchanged; replace the finer
+            // levels as a regrid with cell tagging does.
+            for (int ln = 1; ln <= hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+                const BoxArray<NDIM> boxes = level->getBoxes();
+                const ProcessorMapping mapping = level->getProcessorMapping();
+                const IntVector<NDIM> ratio = level->getRatio();
+                hierarchy->removePatchLevel(ln);
+                hierarchy->makeNewPatchLevel(ln, ratio, boxes, mapping);
+            }
+        }
         int snap_num = 0;
         for (const auto& t : times)
         {
