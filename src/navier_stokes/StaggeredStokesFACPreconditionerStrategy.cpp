@@ -953,7 +953,9 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     deallocateOperatorStateSpecialized(coarsest_reset_ln, finest_reset_ln);
 
     // Deallocate scratch data.
-    for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
+    for (int ln = coarsest_reset_ln;
+         ln <= std::min({ d_finest_ln, finest_reset_ln, d_hierarchy->getFinestLevelNumber() });
+         ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
