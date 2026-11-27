@@ -93,8 +93,17 @@ jobs:
           fi
           SHARED=""
           if ls /samrai/lib/*.so > /dev/null 2>&1; then SHARED="--enable-shared"; fi
-          HDF5_LIB="$(find /petsc /usr/lib /usr/local -name 'libhdf5.so*' 2> /dev/null | head -1)"
-          HDF5_DIR="$(dirname "$(dirname "$HDF5_LIB")")"
+          # Use the HDF5 prefix that the image's IBSAMRAI2 was configured with, else the prefix of libhdf5.so.
+          HDF5_DIR="$(sed -n "s/.*'--with-hdf5=\([^']*\)'.*/\1/p" /samrai/config/config.status 2> /dev/null | head -1 || true)"
+          if [ ! -f "$HDF5_DIR/include/hdf5.h" ]; then
+            HDF5_LIBDIR="$(dirname "$(find /petsc /usr/lib /usr/local -name 'libhdf5.so' 2> /dev/null | head -1 || true)")"
+            HDF5_DIR="$HDF5_LIBDIR"
+            if [ ! -f "$HDF5_DIR/include/hdf5.h" ]; then HDF5_DIR="$(dirname "$HDF5_LIBDIR")"; fi
+          fi
+          if [ ! -f "$HDF5_DIR/include/hdf5.h" ]; then
+            echo "No HDF5 prefix with include/hdf5.h found"
+            exit 1
+          fi
           echo "IBSAMRAI2 flags: $MODE $SHARED --with-hdf5=$HDF5_DIR"
           CC="ccache $(which mpicc)" CXX="ccache $(which mpicxx)" CFLAGS="-fPIC -O1" CXXFLAGS="-fPIC -O1" \
             ../configure --prefix=/ibsamrai2-integration --with-F77="$(which mpif90)" \
