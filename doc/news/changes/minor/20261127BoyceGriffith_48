@@ -1,0 +1,3 @@
+Fixed: Fill the ghost values of the marker velocities in IBAMR::IBExplicitHierarchyIntegrator at the times of the velocity data, so that markers follow co-located IB nodes near time-dependent velocity boundaries.
+<br>
+(Boyce Griffith, 2026/11/27)
