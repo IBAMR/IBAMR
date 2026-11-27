@@ -280,10 +280,8 @@ main(int argc, char* argv[])
     // use relatively strict tolerances to get consistent results in parallel
     PetscOptionsSetValue(nullptr, "-stokes_ksp_rtol", "1e-14");
 
-#ifndef IBTK_HAVE_SILO
-    // Suppress warnings caused by running without silo
+    // Turn off warnings, whose messages contain file paths.
     SAMRAI::tbox::Logger::getInstance()->setWarning(false);
-#endif
 
     // Since this is a test we do not want to print file names or line numbers
     // to output files:
