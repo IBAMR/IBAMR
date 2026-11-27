@@ -1,0 +1,41 @@
+// A single-level 8 x 8 grid with four 4 x 4 patches, for checking the element order of each patch.
+
+MAX_LEVELS = 1
+N = 8
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0, 0), (N - 1, N - 1)]
+   x_lo               = -1, -1
+   x_up               = 1, 1
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+
+   largest_patch_size {level_0 = 4, 4}
+
+   smallest_patch_size {level_0 = 4, 4}
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+   RefineBoxes {}
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+FEDataManager
+{
+}

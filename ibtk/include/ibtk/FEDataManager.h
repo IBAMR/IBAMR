@@ -723,7 +723,7 @@ public:
 
     /*!
      * \return A const reference to the map from local patch number to local
-     * active elements.
+     * active elements. The elements of each patch are in increasing id order.
      */
     const std::vector<std::vector<libMesh::Elem*>>& getActivePatchElementMap() const;
 
@@ -732,6 +732,7 @@ public:
      * active nodes.
      *
      * \note The local active nodes are the nodes of the local active elements.
+     * The nodes of each patch are in increasing id order.
      */
     const std::vector<std::vector<libMesh::Node*>>& getActivePatchNodeMap() const;
 
