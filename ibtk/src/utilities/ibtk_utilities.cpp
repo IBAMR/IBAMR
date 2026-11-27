@@ -13,26 +13,110 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/CartCellDoubleCubicCoarsen.h>
+#include <ibtk/CartSideDoubleCubicCoarsen.h>
+#include <ibtk/CartSideDoubleRT0Coarsen.h>
+#include <ibtk/CartSideDoubleRT0Refine.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
 
+#include <Box.h>
 #include <BoxGeometry.h>
 #include <BoxOverlap.h>
 #include <CartesianPatchGeometry.h>
+#include <CellVariable.h>
+#include <CoarsenOperator.h>
+#include <Geometry.h>
+#include <IntVector.h>
 #include <Patch.h>
 #include <PatchData.h>
 #include <PatchDataFactory.h>
 #include <PatchDescriptor.h>
 #include <PatchLevel.h>
+#include <Variable.h>
 
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 #include <ibtk/app_namespaces.h>
 
 namespace IBTK
 {
+/////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+// The variable and operator name that identify a geometry that has received the transfer operators. A geometry has an
+// operator for CONSERVATIVE_COARSEN of cell data, so looking it up for this variable never fails, and it returns the
+// RegistrationSentinel if the geometry has one.
+const std::string REGISTRATION_VARIABLE_NAME = "IBTK_TRANSFER_OPERATORS_REGISTRATION";
+const std::string REGISTRATION_OPERATOR_NAME = "CONSERVATIVE_COARSEN";
+
+// Coarsen operator that matches only that variable and name. The geometry owns it, so a geometry that is destroyed
+// takes its record of the registration along.
+class RegistrationSentinel : public CoarsenOperator<NDIM>
+{
+public:
+    bool findCoarsenOperator(const Pointer<Variable<NDIM>>& var, const std::string& op_name) const override
+    {
+        return !var.isNull() && var->getName() == REGISTRATION_VARIABLE_NAME && op_name == REGISTRATION_OPERATOR_NAME;
+    }
+
+    const std::string& getOperatorName() const override
+    {
+        return d_name;
+    }
+
+    int getOperatorPriority() const override
+    {
+        return 0;
+    }
+
+    IntVector<NDIM> getStencilWidth() const override
+    {
+        return IntVector<NDIM>(0);
+    }
+
+    void coarsen(Patch<NDIM>& /*coarse*/,
+                 const Patch<NDIM>& /*fine*/,
+                 int /*dst_component*/,
+                 int /*src_component*/,
+                 const Box<NDIM>& /*coarse_box*/,
+                 const IntVector<NDIM>& /*ratio*/) const override
+    {
+    }
+
+private:
+    const std::string d_name = "REGISTRATION_SENTINEL";
+};
+
+// Whether the geometry has received the transfer operators.
+bool
+has_transfer_operators(const xfer::Geometry<NDIM>& geometry)
+{
+    Pointer<Variable<NDIM>> variable = new CellVariable<NDIM, double>(REGISTRATION_VARIABLE_NAME);
+    Pointer<CoarsenOperator<NDIM>> op = geometry.lookupCoarsenOperator(variable, REGISTRATION_OPERATOR_NAME);
+    return dynamic_cast<const RegistrationSentinel*>(op.getPointer()) != nullptr;
+}
+} // namespace
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+void
+register_ibtk_transfer_operators(xfer::Geometry<NDIM>& geometry)
+{
+    if (has_transfer_operators(geometry)) return;
+
+    geometry.addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
+    geometry.addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
+    geometry.addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen());
+    geometry.addSpatialRefineOperator(new CartSideDoubleRT0Refine());
+    // The geometry searches operators from the most recently added, so the sentinel is found before the operators that
+    // the geometry has by default. Add it last.
+    geometry.addSpatialCoarsenOperator(new RegistrationSentinel());
+} // register_ibtk_transfer_operators
+
 double
 get_min_patch_dx(const PatchLevel<NDIM>& patch_level)
 {
