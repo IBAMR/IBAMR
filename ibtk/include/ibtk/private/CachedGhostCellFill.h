@@ -41,7 +41,8 @@ namespace detail
  * \brief Ghost-cell fill operator for a range of levels, rebuilt after a level is replaced or when a component changes
  * in more than its indices and Robin coefficient objects, and reset otherwise.
  *
- * Replaced levels stay alive until the next call to get() or clear(). The indices must stay registered meanwhile.
+ * Replaced levels stay alive until the next call to get() or clear(). The indices must stay registered meanwhile. The
+ * operator checks levels 0 through finest_ln, because the schedules of a fill can read every coarser level.
  */
 class CachedGhostCellFill
 {
@@ -92,6 +93,7 @@ private:
     std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_comps;
     std::vector<IndexProperties> d_index_properties;
     HierarchyLevelsIdentity d_levels;
+    int d_coarsest_ln = invalid_level_number;
 };
 } // namespace detail
 } // namespace IBTK

@@ -90,7 +90,8 @@ CachedGhostCellFill::get(const std::vector<HierarchyGhostCellInterpolation::Inte
         }
     }
 
-    bool rebuild = d_levels.changed(*hierarchy, coarsest_ln, finest_ln) || !d_fill || comps.size() != d_comps.size();
+    bool rebuild = d_levels.changed(*hierarchy, 0, finest_ln) || coarsest_ln != d_coarsest_ln || !d_fill ||
+                   comps.size() != d_comps.size();
     bool reset = false;
     for (std::size_t k = 0; !rebuild && k < comps.size(); ++k)
     {
@@ -118,6 +119,7 @@ CachedGhostCellFill::get(const std::vector<HierarchyGhostCellInterpolation::Inte
     d_fill->setHomogeneousBc(homogeneous_bc);
     d_comps = comps;
     d_index_properties = std::move(index_properties);
+    d_coarsest_ln = coarsest_ln;
     return *d_fill;
 } // get
 
@@ -128,6 +130,7 @@ CachedGhostCellFill::clear()
     d_comps.clear();
     d_index_properties.clear();
     d_levels = HierarchyLevelsIdentity();
+    d_coarsest_ln = invalid_level_number;
     return;
 } // clear
 
