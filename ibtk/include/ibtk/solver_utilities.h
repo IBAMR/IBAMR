@@ -39,6 +39,15 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <array>
 #include <vector>
 
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+} // namespace SAMRAI
+
 namespace IBTK
 {
 class GeneralSolver;
