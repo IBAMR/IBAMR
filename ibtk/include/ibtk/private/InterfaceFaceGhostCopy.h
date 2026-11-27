@@ -181,7 +181,8 @@ private:
     int d_data_idx = invalid_index;
     int d_src_idx = invalid_index;
 
-    //! The ghost width of the data and the shape of the fill pattern that the copies were found with.
+    //! The ghost width of the data and the shape of the fill pattern that the copies were found with. The shape stores
+    //! a pattern of the kind OTHER.
     SAMRAI::hier::IntVector<NDIM> d_ghost_width = SAMRAI::hier::IntVector<NDIM>(0);
     detail::FillPatternShape d_shape;
 

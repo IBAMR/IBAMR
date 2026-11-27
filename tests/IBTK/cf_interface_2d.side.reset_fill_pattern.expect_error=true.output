@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    InterfaceFaceGhostCopy::resetPatchDataIndices():
+  the ghost width or fill pattern of variable Q changes
+  call initializeOperatorState() again to change the ghost width or fill pattern
+
