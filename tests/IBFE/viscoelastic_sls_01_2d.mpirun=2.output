@@ -1,0 +1,11 @@
+SLS_CHECKS PASS
+step_relax_ratio=0.60653066
+step_rel_err=0.00000e+00
+ramp_err_coarse=1.20702e-05
+ramp_err_fine=3.01761e-06
+ramp_order=1.99997
+two_branch_diff=0.00000e+00
+rot_obj_err=0.00000e+00
+restart_mpi_diff=0.00000e+00
+qp_lookup_hit=1
+qp_lookup_miss=-1
