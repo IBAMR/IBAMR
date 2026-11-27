@@ -237,11 +237,10 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             d_C_ghost_fill = new HierarchyGhostCellInterpolation();
             d_C_ghost_fill->initializeOperatorState(C_fill_component, hierarchy);
         }
-        else if (C_fill_idx != d_C_ghost_fill_idx)
+        else
         {
             d_C_ghost_fill->resetTransactionComponent(C_fill_component);
         }
-        d_C_ghost_fill_idx = C_fill_idx;
         d_C_ghost_fill->fillData(C_fill_time);
 
         // Generate random components.

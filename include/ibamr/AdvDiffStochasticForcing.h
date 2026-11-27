@@ -200,11 +200,11 @@ private:
     std::vector<int> d_F_sc_idxs;
 
     /*!
-     * Cached ghost-cell fill of the concentration, with the index it fills, and synchronization of the flux, with the
-     * hierarchy levels they were built for.
+     * Cached ghost-cell fill of the concentration and synchronization of the flux, with the hierarchy levels they were
+     * built for. The call resets the component of the fill, which sets the index it fills and the Robin boundary
+     * condition coefficient objects.
      */
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_C_ghost_fill;
-    int d_C_ghost_fill_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_F_synch;
     IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
 };
