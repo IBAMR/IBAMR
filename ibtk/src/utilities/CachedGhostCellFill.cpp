@@ -42,9 +42,10 @@ namespace detail
 
 namespace
 {
-// Whether two components differ in a member other than the patch data indices and the Robin coefficient objects, which
-// resetTransactionComponents() accepts when the properties of the indices are the same. The fill patterns compare by
-// shape, so a null pattern equals a default one, and the operator for the physical boundary values by pointer.
+// Whether two components differ in a member other than the patch data indices, the Robin coefficient objects, and the
+// operator for the physical boundary values, which resetTransactionComponents() accepts when the properties of the
+// indices are the same. The fill patterns compare by shape, so a null pattern equals a default one. Only whether the
+// operator exists matters: a reset installs a different operator, and the cache never compares the objects.
 bool
 differs_beyond_reset(const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& a,
                      const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& b)
@@ -55,7 +56,8 @@ differs_beyond_reset(const HierarchyGhostCellInterpolation::InterpolationTransac
            a.d_coarsen_op_name != b.d_coarsen_op_name || a.d_phys_bdry_extrap_type != b.d_phys_bdry_extrap_type ||
            a.d_consistent_type_2_bdry != b.d_consistent_type_2_bdry ||
            fill_pattern_shape(a.d_fill_pattern, wide) != fill_pattern_shape(b.d_fill_pattern, wide) ||
-           a.d_phys_bdry_type != b.d_phys_bdry_type || a.d_sc_phys_bdry_op != b.d_sc_phys_bdry_op ||
+           a.d_phys_bdry_type != b.d_phys_bdry_type ||
+           static_cast<bool>(a.d_sc_phys_bdry_op) != static_cast<bool>(b.d_sc_phys_bdry_op) ||
            a.d_extend_coarse_data_linearly != b.d_extend_coarse_data_linearly;
 } // differs_beyond_reset
 } // namespace
@@ -90,9 +92,10 @@ CachedGhostCellFill::get(const std::vector<HierarchyGhostCellInterpolation::Inte
         }
     }
 
-    bool rebuild = d_levels.changed(*hierarchy, 0, finest_ln) || coarsest_ln != d_coarsest_ln || !d_fill ||
-                   comps.size() != d_comps.size();
-    bool reset = false;
+    // An empty level range has no identity: forget the previous one and build the fill again.
+    if (finest_ln < 0) d_levels = HierarchyLevelsIdentity();
+    bool rebuild = finest_ln < 0 || d_levels.changed(*hierarchy, 0, finest_ln) || coarsest_ln != d_coarsest_ln ||
+                   !d_fill || comps.size() != d_comps.size();
     for (std::size_t k = 0; !rebuild && k < comps.size(); ++k)
     {
         const auto& a = comps[k];
@@ -101,19 +104,16 @@ CachedGhostCellFill::get(const std::vector<HierarchyGhostCellInterpolation::Inte
         {
             rebuild = true;
         }
-        else if (a.d_dst_data_idx != b.d_dst_data_idx || a.d_src_data_idx != b.d_src_data_idx ||
-                 a.d_robin_bc_coefs != b.d_robin_bc_coefs)
-        {
-            reset = true;
-        }
     }
     if (rebuild)
     {
         d_fill = new HierarchyGhostCellInterpolation();
         d_fill->initializeOperatorState(comps, hierarchy, coarsest_ln, finest_ln);
     }
-    else if (reset)
+    else
     {
+        // Install the indices, the Robin coefficient objects, and the physical boundary operator of this call without
+        // comparing them to those of the last call. The schedules are unchanged.
         d_fill->resetTransactionComponents(comps);
     }
     d_fill->setHomogeneousBc(homogeneous_bc);
