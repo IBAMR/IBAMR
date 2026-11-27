@@ -283,8 +283,10 @@ is_outside_domain(const IBTK::Point& position, const Pointer<CartesianGridGeomet
 }
 
 // If the position X, which lies in the bounding box of the physical domain, is in a notch, move it into the box of
-// the domain that is nearest in the maximum norm (the lowest numbered box among equals), to the nearest point of that
-// box that is at least sqrt(eps) times the box length from each of its faces, as IndexUtilities::clampToDomain().
+// the domain that is nearest in the maximum norm of the distance in cells (the lowest numbered box among equals), to
+// the nearest point of that box that is at least sqrt(eps) times the box length from each of its faces, as
+// IndexUtilities::clampToDomain(). Measure in cells, not lengths, so that the chosen box is at most one cell from the
+// marker's patch when dx differs by direction.
 void
 move_out_of_domain_notch(double* const X, const Pointer<CartesianGridGeometry<NDIM>>& grid_geom)
 {
@@ -308,7 +310,7 @@ move_out_of_domain_notch(double* const X, const Pointer<CartesianGridGeometry<ND
         double distance = 0.0;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            distance = std::max({ distance, face(b, d, false) - X[d], X[d] - face(b, d, true) });
+            distance = std::max({ distance, (face(b, d, false) - X[d]) / dx[d], (X[d] - face(b, d, true)) / dx[d] });
         }
         if (distance < nearest_distance)
         {

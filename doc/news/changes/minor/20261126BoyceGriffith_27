@@ -1,3 +1,3 @@
-Fixed: Index the markers of IBTK::MarkerPatchHierarchy by the bounding box of the physical domain, so that markers on a domain of several boxes are assigned to the correct patches. A marker in a notch of the domain is outside the domain.
+Fixed: Assign the markers of IBTK::MarkerPatchHierarchy to the correct patches on physical domains of several boxes.
 <br>
 (Boyce Griffith, 2026/11/26)
