@@ -345,7 +345,7 @@ FESurfaceDistanceEvaluator::mapIntersections()
     return;
 } // mapIntersections
 
-const std::map<CellIndex<NDIM>, std::set<const Elem*>, CellIndexFortranOrder>&
+const std::map<CellIndex<NDIM>, std::set<const Elem*, IBTK::DofObjectComp>, CellIndexFortranOrder>&
 FESurfaceDistanceEvaluator::getNeighborIntersectionsMap()
 {
     return d_cell_elem_neighbor_map;
@@ -380,7 +380,7 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
             const bool contains_key = (d_cell_elem_neighbor_map.find(ci) != d_cell_elem_neighbor_map.end());
             if (contains_key)
             {
-                std::set<const Elem*>& elem_set = d_cell_elem_neighbor_map[ci];
+                std::set<const Elem*, IBTK::DofObjectComp>& elem_set = d_cell_elem_neighbor_map[ci];
                 const int num_elements = static_cast<int>(elem_set.size());
                 (*n_data)(ci) = num_elements;
 
@@ -432,7 +432,7 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
                     // elements, so add it to the set.
                     if (IBTK::rel_equal_eps(dist, min_dist))
                     {
-                        vec_equidistant_pair.push_back(std::make_pair(proj, d_elem_face_normal[elem]));
+                        vec_equidistant_pair.push_back(std::make_pair(proj, d_elem_face_normal[elem->id()]));
                     }
                     else if (dist < min_dist)
                     {
@@ -441,7 +441,7 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
                         // one.
                         min_dist = dist;
                         vec_equidistant_pair.clear();
-                        vec_equidistant_pair.push_back(std::make_pair(proj, d_elem_face_normal[elem]));
+                        vec_equidistant_pair.push_back(std::make_pair(proj, d_elem_face_normal[elem->id()]));
                     }
 #endif
 
@@ -552,25 +552,25 @@ FESurfaceDistanceEvaluator::calculateSurfaceNormals()
         normal /= normal.norm();
 #endif
 
-        d_elem_face_normal[elem] = normal;
+        d_elem_face_normal[elem->id()] = normal;
 
 #if (NDIM == 3)
         // for each node, store the current element in the node to element map.
         const std::size_t n_nodes = elem->n_nodes();
-        for (std::size_t node_n = 0; node_n < n_nodes; ++node_n) d_node_to_elem[elem->node_ptr(node_n)].insert(elem);
+        for (std::size_t node_n = 0; node_n < n_nodes; ++node_n) d_node_to_elem[elem->node_id(node_n)].insert(elem);
 
         // for each edge, store the current element in the edge to element map.
-        std::array<const Node*, 2> edge_nodes;
+        std::array<dof_id_type, 2> edge_nodes;
         constexpr unsigned int edge_pairs[3][2] = { { 0, 1 }, { 1, 2 }, { 2, 0 } };
         for (std::size_t edge_n = 0; edge_n < 3; ++edge_n)
         {
             for (std::size_t i = 0; i < 2; ++i)
             {
                 std::size_t node_n = edge_pairs[edge_n][i];
-                edge_nodes[i] = elem->node_ptr(node_n);
+                edge_nodes[i] = elem->node_id(node_n);
             }
             std::sort(edge_nodes.begin(), edge_nodes.end());
-            std::pair<const Node*, const Node*> edge(edge_nodes[0], edge_nodes[1]);
+            std::pair<dof_id_type, dof_id_type> edge(edge_nodes[0], edge_nodes[1]);
             d_edge_to_elem[edge].insert(elem);
         }
 #endif
@@ -1184,9 +1184,9 @@ FESurfaceDistanceEvaluator::getClosestPointandAngleWeightedNormal3D(const IBTK::
     TBOX_ASSERT(t >= 0.0 && t <= 1.0);
 #endif
 
-    std::array<const Node*, 2> edge_nodes;
-    std::set<const Elem*> elem_set;
-    std::pair<const Node*, const Node*> edge;
+    std::array<dof_id_type, 2> edge_nodes;
+    std::set<const Elem*, IBTK::DofObjectComp> elem_set;
+    std::pair<dof_id_type, dof_id_type> edge;
     IBTK::Vector3d nbr_e0, nbr_e1, angle_weighted_normal = IBTK::Vector3d::Zero();
 
     // Depending on the identified feature, angle-weighted pseudo-normal is computed.
@@ -1198,49 +1198,49 @@ FESurfaceDistanceEvaluator::getClosestPointandAngleWeightedNormal3D(const IBTK::
     switch (feature)
     {
     case FACE:
-        angle_weighted_normal = d_elem_face_normal[elem];
+        angle_weighted_normal = d_elem_face_normal[elem->id()];
         break;
     case EDGE_0:
-        edge_nodes[0] = elem->node_ptr(0);
-        edge_nodes[1] = elem->node_ptr(1);
+        edge_nodes[0] = elem->node_id(0);
+        edge_nodes[1] = elem->node_id(1);
         std::sort(edge_nodes.begin(), edge_nodes.end());
         edge = std::make_pair(edge_nodes[0], edge_nodes[1]);
         elem_set = d_edge_to_elem[edge];
         for (const auto& itr : elem_set)
         {
             const Elem* nbr_elem = itr;
-            angle_weighted_normal += d_elem_face_normal[nbr_elem];
+            angle_weighted_normal += d_elem_face_normal[nbr_elem->id()];
         }
         angle_weighted_normal /= angle_weighted_normal.norm();
         break;
     case EDGE_1:
-        edge_nodes[0] = elem->node_ptr(1);
-        edge_nodes[1] = elem->node_ptr(2);
+        edge_nodes[0] = elem->node_id(1);
+        edge_nodes[1] = elem->node_id(2);
         std::sort(edge_nodes.begin(), edge_nodes.end());
         edge = std::make_pair(edge_nodes[0], edge_nodes[1]);
         elem_set = d_edge_to_elem[edge];
         for (const auto& itr : elem_set)
         {
             const Elem* nbr_elem = itr;
-            angle_weighted_normal += d_elem_face_normal[nbr_elem];
+            angle_weighted_normal += d_elem_face_normal[nbr_elem->id()];
         }
         angle_weighted_normal /= angle_weighted_normal.norm();
         break;
     case EDGE_2:
-        edge_nodes[0] = elem->node_ptr(2);
-        edge_nodes[1] = elem->node_ptr(0);
+        edge_nodes[0] = elem->node_id(2);
+        edge_nodes[1] = elem->node_id(0);
         std::sort(edge_nodes.begin(), edge_nodes.end());
         edge = std::make_pair(edge_nodes[0], edge_nodes[1]);
         elem_set = d_edge_to_elem[edge];
         for (const auto& itr : elem_set)
         {
             const Elem* nbr_elem = itr;
-            angle_weighted_normal += d_elem_face_normal[nbr_elem];
+            angle_weighted_normal += d_elem_face_normal[nbr_elem->id()];
         }
         angle_weighted_normal /= angle_weighted_normal.norm();
         break;
     case VERTEX_0:
-        elem_set = d_node_to_elem[elem->node_ptr(0)];
+        elem_set = d_node_to_elem[elem->node_id(0)];
         for (const auto& itr : elem_set)
         {
             const Elem* nbr_elem = itr;
@@ -1265,12 +1265,12 @@ FESurfaceDistanceEvaluator::getClosestPointandAngleWeightedNormal3D(const IBTK::
             const double nbr_e0_norm = nbr_e0.norm();
             const double nbr_e1_norm = nbr_e1.norm();
             const double angle = acos(nbr_e0.dot(nbr_e1) / (nbr_e0_norm * nbr_e1_norm));
-            angle_weighted_normal += (angle * d_elem_face_normal[nbr_elem]);
+            angle_weighted_normal += (angle * d_elem_face_normal[nbr_elem->id()]);
         }
         angle_weighted_normal /= angle_weighted_normal.norm();
         break;
     case VERTEX_1:
-        elem_set = d_node_to_elem[elem->node_ptr(1)];
+        elem_set = d_node_to_elem[elem->node_id(1)];
         for (const auto& itr : elem_set)
         {
             const Elem* nbr_elem = itr;
@@ -1295,12 +1295,12 @@ FESurfaceDistanceEvaluator::getClosestPointandAngleWeightedNormal3D(const IBTK::
             const double nbr_e0_norm = nbr_e0.norm();
             const double nbr_e1_norm = nbr_e1.norm();
             const double angle = acos(nbr_e0.dot(nbr_e1) / (nbr_e0_norm * nbr_e1_norm));
-            angle_weighted_normal += (angle * d_elem_face_normal[nbr_elem]);
+            angle_weighted_normal += (angle * d_elem_face_normal[nbr_elem->id()]);
         }
         angle_weighted_normal /= angle_weighted_normal.norm();
         break;
     case VERTEX_2:
-        elem_set = d_node_to_elem[elem->node_ptr(2)];
+        elem_set = d_node_to_elem[elem->node_id(2)];
         for (const auto& itr : elem_set)
         {
             const Elem* nbr_elem = itr;
@@ -1325,7 +1325,7 @@ FESurfaceDistanceEvaluator::getClosestPointandAngleWeightedNormal3D(const IBTK::
             const double nbr_e0_norm = nbr_e0.norm();
             const double nbr_e1_norm = nbr_e1.norm();
             const double angle = acos(nbr_e0.dot(nbr_e1) / (nbr_e0_norm * nbr_e1_norm));
-            angle_weighted_normal += (angle * d_elem_face_normal[nbr_elem]);
+            angle_weighted_normal += (angle * d_elem_face_normal[nbr_elem->id()]);
         }
         angle_weighted_normal /= angle_weighted_normal.norm();
         break;
