@@ -80,6 +80,8 @@ public:
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax.
      *
+     * \note The vectors must start at level 0 and have data on every level.
+     *
      * \note CIBStaggeredStokesOperator requires a different communication pattern than StaggeredStokes operator.  In
      * particular, CIBStaggeredStokesOperator needs ghost cells to be filled in corners and (in 3D) edges.
      */

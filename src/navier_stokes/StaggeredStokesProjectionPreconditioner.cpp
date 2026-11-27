@@ -348,6 +348,14 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
+    if (x.getCoarsestLevelNumber() > 0)
+    {
+        TBOX_ERROR(d_object_name + "::initializeSolverState()\n"
+                   << "  class IBAMR::StaggeredStokesProjectionPreconditioner needs data on every coarser level, but "
+                      "the coarsest level of the vectors is "
+                   << x.getCoarsestLevelNumber() << "\n");
+    }
+
     if (d_is_initialized) deallocateSolverState();
 
     // Parent class initialization.
@@ -366,7 +374,7 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
                                                           fill_pattern);
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
-    d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
+    d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy, d_coarsest_ln, d_finest_ln);
 
     d_is_initialized = true;
 

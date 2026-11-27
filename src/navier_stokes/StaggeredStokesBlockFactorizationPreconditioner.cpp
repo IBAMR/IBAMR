@@ -379,6 +379,14 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
+    if (x.getCoarsestLevelNumber() > 0)
+    {
+        TBOX_ERROR(d_object_name + "::initializeSolverState()\n"
+                   << "  class IBAMR::StaggeredStokesBlockFactorizationPreconditioner needs data on every coarser "
+                      "level, but the coarsest level of the vectors is "
+                   << x.getCoarsestLevelNumber() << "\n");
+    }
+
     if (d_is_initialized) deallocateSolverState();
 
     // Parent class initialization.
@@ -397,7 +405,7 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
                                                           fill_pattern);
     d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->setHomogeneousBc(true);
-    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
+    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy, d_coarsest_ln, d_finest_ln);
 
     d_is_initialized = true;
 

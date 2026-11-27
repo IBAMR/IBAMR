@@ -35,6 +35,8 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include "../tests.h"
+
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
@@ -61,6 +63,10 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+
+    // Omit file names and line numbers from the output files.
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
 
     { // cleanup dynamically allocated objects prior to shutdown
         // prevent a warning about timer initializations
@@ -280,13 +286,13 @@ main(int argc, char* argv[])
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-        const Pointer<Variable<NDIM>> u_var = time_integrator->getVelocityVariable();
+        const Pointer<hier::Variable<NDIM>> u_var = time_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const Pointer<Variable<NDIM>> p_var = time_integrator->getPressureVariable();
+        const Pointer<hier::Variable<NDIM>> p_var = time_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);

@@ -174,6 +174,8 @@ public:
      * - number, type and alignment of vector component data
      * - ghost cell widths of data in the input and output vectors
      *
+     * \note The vectors must start at level 0 and have data on every level.
+     *
      * \note It is generally necessary to reinitialize the operator state when
      * the hierarchy configuration changes.
      *

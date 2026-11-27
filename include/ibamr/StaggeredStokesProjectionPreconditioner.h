@@ -108,6 +108,8 @@ public:
      * - vectors \a x and \a b must have same patch hierarchy
      * - vectors \a x and \a b must have same structure, depth, etc.
      *
+     * \note The vectors must start at level 0 and have data on every level.
+     *
      * \note It is safe to call initializeSolverState() when the solver state is
      * already initialized.
      *
