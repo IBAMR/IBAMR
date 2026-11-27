@@ -98,6 +98,7 @@ SETUP_2D(adv_diff bp_adv_diff_01.cpp)
 SETUP_2D(adv_diff bp_adv_diff_02.cpp)
 SETUP_2D(adv_diff bp_adv_diff_zero_flux.cpp)
 SETUP_2D(adv_diff bp_free_convection.cpp)
+SETUP_2D(adv_diff fluid_properties_bc_01.cpp)
 
 SETUP_3D(adv_diff adv_diff_01.cpp)
 SETUP_3D(adv_diff adv_diff_02.cpp)
