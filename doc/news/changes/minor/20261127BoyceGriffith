@@ -1,0 +1,3 @@
+Fixed: IBAMR::FESurfaceDistanceEvaluator visits the elements of each cell, edge, and node in order of element id instead of memory address, and IBAMR::AdvectorPredictorCorrectorHyperbolicPatchOps registers its variables in registration order, so results no longer depend on how memory is allocated.
+<br>
+(Boyce Griffith, 2026/11/27)

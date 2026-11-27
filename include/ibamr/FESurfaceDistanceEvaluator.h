@@ -35,6 +35,8 @@
 #include <PatchHierarchy.h>
 
 #include <map>
+#include <set>
+#include <utility>
 #include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -76,9 +78,12 @@ public:
     void calculateSurfaceNormals();
 
     /*!
-     * \brief Get the map maintaining triangle-cell intersection and neighbors.
+     * \brief Get the map maintaining triangle-cell intersection and neighbors. The elements of each cell are
+     * ordered by element id.
      */
-    const std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>&
+    const std::map<SAMRAI::pdat::CellIndex<NDIM>,
+                   std::set<const libMesh::Elem*, IBTK::DofObjectComp>,
+                   IBTK::CellIndexFortranOrder>&
     getNeighborIntersectionsMap();
 
     /*!
@@ -209,22 +214,25 @@ private:
      * and its neighboring cells within the ghost cell width. Note that the elements contained in thie
      * map belong to the original solid mesh.
      */
-    std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>
+    std::map<SAMRAI::pdat::CellIndex<NDIM>,
+             std::set<const libMesh::Elem*, IBTK::DofObjectComp>,
+             IBTK::CellIndexFortranOrder>
         d_cell_elem_neighbor_map;
 
     /*!
-     * Map the node and the set of elements sharing this node.
+     * Map the node id and the set of elements sharing this node.
      */
-    std::map<const libMesh::Node*, std::set<const libMesh::Elem*>> d_node_to_elem;
+    std::map<libMesh::dof_id_type, std::set<const libMesh::Elem*, IBTK::DofObjectComp>> d_node_to_elem;
     /*!
-     * Map the edge and the set of elements sharing this edge.
+     * Map the pair of node ids of the edge and the set of elements sharing this edge.
      */
-    std::map<std::pair<const libMesh::Node*, const libMesh::Node*>, std::set<const libMesh::Elem*>> d_edge_to_elem;
+    std::map<std::pair<libMesh::dof_id_type, libMesh::dof_id_type>, std::set<const libMesh::Elem*, IBTK::DofObjectComp>>
+        d_edge_to_elem;
 
     /*!
-     * Map the element and its face normal.
+     * Map the element id and its face normal.
      */
-    std::map<const libMesh::Elem*, IBTK::VectorNd> d_elem_face_normal;
+    std::map<libMesh::dof_id_type, IBTK::VectorNd> d_elem_face_normal;
 
     /*!
      * Object to create a bounding box for sign update sweeping algorithm.

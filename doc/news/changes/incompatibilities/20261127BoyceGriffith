@@ -1,0 +1,3 @@
+Improved: The elements that IBAMR::FESurfaceDistanceEvaluator::getNeighborIntersectionsMap() associates with each cell are now in a std::set<const libMesh::Elem*, IBTK::DofObjectComp>, ordered by element id instead of address.
+<br>
+(Boyce Griffith, 2026/11/27)

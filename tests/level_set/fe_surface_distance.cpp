@@ -40,6 +40,10 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 
+#include <algorithm>
+#include <cstring>
+#include <vector>
+
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
@@ -157,6 +161,88 @@ calculate_error_near_band(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
 
     return;
 } // calculate_error_near_band
+
+// Copy a mesh, allocating its nodes and elements in the reverse order of their ids. The copy has the same ids and
+// coordinates as the original, but its nodes and elements are at different addresses.
+void
+copy_mesh_in_reverse_order(const MeshBase& src_mesh, MeshBase& dst_mesh)
+{
+    std::vector<const Node*> nodes;
+    for (auto it = src_mesh.nodes_begin(); it != src_mesh.nodes_end(); ++it) nodes.push_back(*it);
+    for (auto it = nodes.rbegin(); it != nodes.rend(); ++it)
+    {
+        dst_mesh.add_point(**it, (*it)->id(), (*it)->processor_id());
+    }
+
+    std::vector<const Elem*> elems;
+    for (auto it = src_mesh.elements_begin(); it != src_mesh.elements_end(); ++it) elems.push_back(*it);
+    for (auto it = elems.rbegin(); it != elems.rend(); ++it)
+    {
+        const Elem* const src_elem = *it;
+        Elem* const dst_elem = Elem::build(src_elem->type()).release();
+        dst_elem->set_id(src_elem->id());
+        dst_elem->processor_id() = src_elem->processor_id();
+        dst_elem->subdomain_id() = src_elem->subdomain_id();
+        for (unsigned int k = 0; k < src_elem->n_nodes(); ++k)
+        {
+            dst_elem->set_node(k) = dst_mesh.node_ptr(src_elem->node_id(k));
+        }
+        dst_mesh.add_elem(dst_elem);
+    }
+    dst_mesh.allow_renumbering(false);
+    dst_mesh.prepare_for_use();
+}
+
+// Check that the evaluators map the same elements to each cell, in order of element id, and that the data that they
+// computed are identical bit for bit.
+void
+check_same_results(FESurfaceDistanceEvaluator& eval,
+                   FESurfaceDistanceEvaluator& reversed_eval,
+                   Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                   const std::vector<std::pair<int, int>>& idx_pairs)
+{
+    const auto& elem_map = eval.getNeighborIntersectionsMap();
+    const auto& reversed_elem_map = reversed_eval.getNeighborIntersectionsMap();
+    if (elem_map.size() != reversed_elem_map.size())
+    {
+        TBOX_ERROR("different numbers of cells intersect the original and reallocated meshes\n");
+    }
+    auto reversed_it = reversed_elem_map.begin();
+    for (auto it = elem_map.begin(); it != elem_map.end(); ++it, ++reversed_it)
+    {
+        std::vector<dof_id_type> elem_ids, reversed_elem_ids;
+        for (const Elem* elem : it->second) elem_ids.push_back(elem->id());
+        for (const Elem* elem : reversed_it->second) reversed_elem_ids.push_back(elem->id());
+        if (!(it->first == reversed_it->first) || !std::is_sorted(elem_ids.begin(), elem_ids.end()) ||
+            !std::is_sorted(reversed_elem_ids.begin(), reversed_elem_ids.end()) || elem_ids != reversed_elem_ids)
+        {
+            TBOX_ERROR("the elements of a cell are not ordered by id in the original and reallocated meshes\n");
+        }
+    }
+
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            for (const auto& idx_pair : idx_pairs)
+            {
+                Pointer<CellData<NDIM, double>> data = patch->getPatchData(idx_pair.first);
+                Pointer<CellData<NDIM, double>> reversed_data = patch->getPatchData(idx_pair.second);
+                for (Box<NDIM>::Iterator it(patch->getBox()); it; it++)
+                {
+                    const CellIndex<NDIM> ci(it());
+                    if (std::memcmp(&(*data)(ci), &(*reversed_data)(ci), sizeof(double)) != 0)
+                    {
+                        TBOX_ERROR("the results for the original and reallocated meshes differ at cell "
+                                   << ci << " on level " << ln << "\n");
+                    }
+                }
+            }
+        }
+    }
+}
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -369,6 +455,38 @@ main(int argc, char* argv[])
         pout << "Updating sign" << std::endl;
         surface_distance_eval.updateSignAwayFromInterface(d_idx, patch_hierarchy, 5 * dx);
         pout << "Finished updating sign" << std::endl;
+
+        // Repeat the computation with meshes whose elements are allocated in the opposite order.
+        Mesh reversed_mesh(solid_mesh.comm(), NDIM);
+        BoundaryMesh reversed_boundary_mesh(solid_mesh.comm(), NDIM - 1);
+        copy_mesh_in_reverse_order(mesh, reversed_mesh);
+        copy_mesh_in_reverse_order(boundary_mesh, reversed_boundary_mesh);
+        Pointer<CellVariable<NDIM, double>> reversed_n_var = new CellVariable<NDIM, double>("num_elements_reversed", 1);
+        Pointer<CellVariable<NDIM, double>> reversed_d_var = new CellVariable<NDIM, double>("distance_reversed", 1);
+        const int reversed_n_idx = var_db->registerVariableAndContext(reversed_n_var, main_ctx, no_width);
+        const int reversed_d_idx = var_db->registerVariableAndContext(reversed_d_var, main_ctx, no_width);
+        for (int ln = 0; ln <= hier_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(reversed_n_idx, 0.0);
+            level->allocatePatchData(reversed_d_idx, 0.0);
+        }
+        hier_cc_data_ops.setToScalar(reversed_n_idx, 0.0);
+        hier_cc_data_ops.setToScalar(reversed_d_idx, 5 * dx);
+        FESurfaceDistanceEvaluator reversed_surface_distance_eval("ReversedFESurfaceDistanceEvaluator",
+                                                                  patch_hierarchy,
+                                                                  reversed_mesh,
+                                                                  reversed_boundary_mesh,
+                                                                  gcw,
+                                                                  use_vol_extracted_bdry_mesh);
+        reversed_surface_distance_eval.mapIntersections();
+        reversed_surface_distance_eval.calculateSurfaceNormals();
+        reversed_surface_distance_eval.computeSignedDistance(reversed_n_idx, reversed_d_idx);
+        reversed_surface_distance_eval.updateSignAwayFromInterface(reversed_d_idx, patch_hierarchy, 5 * dx);
+        check_same_results(surface_distance_eval,
+                           reversed_surface_distance_eval,
+                           patch_hierarchy,
+                           { std::make_pair(n_idx, reversed_n_idx), std::make_pair(d_idx, reversed_d_idx) });
 
         // Compute the error.
         Pointer<CellVariable<NDIM, double>> E_var = new CellVariable<NDIM, double>("E");
