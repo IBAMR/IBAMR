@@ -27,6 +27,7 @@
 #include <array>
 #include <map>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace IBAMR
@@ -58,7 +59,8 @@ namespace IBAMR
  * - The velocity patch data have depth one.
  * - With a variable viscosity, the interpolated viscosity data of the fluid solver have at least the filled ghost
  *   width.
- * - A change of condition type takes effect after clearCache().
+ * - A change of condition type takes effect after clearCache() or checkBoundaryConditionTypes(). After either, the
+ * types are evaluated once at each fill time, and an extension is built for each distinct set of types.
  */
 class INSStaggeredDivergenceFreePhysBdryOp : public IBTK::RobinPhysBdryPatchStrategy
 {
@@ -72,10 +74,15 @@ public:
     INSStaggeredDivergenceFreePhysBdryOp(const INSHierarchyIntegrator* fluid_solver, bool homogeneous_bc);
 
     /*!
-     * \brief Discard the stored boundary extensions. Call this function when the types of the boundary conditions
-     * change.
+     * \brief Discard the stored boundary extensions. Call this function when the patches change.
      */
     void clearCache();
+
+    /*!
+     * \brief Evaluate the boundary condition types again at the next use of each stored boundary extension. Call this
+     * function when the types can change other than with the fill time.
+     */
+    void checkBoundaryConditionTypes();
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefinePatchStrategy and
@@ -165,9 +172,18 @@ private:
     const INSHierarchyIntegrator* const d_fluid_solver;
 
     /*!
-     * The Extensions, keyed by refinement ratio, patch box, and the ghost widths of the patch data and of the fill.
+     * The Extensions, keyed by refinement ratio, patch box, and the ghost widths of the patch data and of the fill,
+     * with the check number at which the fill times below were evaluated, those fill times with their Extensions, and
+     * the distinct Extensions in use. Fill times with equal types share an Extension.
      */
-    std::map<std::array<int, 5 * NDIM>, std::shared_ptr<const Extension>> d_extension_cache;
+    struct CachedExtension
+    {
+        unsigned int check_number = 0;
+        std::vector<std::pair<double, std::shared_ptr<const Extension>>> by_time;
+        std::vector<std::shared_ptr<const Extension>> extensions;
+    };
+    std::map<std::array<int, 5 * NDIM>, CachedExtension> d_extension_cache;
+    unsigned int d_check_number = 0;
 };
 } // namespace IBAMR
 

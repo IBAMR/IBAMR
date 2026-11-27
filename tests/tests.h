@@ -21,6 +21,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 
@@ -57,6 +58,23 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <tuple>
 #include <utility>
 #include <vector>
+
+// Set a fluid property, the density or the viscosity, at the requested time with the CartGridFunction passed as ctx.
+// Register it with registerResetFluidDensityFcn() or registerResetFluidViscosityFcn() of the variable-coefficient
+// fluid solver: without an advection-diffusion integrator, nothing else sets a variable property after t = 0.
+inline void
+callSetFluidPropertyCallbackFunction(int property_idx,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> property_var,
+                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                     const int /*cycle_num*/,
+                                     const double time,
+                                     const double /*current_time*/,
+                                     const double /*new_time*/,
+                                     void* ctx)
+{
+    static_cast<IBTK::CartGridFunction*>(ctx)->setDataOnPatchHierarchy(
+        property_idx, property_var, hier_math_ops->getPatchHierarchy(), time);
+} // callSetFluidPropertyCallbackFunction
 
 // A utility function that prints @p out to plog by sending each string to
 // rank 0.

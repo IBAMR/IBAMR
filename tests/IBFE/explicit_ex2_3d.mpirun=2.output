@@ -29,9 +29,9 @@ IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.38426e-13
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30398e-13
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.63546e-13
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30398e-13
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -55,12 +55,12 @@ IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.6835e-14
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 7.73418e-14
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000218748
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000316404
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000218751
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000316407
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -79,12 +79,12 @@ IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 6.64347e-14
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.41548e-14
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000372234
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000688638
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.000372248
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.000688656
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 

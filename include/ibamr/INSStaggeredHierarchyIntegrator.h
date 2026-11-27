@@ -41,6 +41,7 @@
 #include <SAMRAIVectorReal.h>
 #include <SideVariable.h>
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -48,6 +49,7 @@
 namespace IBAMR
 {
 class ConvectiveOperator;
+class INSStaggeredDivergenceFreePhysBdryOp;
 class INSStaggeredPressureBcCoef;
 class INSStaggeredVelocityBcCoef;
 } // namespace IBAMR
@@ -145,6 +147,14 @@ public:
      * the middle of the time step otherwise.
      */
     double getPressureTime(double current_time, double new_time) const override;
+
+    /*!
+     * Get the divergence-free velocity boundary operator. It sets the velocity ghost values outside the physical
+     * boundaries so that each ghost cell has zero discrete divergence, or the divergence of the adjacent interior cell
+     * if a velocity divergence function is registered. The integrator owns the operator. The caller sets its patch data
+     * index and homogeneous flag before each use.
+     */
+    IBTK::RobinPhysBdryPatchStrategy* getDivergenceFreeVelocityPhysBdryOp() override;
 
     /*!
      * Indicate that the Stokes solver should be (re-)initialized before the
@@ -448,6 +458,11 @@ private:
      * relative to rho / dt, for which the solvers were last set up.
      */
     std::optional<double> d_K1_previous;
+
+    /*!
+     * The divergence-free velocity boundary operator.
+     */
+    std::unique_ptr<INSStaggeredDivergenceFreePhysBdryOp> d_divergence_free_velocity_phys_bdry_op;
 
     /*!
      * Fluid solver variables.

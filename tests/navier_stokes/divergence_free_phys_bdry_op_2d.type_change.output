@@ -1,0 +1,7 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+(y, E u)   = 68.4686583447
+(E^T y, u) = 68.4686583447
+values at t2 that differ from a new operator = 0 of 3520
+values that change from t1 to t2 = 258

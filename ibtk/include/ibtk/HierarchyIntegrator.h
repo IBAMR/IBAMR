@@ -916,6 +916,16 @@ protected:
         std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM>> ghostfill_patch_strategy = nullptr);
 
     /*!
+     * Register a ghost cell-filling refine algorithm with a patch strategy that another object owns, such as a member
+     * of a derived class or an object of another integrator.
+     *
+     * \note The patch strategy must stay valid while this integrator fills ghost cells.
+     */
+    void registerGhostfillRefineAlgorithm(const std::string& name,
+                                          SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> ghostfill_alg,
+                                          SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy);
+
+    /*!
      * Register a data-prolonging refine algorithm.
      */
     void registerProlongRefineAlgorithm(
@@ -1261,7 +1271,8 @@ private:
         std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>>;
 
     RefineAlgorithmMap d_ghostfill_algs;
-    RefinePatchStrategyMap d_ghostfill_strategies;
+    RefinePatchStrategyMap d_owned_ghostfill_strategies;
+    std::map<std::string, SAMRAI::xfer::RefinePatchStrategy<NDIM>*> d_ghostfill_strategies;
     RefineScheduleMap d_ghostfill_scheds;
 
     RefineAlgorithmMap d_prolong_algs;
