@@ -121,7 +121,7 @@ bool
 FillPatternShape::operator==(const FillPatternShape& that) const
 {
     return kind == that.kind && width == that.width && overwrite_interior == that.overwrite_interior &&
-           other == that.other;
+           other.getPointer() == that.other.getPointer();
 } // operator==
 
 bool
@@ -162,7 +162,7 @@ fill_pattern_shape(Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern
     else
     {
         shape.kind = FillPatternShape::Kind::OTHER;
-        shape.other = fill_pattern.getPointer();
+        shape.other = fill_pattern;
         return shape;
     }
     for (int d = 0; d < NDIM; ++d)
