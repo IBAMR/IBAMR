@@ -1,6 +1,6 @@
 // A domain with a step as wide as the ghost width, which the narrow-feature stop accepts, and tags next to its inner
 // corner that change at the regrid. Without overlap removal, patches overlap.
-// The regrid leaves 8 ghost cells beyond the inner corner without a boundary box, which the output records.
+// Overlap removal must also leave no patch whose ghost cells reach past the corner without a boundary box.
 Main {
    log_file_name = "output"
    log_all_nodes = FALSE
