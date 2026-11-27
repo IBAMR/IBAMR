@@ -28,6 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Build IBAMR and run tests (0.20 dependencies ${{ matrix.name }})
     strategy:
+      # TEMPORARY (remove before this PR is ready for review): report every job's failures.
+      fail-fast: false
       matrix:
         include:
           - name: "Arch Linux 2026, with libMesh"
