@@ -27,6 +27,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/patch_level_overlaps.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -38,6 +39,7 @@
 
 #include <BasePatchHierarchy.h>
 #include <BasePatchLevel.h>
+#include <BoxArray.h>
 #include <CartesianGridGeometry.h>
 #include <CellVariable.h>
 #include <CoarsenAlgorithm.h>
@@ -643,6 +645,19 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
+
+    // The IB methods, their data managers, and the markers assume that the patches of a level do not overlap.
+    const Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(level_number);
+    if (const auto overlap = IBTK::detail::find_overlapping_patches(level))
+    {
+        const BoxArray<NDIM>& boxes = level->getBoxes();
+        TBOX_ERROR(d_object_name << "::initializeLevelDataSpecialized():\n"
+                                 << "  patches " << overlap->first << " and " << overlap->second << " of level "
+                                 << level_number << " overlap: " << boxes[overlap->first] << " and "
+                                 << boxes[overlap->second] << "\n"
+                                 << "  check StandardTagAndInitialize { RefineBoxes } and GriddingAlgorithm { "
+                                    "smallest_patch_size }\n");
+    }
 
     // Initialize IB data.
     d_ib_method_ops->initializeLevelData(

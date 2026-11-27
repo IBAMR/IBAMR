@@ -1,0 +1,7 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+Program abort called with error message
+
+    IBHierarchyIntegrator::initializeLevelDataSpecialized():
+  patches 0 and 1 of level 1 overlap: [(56,56),(135,199)] and [(124,48),(203,203)]
+  check StandardTagAndInitialize { RefineBoxes } and GriddingAlgorithm { smallest_patch_size }
+

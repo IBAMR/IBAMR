@@ -1,0 +1,3 @@
+Fixed: Stop with an error in IBAMR::IBHierarchyIntegrator and in the IBFE scratch hierarchy when the patches of a new level overlap, in every build type.
+<br>
+(Boyce Griffith, 2026/11/26)

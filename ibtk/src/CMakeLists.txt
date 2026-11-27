@@ -204,6 +204,7 @@ SET(CXX_SRC
   utilities/ParallelMap.cpp
   utilities/SideNoCornersFillPattern.cpp
   utilities/box_utilities.cpp
+  utilities/patch_level_overlaps.cpp
   utilities/Streamable.cpp
   utilities/CopyToRootTransaction.cpp
   utilities/SideSynchCopyFillPattern.cpp
