@@ -427,10 +427,16 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
                                                       "LINEAR",
                                                       false,
                                                       phi_bc_coef);
+    // Reset the components of the cached fill at every call, so that it uses the current Robin boundary condition
+    // coefficient object.
     if (ptr_wave_damper->d_fill_levels.changed(*patch_hierarchy, coarsest_ln, finest_ln))
     {
         ptr_wave_damper->d_phi_fill = new HierarchyGhostCellInterpolation();
         ptr_wave_damper->d_phi_fill->initializeOperatorState(phi_transaction, patch_hierarchy);
+    }
+    else
+    {
+        ptr_wave_damper->d_phi_fill->resetTransactionComponent(phi_transaction);
     }
     ptr_wave_damper->d_phi_fill->fillData(new_time);
 

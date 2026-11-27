@@ -34,15 +34,17 @@ namespace IBTK
 namespace detail
 {
 /*!
- * \brief Identity of the hierarchy and of the PatchLevel objects of a range of levels, which detects when any of them
- * is replaced.
+ * \brief Identity of the PatchLevel objects of a range of levels, which detects when any of them is replaced.
  *
  * A class that caches an object that holds PatchLevel objects or their patch data, such as a communication schedule
  * or a fill operator, and that receives no notice when the hierarchy regrids can keep a HierarchyLevelsIdentity and
  * rebuild the object whenever changed() returns true. A regrid can replace the PatchLevel object of a level even when
  * the boxes and processor mapping are unchanged, and the identity reports that change.
  *
- * The identity keeps replaced levels, and their patch data, alive until the next call to changed().
+ * The identity stores the PatchLevel objects, so the levels that a regrid replaces, and their patch data, remain in
+ * memory until the next call to changed(). A stored level cannot be freed, so a level that a later regrid creates never
+ * has its address. The identity needs no record of the hierarchy: each PatchLevel object belongs to one hierarchy, and
+ * the range of levels is never empty.
  *
  * \see HierarchyLayoutKey, for caches of objects built from index-space data alone.
  */
@@ -57,18 +59,17 @@ public:
     /*!
      * \brief Replace this identity by the identity of levels \a coarsest_ln through \a finest_ln of \a hierarchy.
      *
-     * \return true if the hierarchy, the level range, or any PatchLevel object in the range differs from the previous
-     * call, which includes the first call.
+     * \return true if the level range or any PatchLevel object in the range differs from the previous call, which
+     * includes the first call. The range must contain at least one level.
      */
     bool changed(const SAMRAI::hier::PatchHierarchy<NDIM>& hierarchy, int coarsest_ln, int finest_ln);
 
 private:
     /*!
-     * \name Data that determine the identity: the hierarchy, the number of the first level in the range, and the
-     * level objects in the range.
+     * \name Data that determine the identity: the number of the first level in the range and the level objects in
+     * the range.
      */
     //\{
-    const SAMRAI::hier::PatchHierarchy<NDIM>* d_hierarchy = nullptr;
     int d_coarsest_ln = -1;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>> d_levels;
     //\}
