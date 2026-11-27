@@ -97,7 +97,9 @@ public:
      * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type, "LINEAR" or
      * "QUADRATIC", at physical boundaries at which boundary conditions are present.
      *
-     * The default implementation supports only linear interpolation.
+     * The default implementation supports only linear interpolation. The "QUADRATIC" interpolation makes the
+     * operator nonsymmetric at Dirichlet and Robin boundaries, so a solver that requires a symmetric operator, such
+     * as conjugate gradients, does not support it.
      */
     virtual bool supportsBdryInterpType(BdryInterpType bdry_interp_type) const;
 

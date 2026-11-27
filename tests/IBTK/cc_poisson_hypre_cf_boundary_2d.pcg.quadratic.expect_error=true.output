@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    solver::setBdryInterpType():
+  this solver does not support bdry_interp_type = QUADRATIC
+  use bdry_interp_type = LINEAR
+

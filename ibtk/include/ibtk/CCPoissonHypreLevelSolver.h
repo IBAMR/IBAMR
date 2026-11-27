@@ -75,6 +75,10 @@ namespace IBTK
  * Robin boundary conditions may be specified through the interface class
  * SAMRAI::solv::RobinBcCoefStrategy.
  *
+ * The interpolation type "QUADRATIC" at physical boundaries makes the matrix nonsymmetric at Dirichlet and Robin
+ * boundaries. The solver type "PCG" requires a symmetric matrix, so the constructor and setBdryInterpType() stop
+ * with an error for "QUADRATIC" with "PCG". Use another solver type, such as "GMRES", with "QUADRATIC".
+ *
  * The user must perform the following steps to use class
  * CCPoissonHypreLevelSolver:
  *
@@ -142,7 +146,8 @@ public:
 
     /*!
      * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type, "LINEAR" or
-     * "QUADRATIC", at physical boundaries at which boundary conditions are present.
+     * "QUADRATIC", at physical boundaries at which boundary conditions are present. The solver type "PCG" supports
+     * only "LINEAR", because "QUADRATIC" makes the matrix nonsymmetric.
      */
     bool supportsBdryInterpType(BdryInterpType bdry_interp_type) const override;
 

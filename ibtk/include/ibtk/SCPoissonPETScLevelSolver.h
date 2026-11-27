@@ -69,6 +69,9 @@ namespace IBTK
  * Robin boundary conditions may be specified through the interface class
  * SAMRAI::solv::RobinBcCoefStrategy.
  *
+ * The interpolation type "QUADRATIC" at physical boundaries makes the matrix nonsymmetric at Dirichlet and Robin
+ * boundaries, so the KSP type "cg" does not support it. The solver does not check the KSP type.
+ *
  * The user must perform the following steps to use class
  * SCPoissonPETScLevelSolver:
  *

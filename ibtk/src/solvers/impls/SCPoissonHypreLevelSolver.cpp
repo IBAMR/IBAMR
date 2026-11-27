@@ -92,8 +92,9 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_n
     if (input_db)
     {
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
-        setBdryInterpTypeFromInput(input_db);
+        // The supported boundary interpolation types depend on the solver type.
         if (input_db->keyExists("solver_type")) d_solver_type = input_db->getString("solver_type");
+        setBdryInterpTypeFromInput(input_db);
         if (input_db->keyExists("precond_type")) d_precond_type = input_db->getString("precond_type");
         if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
         if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
@@ -135,7 +136,9 @@ SCPoissonHypreLevelSolver::~SCPoissonHypreLevelSolver()
 bool
 SCPoissonHypreLevelSolver::supportsBdryInterpType(const BdryInterpType bdry_interp_type) const
 {
-    return bdry_interp_type == BdryInterpType::LINEAR || bdry_interp_type == BdryInterpType::QUADRATIC;
+    // PCG requires a symmetric matrix, and the quadratic interpolation makes it nonsymmetric.
+    return bdry_interp_type == BdryInterpType::LINEAR ||
+           (bdry_interp_type == BdryInterpType::QUADRATIC && d_solver_type != "PCG");
 } // supportsBdryInterpType
 
 bool

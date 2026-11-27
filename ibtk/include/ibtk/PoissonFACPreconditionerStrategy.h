@@ -230,6 +230,9 @@ public:
     /*!
      * \brief Set the interpolation type, "LINEAR" or "QUADRATIC", of the ghost values at physical boundaries that
      * define the operator: those of the residual computation and of the coarse level solver.
+     *
+     * The "QUADRATIC" interpolation makes the operator nonsymmetric at Dirichlet and Robin boundaries, so a hypre PCG
+     * coarse level solver rejects it, and conjugate gradients are not supported as a coarse level solver with it.
      */
     void setBdryInterpType(BdryInterpType bdry_interp_type);
 
