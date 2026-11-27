@@ -239,6 +239,14 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
+    if (in.getCoarsestLevelNumber() > 0)
+    {
+        TBOX_ERROR(d_object_name + "::initializeOperatorState()\n"
+                   << "  class IBAMR::CIBStaggeredStokesOperator needs data on every coarser level, but the coarsest "
+                      "level of the vectors is "
+                   << in.getCoarsestLevelNumber() << "\n");
+    }
+
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 

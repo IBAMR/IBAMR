@@ -374,6 +374,14 @@ VCStaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVec
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
+    if (x.getCoarsestLevelNumber() > 0)
+    {
+        TBOX_ERROR(d_object_name + "::initializeSolverState()\n"
+                   << "  class IBAMR::VCStaggeredStokesProjectionPreconditioner needs data on every coarser level, but "
+                      "the coarsest level of the vectors is "
+                   << x.getCoarsestLevelNumber() << "\n");
+    }
+
     if (d_is_initialized) deallocateSolverState();
 
     // Parent class initialization.
