@@ -258,6 +258,7 @@ ENDIF()
 # IMP:
 IF(${IBAMR_HAVE_LIBMESH})
   SETUP_2D(IMP explicit_ex0.cpp)
+  SETUP_2D(IMP traction_seam.cpp)
 ENDIF()
 
 # IIM:
