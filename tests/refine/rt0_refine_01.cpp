@@ -42,6 +42,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <random>
 #include <vector>
 
@@ -59,15 +60,20 @@
 
 namespace
 {
+// With poison_zero_weight, the coarse data in the tangential rows that a fine side coincident with a coarse row
+// does not use are NaN. Only ratio 3 has such a row, so only that ratio is run, and only the fine sides that never
+// use a NaN row are checked.
 void
-test_exact_refine(const RefineOperator<NDIM>& refine_op)
+test_exact_refine(const RefineOperator<NDIM>& refine_op, const bool poison_zero_weight = false)
 {
     auto* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<SideVariable<NDIM, double>> u_var = new SideVariable<NDIM, double>("u", 2);
     const int u_idx = var_db->registerVariableAndContext(u_var, var_db->getContext("exact"), IntVector<NDIM>(1));
     constexpr double SENTINEL = 1.e30;
 
-    for (int ratio_number = 0; ratio_number < 3; ++ratio_number)
+    auto floor_divide = [](const int a, const int b) { return a / b - (a % b != 0 && a < 0 ? 1 : 0); };
+
+    for (int ratio_number = poison_zero_weight ? 2 : 0; ratio_number < 3; ++ratio_number)
     {
         IntVector<NDIM> ratio(ratio_number == 0 ? 2 : 4);
         Box<NDIM> fine_box;
@@ -103,6 +109,17 @@ test_exact_refine(const RefineOperator<NDIM>& refine_op)
                     for (int depth = 0; depth < coarse_data->getDepth(); ++depth)
                         (*coarse_data)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower), depth) =
                             exact(it(), axis, depth, IntVector<NDIM>(1));
+            if (poison_zero_weight)
+            {
+                for (int axis = 0; axis < NDIM; ++axis)
+                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(coarse_data->getGhostBox(), axis)); it;
+                         it++)
+                        for (int d = 0; d < NDIM; ++d)
+                            if (d != axis && ratio(d) == 3 && it()(d) % 2 != 0)
+                                for (int depth = 0; depth < coarse_data->getDepth(); ++depth)
+                                    (*coarse_data)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower), depth) =
+                                        std::numeric_limits<double>::quiet_NaN();
+            }
 
             double max_error = 0.0, upper_plane_max_error = 0.0;
             int outside_errors = 0;
@@ -127,6 +144,17 @@ test_exact_refine(const RefineOperator<NDIM>& refine_op)
                         {
                             const double value =
                                 (*fine_data)(SideIndex<NDIM>(it(), axis, SideIndex<NDIM>::Lower), depth);
+                            // A fine side in the middle of three fine rows lies on an even coarse row and has zero
+                            // weight on the odd (NaN) coarse row next to it.
+                            bool uses_nan_row = false;
+                            if (poison_zero_weight)
+                                for (int d = 0; d < NDIM; ++d)
+                                {
+                                    const int c = floor_divide(it()(d), ratio(d));
+                                    if (d != axis && ratio(d) == 3 && (c % 2 != 0 || it()(d) - c * ratio(d) != 1))
+                                        uses_nan_row = true;
+                                }
+                            if (uses_nan_row) continue;
                             if (side_box.contains(it()))
                             {
                                 if (!std::isfinite(value)) TBOX_ERROR("Refinement produced a nonfinite value.\n");
@@ -386,9 +414,13 @@ main(int argc, char* argv[])
         if (input_db->getBoolWithDefault("test_linear_refine", false))
         {
             CartSideDoubleLinearRefine refine_op;
-            test_exact_refine(refine_op);
-            test_smooth_refine(refine_op);
-            test_random_refine(refine_op);
+            const bool poison_zero_weight = input_db->getBoolWithDefault("poison_zero_weight", false);
+            test_exact_refine(refine_op, poison_zero_weight);
+            if (!poison_zero_weight)
+            {
+                test_smooth_refine(refine_op);
+                test_random_refine(refine_op);
+            }
             return 0;
         }
 

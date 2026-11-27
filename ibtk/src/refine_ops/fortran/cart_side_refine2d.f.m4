@@ -32,6 +32,14 @@ $1=(dble($2-$3)+0.5d0)/dble($4)-0.5d0
             $5=$6+1
          endif
 ')dnl
+define(tangential_blend,`dnl
+if ($1.eq.0.d0) then
+            $2=$3
+         else
+            $2=(1.d0-$1)*$3+
+     &           $1*$4
+         endif
+')dnl
 define(d_dx0_C,0.5d0*($1($2+1,$3)-$1($2-1,$3)))dnl
 define(d_dx0_L,($1($2,$3)-$1($2-1,$3)))dnl
 define(d_dx0_R,($1($2+1,$3)-$1($2,$3)))dnl
@@ -284,6 +292,7 @@ c
       INTEGER i_f0,i_f1
       INTEGER j_c0,j_c1
       REAL wn,wt0,wt1
+      REAL v_lo,v_hi
 c
 c     Refine data.
 c
@@ -292,17 +301,15 @@ c
          tangential_weight(wt1,i1,i_f1,ratio(1),j_c1,i_c1)
          do i0=ilower0,iupper0+1
             coarsen_index(i0,i_c0,i_f0,ratio(0))
+            tangential_blend(wt1,v_lo,u0_c(i_c0,i_c1),
+                 u0_c(i_c0,j_c1))
             if ( i0 .eq. i_f0 ) then
-               u0_f(i0,i1) =
-     &              (1.d0-wt1)*u0_c(i_c0,i_c1)+
-     &              wt1*u0_c(i_c0,j_c1)
+               u0_f(i0,i1) = v_lo
             else
                wn = dble(i0-i_f0)/dble(ratio(0))
-               u0_f(i0,i1) =
-     &              (1.d0-wn)*((1.d0-wt1)*u0_c(i_c0,i_c1)+
-     &                         wt1*u0_c(i_c0,j_c1))+
-     &              wn*((1.d0-wt1)*u0_c(i_c0+1,i_c1)+
-     &                  wt1*u0_c(i_c0+1,j_c1))
+               tangential_blend(wt1,v_hi,u0_c(i_c0+1,i_c1),
+                    u0_c(i_c0+1,j_c1))
+               u0_f(i0,i1) = (1.d0-wn)*v_lo+wn*v_hi
             endif
          enddo
       enddo
@@ -312,17 +319,15 @@ c
          do i0=ilower0,iupper0
             coarsen_index(i0,i_c0,i_f0,ratio(0))
             tangential_weight(wt0,i0,i_f0,ratio(0),j_c0,i_c0)
+            tangential_blend(wt0,v_lo,u1_c(i_c0,i_c1),
+                 u1_c(j_c0,i_c1))
             if ( i1 .eq. i_f1 ) then
-               u1_f(i0,i1) =
-     &              (1.d0-wt0)*u1_c(i_c0,i_c1)+
-     &              wt0*u1_c(j_c0,i_c1)
+               u1_f(i0,i1) = v_lo
             else
                wn = dble(i1-i_f1)/dble(ratio(1))
-               u1_f(i0,i1) =
-     &              (1.d0-wn)*((1.d0-wt0)*u1_c(i_c0,i_c1)+
-     &                         wt0*u1_c(j_c0,i_c1))+
-     &              wn*((1.d0-wt0)*u1_c(i_c0,i_c1+1)+
-     &                  wt0*u1_c(j_c0,i_c1+1))
+               tangential_blend(wt0,v_hi,u1_c(i_c0,i_c1+1),
+                    u1_c(j_c0,i_c1+1))
+               u1_f(i0,i1) = (1.d0-wn)*v_lo+wn*v_hi
             endif
          enddo
       enddo

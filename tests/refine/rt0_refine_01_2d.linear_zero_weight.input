@@ -1,0 +1,8 @@
+// Linear refinement with NaN in the coarse rows that have zero weight.
+test_linear_refine = TRUE
+poison_zero_weight = TRUE
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}

@@ -32,6 +32,14 @@ $1=(dble($2-$3)+0.5d0)/dble($4)-0.5d0
             $5=$6+1
          endif
 ')dnl
+define(tangential_blend,`dnl
+if ($1.eq.0.d0) then
+            $2=$3
+         else
+            $2=(1.d0-$1)*$3+
+     &           $1*$4
+         endif
+')dnl
 define(d_dx0_C,0.5d0*($1($2+1,$3,$4)-$1($2-1,$3,$4)))dnl
 define(d_dx0_L,($1($2,$3,$4)-$1($2-1,$3,$4)))dnl
 define(d_dx0_R,($1($2+1,$3,$4)-$1($2,$3,$4)))dnl
@@ -391,7 +399,7 @@ c
       INTEGER i_f0,i_f1,i_f2
       INTEGER j_c0,j_c1,j_c2
       REAL wn,wt0,wt1,wt2
-      REAL v_lo,v_hi
+      REAL v_lo,v_hi,v_a,v_b
 c
 c     Refine data.
 c
@@ -403,20 +411,24 @@ c
             tangential_weight(wt1,i1,i_f1,ratio(1),j_c1,i_c1)
             do i0=ilower0,iupper0+1
                coarsen_index(i0,i_c0,i_f0,ratio(0))
-               v_lo =
-     &              (1.d0-wt1)*((1.d0-wt2)*u0_c(i_c0,i_c1,i_c2)+
-     &                          wt2*u0_c(i_c0,i_c1,j_c2))+
-     &              wt1*((1.d0-wt2)*u0_c(i_c0,j_c1,i_c2)+
-     &                   wt2*u0_c(i_c0,j_c1,j_c2))
+               tangential_blend(wt2,v_a,
+                    u0_c(i_c0,i_c1,i_c2),
+                    u0_c(i_c0,i_c1,j_c2))
+               tangential_blend(wt2,v_b,
+                    u0_c(i_c0,j_c1,i_c2),
+                    u0_c(i_c0,j_c1,j_c2))
+               tangential_blend(wt1,v_lo,v_a,v_b)
                if ( i0 .eq. i_f0 ) then
                   u0_f(i0,i1,i2) = v_lo
                else
                   wn = dble(i0-i_f0)/dble(ratio(0))
-                  v_hi =
-     &                 (1.d0-wt1)*((1.d0-wt2)*u0_c(i_c0+1,i_c1,i_c2)+
-     &                             wt2*u0_c(i_c0+1,i_c1,j_c2))+
-     &                 wt1*((1.d0-wt2)*u0_c(i_c0+1,j_c1,i_c2)+
-     &                      wt2*u0_c(i_c0+1,j_c1,j_c2))
+                  tangential_blend(wt2,v_a,
+                       u0_c(i_c0+1,i_c1,i_c2),
+                       u0_c(i_c0+1,i_c1,j_c2))
+                  tangential_blend(wt2,v_b,
+                       u0_c(i_c0+1,j_c1,i_c2),
+                       u0_c(i_c0+1,j_c1,j_c2))
+                  tangential_blend(wt1,v_hi,v_a,v_b)
                   u0_f(i0,i1,i2) = (1.d0-wn)*v_lo+wn*v_hi
                endif
             enddo
@@ -431,20 +443,24 @@ c
             do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,i_f0,ratio(0))
                tangential_weight(wt0,i0,i_f0,ratio(0),j_c0,i_c0)
-               v_lo =
-     &              (1.d0-wt0)*((1.d0-wt2)*u1_c(i_c0,i_c1,i_c2)+
-     &                          wt2*u1_c(i_c0,i_c1,j_c2))+
-     &              wt0*((1.d0-wt2)*u1_c(j_c0,i_c1,i_c2)+
-     &                   wt2*u1_c(j_c0,i_c1,j_c2))
+               tangential_blend(wt2,v_a,
+                    u1_c(i_c0,i_c1,i_c2),
+                    u1_c(i_c0,i_c1,j_c2))
+               tangential_blend(wt2,v_b,
+                    u1_c(j_c0,i_c1,i_c2),
+                    u1_c(j_c0,i_c1,j_c2))
+               tangential_blend(wt0,v_lo,v_a,v_b)
                if ( i1 .eq. i_f1 ) then
                   u1_f(i0,i1,i2) = v_lo
                else
                   wn = dble(i1-i_f1)/dble(ratio(1))
-                  v_hi =
-     &                 (1.d0-wt0)*((1.d0-wt2)*u1_c(i_c0,i_c1+1,i_c2)+
-     &                             wt2*u1_c(i_c0,i_c1+1,j_c2))+
-     &                 wt0*((1.d0-wt2)*u1_c(j_c0,i_c1+1,i_c2)+
-     &                      wt2*u1_c(j_c0,i_c1+1,j_c2))
+                  tangential_blend(wt2,v_a,
+                       u1_c(i_c0,i_c1+1,i_c2),
+                       u1_c(i_c0,i_c1+1,j_c2))
+                  tangential_blend(wt2,v_b,
+                       u1_c(j_c0,i_c1+1,i_c2),
+                       u1_c(j_c0,i_c1+1,j_c2))
+                  tangential_blend(wt0,v_hi,v_a,v_b)
                   u1_f(i0,i1,i2) = (1.d0-wn)*v_lo+wn*v_hi
                endif
             enddo
@@ -459,20 +475,24 @@ c
             do i0=ilower0,iupper0
                coarsen_index(i0,i_c0,i_f0,ratio(0))
                tangential_weight(wt0,i0,i_f0,ratio(0),j_c0,i_c0)
-               v_lo =
-     &              (1.d0-wt0)*((1.d0-wt1)*u2_c(i_c0,i_c1,i_c2)+
-     &                          wt1*u2_c(i_c0,j_c1,i_c2))+
-     &              wt0*((1.d0-wt1)*u2_c(j_c0,i_c1,i_c2)+
-     &                   wt1*u2_c(j_c0,j_c1,i_c2))
+               tangential_blend(wt1,v_a,
+                    u2_c(i_c0,i_c1,i_c2),
+                    u2_c(i_c0,j_c1,i_c2))
+               tangential_blend(wt1,v_b,
+                    u2_c(j_c0,i_c1,i_c2),
+                    u2_c(j_c0,j_c1,i_c2))
+               tangential_blend(wt0,v_lo,v_a,v_b)
                if ( i2 .eq. i_f2 ) then
                   u2_f(i0,i1,i2) = v_lo
                else
                   wn = dble(i2-i_f2)/dble(ratio(2))
-                  v_hi =
-     &                 (1.d0-wt0)*((1.d0-wt1)*u2_c(i_c0,i_c1,i_c2+1)+
-     &                             wt1*u2_c(i_c0,j_c1,i_c2+1))+
-     &                 wt0*((1.d0-wt1)*u2_c(j_c0,i_c1,i_c2+1)+
-     &                      wt1*u2_c(j_c0,j_c1,i_c2+1))
+                  tangential_blend(wt1,v_a,
+                       u2_c(i_c0,i_c1,i_c2+1),
+                       u2_c(i_c0,j_c1,i_c2+1))
+                  tangential_blend(wt1,v_b,
+                       u2_c(j_c0,i_c1,i_c2+1),
+                       u2_c(j_c0,j_c1,i_c2+1))
+                  tangential_blend(wt0,v_hi,v_a,v_b)
                   u2_f(i0,i1,i2) = (1.d0-wn)*v_lo+wn*v_hi
                endif
             enddo
