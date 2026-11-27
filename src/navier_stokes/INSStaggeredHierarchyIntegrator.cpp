@@ -1756,7 +1756,8 @@ INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    // The regrid replaces the levels above the base level. Release the plot fill operators and the levels they reference.
+    // The regrid replaces the levels above the base level. Release the plot fill operators and the levels they
+    // reference.
     d_plot_U_fill.setNull();
     d_plot_P_fill.setNull();
     d_plot_Omega_fill.setNull();
