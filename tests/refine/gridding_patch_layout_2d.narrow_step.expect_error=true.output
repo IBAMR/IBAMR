@@ -1,0 +1,8 @@
+Program abort called with error message
+
+    GriddingAlgorithm:  The physical domain has a step, slot or gap narrower
+than the ghost cell width (4,4) in direction 0, next to cell (29,16).
+Boundary fills there would leave ghost cells unset or overwrite cells
+in the domain at any patch layout.  Widen the feature to at least the
+ghost cell width or reduce the ghost cell width.
+

@@ -1,0 +1,47 @@
+// Tags 2 cells from a wall on level 1.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (31,31)]
+   x_lo         = 0, 0
+   x_up         = 1, 1
+   periodic_dimension = 0, 0
+}
+
+ghost_width = 4
+
+GriddingAlgorithm {
+   max_levels = 3
+   ratio_to_coarser {
+      level_1 = 2, 2
+      level_2 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+   efficiency_tolerance = 0.85
+   combine_efficiency   = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR", "REFINE_BOXES"
+   RefineBoxes {
+      level_0 {
+         boxes_0 = [(30,24), (31,28)]
+      }
+      level_1 {
+         boxes_0 = [(61,52), (61,53)]
+      }
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1.0
+}

@@ -1,0 +1,33 @@
+// A domain with a step 3 cells wide, narrower than the ghost width.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (31,15)], [(0,16), (28,31)]
+   x_lo         = 0, 0
+   x_up         = 1, 1
+   periodic_dimension = 0, 0
+}
+
+ghost_width = 4
+
+GriddingAlgorithm {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1.0
+}

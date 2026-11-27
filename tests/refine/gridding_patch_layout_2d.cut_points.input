@@ -1,0 +1,45 @@
+// A level 1 box 22 cells wide after the regrid, with smallest patch size and ghost width 11 and largest patch
+// size 16.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (31,31)]
+   x_lo         = 0, 0
+   x_up         = 1, 1
+   periodic_dimension = 0, 0
+}
+
+ghost_width = 11
+
+GriddingAlgorithm {
+   max_levels = 3
+   ratio_to_coarser {
+      level_1 = 2, 2
+      level_2 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = 16, 16
+   }
+   smallest_patch_size {
+      level_0 = 11, 11
+   }
+   efficiency_tolerance = 0.85
+   combine_efficiency   = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR", "REFINE_BOXES"
+   RefineBoxes {
+      level_0 {
+         boxes_0 = [(10,10), (18,18)]
+      }
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1.0
+}
