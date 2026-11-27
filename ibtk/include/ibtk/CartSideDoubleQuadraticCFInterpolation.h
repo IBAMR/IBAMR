@@ -20,13 +20,13 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/CartSideDoubleLinearRefine.h>
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
 
 #include <Box.h>
-#include <CartesianSideDoubleConservativeLinearRefine.h>
 #include <ComponentSelector.h>
 #include <IntVector.h>
 #include <PatchHierarchy.h>
@@ -297,8 +297,7 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_refine_op =
-        new SAMRAI::geom::CartesianSideDoubleConservativeLinearRefine<NDIM>();
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_refine_op = new CartSideDoubleLinearRefine();
 
     /*!
      * Cached hierarchy-related information.

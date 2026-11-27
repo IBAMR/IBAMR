@@ -18,6 +18,7 @@
 #include <tbox/Array.h>
 
 #include <BoundaryBox.h>
+#include <CartesianPatchGeometry.h>
 #include <CoarseFineBoundary.h>
 #include <ComponentSelector.h>
 #include <Patch.h>

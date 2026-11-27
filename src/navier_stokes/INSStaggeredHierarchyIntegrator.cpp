@@ -35,6 +35,7 @@
 #include <ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h>
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
+#include <ibtk/CartSideDoubleLinearRefine.h>
 #include <ibtk/CartSideDoubleRT0Refine.h>
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
@@ -838,7 +839,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
     grid_geom->addSpatialRefineOperator(new CartCellDoubleBoundsPreservingConservativeLinearRefine());
     grid_geom->addSpatialRefineOperator(new CartSideDoubleRT0Refine());
+    grid_geom->addSpatialRefineOperator(new CartSideDoubleLinearRefine());
+    // Remains registered for input files that name it; remove with CartSideDoubleSpecializedLinearRefine.
+    IBTK_DISABLE_EXTRA_WARNINGS
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+    IBTK_ENABLE_EXTRA_WARNINGS
 
     const IntVector<NDIM> cell_ghosts = CELLG;
     const IntVector<NDIM> side_ghosts = SIDEG;
@@ -2171,7 +2176,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         // Make our own boundary filling op because the standard one does not do any refining:
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
-                                                         "SPECIALIZED_LINEAR_REFINE",
+                                                         "LINEAR_REFINE",
                                                          USE_CF_INTERPOLATION,
                                                          DATA_COARSEN_TYPE,
                                                          d_bdry_extrap_type, // TODO: update variable name

@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/ibtk_utilities.h>
+
 #include <tbox/Pointer.h>
 
 #include <Box.h>
@@ -48,8 +50,11 @@ namespace IBTK
  * SAMRAI::xfer::RefineOperator object that prolongs side-centered double
  * precision patch data via linear interpolation in the normal direction and
  * MC-limited piecewise-linear interpolation in the tangential direction.
+ *
+ * @deprecated Use CartSideDoubleLinearRefine instead.
  */
-class CartSideDoubleSpecializedLinearRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class IBTK_DEPRECATED("Use CartSideDoubleLinearRefine instead.") CartSideDoubleSpecializedLinearRefine
+    : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!
