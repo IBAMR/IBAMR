@@ -153,6 +153,30 @@ static const int CFL_WIDTH = 2;
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
+
+// Stop if a deprecated single-level overload receives a schedule for a level finer than level_num. The overload
+// ignores the schedule, which would silently change the result.
+template <class Schedule>
+void
+check_no_finer_level_schedule(const std::string& object_name,
+                              const std::string& function_name,
+                              const std::string& schedule_name,
+                              const std::vector<Pointer<Schedule>>& scheds,
+                              const int level_num)
+{
+    for (int ln = level_num + 1; ln < static_cast<int>(scheds.size()); ++ln)
+    {
+        if (scheds[ln])
+        {
+            TBOX_ERROR(object_name << "::" << function_name << "():\n"
+                                   << "  the deprecated overload ignores " << schedule_name
+                                   << ", but the entry for level " << ln << " is not null and level_num is "
+                                   << level_num << "\n"
+                                   << "  call the overload without " << schedule_name
+                                   << ", or the overload that takes a range of levels\n");
+        }
+    }
+}
 } // namespace
 
 const std::string LDataManager::POSN_DATA_NAME = "X";
@@ -327,12 +351,13 @@ LDataManager::spread(const int f_data_idx,
                      Pointer<LData> ds_data,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
+                     const std::vector<Pointer<RefineSchedule<NDIM>>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
                      const bool ds_data_ghost_node_update)
 {
+    check_no_finer_level_schedule(d_object_name, "spread", "f_prolongation_scheds", f_prolongation_scheds, level_num);
     spread(f_data_idx,
            F_data,
            X_data,
@@ -393,12 +418,13 @@ LDataManager::spread(const int f_data_idx,
                      const std::string& spread_kernel_fcn,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
+                     const std::vector<Pointer<RefineSchedule<NDIM>>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update,
                      const bool ds_data_ghost_node_update)
 {
+    check_no_finer_level_schedule(d_object_name, "spread", "f_prolongation_scheds", f_prolongation_scheds, level_num);
     spread(f_data_idx,
            F_data,
            X_data,
@@ -544,11 +570,12 @@ LDataManager::spread(const int f_data_idx,
                      Pointer<LData> X_data,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
+                     const std::vector<Pointer<RefineSchedule<NDIM>>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update)
 {
+    check_no_finer_level_schedule(d_object_name, "spread", "f_prolongation_scheds", f_prolongation_scheds, level_num);
     spread(f_data_idx,
            F_data,
            X_data,
@@ -600,11 +627,12 @@ LDataManager::spread(const int f_data_idx,
                      const std::string& spread_kernel_fcn,
                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                      const int level_num,
-                     const std::vector<Pointer<RefineSchedule<NDIM>>>& /*f_prolongation_scheds*/,
+                     const std::vector<Pointer<RefineSchedule<NDIM>>>& f_prolongation_scheds,
                      const double fill_data_time,
                      const bool F_data_ghost_node_update,
                      const bool X_data_ghost_node_update)
 {
+    check_no_finer_level_schedule(d_object_name, "spread", "f_prolongation_scheds", f_prolongation_scheds, level_num);
     spread(f_data_idx,
            F_data,
            X_data,
@@ -919,11 +947,12 @@ LDataManager::interp(const int f_data_idx,
                      Pointer<LData> F_data,
                      Pointer<LData> X_data,
                      const int level_num,
-                     const std::vector<Pointer<CoarsenSchedule<NDIM>>>& /*f_synch_scheds*/,
+                     const std::vector<Pointer<CoarsenSchedule<NDIM>>>& f_synch_scheds,
                      const std::vector<Pointer<RefineSchedule<NDIM>>>& f_ghost_fill_scheds,
                      const double fill_data_time,
                      const bool X_data_ghost_node_update)
 {
+    check_no_finer_level_schedule(d_object_name, "interp", "f_synch_scheds", f_synch_scheds, level_num);
     interp(f_data_idx, F_data, X_data, level_num, f_ghost_fill_scheds, fill_data_time, X_data_ghost_node_update);
     return;
 } // interp

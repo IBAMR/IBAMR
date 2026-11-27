@@ -319,7 +319,8 @@ public:
     /*!
      * \brief Spread a quantity on level \a level_num.
      *
-     * @deprecated The function ignores \a f_prolongation_scheds. Use the overload without it.
+     * @deprecated The function stops with an error if \a f_prolongation_scheds has a non-null entry for a level
+     * finer than \a level_num. Use the overload without it.
      */
     IBTK_DEPRECATED("Use the overload without f_prolongation_scheds instead.")
     void spread(int f_data_idx,
@@ -366,7 +367,8 @@ public:
     /*!
      * \brief Spread a quantity on level \a level_num.
      *
-     * @deprecated The function ignores \a f_prolongation_scheds. Use the overload without it.
+     * @deprecated The function stops with an error if \a f_prolongation_scheds has a non-null entry for a level
+     * finer than \a level_num. Use the overload without it.
      */
     IBTK_DEPRECATED("Use the overload without f_prolongation_scheds instead.")
     void spread(int f_data_idx,
@@ -470,7 +472,8 @@ public:
     /*!
      * \brief Spread a quantity on level \a level_num.
      *
-     * @deprecated The function ignores \a f_prolongation_scheds. Use the overload without it.
+     * @deprecated The function stops with an error if \a f_prolongation_scheds has a non-null entry for a level
+     * finer than \a level_num. Use the overload without it.
      */
     IBTK_DEPRECATED("Use the overload without f_prolongation_scheds instead.")
     void spread(int f_data_idx,
@@ -513,7 +516,8 @@ public:
     /*!
      * \brief Spread a quantity on level \a level_num.
      *
-     * @deprecated The function ignores \a f_prolongation_scheds. Use the overload without it.
+     * @deprecated The function stops with an error if \a f_prolongation_scheds has a non-null entry for a level
+     * finer than \a level_num. Use the overload without it.
      */
     IBTK_DEPRECATED("Use the overload without f_prolongation_scheds instead.")
     void spread(int f_data_idx,
@@ -604,7 +608,8 @@ public:
     /*!
      * \brief Interpolate a quantity on level \a level_num.
      *
-     * @deprecated The function ignores \a f_synch_scheds. Use the overload without it.
+     * @deprecated The function stops with an error if \a f_synch_scheds has a non-null entry for a level
+     * finer than \a level_num. Use the overload without it.
      */
     IBTK_DEPRECATED("Use the overload without f_synch_scheds instead.")
     void interp(int f_data_idx,

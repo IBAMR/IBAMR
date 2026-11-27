@@ -34,10 +34,15 @@
 #include <CellData.h>
 #include <CellIterator.h>
 #include <CellVariable.h>
+#include <CoarsenAlgorithm.h>
+#include <CoarsenOperator.h>
+#include <CoarsenSchedule.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
+#include <RefineAlgorithm.h>
+#include <RefineSchedule.h>
 #include <StandardTagAndInitialize.h>
 #include <VariableDatabase.h>
 
@@ -46,6 +51,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "../tests.h"
 
 #include <ibtk/app_namespaces.h>
 
@@ -241,6 +248,8 @@ main(int argc, char** argv)
 {
     IBTK::IBTKInit ibtk_init(argc, argv);
     Logger::getInstance()->setWarning(false);
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
 
     Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -315,6 +324,40 @@ main(int argc, char** argv)
             f_data->fillAll(0.0);
         }
     }
+
+    // The input optionally selects a call of a deprecated overload with a non-null schedule for level 1, which must
+    // stop with an error.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    const std::string deprecated_schedules =
+        app_initializer->getInputDatabase()->getStringWithDefault("deprecated_schedules", "NONE");
+    if (deprecated_schedules == "PROLONGATION")
+    {
+        Pointer<IBTK::LData> X_data = l_data_manager->getLData(IBTK::LDataManager::POSN_DATA_NAME, 0);
+        Pointer<IBTK::LData> F_data = l_data_manager->createLData("F", 0, 1);
+        RefineAlgorithm<NDIM> refine_alg;
+        refine_alg.registerRefine(f_idx, f_idx, f_idx, nullptr);
+        std::vector<Pointer<RefineSchedule<NDIM>>> prolongation_scheds(finest_ln + 1);
+        prolongation_scheds[1] = refine_alg.createSchedule(patch_hierarchy->getPatchLevel(1));
+        l_data_manager->spread(f_idx, F_data, X_data, nullptr, 0, prolongation_scheds);
+    }
+    else if (deprecated_schedules == "SYNCHRONIZATION")
+    {
+        Pointer<IBTK::LData> X_data = l_data_manager->getLData(IBTK::LDataManager::POSN_DATA_NAME, 0);
+        Pointer<IBTK::LData> Q_data = l_data_manager->createLData("Q", 0, 1);
+        CoarsenAlgorithm<NDIM> coarsen_alg;
+        coarsen_alg.registerCoarsen(q_idx, q_idx, grid_geometry->lookupCoarsenOperator(q_var, "CONSERVATIVE_COARSEN"));
+        std::vector<Pointer<CoarsenSchedule<NDIM>>> synch_scheds(finest_ln + 1);
+        synch_scheds[1] =
+            coarsen_alg.createSchedule(patch_hierarchy->getPatchLevel(0), patch_hierarchy->getPatchLevel(1));
+        l_data_manager->interp(q_idx, Q_data, X_data, 0, synch_scheds, {});
+    }
+    else if (deprecated_schedules != "NONE")
+    {
+        TBOX_ERROR("l_data_manager_two_levels:\n"
+                   << "  unknown value " << deprecated_schedules << " of deprecated_schedules\n");
+    }
+#pragma GCC diagnostic pop
 
     // Interpolate on each level. The interpolated value at the inactive marker is zero.
     for (int ln = 0; ln <= finest_ln; ++ln)
