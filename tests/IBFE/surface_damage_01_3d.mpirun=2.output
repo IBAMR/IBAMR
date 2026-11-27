@@ -1,0 +1,11 @@
+SURFACE_DAMAGE_CHECKS PASS
+nh_energy_err=0.00000e+00
+sk_energy_err=0.00000e+00
+pk1_fd_lt_1e7=1
+helm_const_err=0.00000e+00
+helm_int_err=0.00000e+00
+helm_y20_err_1x=1.60911e-04
+helm_y20_err_2x=2.03759e-05
+helm_spike_rel=0.01243
+restart_mpi_diff=0.00000e+00
+global_slots=4

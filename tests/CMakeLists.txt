@@ -245,6 +245,8 @@ IF(${IBAMR_HAVE_LIBMESH})
   SETUP_3D(IBFE instrument_panel_01.cpp)
   SETUP_3D(IBFE interpolate_velocity_01.cpp)
   SETUP_3D(IBFE zero_exterior_values.cpp)
+  SETUP_3D(IBFE surface_damage_01.cpp)
+  TARGET_INCLUDE_DIRECTORIES(tests-IBFE_surface_damage_01_3d PRIVATE "${CMAKE_SOURCE_DIR}/examples/IBFE/explicit/ex14")
 ENDIF()
 
 # IMP:
