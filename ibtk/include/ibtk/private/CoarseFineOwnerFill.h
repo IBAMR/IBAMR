@@ -19,6 +19,8 @@
 #include <ibtk/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/ArrayDataTransaction.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Pointer.h>
 #include <tbox/Schedule.h>
@@ -63,7 +65,8 @@ class CoarseFineOwnerFill : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 public:
     /*!
      * \brief Constructor. Sets up the levels coarsest_ln to finest_ln of the hierarchy (level 0 has no coarse-fine
-     * interface).
+     * interface). Objects on the same levels with the same centering, ghost width, and fill pattern shape share the
+     * geometry of the interface while any of them exists.
      */
     CoarseFineOwnerFill(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
                         int coarsest_ln,
@@ -73,8 +76,8 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern);
 
     /*!
-     * \brief Use other patch data indices and fill pattern. The centering, depth, and fill width of the data and the
-     * shape of the fill pattern must not change; a change stops with an error.
+     * \brief Use other patch data indices and fill pattern. The centering, depth, ghost width, and fill width of the
+     * data and the shape of the fill pattern must not change; a change stops with an error.
      */
     void resetPatchDataIndices(int dst_data_idx,
                                int src_data_idx,
@@ -82,7 +85,7 @@ public:
 
     /*!
      * \brief Use the data with index data_idx as destination and source. The data must have the centering, depth,
-     * and fill width of the data that the fill was set up for.
+     * ghost width, and fill width of the data that the fill was set up for.
      */
     void resetPatchDataIndex(int data_idx);
 
@@ -147,32 +150,110 @@ private:
     CoarseFineOwnerFill& operator=(const CoarseFineOwnerFill& that) = delete;
 
     /*!
-     * \brief The value along (d, s) on the cells or faces index_box of component comp, which a patch computes into
-     * owned.
+     * \brief The geometry of the coarse-fine interface that the fill reads: boxes, directions, patch numbers, and
+     * periodic offsets. The geometry contains no data index and no values, so that objects with the same key share one
+     * geometry.
+     * The key is the hierarchy levels, the centering, the ghost width, and the shape of the fill pattern.
      */
-    struct Task
+    struct Geometry
     {
-        //! The component: -1 for cell data, else the axis of the faces.
-        int comp = -1;
-        //! The direction (d, s): the axis d and the sign s of the step toward the fine level.
-        int d = 0;
-        int s = 0;
-        //! The cells (faces) that get values and the box that the kernels fill.
-        SAMRAI::hier::Box<NDIM> index_box;
-        SAMRAI::hier::Box<NDIM> kernel_box;
-        //! The values that the kernels compute.
-        std::unique_ptr<SAMRAI::pdat::ArrayData<NDIM, double>> owned;
+        /*!
+         * \brief The value along (d, s) on the cells or faces index_box of component comp, which a patch computes.
+         */
+        struct Task
+        {
+            //! The component: -1 for cell data, else the axis of the faces.
+            int comp = -1;
+            //! The direction (d, s): the axis d and the sign s of the step toward the fine level.
+            int d = 0;
+            int s = 0;
+            //! The cells (faces) that get values and the box that the kernels fill.
+            SAMRAI::hier::Box<NDIM> index_box;
+            SAMRAI::hier::Box<NDIM> kernel_box;
+        };
+
+        //! The box and the tasks of a local patch.
+        struct PatchWork
+        {
+            SAMRAI::hier::Box<NDIM> box;
+            std::vector<Task> tasks;
+        };
+
+        /*!
+         * \brief A box of ghost cells (faces) that gets the average of the values of the directions in directions.
+         */
+        struct Piece
+        {
+            //! The cells (faces) of the piece.
+            SAMRAI::hier::Box<NDIM> box;
+            //! The directions that contribute, indexed by the location index.
+            std::array<bool, 2 * NDIM> directions = {};
+        };
+
+        /*!
+         * \brief The values that a local patch gets: for each component, the boxes of the values of each direction
+         * and the pieces.
+         */
+        struct Receiver
+        {
+            //! The box of the values of each direction, indexed by the location index; valid if has_slot is true.
+            std::vector<std::array<SAMRAI::hier::Box<NDIM>, 2 * NDIM>> slot_boxes;
+            std::vector<std::array<bool, 2 * NDIM>> has_slot;
+            //! The pieces to average.
+            std::vector<std::vector<Piece>> pieces;
+        };
+
+        /*!
+         * \brief The values of task task of the patch src_patch that go to the ghost cells (faces) box of the patch
+         * dst_patch, shifted by offset.
+         */
+        struct Transfer
+        {
+            //! The patch numbers of the destination and the source, and the index of the task in the source.
+            int dst_patch = -1;
+            int src_patch = -1;
+            int task = -1;
+            //! The index of the component and the location index of the direction.
+            std::size_t ci = 0;
+            int code = 0;
+            //! The periodic shift of the source.
+            SAMRAI::hier::IntVector<NDIM> offset = SAMRAI::hier::IntVector<NDIM>(0);
+            //! The cells (faces) of the destination.
+            SAMRAI::hier::Box<NDIM> box;
+        };
+
+        //! The geometry of one level.
+        struct Level
+        {
+            //! Whether this process has values to compute or to set on the level.
+            bool active = false;
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level;
+            //! The work of the local patches, by patch number.
+            std::map<int, PatchWork> work;
+            //! The values that the local patches get, by patch number.
+            std::map<int, Receiver> receivers;
+            //! The transfers that involve a local patch, in the same order on every process.
+            std::vector<Transfer> transfers;
+        };
+
+        //! The levels max(1, coarsest_ln) through finest_ln, recorded when the geometry was built.
+        HierarchyLevelsIdentity identity;
+        int first_ln = 1;
+        int finest_ln = 0;
+        bool is_cell = true;
+        SAMRAI::hier::IntVector<NDIM> ghost_width = SAMRAI::hier::IntVector<NDIM>(0);
+        FillPatternShape shape;
+        //! The levels, indexed by level number.
+        std::vector<Level> levels;
     };
 
     /*!
-     * \brief The tasks and the work data of a local patch.
+     * \brief The values and work data of a local patch.
      */
-    struct PatchWork
+    struct PatchState
     {
-        //! The box of the patch.
-        SAMRAI::hier::Box<NDIM> box;
-        //! The tasks of the patch.
-        std::vector<Task> tasks;
+        //! The values that the kernels compute, for each task of the patch.
+        std::vector<std::unique_ptr<SAMRAI::pdat::ArrayData<NDIM, double>>> owned;
         //! The tangential values of each direction, indexed by the location index.
         std::array<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM>>, 2 * NDIM> tangential;
         //! The data that the normal kernels read and write.
@@ -182,60 +263,22 @@ private:
     };
 
     /*!
-     * \brief A box of ghost cells (faces) that gets the average of the values of the directions in directions.
+     * \brief The values that a local patch gets, for each component and direction.
      */
-    struct Piece
+    struct ReceiverState
     {
-        //! The cells (faces) of the piece.
-        SAMRAI::hier::Box<NDIM> box;
-        //! The directions that contribute, indexed by the location index.
-        std::array<bool, 2 * NDIM> directions = {};
-    };
-
-    /*!
-     * \brief The values that a local patch gets: for each component, the values of each direction and the pieces.
-     */
-    struct Receiver
-    {
-        //! The values of each direction, indexed by the location index.
         std::vector<std::array<std::unique_ptr<SAMRAI::pdat::ArrayData<NDIM, double>>, 2 * NDIM>> slots;
-        //! The pieces to average.
-        std::vector<std::vector<Piece>> pieces;
     };
 
     /*!
-     * \brief The values of task task of the patch src_patch that go to the ghost cells (faces) box of the patch
-     * dst_patch, shifted by offset.
+     * \brief The values of one level.
      */
-    struct Transfer
+    struct LevelState
     {
-        //! The patch numbers of the destination and the source, and the index of the task in the source.
-        int dst_patch = -1;
-        int src_patch = -1;
-        int task = -1;
-        //! The index of the component and the location index of the direction.
-        std::size_t ci = 0;
-        int code = 0;
-        //! The periodic shift of the source.
-        SAMRAI::hier::IntVector<NDIM> offset = SAMRAI::hier::IntVector<NDIM>(0);
-        //! The cells (faces) of the destination.
-        SAMRAI::hier::Box<NDIM> box;
-    };
-
-    /*!
-     * \brief The data of one level.
-     */
-    struct Level
-    {
-        //! Whether this process has values to compute or to set on the level.
-        bool active = false;
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level;
         //! The work of the local patches, by patch number.
-        std::map<int, PatchWork> work;
+        std::map<int, PatchState> work;
         //! The values that the local patches get, by patch number.
-        std::map<int, Receiver> receivers;
-        //! The transfers that involve a local patch, in the same order on every process.
-        std::vector<Transfer> transfers;
+        std::map<int, ReceiverState> receivers;
     };
 
     /*!
@@ -247,17 +290,28 @@ private:
     /*!
      * \brief Stop with an error if the fill width exceeds the ratio of level ln to the coarser level.
      */
-    void checkFillWidth(int ln) const;
+    void checkFillWidth(int ln, const SAMRAI::hier::IntVector<NDIM>& ratio) const;
+
+    /*!
+     * \brief Return the geometry with this object's key: the registered one if it exists, else a new one, which is
+     * registered unless the fill pattern has the kind OTHER.
+     */
+    std::shared_ptr<const Geometry> findGeometry() const;
 
     /*!
      * \brief Find the tasks and the transfers of level ln.
      */
-    void setUpLevel(int ln);
+    void setUpLevel(int ln, Geometry::Level& L) const;
 
     /*!
-     * \brief Allocate the values and find the pieces that the local patches of level ln get.
+     * \brief Find the pieces that the local patches of level ln get.
      */
-    void setUpReceivers(int ln);
+    void setUpReceivers(int ln, Geometry::Level& L) const;
+
+    /*!
+     * \brief Allocate the values of the local patches of level ln.
+     */
+    void setUpValues(int ln);
 
     /*!
      * \brief Allocate the work data of the local patches of level ln.
@@ -268,7 +322,8 @@ private:
      * \brief Compute the tangential values of a patch from the coarse data of the refine schedule.
      */
     void computeTangential(int ln,
-                           PatchWork& pw,
+                           const Geometry::PatchWork& pw,
+                           PatchState& state,
                            const SAMRAI::hier::Patch<NDIM>& coarse,
                            const SAMRAI::hier::Box<NDIM>& fine_box,
                            const SAMRAI::hier::IntVector<NDIM>& ratio);
@@ -276,7 +331,10 @@ private:
     /*!
      * \brief Compute the values of a patch from its tangential values and its fine data.
      */
-    void computeNormal(PatchWork& pw, SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void computeNormal(const Geometry::PatchWork& pw,
+                       PatchState& state,
+                       SAMRAI::hier::Patch<NDIM>& patch,
+                       const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     //! The patch hierarchy.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;
@@ -308,8 +366,11 @@ private:
     //! The components: -1 for cell data, else the axes.
     std::vector<int> d_comps;
 
-    //! The data of each level.
-    std::vector<Level> d_levels;
+    //! The geometry of the coarse-fine interface, which objects with the same key share.
+    std::shared_ptr<const Geometry> d_geometry;
+
+    //! The values of each level.
+    std::vector<LevelState> d_levels;
 };
 } // namespace detail
 } // namespace IBTK

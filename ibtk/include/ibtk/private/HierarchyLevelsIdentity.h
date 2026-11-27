@@ -64,6 +64,16 @@ public:
      */
     bool changed(const SAMRAI::hier::PatchHierarchy<NDIM>& hierarchy, int coarsest_ln, int finest_ln);
 
+    /*!
+     * \brief Return true if this identity is that of levels \a coarsest_ln through \a finest_ln of \a hierarchy and
+     * every level of the identity is the current PatchLevel object of the hierarchy.
+     *
+     * An empty identity, a different level range, a level that is not the current PatchLevel object of the hierarchy,
+     * and a level number outside the hierarchy return false.
+     * This function leaves the identity unchanged.
+     */
+    bool matches(const SAMRAI::hier::PatchHierarchy<NDIM>& hierarchy, int coarsest_ln, int finest_ln) const;
+
 private:
     /*!
      * \name Data that determine the identity: the number of the first level in the range and the level objects in

@@ -57,6 +57,26 @@ HierarchyLevelsIdentity::changed(const PatchHierarchy<NDIM>& hierarchy, const in
     return true;
 } // changed
 
+bool
+HierarchyLevelsIdentity::matches(const PatchHierarchy<NDIM>& hierarchy,
+                                 const int coarsest_ln,
+                                 const int finest_ln) const
+{
+    if (d_coarsest_ln != coarsest_ln || coarsest_ln < 0 || finest_ln >= hierarchy.getNumberOfLevels() ||
+        finest_ln < coarsest_ln || d_levels.size() != static_cast<std::size_t>(finest_ln - coarsest_ln + 1))
+    {
+        return false;
+    }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_levels[ln - coarsest_ln].getPointer() != hierarchy.getPatchLevel(ln).getPointer())
+        {
+            return false;
+        }
+    }
+    return true;
+} // matches
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace detail
