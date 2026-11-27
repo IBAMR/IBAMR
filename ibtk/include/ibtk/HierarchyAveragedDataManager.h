@@ -61,6 +61,9 @@ namespace IBTK
  * centered variables are assumed to represent d-dimensional vector fields, while all other fields output a depth
  * consistent with the provided variable in the constructor.
  *
+ * This class holds references to the levels of the hierarchy until the next call to updateTimeAveragedSnapshot() or
+ * clearSnapshots(), so the levels that a regrid replaces remain in memory until then.
+ *
  * A common use of this class is to determine an average flow field over the course of a simulation. For example, the
  * below code will take snapshots of a flow field at specified intervals.
  *
