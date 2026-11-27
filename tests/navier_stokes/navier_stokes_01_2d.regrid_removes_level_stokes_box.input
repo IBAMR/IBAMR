@@ -133,7 +133,7 @@ INSStaggeredHierarchyIntegrator {
       coarse_solver_type = "PETSC_LEVEL_SOLVER"
       coarse_solver_rel_residual_tol = 1.0e-14
       coarse_solver_abs_residual_tol = 1.0e-300
-      coarse_solver_max_iterations = 25
+      coarse_solver_max_iterations = 1
       coarse_solver_db {
          initial_guess_nonzero = TRUE
          ksp_type = "gmres"
