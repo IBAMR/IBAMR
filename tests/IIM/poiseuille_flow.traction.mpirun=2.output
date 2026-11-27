@@ -48,6 +48,10 @@ Writing state data...
 
  P_max_norm = 0.08042990873
 
+ P_end_L2_norm = 0.1251975389
+
+ P_end_max_norm = 0.1873200939
+
  disp_L2_norm = 8.474348175e-05
 
  disp_max_norm = 6.445537571e-05
@@ -88,6 +92,10 @@ Writing state data...
  P_L2_norm = 0.08358645217
 
  P_max_norm = 0.07837670412
+
+ P_end_L2_norm = 0.1229221445
+
+ P_end_max_norm = 0.1872753603
 
  disp_L2_norm = 7.077417997e-05
 
@@ -130,6 +138,10 @@ Writing state data...
 
  P_max_norm = 0.07838332806
 
+ P_end_L2_norm = 0.121885895
+
+ P_end_max_norm = 0.1795859003
+
  disp_L2_norm = 0.0001126326762
 
  disp_max_norm = 7.797044161e-05
@@ -170,6 +182,10 @@ Writing state data...
  P_L2_norm = 0.08121758693
 
  P_max_norm = 0.07668050993
+
+ P_end_L2_norm = 0.1193517858
+
+ P_end_max_norm = 0.1718642086
 
  disp_L2_norm = 9.625237708e-05
 
@@ -212,6 +228,10 @@ Writing state data...
 
  P_max_norm = 0.07703905367
 
+ P_end_L2_norm = 0.116239388
+
+ P_end_max_norm = 0.1646141834
+
  disp_L2_norm = 0.0001219626975
 
  disp_max_norm = 7.988181411e-05
@@ -252,6 +272,10 @@ Writing state data...
  P_L2_norm = 0.07923158844
 
  P_max_norm = 0.07498569187
+
+ P_end_L2_norm = 0.1131153703
+
+ P_end_max_norm = 0.1560688843
 
  disp_L2_norm = 0.0001066189484
 
@@ -294,6 +318,10 @@ Writing state data...
 
  P_max_norm = 0.07740996754
 
+ P_end_L2_norm = 0.1087204964
+
+ P_end_max_norm = 0.1470191153
+
  disp_L2_norm = 0.0001254249567
 
  disp_max_norm = 7.940679321e-05
@@ -334,6 +362,10 @@ Writing state data...
  P_L2_norm = 0.07774009606
 
  P_max_norm = 0.07533861754
+
+ P_end_L2_norm = 0.1049392645
+
+ P_end_max_norm = 0.1366696175
 
  disp_L2_norm = 0.0001121042909
 
@@ -376,6 +408,10 @@ Writing state data...
 
  P_max_norm = 0.07771381131
 
+ P_end_L2_norm = 0.09982151147
+
+ P_end_max_norm = 0.12614933
+
  disp_L2_norm = 0.0001274764305
 
  disp_max_norm = 8.092035086e-05
@@ -416,6 +452,10 @@ Writing state data...
  P_L2_norm = 0.07660989069
 
  P_max_norm = 0.07561280856
+
+ P_end_L2_norm = 0.09567820189
+
+ P_end_max_norm = 0.1147405769
 
  disp_L2_norm = 0.0001163080192
 
@@ -458,6 +498,10 @@ Writing state data...
 
  P_max_norm = 0.07778713493
 
+ P_end_L2_norm = 0.09036295505
+
+ P_end_max_norm = 0.1058736874
+
  disp_L2_norm = 0.0001296455793
 
  disp_max_norm = 8.265839963e-05
@@ -498,6 +542,10 @@ Writing state data...
  P_L2_norm = 0.07573739839
 
  P_max_norm = 0.07574011058
+
+ P_end_L2_norm = 0.08620972197
+
+ P_end_max_norm = 0.1053917227
 
  disp_L2_norm = 0.000120454125
 
@@ -544,6 +592,10 @@ Writing state data...
 
  P_max_norm = 0.07766246241
 
+ P_end_L2_norm = 0.08107571988
+
+ P_end_max_norm = 0.1042481902
+
  disp_L2_norm = 0.0001323747963
 
  disp_max_norm = 8.308530816e-05
@@ -584,6 +636,10 @@ Writing state data...
  P_L2_norm = 0.07483793434
 
  P_max_norm = 0.07567538595
+
+ P_end_L2_norm = 0.07726105631
+
+ P_end_max_norm = 0.1030733276
 
  disp_L2_norm = 0.0001248946485
 
@@ -626,6 +682,10 @@ Writing state data...
 
  P_max_norm = 0.0773563442
 
+ P_end_L2_norm = 0.07281330183
+
+ P_end_max_norm = 0.1014004952
+
  disp_L2_norm = 0.0001357165475
 
  disp_max_norm = 8.275903951e-05
@@ -666,6 +726,10 @@ Writing state data...
  P_L2_norm = 0.0739337587
 
  P_max_norm = 0.07542556944
+
+ P_end_L2_norm = 0.06957923359
+
+ P_end_max_norm = 0.09956246069
 
  disp_L2_norm = 0.0001296865455
 
@@ -708,6 +772,10 @@ Writing state data...
 
  P_max_norm = 0.07683865123
 
+ P_end_L2_norm = 0.06597900559
+
+ P_end_max_norm = 0.09727919112
+
  disp_L2_norm = 0.0001396150506
 
  disp_max_norm = 8.203001117e-05
@@ -748,6 +816,10 @@ Writing state data...
  P_L2_norm = 0.07294866148
 
  P_max_norm = 0.07495019402
+
+ P_end_L2_norm = 0.06348801974
+
+ P_end_max_norm = 0.09472950473
 
  disp_L2_norm = 0.000134813345
 
@@ -790,6 +862,10 @@ Writing state data...
 
  P_max_norm = 0.07611520971
 
+ P_end_L2_norm = 0.06081754075
+
+ P_end_max_norm = 0.09225844048
+
  disp_L2_norm = 0.0001440064093
 
  disp_max_norm = 8.166949857e-05
@@ -831,6 +907,10 @@ Writing state data...
 
  P_max_norm = 0.07424554226
 
+ P_end_L2_norm = 0.05903691728
+
+ P_end_max_norm = 0.1035522342
+
  disp_L2_norm = 0.0001402551548
 
  disp_max_norm = 8.474719204e-05
@@ -849,13 +929,13 @@ Computing error norms.
 
 Error in u at time 0.0390625:
   L1-norm:  0.0395104286351618
-  max-norm: 0.02674106584539289
-  L2-norm:  0.01059713054648723
+  max-norm: 0.02674106584539283
+  L2-norm:  0.01059713054648722
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 Error in p at time 0.0380859375:
-  L1-norm:  0.3870086580030678
-  max-norm: 0.1929720913995266
-  L2-norm:  0.1137214011111084
+  L1-norm:  0.3870086580030672
+  max-norm: 0.1929720913995268
+  L2-norm:  0.1137214011111082
 +++++++++++++++++++++++++++++++++++++++++++++++++++
  MU = 0.01
   dx:  0.0390625

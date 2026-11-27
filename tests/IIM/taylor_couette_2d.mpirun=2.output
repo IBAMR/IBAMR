@@ -53,6 +53,10 @@ Lagrangian P_L2_norm = 4.14763
 
 Lagrangian P_max_norm = 2.34079
 
+Lagrangian P_mean_error = 2.34079
+
+Lagrangian P_dev_L2_norm = 0
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 1
@@ -92,6 +96,10 @@ Lagrangian P_L2_norm = 4.14885
 
 Lagrangian P_max_norm = 2.34812
 
+Lagrangian P_mean_error = 2.34148
+
+Lagrangian P_dev_L2_norm = 0.00347081
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 2
@@ -130,6 +138,10 @@ Simulation time is 0.00497016
 Lagrangian P_L2_norm = 4.14862
 
 Lagrangian P_max_norm = 2.3443
+
+Lagrangian P_mean_error = 2.34135
+
+Lagrangian P_dev_L2_norm = 0.00229477
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -174,6 +186,10 @@ Lagrangian P_L2_norm = 4.14866
 
 Lagrangian P_max_norm = 2.34584
 
+Lagrangian P_mean_error = 2.34137
+
+Lagrangian P_dev_L2_norm = 0.00321412
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 4
@@ -213,6 +229,10 @@ Lagrangian P_L2_norm = 4.14867
 
 Lagrangian P_max_norm = 2.3474
 
+Lagrangian P_mean_error = 2.34138
+
+Lagrangian P_dev_L2_norm = 0.00421543
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 5
@@ -251,6 +271,10 @@ Simulation time is 0.00994031
 Lagrangian P_L2_norm = 4.14868
 
 Lagrangian P_max_norm = 2.34842
+
+Lagrangian P_mean_error = 2.34138
+
+Lagrangian P_dev_L2_norm = 0.0049736
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -295,6 +319,10 @@ Lagrangian P_L2_norm = 4.14869
 
 Lagrangian P_max_norm = 2.34905
 
+Lagrangian P_mean_error = 2.34139
+
+Lagrangian P_dev_L2_norm = 0.00555269
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 7
@@ -334,6 +362,10 @@ Lagrangian P_L2_norm = 4.14871
 
 Lagrangian P_max_norm = 2.34941
 
+Lagrangian P_mean_error = 2.34139
+
+Lagrangian P_dev_L2_norm = 0.0059888
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 8
@@ -372,6 +404,10 @@ Simulation time is 0.0149105
 Lagrangian P_L2_norm = 4.14872
 
 Lagrangian P_max_norm = 2.34994
+
+Lagrangian P_mean_error = 2.3414
+
+Lagrangian P_dev_L2_norm = 0.00633272
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -416,6 +452,10 @@ Lagrangian P_L2_norm = 4.14873
 
 Lagrangian P_max_norm = 2.35045
 
+Lagrangian P_mean_error = 2.34141
+
+Lagrangian P_dev_L2_norm = 0.00663338
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 10
@@ -455,6 +495,10 @@ Lagrangian P_L2_norm = 4.14874
 
 Lagrangian P_max_norm = 2.35098
 
+Lagrangian P_mean_error = 2.34142
+
+Lagrangian P_dev_L2_norm = 0.00695109
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 11
@@ -493,6 +537,10 @@ Simulation time is 0.0198806
 Lagrangian P_L2_norm = 4.14876
 
 Lagrangian P_max_norm = 2.35158
+
+Lagrangian P_mean_error = 2.34142
+
+Lagrangian P_dev_L2_norm = 0.00732463
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -537,6 +585,10 @@ Lagrangian P_L2_norm = 4.14876
 
 Lagrangian P_max_norm = 2.35266
 
+Lagrangian P_mean_error = 2.34142
+
+Lagrangian P_dev_L2_norm = 0.00778632
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 13
@@ -576,6 +628,10 @@ Lagrangian P_L2_norm = 4.14878
 
 Lagrangian P_max_norm = 2.35458
 
+Lagrangian P_mean_error = 2.34143
+
+Lagrangian P_dev_L2_norm = 0.00835119
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 14
@@ -614,6 +670,10 @@ Simulation time is 0.0248508
 Lagrangian P_L2_norm = 4.1488
 
 Lagrangian P_max_norm = 2.35669
+
+Lagrangian P_mean_error = 2.34144
+
+Lagrangian P_dev_L2_norm = 0.00900826
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -658,6 +718,10 @@ Lagrangian P_L2_norm = 4.14881
 
 Lagrangian P_max_norm = 2.35893
 
+Lagrangian P_mean_error = 2.34145
+
+Lagrangian P_dev_L2_norm = 0.00975074
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 16
@@ -697,6 +761,10 @@ Lagrangian P_L2_norm = 4.14883
 
 Lagrangian P_max_norm = 2.36126
 
+Lagrangian P_mean_error = 2.34146
+
+Lagrangian P_dev_L2_norm = 0.0105448
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 17
@@ -735,6 +803,10 @@ Simulation time is 0.0298209
 Lagrangian P_L2_norm = 4.14886
 
 Lagrangian P_max_norm = 2.36357
+
+Lagrangian P_mean_error = 2.34147
+
+Lagrangian P_dev_L2_norm = 0.0113704
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -781,6 +853,10 @@ Lagrangian P_L2_norm = 4.14881
 
 Lagrangian P_max_norm = 2.36565
 
+Lagrangian P_mean_error = 2.34144
+
+Lagrangian P_dev_L2_norm = 0.0121541
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 Computing error norms.
@@ -793,8 +869,8 @@ Computing error norms.
  u_Eulerian_max_norm = 0.0282519
 
 Error in the Eulerian u at time 0.03125:
-  L2-norm:  0.004224337041263381
-  max-norm: 0.0282518876454676
+  L2-norm:  0.004224337041263369
+  max-norm: 0.02825188764546849
 +++++++++++++++++++++++++++++++++++++++++++++++++++
  MU = 0.01
   dx:  0.03125

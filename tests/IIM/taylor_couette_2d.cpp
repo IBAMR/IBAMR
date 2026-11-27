@@ -844,6 +844,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
         double WSS_L2_norm = 0.0, WSS_max_norm = 0.0;
         double U_L2_norm = 0.0, U_max_norm = 0.0;
         double P_L2_norm = 0.0, P_max_norm = 0.0;
+        double P_err_sum = 0.0, P_err_sq_sum = 0.0, P_length = 0.0;
         double disp_L2_norm = 0.0, disp_max_norm = 0.0;
         System& U_system = equation_systems->get_system<System>(IIMethod::VELOCITY_SYSTEM_NAME);
         System& WSS_system = equation_systems->get_system<System>(IIMethod::WSS_OUT_SYSTEM_NAME);
@@ -940,6 +941,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
                 }
                 P_L2_norm += std::abs(P_i_qp - p_ex_qp) * std::abs(P_i_qp - p_ex_qp) * JxW[qp];
                 P_max_norm = std::max(P_max_norm, std::abs(P_i_qp - p_ex_qp));
+                P_err_sum += (P_i_qp - p_ex_qp) * JxW[qp];
+                P_err_sq_sum += (P_i_qp - p_ex_qp) * (P_i_qp - p_ex_qp) * JxW[qp];
+                P_length += JxW[qp];
 
                 disp_L2_norm += (X_qp(0) * cos(OMEGA1 * loop_time) - X_qp(1) * sin(OMEGA1 * loop_time) - x_qp(0)) *
                                 (X_qp(0) * cos(OMEGA1 * loop_time) - X_qp(1) * sin(OMEGA1 * loop_time) - x_qp(0)) *
@@ -966,6 +970,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
         SAMRAI_MPI::maxReduction(&disp_max_norm, 1);
         SAMRAI_MPI::sumReduction(&P_L2_norm, 1);
         SAMRAI_MPI::maxReduction(&P_max_norm, 1);
+        SAMRAI_MPI::sumReduction(&P_err_sum, 1);
+        SAMRAI_MPI::sumReduction(&P_err_sq_sum, 1);
+        SAMRAI_MPI::sumReduction(&P_length, 1);
 
         U_L2_norm = sqrt(U_L2_norm);
         WSS_L2_norm = sqrt(WSS_L2_norm);
@@ -983,6 +990,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
 
         pout << "Lagrangian P_L2_norm = " << P_L2_norm << "\n\n";
         pout << "Lagrangian P_max_norm = " << P_max_norm << "\n\n";
+
+        // The L2 norm of the pressure error after removing its interface mean.
+        pout << "Lagrangian P_mean_error = " << P_err_sum / P_length << "\n\n";
+        pout << "Lagrangian P_dev_L2_norm = " << sqrt(std::max(0.0, P_err_sq_sum - P_err_sum * P_err_sum / P_length))
+             << "\n\n";
     }
 
     return;
