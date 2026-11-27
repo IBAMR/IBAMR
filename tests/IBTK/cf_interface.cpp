@@ -274,8 +274,12 @@ main(int argc, char* argv[])
         // With RESET_TO_OTHER_DESTINATION, the test builds the schedules to fill a copy of Q in place, then resets the
         // component to fill Q from the copy.
         const bool reset_to_other_destination = input_db->getBoolWithDefault("RESET_TO_OTHER_DESTINATION", false);
+        // With CLONE_COPY, the copy is a cloned index, which has a variable and no context.
+        const bool clone_copy = input_db->getBoolWithDefault("CLONE_COPY", false);
         const int Q_copy_idx =
-            var_db->registerVariableAndContext(Q_var, var_db->getContext("COPY"), IntVector<NDIM>(ghost_width));
+            clone_copy ?
+                var_db->registerClonedPatchDataIndex(Q_var, Q_idx) :
+                var_db->registerVariableAndContext(Q_var, var_db->getContext("COPY"), IntVector<NDIM>(ghost_width));
         // Initialize the AMR patch hierarchy.
         Pointer<PatchHierarchy<NDIM>> patch_hierarchy = make_hierarchy(app_initializer, grid_geometry);
 

@@ -844,7 +844,8 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
                 Pointer<Variable<NDIM>> var;
                 Pointer<VariableContext> ctx;
                 var_db->mapIndexToVariableAndContext(data_idx, var, ctx);
-                return var ? var->getName() + " in context " + ctx->getName() : "with no variable";
+                if (!var) return std::string("with no variable");
+                return ctx ? var->getName() + " in context " + ctx->getName() : var->getName() + " with no context";
             };
             TBOX_ERROR(
                 "HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
