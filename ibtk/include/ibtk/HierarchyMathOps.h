@@ -24,6 +24,7 @@
 #include <ibtk/SAMRAIDataCache.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CoarseFineBoundaryCache.h>
 
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
@@ -1701,6 +1702,10 @@ private:
     // quantities we create both (and corresponding outernode) sets of
     // variables.
     SAMRAIDataCache d_cached_eulerian_data;
+
+    // The coarse-fine boundary of each level, which enforceHangingNodeConstraints() reuses until the layout changes.
+    std::vector<detail::CoarseFineBoundaryCache> d_hanging_node_cf_caches;
+
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> d_fc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_nc_s_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double>> d_nc_v_var;

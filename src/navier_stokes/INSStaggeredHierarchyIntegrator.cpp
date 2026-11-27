@@ -1755,6 +1755,14 @@ INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // The regrid replaces the levels above the base level. Release the plot fill operators and the levels they
+    // reference.
+    d_plot_U_fill.setNull();
+    d_plot_P_fill.setNull();
+    d_plot_Omega_fill.setNull();
+    d_plot_fill_levels = IBTK::detail::HierarchyLevelsIdentity();
+
     // Do not coarsen or refine any plot data. Also ensure the divergence and
     // sources are allocated.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2069,6 +2077,12 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     // Most of these require scratch data
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    if (d_plot_fill_levels.changed(*d_hierarchy, coarsest_ln, finest_ln))
+    {
+        d_plot_U_fill.setNull();
+        d_plot_P_fill.setNull();
+        d_plot_Omega_fill.setNull();
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
@@ -2113,9 +2127,16 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                    "LINEAR",
                                                    false,
                                                    getVelocityBoundaryConditions());
-            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_bdry_fill->initializeOperatorState(comp, d_hierarchy);
-            hier_bdry_fill->fillData(d_integrator_time);
+            if (!d_plot_U_fill)
+            {
+                d_plot_U_fill = new HierarchyGhostCellInterpolation();
+                d_plot_U_fill->initializeOperatorState(comp, d_hierarchy);
+            }
+            else
+            {
+                d_plot_U_fill->resetTransactionComponent(comp);
+            }
+            d_plot_U_fill->fillData(d_integrator_time);
         }
 
         // synch both the src and dst data:
@@ -2137,17 +2158,20 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         // We need updated ghost values to interpolate from side data:
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         {
-            InterpolationTransactionComponent comp(d_P_scratch_idx,
-                                                   P_cc_idx,
-                                                   "CONSERVATIVE_LINEAR_REFINE",
-                                                   true,
-                                                   "CONSERVATIVE_COARSEN",
-                                                   "LINEAR",
-                                                   false,
-                                                   nullptr);
-            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_bdry_fill->initializeOperatorState(comp, d_hierarchy);
-            hier_bdry_fill->fillData(d_integrator_time);
+            if (!d_plot_P_fill)
+            {
+                InterpolationTransactionComponent comp(d_P_scratch_idx,
+                                                       P_cc_idx,
+                                                       "CONSERVATIVE_LINEAR_REFINE",
+                                                       true,
+                                                       "CONSERVATIVE_COARSEN",
+                                                       "LINEAR",
+                                                       false,
+                                                       nullptr);
+                d_plot_P_fill = new HierarchyGhostCellInterpolation();
+                d_plot_P_fill->initializeOperatorState(comp, d_hierarchy);
+            }
+            d_plot_P_fill->fillData(d_integrator_time);
         }
 
         // synch both the src and dst data:
@@ -2164,8 +2188,6 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     // Compute Omega = curl U.
     if (d_output_Omega)
     {
-        const int coarsest_ln = 0;
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
 
         // Make our own boundary filling op because the standard one does not do any refining:
@@ -2177,9 +2199,16 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                          d_bdry_extrap_type, // TODO: update variable name
                                                          CONSISTENT_TYPE_2_BDRY,
                                                          d_U_bc_coefs);
-        HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
-        U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, coarsest_ln, finest_ln);
-        U_bdry_bc_fill_op.fillData(d_integrator_time);
+        if (!d_plot_Omega_fill)
+        {
+            d_plot_Omega_fill = new HierarchyGhostCellInterpolation();
+            d_plot_Omega_fill->initializeOperatorState(U_bc_component, d_hierarchy, coarsest_ln, finest_ln);
+        }
+        else
+        {
+            d_plot_Omega_fill->resetTransactionComponent(U_bc_component);
+        }
+        d_plot_Omega_fill->fillData(d_integrator_time);
         d_hier_math_ops->curl(d_Omega_nc_idx,
                               d_Omega_nc_var,
                               synch_cf_interface,
