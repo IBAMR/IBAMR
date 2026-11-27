@@ -305,7 +305,15 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 {
     if (d_num_meters == 0) return;
 
-    if (!d_initialized) initializeHierarchyIndependentData(ib_method_ops);
+    if (!d_initialized)
+    {
+        if (!hierarchy->getGridGeometry()->getDomainIsSingleBox())
+        {
+            TBOX_ERROR("IBFEInstrumentPanel::readInstrumentData : "
+                       << "the physical domain must be a single box\n");
+        }
+        initializeHierarchyIndependentData(ib_method_ops);
+    }
 
     // Update the meter meshes to correspond to the current configuration of the FE mesh.
     for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
