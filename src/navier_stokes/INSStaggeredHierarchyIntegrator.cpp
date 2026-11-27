@@ -2119,18 +2119,22 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         // We need updated ghost values to interpolate from side data:
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         {
+            InterpolationTransactionComponent comp(d_U_scratch_idx,
+                                                   U_sc_idx,
+                                                   "CONSERVATIVE_LINEAR_REFINE",
+                                                   true,
+                                                   "CONSERVATIVE_COARSEN",
+                                                   "LINEAR",
+                                                   false,
+                                                   getVelocityBoundaryConditions());
             if (!d_plot_U_fill)
             {
-                InterpolationTransactionComponent comp(d_U_scratch_idx,
-                                                       U_sc_idx,
-                                                       "CONSERVATIVE_LINEAR_REFINE",
-                                                       true,
-                                                       "CONSERVATIVE_COARSEN",
-                                                       "LINEAR",
-                                                       false,
-                                                       getVelocityBoundaryConditions());
                 d_plot_U_fill = new HierarchyGhostCellInterpolation();
                 d_plot_U_fill->initializeOperatorState(comp, d_hierarchy);
+            }
+            else
+            {
+                d_plot_U_fill->resetTransactionComponent(comp);
             }
             d_plot_U_fill->fillData(d_integrator_time);
         }
@@ -2188,17 +2192,21 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 
         // Make our own boundary filling op because the standard one does not do any refining:
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
+                                                         "SPECIALIZED_LINEAR_REFINE",
+                                                         USE_CF_INTERPOLATION,
+                                                         DATA_COARSEN_TYPE,
+                                                         d_bdry_extrap_type, // TODO: update variable name
+                                                         CONSISTENT_TYPE_2_BDRY,
+                                                         d_U_bc_coefs);
         if (!d_plot_Omega_fill)
         {
-            InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
-                                                             "SPECIALIZED_LINEAR_REFINE",
-                                                             USE_CF_INTERPOLATION,
-                                                             DATA_COARSEN_TYPE,
-                                                             d_bdry_extrap_type, // TODO: update variable name
-                                                             CONSISTENT_TYPE_2_BDRY,
-                                                             d_U_bc_coefs);
             d_plot_Omega_fill = new HierarchyGhostCellInterpolation();
             d_plot_Omega_fill->initializeOperatorState(U_bc_component, d_hierarchy, coarsest_ln, finest_ln);
+        }
+        else
+        {
+            d_plot_Omega_fill->resetTransactionComponent(U_bc_component);
         }
         d_plot_Omega_fill->fillData(d_integrator_time);
         d_hier_math_ops->curl(d_Omega_nc_idx,

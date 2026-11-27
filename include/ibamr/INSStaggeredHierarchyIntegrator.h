@@ -513,7 +513,8 @@ private:
 
     /*!
      * The ghost-cell fill operators used by setupPlotDataSpecialized() and the levels they were built for. They are
-     * discarded when the levels change, which includes the start of a regrid.
+     * discarded when the levels change, which includes the start of a regrid. Otherwise each call resets their
+     * components, which sets the current Robin boundary condition coefficient objects.
      */
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_plot_U_fill, d_plot_P_fill, d_plot_Omega_fill;
     IBTK::detail::HierarchyLevelsIdentity d_plot_fill_levels;
