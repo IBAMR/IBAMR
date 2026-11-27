@@ -163,6 +163,11 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
 
 IBHydrodynamicSurfaceForceEvaluator::~IBHydrodynamicSurfaceForceEvaluator()
 {
+    // The cached fills refer to the indices removed below.
+    d_ls_fill.clear();
+    d_u_fill.clear();
+    d_mu_fill.clear();
+    d_p_fill.clear();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     var_db->removePatchDataIndex(d_ls_solid_idx);
     var_db->removePatchDataIndex(d_u_idx);
@@ -446,10 +451,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM>>
                                                            /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                            d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var),
                                                            Pointer<VariableFillPattern<NDIM>>(nullptr));
-    Pointer<HierarchyGhostCellInterpolation> hier_ls_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_ls_bdry_fill->initializeOperatorState(ls_solid_transaction, patch_hierarchy);
-    hier_ls_bdry_fill->setHomogeneousBc(false);
-    hier_ls_bdry_fill->fillData(fill_time);
+    d_ls_fill.get({ ls_solid_transaction }, patch_hierarchy).fillData(fill_time);
 
     // Fill ghost cells for velocity
     Pointer<SideVariable<NDIM, double>> u_var = d_fluid_solver->getVelocityVariable();
@@ -466,11 +468,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM>>
                                                     /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                     d_fluid_solver->getVelocityBoundaryConditions(),
                                                     Pointer<VariableFillPattern<NDIM>>(nullptr));
-
-    Pointer<HierarchyGhostCellInterpolation> hier_vel_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_vel_bdry_fill->initializeOperatorState(u_transaction, patch_hierarchy);
-    hier_vel_bdry_fill->setHomogeneousBc(false);
-    hier_vel_bdry_fill->fillData(fill_time);
+    d_u_fill.get({ u_transaction }, patch_hierarchy).fillData(fill_time);
 
     // Fill in ghost cells for viscosity, when necessary
     if (!d_mu_is_const)
@@ -515,10 +513,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM>>
                                                               /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                               mu_bc_coef,
                                                               Pointer<VariableFillPattern<NDIM>>(nullptr));
-        Pointer<HierarchyGhostCellInterpolation> hier_mu_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_mu_bdry_fill->initializeOperatorState(mu_transaction_comp, patch_hierarchy);
-        hier_mu_bdry_fill->setHomogeneousBc(false);
-        hier_mu_bdry_fill->fillData(fill_time);
+        d_mu_fill.get({ mu_transaction_comp }, patch_hierarchy).fillData(fill_time);
     }
 
     // Fill ghost cells for pressure
@@ -530,7 +525,6 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM>>
     auto p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
     auto p_vc_ins_bc_coef =
         dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
-    InterpolationTransactionComponent p_transaction_comp;
     if (p_ins_bc_coef)
     {
         InterpolationTransactionComponent p_transaction_comp(d_p_idx,
@@ -542,10 +536,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM>>
                                                              /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                              p_ins_bc_coef,
                                                              Pointer<VariableFillPattern<NDIM>>(nullptr));
-        Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
-        hier_p_bdry_fill->setHomogeneousBc(false);
-        hier_p_bdry_fill->fillData(fill_time);
+        d_p_fill.get({ p_transaction_comp }, patch_hierarchy).fillData(fill_time);
     }
     else if (p_vc_ins_bc_coef)
     {
@@ -558,11 +549,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM>>
                                                              /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                              p_vc_ins_bc_coef,
                                                              Pointer<VariableFillPattern<NDIM>>(nullptr));
-
-        Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
-        hier_p_bdry_fill->setHomogeneousBc(false);
-        hier_p_bdry_fill->fillData(fill_time);
+        d_p_fill.get({ p_transaction_comp }, patch_hierarchy).fillData(fill_time);
     }
     else
     {

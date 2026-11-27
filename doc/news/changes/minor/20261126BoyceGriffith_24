@@ -1,0 +1,3 @@
+Improved: Rebuild the ghost-cell fill operators of IBAMR::IBHydrodynamicForceEvaluator and IBAMR::IBHydrodynamicSurfaceForceEvaluator only after a regrid replaces a level, and the coarse-fine boundaries of the former only after a regrid changes the layout, instead of at every call.
+<br>
+(Boyce Griffith, 2026/11/26)
