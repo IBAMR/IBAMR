@@ -1212,12 +1212,12 @@ private:
     SAMRAIDataCache d_cached_eulerian_data;
 
     /*
-     * Objects that sum ghost values into their owners in spread(), by variable, ghost cell width, and range of levels.
-     * They are destroyed when the patches change. The width is a std::array because IBSAMRAI2's IntVector operator< is
+     * Objects that sum ghost values into their owners in spread(), by variable name, ghost cell width, and range of
+     * levels. The VariableDatabase requires unique names and rejects duplicates. The accumulators are destroyed when
+     * the patches change. The width is a std::array because IBSAMRAI2's IntVector operator< is
      * componentwise, not a strict weak order.
      */
-    std::map<std::tuple<const SAMRAI::hier::Variable<NDIM>*, std::array<int, NDIM>, int, int>,
-             std::unique_ptr<SAMRAIGhostDataAccumulator>>
+    std::map<std::tuple<std::string, std::array<int, NDIM>, int, int>, std::unique_ptr<SAMRAIGhostDataAccumulator>>
         d_ghost_data_accumulators;
 
     /*

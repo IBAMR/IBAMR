@@ -3169,7 +3169,7 @@ LDataManager::getGhostDataAccumulator(const Pointer<Variable<NDIM>>& var,
     {
         gcw_array[d] = gcw(d);
     }
-    const auto key = std::make_tuple(var.getPointer(), gcw_array, coarsest_ln, finest_ln);
+    const auto key = std::make_tuple(var->getName(), gcw_array, coarsest_ln, finest_ln);
     auto it = d_ghost_data_accumulators.find(key);
     if (it == d_ghost_data_accumulators.end())
     {
