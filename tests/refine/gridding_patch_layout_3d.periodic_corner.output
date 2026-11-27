@@ -1,0 +1,16 @@
+initial gridding:
+level 0: [(0,0,0),(31,15,15)] [(0,16,0),(27,31,15)]
+level 1: [(48,24,0),(55,31,7)]
+patches narrower than the ghost width, by direction: 0
+patch cells outside the domain: 0
+overlapping patch pairs: 0
+ghost cells outside the domain that no boundary fill box covers: 0
+cells in the domain the fill did not set: 0
+after one regrid:
+level 0: [(0,0,0),(31,15,15)] [(0,16,0),(27,31,15)]
+level 1: [(46,22,0),(57,31,9)] [(46,32,0),(55,35,9)] [(46,22,24),(57,31,31)] [(46,32,24),(55,35,31)]
+patches narrower than the ghost width, by direction: 0
+patch cells outside the domain: 0
+overlapping patch pairs: 0
+ghost cells outside the domain that no boundary fill box covers: 0
+cells in the domain the fill did not set: 0

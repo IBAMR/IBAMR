@@ -1,0 +1,44 @@
+// An L-shaped domain, periodic in z, with tags next to its inner edge. The level 1 patch touches a periodic face and
+// the inner edge only diagonally, and physical boundary boxes must cover its ghost cells beyond the edge.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0,0), (31,15,15)], [(0,16,0), (27,31,15)]
+   x_lo         = 0, 0, 0
+   x_up         = 1, 1, 1
+   periodic_dimension = 0, 0, 1
+}
+
+ghost_width = 4
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2, 2, 2
+   }
+   largest_patch_size {
+      level_0 = 512, 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 8, 8, 8
+   }
+   efficiency_tolerance = 0.85
+   combine_efficiency   = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR", "REFINE_BOXES"
+   RefineBoxes {
+      level_0 {
+         boxes_0 = [(24,12,0), (27,15,3)]
+      }
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1.0
+}

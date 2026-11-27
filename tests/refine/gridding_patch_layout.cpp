@@ -173,12 +173,29 @@ main(int argc, char** argv)
             }
             plog << '\n';
 
+            // Periodic images fill the ghost cells beyond a periodic boundary.
+            BoxList<NDIM> image_domain(domain);
+            const IntVector<NDIM> periodic_shift = grid_geometry->getPeriodicShift(level->getRatio());
+            for (int d = 0; d < NDIM; ++d)
+            {
+                if (periodic_shift(d) == 0) continue;
+                IntVector<NDIM> shift(0);
+                shift(d) = periodic_shift(d);
+                BoxList<NDIM> images;
+                for (BoxList<NDIM>::Iterator b(image_domain); b; b++)
+                {
+                    images.appendItem(Box<NDIM>::shift(b(), shift));
+                    images.appendItem(Box<NDIM>::shift(b(), -shift));
+                }
+                image_domain.catenateItems(images);
+            }
+
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM>> patch = level->getPatch(p());
                 Pointer<PatchGeometry<NDIM>> patch_geometry = patch->getPatchGeometry();
                 BoxList<NDIM> exterior(Box<NDIM>::grow(patch->getBox(), ghosts));
-                exterior.removeIntersections(domain);
+                exterior.removeIntersections(image_domain);
                 for (int codim = 1; codim <= NDIM; ++codim)
                 {
                     const tbox::Array<BoundaryBox<NDIM>>& bdry_boxes = patch_geometry->getCodimensionBoundaries(codim);
