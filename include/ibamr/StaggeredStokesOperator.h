@@ -26,6 +26,8 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/LinearOperator.h>
 #include <ibtk/ibtk_enums.h>
+#include <ibtk/private/CachedGhostCellFill.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Pointer.h>
 
@@ -188,7 +190,8 @@ public:
      *
      * It is safe to call initializeOperatorState() when the state is already
      * initialized.  In this case, the operator state is first deallocated and
-     * then reinitialized.
+     * then reinitialized, or the ghost-fill operator and the HierarchyMathOps
+     * object are reused when no level was replaced.
      *
      * Conditions on arguments:
      * - input and output vectors must have same hierarchy
@@ -243,7 +246,14 @@ protected:
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_U_fill_pattern, d_P_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill;
+    IBTK::detail::CachedGhostCellFill d_hier_bdry_fill_cache;
+    // The object in d_hier_bdry_fill_cache, which owns it.
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+
+    // The HierarchyMathOps object of this operator, which initializeOperatorState() reuses unless a level was replaced.
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_own_hier_math_ops;
+    IBTK::detail::HierarchyLevelsIdentity d_own_hier_math_ops_levels;
 
     std::string d_refine_type = "NONE";
     std::string d_coarsen_type = "CUBIC_COARSEN";

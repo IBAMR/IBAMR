@@ -124,6 +124,20 @@ CachedGhostCellFill::get(const std::vector<HierarchyGhostCellInterpolation::Inte
 } // get
 
 void
+CachedGhostCellFill::clearIfIndicesDiffer(
+    const std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent>& comps)
+{
+    bool differ = comps.size() != d_comps.size();
+    for (std::size_t k = 0; !differ && k < comps.size(); ++k)
+    {
+        differ = comps[k].d_dst_data_idx != d_comps[k].d_dst_data_idx ||
+                 comps[k].d_src_data_idx != d_comps[k].d_src_data_idx;
+    }
+    if (differ) clear();
+    return;
+} // clearIfIndicesDiffer
+
+void
 CachedGhostCellFill::clear()
 {
     d_fill.setNull();

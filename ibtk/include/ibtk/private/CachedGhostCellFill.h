@@ -64,6 +64,14 @@ public:
         bool homogeneous_bc = false);
 
     /*!
+     * \brief Release the operator and the levels, if the patch data indices of \a comps differ from those of the
+     * previous call to get(). Call this before get() when the owner may have freed the previous indices, because
+     * SAMRAI reads the factories of the previous indices when it resets a schedule.
+     */
+    void
+    clearIfIndicesDiffer(const std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent>& comps);
+
+    /*!
      * \brief Release the operator and the levels, so that the next call to get() builds a new operator.
      */
     void clear();

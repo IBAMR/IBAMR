@@ -397,8 +397,6 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
-    if (d_is_initialized) deallocateSolverState();
-
     // Parent class initialization.
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
@@ -415,9 +413,11 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
                                                           fill_pattern,
                                                           IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type),
                                                           /*extend_coarse_data_linearly*/ true);
-    d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
-    d_P_bdry_fill_op->setHomogeneousBc(true);
-    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
+    d_P_bdry_fill_op_cache.clearIfIndicesDiffer({ P_scratch_component });
+    d_P_bdry_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_P_bdry_fill_op_cache.get(
+            { P_scratch_component }, d_hierarchy, invalid_level_number, invalid_level_number, /*homogeneous_bc*/ true),
+        /*managed*/ false);
 
     d_is_initialized = true;
 
@@ -437,6 +437,7 @@ StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
 
     // Deallocate hierarchy operators.
     d_P_bdry_fill_op.setNull();
+    d_P_bdry_fill_op_cache.clear();
 
     d_is_initialized = false;
 

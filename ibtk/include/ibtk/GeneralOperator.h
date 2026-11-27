@@ -199,7 +199,8 @@ public:
      * It is safe to call initializeOperatorState() when the state is already
      * initialized.  In this case, the operator state is first deallocated and
      * then reinitialized, or the operator may reuse the state that does not
-     * depend on the coefficients when the layout is unchanged.
+     * depend on the coefficients or the boundary conditions when the layout is
+     * unchanged.
      *
      * Conditions on arguments:
      * - input and output vectors must have same hierarchy

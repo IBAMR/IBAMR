@@ -202,9 +202,6 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
-    // Deallocate the operator state if the operator is already initialized.
-    if (d_is_initialized) deallocateOperatorState();
-
     // Setup operator state.
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
@@ -221,10 +218,16 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     NULL_USE(out);
 #endif
 
+    // Reuse the HierarchyMathOps object unless a level was replaced.
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops =
-            new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        const bool levels_changed = d_own_hier_math_ops_levels.changed(*d_hierarchy, d_coarsest_ln, d_finest_ln);
+        if (!d_own_hier_math_ops || levels_changed)
+        {
+            d_own_hier_math_ops =
+                new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        }
+        d_hier_math_ops = d_own_hier_math_ops;
     }
     else
     {
@@ -255,9 +258,11 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
         d_transaction_comps.push_back(component);
     }
 
-    // Initialize the interpolation operators.
-    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
+    // Reuse the interpolation operators while the levels and components are unchanged.
+    d_hier_bdry_fill_cache.clearIfIndicesDiffer(d_transaction_comps);
+    d_hier_bdry_fill = Pointer<HierarchyGhostCellInterpolation>(
+        &d_hier_bdry_fill_cache.get(d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln, d_homogeneous_bc),
+        /*managed*/ false);
 
     // Indicate the operator is initialized.
     d_is_initialized = true;
@@ -274,12 +279,14 @@ CCLaplaceOperator::deallocateOperatorState()
     IBTK_TIMER_START(t_deallocate_operator_state);
 
     // Deallocate the interpolation operators.
-    d_hier_bdry_fill->deallocateOperatorState();
     d_hier_bdry_fill.setNull();
+    d_hier_bdry_fill_cache.clear();
     d_transaction_comps.clear();
     d_fill_pattern.setNull();
 
     // Deallocate hierarchy math operations object.
+    d_own_hier_math_ops.setNull();
+    d_own_hier_math_ops_levels = detail::HierarchyLevelsIdentity();
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     // Indicate that the operator is NOT initialized.

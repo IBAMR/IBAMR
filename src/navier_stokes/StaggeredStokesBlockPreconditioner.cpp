@@ -147,21 +147,36 @@ StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVectorReal
     NULL_USE(b);
 #endif
 
-    // Setup hierarchy operators.
+    // Setup hierarchy operators, and reuse them unless a level or a component variable changed.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    const bool levels_changed = d_levels.changed(*d_hierarchy, d_coarsest_ln, d_finest_ln);
 
-    d_velocity_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(0), d_hierarchy, true);
-    d_velocity_data_ops->setPatchHierarchy(d_hierarchy);
-    d_velocity_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    Pointer<Variable<NDIM>> velocity_var = x.getComponentVariable(0);
+    if (!d_velocity_data_ops || levels_changed || velocity_var != d_velocity_ops_var)
+    {
+        d_velocity_data_ops = hier_ops_manager->getOperationsDouble(velocity_var, d_hierarchy, true);
+        d_velocity_data_ops->setPatchHierarchy(d_hierarchy);
+        d_velocity_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+        d_velocity_ops_var = velocity_var;
+    }
     d_velocity_wgt_idx = x.getControlVolumeIndex(0);
 
-    d_pressure_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(1), d_hierarchy, true);
-    d_pressure_data_ops->setPatchHierarchy(d_hierarchy);
-    d_pressure_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+    Pointer<Variable<NDIM>> pressure_var = x.getComponentVariable(1);
+    if (!d_pressure_data_ops || levels_changed || pressure_var != d_pressure_ops_var)
+    {
+        d_pressure_data_ops = hier_ops_manager->getOperationsDouble(pressure_var, d_hierarchy, true);
+        d_pressure_data_ops->setPatchHierarchy(d_hierarchy);
+        d_pressure_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
+        d_pressure_ops_var = pressure_var;
+    }
     d_pressure_wgt_idx = x.getControlVolumeIndex(1);
 
-    d_hier_math_ops =
-        new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    if (!d_hier_math_ops || levels_changed)
+    {
+        d_hier_math_ops.setNull();
+        d_hier_math_ops =
+            new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    }
     return;
 } // initializeSolverState
 
@@ -173,6 +188,9 @@ StaggeredStokesBlockPreconditioner::deallocateSolverState()
     d_velocity_wgt_idx = invalid_index;
     d_pressure_wgt_idx = invalid_index;
     d_hier_math_ops.setNull();
+    d_levels = IBTK::detail::HierarchyLevelsIdentity();
+    d_velocity_ops_var.setNull();
+    d_pressure_ops_var.setNull();
     return;
 } // deallocateSolverState
 
