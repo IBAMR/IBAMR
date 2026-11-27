@@ -932,6 +932,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
         double WSS_L2_norm = 0.0, WSS_max_norm = 0.0;
         double U_L2_norm = 0.0, U_max_norm = 0.0;
         double P_L2_norm = 0.0, P_max_norm = 0.0;
+        double P_end_L2_norm = 0.0, P_end_max_norm = 0.0;
         double disp_L2_norm = 0.0, disp_max_norm = 0.0;
         System& U_system = equation_systems->get_system<System>(IIMethod::VELOCITY_SYSTEM_NAME);
         System& WSS_system = equation_systems->get_system<System>(IIMethod::WSS_IN_SYSTEM_NAME);
@@ -1044,6 +1045,13 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
                     P_L2_norm += std::abs(P_i_qp - p_ex_qp) * std::abs(P_i_qp - p_ex_qp) * JxW[qp];
                     P_max_norm = std::max(P_max_norm, std::abs(P_i_qp - p_ex_qp));
                 }
+
+                // The interface pressure near the physical boundaries at x = 0 and x = L.
+                if (x_qp(0) < 0.1 * L || x_qp(0) > 0.9 * L)
+                {
+                    P_end_L2_norm += std::abs(P_i_qp - p_ex_qp) * std::abs(P_i_qp - p_ex_qp) * JxW[qp];
+                    P_end_max_norm = std::max(P_end_max_norm, std::abs(P_i_qp - p_ex_qp));
+                }
             }
         }
 
@@ -1058,6 +1066,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
         SAMRAI_MPI::sumReduction(&P_L2_norm, 1);
         SAMRAI_MPI::maxReduction(&P_max_norm, 1);
 
+        SAMRAI_MPI::sumReduction(&P_end_L2_norm, 1);
+        SAMRAI_MPI::maxReduction(&P_end_max_norm, 1);
+
         SAMRAI_MPI::sumReduction(&disp_L2_norm, 1);
         SAMRAI_MPI::maxReduction(&disp_max_norm, 1);
 
@@ -1065,6 +1076,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
         WSS_L2_norm = sqrt(WSS_L2_norm);
         disp_L2_norm = sqrt(disp_L2_norm);
         P_L2_norm = sqrt(P_L2_norm);
+        P_end_L2_norm = sqrt(P_end_L2_norm);
 
         pout << " WSS_L2_norm = " << WSS_L2_norm << "\n\n";
         pout << " WSS_max_norm = " << WSS_max_norm << "\n\n";
@@ -1074,6 +1086,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM>> /*patch_hierarchy*/,
 
         pout << " P_L2_norm = " << P_L2_norm << "\n\n";
         pout << " P_max_norm = " << P_max_norm << "\n\n";
+
+        pout << " P_end_L2_norm = " << P_end_L2_norm << "\n\n";
+        pout << " P_end_max_norm = " << P_end_max_norm << "\n\n";
 
         pout << " disp_L2_norm = " << disp_L2_norm << "\n\n";
         pout << " disp_max_norm = " << disp_max_norm << "\n\n";

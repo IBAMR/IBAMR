@@ -15,8 +15,10 @@
 
 #include <ibamr/IIMethod.h>
 #include <ibamr/INSHierarchyIntegrator.h>
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_utilities.h>
 
+#include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/FEDataInterpolation.h>
 #include <ibtk/FEDataManager.h>
 #include <ibtk/IBTK_CHKERRQ.h>
@@ -2045,12 +2047,22 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     TAU_in_rhs_vec->close();
     TAU_out_rhs_vec->close();
 
-    d_fe_data_managers[part]->computeL2Projection(
-        *TAU_in_vec, *TAU_in_rhs_vec, TAU_IN_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+    if (!d_fe_data_managers[part]->computeL2Projection(
+            *TAU_in_vec, *TAU_in_rhs_vec, TAU_IN_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix))
+    {
+        TBOX_ERROR(d_object_name << "::computeFluidTraction():\n"
+                                 << "  the L2 projection of the interior traction on part " << part
+                                 << " did not converge\n");
+    }
     TAU_in_vec->close();
 
-    d_fe_data_managers[part]->computeL2Projection(
-        *TAU_out_vec, *TAU_out_rhs_vec, TAU_OUT_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+    if (!d_fe_data_managers[part]->computeL2Projection(
+            *TAU_out_vec, *TAU_out_rhs_vec, TAU_OUT_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix))
+    {
+        TBOX_ERROR(d_object_name << "::computeFluidTraction():\n"
+                                 << "  the L2 projection of the exterior traction on part " << part
+                                 << " did not converge\n");
+    }
     TAU_out_vec->close();
 
     d_X_half_vecs[part]->close();
@@ -2440,12 +2452,22 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     P_in_rhs_vec->close();
     P_out_rhs_vec->close();
 
-    d_fe_data_managers[part]->computeL2Projection(
-        *P_in_vec, *P_in_rhs_vec, PRESSURE_IN_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+    if (!d_fe_data_managers[part]->computeL2Projection(
+            *P_in_vec, *P_in_rhs_vec, PRESSURE_IN_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix))
+    {
+        TBOX_ERROR(d_object_name << "::extrapolatePressureForTraction():\n"
+                                 << "  the L2 projection of the interior pressure on part " << part
+                                 << " did not converge\n");
+    }
     P_in_vec->close();
 
-    d_fe_data_managers[part]->computeL2Projection(
-        *P_out_vec, *P_out_rhs_vec, PRESSURE_OUT_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+    if (!d_fe_data_managers[part]->computeL2Projection(
+            *P_out_vec, *P_out_rhs_vec, PRESSURE_OUT_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix))
+    {
+        TBOX_ERROR(d_object_name << "::extrapolatePressureForTraction():\n"
+                                 << "  the L2 projection of the exterior pressure on part " << part
+                                 << " did not converge\n");
+    }
     P_out_vec->close();
 
     d_X_half_vecs[part]->close();
@@ -2473,12 +2495,23 @@ IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time
 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const auto p_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_p_scratch_idx);
+    INSHierarchyIntegrator* const ins_integrator = getINSHierarchyIntegrator();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_new_idx =
+        var_db->mapVariableAndContextToIndex(ins_integrator->getVelocityVariable(), ins_integrator->getNewContext());
     RefineAlgorithm<NDIM> ghost_fill_alg_p;
+    CartCellRobinPhysBdryOp p_phys_bdry_op(
+        p_scratch_data_idx, ins_integrator->getPressureBoundaryConditions(), /*homogeneous_bc*/ false);
     // TODO: Can we cache this algorithm/schedule?
     ghost_fill_alg_p.registerRefine(p_scratch_data_idx, p_data_idx, p_scratch_data_idx, nullptr);
     Pointer<RefineSchedule<NDIM>> ghost_fill_schd_p =
-        ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
+        ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln), &p_phys_bdry_op);
 
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(ins_integrator->getVelocityBoundaryConditions(),
+                                                              ins_integrator->getPressureBoundaryConditions(),
+                                                              u_new_idx,
+                                                              p_scratch_data_idx,
+                                                              /*homogeneous_bc*/ false);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // TODO: Does this need to be re-filled for each part?
@@ -2486,6 +2519,8 @@ IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time
         extrapolatePressureForTraction(p_scratch_data_idx, data_time, part);
         computeFluidTraction(data_time, part);
     }
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(ins_integrator->getVelocityBoundaryConditions(),
+                                                              ins_integrator->getPressureBoundaryConditions());
 
 } // calculateInterfacialFluidForces
 void

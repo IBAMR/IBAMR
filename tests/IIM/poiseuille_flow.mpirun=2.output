@@ -24,8 +24,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0443683683
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.0443683683
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04436836828
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.04436836828
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -36,21 +36,25 @@ Simulation time is 0.001953125
 
 Writing state data...
 
- WSS_L2_norm = 0.0118763916
+ WSS_L2_norm = 0.01187639159
 
- WSS_max_norm = 0.008212100984
+ WSS_max_norm = 0.008212100966
 
- U_L2_norm = 0.04440607023
+ U_L2_norm = 0.04440606993
 
- U_max_norm = 0.03338397011
+ U_max_norm = 0.03338396988
 
  P_L2_norm = 0.1165112891
 
  P_max_norm = 0.1224047424
 
- disp_L2_norm = 8.474348155e-05
+ P_end_L2_norm = 0.1760652651
 
- disp_max_norm = 6.4455359e-05
+ P_end_max_norm = 0.1996058825
+
+ disp_L2_norm = 8.474348175e-05
+
+ disp_max_norm = 6.445537571e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,8 +69,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04438519362
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.08875356192
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0443851936
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.08875356188
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -77,21 +81,25 @@ Simulation time is 0.00390625
 
 Writing state data...
 
- WSS_L2_norm = 0.003636754378
+ WSS_L2_norm = 0.003636754749
 
- WSS_max_norm = 0.003917875737
+ WSS_max_norm = 0.003917876251
 
- U_L2_norm = 0.01386310427
+ U_L2_norm = 0.01386310876
 
- U_max_norm = 0.01863948678
+ U_max_norm = 0.01863949552
 
- P_L2_norm = 0.1162294441
+ P_L2_norm = 0.1162294447
 
- P_max_norm = 0.1193586833
+ P_max_norm = 0.1193586901
 
- disp_L2_norm = 7.077418428e-05
+ P_end_L2_norm = 0.1748416469
 
- disp_max_norm = 4.651072431e-05
+ P_end_max_norm = 0.1983272645
+
+ disp_L2_norm = 7.077417997e-05
+
+ disp_max_norm = 4.651071756e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -106,7 +114,7 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04440195262
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0444019526
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.1331555145
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -118,21 +126,25 @@ Simulation time is 0.005859375
 
 Writing state data...
 
- WSS_L2_norm = 0.008277690819
+ WSS_L2_norm = 0.008277691119
 
- WSS_max_norm = 0.006913084448
+ WSS_max_norm = 0.006913085075
 
- U_L2_norm = 0.02405574716
+ U_L2_norm = 0.02405574875
 
- U_max_norm = 0.02565569019
+ U_max_norm = 0.02565569353
 
- P_L2_norm = 0.1157399552
+ P_L2_norm = 0.1157399556
 
- P_max_norm = 0.1182006078
+ P_max_norm = 0.1182006139
 
- disp_L2_norm = 0.0001126326776
+ P_end_L2_norm = 0.1731407326
 
- disp_max_norm = 7.797043485e-05
+ P_end_max_norm = 0.1932123436
+
+ disp_L2_norm = 0.0001126326762
+
+ disp_max_norm = 7.797044161e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -147,8 +159,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04441843472
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.1775739493
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0444184347
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.1775739492
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -159,21 +171,25 @@ Simulation time is 0.0078125
 
 Writing state data...
 
- WSS_L2_norm = 0.003461211173
+ WSS_L2_norm = 0.003461211323
 
- WSS_max_norm = 0.003546613091
+ WSS_max_norm = 0.003546613373
 
- U_L2_norm = 0.01553161188
+ U_L2_norm = 0.01553161453
 
- U_max_norm = 0.02198379991
+ U_max_norm = 0.02198380566
 
- P_L2_norm = 0.1153641889
+ P_L2_norm = 0.1153641888
 
- P_max_norm = 0.1163978623
+ P_max_norm = 0.1163978686
 
- disp_L2_norm = 9.625238172e-05
+ P_end_L2_norm = 0.170335837
 
- disp_max_norm = 6.772991582e-05
+ P_end_max_norm = 0.1876101351
+
+ disp_L2_norm = 9.625237708e-05
+
+ disp_max_norm = 6.772991021e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -188,8 +204,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04443465128
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.2220086005
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04443465127
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.2220086004
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -200,21 +216,25 @@ Simulation time is 0.009765625
 
 Writing state data...
 
- WSS_L2_norm = 0.00698933065
+ WSS_L2_norm = 0.006989330991
 
- WSS_max_norm = 0.006481745398
+ WSS_max_norm = 0.006481746164
 
- U_L2_norm = 0.01742483849
+ U_L2_norm = 0.01742484043
 
- U_max_norm = 0.02293797322
+ U_max_norm = 0.0229379774
 
- P_L2_norm = 0.11490688
+ P_L2_norm = 0.1149068796
 
- P_max_norm = 0.1149182852
+ P_max_norm = 0.1149182911
 
- disp_L2_norm = 0.0001219626999
+ P_end_L2_norm = 0.1670352585
 
- disp_max_norm = 7.988181079e-05
+ P_end_max_norm = 0.179872805
+
+ disp_L2_norm = 0.0001219626975
+
+ disp_max_norm = 7.988181411e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -229,8 +249,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04445067625
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.2664592768
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04445067623
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.2664592767
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -241,21 +261,25 @@ Simulation time is 0.01171875
 
 Writing state data...
 
- WSS_L2_norm = 0.003432156895
+ WSS_L2_norm = 0.003432156951
 
- WSS_max_norm = 0.003194096222
+ WSS_max_norm = 0.003194096429
 
- U_L2_norm = 0.01481140043
+ U_L2_norm = 0.01481140256
 
- U_max_norm = 0.0218731325
+ U_max_norm = 0.0218731374
 
- P_L2_norm = 0.1145643652
+ P_L2_norm = 0.1145643641
 
- P_max_norm = 0.1132134268
+ P_max_norm = 0.1132134328
 
- disp_L2_norm = 0.0001066189538
+ P_end_L2_norm = 0.1628420049
 
- disp_max_norm = 7.894015458e-05
+ P_end_max_norm = 0.1757873486
+
+ disp_L2_norm = 0.0001066189484
+
+ disp_max_norm = 7.894015065e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -270,8 +294,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04446635277
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.3109256296
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04446635275
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.3109256294
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -282,21 +306,25 @@ Simulation time is 0.013671875
 
 Writing state data...
 
- WSS_L2_norm = 0.00643531357
+ WSS_L2_norm = 0.006435313895
 
- WSS_max_norm = 0.00628655991
+ WSS_max_norm = 0.006286560691
 
- U_L2_norm = 0.01468098319
+ U_L2_norm = 0.01468098507
 
- U_max_norm = 0.02156680915
+ U_max_norm = 0.02156681342
 
- P_L2_norm = 0.1141155951
+ P_L2_norm = 0.1141155937
 
- P_max_norm = 0.1115187634
+ P_max_norm = 0.111518769
 
- disp_L2_norm = 0.0001254249604
+ P_end_L2_norm = 0.1582325622
 
- disp_max_norm = 7.940679132e-05
+ P_end_max_norm = 0.1686829776
+
+ disp_L2_norm = 0.0001254249567
+
+ disp_max_norm = 7.940679321e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -311,8 +339,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0444817347
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.3554073643
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04448173468
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.3554073641
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -323,21 +351,25 @@ Simulation time is 0.015625
 
 Writing state data...
 
- WSS_L2_norm = 0.003501905463
+ WSS_L2_norm = 0.003501905475
 
- WSS_max_norm = 0.003034509899
+ WSS_max_norm = 0.003034509958
 
- U_L2_norm = 0.01367132602
+ U_L2_norm = 0.0136713279
 
- U_max_norm = 0.02101569264
+ U_max_norm = 0.0210156972
 
- P_L2_norm = 0.1139025558
+ P_L2_norm = 0.1139025537
 
- P_max_norm = 0.1110733738
+ P_max_norm = 0.1110733654
 
- disp_L2_norm = 0.0001121042976
+ P_end_L2_norm = 0.1529753558
 
- disp_max_norm = 8.449817636e-05
+ P_end_max_norm = 0.1626164692
+
+ disp_L2_norm = 0.0001121042909
+
+ disp_max_norm = 8.449817346e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -352,8 +384,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04449665809
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.3999040223
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04449665808
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.3999040222
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -364,21 +396,25 @@ Simulation time is 0.017578125
 
 Writing state data...
 
- WSS_L2_norm = 0.006148463829
+ WSS_L2_norm = 0.006148464126
 
- WSS_max_norm = 0.006155398124
+ WSS_max_norm = 0.006155398877
 
- U_L2_norm = 0.01306767714
+ U_L2_norm = 0.01306767888
 
- U_max_norm = 0.02056752948
+ U_max_norm = 0.02056753362
 
- P_L2_norm = 0.1134940584
+ P_L2_norm = 0.113494056
 
- P_max_norm = 0.1122166318
+ P_max_norm = 0.112216623
 
- disp_L2_norm = 0.0001274764358
+ P_end_L2_norm = 0.1474187034
 
- disp_max_norm = 8.09203541e-05
+ P_end_max_norm = 0.1578137074
+
+ disp_L2_norm = 0.0001274764305
+
+ disp_max_norm = 8.092035086e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -393,8 +429,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04451148403
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.4444155064
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04451148409
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.4444155063
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -405,21 +441,25 @@ Simulation time is 0.01953125
 
 Writing state data...
 
- WSS_L2_norm = 0.003612522444
+ WSS_L2_norm = 0.003612522434
 
- WSS_max_norm = 0.00296514316
+ WSS_max_norm = 0.002965143215
 
- U_L2_norm = 0.01253949904
+ U_L2_norm = 0.01253950076
 
- U_max_norm = 0.02002831158
+ U_max_norm = 0.02002831585
 
- P_L2_norm = 0.1134151195
+ P_L2_norm = 0.1134151163
 
- P_max_norm = 0.1129976989
+ P_max_norm = 0.1129976898
 
- disp_L2_norm = 0.0001163080274
+ P_end_L2_norm = 0.1414728838
 
- disp_max_norm = 8.69730026e-05
+ P_end_max_norm = 0.1574159809
+
+ disp_L2_norm = 0.0001163080192
+
+ disp_max_norm = 8.697300032e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -434,7 +474,7 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04452594727
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04452594732
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.4889414536
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -446,21 +486,25 @@ Simulation time is 0.021484375
 
 Writing state data...
 
- WSS_L2_norm = 0.005977013638
+ WSS_L2_norm = 0.005977013907
 
- WSS_max_norm = 0.006043727518
+ WSS_max_norm = 0.006043728238
 
- U_L2_norm = 0.01186921965
+ U_L2_norm = 0.01186922125
 
- U_max_norm = 0.01969148445
+ U_max_norm = 0.01969148837
 
- P_L2_norm = 0.1130460194
+ P_L2_norm = 0.1130460159
 
- P_max_norm = 0.113949518
+ P_max_norm = 0.1139495085
 
- disp_L2_norm = 0.0001296455862
+ P_end_L2_norm = 0.1353634347
 
- disp_max_norm = 8.265840237e-05
+ P_end_max_norm = 0.1571796196
+
+ disp_L2_norm = 0.0001296455793
+
+ disp_max_norm = 8.265839963e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -475,7 +519,7 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04453996703
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04453996708
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.5334814207
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -487,21 +531,25 @@ Simulation time is 0.0234375
 
 Writing state data...
 
- WSS_L2_norm = 0.00373487716
+ WSS_L2_norm = 0.003734877138
 
- WSS_max_norm = 0.002938090377
+ WSS_max_norm = 0.002938090431
 
- U_L2_norm = 0.01150262899
+ U_L2_norm = 0.01150263057
 
- U_max_norm = 0.0190356325
+ U_max_norm = 0.01903563654
 
- P_L2_norm = 0.1130769301
+ P_L2_norm = 0.1130769259
 
- P_max_norm = 0.1146394899
+ P_max_norm = 0.1146394802
 
- disp_L2_norm = 0.0001204541347
+ P_end_L2_norm = 0.1291180008
 
- disp_max_norm = 8.772101737e-05
+ P_end_max_norm = 0.1560012512
+
+ disp_L2_norm = 0.000120454125
+
+ disp_max_norm = 8.772101546e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -520,8 +568,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04455352344
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.04455352344
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04455352349
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.04455352349
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -532,21 +580,25 @@ Simulation time is 0.025390625
 
 Writing state data...
 
- WSS_L2_norm = 0.005865160343
+ WSS_L2_norm = 0.005865160587
 
- WSS_max_norm = 0.005940233721
+ WSS_max_norm = 0.005940234407
 
- U_L2_norm = 0.01088870201
+ U_L2_norm = 0.01088870348
 
- U_max_norm = 0.01887082285
+ U_max_norm = 0.01887082659
 
- P_L2_norm = 0.1127228281
+ P_L2_norm = 0.1127228235
 
- P_max_norm = 0.1154060729
+ P_max_norm = 0.1154060629
 
- disp_L2_norm = 0.0001323748049
+ P_end_L2_norm = 0.1228446472
 
- disp_max_norm = 8.308531061e-05
+ P_end_max_norm = 0.1548123957
+
+ disp_L2_norm = 0.0001323747963
+
+ disp_max_norm = 8.308530816e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -561,8 +613,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0445665924
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.08912011584
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04456659245
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.08912011594
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -573,21 +625,25 @@ Simulation time is 0.02734375
 
 Writing state data...
 
- WSS_L2_norm = 0.003857744328
+ WSS_L2_norm = 0.0038577443
 
- WSS_max_norm = 0.002933782891
+ WSS_max_norm = 0.002933782944
 
- U_L2_norm = 0.01057261106
+ U_L2_norm = 0.01057261252
 
- U_max_norm = 0.01807052101
+ U_max_norm = 0.01807052484
 
- P_L2_norm = 0.1128328553
+ P_L2_norm = 0.11283285
 
- P_max_norm = 0.1159724737
+ P_max_norm = 0.1159724634
 
- disp_L2_norm = 0.0001248946597
+ P_end_L2_norm = 0.1166692252
 
- disp_max_norm = 8.748399256e-05
+ P_end_max_norm = 0.152829174
+
+ disp_L2_norm = 0.0001248946485
+
+ disp_max_norm = 8.748399085e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -602,8 +658,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04457913911
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.1336992549
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04457913915
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.1336992551
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -614,21 +670,25 @@ Simulation time is 0.029296875
 
 Writing state data...
 
- WSS_L2_norm = 0.005789250459
+ WSS_L2_norm = 0.00578925068
 
- WSS_max_norm = 0.00584273743
+ WSS_max_norm = 0.005842738083
 
- U_L2_norm = 0.0100591656
+ U_L2_norm = 0.01005916695
 
- U_max_norm = 0.0180887448
+ U_max_norm = 0.01808874836
 
- P_L2_norm = 0.1124620223
+ P_L2_norm = 0.1124620166
 
- P_max_norm = 0.116552543
+ P_max_norm = 0.1165525324
 
- disp_L2_norm = 0.0001357165576
+ P_end_L2_norm = 0.1105949822
 
- disp_max_norm = 8.275904181e-05
+ P_end_max_norm = 0.150842627
+
+ disp_L2_norm = 0.0001357165475
+
+ disp_max_norm = 8.275903951e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -643,8 +703,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04459113532
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.1782903903
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04459113537
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.1782903905
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -655,21 +715,25 @@ Simulation time is 0.03125
 
 Writing state data...
 
- WSS_L2_norm = 0.003977744699
+ WSS_L2_norm = 0.003977744668
 
- WSS_max_norm = 0.002943215158
+ WSS_max_norm = 0.00294321521
 
- U_L2_norm = 0.009742179226
+ U_L2_norm = 0.009742180577
 
- U_max_norm = 0.01714113782
+ U_max_norm = 0.01714114143
 
- P_L2_norm = 0.112623565
+ P_L2_norm = 0.1126235587
 
- P_max_norm = 0.1169694608
+ P_max_norm = 0.1169694499
 
- disp_L2_norm = 0.0001296865579
+ P_end_L2_norm = 0.104811066
 
- disp_max_norm = 8.669693627e-05
+ P_end_max_norm = 0.1480125196
+
+ disp_L2_norm = 0.0001296865455
+
+ disp_max_norm = 8.66969346e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -684,8 +748,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04460257638
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.2228929667
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04460257643
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.2228929669
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -696,21 +760,25 @@ Simulation time is 0.033203125
 
 Writing state data...
 
- WSS_L2_norm = 0.005737478077
+ WSS_L2_norm = 0.005737478279
 
- WSS_max_norm = 0.005750110524
+ WSS_max_norm = 0.005750111146
 
- U_L2_norm = 0.00934812619
+ U_L2_norm = 0.009348127442
 
- U_max_norm = 0.0173364638
+ U_max_norm = 0.01733646721
 
- P_L2_norm = 0.1122092889
+ P_L2_norm = 0.1122092821
 
- P_max_norm = 0.1173576534
+ P_max_norm = 0.1173576423
 
- disp_L2_norm = 0.0001396150621
+ P_end_L2_norm = 0.09922739273
 
- disp_max_norm = 8.203001346e-05
+ P_end_max_norm = 0.1450511955
+
+ disp_L2_norm = 0.0001396150506
+
+ disp_max_norm = 8.203001117e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -725,8 +793,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0446134265
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.2675063932
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04461342654
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.2675063934
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -737,21 +805,25 @@ Simulation time is 0.03515625
 
 Writing state data...
 
- WSS_L2_norm = 0.004093659033
+ WSS_L2_norm = 0.004093659
 
- WSS_max_norm = 0.002961819428
+ WSS_max_norm = 0.00296181948
 
- U_L2_norm = 0.009002480782
+ U_L2_norm = 0.009002482034
 
- U_max_norm = 0.01625139927
+ U_max_norm = 0.01625140269
 
- P_L2_norm = 0.1124027357
+ P_L2_norm = 0.1124027283
 
- P_max_norm = 0.1176042631
+ P_max_norm = 0.1176042518
 
- disp_L2_norm = 0.0001348133587
+ P_end_L2_norm = 0.09408113924
 
- disp_max_norm = 8.565042322e-05
+ P_end_max_norm = 0.1413256665
+
+ disp_L2_norm = 0.000134813345
+
+ disp_max_norm = 8.565042146e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -766,8 +838,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04462369885
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.312130092
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0446236989
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.3121300923
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -778,21 +850,25 @@ Simulation time is 0.037109375
 
 Writing state data...
 
- WSS_L2_norm = 0.005702857129
+ WSS_L2_norm = 0.005702857314
 
- WSS_max_norm = 0.005661544633
+ WSS_max_norm = 0.005661545226
 
- U_L2_norm = 0.00873226199
+ U_L2_norm = 0.008732263155
 
- U_max_norm = 0.01660773725
+ U_max_norm = 0.0166077405
 
- P_L2_norm = 0.1119285414
+ P_L2_norm = 0.1119285335
 
- P_max_norm = 0.1177930433
+ P_max_norm = 0.1177930317
 
- disp_L2_norm = 0.0001440064222
+ P_end_L2_norm = 0.08920203469
 
- disp_max_norm = 8.166950204e-05
+ P_end_max_norm = 0.1374169545
+
+ disp_L2_norm = 0.0001440064093
+
+ disp_max_norm = 8.166949857e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -807,8 +883,8 @@ IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-S
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04463333181
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.3567634238
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.04463333185
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.3567634242
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -819,43 +895,47 @@ Simulation time is 0.0390625
 
 Writing state data...
 
- WSS_L2_norm = 0.00420483935
+ WSS_L2_norm = 0.004204839316
 
- WSS_max_norm = 0.002986995953
+ WSS_max_norm = 0.002986996004
 
- U_L2_norm = 0.008344407992
+ U_L2_norm = 0.008344409155
 
- U_max_norm = 0.01541476097
+ U_max_norm = 0.01541476419
 
- P_L2_norm = 0.1121417754
+ P_L2_norm = 0.1121417669
 
- P_max_norm = 0.1178522167
+ P_max_norm = 0.1178522049
 
- disp_L2_norm = 0.0001402551695
+ P_end_L2_norm = 0.08485318248
 
- disp_max_norm = 8.474719582e-05
+ P_end_max_norm = 0.1328247202
+
+ disp_L2_norm = 0.0001402551548
+
+ disp_max_norm = 8.474719204e-05
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 Computing error norms.
 
- p_Eulerian_L2_norm (cropped region) = 0.02648980048
+ p_Eulerian_L2_norm (cropped region) = 0.02648979412
 
- p_Eulerian_max_norm (cropped region) = 0.03829719822
+ p_Eulerian_max_norm (cropped region) = 0.03829719081
 
- u_Eulerian_L2_norm (cropped region) = 0.002470382365
+ u_Eulerian_L2_norm (cropped region) = 0.002470382399
 
- u_Eulerian_max_norm (cropped region) = 0.004364572724
+ u_Eulerian_max_norm (cropped region) = 0.004364572694
 
 Error in u at time 0.0390625:
-  L1-norm:  0.03951042657577383
-  max-norm: 0.02674106039594992
-  L2-norm:  0.01059712860625504
+  L1-norm:  0.0395104286351618
+  max-norm: 0.02674106584539283
+  L2-norm:  0.01059713054648722
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 Error in p at time 0.0380859375:
-  L1-norm:  0.3870086807443742
-  max-norm: 0.1929721058149588
-  L2-norm:  0.113721406507328
+  L1-norm:  0.3870086580030672
+  max-norm: 0.1929720913995268
+  L2-norm:  0.1137214011111082
 +++++++++++++++++++++++++++++++++++++++++++++++++++
  MU = 0.01
   dx:  0.0390625

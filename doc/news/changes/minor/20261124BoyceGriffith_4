@@ -1,0 +1,3 @@
+Fixed: IBAMR::IIMethod now fills the pressure ghost cells at physical boundaries before it computes the fluid traction, and stops with an error when a one-sided pressure or traction L2 projection does not converge. Previously the traction pressure was wrong around the whole interface, not only beside the wall, whenever the structure was within about 3.3 grid cells of a non-periodic wall and compute_fluid_traction was on.
+<br>
+(Boyce Griffith, 2026/11/24)
