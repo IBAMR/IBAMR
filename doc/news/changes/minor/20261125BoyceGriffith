@@ -1,3 +1,3 @@
-Improved: IBAMR::INSStaggeredHierarchyIntegrator::setupPlotData(), IBTK::HierarchyMathOps::enforceHangingNodeConstraints(), and IBAMR::IBFEPostProcessor::postProcessData() now build the operators that fill ghost cells, and the coarse-fine boundaries, only after a regrid replaces a level, instead of at every output.
+Improved: IBAMR::INSStaggeredHierarchyIntegrator::setupPlotData() and IBTK::HierarchyMathOps::enforceHangingNodeConstraints() now build the operators that fill ghost cells, and the coarse-fine boundaries, only after a regrid replaces a level, instead of at every output.
 <br>
 (Boyce Griffith, 2026/11/25)

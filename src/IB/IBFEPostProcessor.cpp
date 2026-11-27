@@ -260,15 +260,9 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
         }
     }
 
-    // The operator spans all levels of the hierarchy, not only those that contain elements.
-    if (d_fill_levels.changed(*hierarchy, 0, hierarchy->getFinestLevelNumber()) ||
-        d_fill_num_transactions != d_scalar_interp_fill_transactions.size())
-    {
-        d_scalar_interp_fill = new HierarchyGhostCellInterpolation();
-        d_scalar_interp_fill->initializeOperatorState(d_scalar_interp_fill_transactions, hierarchy);
-        d_fill_num_transactions = d_scalar_interp_fill_transactions.size();
-    }
-    d_scalar_interp_fill->fillData(data_time);
+    HierarchyGhostCellInterpolation ghost_fill_op;
+    ghost_fill_op.initializeOperatorState(d_scalar_interp_fill_transactions, hierarchy);
+    ghost_fill_op.fillData(data_time);
 
     // Interpolate variables.
     std::unique_ptr<libMesh::PetscVector<double>> X_ghost_vec =
