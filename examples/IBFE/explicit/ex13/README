@@ -1,0 +1,21 @@
+This example demonstrates a 2D finite-strain isochoric Standard Linear Solid (SLS)
+viscoelastic body under simple-shear stress relaxation using IBFEMethod on a
+QUAD9 mesh (`G_INF = 1.0`, `G_SLS = 2.0`, `TAU_R = 0.05`, `GAMMA_0 = 0.12`).
+
+Model helper (`IBFEViscoelasticity.h`):
+Implements an objective generalized Maxwell internal-variable formulation on the
+isochoric second Piola-Kirchhoff target `S_{m,iso}(C)` pushed forward from the
+dev_C-projected overstress, using a second-order exponential linear-ramp
+integrator (`phi_1`, `psi_1`, with 5-term Taylor series for small `|x|`).
+`GeneralizedMaxwellHistoryStore` stores committed per-quadrature-point history,
+keeps trial PK1 evaluations read-only during RK2 substeps, advances history
+once per accepted step, and gathers sorted slot keys collectively across MPI
+ranks during SAMRAI restart serialization (`putToDatabase` / `getFromDatabase`).
+
+Quadrature note:
+Because `IBFEMethod::registerPK1StressFunction` passes reference coordinate `s`
+without a quadrature-point index, `example.cpp` passes fixed non-adaptive
+quadrature (`QP_TYPE = QGAUSS`, `QP_ORDER = FIFTH`) directly to
+`IBFEMethod::PK1StressFcnData` so `findNearestSlotIndex` matches every Gauss
+point directly (falling back to the equilibrium branch for non-Gauss
+evaluations).

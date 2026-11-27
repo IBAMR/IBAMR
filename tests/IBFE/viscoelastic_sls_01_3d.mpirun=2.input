@@ -1,0 +1,4 @@
+Main {
+   log_file_name = "IB.log"
+   log_all_nodes = FALSE
+}
