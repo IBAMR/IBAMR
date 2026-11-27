@@ -185,43 +185,35 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         const int C_current_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getCurrentContext());
         const int C_new_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getNewContext());
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
-        HierarchyGhostCellInterpolation ghost_fill_op;
         const std::vector<RobinBcCoefStrategy<NDIM>*>& C_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
         const TimeSteppingType convective_time_stepping_type =
             d_adv_diff_solver->getConvectiveTimeSteppingType(d_C_var);
+        int C_fill_idx = IBTK::invalid_index;
+        double C_fill_time = std::numeric_limits<double>::quiet_NaN();
         switch (convective_time_stepping_type)
         {
         case FORWARD_EULER:
             hier_cc_data_ops->copyData(d_C_current_cc_idx, C_current_idx);
-            ghost_fill_components[0] =
-                InterpolationTransactionComponent(d_C_current_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
-            ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
-            ghost_fill_op.fillData(current_time);
+            C_fill_idx = d_C_current_cc_idx;
+            C_fill_time = current_time;
             break;
         case MIDPOINT_RULE:
             hier_cc_data_ops->linearSum(d_C_half_cc_idx, 0.5, C_current_idx, 0.5, C_new_idx);
-            ghost_fill_components[0] =
-                InterpolationTransactionComponent(d_C_half_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
-            ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
-            ghost_fill_op.fillData(half_time);
+            C_fill_idx = d_C_half_cc_idx;
+            C_fill_time = half_time;
             break;
         case TRAPEZOIDAL_RULE:
             if (cycle_num == 0)
             {
                 hier_cc_data_ops->copyData(d_C_current_cc_idx, C_current_idx);
-                ghost_fill_components[0] = InterpolationTransactionComponent(
-                    d_C_current_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
-                ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
-                ghost_fill_op.fillData(current_time);
+                C_fill_idx = d_C_current_cc_idx;
+                C_fill_time = current_time;
             }
             else
             {
                 hier_cc_data_ops->copyData(d_C_new_cc_idx, C_new_idx);
-                ghost_fill_components[0] =
-                    InterpolationTransactionComponent(d_C_new_cc_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
-                ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
-                ghost_fill_op.fillData(new_time);
+                C_fill_idx = d_C_new_cc_idx;
+                C_fill_time = new_time;
             }
             break;
         default:
@@ -231,6 +223,25 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                                      << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
                                         "TRAPEZOIDAL_RULE\n");
         }
+
+        // Fill the ghost cells of the concentration.
+        if (d_fill_levels.changed(*hierarchy, 0, hierarchy->getFinestLevelNumber()))
+        {
+            d_C_ghost_fill.setNull();
+            d_F_synch.setNull();
+        }
+        const InterpolationTransactionComponent C_fill_component(
+            C_fill_idx, "NONE", false, "NONE", "NONE", false, C_bc_coef);
+        if (!d_C_ghost_fill)
+        {
+            d_C_ghost_fill = new HierarchyGhostCellInterpolation();
+            d_C_ghost_fill->initializeOperatorState(C_fill_component, hierarchy);
+        }
+        else
+        {
+            d_C_ghost_fill->resetTransactionComponent(C_fill_component);
+        }
+        d_C_ghost_fill->fillData(C_fill_time);
 
         // Generate random components.
         if (cycle_num == 0)
@@ -336,11 +347,14 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         }
 
         // Synchronize side-centered values.
-        using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
-        SynchronizationTransactionComponent synch_component(d_F_sc_idx);
-        SideDataSynchronization synch_data_op;
-        synch_data_op.initializeOperatorState(synch_component, hierarchy);
-        synch_data_op.synchronizeData(data_time);
+        if (!d_F_synch)
+        {
+            using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
+            SynchronizationTransactionComponent synch_component(d_F_sc_idx);
+            d_F_synch = new SideDataSynchronization();
+            d_F_synch->initializeOperatorState(synch_component, hierarchy);
+        }
+        d_F_synch->synchronizeData(data_time);
     }
 
     // Compute div F on each patch level.

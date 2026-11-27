@@ -1,0 +1,3 @@
+Improved: IBAMR::AdvDiffStochasticForcing now builds the operators that fill the ghost cells of the concentration and synchronize the stochastic flux only after a regrid replaces a level, instead of at every call.
+<br>
+(Boyce Griffith, 2026/11/23)
