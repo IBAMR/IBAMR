@@ -183,6 +183,7 @@ SETUP_3D(physical_boundary staggered_helper.cpp)
 # refine:
 SETUP_2D(refine cell_no_corners_fill_pattern.cpp)
 SETUP_3D(refine cell_no_corners_fill_pattern.cpp)
+SETUP_2D(refine gridding_patch_layout.cpp)
 SETUP_2D(refine overlap.cpp)
 SETUP_3D(refine overlap.cpp)
 SETUP_2D(refine rt0_refine_01.cpp)

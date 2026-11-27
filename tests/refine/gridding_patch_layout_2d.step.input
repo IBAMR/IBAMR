@@ -1,0 +1,53 @@
+// A domain with a step as wide as the ghost width, which the narrow-feature stop accepts, and tags next to its inner
+// corner that change at the regrid. Without overlap removal, patches overlap.
+// The regrid leaves 8 ghost cells beyond the inner corner without a boundary box, which the output records.
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [(0,0), (31,15)], [(0,16), (27,31)]
+   x_lo         = 0, 0
+   x_up         = 1, 1
+   periodic_dimension = 0, 0
+}
+
+ghost_width = 4
+
+GriddingAlgorithm {
+   max_levels = 3
+   ratio_to_coarser {
+      level_1 = 2, 2
+      level_2 = 2, 2
+   }
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+   efficiency_tolerance = 0.85
+   combine_efficiency   = 0.85
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR", "REFINE_BOXES"
+   RefineBoxes {
+      level_0 {
+         times   = 0.0, 0.5
+         boxes_0 = [(18,10), (29,15)], [(18,16), (23,21)]
+         boxes_1 = [(25,12), (31,15)], [(20,26), (23,31)]
+      }
+      level_1 {
+         times   = 0.0, 0.5
+         boxes_0 = [(40,26), (55,31)], [(40,32), (47,37)]
+         boxes_1 = [(56,24), (63,31)], [(42,56), (47,63)]
+      }
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1.0
+}
