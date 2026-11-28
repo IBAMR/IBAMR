@@ -1,0 +1,158 @@
+// Partition independence in three spatial dimensions: TRACTION conditions on the lower boundaries, walls on the upper
+// boundaries.
+// The kernel is IB_4. The markers are shifted by 0.5, 0.0, 0.9 cells, so that the kernels of markers near the edges of
+// the domain extend into the ghost cells beyond those edges. The grid has 8 x 8 x 8 cells.
+N = 8
+MAX_LEVELS = 1
+marker_shift = 0.5, 0.0, 0.9
+
+Reference {
+   markers           = 192
+   ghost_faces       = 7092
+   ghost_sum         = -86.728942476661
+   ghost_sum_squares = 117261.2940796
+   ghost_max         = 56.25037494322
+   F_dot_Ju          = -4.6561082428142
+   Ju_sum_squares    = 77.967156439632
+   Ju_max            = 1.2731132610421
+   SF_sum            = -1339.3665673386
+   SF_sum_squares    = 982271.82998959
+   SF_max            = 311.23186519476
+   SF_dot_u          = -2383.9274203209
+   N_sum             = 1383.5610368456
+   N_sum_squares     = 23352.606370582
+   N_max             = 20.879301014096
+}
+
+VelocityInitialConditions {
+   function_0 = "0.0"
+   function_1 = "0.0"
+   function_2 = "0.0"
+}
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_2 {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+IBHierarchyIntegrator {
+   start_time     = 0.0
+   end_time       = 0.01
+   dt_max         = 0.01
+   enable_logging = FALSE
+}
+
+IBMethod {
+   delta_fcn      = "IB_4"
+   enable_logging = FALSE
+}
+
+IBRedundantInitializer {
+   max_levels       = MAX_LEVELS
+   base_filenames_0 = "markers"
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                      = 1.0
+   rho                     = 1.0
+   start_time              = 0.0
+   end_time                = 0.01
+   dt_max                  = 0.01
+   traction_bc_type        = "TRACTION"
+   enable_logging          = FALSE
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo = 0,0,0
+   x_up = 1,1,1
+   periodic_dimension = 0,0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   largest_patch_size {
+      level_0 = 8,8,8
+   }
+   smallest_patch_size {
+      level_0 = 8,8,8
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
