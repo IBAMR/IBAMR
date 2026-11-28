@@ -16,9 +16,11 @@
 #include <ibtk/LaplaceOperator.h>
 #include <ibtk/LinearOperator.h>
 #include <ibtk/PoissonUtilities.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <Box.h>
 #include <LocationIndexRobinBcCoefs.h>
@@ -105,6 +107,27 @@ LaplaceOperator::getPhysicalBcCoefs() const
 {
     return d_bc_coefs;
 } // getPhysicalBcCoefs
+
+bool
+LaplaceOperator::supportsBdryInterpType(const BdryInterpType bdry_interp_type) const
+{
+    return bdry_interp_type == BdryInterpType::LINEAR;
+} // supportsBdryInterpType
+
+void
+LaplaceOperator::setBdryInterpType(const BdryInterpType bdry_interp_type)
+{
+    TBOX_ASSERT(bdry_interp_type != BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    if (!supportsBdryInterpType(bdry_interp_type))
+    {
+        TBOX_ERROR(d_object_name << "::setBdryInterpType():\n"
+                                 << "  this operator does not support bdry_interp_type = "
+                                 << enum_to_string(bdry_interp_type) << "\n"
+                                 << "  use bdry_interp_type = LINEAR" << std::endl);
+    }
+    d_bdry_interp_type = bdry_interp_type;
+    return;
+} // setBdryInterpType
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

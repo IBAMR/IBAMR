@@ -16,6 +16,7 @@
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Timer.h>
@@ -63,6 +64,18 @@ CCLaplaceOperator::CCLaplaceOperator(std::string object_name, Pointer<Database> 
             d_use_cf_interpolation = input_db->getBool("use_cf_interpolation");
         if (input_db->isString("data_coarsen_type")) d_data_coarsen_type = input_db->getString("data_coarsen_type");
         if (input_db->isString("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        if (input_db->isString("bdry_interp_type"))
+        {
+            const std::string type_name = input_db->getString("bdry_interp_type");
+            const BdryInterpType bdry_interp_type = string_to_enum<BdryInterpType>(type_name);
+            if (bdry_interp_type == BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE)
+            {
+                TBOX_ERROR(d_object_name << "::CCLaplaceOperator():\n"
+                                         << "  unknown bdry_interp_type \"" << type_name << "\"\n"
+                                         << "  valid values are \"LINEAR\" and \"QUADRATIC\"\n");
+            }
+            setBdryInterpType(bdry_interp_type);
+        }
         if (input_db->getBoolWithDefault("use_consistent_type_2_bdry", false))
         {
             TBOX_ERROR(d_object_name << "::CCLaplaceOperator():\n"
@@ -88,6 +101,12 @@ CCLaplaceOperator::~CCLaplaceOperator()
     if (d_is_initialized) deallocateOperatorState();
     return;
 } // ~CCLaplaceOperator()
+
+bool
+CCLaplaceOperator::supportsBdryInterpType(const BdryInterpType bdry_interp_type) const
+{
+    return bdry_interp_type == BdryInterpType::LINEAR || bdry_interp_type == BdryInterpType::QUADRATIC;
+} // supportsBdryInterpType
 
 void
 CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
@@ -133,7 +152,8 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
                                                       d_bdry_extrap_type,
                                                       /*consistent_type_2_bdry*/ false,
                                                       d_bc_coefs,
-                                                      d_fill_pattern);
+                                                      d_fill_pattern,
+                                                      enum_to_string(d_bdry_interp_type));
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -223,7 +243,8 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
                                                     d_bdry_extrap_type,
                                                     /*consistent_type_2_bdry*/ false,
                                                     d_bc_coefs,
-                                                    d_fill_pattern);
+                                                    d_fill_pattern,
+                                                    enum_to_string(d_bdry_interp_type));
         d_transaction_comps.push_back(component);
     }
 

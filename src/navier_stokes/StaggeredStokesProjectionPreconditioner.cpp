@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/StaggeredStokesProjectionPreconditioner.h>
 #include <ibamr/ibamr_utilities.h>
@@ -23,6 +24,7 @@
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Database.h>
 #include <tbox/MathUtilities.h>
@@ -154,6 +156,19 @@ StaggeredStokesProjectionPreconditioner::~StaggeredStokesProjectionPreconditione
     deallocateSolverState();
     return;
 } // ~StaggeredStokesProjectionPreconditioner
+
+bool
+StaggeredStokesProjectionPreconditioner::supportsBdryInterpType(const IBTK::BdryInterpType bdry_interp_type) const
+{
+    return bdry_interp_type == IBTK::BdryInterpType::LINEAR || bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
+} // supportsBdryInterpType
+
+void
+StaggeredStokesProjectionPreconditioner::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_bdry_treatment = bdry_treatment;
+    return;
+} // setBoundaryTreatment
 
 bool
 StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
@@ -360,14 +375,16 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
     // Setup hierarchy operators.
     Pointer<VariableFillPattern<NDIM>> fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
-                                                          d_Phi_data_refine_type,
-                                                          d_Phi_use_cf_interpolation,
-                                                          d_Phi_data_coarsen_type,
-                                                          d_Phi_bdry_extrap_type,
-                                                          /*consistent_type_2_bdry*/ false,
-                                                          d_P_bc_coef,
-                                                          fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(
+        d_Phi_scratch_idx,
+        d_Phi_data_refine_type,
+        d_Phi_use_cf_interpolation,
+        d_Phi_data_coarsen_type,
+        d_Phi_bdry_extrap_type.empty() ? d_bdry_treatment.bdry_extrap_type : d_Phi_bdry_extrap_type,
+        /*consistent_type_2_bdry*/ false,
+        d_P_bc_coef,
+        fill_pattern,
+        IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type));
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
     d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);

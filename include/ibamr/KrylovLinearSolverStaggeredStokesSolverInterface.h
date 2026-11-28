@@ -22,6 +22,8 @@
 
 #include <ibamr/StaggeredStokesSolver.h>
 
+#include <ibtk/ibtk_enums.h>
+
 #include <tbox/Pointer.h>
 
 #include <PoissonSpecifications.h>
@@ -104,6 +106,16 @@ public:
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
     void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
+
+    /*!
+     * \brief Return true: the operator applies any interpolation type.
+     */
+    bool supportsBdryInterpType(IBTK::BdryInterpType bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries of the operator, but not of the preconditioner.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
 
 private:
     /*!

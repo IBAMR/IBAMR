@@ -21,6 +21,7 @@
 #include <ibamr/config.h>
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/StokesSpecifications.h>
 #include <ibamr/ibamr_enums.h>
@@ -29,6 +30,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Array.h>
 #include <tbox/Database.h>
@@ -66,6 +68,7 @@ namespace IBAMR
 {
 class INSIntermediateVelocityBcCoef;
 class INSProjectionBcCoef;
+class StaggeredStokesSolver;
 } // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -77,6 +80,13 @@ namespace IBAMR
  * integrator for the incompressible Navier-Stokes equations on an AMR grid
  * hierarchy, along with basic data management for variables defined on that
  * hierarchy.
+ *
+ * The integrator passes its boundary treatment to the Stokes operator and preconditioners, the divergence-free velocity
+ * extension, and the velocity boundary conditions. The keys <code>bdry_interp_type</code> and
+ * <code>bdry_extrap_type</code> in the database of an object, such as <code>stokes_precond_db</code>, override the
+ * integrator's treatment for that object. <code>stokes_solver_db</code> may set only the integrator's values. The
+ * integrator writes to plog the treatment of each object that differs from its own. An object that cannot apply the
+ * integrator's <code>bdry_interp_type</code> uses "LINEAR" and is marked "unsupported" in that report.
  */
 class INSHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
@@ -229,6 +239,12 @@ public:
      * Return the operator that sets the velocity ghost values outside the physical boundaries for IB coupling, or null.
      */
     virtual IBTK::RobinPhysBdryPatchStrategy* getDivergenceFreeVelocityPhysBdryOp();
+
+    /*!
+     * Return the discretization at physical boundaries from the input keys <code>bdry_interp_type</code> ("LINEAR"
+     * (default) or "QUADRATIC") and <code>bdry_extrap_type</code>.
+     */
+    BoundaryTreatment getBoundaryTreatment() const;
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.
@@ -579,6 +595,38 @@ protected:
                                 const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>>& sol_vec);
 
     /*!
+     * Read the input key <code>bdry_interp_type</code> into d_bdry_interp_type. Report an error for a value that is
+     * not an interpolation type and for a value of <code>bdry_interp_type</code> or <code>bdry_extrap_type</code> in
+     * \a stokes_solver_db that differs from the integrator's.
+     */
+    void getBoundaryTreatmentFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> stokes_solver_db);
+
+    /*!
+     * Return the integrator's discretization at physical boundaries, overridden by the keys
+     * <code>bdry_interp_type</code> and <code>bdry_extrap_type</code> that \a db sets.
+     */
+    BoundaryTreatment getBoundaryTreatmentOf(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& db) const;
+
+    /*!
+     * Set the discretization at physical boundaries of a Stokes preconditioner with input database precond_db, and
+     * report it if it differs from the integrator's.
+     */
+    void setPreconditionerBoundaryTreatment(StaggeredStokesSolver& precond,
+                                            const std::string& precond_name,
+                                            const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& precond_db);
+
+    /*!
+     * Write the discretization at physical boundaries of an object to plog if it differs from that of the
+     * integrator, preceded the first time by the integrator's. The extrapolation type is compared and written if the
+     * object uses it. If not empty, source names what set the treatment.
+     */
+    void logBoundaryTreatment(const std::string& object_name,
+                              const BoundaryTreatment& bdry_treatment,
+                              bool uses_bdry_extrap_type,
+                              const std::string& source);
+
+    /*!
      * Return the maximum stable time step size.
      */
     double getMaximumTimeStepSizeSpecialized() override;
@@ -773,6 +821,16 @@ protected:
     std::string d_regrid_projection_solver_type, d_regrid_projection_precond_type, d_regrid_projection_sub_precond_type;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_regrid_projection_solver_db, d_regrid_projection_precond_db,
         d_regrid_projection_sub_precond_db;
+
+    /*!
+     * The interpolation type of the ghost values at physical boundaries that getBoundaryTreatmentFromInput() reads.
+     */
+    IBTK::BdryInterpType d_bdry_interp_type = IBTK::BdryInterpType::LINEAR;
+
+    /*!
+     * Whether logBoundaryTreatment() has written the integrator's boundary treatment.
+     */
+    bool d_logged_bdry_treatment = false;
 
 private:
     /*!

@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/CIBMobilitySolver.h>
 #include <ibamr/CIBSaddlePointSolver.h>
 #include <ibamr/CIBStaggeredStokesOperator.h>
@@ -412,6 +413,13 @@ CIBSaddlePointSolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalB
 
     return;
 } // setPhysicalBoundaryHelper
+
+void
+CIBSaddlePointSolver::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_A->setBoundaryTreatment(bdry_treatment);
+    return;
+} // setBoundaryTreatment
 
 Pointer<IBTK::LinearOperator>
 CIBSaddlePointSolver::getA() const

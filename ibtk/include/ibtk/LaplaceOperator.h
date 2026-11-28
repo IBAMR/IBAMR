@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/LinearOperator.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <PoissonSpecifications.h>
 #include <RobinBcCoefStrategy.h>
@@ -93,11 +94,29 @@ public:
      */
     virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getPhysicalBcCoefs() const;
 
+    /*!
+     * \brief Return whether the operator can apply the interpolation type \a bdry_interp_type at physical boundaries
+     * at which boundary conditions are present.
+     *
+     * The default implementation supports only linear interpolation.
+     */
+    virtual bool supportsBdryInterpType(BdryInterpType bdry_interp_type) const;
+
+    /*!
+     * \brief Set the interpolation type at physical boundaries at which boundary conditions are present.
+     *
+     * The operator reports an error if it does not support the interpolation type.
+     */
+    virtual void setBdryInterpType(BdryInterpType bdry_interp_type);
+
 protected:
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM>> d_default_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    // Type of interpolation to use at physical boundaries at which boundary conditions are present.
+    BdryInterpType d_bdry_interp_type = BdryInterpType::LINEAR;
 
 private:
     /*!

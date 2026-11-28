@@ -370,7 +370,7 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
             {
                 Pointer<SideData<NDIM, double>> f_data = patch->getPatchData(f_data_idx);
                 Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_data_idx);
-                addNormalTractionViscousTerm(f_data, u_data, patch, viscous_coef, u_bc_coefs);
+                addNormalTractionViscousTerm(f_data, u_data, patch, viscous_coef, u_bc_coefs, bdry_interp_type);
             }
         }
     }
@@ -381,13 +381,11 @@ void
 StaggeredStokesPhysicalBoundaryHelper::checkNormalTractionBdryInterpType(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const IBTK::BdryInterpType bdry_interp_type,
-    const bool viscous_coef_nonzero,
     const double fill_time,
-    const Pointer<PatchHierarchy<NDIM>> hierarchy,
-    const bool include_pseudo_traction) const
+    const Pointer<PatchHierarchy<NDIM>> hierarchy) const
 {
     TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
-    if (bdry_interp_type != IBTK::BdryInterpType::QUADRATIC || !viscous_coef_nonzero)
+    if (bdry_interp_type != IBTK::BdryInterpType::QUADRATIC)
     {
         return;
     }
@@ -413,22 +411,23 @@ StaggeredStokesPhysicalBoundaryHelper::checkNormalTractionBdryInterpType(
                     continue;
                 }
                 const TractionBcType traction_type = stokes_u_bc_coef->getTractionBcType();
-                if (traction_type != TRACTION && !(include_pseudo_traction && traction_type == PSEUDO_TRACTION))
+                if (traction_type != TRACTION && traction_type != PSEUDO_TRACTION)
                 {
                     continue;
                 }
                 const ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
                 for (Box<NDIM>::Iterator it(bdry_locs_data.getBox()); it; it++)
                 {
-                    // The added term is exact only if the pressure ghost value is p_G = 2*p_b - p_I, in which p_b is
-                    // the boundary value and p_I is the interior value.
+                    // The terms for a variable viscous coefficient are exact only if the pressure ghost value is
+                    // p_G = 2*p_b - p_I, in which p_b is the boundary value and p_I is the interior value.
                     if (bdry_locs_data(it(), 0) == 0.0)
                     {
                         TBOX_ERROR("StaggeredStokesPhysicalBoundaryHelper::checkNormalTractionBdryInterpType():\n"
-                                   << "  TRACTION conditions for the normal velocity require the boundary "
-                                      "interpolation type \"LINEAR\"\n"
-                                   << "  set bdry_interp_type of the Stokes operator or U_P_bdry_interp_type of the "
-                                      "integrator to \"LINEAR\"\n");
+                                   << "  TRACTION and PSEUDO_TRACTION conditions for the normal velocity with a "
+                                      "variable viscous coefficient require the boundary interpolation type "
+                                      "\"LINEAR\"\n"
+                                   << "  set bdry_interp_type of the Stokes operator or of the integrator to "
+                                      "\"LINEAR\"\n");
                     }
                 }
             }
@@ -443,10 +442,13 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
     Pointer<SideData<NDIM, double>> u_data,
     Pointer<Patch<NDIM>> patch,
     const double viscous_coef,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs) const
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    const IBTK::BdryInterpType bdry_interp_type) const
 {
-    // Adding D*(u_I - u_div)/h^2 with p_b = -g is equivalent to using u_div with p_b = -D*(u_I - u_div)/h - g, in which
-    // D = viscous_coef, u_I is the reflected ghost value, and g is the normal traction.
+    // With p_b = -g, in which g is the normal traction, the term makes the operator at the boundary face a one-sided
+    // derivative of the normal stress, extrapolated as the pressure is.
+    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    const bool quadratic = bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary())
     {
         return;
@@ -465,7 +467,12 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
         const unsigned int bdry_normal_axis = location_index / 2;
         const bool is_lower = location_index % 2 == 0;
         auto stokes_u_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
-        if (!stokes_u_bc_coef || stokes_u_bc_coef->getTractionBcType() != TRACTION)
+        if (!stokes_u_bc_coef)
+        {
+            continue;
+        }
+        const bool pseudo_traction = stokes_u_bc_coef->getTractionBcType() == PSEUDO_TRACTION;
+        if (pseudo_traction && !quadratic)
         {
             continue;
         }
@@ -475,22 +482,36 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
         for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
         {
             const hier::Index<NDIM>& i = it();
-            if (bdry_locs_data(i, 0) == 0.0)
+            if (bdry_locs_data(i, 0) != 0.0)
             {
-                // i_g is the ghost cell abutting the boundary. i_s_inside is the next face inside the domain.
-                hier::Index<NDIM> i_g = i;
-                if (is_lower)
-                {
-                    i_g(bdry_normal_axis) -= 1;
-                }
-                const SideIndex<NDIM> i_s_boundary(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                SideIndex<NDIM> i_s_inside = i_s_boundary;
-                i_s_inside(bdry_normal_axis) += is_lower ? 1 : -1;
-                const double u_inside = (*u_data)(i_s_inside);
-                const double u_div =
-                    detail::get_divergence_free_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
-                (*f_data)(i_s_boundary) += viscous_coef * (u_inside - u_div) / (h * h);
+                continue;
             }
+            // i_g is the ghost cell abutting the boundary. i_s_inside and i_s_inside_2 are the next two faces inside
+            // the domain.
+            hier::Index<NDIM> i_g = i;
+            if (is_lower)
+            {
+                i_g(bdry_normal_axis) -= 1;
+            }
+            const SideIndex<NDIM> i_s_boundary(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+            SideIndex<NDIM> i_s_inside = i_s_boundary;
+            i_s_inside(bdry_normal_axis) += is_lower ? 1 : -1;
+            const double u_inside = (*u_data)(i_s_inside);
+            const double u_div = detail::get_divergence_free_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
+            double term = u_inside - u_div;
+            if (quadratic)
+            {
+                SideIndex<NDIM> i_s_inside_2 = i_s_inside;
+                i_s_inside_2(bdry_normal_axis) += is_lower ? 1 : -1;
+                const double u_boundary = (*u_data)(i_s_boundary);
+                const double u_inside_2 = (*u_data)(i_s_inside_2);
+                term = 3.0 * (u_inside - u_boundary) - (2.0 / 3.0) * (u_inside_2 - u_inside) + (u_boundary - u_div);
+                if (pseudo_traction)
+                {
+                    term -= (4.0 / 3.0) * (u_inside - u_div);
+                }
+            }
+            (*f_data)(i_s_boundary) += viscous_coef * term / (h * h);
         }
     }
     return;
