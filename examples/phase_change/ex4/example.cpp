@@ -504,6 +504,7 @@ main(int argc, char* argv[])
                                       adv_diff_integrator,
                                       time_integrator,
                                       app_initializer->getComponentDatabase("CarmanKozenyDragForce"),
+                                      CarmanKozenyDragForce::LiquidFractionType::CELL_VOLUME_FRACTION,
                                       /*register_for_restart*/ true);
         time_integrator->registerBrinkmanPenalizationStrategy(drag_force);
 

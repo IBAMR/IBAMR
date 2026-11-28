@@ -59,6 +59,16 @@ namespace IBAMR
 class CarmanKozenyDragForce : public BrinkmanPenalizationStrategy
 {
 public:
+    // Liquid fraction type to be used for computing the Carman-Kozeny drag force. The user can choose
+    // between cell volume fraction and normalized volume fraction. The normalized volume fraction is
+    // computed as \f$ \alpha_L = \frac{V_L}{V_\textrm{PCM}} \f$, where PCM is phase change material.
+    // The cell volume fraction is computed as \f$ \alpha_L = \frac{V_L}{V_\textrm{cell}} \f$.
+    enum class LiquidFractionType
+    {
+        CELL_VOLUME_FRACTION,
+        NORMALIZED_VOLUME_FRACTION
+    };
+
     /*
      * \brief Constructor of the class.
      */
@@ -68,6 +78,7 @@ public:
                           SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                           SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> fluid_solver,
                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                          LiquidFractionType lf_type = LiquidFractionType::CELL_VOLUME_FRACTION,
                           bool register_for_restart = true);
 
     /*
@@ -118,6 +129,11 @@ protected:
      * \brief Liquid fraction variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_lf_var;
+
+    /*!
+     * \brief Type of liquid fraction variable registered with this class.
+     */
+    LiquidFractionType d_liquid_fraction_type = LiquidFractionType::CELL_VOLUME_FRACTION;
 
 private:
     /*!

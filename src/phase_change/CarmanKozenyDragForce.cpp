@@ -63,12 +63,14 @@ CarmanKozenyDragForce::CarmanKozenyDragForce(std::string object_name,
                                              Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                              Pointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
                                              Pointer<Database> input_db,
+                                             LiquidFractionType lf_type,
                                              bool register_for_restart)
     : BrinkmanPenalizationStrategy(std::move(object_name), register_for_restart),
       d_adv_diff_solver(adv_diff_solver),
       d_fluid_solver(fluid_solver),
       d_H_var(H_var),
-      d_lf_var(lf_var)
+      d_lf_var(lf_var),
+      d_liquid_fraction_type(lf_type)
 {
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -165,7 +167,15 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
                 const double lf_upper = (*lf_data)(s_i.toCell(1));
                 const double liquid_fraction = 0.5 * (lf_lower + lf_upper);
 
-                const double alpha_s = (H - liquid_fraction);
+                double alpha_s;
+                if (d_liquid_fraction_type == LiquidFractionType::CELL_VOLUME_FRACTION)
+                {
+                    alpha_s = H - liquid_fraction;
+                }
+                else
+                {
+                    alpha_s = H * (1.0 - liquid_fraction);
+                }
 
                 double penalty_rho_scale = 0.0, penalty_mu_scale = 0.0;
                 if (d_use_rho_scale)
@@ -275,7 +285,16 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
                 const double lf_upper = (*lf_data)(s_i.toCell(1));
                 const double liquid_fraction = 0.5 * (lf_lower + lf_upper);
 
-                const double alpha_s = (H - liquid_fraction);
+                double alpha_s;
+                if (d_liquid_fraction_type == LiquidFractionType::CELL_VOLUME_FRACTION)
+                {
+                    alpha_s = H - liquid_fraction;
+                }
+                else
+                {
+                    alpha_s = H * (1.0 - liquid_fraction);
+                }
+
                 double penalty_rho_scale = 0.0, penalty_mu_scale = 0.0;
                 if (d_use_rho_scale)
                 {

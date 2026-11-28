@@ -1273,13 +1273,12 @@ EnthalpyHierarchyIntegrator::computeEnthalpyResidual(const int residual_idx,
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    const double half_time = current_time + 0.5 * dt;
     const bool advection_is_computed = (d_solve_mass_conservation && d_u_adv_var);
 
     // Account for forcing terms.
     if (d_T_F_fcn)
     {
-        d_T_F_fcn->setDataOnPatchHierarchy(d_T_F_scratch_idx, d_T_F_var, d_hierarchy, half_time);
+        d_T_F_fcn->setDataOnPatchHierarchy(d_T_F_scratch_idx, d_T_F_var, d_hierarchy, new_time);
     }
     else
     {
