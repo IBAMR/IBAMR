@@ -28,7 +28,9 @@
 #include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
+#include <SideIndex.h>
 
+#include <array>
 #include <functional>
 #include <vector>
 
@@ -38,6 +40,57 @@ namespace IBAMR
 {
 namespace detail
 {
+/*!
+ * \brief Stencil weight[0]*u(idx[0]) + weight[1]*u(idx[1]) for the normal velocity in the TRACTION condition at a face
+ * on a boundary. Beyond a corner, the weights are those of linear extrapolation, or of constant extrapolation from a
+ * boundary segment of one face. If the normal velocity u_b is prescribed on the adjacent boundary
+ * (adjacent_location_index), the caller calls useAdjacentBoundaryValue() and adds 2*u_b.
+ */
+struct NormalVelocityStencil
+{
+    /*!
+     * \brief The faces of the stencil.
+     */
+    std::array<SAMRAI::pdat::SideIndex<NDIM>, 2> idx;
+
+    /*!
+     * \brief The weights of the values at the faces.
+     */
+    std::array<double, 2> weight;
+
+    /*!
+     * \brief Whether the face lies beyond a corner of the physical boundary.
+     */
+    bool beyond_corner = false;
+
+    /*!
+     * \brief The location index of the adjacent boundary, if beyond_corner is true.
+     */
+    unsigned int adjacent_location_index = 0;
+
+    /*!
+     * \brief Whether useAdjacentBoundaryValue() has been called.
+     */
+    bool uses_adjacent_boundary_value = false;
+
+    /*!
+     * \brief Replace the weighted sum by minus the value at the nearest face. The member beyond_corner must be true.
+     */
+    void useAdjacentBoundaryValue();
+};
+
+/*!
+ * \brief Return the stencil of the normal velocity at the face \a i_face beyond a corner of the boundary normal to
+ * \a bdry_normal_axis, where the boundary segment ends along \a tangential_axis. The nearest face on the boundary is
+ * \a i_face + \a step along \a tangential_axis. The stencil also uses the second nearest face if \a can_extrapolate
+ * is true.
+ */
+NormalVelocityStencil get_corner_normal_velocity_stencil(SAMRAI::hier::Index<NDIM> i_face,
+                                                         unsigned int bdry_normal_axis,
+                                                         unsigned int tangential_axis,
+                                                         int step,
+                                                         bool can_extrapolate);
+
 /*!
  * \brief Return whether any face of \a acoef_data and \a bcoef_data has a TRACTION condition.
  */

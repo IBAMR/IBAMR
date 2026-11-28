@@ -162,28 +162,7 @@ NormalVelocityPatch::setBcCoefs(RobinBcCoefStrategy<NDIM>* const normal_bc_coef,
     normal_bc_coef->setBcCoefs(
         acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM>>(), *d_patch, bdry_box, fill_time);
 } // setBcCoefs
-
-// Stencil weight[0]*u(idx[0]) + weight[1]*u(idx[1]) for the normal velocity in the TRACTION condition at a face on a
-// boundary. Beyond a corner, the weights are those of linear extrapolation, or of constant extrapolation from a
-// boundary segment of one face. If the normal velocity u_b is prescribed on the adjacent boundary
-// (adjacent_location_index), the caller calls useAdjacentBoundaryValue() and adds 2*u_b.
-struct NormalVelocityStencil
-{
-    // The faces of the stencil.
-    std::array<SideIndex<NDIM>, 2> idx;
-
-    // The weights of the values at the faces.
-    std::array<double, 2> weight;
-
-    // Whether the face lies beyond a corner of the physical boundary.
-    bool beyond_corner = false;
-
-    // The location index of the adjacent boundary, if beyond_corner is true.
-    unsigned int adjacent_location_index = 0;
-
-    // Replace the weighted sum by minus the value at the nearest face. The member beyond_corner must be true.
-    void useAdjacentBoundaryValue();
-};
+} // namespace
 
 void
 NormalVelocityStencil::useAdjacentBoundaryValue()
@@ -191,6 +170,7 @@ NormalVelocityStencil::useAdjacentBoundaryValue()
     TBOX_ASSERT(beyond_corner);
     idx[1] = idx[0];
     weight = { -1.0, 0.0 };
+    uses_adjacent_boundary_value = true;
 } // useAdjacentBoundaryValue
 
 // Return the stencil of the normal velocity at the face i_face beyond a corner of the boundary normal to
@@ -217,6 +197,8 @@ get_corner_normal_velocity_stencil(hier::Index<NDIM> i_face,
     return stencil;
 } // get_corner_normal_velocity_stencil
 
+namespace
+{
 // Return the stencil of the normal velocity at the face i_face on the boundary normal to bdry_normal_axis, for the
 // difference along tangential_axis. The stencil faces must lie in ghost_box.
 NormalVelocityStencil
