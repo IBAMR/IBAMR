@@ -54,7 +54,9 @@ namespace detail
  * the width of the fill pattern, and it must not exceed the ratio to the coarser level.
  *
  * Use postprocessRefine() as a refine hook of the schedule that fills the destination. After that schedule, call
- * computeValues(), run a schedule that has the transactions that appendTransactions() adds, and call copyValues().
+ * computeValues(), run a schedule that has the transactions that appendTransactions() adds, and call copyValues(). To
+ * fill again from the stored tangential values, as a smoother does between its sweeps, call computeValues(), run the
+ * schedule, and call copyValues() without the refine schedule.
  */
 class CoarseFineOwnerFill : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
 {
@@ -77,6 +79,23 @@ public:
     void resetPatchDataIndices(int dst_data_idx,
                                int src_data_idx,
                                SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern);
+
+    /*!
+     * \brief Use the data with index data_idx as destination and source. The data must have the centering, depth,
+     * and fill width of the data that the fill was set up for.
+     */
+    void resetPatchDataIndex(int data_idx);
+
+    /*!
+     * \brief Set the stored tangential values of level ln to zero.
+     */
+    void zeroTangentialValues(int ln);
+
+    /*!
+     * \brief Copy the stored tangential values of level ln from another object that has the same hierarchy, levels,
+     * centering, depth, and fill width.
+     */
+    void copyTangentialValues(const CoarseFineOwnerFill& from, int ln);
 
     /*!
      * \return True if this process has coarse-fine ghost values to compute or to set on level ln.

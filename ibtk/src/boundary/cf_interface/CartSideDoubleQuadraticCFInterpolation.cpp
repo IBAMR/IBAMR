@@ -330,9 +330,8 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
 } // postprocessRefine
 
 void
-CartSideDoubleQuadraticCFInterpolation::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
+CartSideDoubleQuadraticCFInterpolation::setConsistentInterpolationScheme(const bool /*consistent_type_2_bdry*/)
 {
-    d_consistent_type_2_bdry = consistent_type_2_bdry;
     return;
 } // setConsistentInterpolationScheme
 

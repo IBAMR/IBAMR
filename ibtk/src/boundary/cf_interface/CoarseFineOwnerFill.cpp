@@ -603,6 +603,56 @@ CoarseFineOwnerFill::resetPatchDataIndices(const int dst_data_idx,
     }
 } // resetPatchDataIndices
 
+void
+CoarseFineOwnerFill::resetPatchDataIndex(const int data_idx)
+{
+    if (d_dst_idx == data_idx && d_src_idx == data_idx)
+    {
+        return;
+    }
+    resetPatchDataIndices(data_idx, data_idx, d_fill_pattern);
+} // resetPatchDataIndex
+
+void
+CoarseFineOwnerFill::zeroTangentialValues(const int ln)
+{
+    for (auto& entry : d_levels[ln].work)
+    {
+        for (const auto& data : entry.second.tangential)
+        {
+            if (!data)
+            {
+                continue;
+            }
+            for (const int comp : d_comps)
+            {
+                array_data(data, comp).fillAll(0.0);
+            }
+        }
+    }
+} // zeroTangentialValues
+
+void
+CoarseFineOwnerFill::copyTangentialValues(const CoarseFineOwnerFill& from, const int ln)
+{
+    for (auto& entry : d_levels[ln].work)
+    {
+        const PatchWork& source = from.d_levels[ln].work.at(entry.first);
+        for (std::size_t code = 0; code < entry.second.tangential.size(); ++code)
+        {
+            if (!entry.second.tangential[code])
+            {
+                continue;
+            }
+            for (const int comp : d_comps)
+            {
+                ArrayData<NDIM, double>& dst = array_data(entry.second.tangential[code], comp);
+                copy_on(dst, array_data(source.tangential[code], comp), dst.getBox());
+            }
+        }
+    }
+} // copyTangentialValues
+
 bool
 CoarseFineOwnerFill::hasValues(const int ln) const
 {
@@ -1057,6 +1107,7 @@ CoarseFineOwnerFill::setUpWork(const int ln)
             pw.indicator->fillAll(0);
         }
     }
+    zeroTangentialValues(ln);
 } // setUpWork
 
 void

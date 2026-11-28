@@ -20,12 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/FACPreconditionerStrategy.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
+#include <tbox/Schedule.h>
 
 #include <CoarsenAlgorithm.h>
 #include <CoarsenOperator.h>
@@ -47,6 +47,10 @@ namespace IBTK
 {
 class HierarchyGhostCellInterpolation;
 class HierarchyMathOps;
+namespace detail
+{
+class CoarseFineOwnerFill;
+} // namespace detail
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -361,6 +365,22 @@ protected:
     //\}
 
     /*!
+     * \brief Prepare the coarse-fine ghost values of level \a level_num for the sweeps of smoothError() on the error
+     * with patch data index \a error_idx, which pre-smoothing starts from zero.
+     */
+    void prepareCoarseFineValues(int error_idx, int level_num, bool performing_pre_sweeps, bool performing_post_sweeps);
+
+    /*!
+     * \brief Set the coarse-fine ghost values of the error on level \a level_num from its current interior values.
+     */
+    void fillCoarseFineValues(int level_num);
+
+    /*!
+     * \brief Call after the last sweep of smoothError().
+     */
+    void finishCoarseFineValues();
+
+    /*!
      * \brief Set \a negated_spec to the Poisson specifications of -A, where A is the operator of this object.
      *
      * \pre The diffusion coefficient D is constant and the damping coefficient C is zero or constant.
@@ -488,14 +508,25 @@ protected:
     SAMRAI::tbox::Pointer<RobinPhysBdryPatchStrategy> d_bc_op;
 
     /*
-     * Coarse-fine interface interpolation objects.
+     * Coarse-fine ghost values, which the prolongation computes and the smoother completes. d_coarse_fine_fill acts on
+     * data with the ghost cell width of the scratch data; d_coarse_fine_fill_wide, if set, acts on data with the ghost
+     * cell width of the solution vector. A fill refers to its own persistent data when it is not in use.
      */
-    SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy> d_cf_bdry_op;
+    std::unique_ptr<detail::CoarseFineOwnerFill> d_coarse_fine_fill;
+    std::unique_ptr<detail::CoarseFineOwnerFill> d_coarse_fine_fill_wide;
+    detail::CoarseFineOwnerFill* d_smoother_coarse_fine_fill = nullptr;
 
     /*
-     * Variable fill pattern object.
+     * For each level, the schedule of the coarse-fine ghost values of the smoother.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_op_stencil_fill_pattern, d_synch_fill_pattern;
+    std::vector<std::unique_ptr<SAMRAI::tbox::Schedule>> d_coarse_fine_scheds;
+
+    /*
+     * Variable fill pattern objects. The residual fills its ghost values with d_residual_fill_pattern, which also sets
+     * the width of the coarse-fine ghost values.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_op_stencil_fill_pattern, d_synch_fill_pattern,
+        d_residual_fill_pattern;
 
     //\}
 
@@ -539,7 +570,8 @@ private:
      * solution vector.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_prolongation_refine_patch_strategy;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_prolongation_refine_patch_strategy,
+        d_prolongation_wide_refine_patch_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_prolongation_refine_algorithm,
         d_prolongation_wide_refine_algorithm;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_prolongation_refine_schedules,

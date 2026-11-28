@@ -11,8 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
-// Set-up and checks of the ghost values on the finest level of a hierarchy, shared by the cf_interface and
-// interface_face_ghost_copy tests.
+// Set-up and checks of the ghost values on the finest level of a hierarchy, shared by the cf_interface,
+// interface_face_ghost_copy, fac_coarse_fine_ghost_values, and stokes_fac_restriction tests.
 
 #ifndef included_ibamr_coarse_fine_ghost_values_h
 #define included_ibamr_coarse_fine_ghost_values_h
@@ -22,6 +22,7 @@
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <BergerRigoutsos.h>
 #include <Box.h>
@@ -45,8 +46,10 @@
 #include <StandardTagAndInitialize.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <functional>
+#include <iomanip>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -100,6 +103,23 @@ inline bool
 in_fine_level(const FineLevel& fine, const int axis, const hier::Index<NDIM>& i)
 {
     return in_boxes(fine.boxes, axis, i);
+}
+
+// The image of the index i in the first period of the domain along each periodic direction.
+inline hier::Index<NDIM>
+periodic_image(const FineLevel& fine, const IntVector<NDIM>& shift, const hier::Index<NDIM>& i)
+{
+    hier::Index<NDIM> j = i;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (shift(d) == 0)
+        {
+            continue;
+        }
+        const int lo = fine.domain.getBoundingBox().lower(d);
+        j(d) = lo + ((i(d) - lo) % shift(d) + shift(d)) % shift(d);
+    }
+    return j;
 }
 
 inline int
@@ -217,17 +237,63 @@ key_string(const GhostValue& v)
     return s + ")";
 }
 
+// Whether the patch data are cell-centered (otherwise side-centered).
+inline bool
+is_cell_data(Pointer<Patch<NDIM>> patch, const int data_idx)
+{
+    Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
+    return !data.isNull();
+}
+
+// The depth of the cell-centered or side-centered patch data.
+inline int
+data_depth(Pointer<Patch<NDIM>> patch, const int data_idx)
+{
+    if (is_cell_data(patch, data_idx))
+    {
+        Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
+        return data->getDepth();
+    }
+    Pointer<SideData<NDIM, double>> data = patch->getPatchData(data_idx);
+    return data->getDepth();
+}
+
 // Value of a patch datum at index i, for cell data (axis = -1) or side data.
 inline double
-get_value(Pointer<Patch<NDIM>> patch, const int data_idx, const int axis, const hier::Index<NDIM>& i)
+get_value(Pointer<Patch<NDIM>> patch,
+          const int data_idx,
+          const int axis,
+          const hier::Index<NDIM>& i,
+          const int depth = 0)
 {
     if (axis < 0)
     {
         Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
-        return (*data)(CellIndex<NDIM>(i));
+        return (*data)(CellIndex<NDIM>(i), depth);
     }
     Pointer<SideData<NDIM, double>> data = patch->getPatchData(data_idx);
-    return (*data)(SideIndex<NDIM>(i, axis, SideIndex<NDIM>::Lower));
+    return (*data)(SideIndex<NDIM>(i, axis, SideIndex<NDIM>::Lower), depth);
+}
+
+// Set the value of a patch datum at index i, for cell data (axis = -1) or side data.
+inline void
+set_value(Pointer<Patch<NDIM>> patch,
+          const int data_idx,
+          const int axis,
+          const hier::Index<NDIM>& i,
+          const int depth,
+          const double value)
+{
+    if (axis < 0)
+    {
+        Pointer<CellData<NDIM, double>> data = patch->getPatchData(data_idx);
+        (*data)(CellIndex<NDIM>(i), depth) = value;
+    }
+    else
+    {
+        Pointer<SideData<NDIM, double>> data = patch->getPatchData(data_idx);
+        (*data)(SideIndex<NDIM>(i, axis, SideIndex<NDIM>::Lower), depth) = value;
+    }
 }
 
 // Box of the cell indices (axis = -1) or the side indices in the ghost box of the patch data.
@@ -373,12 +439,9 @@ make_quadratic(Pointer<CartesianGridGeometry<NDIM>> grid_geometry)
     };
 }
 
-// The exact value of the quadratic function at a cell or a face of a patch.
-inline double
-exact_value(Pointer<Patch<NDIM>> patch,
-            const int axis,
-            const hier::Index<NDIM>& i,
-            const std::function<double(const VectorNd&)>& Q_fcn)
+// The position of the center of the cell (axis = -1) or of the face normal to axis with index i of a patch.
+inline VectorNd
+position(Pointer<Patch<NDIM>> patch, const int axis, const hier::Index<NDIM>& i)
 {
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
@@ -389,7 +452,17 @@ exact_value(Pointer<Patch<NDIM>> patch,
     {
         x[d] = xlow[d] + dx[d] * (static_cast<double>(i(d) - idx_low(d)) + (d == axis ? 0.0 : 0.5));
     }
-    return Q_fcn(x);
+    return x;
+}
+
+// The exact value of the quadratic function at a cell or a face of a patch.
+inline double
+exact_value(Pointer<Patch<NDIM>> patch,
+            const int axis,
+            const hier::Index<NDIM>& i,
+            const std::function<double(const VectorNd&)>& Q_fcn)
+{
+    return Q_fcn(position(patch, axis, i));
 }
 
 // Set the interiors of the patch data to the quadratic function and the ghost values to the sentinel.
@@ -449,11 +522,13 @@ fill_quadratic(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     }
 }
 
-// The finest level of the hierarchy as a FineLevel.
+// Level ln of the hierarchy as a FineLevel.
 inline FineLevel
-make_fine_level(Pointer<PatchHierarchy<NDIM>> patch_hierarchy, Pointer<CartesianGridGeometry<NDIM>> grid_geometry)
+make_fine_level(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                Pointer<CartesianGridGeometry<NDIM>> grid_geometry,
+                const int ln)
 {
-    Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+    Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
     FineLevel fine;
     fine.boxes = level->getBoxes();
     fine.ratio = level->getRatio();
@@ -462,7 +537,14 @@ make_fine_level(Pointer<PatchHierarchy<NDIM>> patch_hierarchy, Pointer<Cartesian
     fine.domain.refine(level->getRatio());
     fine.coarse_domain = grid_geometry->getPhysicalDomain();
     return fine;
-}
+} // make_fine_level
+
+// The finest level of the hierarchy as a FineLevel.
+inline FineLevel
+make_fine_level(Pointer<PatchHierarchy<NDIM>> patch_hierarchy, Pointer<CartesianGridGeometry<NDIM>> grid_geometry)
+{
+    return make_fine_level(patch_hierarchy, grid_geometry, patch_hierarchy->getFinestLevelNumber());
+} // make_fine_level
 
 // Check that every patch that contains a cell or a face of the fine level, as an interior value or as a ghost
 // value, has the same value there, to the bit. A face on the boundary of a patch along a coarse-fine interface
@@ -489,16 +571,7 @@ check_fine_level_agreement(Pointer<PatchLevel<NDIM>> level,
                            axis,
                            [&](const int ax, const hier::Index<NDIM>& i)
                            {
-                               hier::Index<NDIM> j = i;
-                               for (int d = 0; d < NDIM; ++d)
-                               {
-                                   if (shift(d) == 0)
-                                   {
-                                       continue;
-                                   }
-                                   const int lo = fine.domain.getBoundingBox().lower(d);
-                                   j(d) = lo + ((i(d) - lo) % shift(d) + shift(d)) % shift(d);
-                               }
+                               const hier::Index<NDIM> j = periodic_image(fine, shift, i);
                                if (!in_fine_level(fine, ax, j))
                                {
                                    return;
@@ -610,6 +683,147 @@ check_interior_unchanged(Pointer<PatchLevel<NDIM>> level,
                  << " interior values changed by the fill; first on process with a change: " << first_changed << "\n";
     }
 }
+// A smooth function of position with integer wave numbers, so that it is periodic on the unit square or cube.
+inline double
+coarse_fine_ghost_test_function(const VectorNd& x, const double salt)
+{
+    double arg_a = 0.0;
+    double arg_b = 0.0;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        arg_a += (d == 0 ? 2.0 : 1.0) * x[d];
+        arg_b += (d == 1 ? -3.0 : 1.0) * x[d];
+    }
+    return std::sin(2.0 * M_PI * arg_a + salt) + 0.5 * std::cos(2.0 * M_PI * arg_b - salt);
+} // coarse_fine_ghost_test_function
+
+// Set the interior values of the cell-centered or side-centered data with index data_idx on the levels 0 and 1 to the
+// test function, and the ghost values to the sentinel.
+inline void
+set_coarse_fine_ghost_test_data(Pointer<PatchHierarchy<NDIM>> hierarchy, const int data_idx, const double salt)
+{
+    for (int ln = 0; ln <= 1; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const int depth_count = data_depth(patch, data_idx);
+            for (const int axis : data_axes(is_cell_data(patch, data_idx)))
+            {
+                const double axis_salt = static_cast<double>(std::max(axis, 0));
+                for (int depth = 0; depth < depth_count; ++depth)
+                {
+                    for_each_index(ghost_index_box(patch, data_idx, axis),
+                                   axis,
+                                   [&](const int ax, const hier::Index<NDIM>& i)
+                                   { set_value(patch, data_idx, ax, i, depth, SENTINEL); });
+                    for_each_index(index_box(patch->getBox(), axis),
+                                   axis,
+                                   [&](const int ax, const hier::Index<NDIM>& i)
+                                   {
+                                       const double value = coarse_fine_ghost_test_function(
+                                           position(patch, ax, i), salt + axis_salt + 0.5 * depth);
+                                       set_value(patch, data_idx, ax, i, depth, value);
+                                   });
+                }
+            }
+        }
+    }
+} // set_coarse_fine_ghost_test_data
+
+// Compare bit for bit the values of the data with indices u_idx and w_idx on the cells (faces) next to the boxes of
+// the patches of level ln, without corners, that the level does not cover and that lie in the physical domain, at
+// least two cells of the next coarser level away from a physical boundary, because next to a physical boundary the
+// coarse data of the two fills still differ. Return the number of entries compared on all processes. Stop with an
+// error at the first difference.
+inline int
+compare_coarse_fine_ghost_values(Pointer<PatchHierarchy<NDIM>> hierarchy,
+                                 const int ln,
+                                 const int u_idx,
+                                 const int w_idx,
+                                 const std::string& name)
+{
+    Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
+    const FineLevel fine = make_fine_level(hierarchy, hierarchy->getGridGeometry(), ln);
+    BoxList<NDIM> coarse_domain(fine.domain);
+    coarse_domain.coarsen(fine.ratio_to_coarser);
+    const IntVector<NDIM> shift = hierarchy->getGridGeometry()->getPeriodicShift(level->getRatio());
+
+    int count = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM>> patch = level->getPatch(p());
+        const bool is_cell = is_cell_data(patch, u_idx);
+        const int depth_count = data_depth(patch, u_idx);
+        for (const int axis : data_axes(is_cell))
+        {
+            const Box<NDIM> box = index_box(patch->getBox(), axis);
+            for_each_index(Box<NDIM>::grow(box, 1),
+                           axis,
+                           [&](const int ax, const hier::Index<NDIM>& i)
+                           {
+                               // Keep the entries next to the box along exactly one direction, in the domain and away
+                               // from the physical boundaries along the directions that are not periodic.
+                               int outside = 0;
+                               for (int d = 0; d < NDIM; ++d)
+                               {
+                                   if (i(d) < box.lower(d) || i(d) > box.upper(d))
+                                   {
+                                       ++outside;
+                                   }
+                               }
+                               if (outside != 1)
+                               {
+                                   return;
+                               }
+                               const hier::Index<NDIM> j = periodic_image(fine, shift, i);
+                               hier::Index<NDIM> c;
+                               IntVector<NDIM> width(2);
+                               for (int d = 0; d < NDIM; ++d)
+                               {
+                                   c(d) = floor_div(j(d), fine.ratio_to_coarser(d));
+                                   if (shift(d) != 0)
+                                   {
+                                       width(d) = 0;
+                                   }
+                               }
+                               BoxList<NDIM> stencil(Box<NDIM>::grow(Box<NDIM>(c, c), width));
+                               stencil.removeIntersections(coarse_domain);
+                               if (!in_boxes(fine.domain, ax, j) || !stencil.isEmpty())
+                               {
+                                   return;
+                               }
+                               if (in_fine_level(fine, ax, i) || in_fine_level(fine, ax, j))
+                               {
+                                   return;
+                               }
+                               for (int depth = 0; depth < depth_count; ++depth)
+                               {
+                                   const double u = get_value(patch, u_idx, ax, i, depth);
+                                   const double w = get_value(patch, w_idx, ax, i, depth);
+                                   ++count;
+                                   if (!same_bits(u, w))
+                                   {
+                                       std::ostringstream os;
+                                       os << std::setprecision(17) << "index (" << i(0);
+                                       for (int d = 1; d < NDIM; ++d)
+                                       {
+                                           os << "," << i(d);
+                                       }
+                                       os << ") depth " << depth << " of patch " << p() << " has " << u << " and " << w;
+                                       TBOX_ERROR("compare_coarse_fine_ghost_values():\n"
+                                                  << "  " << name << ": coarse-fine ghost value of "
+                                                  << (is_cell ? std::string("cell data") :
+                                                                "side data of axis " + std::to_string(ax))
+                                                  << " differs at " << os.str() << "\n");
+                                   }
+                               }
+                           });
+        }
+    }
+    return IBTK_MPI::sumReduction(count);
+} // compare_coarse_fine_ghost_values
 } // namespace coarse_fine_ghost_values
 
 #endif // included_ibamr_coarse_fine_ghost_values_h

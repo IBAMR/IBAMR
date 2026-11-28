@@ -174,18 +174,6 @@ get_data_or_null(const Container& data) -> decltype(data.data())
 double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
 
 /*!
- * \brief Copy patch data from \a src_idx to \a dst_idx in the ghost region of each local patch of \a patch_level,
- * leaving interior values of \a dst_idx unchanged.
- *
- * Values on the patch boundary (e.g., side-centered normal components) are interior.
- *
- * Both indices must refer to allocated data of the same element type. The function stops with an error if the box
- * geometries of the source and destination data compute no overlap, for example for data of different centerings. If
- * the depths differ, only the common components are copied.
- */
-void copy_ghost_region(const SAMRAI::hier::PatchLevel<NDIM>& patch_level, int dst_idx, int src_idx);
-
-/*!
  * \brief Register the IBTK coarsen and refine operators (cubic cell and side coarsening, RT0 side coarsening, and RT0
  * side refinement) with \a geometry.
  *

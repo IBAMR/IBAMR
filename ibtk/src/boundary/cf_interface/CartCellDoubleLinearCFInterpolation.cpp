@@ -124,9 +124,8 @@ CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
 } // postprocessRefine
 
 void
-CartCellDoubleLinearCFInterpolation::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
+CartCellDoubleLinearCFInterpolation::setConsistentInterpolationScheme(const bool /*consistent_type_2_bdry*/)
 {
-    d_consistent_type_2_bdry = consistent_type_2_bdry;
     return;
 } // setConsistentInterpolationScheme
 
@@ -213,7 +212,6 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
-    TBOX_ASSERT(!d_consistent_type_2_bdry);
     TBOX_ASSERT(ratio.min() == ratio.max());
 #endif
     // Ensure that the fine patch is located on the expected destination level;

@@ -120,8 +120,14 @@ namespace IBTK
  *
  * Note: If this class is used in conjunction with RefineAlgorithm, to correctly fill in ghost cells,
  * computeNormalExtension() must be called after RefineAlgorithm::refine() is completed.
+ *
+ * @deprecated Use HierarchyGhostCellInterpolation, or derive a FAC preconditioner from
+ * PoissonFACPreconditionerStrategy, whose protected functions provide the coarse-fine values to the smoothers.
  */
-class CartSideDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
+class IBTK_DEPRECATED(
+    "Use HierarchyGhostCellInterpolation, or derive a FAC preconditioner from PoissonFACPreconditionerStrategy, whose "
+    "protected functions provide the coarse-fine values to the smoothers.") CartSideDoubleQuadraticCFInterpolation
+    : public CoarseFineBoundaryRefinePatchStrategy
 {
 public:
     /*!
@@ -220,7 +226,10 @@ public:
     /*!
      * \brief Not supported: this class fills only co-dimension 1 coarse-fine interface ghost cells, and the
      * setting has no effect.
+     *
+     * @deprecated The option no longer has an effect.
      */
+    IBTK_DEPRECATED("The option no longer has an effect.")
     void setConsistentInterpolationScheme(bool consistent_type_2_bdry) override;
 
     /*!
@@ -288,11 +297,6 @@ private:
      * operated on by this class.
      */
     std::set<int> d_patch_data_indices;
-
-    /*!
-     * Stored but unused; see setConsistentInterpolationScheme().
-     */
-    bool d_consistent_type_2_bdry = false;
 
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.

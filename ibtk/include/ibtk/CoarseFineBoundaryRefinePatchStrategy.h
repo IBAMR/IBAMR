@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/ibtk_utilities.h>
+
 #include <Box.h>
 #include <ComponentSelector.h>
 #include <IntVector.h>
@@ -152,7 +154,10 @@ public:
      * co-dimension greater than 1 (such as corner cells in 2D).
      *
      * \note Subclasses may choose not to support it.
+     *
+     * @deprecated The option no longer has an effect.
      */
+    IBTK_DEPRECATED("The option no longer has an effect.")
     virtual void setConsistentInterpolationScheme(bool consistent_type_2_bdry) = 0;
 
     /*!

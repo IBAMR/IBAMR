@@ -1,0 +1,3 @@
+Deprecated: IBTK::CartCellDoubleLinearCFInterpolation, IBTK::CartCellDoubleQuadraticCFInterpolation, and IBTK::CartSideDoubleQuadraticCFInterpolation. Use IBTK::HierarchyGhostCellInterpolation. IBTK::CoarseFineBoundaryRefinePatchStrategy::setConsistentInterpolationScheme() is deprecated because the option no longer has an effect.
+<br>
+(Boyce Griffith, 2026/11/15)
