@@ -19,6 +19,7 @@
 #include <ibamr/private/ins_velocity_bc.h>
 
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/private/ScopedShiftedPatchGeometry.h>
 
 #include <tbox/Pointer.h>
@@ -136,12 +137,22 @@ get_divergence_free_ghost_formula(const hier::Index<NDIM>& i_g,
 } // namespace
 
 void
-NormalVelocityStencil::useAdjacentBoundaryValue()
+NormalVelocityStencil::useAdjacentBoundaryValue(const IBTK::BdryInterpType bdry_interp_type)
 {
     TBOX_ASSERT(beyond_corner);
+    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    uses_adjacent_boundary_value = true;
+
+    // The weight of the second face is zero if the boundary segment has only one face.
+    if (bdry_interp_type == IBTK::BdryInterpType::QUADRATIC && weight[1] != 0.0)
+    {
+        weight = { -2.0, 1.0 / 3.0 };
+        prescribed_weight = 8.0 / 3.0;
+        return;
+    }
     idx[1] = idx[0];
     weight = { -1.0, 0.0 };
-    uses_adjacent_boundary_value = true;
+    prescribed_weight = 2.0;
 } // useAdjacentBoundaryValue
 
 // Return the stencil of the normal velocity at the face i_face beyond a corner of the boundary normal to
@@ -262,8 +273,9 @@ struct NormalVelocity
 };
 
 // Return the normal velocity in the TRACTION condition at the boundary face i_face. Beyond a corner with u_b prescribed
-// on the adjacent boundary (zero if homogeneous_bc), it is 2*u_b - u, in which u is the value at the nearest boundary
-// face.
+// on the adjacent boundary (zero if homogeneous_bc), it is 2*u_b - q_0, or (8/3)*u_b - 2*q_0 + q_1/3 with QUADRATIC
+// interpolation and two faces on the boundary, in which q_0 and q_1 are the values at the two nearest faces on the
+// boundary.
 NormalVelocity
 get_normal_velocity(const hier::Index<NDIM>& i_face,
                     const bool bdry_is_lower,
@@ -272,6 +284,7 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
                     NormalVelocityPatch& normal_velocity_patch,
                     const BoxArray<NDIM>& domain,
                     const Box<NDIM>& ghost_box,
+                    const IBTK::BdryInterpType bdry_interp_type,
                     const double fill_time)
 {
     NormalVelocity u = { get_normal_velocity_stencil(i_face,
@@ -287,8 +300,8 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
             i_face, u.stencil.adjacent_location_index, normal_bc_coef, normal_velocity_patch, fill_time);
         if (u_prescribed)
         {
-            u.stencil.useAdjacentBoundaryValue();
-            u.offset = homogeneous_bc ? 0.0 : 2.0 * *u_prescribed;
+            u.stencil.useAdjacentBoundaryValue(bdry_interp_type);
+            u.offset = homogeneous_bc ? 0.0 : u.stencil.prescribed_weight * *u_prescribed;
         }
     }
     return u;
@@ -297,7 +310,8 @@ get_normal_velocity(const hier::Index<NDIM>& i_face,
 // Return the difference along the tangential axis of normal_velocity_patch of the normal velocity in the TRACTION
 // condition for the tangential velocity component at the face i on the boundary normal to its normal axis, or NaN if
 // the face i - 1 or i lies outside the ghost box of u_data. The patch of normal_velocity_patch must be the patch of
-// u_data.
+// u_data. Beyond a corner with a prescribed normal velocity, the function passes bdry_interp_type to
+// NormalVelocityStencil::useAdjacentBoundaryValue().
 double
 get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
                                const hier::Index<NDIM>& i,
@@ -306,6 +320,7 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
                                const bool homogeneous_bc,
                                NormalVelocityPatch& normal_velocity_patch,
                                const BoxArray<NDIM>& domain,
+                               const IBTK::BdryInterpType bdry_interp_type,
                                const double fill_time)
 {
     const unsigned int tangential_axis = normal_velocity_patch.getTangentialAxis();
@@ -319,8 +334,15 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
     i_lower(tangential_axis) -= 1;
     const auto get_u = [&](const hier::Index<NDIM>& i_face)
     {
-        return get_normal_velocity(
-            i_face, bdry_is_lower, normal_bc_coef, homogeneous_bc, normal_velocity_patch, domain, ghost_box, fill_time);
+        return get_normal_velocity(i_face,
+                                   bdry_is_lower,
+                                   normal_bc_coef,
+                                   homogeneous_bc,
+                                   normal_velocity_patch,
+                                   domain,
+                                   ghost_box,
+                                   bdry_interp_type,
+                                   fill_time);
     };
     const NormalVelocity u_lower = get_u(i_lower);
     const NormalVelocity u_upper = get_u(i);
@@ -426,12 +448,16 @@ get_divergence_free_ghost_value_stencil(const hier::Index<NDIM>& i_g,
 } // get_divergence_free_ghost_value_stencil
 
 bool
-has_normal_stress_term(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+has_normal_stress_term(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                       const IBTK::BdryInterpType bdry_interp_type)
 {
+    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    const bool quadratic = bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
     for (const auto& u_bc_coef : u_bc_coefs)
     {
         const auto stokes_u_bc_coef = dynamic_cast<const StokesBcCoefStrategy*>(u_bc_coef);
-        if (stokes_u_bc_coef && stokes_u_bc_coef->getTractionBcType() == TRACTION)
+        if (stokes_u_bc_coef && (stokes_u_bc_coef->getTractionBcType() == TRACTION ||
+                                 (quadratic && stokes_u_bc_coef->getTractionBcType() == PSEUDO_TRACTION)))
         {
             return true;
         }
@@ -465,6 +491,7 @@ correct_traction_coefficients(ArrayData<NDIM, double>& acoef_data,
                               const bool homogeneous_bc,
                               const Pointer<PatchHierarchy<NDIM>>& patch_hierarchy,
                               const std::function<double(const hier::Index<NDIM>&, double)>& get_mu,
+                              const IBTK::BdryInterpType bdry_interp_type,
                               const double fill_time)
 {
     TBOX_ASSERT(patch_hierarchy);
@@ -491,6 +518,7 @@ correct_traction_coefficients(ArrayData<NDIM, double>& acoef_data,
                                                                          homogeneous_bc,
                                                                          normal_velocity_patch,
                                                                          domain,
+                                                                         bdry_interp_type,
                                                                          fill_time) /
                                           dx[tangential_axis];
             alpha = 0.0;
@@ -577,6 +605,7 @@ get_traction_stencil(const hier::Index<NDIM>& i,
                                    normal_velocity_patch,
                                    domain,
                                    ghost_box,
+                                   IBTK::BdryInterpType::LINEAR,
                                    fill_time)
             .stencil;
     };

@@ -98,10 +98,10 @@ public:
                                   int wgt_cc_idx) const;
 
     /*!
-     * \brief Add the viscous part of the TRACTION conditions to \a f_data_idx at the boundary faces where the normal
-     * velocity is not prescribed. Pass the same \a u_data_idx and \a viscous_coef as to
-     * IBTK::HierarchyMathOps::laplace(). The term is exact only for \a bdry_interp_type LINEAR. See
-     * checkNormalTractionBdryInterpType().
+     * \brief Add the viscous part of the TRACTION and PSEUDO_TRACTION conditions to \a f_data_idx at the boundary faces
+     * where the normal velocity is not prescribed. Pass the same \a u_data_idx and \a viscous_coef as to
+     * IBTK::HierarchyMathOps::laplace(). Pass the interpolation type of the pressure ghost values as
+     * \a bdry_interp_type. The term of a PSEUDO_TRACTION condition is present only for QUADRATIC.
      */
     void addNormalTractionViscousTerm(int f_data_idx,
                                       int u_data_idx,
@@ -112,28 +112,26 @@ public:
                                       int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
-     * \brief Add the viscous part of the TRACTION conditions to \a f_data on one patch. See the version for a patch
-     * hierarchy.
+     * \brief Add the viscous part of the TRACTION and PSEUDO_TRACTION conditions to \a f_data on one patch. See the
+     * version for a patch hierarchy.
      */
     void addNormalTractionViscousTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> f_data,
                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_data,
                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
                                       double viscous_coef,
-                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs) const;
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                      IBTK::BdryInterpType bdry_interp_type) const;
 
     /*!
-     * \brief Stop with an error if \a bdry_interp_type is QUADRATIC, \a viscous_coef_nonzero is true, and the normal
-     * velocity of a TRACTION condition in \a u_bc_coefs (or of a PSEUDO_TRACTION condition, if
-     * \a include_pseudo_traction is true) is not prescribed at some boundary face of \a hierarchy. The terms of
-     * addNormalTractionViscousTerm() are exact only for LINEAR. Call this function when setting up the solver, not for
-     * each term. Pass \a viscous_coef_nonzero true for a variable viscous coefficient.
+     * \brief Stop with an error if \a bdry_interp_type is QUADRATIC and the normal velocity of a TRACTION or
+     * PSEUDO_TRACTION condition in \a u_bc_coefs is not prescribed at some boundary face of \a hierarchy. The terms of
+     * addNormalTractionViscousTerm() for a variable viscous coefficient are exact only for LINEAR. Call this function
+     * when setting up the solver, not for each term.
      */
     void checkNormalTractionBdryInterpType(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                            IBTK::BdryInterpType bdry_interp_type,
-                                           bool viscous_coef_nonzero,
                                            double fill_time,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
-                                           bool include_pseudo_traction = false) const;
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy) const;
 
     /*!
      * \brief Add the viscous part of the TRACTION and PSEUDO_TRACTION conditions to \a f_data_idx at the boundary faces

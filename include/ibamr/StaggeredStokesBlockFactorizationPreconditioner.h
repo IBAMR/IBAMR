@@ -24,6 +24,7 @@
 #include <ibamr/StaggeredStokesSolver.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Database.h>
@@ -94,6 +95,17 @@ public:
      * Set the factorization type.
      */
     void setFactorizationType(FactorizationType factorization_type);
+
+    /*!
+     * \brief Return true: the preconditioner applies any interpolation type.
+     */
+    bool supportsBdryInterpType(IBTK::BdryInterpType bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries. The preconditioner uses its interpolation and extrapolation
+     * types to fill the ghost values of the pressure.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
 
     /*!
      * \name Linear solver functionality.

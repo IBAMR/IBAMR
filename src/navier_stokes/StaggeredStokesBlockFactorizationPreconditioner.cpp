@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StaggeredStokesBlockFactorizationPreconditioner.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
 #include <ibamr/ibamr_utilities.h>
@@ -23,6 +24,7 @@
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PoissonSolver.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Database.h>
 #include <tbox/MathUtilities.h>
@@ -67,9 +69,6 @@ static const int SIDEG = 1;
 static const std::string DATA_REFINE_TYPE = "NONE";
 static const bool USE_CF_INTERPOLATION = true;
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
@@ -178,6 +177,20 @@ StaggeredStokesBlockFactorizationPreconditioner::~StaggeredStokesBlockFactorizat
     return;
 } // ~StaggeredStokesBlockFactorizationPreconditioner
 
+bool
+StaggeredStokesBlockFactorizationPreconditioner::supportsBdryInterpType(
+    const IBTK::BdryInterpType bdry_interp_type) const
+{
+    return bdry_interp_type == IBTK::BdryInterpType::LINEAR || bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
+} // supportsBdryInterpType
+
+void
+StaggeredStokesBlockFactorizationPreconditioner::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    d_bdry_treatment = bdry_treatment;
+    return;
+} // setBoundaryTreatment
+
 void
 StaggeredStokesBlockFactorizationPreconditioner::setFactorizationType(FactorizationType factorization_type)
 {
@@ -248,22 +261,23 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                                                          DATA_REFINE_TYPE,
                                                          USE_CF_INTERPOLATION,
                                                          DATA_COARSEN_TYPE,
-                                                         BDRY_EXTRAP_TYPE,
+                                                         d_bdry_treatment.bdry_extrap_type,
                                                          CONSISTENT_TYPE_2_BDRY,
                                                          d_P_bc_coef,
                                                          fill_pattern,
-                                                         "LINEAR",
+                                                         IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type),
                                                          /*extend_coarse_data_linearly*/ true);
-    InterpolationTransactionComponent P_scratch_transaction_comp(d_P_scratch_idx,
-                                                                 DATA_REFINE_TYPE,
-                                                                 USE_CF_INTERPOLATION,
-                                                                 DATA_COARSEN_TYPE,
-                                                                 BDRY_EXTRAP_TYPE,
-                                                                 CONSISTENT_TYPE_2_BDRY,
-                                                                 d_P_bc_coef,
-                                                                 fill_pattern,
-                                                                 "LINEAR",
-                                                                 /*extend_coarse_data_linearly*/ true);
+    InterpolationTransactionComponent P_scratch_transaction_comp(
+        d_P_scratch_idx,
+        DATA_REFINE_TYPE,
+        USE_CF_INTERPOLATION,
+        DATA_COARSEN_TYPE,
+        d_bdry_treatment.bdry_extrap_type,
+        CONSISTENT_TYPE_2_BDRY,
+        d_P_bc_coef,
+        fill_pattern,
+        IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type),
+        /*extend_coarse_data_linearly*/ true);
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -395,11 +409,11 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
                                                           DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
+                                                          d_bdry_treatment.bdry_extrap_type,
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           d_P_bc_coef,
                                                           fill_pattern,
-                                                          "LINEAR",
+                                                          IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type),
                                                           /*extend_coarse_data_linearly*/ true);
     d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->setHomogeneousBc(true);

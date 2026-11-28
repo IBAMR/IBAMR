@@ -13,12 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h>
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolver.h>
 
 #include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
 
@@ -108,6 +110,29 @@ KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
     if (p_preconditioner) p_preconditioner->setPhysicalBoundaryHelper(d_bc_helper);
     return;
 } // setPhysicalBoundaryHelper
+
+bool
+KrylovLinearSolverStaggeredStokesSolverInterface::supportsBdryInterpType(
+    const IBTK::BdryInterpType /*bdry_interp_type*/) const
+{
+    return true;
+} // supportsBdryInterpType
+
+void
+KrylovLinearSolverStaggeredStokesSolverInterface::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(p_this);
+#endif
+    d_bdry_treatment = bdry_treatment;
+    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    if (p_operator)
+    {
+        p_operator->setBoundaryTreatment(d_bdry_treatment);
+    }
+    return;
+} // setBoundaryTreatment
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

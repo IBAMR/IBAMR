@@ -721,7 +721,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_finest_ln = solution.getFinestLevelNumber();
 
     // Determine whether any velocity boundary condition object imposes TRACTION conditions.
-    d_has_normal_stress_term = detail::has_normal_stress_term(d_U_bc_coefs);
+    d_has_normal_stress_term = detail::has_normal_stress_term(d_U_bc_coefs, IBTK::BdryInterpType::LINEAR);
 
     // Setup boundary condition handling objects.
     d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);

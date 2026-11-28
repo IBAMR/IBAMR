@@ -24,6 +24,7 @@
 #include <ibamr/StaggeredStokesSolver.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Database.h>
@@ -86,6 +87,18 @@ public:
     {
         return new StaggeredStokesProjectionPreconditioner(object_name, input_db, default_options_prefix);
     } // allocate_solver
+
+    /*!
+     * \brief Return true: the preconditioner applies any interpolation type.
+     */
+    bool supportsBdryInterpType(IBTK::BdryInterpType bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries. The preconditioner uses its interpolation type and, unless
+     * <code>Phi_bdry_extrap_type</code> is set, its extrapolation type to fill the ghost values of the pressure
+     * update.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
 
     /*!
      * \name Linear solver functionality.
@@ -191,8 +204,8 @@ private:
     bool d_Phi_use_cf_interpolation = true;
     std::string d_Phi_data_coarsen_type = "CUBIC_COARSEN";
 
-    // Type of extrapolation to use at physical boundaries.
-    std::string d_Phi_bdry_extrap_type = "LINEAR";
+    // Type of extrapolation to use at physical boundaries, or empty for that of the boundary treatment.
+    std::string d_Phi_bdry_extrap_type;
 };
 } // namespace IBAMR
 
