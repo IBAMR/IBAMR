@@ -2051,11 +2051,12 @@ c     Dirichlet boundary conditions
                   u_b = g/a
                   u0(i_b,j,k) = u_b
                   do i = 1,u_gcw
-                     f_i = -3.d0
-                     f_i2 = 1.d0
-                     f_b = 3.d0
-                     u_i = u0(i_b-sgn*i,j,k)
-                     u_i2 = u0(i_b-sgn*(i+1),j,k)
+c     The quadratic through u_b and the two nearest interior faces.
+                     f_b = 0.5d0*dble((i+1)*(i+2))
+                     f_i = -dble(i*(i+2))
+                     f_i2 = 0.5d0*dble(i*(i+1))
+                     u_i = u0(i_b-sgn,j,k)
+                     u_i2 = u0(i_b-2*sgn,j,k)
                      u0(i_b+sgn*i,j,k) = f_i2*u_i2+f_i*u_i+f_b*u_b
                   enddo
                else
@@ -2163,11 +2164,12 @@ c     Dirichlet boundary conditions
                   u_b = g/a
                   u1(i,j_b,k) = u_b
                   do j = 1,u_gcw
-                     f_i = -3.d0
-                     f_i2 = 1.d0
-                     f_b = 3.d0
-                     u_i = u1(i,j_b-sgn*j,k)
-                     u_i2 = u1(i,j_b-sgn*(j+1),k)
+c     The quadratic through u_b and the two nearest interior faces.
+                     f_b = 0.5d0*dble((j+1)*(j+2))
+                     f_i = -dble(j*(j+2))
+                     f_i2 = 0.5d0*dble(j*(j+1))
+                     u_i = u1(i,j_b-sgn,k)
+                     u_i2 = u1(i,j_b-2*sgn,k)
                      u1(i,j_b+sgn*j,k) = f_i2*u_i2+f_i*u_i+f_b*u_b
                   enddo
                else
@@ -2275,11 +2277,12 @@ c     Dirichlet boundary conditions
                   u_b = g/a
                   u2(i,j,k_b) = u_b
                   do k = 1,u_gcw
-                     f_i = -3.d0
-                     f_i2 = 1.d0
-                     f_b = 3.d0
-                     u_i = u2(i,j,k_b-sgn*k)
-                     u_i2 = u2(i,j,k_b-sgn*(k+1))
+c     The quadratic through u_b and the two nearest interior faces.
+                     f_b = 0.5d0*dble((k+1)*(k+2))
+                     f_i = -dble(k*(k+2))
+                     f_i2 = 0.5d0*dble(k*(k+1))
+                     u_i = u2(i,j,k_b-sgn)
+                     u_i2 = u2(i,j,k_b-2*sgn)
                      u2(i,j,k_b+sgn*k) = f_i2*u_i2 + f_i*u_i + f_b*u_b
                   enddo
                else

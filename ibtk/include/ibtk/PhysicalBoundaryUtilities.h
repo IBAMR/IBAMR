@@ -67,6 +67,14 @@ public:
     getPhysicalBoundaryCodim1Boxes(const SAMRAI::hier::Patch<NDIM>& patch);
 
     /*!
+     * \brief Return whether the patch with co-dimension 1 physical boundary boxes \a physical_codim1_boxes touches both
+     * boundaries along the axis of the boundary at \a location_index.
+     */
+    static bool
+    touchesOppositeBoundary(const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM>>& physical_codim1_boxes,
+                            unsigned int location_index);
+
+    /*!
      * \brief Return the co-dimension 2 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */

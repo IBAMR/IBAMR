@@ -36,6 +36,8 @@
 
 #include <tbox/Array.h>
 
+#include "../tests.h"
+
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
@@ -73,6 +75,9 @@ main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+
+    // Do not print file names or line numbers to the output file.
+    Logger::getInstance()->setAbortAppender(Pointer<Logger::Appender>(new TestAppender()));
 
     { // cleanup dynamically allocated objects prior to shutdown
         // prevent a warning about timer initialization
@@ -115,8 +120,12 @@ main(int argc, char* argv[])
         std::string var_centering = input_db->getString("VAR_CENTERING");
         std::string extrap_type = input_db->getString("EXTRAP_TYPE");
         const int depth = input_db->getIntegerWithDefault("DEPTH", 1);
+        // The data are a LINEAR or QUADRATIC function, of the degree of the extrapolation by default.
+        const std::string function_type = input_db->getStringWithDefault("FUNCTION_TYPE", extrap_type);
+        const int gcw = input_db->getIntegerWithDefault("GHOST_WIDTH", 1);
         TBOX_ASSERT(var_centering == "CELL" || var_centering == "SIDE");
         TBOX_ASSERT(extrap_type == "LINEAR" || extrap_type == "QUADRATIC");
+        TBOX_ASSERT(function_type == "LINEAR" || function_type == "QUADRATIC");
 
         using fcn_type = double (*)(const double* const);
         std::map<std::string, fcn_type> fcn_map;
@@ -129,7 +138,6 @@ main(int argc, char* argv[])
         Pointer<VariableContext> context = var_db->getContext("CONTEXT");
         Pointer<CellVariable<NDIM, double>> c_var = new CellVariable<NDIM, double>("c_v");
         Pointer<SideVariable<NDIM, double>> s_var = new SideVariable<NDIM, double>("s_v", depth);
-        const int gcw = 1;
         const int c_idx = var_db->registerVariableAndContext(c_var, context, gcw);
         const int s_idx = var_db->registerVariableAndContext(s_var, context, gcw);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
@@ -159,7 +167,7 @@ main(int argc, char* argv[])
                         {
                             X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                         }
-                        (*data)(i) = fcn_map[extrap_type](X);
+                        (*data)(i) = fcn_map[function_type](X);
                     }
                 }
                 else if (var_centering == "SIDE")
@@ -178,7 +186,7 @@ main(int argc, char* argv[])
                             }
                             for (int comp = 0; comp < depth; ++comp)
                             {
-                                (*data)(i, comp) = static_cast<double>(comp + 1) * fcn_map[extrap_type](X);
+                                (*data)(i, comp) = static_cast<double>(comp + 1) * fcn_map[function_type](X);
                             }
                         }
                     }
@@ -242,7 +250,7 @@ main(int argc, char* argv[])
                             {
                                 X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                             }
-                            double val = fcn_map[extrap_type](X);
+                            double val = fcn_map[function_type](X);
                             if (!IBTK::rel_equal_eps(val, (*data)(i)))
                             {
                                 warning = true;
@@ -293,7 +301,7 @@ main(int argc, char* argv[])
                                 }
                                 for (int comp = 0; comp < depth; ++comp)
                                 {
-                                    const double val = static_cast<double>(comp + 1) * fcn_map[extrap_type](X);
+                                    const double val = static_cast<double>(comp + 1) * fcn_map[function_type](X);
 
                                     if (!IBTK::rel_equal_eps(val, (*data)(i, comp)))
                                     {
