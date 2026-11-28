@@ -120,7 +120,6 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_idx);
 
     // Compute the action of the operator:
     //
@@ -133,6 +132,15 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                           P_cc_var,
                           d_no_fill,
                           d_new_time);
+    // Add the traction term before vc_laplace(), whose coarse-fine synchronization restricts the complete fine value.
+    d_bc_helper->addNormalTractionViscousTerm(A_U_idx,
+                                              U_idx,
+                                              d_U_problem_coefs.getDPatchDataId(),
+                                              d_D_interp_type,
+                                              d_U_bc_coefs,
+                                              d_bdry_interp_type,
+                                              x.getCoarsestLevelNumber(),
+                                              x.getFinestLevelNumber());
     // A_U += (C*I*L(D))*U
     double alpha = 1.0;
     double beta = 1.0;
@@ -173,6 +181,24 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     IBAMR_TIMER_STOP(t_apply);
     return;
 } // apply
+
+void
+VCStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                   const SAMRAIVectorReal<NDIM, double>& out)
+{
+    StaggeredStokesOperator::initializeOperatorState(in, out);
+    if (d_bc_helper)
+    {
+        // The viscous coefficient is variable, so it may be nonzero.
+        d_bc_helper->checkNormalTractionBdryInterpType(d_U_bc_coefs,
+                                                       d_bdry_interp_type,
+                                                       /*viscous_coef_nonzero*/ true,
+                                                       d_new_time,
+                                                       in.getPatchHierarchy(),
+                                                       /*include_pseudo_traction*/ true);
+    }
+    return;
+} // initializeOperatorState
 
 void
 VCStaggeredStokesOperator::setDPatchDataInterpolationType(const IBTK::VCInterpType D_interp_type)
