@@ -26,6 +26,7 @@
 
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyIntegrator.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>
@@ -43,13 +44,9 @@
 #include <Variable.h>
 #include <VariableContext.h>
 
+#include <memory>
 #include <string>
 #include <vector>
-
-namespace IBTK
-{
-class RobinPhysBdryPatchStrategy;
-} // namespace IBTK
 
 namespace SAMRAI
 {
@@ -127,6 +124,13 @@ namespace IBAMR
  * <em>If either <code>regrid_structure_cfl_interval</code> or
  * <code>regrid_fluid_cfl_interval</code> are provided in the input database
  * then <code>regrid_interval</code> is ignored.</em>
+ *
+ * <h2>Velocity Ghost Values at Physical Boundaries</h2>
+ *
+ * The divergence-free velocity boundary operator of the fluid solver sets the ghost values of a staggered velocity
+ * outside physical boundaries. Velocity interpolation uses the operator. Force spreading uses its transpose. The
+ * physical domain must be a single rectangular box at least as wide as the IB ghost width along each
+ * axis that is not periodic.
  */
 class IBHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
@@ -410,10 +414,13 @@ protected:
 
     /*
      * Refine and coarsen algorithm data.
-     * The base class, HierarchyIntegrator, is responsible for the d_u_phys_bdry_op and d_p_phys_bdry_op
-     * objects as they are passed into d_ghostfill_strategies.
+     * The base class, HierarchyIntegrator, is responsible for the d_p_phys_bdry_op object as it is passed into
+     * d_ghostfill_strategies. The velocity operator d_u_phys_bdry_op is always borrowed: it is the divergence-free
+     * velocity boundary operator, which the fluid solver owns, or d_cc_u_phys_bdry_op, which this class owns.
      */
-    IBTK::RobinPhysBdryPatchStrategy *d_u_phys_bdry_op, *d_p_phys_bdry_op;
+    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;
+    IBTK::RobinPhysBdryPatchStrategy* d_p_phys_bdry_op = nullptr;
+    std::unique_ptr<IBTK::RobinPhysBdryPatchStrategy> d_cc_u_phys_bdry_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,
         d_q_prolong_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM>> d_u_ghostfill_op, d_f_prolong_op, d_p_ghostfill_op,

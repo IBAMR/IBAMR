@@ -19,6 +19,7 @@
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
 #include <ibamr/INSStaggeredConvectiveOperatorManager.h>
+#include <ibamr/INSStaggeredDivergenceFreePhysBdryOp.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
@@ -111,6 +112,7 @@
 #include <cmath>
 #include <deque>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -607,6 +609,9 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     d_indicator_var = new SideVariable<NDIM, double>(d_object_name + "::indicator");
     d_F_div_var = new SideVariable<NDIM, double>(d_object_name + "::F_div");
     d_EE_var = new CellVariable<NDIM, double>(d_object_name + "::EE", NDIM * NDIM);
+
+    d_divergence_free_velocity_phys_bdry_op =
+        std::make_unique<INSStaggeredDivergenceFreePhysBdryOp>(this, /*homogeneous_bc*/ false);
     return;
 } // INSStaggeredHierarchyIntegrator
 
@@ -738,6 +743,12 @@ INSStaggeredHierarchyIntegrator::getPressureTime(const double current_time, cons
     return is_bdf_time_stepping_type(d_viscous_time_stepping_type) ? new_time :
                                                                      current_time + 0.5 * (new_time - current_time);
 } // getPressureTime
+
+IBTK::RobinPhysBdryPatchStrategy*
+INSStaggeredHierarchyIntegrator::getDivergenceFreeVelocityPhysBdryOp()
+{
+    return d_divergence_free_velocity_phys_bdry_op.get();
+} // getDivergenceFreeVelocityPhysBdryOp
 
 void
 INSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
@@ -1146,6 +1157,9 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
 
     // Cache BC data.
     d_bc_helper->cacheBcCoefData(d_bc_coefs, new_time, d_hierarchy);
+
+    // The types of the boundary conditions may change other than with the fill time.
+    d_divergence_free_velocity_phys_bdry_op->checkBoundaryConditionTypes();
 
     // Initialize the right-hand side terms.
     const double rho = d_problem_coefs.getRho();
@@ -1974,6 +1988,9 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     NULL_USE(finest_level);
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
+
+    // Discard the cached data of the divergence-free velocity boundary operator.
+    d_divergence_free_velocity_phys_bdry_op->clearCache();
 
     // Reset the hierarchy operations objects for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);

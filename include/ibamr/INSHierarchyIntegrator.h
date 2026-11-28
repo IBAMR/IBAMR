@@ -43,6 +43,10 @@
 #include <string>
 #include <vector>
 
+namespace IBTK
+{
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
 namespace SAMRAI
 {
 namespace hier
@@ -220,6 +224,11 @@ public:
      * Get the interpretation of traction boundary conditions on the velocity.
      */
     TractionBcType getTractionBcType() const;
+
+    /*!
+     * Return the operator that sets the velocity ghost values outside the physical boundaries for IB coupling, or null.
+     */
+    virtual IBTK::RobinPhysBdryPatchStrategy* getDivergenceFreeVelocityPhysBdryOp();
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.

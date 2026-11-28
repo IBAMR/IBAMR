@@ -18,6 +18,7 @@
 #include <ibamr/IBStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/ibamr_enums.h>
+#include <ibamr/private/ib_velocity_ghost_fill.h>
 
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/IBTK_MPI.h>
@@ -37,6 +38,7 @@
 #include <PatchHierarchy.h>
 #include <PatchLevel.h>
 #include <PatchSideDataOpsReal.h>
+#include <RobinBcCoefStrategy.h>
 #include <Variable.h>
 #include <VariableContext.h>
 #include <VariableDatabase.h>
@@ -45,6 +47,7 @@
 #include <ostream>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <ibamr/namespaces.h> // IWYU pragma: keep
 
@@ -676,17 +679,23 @@ IBExplicitHierarchyIntegrator::getFromRestart()
 void
 IBExplicitHierarchyIntegrator::fillMarkerVelocityGhostCells(const bool include_half_time, const double fill_time)
 {
+    std::vector<int> indices = { d_u_idx };
+    if (include_half_time)
+    {
+        indices.push_back(d_u_half_idx);
+    }
+    // As in the structure fill, the divergence-free operator sets the staggered velocity ghost values outside the
+    // physical boundaries.
+    RobinPhysBdryPatchStrategy* const u_phys_bdry_op = d_ins_hier_integrator->getDivergenceFreeVelocityPhysBdryOp();
     Pointer<HierarchyGhostCellInterpolation>& fill_op = d_marker_u_fill_ops[include_half_time ? 1 : 0];
     if (!fill_op)
     {
         using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<int> indices = { d_u_idx };
-        if (include_half_time)
-        {
-            indices.push_back(d_u_half_idx);
-        }
-        // The refine operator alone fills the ghost cells, so that marker velocities are independent of the
-        // patch layout.
+        const std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs =
+            u_phys_bdry_op ? std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr) :
+                             d_ins_hier_integrator->getVelocityBoundaryConditions();
+        // The refine operator alone fills the coarse-fine ghost cells, so that marker velocities are independent of
+        // the patch layout.
         std::vector<ITC> ghostfills;
         for (const int idx : indices)
         {
@@ -696,12 +705,20 @@ IBExplicitHierarchyIntegrator::fillMarkerVelocityGhostCells(const bool include_h
                                     "CONSERVATIVE_COARSEN",
                                     "LINEAR",
                                     false,
-                                    d_ins_hier_integrator->getVelocityBoundaryConditions());
+                                    u_bc_coefs);
         }
         fill_op = new HierarchyGhostCellInterpolation();
         fill_op->initializeOperatorState(ghostfills, d_hierarchy);
     }
     fill_op->fillData(fill_time);
+    if (u_phys_bdry_op)
+    {
+        for (const int idx : indices)
+        {
+            detail::fill_velocity_phys_bdry_ghost_values(
+                *u_phys_bdry_op, idx, d_hierarchy, /*homogeneous_bc*/ false, fill_time);
+        }
+    }
     return;
 } // fillMarkerVelocityGhostCells
 

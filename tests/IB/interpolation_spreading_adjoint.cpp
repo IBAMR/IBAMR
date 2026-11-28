@@ -11,15 +11,21 @@
 //
 // ---------------------------------------------------------------------
 
-// Check that IB force spreading S is the adjoint of IB velocity interpolation J on a level with several patches,
-// including the velocity boundary conditions: (F, J u) = (S F, u) for a force F and a velocity u. The markers are first
-// displaced by marker_displacement grid cells toward the center of the domain.
+// Check that IB force spreading S is the adjoint of IB velocity interpolation J, including the velocity boundary
+// conditions at physical boundaries, on a level with several patches: (F, J u) = (S F, u) for a force F and a velocity
+// u. The identity holds for the homogeneous (linear) part of the fill and for velocity fields that are zero on the
+// prescribed wall-normal faces. The test first displaces the markers by marker_displacement grid cells toward the
+// center of the domain (see displace_markers) and shifts them by marker_shift grid cells along each axis (see
+// shift_markers).
+//
+// The fluid solver is INSVCStaggeredNonConservativeHierarchyIntegrator if solver_type in Main is VC_STAGGERED.
 
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
 #include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 
 #include <ibtk/AppInitializer.h>
@@ -37,6 +43,7 @@
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
+#include <CellVariable.h>
 #include <LoadBalancer.h>
 #include <RefineAlgorithm.h>
 #include <RefineSchedule.h>
@@ -50,6 +57,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "../tests.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -171,6 +180,34 @@ displace_markers(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     return;
 } // displace_markers
 
+// Move each marker by shift grid cells along each axis, without assigning the markers to patches again.
+void
+shift_markers(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+              Pointer<IBMethod> ib_method_ops,
+              const std::array<double, NDIM>& shift)
+{
+    const int ln = patch_hierarchy->getFinestLevelNumber();
+    Pointer<CartesianGridGeometry<NDIM>> grid_geom = patch_hierarchy->getGridGeometry();
+    const IntVector<NDIM>& ratio = patch_hierarchy->getPatchLevel(ln)->getRatio();
+    LDataManager* l_data_manager = ib_method_ops->getLDataManager();
+    Pointer<LData> X_data = l_data_manager->getLData("X", ln);
+    {
+        boost::multi_array_ref<double, 2>& X = *X_data->getLocalFormVecArray();
+        for (const auto& node : l_data_manager->getLMesh(ln)->getLocalNodes())
+        {
+            const int petsc_idx = node->getLocalPETScIndex();
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X[petsc_idx][d] += shift[d] * grid_geom->getDx()[d] / ratio(d);
+            }
+        }
+        X_data->restoreArrays();
+    }
+    X_data->beginGhostUpdate();
+    X_data->endGhostUpdate();
+    return;
+} // shift_markers
+
 // Check (F, J u) = (S F, u) with homogeneous velocity boundary conditions. The Eulerian inner product is the sum over
 // the degrees of freedom, each counted once, weighted by the cell volume.
 void
@@ -184,7 +221,7 @@ check_interpolation_spreading_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierar
     Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
     const double time = ib_integrator->getIntegratorTime();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const Pointer<Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
+    const Pointer<hier::Variable<NDIM>> u_var = ins_integrator->getVelocityVariable();
     const int u_idx = var_db->registerVariableAndContext(
         u_var, var_db->getContext("interpolation_spreading_adjoint"), ib_method_ops->getMinimumGhostCellWidth());
     const int f_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
@@ -300,6 +337,7 @@ check_interpolation_spreading_adjoint(Pointer<PatchHierarchy<NDIM>> patch_hierar
     pout << std::setprecision(12) << "(F, J u) = " << F_dot_Ju << '\n' << "(S F, u) = " << SF_dot_u << '\n';
     return;
 } // check_interpolation_spreading_adjoint
+
 } // namespace
 
 int
@@ -314,17 +352,44 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        Pointer<INSHierarchyIntegrator> ins_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator",
-            app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<INSHierarchyIntegrator> ins_integrator;
+        const std::string solver_type =
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        if (solver_type != "STAGGERED" && solver_type != "VC_STAGGERED")
+        {
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
+                                                   << "Valid options are: STAGGERED, VC_STAGGERED");
+        }
+        if (solver_type == "VC_STAGGERED")
+        {
+            Pointer<INSVCStaggeredHierarchyIntegrator> vc_integrator =
+                new INSVCStaggeredNonConservativeHierarchyIntegrator(
+                    "INSVCStaggeredNonConservativeHierarchyIntegrator",
+                    app_initializer->getComponentDatabase("INSVCStaggeredNonConservativeHierarchyIntegrator"));
+            // The integrator requires the density or the viscosity to be a field.
+            Pointer<CellVariable<NDIM, double>> rho_var = new CellVariable<NDIM, double>("rho");
+            Pointer<CartGridFunction> rho_fcn = new muParserCartGridFunction(
+                "rho_fcn", app_initializer->getComponentDatabase("DensityFunction"), grid_geometry);
+            vc_integrator->registerMassDensityVariable(rho_var);
+            vc_integrator->registerMassDensityInitialConditions(rho_fcn);
+            vc_integrator->registerResetFluidDensityFcn(&callSetFluidPropertyCallbackFunction,
+                                                        static_cast<void*>(rho_fcn.getPointer()));
+            ins_integrator = vc_integrator;
+        }
+        else
+        {
+            ins_integrator = new INSStaggeredHierarchyIntegrator(
+                "INSStaggeredHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        }
         Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         Pointer<IBHierarchyIntegrator> ib_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               ins_integrator);
-        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
@@ -389,6 +454,12 @@ main(int argc, char* argv[])
                                                 << " must be less than one grid cell in magnitude\n");
         }
         displace_markers(patch_hierarchy, ib_method_ops, marker_displacement);
+        std::array<double, NDIM> marker_shift{};
+        if (input_db->keyExists("marker_shift"))
+        {
+            input_db->getDoubleArray("marker_shift", marker_shift.data(), NDIM);
+        }
+        shift_markers(patch_hierarchy, ib_method_ops, marker_shift);
         check_interpolation_spreading_adjoint(
             patch_hierarchy, ins_integrator, ib_integrator, ib_method_ops, u_bc_coefs);
     }

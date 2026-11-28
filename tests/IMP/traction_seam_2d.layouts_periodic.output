@@ -12,6 +12,6 @@ IMPInitializer_two_halves:  Deallocating initialization data.
 layout two_halves: regrids = 29
 points compared = 2592
 faces compared = 2080
-U_sum_squares = 2369.376306
-Grad_U_sum_squares = 222338.2137
-f_sum_squares = 548.8199129
+U_sum_squares = 2425.470847
+Grad_U_sum_squares = 200612.4846
+f_sum_squares = 615.2037267
