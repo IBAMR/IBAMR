@@ -1,0 +1,3 @@
+Added: examples/IBFE/explicit/ex16 (IBFEVolumetricStabilization.h), tests/IBFE/volumetric_stabilization_01, and 2D/3D tests exercising modified invariants, volumetric penalty stabilization, and IBFEMethod::registerStaticPressurePart() with STABILIZED_PROJECTION, CONSISTENT_PROJECTION, and LUMPED_PROJECTION, following Vadala-Roth et al. (2020, DOI 10.1016/j.cma.2020.112978).
+<br>
+(Hoseyn Amiri, 2026/11/28)

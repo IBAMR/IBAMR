@@ -1,0 +1,14 @@
+ndim = 2
+elem_type = QUAD4
+material_model = NEO_HOOKEAN
+formulation = MODIFIED_INVARIANTS
+volumetric_mode = STATIC_PRESSURE
+proj_type = STABILIZED_PROJECTION
+use_default_static_pressure = 0
+unit_checks_passed = 1
+steps = 20
+min_J = 0.998609
+max_J = 1.001036
+rel_vol_err = 4.168178e-05
+top_center_uy = -3.047187e-02
+max_abs_P = 5.838678e-01

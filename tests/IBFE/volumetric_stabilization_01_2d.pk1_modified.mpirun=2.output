@@ -1,0 +1,13 @@
+ndim = 2
+elem_type = QUAD4
+material_model = NEO_HOOKEAN
+formulation = MODIFIED_INVARIANTS
+volumetric_mode = PK1_PENALTY
+proj_type = NONE
+use_default_static_pressure = 0
+unit_checks_passed = 1
+steps = 20
+min_J = 0.998609
+max_J = 1.001036
+rel_vol_err = 4.168207e-05
+top_center_uy = -3.047260e-02

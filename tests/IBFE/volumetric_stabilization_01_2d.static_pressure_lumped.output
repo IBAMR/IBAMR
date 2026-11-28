@@ -1,0 +1,14 @@
+ndim = 2
+elem_type = QUAD4
+material_model = NEO_HOOKEAN
+formulation = DEVIATORIC_PROJECTION
+volumetric_mode = STATIC_PRESSURE
+proj_type = LUMPED_PROJECTION
+use_default_static_pressure = 0
+unit_checks_passed = 1
+steps = 20
+min_J = 0.998609
+max_J = 1.001036
+rel_vol_err = 4.168236e-05
+top_center_uy = -3.047229e-02
+max_abs_P = 3.294784e-01
