@@ -83,7 +83,10 @@ main(int argc, char* argv[])
             "bc_coef_a", app_initializer->getComponentDatabase("LevelSetBcCoefsA"), grid_geometry);
         auto bc_coef_b = std::make_unique<muParserRobinBcCoefs>(
             "bc_coef_b", app_initializer->getComponentDatabase("LevelSetBcCoefsB"), grid_geometry);
-        time_integrator->setPhysicalBcCoef(phi_var, bc_coef_a.get());
+        // With START_WITHOUT_BC = TRUE, no boundary condition object is set for the first fill, so the cached fill must
+        // add a Robin fill when B is set.
+        const bool start_without_bc = input_db->getBoolWithDefault("START_WITHOUT_BC", false);
+        if (!start_without_bc) time_integrator->setPhysicalBcCoef(phi_var, bc_coef_a.get());
 
         Pointer<FaceVariable<NDIM, double>> u_adv_var = new FaceVariable<NDIM, double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
@@ -119,7 +122,8 @@ main(int argc, char* argv[])
 
         plog << std::setprecision(10);
         fluid_properties.setDensityPatchData(rho_idx, rho_var, hier_math_ops, 0, time, time, time);
-        plog << "rho with the first boundary condition:\n"
+        plog << (start_without_bc ? "rho without a boundary condition object:\n" :
+                                    "rho with the first boundary condition:\n")
              << "  min = " << hier_sc_data_ops.min(rho_idx) << "\n"
              << "  max = " << hier_sc_data_ops.max(rho_idx) << "\n";
 
