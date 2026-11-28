@@ -30,10 +30,15 @@
 
 #include <IntVector.h>
 
+#include <memory>
 #include <vector>
 
 namespace IBAMR
 {
+namespace detail
+{
+class TractionPatchCache;
+} // namespace detail
 class INSVCStaggeredHierarchyIntegrator;
 class StokesSpecifications;
 } // namespace IBAMR
@@ -93,7 +98,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSVCStaggeredVelocityBcCoef() = default;
+    ~INSVCStaggeredVelocityBcCoef();
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -303,6 +308,11 @@ private:
      * The interpolation type of the ghost values at physical boundaries.
      */
     IBTK::BdryInterpType d_bdry_interp_type = IBTK::BdryInterpType::LINEAR;
+
+    /*
+     * The periodic physical domain and the patch copies of the TRACTION conditions.
+     */
+    std::unique_ptr<detail::TractionPatchCache> d_traction_patch_cache;
 };
 } // namespace IBAMR
 

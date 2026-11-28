@@ -1,0 +1,3 @@
+Improved: Build the periodic domain and the patch copies of the TRACTION velocity conditions once per layout, not at every ghost-cell fill.
+<br>
+(Boyce Griffith, 2026/11/27)

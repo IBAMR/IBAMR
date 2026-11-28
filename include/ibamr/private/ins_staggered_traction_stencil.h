@@ -31,6 +31,7 @@
 #include <Box.h>
 #include <BoxArray.h>
 #include <Index.h>
+#include <IntVector.h>
 #include <Patch.h>
 #include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
@@ -38,7 +39,12 @@
 #include <SideIndex.h>
 
 #include <array>
+#include <cstddef>
+#include <cstdint>
+#include <deque>
 #include <functional>
+#include <map>
+#include <utility>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -47,6 +53,141 @@ namespace IBAMR
 {
 namespace detail
 {
+class ScopedPatchCopy;
+
+/*!
+ * \brief Cache of the periodic physical domain and the patch copies of the TRACTION correction, keyed by value.
+ */
+class TractionPatchCache
+{
+public:
+    /*!
+     * \brief The largest number of patch copies, and of pairs of coefficient arrays, held.
+     */
+    static constexpr std::size_t max_cached_entries = 256;
+
+    /*!
+     * \brief Return the physical domain of the grid geometry of \a hierarchy, refined to the level of \a patch,
+     * together with its periodic images. It is built once for each refinement ratio, periodic shift, and coarse
+     * physical domain. The reference remains valid for the life of the cache.
+     */
+    const SAMRAI::hier::BoxArray<NDIM>&
+    getPhysicalDomain(const SAMRAI::hier::Patch<NDIM>& patch,
+                      const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& hierarchy);
+
+    /*!
+     * \brief Return the coefficient arrays of depth one on \a box for evaluating the dependence of the boundary data on
+     * the velocity. Each call sets every value of the arrays to the largest double, the value of a new array of an
+     * IBSAMRAI2 debug build. The arrays are allocated once for each box and reused, as the patch copies are.
+     */
+    std::pair<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>>
+    getCoefficientData(const SAMRAI::hier::Box<NDIM>& box);
+
+private:
+    friend class ScopedPatchCopy;
+
+    /*!
+     * A map from the indices of a box to values, with at most max_cached_entries entries. Each find() or insert()
+     * counts as a use of its entry. Inserting into a full map erases the less recently used half of the entries. The
+     * use counts are values.
+     */
+    template <class Value>
+    class UseMap
+    {
+    public:
+        using Key = std::array<int, 2 * NDIM>;
+
+        /*!
+         * Return the value of \a key, or nullptr if there is none.
+         */
+        Value* find(const Key& key);
+
+        /*!
+         * Add \a value for \a key, which must have no entry, and return it.
+         */
+        Value& insert(const Key& key, Value value);
+
+        /*!
+         * Erase the entry of \a key.
+         */
+        void erase(const Key& key);
+
+    private:
+        struct Entry
+        {
+            Value value;
+            std::uint64_t last_use;
+        };
+
+        std::map<Key, Entry> d_entries;
+        std::uint64_t d_use_count = 0;
+    };
+
+    /*!
+     * Return a copy of \a patch that shares its patch data and its geometry. The copy is allocated once for each box,
+     * and each call sets its geometry and patch data to those of \a patch. A copy is reused only for an equal box and
+     * patch descriptor.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> getPatchCopy(const SAMRAI::hier::Patch<NDIM>& patch);
+
+    /*!
+     * A cached domain and the values that determine it.
+     */
+    struct Domain
+    {
+        bool matches(const SAMRAI::hier::IntVector<NDIM>& ratio,
+                     const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+                     const SAMRAI::hier::BoxArray<NDIM>& coarse_domain) const;
+
+        SAMRAI::hier::IntVector<NDIM> ratio;
+        SAMRAI::hier::IntVector<NDIM> periodic_shift;
+        SAMRAI::hier::BoxArray<NDIM> coarse_domain;
+        SAMRAI::hier::BoxArray<NDIM> domain;
+    };
+
+    // References to the elements of a deque stay valid as it grows.
+    std::deque<Domain> d_domains;
+
+    // The key is the lower and upper indices of the box. IBSAMRAI2's IntVector operator< is componentwise, not a strict
+    // weak order, so a std::array of the indices serves as the key.
+    UseMap<SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>>> d_copies;
+    UseMap<std::pair<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>>>
+        d_coefficient_data;
+};
+
+/*!
+ * \brief A copy of a patch from a TractionPatchCache for the duration of the object. The copy shares the patch data
+ * of the patch, and replacing the geometry of the copy leaves the patch unchanged. The destructor releases the patch
+ * data and the geometry of the copy, so that their lifetime does not depend on the copy. The constructor does not set
+ * the patch number, level number, or in-hierarchy flag of the copy.
+ */
+class ScopedPatchCopy
+{
+public:
+    /*!
+     * \brief Constructor.
+     */
+    ScopedPatchCopy(TractionPatchCache& cache, const SAMRAI::hier::Patch<NDIM>& patch);
+
+    /*!
+     * \brief Destructor.
+     */
+    ~ScopedPatchCopy();
+
+    ScopedPatchCopy(const ScopedPatchCopy&) = delete;
+    ScopedPatchCopy& operator=(const ScopedPatchCopy&) = delete;
+
+    /*!
+     * \brief Return the copy.
+     */
+    SAMRAI::hier::Patch<NDIM>& get() const;
+
+private:
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> d_copy;
+};
+
 /*!
  * \brief A copy of a patch for evaluating the boundary condition coefficients of the normal velocity component
  * \a bdry_normal_axis at the faces of the tangential component \a tangential_axis. The original patch is unchanged.
@@ -55,10 +196,10 @@ class NormalVelocityPatch
 {
 public:
     /*!
-     * \brief Constructor. The copy shares the patch data of \a patch. It does not set the patch number, level number,
-     * or in-hierarchy flag of \a patch.
+     * \brief Constructor. The copy shares the patch data of \a patch, and the copy comes from \a cache.
      */
-    NormalVelocityPatch(const SAMRAI::hier::Patch<NDIM>& patch,
+    NormalVelocityPatch(TractionPatchCache& cache,
+                        const SAMRAI::hier::Patch<NDIM>& patch,
                         unsigned int bdry_normal_axis,
                         unsigned int tangential_axis);
 
@@ -98,7 +239,7 @@ private:
     /*!
      * The copy of the patch and the axes of its normal and tangential velocity components.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> d_patch;
+    ScopedPatchCopy d_patch;
     unsigned int d_bdry_normal_axis;
     unsigned int d_tangential_axis;
 };
@@ -176,7 +317,7 @@ bool has_traction_face(const SAMRAI::pdat::ArrayData<NDIM, double>& acoef_data,
  *
  * \a get_mu returns the viscosity at a face, given the traction datum g there. The function evaluates it only at faces
  * with a TRACTION condition.
- * \a patch_hierarchy must be set.
+ * \a patch_hierarchy must be set. The periodic physical domain and the copy of \a patch come from \a cache.
  *
  * Beyond a corner where the normal velocity is prescribed on the adjacent boundary, \a bdry_interp_type determines the
  * extrapolation of the normal velocity: see NormalVelocityStencil::useAdjacentBoundaryValue().
@@ -192,6 +333,7 @@ void correct_traction_coefficients(SAMRAI::pdat::ArrayData<NDIM, double>& acoef_
                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* normal_bc_coef,
                                    bool homogeneous_bc,
                                    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>>& patch_hierarchy,
+                                   TractionPatchCache& cache,
                                    const std::function<double(const SAMRAI::hier::Index<NDIM>&, double)>& get_mu,
                                    IBTK::BdryInterpType bdry_interp_type,
                                    double fill_time);
@@ -240,11 +382,12 @@ void set_component_bc_coefs(SAMRAI::solv::RobinBcCoefStrategy<NDIM>& bc_coef,
 /*!
  * Return whether the TRACTION conditions of the velocity component with the Robin coefficient object \a comp_bc_coef
  * make its boundary data on \a bdry_box of \a patch at \a fill_time depend on the velocity: the component is tangential
- * to the box and a face that the fill sets has TRACTION coefficients.
+ * to the box and a face that the fill sets has TRACTION coefficients. The copy of \a patch comes from \a cache.
  */
 bool traction_data_depend_on_velocity(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* comp_bc_coef,
                                       unsigned int comp_idx,
                                       const SAMRAI::hier::Patch<NDIM>& patch,
+                                      TractionPatchCache& cache,
                                       const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
                                       double fill_time);
 

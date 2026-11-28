@@ -42,6 +42,7 @@
 #include <SideData.h>
 
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -70,7 +71,10 @@ INSVCStaggeredVelocityBcCoef::INSVCStaggeredVelocityBcCoef(const unsigned int co
                                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                            const TractionBcType traction_bc_type,
                                                            const bool homogeneous_bc)
-    : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver), d_bc_coefs(NDIM, nullptr)
+    : d_comp_idx(comp_idx),
+      d_fluid_solver(fluid_solver),
+      d_bc_coefs(NDIM, nullptr),
+      d_traction_patch_cache(std::make_unique<detail::TractionPatchCache>())
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);
@@ -78,6 +82,8 @@ INSVCStaggeredVelocityBcCoef::INSVCStaggeredVelocityBcCoef(const unsigned int co
     setHomogeneousBc(homogeneous_bc);
     return;
 } // INSVCStaggeredVelocityBcCoef
+
+INSVCStaggeredVelocityBcCoef::~INSVCStaggeredVelocityBcCoef() = default;
 
 void
 INSVCStaggeredVelocityBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
@@ -212,7 +218,8 @@ INSVCStaggeredVelocityBcCoef::dependsOnTargetPatchData(const Patch<NDIM>& patch,
                                                        const double fill_time) const
 {
     return d_traction_bc_type == TRACTION &&
-           detail::traction_data_depend_on_velocity(d_bc_coefs[d_comp_idx], d_comp_idx, patch, bdry_box, fill_time);
+           detail::traction_data_depend_on_velocity(
+               d_bc_coefs[d_comp_idx], d_comp_idx, patch, *d_traction_patch_cache, bdry_box, fill_time);
 } // dependsOnTargetPatchData
 
 void
@@ -342,6 +349,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                                               d_bc_coefs[bdry_normal_axis],
                                               d_homogeneous_bc,
                                               d_fluid_solver->getPatchHierarchy(),
+                                              *d_traction_patch_cache,
                                               get_mu,
                                               d_bdry_interp_type,
                                               fill_time);
