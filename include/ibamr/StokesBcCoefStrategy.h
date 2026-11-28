@@ -23,12 +23,28 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
+
+#include <SideIndex.h>
+
+#include <utility>
+#include <vector>
 
 namespace IBAMR
 {
 class StokesSpecifications;
 } // namespace IBAMR
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BoundaryBox;
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -42,6 +58,11 @@ namespace IBAMR
 class StokesBcCoefStrategy : public IBTK::ExtendedRobinBcCoefStrategy
 {
 public:
+    /*!
+     * \brief The normal velocities, as side indices each with a coefficient, on which a boundary value depends.
+     */
+    using SideStencil = std::vector<std::pair<SAMRAI::pdat::SideIndex<NDIM>, double>>;
+
     /*!
      * \brief Empty default constructor.
      */
@@ -97,6 +118,29 @@ public:
      * \brief Get the type of traction boundary conditions.
      */
     virtual TractionBcType getTractionBcType() const;
+
+    /*!
+     * \brief Return the stencil, for each face of \a bc_coef_box, of the normal velocities on which the inhomogeneous
+     * coefficient \f$ \gamma \f$ of the tangential TRACTION condition depends, each with the derivative of
+     * \f$ \gamma \f$ with respect to it. The result is indexed by the Box::offset() of the face in \a bc_coef_box. An
+     * index may appear more than once: its derivative is the sum of its entries.
+     *
+     * \param patch  Patch with the geometry that setBcCoefs() requires for this component.
+     * \param bdry_box  Boundary box of the faces.
+     * \param bc_coef_box  Faces, in the index space of the Robin coefficients, at which the traction is prescribed.
+     * \param ghost_box  Ghost box of the data that the returned side indices refer to.
+     * \param bdry_interp_type  Type of the interpolation that sets the velocity ghost values at the boundary.
+     * \param fill_time  Time at which the boundary conditions are evaluated.
+     *
+     * \note The default implementation returns empty stencils for the PSEUDO_TRACTION type, whose conditions do not
+     * depend on the normal velocity, and stops with an error for the TRACTION type.
+     */
+    virtual std::vector<SideStencil> getTractionStencil(const SAMRAI::hier::Patch<NDIM>& patch,
+                                                        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                                        const SAMRAI::hier::Box<NDIM>& bc_coef_box,
+                                                        const SAMRAI::hier::Box<NDIM>& ghost_box,
+                                                        IBTK::BdryInterpType bdry_interp_type,
+                                                        double fill_time) const;
 
 protected:
     /*

@@ -20,10 +20,14 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/StokesBcCoefStrategy.h>
+
 #include <tbox/Pointer.h>
 
 #include <ArrayData.h>
 #include <BoundaryBox.h>
+#include <Box.h>
+#include <BoxArray.h>
 #include <Index.h>
 #include <Patch.h>
 #include <PatchHierarchy.h>
@@ -41,6 +45,62 @@ namespace IBAMR
 {
 namespace detail
 {
+/*!
+ * \brief A copy of a patch for evaluating the boundary condition coefficients of the normal velocity component
+ * \a bdry_normal_axis at the faces of the tangential component \a tangential_axis. The original patch is unchanged.
+ */
+class NormalVelocityPatch
+{
+public:
+    /*!
+     * \brief Constructor. The copy shares the patch data of \a patch. It does not set the patch number, level number,
+     * or in-hierarchy flag of \a patch.
+     */
+    NormalVelocityPatch(const SAMRAI::hier::Patch<NDIM>& patch,
+                        unsigned int bdry_normal_axis,
+                        unsigned int tangential_axis);
+
+    /*!
+     * \brief Return the box of the patch.
+     */
+    const SAMRAI::hier::Box<NDIM>& getBox() const;
+
+    /*!
+     * \brief Return the axis normal to the physical boundary.
+     */
+    unsigned int getBdryNormalAxis() const;
+
+    /*!
+     * \brief Return the axis of the tangential velocity component.
+     */
+    unsigned int getTangentialAxis() const;
+
+    /*!
+     * \brief Return the grid spacing along the tangential axis.
+     */
+    double getTangentialDx() const;
+
+    /*!
+     * \brief Set the coefficients of \a normal_bc_coef on the boundary box \a bdry_box at the faces of the tangential
+     * component, using the geometry of the copy shifted by half a cell along the tangential axis and minus half a cell
+     * along the axis normal to the boundary.
+     */
+    void setBcCoefs(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* normal_bc_coef,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& acoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& bcoef_data,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& gcoef_data,
+                    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                    double fill_time);
+
+private:
+    /*!
+     * The copy of the patch and the axes of its normal and tangential velocity components.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> d_patch;
+    unsigned int d_bdry_normal_axis;
+    unsigned int d_tangential_axis;
+};
+
 /*!
  * \brief Stencil weight[0]*u(idx[0]) + weight[1]*u(idx[1]) for the normal velocity in the TRACTION condition at a face
  * on a boundary. Beyond a corner, the weights are those of linear extrapolation, or of constant extrapolation from a
@@ -139,6 +199,19 @@ double get_divergence_free_ghost_value(const SAMRAI::pdat::SideData<NDIM, double
 bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
 /*!
+ * \brief Set the Robin coefficients of the velocity component \a axis on \a bdry_box of \a patch at the locations of
+ * that component: the patch geometry is shifted by half a cell along \a axis for the call of \a bc_coef.
+ */
+void set_component_bc_coefs(SAMRAI::solv::RobinBcCoefStrategy<NDIM>& bc_coef,
+                            unsigned int axis,
+                            SAMRAI::hier::Patch<NDIM>& patch,
+                            const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& acoef_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& bcoef_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double>>& gcoef_data,
+                            double fill_time);
+
+/*!
  * Return whether the TRACTION conditions of the velocity component with the Robin coefficient object \a comp_bc_coef
  * make its boundary data on \a bdry_box of \a patch at \a fill_time depend on the velocity: the component is tangential
  * to the box and a face that the fill sets has TRACTION coefficients.
@@ -148,6 +221,20 @@ bool traction_data_depend_on_velocity(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* c
                                       const SAMRAI::hier::Patch<NDIM>& patch,
                                       const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
                                       double fill_time);
+
+/*!
+ * \brief Return the side indices of the normal velocities on which the inhomogeneous Robin coefficient of the TRACTION
+ * condition depends at the location \a i, each with the derivative of the coefficient with respect to it. An index may
+ * appear more than once: its derivative is the sum of its entries. The faces of the stencil lie in \a ghost_box, the
+ * ghost box of the velocity data.
+ */
+StokesBcCoefStrategy::SideStencil get_traction_stencil(const SAMRAI::hier::Index<NDIM>& i,
+                                                       bool bdry_is_lower,
+                                                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* normal_bc_coef,
+                                                       NormalVelocityPatch& normal_velocity_patch,
+                                                       const SAMRAI::hier::BoxArray<NDIM>& domain,
+                                                       const SAMRAI::hier::Box<NDIM>& ghost_box,
+                                                       double fill_time);
 } // namespace detail
 } // namespace IBAMR
 
