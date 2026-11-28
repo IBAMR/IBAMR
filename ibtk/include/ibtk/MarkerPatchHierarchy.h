@@ -122,6 +122,18 @@ private:
  * Marker velocities are independent of the patch layout only if the caller
  * fills the ghost cells of the velocity with the refine operator alone,
  * without coarse-fine interpolation.
+ *
+ * Markers are indexed in the index space of the bounding box of the physical
+ * domain. A marker that is outside the bounding box or in a notch of a
+ * physical domain of several boxes (inside the bounding box, but in no box of
+ * the domain) is outside the domain: it is stored with zero velocity and is
+ * not advected.
+ *
+ * A marker stored on a coarse level that moves beyond a wall or into a notch
+ * next to a finer patch can lie several cells of the finer level from the box
+ * of the patch that supplies its velocity. The interpolation reaches one cell
+ * of that patch beyond its box. For a marker farther away, the program stops
+ * in a debug build, and the marker has zero velocity in an optimized build.
  */
 class MarkerPatchHierarchy : public SAMRAI::tbox::Serializable
 {
@@ -252,8 +264,9 @@ protected:
 
     /**
      * Interpolate the velocity @p u_idx at @p positions, the positions of the markers of @p local_marker_patches in
-     * order, into @p velocities, with the patch whose box contains each position (beyond a physical boundary, the patch
-     * whose box contains the adjacent cell). A marker must move less than one cell width from the patch that stores it.
+     * order, into @p velocities, with the patch whose box contains each position (beyond a physical boundary, or in a
+     * notch of the domain, the patch that contains the nearest point of the domain). A marker must move less than one
+     * cell width from the patch that stores it.
      */
     void interpolateInCurrentPatches(
         int u_idx,

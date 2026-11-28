@@ -238,6 +238,104 @@ do_interpolation(const int data_idx,
     }
 #endif
 }
+
+// Return true if the position X, which lies in the bounding box of the physical domain, is in a notch of the domain:
+// the level 0 cell that contains X, in the index frame of the bounding box, is in no box of the physical domain.
+bool
+in_domain_notch(const double* const X, const Pointer<CartesianGridGeometry<NDIM>>& grid_geom)
+{
+    const BoxArray<NDIM>& domain = grid_geom->getPhysicalDomain();
+    if (domain.getNumberOfBoxes() == 1)
+    {
+        return false;
+    }
+    const Box<NDIM> bounding_box = domain.getBoundingBox();
+    const hier::Index<NDIM> index = IndexUtilities::getCellIndex(X,
+                                                                 grid_geom->getXLower(),
+                                                                 grid_geom->getXUpper(),
+                                                                 grid_geom->getDx(),
+                                                                 bounding_box.lower(),
+                                                                 bounding_box.upper());
+    for (int b = 0; b < domain.getNumberOfBoxes(); ++b)
+    {
+        if (domain[b].contains(index))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Return true if the position is outside the bounding box of the physical domain or in a notch of the domain.
+bool
+is_outside_domain(const IBTK::Point& position, const Pointer<CartesianGridGeometry<NDIM>>& grid_geom)
+{
+    const double* const x_lower = grid_geom->getXLower();
+    const double* const x_upper = grid_geom->getXUpper();
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        if (position[d] < x_lower[d] || x_upper[d] <= position[d])
+        {
+            return true;
+        }
+    }
+    return in_domain_notch(position.data(), grid_geom);
+}
+
+// If the position X, which lies in the bounding box of the physical domain, is in a notch, move it into the box of
+// the domain that is nearest in the maximum norm of the distance in cells (the lowest numbered box among equals), to
+// the nearest point of that box that is at least sqrt(eps) times the box length from each of its faces, as
+// IndexUtilities::clampToDomain(). Measure in cells, not lengths, so that the chosen box is at most one cell from the
+// marker's patch when dx differs by direction.
+void
+move_out_of_domain_notch(double* const X, const Pointer<CartesianGridGeometry<NDIM>>& grid_geom)
+{
+    if (!in_domain_notch(X, grid_geom))
+    {
+        return;
+    }
+    const BoxArray<NDIM>& domain = grid_geom->getPhysicalDomain();
+    const Box<NDIM> bounding_box = domain.getBoundingBox();
+    const double* const x_lower = grid_geom->getXLower();
+    const double* const dx = grid_geom->getDx();
+    auto face = [&](const int b, const unsigned int d, const bool upper)
+    {
+        const int i = upper ? domain[b].upper(d) + 1 : domain[b].lower(d);
+        return x_lower[d] + (i - bounding_box.lower(d)) * dx[d];
+    };
+    int nearest_box = -1;
+    double nearest_distance = std::numeric_limits<double>::max();
+    for (int b = 0; b < domain.getNumberOfBoxes(); ++b)
+    {
+        double distance = 0.0;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            distance = std::max({ distance, (face(b, d, false) - X[d]) / dx[d], (X[d] - face(b, d, true)) / dx[d] });
+        }
+        if (distance < nearest_distance)
+        {
+            nearest_box = b;
+            nearest_distance = distance;
+        }
+    }
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        const double lower = face(nearest_box, d, false);
+        const double upper = face(nearest_box, d, true);
+        const double offset = std::sqrt(std::numeric_limits<double>::epsilon()) * (upper - lower);
+        const double x_min = std::max(lower + offset, std::nextafter(lower, upper));
+        const double x_max = std::min(upper - offset, std::nextafter(upper, lower));
+        X[d] = std::max(x_min, std::min(X[d], x_max));
+    }
+#ifndef NDEBUG
+    TBOX_ASSERT(domain[nearest_box].contains(IndexUtilities::getCellIndex(X,
+                                                                          grid_geom->getXLower(),
+                                                                          grid_geom->getXUpper(),
+                                                                          grid_geom->getDx(),
+                                                                          bounding_box.lower(),
+                                                                          bounding_box.upper())));
+#endif
+}
 } // namespace
 
 MarkerPatch::MarkerPatch(const Box<NDIM>& patch_box,
@@ -250,7 +348,7 @@ MarkerPatch::MarkerPatch(const Box<NDIM>& patch_box,
     {
         TBOX_ASSERT(patch_box.contains(box));
     }
-    d_domain_box = Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+    d_domain_box = Box<NDIM>::refine(grid_geom->getPhysicalDomain().getBoundingBox(), ratio);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_x_lo[d] = grid_geom->getXLower()[d];
@@ -468,23 +566,14 @@ MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const st
         d_markers_outside_domain.d_positions.resize(0);
         d_markers_outside_domain.d_velocities.resize(0);
 
-        const Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
-        const double* const domain_x_lower = grid_geom->getXLower();
-        const double* const domain_x_upper = grid_geom->getXUpper();
         for (unsigned int k = 0; k < positions.size(); ++k)
         {
-            const auto& position = positions[k];
-            bool point_outside_domain = false;
-            for (unsigned int d = 0; d < NDIM; ++d)
-                point_outside_domain =
-                    point_outside_domain || ((position[d] < domain_x_lower[d]) || (domain_x_upper[d] <= position[d]));
-
-            if (point_outside_domain)
+            if (is_outside_domain(positions[k], grid_geom))
             {
                 marker_emplaced[k] = true;
                 IBTK::Vector v;
                 v.fill(0);
-                d_markers_outside_domain.insert(k, position, v);
+                d_markers_outside_domain.insert(k, positions[k], v);
                 ++num_emplaced_markers;
             }
         }
@@ -930,6 +1019,7 @@ MarkerPatchHierarchy::interpolateInCurrentPatches(
                 X = IndexUtilities::clampToDomain(X, grid_geom->getXLower()[d], grid_geom->getXUpper()[d]);
             }
         }
+        move_out_of_domain_notch(&clamped_positions[k * NDIM], grid_geom);
     }
 
     // Find the local patch that contains each marker, if any, with a tree of the patch boxes of each level. At most one
@@ -954,7 +1044,7 @@ MarkerPatchHierarchy::interpolateInCurrentPatches(
     for (LevelPatches& level : levels)
     {
         const IntVector<NDIM>& ratio = local_marker_patches[level.patches[0]].second->getPatchGeometry()->getRatio();
-        level.domain_box = Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+        level.domain_box = Box<NDIM>::refine(grid_geom->getPhysicalDomain().getBoundingBox(), ratio);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             level.dx[d] = grid_geom->getDx()[d] / ratio(d);
@@ -1297,12 +1387,7 @@ MarkerPatchHierarchy::pruneAndRedistribute()
                 // Set external velocities to zero
                 IBTK::Vector velocity;
                 velocity.fill(0.0);
-                bool point_outside_domain = false;
-                for (unsigned int d = 0; d < NDIM; ++d)
-                    point_outside_domain = point_outside_domain ||
-                                           ((position[d] < domain_x_lower[d]) || (domain_x_upper[d] <= position[d]));
-
-                if (point_outside_domain)
+                if (is_outside_domain(position, grid_geom))
                 {
                     marker_emplaced[k] = true;
                     d_markers_outside_domain.insert(new_indices[k], position, velocity);

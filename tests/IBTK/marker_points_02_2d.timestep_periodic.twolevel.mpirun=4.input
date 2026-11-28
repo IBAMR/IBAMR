@@ -1,0 +1,71 @@
+// Two levels on a strip that is periodic along both axes, on four ranks. Markers cross the rank boundaries and the
+// periodic boundaries, and level 1 markers cross the periodic corner diagonally.
+test {
+   set_velocity = TRUE
+   timestep = TRUE
+   collective_print = TRUE
+   num_timesteps = 16
+   kernel = "BSPLINE_3"
+
+   U = "0.75 + 0.25*sin(2*PI*X_1)"
+   V = "0.75 + 0.25*cos(PI*X_0/2)"
+   u {
+      function_0 = U
+      function_1 = V
+   }
+   positions = 3.90625, 0.90625, 3.84375, 0.96875, 3.78125, 0.84375, 3.96875, 0.78125, 0.0625, 0.0625, 0.21875, 0.15625, 0.9375, 0.5, 1.96875, 0.3125, 2.9375, 0.75, 3.5, 0.9375, 1.5, 0.96875, 3.5625, 0.40625
+   velocities = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+   timer_enabled = TRUE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (63,15)]
+   x_lo               = 0, 0
+   x_up               = 4, 1
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 2
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+
+   largest_patch_size {
+      level_0 = 8, 16
+   }
+
+   smallest_patch_size {
+      level_0 = 4, 4
+   }
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0),(5,5)], [(58,10),(63,15)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::*::*"
+}

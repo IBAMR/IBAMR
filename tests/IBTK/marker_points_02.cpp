@@ -26,10 +26,12 @@
 #include <tbox/RestartManager.h>
 
 #include <BergerRigoutsos.h>
+#include <BoxArray.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchySideDataOpsReal.h>
 #include <LoadBalancer.h>
+#include <ProcessorMapping.h>
 #include <StandardTagAndInitialize.h>
 
 #include <fstream>
@@ -108,7 +110,25 @@ main(int argc, char** argv)
                                     load_balancer);
 
     // Initialize the AMR patch hierarchy.
-    gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
+    if (test_db && test_db->keyExists("level_0_boxes"))
+    {
+        // Set the patches of the coarsest level and their ranks instead of calling the load balancer.
+        const tbox::Array<tbox::DatabaseBox> db_boxes = test_db->getDatabaseBoxArray("level_0_boxes");
+        const tbox::Array<int> ranks = test_db->getIntegerArray("level_0_ranks");
+        TBOX_ASSERT(db_boxes.size() == ranks.size());
+        BoxArray<NDIM> boxes(db_boxes.size());
+        ProcessorMapping mapping(db_boxes.size());
+        for (int k = 0; k < db_boxes.size(); ++k)
+        {
+            boxes[k] = Box<NDIM>(db_boxes[k]);
+            mapping.setProcessorAssignment(k, ranks[k]);
+        }
+        patch_hierarchy->makeNewPatchLevel(0, IntVector<NDIM>(1), boxes, mapping);
+    }
+    else
+    {
+        gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
+    }
     int tag_buffer = 1;
     int level_number = 0;
     bool done = false;
