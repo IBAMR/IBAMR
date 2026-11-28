@@ -469,10 +469,8 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
     const int coarsest_ln,
     const int finest_ln) const
 {
-    // Add 2*(D_I*(u_I - u_B) + D_G*(u_B - u_G))/h^2 and subtract D_B*(u_I - u_div)/h^2 for PSEUDO_TRACTION. Subscripts
-    // I, B, and G mark interior, boundary, and ghost values of u and of the viscous coefficient D. With p_b = -g, in
-    // which g is the normal traction, the term makes the operator at the boundary face a one-sided derivative of the
-    // normal stress, extrapolated as the pressure is.
+    // With p_b = -g, in which g is the normal traction, the term makes the operator at the boundary face a one-sided
+    // derivative of the normal stress, extrapolated as the pressure is.
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
     const bool quadratic = bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
