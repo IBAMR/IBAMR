@@ -1,0 +1,14 @@
+This example models the two-dimensional fluid-coupled compressed block benchmark
+from Vadala-Roth et al. (2020, DOI 10.1016/j.cma.2020.112978, Section 4.1)
+using hyperelastic volumetric stabilization in IBFE.
+
+To run the default modified-invariant neo-Hookean case with logarithmic
+volumetric stabilization (nu_stab = 0.4):
+  ./main2d input2d
+
+To compare against unmodified invariants without volumetric stabilization, set
+STRESS_FORMULATION = "UNMODIFIED", NU_STAB = -1.0, and VOLUMETRIC_MODE = "NONE"
+in a copy of input2d. To use FEMechanicsBase static pressure L2 projection
+instead of a reduced-quadrature PK1 penalty, set
+VOLUMETRIC_MODE = "STATIC_PRESSURE" and select PRESSURE_PROJECTION_TYPE
+("STABILIZED_PROJECTION", "CONSISTENT_PROJECTION", or "LUMPED_PROJECTION").

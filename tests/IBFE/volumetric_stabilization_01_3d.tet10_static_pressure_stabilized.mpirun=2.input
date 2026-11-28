@@ -1,0 +1,183 @@
+RUN_UNIT_CHECKS = TRUE
+
+MU  = 0.05
+RHO = 1.0
+L   = 40.0
+
+MATERIAL_MODEL              = "NEO_HOOKEAN"
+STRESS_FORMULATION          = "MODIFIED_INVARIANTS"
+VOLUMETRIC_MODE             = "STATIC_PRESSURE"
+PRESSURE_PROJECTION_TYPE    = "STABILIZED_PROJECTION"
+USE_DEFAULT_STATIC_PRESSURE = FALSE
+
+G_S      = 80.194
+NU_STAB  = 0.4
+ETA      = 4.0097
+TRACTION = 200.0
+
+MAX_LEVELS = 1
+REF_RATIO  = 2
+N          = 8
+DX         = L / N
+MFAC       = 1.0
+ELEM_TYPE  = "TET10"
+
+PK1_DEV_QUAD_ORDER = "FIFTH"
+
+DT         = 0.005
+KAPPA_D    = 2.5 * RHO * DX / (DT * DT)
+START_TIME = 0.0
+LOAD_TIME  = 0.025
+END_TIME   = 10 * DT
+
+VelocityBcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_2 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+IBHierarchyIntegrator {
+   start_time                = START_TIME
+   end_time                  = END_TIME
+   grow_dt                   = 2.0e0
+   num_cycles                = 1
+   regrid_fluid_cfl_interval = 0.5
+   dt_max                    = DT
+   error_on_dt_change        = TRUE
+   enable_logging            = FALSE
+}
+
+IBFEMethod {
+   IB_delta_fcn               = "IB_4"
+   split_forces               = FALSE
+   use_jump_conditions        = FALSE
+   use_consistent_mass_matrix = TRUE
+   IB_point_density           = 2.0
+   static_pressure_kappa      = 2.0 * G_S * (1.0 + NU_STAB) / (3.0 * (1.0 - 2.0 * NU_STAB))
+   static_pressure_stab_param = 0.1
+   enable_logging             = FALSE
+}
+
+INSStaggeredHierarchyIntegrator {
+   mu                         = MU
+   rho                        = RHO
+   start_time                 = START_TIME
+   end_time                   = END_TIME
+   grow_dt                    = 2.0e0
+   convective_op_type         = "PPM"
+   convective_difference_form = "ADVECTIVE"
+   normalize_pressure         = TRUE
+   dt_max                     = DT
+   using_vorticity_tagging    = FALSE
+   enable_logging             = FALSE
+   stokes_solver_type         = "PETSC_KRYLOV_SOLVER"
+   stokes_solver_db {
+      rel_residual_tol = 1.0e-10
+      abs_residual_tol = 1.0e-12
+   }
+}
+
+Main {
+   solver_type           = "STAGGERED"
+   log_file_name         = "test.log"
+   log_all_nodes         = FALSE
+   viz_dump_interval     = 0
+   viz_dump_dirname      = "viz"
+   data_dump_interval    = 0
+   data_dump_dirname     = "hier_data"
+   restart_dump_interval = 0
+   restart_dump_dirname  = "restart"
+   timer_dump_interval   = 0
+}
+
+CartesianGeometry {
+   domain_boxes       = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo               = 0.0,0.0,0.0
+   x_up               = L,L,L
+   periodic_dimension = 0,0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 8,8,8
+   }
+   smallest_patch_size {
+      level_0 = 8,8,8
+   }
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
