@@ -181,6 +181,7 @@ SETUP_2D(navier_stokes stokes_fac_restriction.cpp)
 SETUP_2D(navier_stokes stokes_fac_default_bcs.cpp)
 SETUP_2D(navier_stokes stokes_fac_open_boundary.cpp)
 SETUP_3D(navier_stokes stokes_fac_open_boundary.cpp)
+SETUP_2D(navier_stokes stokes_fac_reinitialize.cpp)
 
 # phase_change:
 SETUP_2D(phase_change phase_change_01.cpp)

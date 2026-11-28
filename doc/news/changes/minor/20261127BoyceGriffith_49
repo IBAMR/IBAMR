@@ -1,0 +1,3 @@
+Improved: IBAMR::StaggeredStokesBoxRelaxationFACOperator and IBAMR::StaggeredStokesLevelRelaxationFACOperator now reuse the data that depend only on the layout when the hierarchy and the vectors are unchanged, as the Poisson FAC operators do. Examples are the schedules, the coarse-fine fills, the vector clones, and the box vectors. They rebuild only the data that depend on the coefficients and the boundary conditions.
+<br>
+(Boyce Griffith, 2026/11/27)

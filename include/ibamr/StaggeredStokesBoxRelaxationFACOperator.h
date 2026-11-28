@@ -133,6 +133,18 @@ protected:
      */
     void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
+    /*!
+     * \brief Return true: the reused data depend only on the hierarchy configuration and the structure of the vectors.
+     */
+    bool getLayoutKeySpecialized(std::vector<int>& key) const override;
+
+    /*!
+     * \brief Rebuild the data that depend on the coefficients and the boundary conditions: the scratch patch data of
+     * the boundary patches, and the box matrices and solvers. The box vectors are reused.
+     */
+    void initializeOperatorCoefficientsSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -160,6 +172,33 @@ private:
      * \return A reference to this object.
      */
     StaggeredStokesBoxRelaxationFACOperator& operator=(const StaggeredStokesBoxRelaxationFACOperator& that) = delete;
+
+    /*!
+     * \brief Stop with an error if a level touches a physical boundary and no boundary helper is set.
+     */
+    void checkBoundaryHelper() const;
+
+    /*!
+     * \brief Allocate the scratch patch data, where they are not allocated, on the patches of levels \a coarsest_ln
+     * through \a finest_ln that touch a physical boundary.
+     */
+    void allocateBoundaryScratchData(int coarsest_ln, int finest_ln);
+
+    /*!
+     * \brief Deallocate the scratch patch data on levels \a coarsest_ln through \a finest_ln.
+     */
+    void deallocateBoundaryScratchData(int coarsest_ln, int finest_ln);
+
+    /*!
+     * \brief Build the box matrices and solvers on levels \a coarsest_ln through \a finest_ln, and the box vectors
+     * that do not exist.
+     */
+    void initializeBoxSolvers(int coarsest_ln, int finest_ln);
+
+    /*!
+     * \brief Destroy the box matrices and solvers on levels \a coarsest_ln through \a finest_ln.
+     */
+    void deallocateBoxSolvers(int coarsest_ln, int finest_ln);
 
     /*
      * Box operator data.

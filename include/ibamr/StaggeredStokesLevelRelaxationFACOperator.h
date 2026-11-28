@@ -146,6 +146,17 @@ protected:
      */
     void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
+    /*!
+     * \brief Return true: the reused data depend only on the hierarchy configuration and the structure of the vectors.
+     */
+    bool getLayoutKeySpecialized(std::vector<int>& key) const override;
+
+    /*!
+     * \brief Rebuild the data that depend on the coefficients and the boundary conditions: the level solvers.
+     */
+    void initializeOperatorCoefficientsSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -174,6 +185,12 @@ private:
      */
     StaggeredStokesLevelRelaxationFACOperator&
     operator=(const StaggeredStokesLevelRelaxationFACOperator& that) = delete;
+
+    /*!
+     * \brief Initialize the level solvers on levels \a coarsest_ln through \a finest_ln, except on the coarsest level
+     * of the solve unless the coarse solver type is LEVEL_SMOOTHER.
+     */
+    void initializeLevelSolvers(int coarsest_ln, int finest_ln);
 
     /*
      * Level solvers and solver parameters.

@@ -354,6 +354,15 @@ public:
                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
 
     /*!
+     * \brief Reinitialize the operator for \a solution and \a rhs. If the operator reuses its layout (see
+     * d_reuse_layout), and the hierarchy configuration, the structure of the vectors, and the layout key of the
+     * subclass are unchanged since the previous initialization, rebuild only the data that depend on the coefficients
+     * and the boundary conditions. Otherwise, deallocate the state and initialize it again.
+     */
+    void reinitializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
+
+    /*!
      * \brief Remove all hierarchy-dependent data.
      *
      * Remove all hierarchy-dependent data set by initializeOperatorState().
@@ -509,7 +518,6 @@ protected:
      */
     bool d_in_initialize_operator_state = false;
     int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
-
     //\}
 
     /*!
@@ -635,6 +643,11 @@ private:
      * \return A reference to this object.
      */
     StaggeredStokesFACPreconditionerStrategy& operator=(const StaggeredStokesFACPreconditionerStrategy& that) = delete;
+
+    /*!
+     * \brief Initialize the coarse level solver.
+     */
+    void initializeCoarseSolver();
 
     /*!
      * \brief With TRACTION conditions, set the momentum residual \a U_res_idx at the faces on the physical boundary to
