@@ -172,7 +172,7 @@ main(int argc, char** argv)
                                        false,
                                        "CONSERVATIVE_COARSEN",
                                        "LINEAR",
-                                       true,
+                                       false,
                                        u_bc_coef_ptrs,
                                        nullptr);
         IBTK::HierarchyGhostCellInterpolation ghost_fill_op;

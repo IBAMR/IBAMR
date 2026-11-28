@@ -22,6 +22,7 @@
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchyDataOpsManager.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
@@ -92,6 +93,7 @@ main(int argc, char* argv[])
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
+        Pointer<VariableContext> src_ctx = var_db->getContext("source");
 
         Pointer<SideVariable<NDIM, double>> u_sc_var = new SideVariable<NDIM, double>("u_sc");
         Pointer<SideVariable<NDIM, double>> f_sc_var = new SideVariable<NDIM, double>("f_sc");
@@ -100,9 +102,11 @@ main(int argc, char* argv[])
 #if (NDIM == 2)
         Pointer<NodeVariable<NDIM, double>> mu_nc_var = new NodeVariable<NDIM, double>("mu_node");
         const int mu_nc_idx = var_db->registerVariableAndContext(mu_nc_var, ctx, IntVector<NDIM>(1));
+        const int mu_nc_src_idx = var_db->registerVariableAndContext(mu_nc_var, src_ctx, IntVector<NDIM>(1));
 #elif (NDIM == 3)
         Pointer<EdgeVariable<NDIM, double>> mu_ec_var = new EdgeVariable<NDIM, double>("mu_edge");
         const int mu_ec_idx = var_db->registerVariableAndContext(mu_ec_var, ctx, IntVector<NDIM>(1));
+        const int mu_ec_src_idx = var_db->registerVariableAndContext(mu_ec_var, src_ctx, IntVector<NDIM>(1));
         Pointer<CellVariable<NDIM, double>> mu_cc_var = new CellVariable<NDIM, double>("mu_cc");
         const int mu_cc_idx = var_db->registerVariableAndContext(mu_cc_var, ctx, IntVector<NDIM>(0));
 #endif
@@ -178,8 +182,10 @@ main(int argc, char* argv[])
             level->allocatePatchData(r_sc_idx, 0.0);
 #if (NDIM == 2)
             level->allocatePatchData(mu_nc_idx, 0.0);
+            level->allocatePatchData(mu_nc_src_idx, 0.0);
 #elif (NDIM == 3)
             level->allocatePatchData(mu_ec_idx, 0.0);
+            level->allocatePatchData(mu_ec_src_idx, 0.0);
             level->allocatePatchData(mu_cc_idx, 0.0);
 #endif
             level->allocatePatchData(u_cc_idx, 0.0);
@@ -216,14 +222,21 @@ main(int argc, char* argv[])
         f_fcn.setDataOnPatchHierarchy(f_sc_idx, f_sc_var, patch_hierarchy, 0.0);
 #if (NDIM == 2)
         mu_fcn.setDataOnPatchHierarchy(mu_nc_idx, mu_nc_var, patch_hierarchy, 0.0);
+        HierarchyDataOpsManager<NDIM>::getManager()
+            ->getOperationsDouble(mu_nc_var, patch_hierarchy, true)
+            ->copyData(mu_nc_src_idx, mu_nc_idx, false);
 #elif (NDIM == 3)
         mu_fcn.setDataOnPatchHierarchy(mu_ec_idx, mu_ec_var, patch_hierarchy, 0.0);
+        HierarchyDataOpsManager<NDIM>::getManager()
+            ->getOperationsDouble(mu_ec_var, patch_hierarchy, true)
+            ->copyData(mu_ec_src_idx, mu_ec_idx, false);
 #endif
         // Fill ghost cells of viscosity.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> transaction_comp(1);
 #if (NDIM == 2)
         transaction_comp[0] = InterpolationTransactionComponent(mu_nc_idx,
+                                                                mu_nc_src_idx,
                                                                 /*DATA_REFINE_TYPE*/ "LINEAR_REFINE",
                                                                 /*USE_CF_INTERPOLATION*/ false,
                                                                 /*DATA_COARSEN_TYPE*/ "CONSTANT_COARSEN",
@@ -233,6 +246,7 @@ main(int argc, char* argv[])
                                                                 Pointer<VariableFillPattern<NDIM>>(nullptr));
 #elif (NDIM == 3)
         transaction_comp[0] = InterpolationTransactionComponent(mu_ec_idx,
+                                                                mu_ec_src_idx,
                                                                 /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
                                                                 /*USE_CF_INTERPOLATION*/ false,
                                                                 /*DATA_COARSEN_TYPE*/ "CONSERVATIVE_COARSEN",

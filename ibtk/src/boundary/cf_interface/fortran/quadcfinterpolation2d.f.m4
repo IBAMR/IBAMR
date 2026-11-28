@@ -65,6 +65,7 @@ c
 c
 c     Local variables.
 c
+      INTEGER ia,ja
       INTEGER i_wgt
       INTEGER i,ibeg,iend,i_c,i_p
       INTEGER j,jbeg,jend,j_c,j_p
@@ -73,11 +74,25 @@ c
 c
 c     Set the values along the appropriate side.
 c
-      ibeg = max(blowerf(0),ilowerf0)
-      iend = min(bupperf(0),iupperf0)
+      ibeg = blowerf(0)
+      iend = bupperf(0)
 
-      jbeg = max(blowerf(1),ilowerf1)
-      jend = min(bupperf(1),iupperf1)
+      jbeg = blowerf(1)
+      jend = bupperf(1)
+c
+c     Start the loops over coarse cells at the cell that contains
+c     the first fine index.
+c
+      if (ibeg .lt. 0) then
+         ia = ((ibeg+1)/ratio_to_coarser(0)-1)*ratio_to_coarser(0)
+      else
+         ia = (ibeg/ratio_to_coarser(0))*ratio_to_coarser(0)
+      endif
+      if (jbeg .lt. 0) then
+         ja = ((jbeg+1)/ratio_to_coarser(1)-1)*ratio_to_coarser(1)
+      else
+         ja = (jbeg/ratio_to_coarser(1))*ratio_to_coarser(1)
+      endif
 
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
@@ -95,7 +110,7 @@ c
      &           -eighth*(-4.d0*t1*t1+R1*R1)/(R1*R1)
          enddo
 
-         do j = jbeg,jend,ratio_to_coarser(1)
+         do j = ja,jend,ratio_to_coarser(1)
             if (j .lt. 0) then
                j_c = (j+1)/ratio_to_coarser(1)-1
             else
@@ -114,6 +129,7 @@ c
                enddo
 
                do j_p = 0,ratio_to_coarser(1) - 1
+                  if (j+j_p.lt.jbeg .or. j+j_p.gt.jend) cycle
                   U_fine(i,j+j_p) = 0.d0
                   do i_wgt = -1,1
                      U_fine(i,j+j_p) = U_fine(i,j+j_p)
@@ -148,7 +164,7 @@ c
                j_c = j/ratio_to_coarser(1)
             endif
 
-            do i = ibeg,iend,ratio_to_coarser(0)
+            do i = ia,iend,ratio_to_coarser(0)
                if (i .lt. 0) then
                   i_c = (i+1)/ratio_to_coarser(0)-1
                else
@@ -160,6 +176,7 @@ c
                enddo
 
                do i_p = 0,ratio_to_coarser(0) - 1
+                  if (i+i_p.lt.ibeg .or. i+i_p.gt.iend) cycle
                   U_fine(i+i_p,j) = 0.d0
                   do i_wgt = -1,1
                      U_fine(i+i_p,j) = U_fine(i+i_p,j)
@@ -222,12 +239,12 @@ c
 c
 c     Set the values along the appropriate side.
 c
-      ibeg = max(blower(0),ilower0)
-      iend = min(bupper(0),iupper0)
+      ibeg = blower(0)
+      iend = bupper(0)
       igcw = abs(bupper(0)-blower(0))+1
 
-      jbeg = max(blower(1),ilower1)
-      jend = min(bupper(1),iupper1)
+      jbeg = blower(1)
+      jend = bupper(1)
       jgcw = abs(bupper(1)-blower(1))+1
 
       if ( (location_index .eq. 0) .or.
@@ -376,6 +393,7 @@ c
 c
 c     Local variables.
 c
+      INTEGER ia,ja
       INTEGER i_wgt,j_wgt
       INTEGER i,ibeg,iend,i_c,i_f,i_p
       INTEGER j,jbeg,jend,j_c,j_f,j_p
@@ -385,11 +403,25 @@ c
 c
 c     Set the values along the appropriate side.
 c
-      ibeg = max(blowerf(0),ilowerf0)
-      iend = min(bupperf(0),iupperf0)
+      ibeg = blowerf(0)
+      iend = bupperf(0)
 
-      jbeg = max(blowerf(1),ilowerf1)
-      jend = min(bupperf(1),iupperf1)
+      jbeg = blowerf(1)
+      jend = bupperf(1)
+c
+c     Start the loops over coarse cells at the cell that contains
+c     the first fine index.
+c
+      if (ibeg .lt. 0) then
+         ia = ((ibeg+1)/ratio_to_coarser(0)-1)*ratio_to_coarser(0)
+      else
+         ia = (ibeg/ratio_to_coarser(0))*ratio_to_coarser(0)
+      endif
+      if (jbeg .lt. 0) then
+         ja = ((jbeg+1)/ratio_to_coarser(1)-1)*ratio_to_coarser(1)
+      else
+         ja = (jbeg/ratio_to_coarser(1))*ratio_to_coarser(1)
+      endif
 
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
@@ -433,7 +465,7 @@ c$$$     &           R1*R1*t1*t1+9.d0*R1*R1*R1*R1)/(R1*R1*R1*R1)
      &           -sixth*t1*(-t1*t1+R1*R1)/(R1*R1*R1)
          enddo
 
-         do j = jbeg,jend,ratio_to_coarser(1)
+         do j = ja,jend,ratio_to_coarser(1)
             if (j .lt. 0) then
                j_c = (j+1)/ratio_to_coarser(1)-1
             else
@@ -465,6 +497,7 @@ c     Perform quadratic interpolation in the y-direction.
             enddo
 
             do j_p = 0,ratio_to_coarser(1) - 1
+               if (j+j_p.lt.jbeg .or. j+j_p.gt.jend) cycle
                if (.not.(indicator0(i_f,j+j_p).eq.1)) then
                   U_fine0(i_f,j+j_p) = 0.d0
                   do j_wgt = -1,1
@@ -492,6 +525,7 @@ c     Perform cubic interpolation in the y-direction.
             enddo
 
             do j_p = 0,ratio_to_coarser(1)
+               if (j+j_p.lt.jbeg .or. j+j_p.gt.jend+1) cycle
                if (.not.(indicator1(i_f,j+j_p).eq.1)) then
                   U_fine1(i_f,j+j_p) = 0.d0
                   do j_wgt = -1,2
@@ -553,7 +587,7 @@ c$$$     &           R0*R0*t0*t0+9.d0*R0*R0*R0*R0)/(R0*R0*R0*R0)
                j_c = j/ratio_to_coarser(1)
             endif
 
-         do i = ibeg,iend,ratio_to_coarser(0)
+         do i = ia,iend,ratio_to_coarser(0)
             if (i .lt. 0) then
                i_c = (i+1)/ratio_to_coarser(0)-1
             else
@@ -578,6 +612,7 @@ c     Perform quadratic interpolation in the x-direction.
             enddo
 
             do i_p = 0,ratio_to_coarser(0) - 1
+               if (i+i_p.lt.ibeg .or. i+i_p.gt.iend) cycle
                if (.not.(indicator1(i+i_p,j_f).eq.1)) then
                   U_fine1(i+i_p,j_f) = 0.d0
                   do i_wgt = -1,1
@@ -605,6 +640,7 @@ c     Perform cubic interpolation in the x-direction.
             enddo
 
             do i_p = 0,ratio_to_coarser(0)
+               if (i+i_p.lt.ibeg .or. i+i_p.gt.iend+1) cycle
                if (.not.(indicator0(i+i_p,j_f).eq.1)) then
                   U_fine0(i+i_p,j_f) = 0.d0
                   do i_wgt = -1,2
@@ -689,12 +725,12 @@ c
 c
 c     Set the values along the appropriate side.
 c
-      ibeg = max(blower(0),ilower0)
-      iend = min(bupper(0),iupper0)
+      ibeg = blower(0)
+      iend = bupper(0)
       igcw = abs(bupper(0)-blower(0))+1
 
-      jbeg = max(blower(1),ilower1)
-      jend = min(bupper(1),iupper1)
+      jbeg = blower(1)
+      jend = bupper(1)
       jgcw = abs(bupper(1)-blower(1))+1
 
       if ( (location_index .eq. 0) .or.

@@ -12,37 +12,134 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/AppInitializer.h>
-#include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
+#include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/muParserCartGridFunction.h>
+
+#include <tbox/Logger.h>
 
 #include <petscsys.h>
 
-#include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
-#include <GriddingAlgorithm.h>
-#include <LoadBalancer.h>
 #include <RefineAlgorithm.h>
 #include <RefineSchedule.h>
-#include <StandardTagAndInitialize.h>
+
+#include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "../coarse_fine_ghost_values.h"
+#include "../tests.h"
 
 #include <ibtk/app_namespaces.h>
 
-/*******************************************************************************
- * For each run, the input filename must be given on the command line.  In all *
- * cases, the command line is:                                                 *
- *                                                                             *
- *    executable <input file name>                                             *
- *                                                                             *
- *******************************************************************************/
+using namespace coarse_fine_ghost_values;
+
+// Fill the ghost cells (or faces) of a quadratic function at coarse-fine interfaces with the quadratic coarse-fine
+// interpolation, with the default fill pattern and with a no-corners fill pattern, and check on the finest level that
+//
+//   - every ghost value that is at a coarse-fine interface of some patch equals the quadratic function;
+//   - all patches, on all processes, agree to the bit on the value of every ghost value outside the fine level;
+//   - the no-corners fill gives the values of the default fill in the face slabs of each patch;
+//   - the interior values are unchanged; and
+//   - the ghost values equal the values of the Reference block of the input to 1e-12. The values are sums and maxima of
+//     the ghost values, over each ghost location once, so that they do not depend on the partition of the fine level
+//     into patches, on the processes that own the patches, or on the order of the summation.
+//
+// For each run, the input filename must be given on the command line. In all cases, the command line is:
+//
+//    executable <input file name>
+
+namespace
+{
+// Summary of the ghost values at the distinct ghost locations outside the fine level that are away from the physical
+// boundary. The ghost locations are cells (or faces) in the ghost region of some patch. The coarse-fine locations are
+// those that get a coarse-fine value.
+struct GhostSummary
+{
+    double num_locations = 0.0;
+    double num_coarse_fine = 0.0;
+    double sum = 0.0;
+    double sum_squares = 0.0;
+    double max_abs = 0.0;
+    double weighted_sum = 0.0;         // Weight 1 + sum_d (d + 1) (i(d) - lower(d)) detects a swap of two values.
+    double weighted_sum_squares = 0.0; // Sets the size of the terms of the weighted sum.
+};
+
+// Print a quantity with enough digits to distinguish partitions, and add a failure to failures if it differs from the
+// value of the same key in the Reference block by more than 1e-12, relative to the largest of the reference value, 1,
+// and term_size. The roundoff of a sum whose terms cancel scales with the root of the sum of the squares of its terms.
+// The caller passes that root as term_size.
+void
+check_against_reference(Pointer<Database> reference_db,
+                        const std::string& key,
+                        const std::string& label,
+                        const double value,
+                        const double term_size,
+                        std::ostringstream& failures)
+{
+    std::ostringstream os;
+    os << std::setprecision(14) << label << " = " << value << '\n';
+    if (!reference_db->keyExists(key))
+    {
+        os << "  the Reference block has no key " << key << '\n';
+        failures << "  the Reference block of the input has no key " << key << "\n";
+    }
+    else
+    {
+        const double reference = reference_db->getDouble(key);
+        if (!(std::abs(value - reference) <= 1.0e-12 * std::max({ 1.0, std::abs(reference), term_size })))
+        {
+            os << "  differs from the reference value " << reference << '\n';
+            failures << "  " << label << " = " << std::setprecision(14) << value << " differs from the reference value "
+                     << reference << "\n";
+        }
+    }
+    pout << os.str();
+} // check_against_reference
+
+void
+check_summary_against_reference(Pointer<Database> input_db, const GhostSummary& s, std::ostringstream& failures)
+{
+    if (!input_db->keyExists("Reference"))
+    {
+        failures << "  the input has no Reference block\n";
+        return;
+    }
+    Pointer<Database> db = input_db->getDatabase("Reference");
+    check_against_reference(db, "ghost_locations", "ghost locations", s.num_locations, 0.0, failures);
+    check_against_reference(
+        db, "coarse_fine_locations", "coarse-fine ghost locations", s.num_coarse_fine, 0.0, failures);
+    check_against_reference(
+        db, "ghost_sum", "sum of coarse-fine ghost values", s.sum, std::sqrt(s.sum_squares), failures);
+    check_against_reference(
+        db, "ghost_sum_squares", "sum of squares of coarse-fine ghost values", s.sum_squares, 0.0, failures);
+    check_against_reference(db, "ghost_max", "largest absolute coarse-fine ghost value", s.max_abs, 0.0, failures);
+    check_against_reference(db,
+                            "ghost_weighted_sum",
+                            "weighted sum of coarse-fine ghost values",
+                            s.weighted_sum,
+                            std::sqrt(s.weighted_sum_squares),
+                            failures);
+} // check_summary_against_reference
+} // namespace
+
 int
 main(int argc, char* argv[])
 {
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -55,47 +152,36 @@ main(int argc, char* argv[])
         // application.  These objects are configured from the input database.
         Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM>> error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM>> load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
-        // Create cell-centered and node-centered quantities, and initialize them with a function read from the input
-        // file
-        Pointer<Variable<NDIM>> Q_var;
-        if (input_db->getString("CENTERING").compare("CELL") == 0)
-            Q_var = new CellVariable<NDIM, double>("Q");
-        else if (input_db->getString("CENTERING").compare("SIDE") == 0)
-            Q_var = new SideVariable<NDIM, double>("Q");
+        const int ghost_width = input_db->getIntegerWithDefault("GHOST_WIDTH", 1);
+        // The fill sets the layers 1 to min(g, R) of the ghost cells.
+        const int depth_limit = ghost_width;
+        const std::string refine_op_name = input_db->getStringWithDefault("REFINE_OP", "NONE");
+        const bool is_cell = input_db->getString("CENTERING").compare("CELL") == 0;
 
-        auto Q_fcn = [](const VectorNd& x) -> double
+        // Create cell-centered or side-centered quantities, and initialize them with a quadratic function. The second
+        // quantity is filled with a no-corners fill pattern.
+        Pointer<hier::Variable<NDIM>> Q_var, Q_nc_var;
+        if (is_cell)
         {
-            double val = 1.0;
-            for (int d = 0; d < NDIM; ++d) val += x[d] + x[d] * x[d];
-            return val;
-        };
+            Q_var = new CellVariable<NDIM, double>("Q");
+            Q_nc_var = new CellVariable<NDIM, double>("Q_no_corners");
+        }
+        else
+        {
+            Q_var = new SideVariable<NDIM, double>("Q");
+            Q_nc_var = new SideVariable<NDIM, double>("Q_no_corners");
+        }
+
+        const auto Q_fcn = make_quadratic(grid_geometry);
 
         auto var_db = VariableDatabase<NDIM>::getDatabase();
-        // Total amount patch indices. Note we need a single ghost cell width on the cell centered quantity.
-        const int Q_idx = var_db->registerVariableAndContext(Q_var, var_db->getContext("CTX"), IntVector<NDIM>(1));
+        const int Q_idx =
+            var_db->registerVariableAndContext(Q_var, var_db->getContext("CTX"), IntVector<NDIM>(ghost_width));
+        const int Q_nc_idx =
+            var_db->registerVariableAndContext(Q_nc_var, var_db->getContext("CTX"), IntVector<NDIM>(ghost_width));
+
         // Initialize the AMR patch hierarchy.
-        gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
-        int tag_buffer = 1;
-        int level_number = 0;
-        bool done = false;
-        while (!done && (gridding_algorithm->levelCanBeRefined(level_number)))
-        {
-            gridding_algorithm->makeFinerLevel(patch_hierarchy, 0.0, 0.0, tag_buffer);
-            done = !patch_hierarchy->finerLevelExists(level_number);
-            ++level_number;
-        }
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = make_hierarchy(app_initializer, grid_geometry);
 
         // Allocate patch data
         int coarsest_ln = 0, finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -103,126 +189,307 @@ main(int argc, char* argv[])
         {
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_idx);
+            level->allocatePatchData(Q_nc_idx);
         }
 
         // Fill in initial data
-        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
-                const double* const dx = pgeom->getDx();
-                const double* const xlow = pgeom->getXLower();
-                const hier::Index<NDIM>& idx_low = patch->getBox().lower();
-                Pointer<CellData<NDIM, double>> Q_cc_data = patch->getPatchData(Q_idx);
-                Pointer<SideData<NDIM, double>> Q_sc_data = patch->getPatchData(Q_idx);
-                if (Q_cc_data)
-                {
-                    for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
-                    {
-                        const CellIndex<NDIM>& idx = ci();
-                        VectorNd x;
-                        for (int d = 0; d < NDIM; ++d)
-                            x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
-                        (*Q_cc_data)(idx) = Q_fcn(x);
-                    }
-                }
-                else if (Q_sc_data)
-                {
-                    for (int axis = 0; axis < NDIM; ++axis)
-                    {
-                        for (SideIterator<NDIM> si(patch->getBox(), axis); si; si++)
-                        {
-                            const SideIndex<NDIM>& idx = si();
-                            VectorNd x;
-                            for (int d = 0; d < NDIM; ++d)
-                                x[d] = xlow[d] +
-                                       dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + (d == axis ? 0.0 : 0.5));
-                            (*Q_sc_data)(idx) = Q_fcn(x);
-                        }
-                    }
-                }
-            }
-        }
+        fill_quadratic(patch_hierarchy, { Q_idx, Q_nc_idx }, Q_fcn);
 
-        // Test out the filling of coarse fine interfaces. We only use the coarse fine interface operator, which fills
-        // one layer of ghost cells using quadratic interpolation.
+        // Fill the ghost cells with the coarse-fine interface operator, with the default fill pattern and with a
+        // no-corners fill pattern.
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_cell_comps(1);
-        ghost_cell_comps[0] =
-            InterpolationTransactionComponent(Q_idx, "NONE", true, "NONE", "NONE", false, nullptr /*bdry_conds*/);
+        ghost_cell_comps[0] = InterpolationTransactionComponent(
+            Q_idx, refine_op_name, true, "NONE", "NONE", false, nullptr /*bdry_conds*/);
         HierarchyGhostCellInterpolation hier_ghost_cell;
         hier_ghost_cell.initializeOperatorState(ghost_cell_comps, patch_hierarchy);
         hier_ghost_cell.fillData(0.0);
 
+        Pointer<VariableFillPattern<NDIM>> no_corners_pattern;
+        if (is_cell)
         {
-            int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            no_corners_pattern = new CellNoCornersFillPattern(ghost_width, /*overwrite_interior*/ false);
+        }
+        else
+        {
+            no_corners_pattern = new SideNoCornersFillPattern(ghost_width, /*overwrite_interior*/ false);
+        }
+        std::vector<InterpolationTransactionComponent> no_corners_comps(1);
+        no_corners_comps[0] = InterpolationTransactionComponent(Q_nc_idx,
+                                                                Q_nc_idx,
+                                                                refine_op_name,
+                                                                true,
+                                                                "NONE",
+                                                                "NONE",
+                                                                false,
+                                                                nullptr /*bdry_conds*/,
+                                                                no_corners_pattern);
+        HierarchyGhostCellInterpolation hier_ghost_cell_no_corners;
+        hier_ghost_cell_no_corners.initializeOperatorState(no_corners_comps, patch_hierarchy);
+        hier_ghost_cell_no_corners.fillData(0.0);
+
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+        const FineLevel fine = make_fine_level(patch_hierarchy, grid_geometry);
+        const std::vector<int> axes = data_axes(is_cell);
+
+        // The exact value of the quadratic function at a ghost cell or face of a patch.
+        auto exact = [&](Pointer<Patch<NDIM>> patch, const int axis, const hier::Index<NDIM>& i)
+        { return exact_value(patch, axis, i, Q_fcn); };
+
+        std::ostringstream failures;
+        GhostSummary summary;
+
+        // Check that every ghost cell (or face) that is not in the fine level and that has fine-level cells (or faces)
+        // on one side at distances one and two gets the exact value of the quadratic function. Such a cell is at the
+        // coarse-fine interface of some patch of the level, whatever its position relative to the patch whose ghost box
+        // contains it: beyond the end of the patch, deep in its ghost region, or at a convex or a concave corner.
+        {
+            int num_checked = 0, num_wrong = 0;
+            std::string wrong_cells;
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM>> patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
-                const double* const dx = pgeom->getDx();
-                const double* const xlow = pgeom->getXLower();
-                const hier::Index<NDIM>& idx_low = patch->getBox().lower();
-                Pointer<CellData<NDIM, double>> Q_cc_data = patch->getPatchData(Q_idx);
-                Pointer<SideData<NDIM, double>> Q_sc_data = patch->getPatchData(Q_idx);
-                IntVector<NDIM> ghost_cells =
-                    Q_cc_data ? Q_cc_data->getGhostCellWidth() : Q_sc_data->getGhostCellWidth();
-                // Only print ghost cells on the left side.
-                Box<NDIM> ghost_box = patch->getBox();
-                ghost_box.upper(0) = ghost_box.lower(0) + (ghost_cells(0) - 1);
-                ghost_box.shift(0, -ghost_cells(0));
-
-                // Shrink the box in other directions. CF-interfaces are only filled away from corners (where enough
-                // cells exist to perform interpolation)
-                for (int d = 1; d < NDIM; ++d)
+                for (const int axis : axes)
                 {
-                    ghost_box.shorten(d, 2);
-                    ghost_box.shorten(d, -2);
+                    for_each_index(ghost_index_box(patch, Q_idx, axis),
+                                   axis,
+                                   [&](const int ax, const hier::Index<NDIM>& i)
+                                   {
+                                       if (!away_from_boundary(fine, i) ||
+                                           coarse_fine_terms(fine, ax, i, depth_limit).empty())
+                                       {
+                                           return;
+                                       }
+                                       ++num_checked;
+                                       const double value = get_value(patch, Q_idx, ax, i);
+                                       if (!IBTK::abs_equal_eps(value, exact(patch, ax, i)))
+                                       {
+                                           if (num_wrong++ < 60)
+                                           {
+                                               std::ostringstream os;
+                                               os << "    axis " << ax << " index " << i << " patch " << patch->getBox()
+                                                  << " computed " << value << " exact " << exact(patch, ax, i) << "\n";
+                                               wrong_cells += os.str();
+                                           }
+                                       }
+                                   });
                 }
+            }
+            IBTK_MPI::sumReduction(&num_checked, 1);
+            int num_wrong_all = num_wrong;
+            IBTK_MPI::sumReduction(&num_wrong_all, 1);
+            pout << "Checked " << num_checked
+                 << " ghost values at coarse-fine interfaces against the quadratic function.\n";
+            if (num_wrong_all > 0)
+            {
+                failures << "  " << num_wrong_all
+                         << " coarse-fine ghost values differ from the quadratic function (the first ones on this "
+                            "process):\n"
+                         << wrong_cells;
+            }
+        }
 
-                if (Q_cc_data)
+        // Check that all patches agree, to the bit, on the value of every ghost cell (or face) that is not in the fine
+        // level. Set A is every such ghost cell. Set B is the cells that are in the first ghost layer of some patch,
+        // within one cell of the tangential range of that patch; it is a diagnostic, a subset of set A.
+        {
+            std::vector<GhostValue> mine;
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                for (const int axis : axes)
                 {
-                    for (CellIterator<NDIM> ci(ghost_box); ci; ci++)
+                    const Box<NDIM> ring_box = index_box(Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(1)), axis);
+                    const Box<NDIM> interior_box = index_box(patch->getBox(), axis);
+                    for_each_index(ghost_index_box(patch, Q_idx, axis),
+                                   axis,
+                                   [&](const int ax, const hier::Index<NDIM>& i)
+                                   {
+                                       if (interior_box.contains(i) || !in_boxes(fine.domain, ax, i) ||
+                                           !away_from_boundary(fine, i) || in_fine_level(fine, ax, i))
+                                       {
+                                           return;
+                                       }
+                                       GhostValue v;
+                                       v.axis = ax;
+                                       for (int d = 0; d < NDIM; ++d)
+                                       {
+                                           v.idx[d] = i(d);
+                                       }
+                                       v.first_layer = ring_box.contains(i) ? 1 : 0;
+                                       v.value = get_value(patch, Q_idx, ax, i);
+                                       mine.push_back(v);
+                                   });
+                }
+            }
+            // Gather the values of all patches on all processes.
+            std::vector<GhostValue> all = gather_all(mine);
+            std::stable_sort(all.begin(), all.end(), less_key);
+
+            int num_differ_a = 0;
+            std::string examples;
+            for (const char set : { 'B', 'A' })
+            {
+                int num_shared = 0, num_differ = 0;
+                std::string set_examples;
+                for (std::size_t first = 0; first < all.size();)
+                {
+                    std::size_t last = first;
+                    bool in_set = false;
+                    while (last < all.size() && same_key(all[first], all[last]))
                     {
-                        const CellIndex<NDIM>& idx = ci();
-                        VectorNd x;
-                        for (int d = 0; d < NDIM; ++d)
-                            x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
-                        if (!IBTK::abs_equal_eps((*Q_cc_data)(idx)-Q_fcn(x), 0.0))
+                        if (all[last].first_layer)
                         {
-                            pout << "Incorrect ghost value!\n";
-                            pout << "On ghost cell " << idx << "\n";
-                            pout << "Computed value " << (*Q_cc_data)(idx) << "\n";
-                            pout << "Exact value:   " << Q_fcn(x) << "\n";
+                            in_set = true;
+                        }
+                        ++last;
+                    }
+                    if (last - first > 1 && (set == 'A' || in_set))
+                    {
+                        ++num_shared;
+                        bool differ = false;
+                        for (std::size_t k = first + 1; k < last; ++k)
+                        {
+                            if (!same_bits(all[first].value, all[k].value))
+                            {
+                                differ = true;
+                            }
+                        }
+                        if (differ)
+                        {
+                            if (num_differ < 40)
+                            {
+                                set_examples += "    " + key_string(all[first]) + ":";
+                                for (std::size_t k = first; k < last; ++k)
+                                {
+                                    set_examples += " " + value_string(all[k].value) + (all[k].first_layer ? "*" : "");
+                                }
+                                set_examples += "\n";
+                            }
+                            ++num_differ;
                         }
                     }
+                    first = last;
                 }
-                else if (Q_sc_data)
+                pout << "Compared " << num_shared << " ghost cells that several patches contain, set " << set
+                     << (set == 'A' ? " (all ghost cells outside the fine level)" :
+                                      " (first ghost layer, within one cell of the tangential range)")
+                     << ": " << num_differ << " differ.\n";
+                if (set == 'A')
                 {
-                    for (int axis = 0; axis < NDIM; ++axis)
+                    num_differ_a = num_differ;
+                    examples = set_examples;
+                }
+            }
+            if (num_differ_a > 0)
+            {
+                failures << "  patches disagree on " << num_differ_a
+                         << " ghost values in set A (* marks the first ghost layer of the patch):\n"
+                         << examples;
+            }
+
+            // Summarize the value at each ghost location once, in the order of the sorted keys, so that every
+            // partition sums the same values in the same order. Every process has all the values.
+            for (std::size_t k = 0; k < all.size(); ++k)
+            {
+                if (k > 0 && same_key(all[k - 1], all[k]))
+                {
+                    continue;
+                }
+                summary.num_locations += 1.0;
+                hier::Index<NDIM> i;
+                double weight = 1.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    i(d) = all[k].idx[d];
+                    weight += (d + 1) * (i(d) - fine.domain.getBoundingBox().lower(d));
+                }
+                if (coarse_fine_terms(fine, all[k].axis, i, depth_limit).empty())
+                {
+                    continue;
+                }
+                const double v = all[k].value;
+                summary.num_coarse_fine += 1.0;
+                summary.sum += v;
+                summary.sum_squares += v * v;
+                summary.max_abs = std::max(summary.max_abs, std::abs(v));
+                summary.weighted_sum += weight * v;
+                summary.weighted_sum_squares += weight * weight * v * v;
+            }
+        }
+
+        check_fine_level_agreement(level, fine, grid_geometry, Q_idx, axes, is_cell, failures);
+
+        // Check that the cells that the no-corners fill fills have the values of the default fill, to the bit: the
+        // cells of the face slabs of each patch, as wide as the ghost width.
+        {
+            int num_compared = 0, num_differ = 0;
+            std::string first_differ;
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                for (const int axis : axes)
+                {
+                    const Box<NDIM> patch_index_box = index_box(patch->getBox(), axis);
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        for (SideIterator<NDIM> si(ghost_box, axis); si; si++)
+                        for (const int side : { -1, +1 })
                         {
-                            const SideIndex<NDIM>& idx = si();
-                            VectorNd x;
-                            for (int d = 0; d < NDIM; ++d)
-                                x[d] = xlow[d] +
-                                       dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + (d == axis ? 0.0 : 0.5));
-                            if (!IBTK::abs_equal_eps((*Q_sc_data)(idx)-Q_fcn(x), 0.0))
+                            Box<NDIM> slab = patch_index_box;
+                            if (side < 0)
                             {
-                                pout << "Incorrect ghost value!\n";
-                                pout << "On ghost cell " << idx << " and axis " << axis << "\n";
-                                pout << "Computed value " << (*Q_sc_data)(idx) << "\n";
-                                pout << "Exact value:   " << Q_fcn(x) << "\n";
+                                slab.lower(d) = patch_index_box.lower(d) - ghost_width;
+                                slab.upper(d) = patch_index_box.lower(d) - 1;
                             }
+                            else
+                            {
+                                slab.lower(d) = patch_index_box.upper(d) + 1;
+                                slab.upper(d) = patch_index_box.upper(d) + ghost_width;
+                            }
+                            for_each_index(slab,
+                                           axis,
+                                           [&](const int ax, const hier::Index<NDIM>& i)
+                                           {
+                                               if (!in_boxes(fine.domain, ax, i) || !away_from_boundary(fine, i))
+                                               {
+                                                   return;
+                                               }
+                                               ++num_compared;
+                                               const double v = get_value(patch, Q_idx, ax, i);
+                                               const double v_nc = get_value(patch, Q_nc_idx, ax, i);
+                                               if (!same_bits(v, v_nc) && num_differ++ == 0)
+                                               {
+                                                   std::ostringstream os;
+                                                   os << "axis " << ax << " index " << i << " default fill " << v
+                                                      << " no-corners fill " << v_nc;
+                                                   first_differ = os.str();
+                                               }
+                                           });
                         }
                     }
                 }
             }
+            IBTK_MPI::sumReduction(&num_compared, 1);
+            int num_differ_all = num_differ;
+            IBTK_MPI::sumReduction(&num_differ_all, 1);
+            pout << "Compared " << num_compared
+                 << " ghost values of the no-corners fill with the default fill: " << num_differ_all << " differ.\n";
+            if (num_differ_all > 0)
+            {
+                failures << "  " << num_differ_all
+                         << " ghost values of the no-corners fill differ from the default fill; first on process "
+                            "with a difference: "
+                         << first_differ << "\n";
+            }
+        }
+
+        check_interior_unchanged(level, { Q_idx, Q_nc_idx }, axes, Q_fcn, failures);
+
+        check_summary_against_reference(input_db, summary, failures);
+
+        if (!failures.str().empty())
+        {
+            TBOX_ERROR("cf_interface:\n" << failures.str());
         }
 
         // Deallocate patch data
@@ -230,6 +497,7 @@ main(int argc, char* argv[])
         {
             Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_idx);
+            level->deallocatePatchData(Q_nc_idx);
         }
 
     } // cleanup dynamically allocated objects prior to shutdown

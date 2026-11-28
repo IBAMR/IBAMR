@@ -91,8 +91,12 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
             d_Phi_data_coarsen_type = input_db->getString("Phi_data_coarsen_type");
         if (input_db->isString("Phi_bdry_extrap_type"))
             d_Phi_bdry_extrap_type = input_db->getString("Phi_bdry_extrap_type");
-        if (input_db->isBool("Phi_use_consistent_type_2_bdry"))
-            d_Phi_use_consistent_type_2_bdry = input_db->getBool("Phi_use_consistent_type_2_bdry");
+        if (input_db->getBoolWithDefault("Phi_use_consistent_type_2_bdry", false))
+        {
+            TBOX_ERROR(d_object_name << "::StaggeredStokesProjectionPreconditioner():\n"
+                                     << "  the input key Phi_use_consistent_type_2_bdry was removed and has no effect\n"
+                                     << "  set it to FALSE or remove it\n");
+        }
     }
 
     // Present implementation requires zero initial guess and can perform only
@@ -361,7 +365,7 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
                                                           d_Phi_use_cf_interpolation,
                                                           d_Phi_data_coarsen_type,
                                                           d_Phi_bdry_extrap_type,
-                                                          d_Phi_use_consistent_type_2_bdry,
+                                                          /*consistent_type_2_bdry*/ false,
                                                           d_P_bc_coef,
                                                           fill_pattern);
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();

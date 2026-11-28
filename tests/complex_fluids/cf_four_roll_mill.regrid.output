@@ -1,0 +1,78 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 1
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1
+PolymericStressForcing: Smallest det: 1
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1
+PolymericStressForcing: Smallest det: 0.999999
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1
+PolymericStressForcing: Smallest det: 0.999999
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00001
+PolymericStressForcing: Smallest det: 0.999994
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00001
+PolymericStressForcing: Smallest det: 0.999987
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00002
+PolymericStressForcing: Smallest det: 0.999977
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00004
+PolymericStressForcing: Smallest det: 0.999964
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00005
+PolymericStressForcing: Smallest det: 0.999949
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00007
+PolymericStressForcing: Smallest det: 0.999932
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00009
+PolymericStressForcing: Smallest det: 0.999911
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00011
+PolymericStressForcing: Smallest det: 0.999911
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00014
+PolymericStressForcing: Smallest det: 0.999911
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00016
+PolymericStressForcing: Smallest det: 0.999912
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00019
+PolymericStressForcing: Smallest det: 0.999912
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00022
+PolymericStressForcing: Smallest det: 0.99991
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00025
+PolymericStressForcing: Smallest det: 0.999889
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00025
+PolymericStressForcing: Smallest det: 0.999888
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00025
+PolymericStressForcing: Smallest det: 0.999851
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00025
+PolymericStressForcing: Smallest det: 0.999812
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00025
+PolymericStressForcing: Smallest det: 0.999771
+PolymericStressForcing: Conformation tensor is SPD
+PolymericStressForcing: Largest det:  1.00025
+PolymericStressForcing: Smallest det: 0.99973
+Soln norms in sxx at time 0.2:
+  L1-norm:  39.49889527
+  L2-norm:  6.289565805
+  max-norm: 1.065216097
+Soln norms in syy at time 0.2:
+  L1-norm:  39.49947403
+  L2-norm:  6.28965781
+  max-norm: 1.064477441
+Soln norms in sxy at time 0.2:
+  L1-norm:  0.008929723311
+  L2-norm:  0.001799148983
+  max-norm: 0.002047787708

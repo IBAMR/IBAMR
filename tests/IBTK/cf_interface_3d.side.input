@@ -43,3 +43,12 @@ StandardTagAndInitialize {
 
 LoadBalancer {
 }
+
+Reference {
+   ghost_locations = 192
+   coarse_fine_locations = 192
+   ghost_sum = 608.375
+   ghost_sum_squares = 1958.6862792969
+   ghost_max = 4.099609375
+   ghost_weighted_sum = 28304.5
+}

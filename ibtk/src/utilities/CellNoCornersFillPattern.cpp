@@ -114,6 +114,12 @@ CellNoCornersFillPattern::getStencilWidth()
     return d_stencil_width;
 } // getStencilWidth
 
+bool
+CellNoCornersFillPattern::getOverwriteInterior() const
+{
+    return d_overwrite_interior;
+} // getOverwriteInterior
+
 const std::string&
 CellNoCornersFillPattern::getPatternName() const
 {

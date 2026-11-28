@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/box_utilities.h>
+#include <ibtk/private/periodic_image_offsets.h>
 
 #include <tbox/ReferenceCounter.h>
 #include <tbox/Utilities.h>
@@ -258,6 +259,41 @@ merge_boxes_by_longest_edge(const std::vector<Box<NDIM>>& input_boxes)
 
     return result;
 }
+
+namespace detail
+{
+std::vector<IntVector<NDIM>>
+periodic_image_offsets(const IntVector<NDIM>& periodic_shift)
+{
+    std::vector<IntVector<NDIM>> offsets;
+    int num = 1;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        num *= 3;
+    }
+    for (int k = 0; k < num; ++k)
+    {
+        IntVector<NDIM> offset(0);
+        int rem = k;
+        bool allowed = true;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            const int m = rem % 3 - 1;
+            rem /= 3;
+            if (m != 0 && periodic_shift(d) == 0)
+            {
+                allowed = false;
+            }
+            offset(d) = m * periodic_shift(d);
+        }
+        if (allowed)
+        {
+            offsets.push_back(offset);
+        }
+    }
+    return offsets;
+} // periodic_image_offsets
+} // namespace detail
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

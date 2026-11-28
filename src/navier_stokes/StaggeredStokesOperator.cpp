@@ -101,7 +101,12 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
         d_bdry_extrap_type = input_db->getStringWithDefault("bdry_extrap_type", d_bdry_extrap_type);
         d_bdry_interp_type = input_db->getStringWithDefault("bdry_interp_type", d_bdry_interp_type);
         d_use_cf_interpolation = input_db->getBoolWithDefault("use_cf_interpolation", d_use_cf_interpolation);
-        d_consistent_type_2_bdry = input_db->getBoolWithDefault("consistent_type_2_bdry", d_consistent_type_2_bdry);
+        if (input_db->getBoolWithDefault("consistent_type_2_bdry", false))
+        {
+            TBOX_ERROR(d_object_name << "::StaggeredStokesOperator():\n"
+                                     << "  the input key consistent_type_2_bdry was removed and has no effect\n"
+                                     << "  set it to FALSE or remove it\n");
+        }
     }
 
     // Setup Timers.
@@ -200,7 +205,7 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                                                              d_use_cf_interpolation,
                                                              d_coarsen_type,
                                                              d_bdry_extrap_type,
-                                                             d_consistent_type_2_bdry,
+                                                             /*consistent_type_2_bdry*/ false,
                                                              d_U_bc_coefs,
                                                              d_U_fill_pattern,
                                                              d_bdry_interp_type);
@@ -209,7 +214,7 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                                                              d_use_cf_interpolation,
                                                              d_coarsen_type,
                                                              d_bdry_extrap_type,
-                                                             d_consistent_type_2_bdry,
+                                                             /*consistent_type_2_bdry*/ false,
                                                              d_P_bc_coef,
                                                              d_P_fill_pattern,
                                                              d_bdry_interp_type);
@@ -279,7 +284,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
                                                                d_use_cf_interpolation,
                                                                d_coarsen_type,
                                                                d_bdry_extrap_type,
-                                                               d_consistent_type_2_bdry,
+                                                               /*consistent_type_2_bdry*/ false,
                                                                d_U_bc_coefs,
                                                                d_U_fill_pattern,
                                                                d_bdry_interp_type);
@@ -288,7 +293,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
                                                                d_use_cf_interpolation,
                                                                d_coarsen_type,
                                                                d_bdry_extrap_type,
-                                                               d_consistent_type_2_bdry,
+                                                               /*consistent_type_2_bdry*/ false,
                                                                d_P_bc_coef,
                                                                d_P_fill_pattern,
                                                                d_bdry_interp_type);

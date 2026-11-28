@@ -1,0 +1,3 @@
+Changed: Make IBTK::HierarchyGhostCellInterpolation stop with an error when a node-, edge-, or face-centered transaction component has the same source and destination patch data index and a refine type other than NONE, and the fill includes a level with a coarser level, because the refine operator overwrites the patch-border values of such data along the coarse-fine interface. Copy the data to a separate patch data index and give that index as the source of the InterpolationTransactionComponent. Side-centered data are not affected.
+<br>
+(Boyce Griffith, 2026/11/13)

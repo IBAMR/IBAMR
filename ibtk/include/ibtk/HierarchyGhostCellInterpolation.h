@@ -20,11 +20,12 @@
 
 #include <ibtk/config.h>
 
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/data_kind.h>
 
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
+#include <tbox/Schedule.h>
 
 #include <BoxGeometryFillPattern.h>
 #include <CartesianGridGeometry.h>
@@ -35,6 +36,7 @@
 #include <RefineAlgorithm.h>
 #include <VariableFillPattern.h>
 
+#include <array>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -45,6 +47,11 @@ namespace IBTK
 class CartCellRobinPhysBdryOp;
 class CartExtrapPhysBdryOp;
 class CartSideRobinPhysBdryOp;
+namespace detail
+{
+class CoarseFineOwnerFill;
+class InterfaceFaceGhostCopy;
+} // namespace detail
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -270,7 +277,13 @@ public:
         bool d_use_cf_bdry_interpolation;
         std::string d_coarsen_op_name;
         std::string d_phys_bdry_extrap_type;
+
+        /*!
+         * Removed option with no effect; true stops initializeOperatorState() and resetTransactionComponents() with an
+         * error.
+         */
         bool d_consistent_type_2_bdry;
+
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_robin_bc_coefs;
         SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_fill_pattern;
         std::string d_phys_bdry_type;
@@ -313,11 +326,17 @@ public:
 
     /*!
      * \brief Reset transaction component with the interpolation operator.
+     *
+     * The component must keep the centering and depth of its data, the use of coarse-fine interpolation, the fill
+     * width, and whether it fills in place with a refine operator. Otherwise call initializeOperatorState().
      */
     void resetTransactionComponent(const InterpolationTransactionComponent& transaction_comps);
 
     /*!
      * \brief Reset transaction components with the interpolation operator.
+     *
+     * Each component must keep the centering and depth of its data, the use of coarse-fine interpolation, the fill
+     * width, and whether it fills in place with a refine operator. Otherwise call initializeOperatorState().
      */
     void resetTransactionComponents(const std::vector<InterpolationTransactionComponent>& transaction_comps);
 
@@ -384,10 +403,17 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_refine_scheds;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.
-    std::vector<SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy>> d_cf_bdry_ops;
+    std::vector<std::unique_ptr<detail::CoarseFineOwnerFill>> d_coarse_fine_fills;
+    std::vector<std::unique_ptr<detail::InterfaceFaceGhostCopy>> d_face_ghost_copies;
+
+    // For each level, the schedule of the faces along the coarse-fine interface and of the coarse-fine values.
+    std::vector<std::unique_ptr<SAMRAI::tbox::Schedule>> d_interface_scheds;
     std::vector<SAMRAI::tbox::Pointer<CartExtrapPhysBdryOp>> d_extrap_bc_ops;
     std::vector<SAMRAI::tbox::Pointer<CartCellRobinPhysBdryOp>> d_cc_robin_bc_ops;
     std::vector<SAMRAI::tbox::Pointer<CartSideRobinPhysBdryOp>> d_sc_robin_bc_ops;
+
+    // The data kinds that initializeOperatorState() set up, for the reset check.
+    std::vector<std::array<detail::DataKind, 2>> d_data_kinds;
 };
 } // namespace IBTK
 

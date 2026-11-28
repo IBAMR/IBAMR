@@ -1,0 +1,52 @@
+// Three fine patches in an L shape, ratio 4, ghost width 3, with the quadratic values in all three ghost layers.
+MAX_LEVELS = 2
+N = 16
+REF_RATIO = 4
+CENTERING = "SIDE"
+GHOST_WIDTH = 3
+REFINE_OP = "CONSERVATIVE_LINEAR_REFINE"
+FINE_BOXES = [(16,16),(31,31)], [(32,16),(47,31)], [(32,32),(47,47)]
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0,0
+   x_up               = 1,1
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 512,512
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+   }
+}
+
+StandardTagAndInitialize {
+  tagging_method = "REFINE_BOXES"
+  RefineBoxes {
+    level_0 = [(0,0),(N - 1,N - 1)]
+  }
+}
+
+LoadBalancer {
+}
+
+Reference {
+   ghost_locations = 852
+   coarse_fine_locations = 762
+   ghost_sum = 1967.2095947266
+   ghost_sum_squares = 5378.1062909141
+   ghost_max = 3.7249145507812
+   ghost_weighted_sum = 199524.77679443
+}

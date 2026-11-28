@@ -1,0 +1,12 @@
+Checked 876 ghost values at coarse-fine interfaces against the quadratic function.
+Compared 36 ghost cells that several patches contain, set B (first ghost layer, within one cell of the tangential range): 0 differ.
+Compared 96 ghost cells that several patches contain, set A (all ghost cells outside the fine level): 0 differ.
+Compared 404 faces of the fine level that several patches contain: 0 differ.
+Compared 1188 ghost values of the no-corners fill with the default fill: 0 differ.
+Compared 3264 interior values of the patches with their values before the fill: 0 changed.
+ghost locations = 852
+coarse-fine ghost locations = 762
+sum of coarse-fine ghost values = 1967.2095947266
+sum of squares of coarse-fine ghost values = 5378.1062909141
+largest absolute coarse-fine ghost value = 3.7249145507812
+weighted sum of coarse-fine ghost values = 199524.77679443

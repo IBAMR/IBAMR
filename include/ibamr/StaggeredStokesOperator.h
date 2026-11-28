@@ -80,8 +80,7 @@ public:
      * <code>use_cf_interpolation<\code>: Bool that specifies whether to use interpolation involving both coarse and
      * fine components, default TRUE
      *
-     * <code>consistent_type_2_bdry<\code>: Bool that specifies whether the "type 2" boundary should be consistently
-     * filled, default FALSE
+     * <code>consistent_type_2_bdry<\code>: Removed option with no effect; TRUE stops with an error, default FALSE
      */
     StaggeredStokesOperator(const std::string& object_name,
                             bool homogeneous_bc = true,
@@ -240,7 +239,6 @@ protected:
     std::string d_coarsen_type = "CUBIC_COARSEN";
     std::string d_bdry_extrap_type = "LINEAR";
     std::string d_bdry_interp_type = "LINEAR";
-    bool d_consistent_type_2_bdry = false;
     bool d_use_cf_interpolation = true;
 
 private:

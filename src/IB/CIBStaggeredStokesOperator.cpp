@@ -280,7 +280,7 @@ CIBStaggeredStokesOperator::getVelocityInterpComponent(const int U_idx) const
                                                                               /*use_cf_bdry_interpolation*/ false,
                                                                               d_coarsen_type,
                                                                               d_bdry_extrap_type,
-                                                                              d_consistent_type_2_bdry,
+                                                                              /*consistent_type_2_bdry*/ false,
                                                                               d_U_bc_coefs,
                                                                               /*fill_pattern*/ nullptr,
                                                                               d_bdry_interp_type);
