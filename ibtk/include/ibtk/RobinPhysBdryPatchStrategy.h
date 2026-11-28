@@ -83,6 +83,11 @@ public:
     void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices);
 
     /*!
+     * \brief Return the patch data indices operated upon by this class.
+     */
+    const std::set<int>& getPatchDataIndices() const;
+
+    /*!
      * \brief Reset the Robin boundary condition specification object employed
      * by this class to set physical boundary conditions.
      *
@@ -174,6 +179,10 @@ public:
      * the ghost cell region using the adjoint of the operator used to
      * extrapolate the ghost cell values.  This function can be used to
      * construct the adjoint of linear operators that use ghost cell data.
+     *
+     * The function adds into every value that the ghost fill uses. A caller
+     * that stores only interior values must sum the ghost-region values into
+     * the patches that own them.
      *
      * \note A default implementation is provided that emits an error message.
      *

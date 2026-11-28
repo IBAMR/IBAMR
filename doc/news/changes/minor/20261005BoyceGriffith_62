@@ -1,0 +1,3 @@
+Improved: Sum ghost values in IBTK::SAMRAIGhostDataAccumulator with SAMRAI communication, and apply the transpose of the physical boundary fill on request. Ghost values are unspecified after an accumulation. The accumulation stops with an error for unsupported patch layouts and for a replaced level.
+<br>
+(Boyce Griffith, 2026/10/05)
