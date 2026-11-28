@@ -129,6 +129,12 @@ LaplaceOperator::setBdryInterpType(const BdryInterpType bdry_interp_type)
     return;
 } // setBdryInterpType
 
+void
+LaplaceOperator::setBdryExtrapType(const std::string& /*bdry_extrap_type*/)
+{
+    return;
+} // setBdryExtrapType
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

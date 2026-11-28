@@ -775,7 +775,8 @@ CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
                                                        d_bdry_extrap_type,
                                                        /*consistent_type_2_bdry*/ false,
                                                        d_bc_coefs,
-                                                       d_residual_fill_pattern);
+                                                       d_residual_fill_pattern,
+                                                       enum_to_string(d_bdry_interp_type));
     if (d_level_bdry_fill_ops[finest_level_num])
     {
         d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
@@ -795,7 +796,8 @@ CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
                                                                d_bdry_extrap_type,
                                                                /*consistent_type_2_bdry*/ false,
                                                                d_bc_coefs,
-                                                               d_residual_fill_pattern);
+                                                               d_residual_fill_pattern,
+                                                               enum_to_string(d_bdry_interp_type));
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.
@@ -904,6 +906,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
         d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
         d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
+        setSolverBdryInterpType(*d_coarse_solver, d_coarse_solver_db, d_bdry_interp_type);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
@@ -913,7 +916,8 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     register_ibtk_transfer_operators(*geometry);
 
     // Setup the physical boundary operator.
-    d_bc_op = new CartCellRobinPhysBdryOp(d_scratch_idx, d_bc_coefs, false);
+    d_bc_op =
+        new CartCellRobinPhysBdryOp(d_scratch_idx, d_bc_coefs, false, enum_to_string(d_smoother_bdry_interp_type));
 
     // Setup fill pattern spec objects.
     d_op_stencil_fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ true);

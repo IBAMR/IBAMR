@@ -192,8 +192,7 @@ public:
     //\}
 
     /*!
-     * \brief The stencils are empty unless this object imposes TRACTION conditions on a tangential component. This
-     * function stops with an error for the boundary interpolation type QUADRATIC.
+     * \brief The stencils are empty unless this object imposes TRACTION conditions on a tangential component.
      *
      * \see StokesBcCoefStrategy::getTractionStencil
      */

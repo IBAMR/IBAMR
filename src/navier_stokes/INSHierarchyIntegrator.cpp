@@ -24,9 +24,12 @@
 
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/CartGridFunctionSet.h>
+#include <ibtk/FACPreconditioner.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/KrylovLinearSolver.h>
+#include <ibtk/LaplaceOperator.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
@@ -113,17 +116,17 @@ set_unit_velocity(const Pointer<PatchHierarchy<NDIM>>& hierarchy,
     }
 }
 
-// Return the interpolation type that the key bdry_interp_type of the database db sets. Stop with an error that begins
-// with location if the value is not an interpolation type.
+// Return the interpolation type that the key of the database db sets. Stop with an error that begins with location if
+// the value is not an interpolation type.
 BdryInterpType
-get_bdry_interp_type(const Pointer<Database>& db, const std::string& location)
+get_bdry_interp_type(const Pointer<Database>& db, const std::string& key, const std::string& location)
 {
-    const std::string type_name = db->getString("bdry_interp_type");
+    const std::string type_name = db->getString(key);
     const BdryInterpType bdry_interp_type = IBTK::string_to_enum<BdryInterpType>(type_name);
     if (bdry_interp_type == BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE)
     {
         TBOX_ERROR(location << ":\n"
-                            << "  unknown bdry_interp_type \"" << type_name << "\" in " << db->getName() << "\n"
+                            << "  unknown " << key << " \"" << type_name << "\" in " << db->getName() << "\n"
                             << "  valid values are \"LINEAR\" and \"QUADRATIC\"\n");
     }
     return bdry_interp_type;
@@ -136,7 +139,7 @@ get_bdry_treatment(const Pointer<Database>& db, BoundaryTreatment bdry_treatment
 {
     if (db && db->keyExists("bdry_interp_type"))
     {
-        bdry_treatment.bdry_interp_type = get_bdry_interp_type(db, location);
+        bdry_treatment.bdry_interp_type = get_bdry_interp_type(db, "bdry_interp_type", location);
     }
     if (db && db->keyExists("bdry_extrap_type"))
     {
@@ -1000,7 +1003,7 @@ INSHierarchyIntegrator::getBoundaryTreatmentFromInput(Pointer<Database> input_db
     // One boundary interpolation type for every object that fills velocity or pressure boundary values.
     if (input_db->keyExists("bdry_interp_type"))
     {
-        d_bdry_interp_type = get_bdry_interp_type(input_db, location);
+        d_bdry_interp_type = get_bdry_interp_type(input_db, "bdry_interp_type", location);
     }
 
     // The Stokes operator and the right-hand side are the implicit and explicit parts of the viscous term.
@@ -1013,7 +1016,7 @@ INSHierarchyIntegrator::getBoundaryTreatmentFromInput(Pointer<Database> input_db
                             << "  set " << key << " in the integrator database only" << std::endl);
     };
     if (stokes_solver_db->keyExists("bdry_interp_type") &&
-        get_bdry_interp_type(stokes_solver_db, location) != d_bdry_interp_type)
+        get_bdry_interp_type(stokes_solver_db, "bdry_interp_type", location) != d_bdry_interp_type)
     {
         report_stokes_solver_db("bdry_interp_type",
                                 stokes_solver_db->getString("bdry_interp_type"),
@@ -1048,8 +1051,117 @@ INSHierarchyIntegrator::setPreconditionerBoundaryTreatment(StaggeredStokesSolver
     }
     precond.setBoundaryTreatment(bdry_treatment);
     logBoundaryTreatment(precond_name, bdry_treatment, true, source);
+    if (dynamic_cast<FACPreconditioner*>(&precond))
+    {
+        logSmootherBoundaryTreatment(precond_name, precond_db);
+    }
     return;
 } // setPreconditionerBoundaryTreatment
+
+void
+INSHierarchyIntegrator::setPoissonSolverBoundaryTreatment(const std::string& object_name,
+                                                          PoissonSolver& solver,
+                                                          const Pointer<Database>& solver_db,
+                                                          const std::vector<Pointer<Database>>& precond_dbs)
+{
+    setNestedPoissonSolverBoundaryTreatment(object_name, /*depth*/ 0, solver, solver_db, precond_dbs);
+    return;
+} // setPoissonSolverBoundaryTreatment
+
+void
+INSHierarchyIntegrator::setNestedPoissonSolverBoundaryTreatment(const std::string& object_name,
+                                                                const int depth,
+                                                                PoissonSolver& solver,
+                                                                const Pointer<Database>& solver_db,
+                                                                const std::vector<Pointer<Database>>& precond_dbs)
+{
+    const std::string role = depth == 0 ? "solver" : depth == 1 ? "preconditioner" : "sub-preconditioner";
+    const std::string name = object_name + " " + role;
+
+    // The treatment that an object receives and the source that the report names for it.
+    struct AppliedTreatment
+    {
+        BoundaryTreatment bdry_treatment;
+        std::string source;
+    };
+
+    // Give an object with the member functions supportsBdryInterpType() and setBdryInterpType() the interpolation type
+    // that its database sets, or the integrator's, and return the treatment and its source for the report.
+    const auto set_interp_type = [&](auto& object, const std::string& description, const Pointer<Database>& db)
+    {
+        BoundaryTreatment bdry_treatment = getBoundaryTreatmentOf(db);
+        std::string source = sets_bdry_treatment(db) ? db->getName() : "";
+        if (!object.supportsBdryInterpType(bdry_treatment.bdry_interp_type))
+        {
+            if (db && db->keyExists("bdry_interp_type"))
+            {
+                TBOX_ERROR(d_object_name << "::setPoissonSolverBoundaryTreatment():\n"
+                                         << "  " << db->getName() << " sets bdry_interp_type = "
+                                         << IBTK::enum_to_string(bdry_treatment.bdry_interp_type) << ", but the "
+                                         << description << " does not support it\n"
+                                         << "  use bdry_interp_type = LINEAR" << std::endl);
+            }
+            bdry_treatment.bdry_interp_type = BdryInterpType::LINEAR;
+            source = "unsupported";
+        }
+        object.setBdryInterpType(bdry_treatment.bdry_interp_type);
+        return AppliedTreatment{ bdry_treatment, source };
+    };
+
+    // For a Krylov solver, give its operator the treatment of its laplace_op database and its nested preconditioners
+    // the treatments of the databases in precond_dbs. Give any other solver the treatment of its own database.
+    auto p_krylov_solver = dynamic_cast<KrylovLinearSolver*>(&solver);
+    if (!p_krylov_solver)
+    {
+        const AppliedTreatment applied = set_interp_type(solver, name, solver_db);
+        logBoundaryTreatment(name, applied.bdry_treatment, false, applied.source);
+        if (dynamic_cast<FACPreconditioner*>(&solver))
+        {
+            logSmootherBoundaryTreatment(name, solver_db);
+        }
+        return;
+    }
+    const Pointer<Database> laplace_op_db =
+        solver_db->isDatabase("laplace_op") ? solver_db->getDatabase("laplace_op") : nullptr;
+    Pointer<LaplaceOperator> p_operator = p_krylov_solver->getOperator();
+    if (p_operator)
+    {
+        const AppliedTreatment applied = set_interp_type(*p_operator, name + " operator", laplace_op_db);
+        p_operator->setBdryExtrapType(applied.bdry_treatment.bdry_extrap_type);
+        logBoundaryTreatment(name + " operator",
+                             applied.bdry_treatment,
+                             /*uses_bdry_extrap_type*/ true,
+                             sets_bdry_treatment(laplace_op_db) ? solver_db->getName() : applied.source);
+    }
+    Pointer<PoissonSolver> p_precond = p_krylov_solver->getPreconditioner();
+    if (p_precond && !precond_dbs.empty())
+    {
+        setNestedPoissonSolverBoundaryTreatment(
+            object_name,
+            depth + 1,
+            *p_precond,
+            precond_dbs.front(),
+            std::vector<Pointer<Database>>(precond_dbs.begin() + 1, precond_dbs.end()));
+    }
+    return;
+} // setNestedPoissonSolverBoundaryTreatment
+
+void
+INSHierarchyIntegrator::logSmootherBoundaryTreatment(const std::string& object_name, const Pointer<Database>& db)
+{
+    // A FAC preconditioner smooths with linear interpolation unless its database sets smoother_bdry_interp_type.
+    const bool sets_smoother_bdry_interp_type = db && db->keyExists("smoother_bdry_interp_type");
+    BoundaryTreatment bdry_treatment = getBoundaryTreatment();
+    bdry_treatment.bdry_interp_type =
+        sets_smoother_bdry_interp_type ?
+            get_bdry_interp_type(db, "smoother_bdry_interp_type", d_object_name + "::logSmootherBoundaryTreatment()") :
+            BdryInterpType::LINEAR;
+    logBoundaryTreatment(object_name + " smoother",
+                         bdry_treatment,
+                         false,
+                         sets_smoother_bdry_interp_type ? db->getName() : "smoother default");
+    return;
+} // logSmootherBoundaryTreatment
 
 void
 INSHierarchyIntegrator::logBoundaryTreatment(const std::string& object_name,

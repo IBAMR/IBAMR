@@ -75,6 +75,10 @@ namespace IBTK
  * Dirichlet or Neumann type.  In particular, mixed boundary conditions are \em
  * not presently supported.
  *
+ * The interpolation type "QUADRATIC" at physical boundaries makes the matrix nonsymmetric at Dirichlet and Robin
+ * boundaries. The solver type "PCG" requires a symmetric matrix, so the constructor and setBdryInterpType() stop
+ * with an error for "QUADRATIC" with "PCG". Use another solver type, such as "GMRES", with "QUADRATIC".
+ *
  * The user must perform the following steps to use class
  * SCPoissonHypreLevelSolver:
  *
@@ -101,6 +105,7 @@ namespace IBTK
  * values): \verbatim
 
  enable_logging = FALSE         // see setLoggingEnabled()
+ bdry_interp_type = "LINEAR"    // see setBdryInterpType()
  solver_type = "Split"          // choices are: "Split", "PCG", "GMRES", "FlexGMRES", "LGMRES", "BiCGSTAB"
  precond_type = "none"          // choices are: "none", "Split"
  split_solver_type = "PFMG"     // choices are: "PFMG", "SMG", "Jacobi"
@@ -133,6 +138,13 @@ public:
      * \brief Destructor.
      */
     ~SCPoissonHypreLevelSolver();
+
+    /*!
+     * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC", at physical boundaries at which boundary conditions are present. The solver type "PCG" supports
+     * only "LINEAR", because "QUADRATIC" makes the matrix nonsymmetric.
+     */
+    bool supportsBdryInterpType(BdryInterpType bdry_interp_type) const override;
 
     /*!
      * \brief Static function to construct a SCPoissonHypreLevelSolver.

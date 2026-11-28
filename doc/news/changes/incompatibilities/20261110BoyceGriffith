@@ -1,0 +1,3 @@
+Changed: Add the argument bdry_interp_type, the IBTK::BdryInterpType of the ghost values at physical boundaries, to IBTK::PETScMatUtilities::constructPatchLevelCCLaplaceOp(), constructPatchLevelSCLaplaceOp(), and constructPatchLevelVCSCViscousOp(); to IBTK::PoissonUtilities::computeMatrixCoefficients(), computeVCSCViscousOpMatrixCoefficients(), adjustRHSAtPhysicalBoundary(), and adjustVCSCViscousOpRHSAtPhysicalBoundary(); and to IBAMR::StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(). Pass IBTK::BdryInterpType::LINEAR for the previous behavior.
+<br>
+(Boyce Griffith, 2026/11/10)

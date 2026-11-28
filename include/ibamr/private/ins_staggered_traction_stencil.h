@@ -253,6 +253,9 @@ bool traction_data_depend_on_velocity(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* c
  * condition depends at the location \a i, each with the derivative of the coefficient with respect to it. An index may
  * appear more than once: its derivative is the sum of its entries. The faces of the stencil lie in \a ghost_box, the
  * ghost box of the velocity data.
+ *
+ * Beyond a corner where the normal velocity is prescribed on the adjacent boundary, \a bdry_interp_type determines the
+ * extrapolation of the normal velocity: see NormalVelocityStencil::useAdjacentBoundaryValue().
  */
 StokesBcCoefStrategy::SideStencil get_traction_stencil(const SAMRAI::hier::Index<NDIM>& i,
                                                        bool bdry_is_lower,
@@ -260,17 +263,23 @@ StokesBcCoefStrategy::SideStencil get_traction_stencil(const SAMRAI::hier::Index
                                                        NormalVelocityPatch& normal_velocity_patch,
                                                        const SAMRAI::hier::BoxArray<NDIM>& domain,
                                                        const SAMRAI::hier::Box<NDIM>& ghost_box,
+                                                       IBTK::BdryInterpType bdry_interp_type,
                                                        double fill_time);
 
 /*!
- * \brief Return the faces on which u_I - u_div depends at the face \a i of a physical boundary normal to
- * \a bdry_normal_axis (the lower boundary if \a bdry_is_lower), each with its coefficient. Here u_I is the next normal
- * velocity inside the domain, and u_div is get_divergence_free_ghost_value() in the ghost cell outside the face \a i.
+ * \brief Return the velocity faces, with coefficients that add for a repeated face, in the normal-stress term at the
+ * boundary face \a i normal to \a bdry_normal_axis (the lower boundary if \a bdry_is_lower). If \a bdry_interp_type is
+ * QUADRATIC, the term is (11/3)*u_I - 2*u_B - (2/3)*u_I2 - u_div, less (4/3)*(u_I - u_div) if \a pseudo_traction. If it
+ * is LINEAR, the term is u_I - u_div, and none if \a pseudo_traction. Here u_B, u_I, and u_I2 are the normal velocities
+ * at \a i and the next two faces inside the domain, and u_div is get_divergence_free_ghost_value() in the ghost cell
+ * outside the face \a i.
  */
 StokesBcCoefStrategy::SideStencil get_normal_stress_stencil(const SAMRAI::hier::Index<NDIM>& i,
                                                             unsigned int bdry_normal_axis,
                                                             bool bdry_is_lower,
-                                                            const double* dx);
+                                                            const double* dx,
+                                                            IBTK::BdryInterpType bdry_interp_type,
+                                                            bool pseudo_traction);
 } // namespace detail
 } // namespace IBAMR
 

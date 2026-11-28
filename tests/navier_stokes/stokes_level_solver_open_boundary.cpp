@@ -143,6 +143,7 @@ check_level_solver(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     op.setVelocityPoissonSpecifications(spec);
     op.setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     op.setPhysicalBoundaryHelper(bc_helper);
+    op.setBoundaryTreatment(ins_integrator->getBoundaryTreatment());
     op.setSolutionTime(solution_time);
     op.setTimeInterval(solution_time, solution_time);
     op.initializeOperatorState(x, b);
@@ -153,6 +154,7 @@ check_level_solver(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     solver.setComponentsHaveNullSpace(false, pressure_has_null_space);
     solver.setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     solver.setPhysicalBoundaryHelper(bc_helper);
+    solver.setBoundaryTreatment(ins_integrator->getBoundaryTreatment());
     solver.setSolutionTime(solution_time);
     solver.setTimeInterval(solution_time, solution_time);
     solver.setHomogeneousBc(false);

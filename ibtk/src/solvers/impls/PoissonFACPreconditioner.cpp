@@ -85,6 +85,24 @@ PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrate
     return;
 } // setPhysicalBcCoefs
 
+bool
+PoissonFACPreconditioner::supportsBdryInterpType(const BdryInterpType bdry_interp_type) const
+{
+    return bdry_interp_type == BdryInterpType::LINEAR || bdry_interp_type == BdryInterpType::QUADRATIC;
+} // supportsBdryInterpType
+
+void
+PoissonFACPreconditioner::setBdryInterpType(const BdryInterpType bdry_interp_type)
+{
+    PoissonSolver::setBdryInterpType(bdry_interp_type);
+    Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    if (p_fac_strategy)
+    {
+        p_fac_strategy->setBdryInterpType(d_bdry_interp_type);
+    }
+    return;
+} // setBdryInterpType
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

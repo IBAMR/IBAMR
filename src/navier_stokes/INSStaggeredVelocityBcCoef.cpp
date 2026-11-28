@@ -228,13 +228,6 @@ INSStaggeredVelocityBcCoef::getTractionStencil(const Patch<NDIM>& patch,
     {
         return stencils;
     }
-    if (bdry_interp_type == IBTK::BdryInterpType::QUADRATIC)
-    {
-        TBOX_ERROR("INSStaggeredVelocityBcCoef::getTractionStencil():\n"
-                   << "  TRACTION conditions for a tangential velocity do not support the boundary interpolation type "
-                      "\"QUADRATIC\"\n"
-                   << "  set the boundary interpolation type to \"LINEAR\"\n");
-    }
     if (!d_fluid_solver->getPatchHierarchy())
     {
         TBOX_ERROR("INSStaggeredVelocityBcCoef::getTractionStencil():\n"
@@ -253,6 +246,7 @@ INSStaggeredVelocityBcCoef::getTractionStencil(const Patch<NDIM>& patch,
                                                                           normal_velocity_patch,
                                                                           domain,
                                                                           ghost_box,
+                                                                          bdry_interp_type,
                                                                           fill_time);
     }
     return stencils;

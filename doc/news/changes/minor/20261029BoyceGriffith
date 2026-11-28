@@ -1,0 +1,3 @@
+New: Make the residual of the Stokes FAC preconditioners agree with the residual computed with IBAMR::StaggeredStokesOperator at quadratic PSEUDO_TRACTION boundaries, and add the quadratic PSEUDO_TRACTION term to the smoother of IBAMR::StaggeredStokesBoxRelaxationFACOperator. The Stokes FAC preconditioners use bdry_extrap_type from their boundary treatment or their own key.
+<br>
+(Boyce Griffith, 2026/10/29)

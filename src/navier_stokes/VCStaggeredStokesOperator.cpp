@@ -184,19 +184,6 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 } // apply
 
 void
-VCStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                   const SAMRAIVectorReal<NDIM, double>& out)
-{
-    StaggeredStokesOperator::initializeOperatorState(in, out);
-    if (d_bc_helper)
-    {
-        d_bc_helper->checkNormalTractionBdryInterpType(
-            d_U_bc_coefs, d_bdry_interp_type, d_new_time, in.getPatchHierarchy());
-    }
-    return;
-} // initializeOperatorState
-
-void
 VCStaggeredStokesOperator::setDPatchDataInterpolationType(const IBTK::VCInterpType D_interp_type)
 {
     d_D_interp_type = D_interp_type;

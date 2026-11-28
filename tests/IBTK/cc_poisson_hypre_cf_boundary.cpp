@@ -43,6 +43,8 @@ int
 main(int argc, char* argv[])
 {
     IBTKInit init(argc, argv, MPI_COMM_WORLD);
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
     Pointer<AppInitializer> app = new AppInitializer(argc, argv, "output");
     Pointer<Database> input_db = app->getInputDatabase();
     const auto hierarchy_data = setup_hierarchy<NDIM>(app);

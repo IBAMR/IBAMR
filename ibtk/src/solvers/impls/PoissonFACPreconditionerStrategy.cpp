@@ -18,9 +18,11 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/PoissonFACPreconditionerStrategy.h>
+#include <ibtk/PoissonSolver.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/RobinPhysBdryPatchStrategy.h>
+#include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/private/CoarseFineOwnerFill.h>
 
@@ -77,6 +79,21 @@ static Timer* t_prolong_error;
 static Timer* t_prolong_error_and_correct;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
+
+// Return the interpolation type that the input key of the database sets.
+BdryInterpType
+get_bdry_interp_type(const std::string& object_name, const Pointer<Database>& db, const std::string& key)
+{
+    const std::string type_name = db->getString(key);
+    const BdryInterpType bdry_interp_type = string_to_enum<BdryInterpType>(type_name);
+    if (bdry_interp_type == BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE)
+    {
+        TBOX_ERROR(object_name << "::PoissonFACPreconditionerStrategy():\n"
+                               << "  unknown " << key << " \"" << type_name << "\"\n"
+                               << "  valid values are \"LINEAR\" and \"QUADRATIC\"\n");
+    }
+    return bdry_interp_type;
+} // get_bdry_interp_type
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -136,6 +153,14 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
         if (input_db->keyExists("bdry_extrap_type"))
         {
             d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        }
+        if (input_db->keyExists("bdry_interp_type"))
+        {
+            d_bdry_interp_type = get_bdry_interp_type(d_object_name, input_db, "bdry_interp_type");
+        }
+        if (input_db->keyExists("smoother_bdry_interp_type"))
+        {
+            d_smoother_bdry_interp_type = get_bdry_interp_type(d_object_name, input_db, "smoother_bdry_interp_type");
         }
     }
 
@@ -244,6 +269,32 @@ PoissonFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(double coarse
     d_coarse_solver_rel_residual_tol = coarse_solver_rel_residual_tol;
     return;
 } // setCoarseSolverRelativeTolerance
+
+void
+PoissonFACPreconditionerStrategy::setBdryInterpType(const BdryInterpType bdry_interp_type)
+{
+    TBOX_ASSERT(bdry_interp_type != BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setBdryInterpType():\n"
+                                 << "  cannot be called while operator state is initialized" << std::endl);
+    }
+    d_bdry_interp_type = bdry_interp_type;
+    return;
+} // setBdryInterpType
+
+void
+PoissonFACPreconditionerStrategy::setSmootherBdryInterpType(const BdryInterpType smoother_bdry_interp_type)
+{
+    TBOX_ASSERT(smoother_bdry_interp_type != BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::setSmootherBdryInterpType():\n"
+                                 << "  cannot be called while operator state is initialized" << std::endl);
+    }
+    d_smoother_bdry_interp_type = smoother_bdry_interp_type;
+    return;
+} // setSmootherBdryInterpType
 
 void
 PoissonFACPreconditionerStrategy::setProlongationMethod(const std::string& prolongation_method)
@@ -785,6 +836,18 @@ PoissonFACPreconditionerStrategy::negatePoissonSpecifications(PoissonSpecificati
     }
     return;
 } // negatePoissonSpecifications
+
+void
+PoissonFACPreconditionerStrategy::setSolverBdryInterpType(PoissonSolver& solver,
+                                                          const Pointer<Database>& solver_db,
+                                                          const BdryInterpType bdry_interp_type) const
+{
+    if (!solver_db || !solver_db->keyExists("bdry_interp_type"))
+    {
+        solver.setBdryInterpType(bdry_interp_type);
+    }
+    return;
+} // setSolverBdryInterpType
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
