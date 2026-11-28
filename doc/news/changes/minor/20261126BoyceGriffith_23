@@ -1,0 +1,3 @@
+Improved: IBAMR::SurfaceTensionForceFunction and IBAMR::MarangoniSurfaceTensionForceFunction now build the HierarchyMathOps object and the operators that fill the ghost cells of the level set, the smoothed level set, and the temperature only after a regrid replaces a level, instead of at every call.
+<br>
+(Boyce Griffith, 2026/11/26)

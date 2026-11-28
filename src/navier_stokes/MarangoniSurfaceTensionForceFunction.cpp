@@ -200,6 +200,12 @@ MarangoniSurfaceTensionForceFunction::MarangoniSurfaceTensionForceFunction(const
     return;
 } // SurfaceTensionForceFunction
 
+MarangoniSurfaceTensionForceFunction::~MarangoniSurfaceTensionForceFunction()
+{
+    removeScratchIndices();
+    return;
+} // ~MarangoniSurfaceTensionForceFunction
+
 bool
 MarangoniSurfaceTensionForceFunction::isTimeDependent() const
 {
@@ -232,7 +238,10 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
 #endif
 
     IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
-    d_T_idx = var_db->registerVariableAndContext(T_var, var_db->getContext(d_object_name + "::T"), cell_ghosts);
+    if (d_T_idx == IBTK::invalid_index)
+    {
+        d_T_idx = var_db->registerVariableAndContext(T_var, var_db->getContext(d_object_name + "::T"), cell_ghosts);
+    }
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -276,22 +285,22 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent T_transaction(
         d_T_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, d_T_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> T_fill_op = new HierarchyGhostCellInterpolation();
-    T_fill_op->initializeOperatorState(T_transaction, hierarchy, coarsest_ln, finest_ln);
 
-    T_fill_op->fillData(data_time);
+    // The fill is reused until a level object is replaced or a component changes.
+    HierarchyGhostCellInterpolation& T_fill_op = d_T_fill.get({ T_transaction }, hierarchy, coarsest_ln, finest_ln);
+
+    T_fill_op.fillData(data_time);
 
     SurfaceTensionForceFunction::setDataOnPatchHierarchy(
         data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
 
-    // Deallocate and remove scratch/smooth phi.
+    // Deallocate the Marangoni force and the temperature. The temperature index remains registered for the cached fill.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->deallocatePatchData(d_F_cloned_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(d_T_idx);
     }
     var_db->removePatchDataIndex(d_F_cloned_idx);
-    var_db->removePatchDataIndex(d_T_idx);
 
     return;
 } // setDataOnPatchHierarchy
@@ -345,6 +354,16 @@ MarangoniSurfaceTensionForceFunction::registerMarangoniCoefficientFunction(Compu
 } // registerMarangoniCoefficientFunction
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+MarangoniSurfaceTensionForceFunction::removeScratchIndices()
+{
+    d_T_fill.clear();
+    if (d_T_idx != IBTK::invalid_index) VariableDatabase<NDIM>::getDatabase()->removePatchDataIndex(d_T_idx);
+    d_T_idx = IBTK::invalid_index;
+    SurfaceTensionForceFunction::removeScratchIndices();
+    return;
+} // removeScratchIndices
 
 void
 MarangoniSurfaceTensionForceFunction::addForcesOnPatchHierarchy(const int data_idx, const double data_time)
