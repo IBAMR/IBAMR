@@ -19,6 +19,8 @@
 #include <ibamr/config.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
+#include <ibtk/private/CoarseFineBoundaryCache.h>
 
 #include <tbox/Pointer.h>
 #include <tbox/Serializable.h>
@@ -381,6 +383,16 @@ private:
      * \brief Patch data index for face weights.
      */
     int d_face_wgt_sc_idx, d_vol_wgt_sc_idx;
+
+    /*!
+     * \brief Cached ghost-cell fills of the velocity and the pressure.
+     */
+    IBTK::detail::CachedGhostCellFill d_u_fill, d_p_fill;
+
+    /*!
+     * \brief Cached coarse-fine boundary of each level above level 0, used by resetFaceVolWeight().
+     */
+    std::vector<IBTK::detail::CoarseFineBoundaryCache> d_coarse_fine_boundary_caches;
 
     /*!
      * \brief Data structure encapsulating hydrodynamic force on an object.

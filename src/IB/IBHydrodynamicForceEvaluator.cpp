@@ -64,7 +64,6 @@
 #include <array>
 #include <cmath>
 #include <fstream>
-#include <optional>
 
 #include <ibamr/app_namespaces.h> // IWYU pragma: keep
 
@@ -106,6 +105,9 @@ IBHydrodynamicForceEvaluator::IBHydrodynamicForceEvaluator(std::string object_na
 
 IBHydrodynamicForceEvaluator::~IBHydrodynamicForceEvaluator()
 {
+    // The cached fills refer to the indices removed below.
+    d_u_fill.clear();
+    d_p_fill.clear();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     var_db->removePatchDataIndex(d_u_idx);
     var_db->removePatchDataIndex(d_p_idx);
@@ -1069,6 +1071,7 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM>> p
             level->allocatePatchData(d_vol_wgt_sc_idx);
         }
     }
+    d_coarse_fine_boundary_caches.resize(finest_ln + 1);
     // Each cell's weight is set to its cell volume, unless the cell is refined
     // on a finer level, in which case the weight is set to zero.  This ensures
     // that no part of the physical domain is counted twice when discrete norms
@@ -1094,10 +1097,10 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM>> p
                 *next_finer_level, level->getGridGeometry()->getPeriodicShift(level->getRatio()));
         }
         // Only levels finer than the coarsest level read the coarse-fine boundary.
-        std::optional<CoarseFineBoundary<NDIM>> cf_bdry;
+        Pointer<CoarseFineBoundary<NDIM>> cf_bdry;
         if (ln > coarsest_ln)
         {
-            cf_bdry.emplace(*patch_hierarchy, ln, IntVector<NDIM>(1));
+            cf_bdry = d_coarse_fine_boundary_caches[ln].getCoarseFineBoundary(*patch_hierarchy, ln, IntVector<NDIM>(1));
         }
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -1189,21 +1192,16 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
         hier_sc_data_ops->copyData(d_u_idx, u_src_idx, true);
 
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> transaction_comp(1);
-        transaction_comp[0] = InterpolationTransactionComponent(d_u_idx,
-                                                                u_src_idx,
-                                                                /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                                /*USE_CF_INTERPOLATION*/ false,
-                                                                /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                                /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                u_src_bc_coef,
-                                                                Pointer<VariableFillPattern<NDIM>>(nullptr));
-
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
-        hier_bdry_fill->setHomogeneousBc(false);
-        hier_bdry_fill->fillData(fill_time);
+        const InterpolationTransactionComponent transaction_comp(d_u_idx,
+                                                                 u_src_idx,
+                                                                 /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
+                                                                 /*USE_CF_INTERPOLATION*/ false,
+                                                                 /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
+                                                                 u_src_bc_coef,
+                                                                 Pointer<VariableFillPattern<NDIM>>(nullptr));
+        d_u_fill.get({ transaction_comp }, patch_hierarchy).fillData(fill_time);
     }
 
     if (fill_pressure)
@@ -1221,20 +1219,16 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
 #endif
 
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> transaction_comp(1);
-        transaction_comp[0] = InterpolationTransactionComponent(d_p_idx,
-                                                                p_src_idx,
-                                                                /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
-                                                                /*USE_CF_INTERPOLATION*/ false,
-                                                                /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
-                                                                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
-                                                                /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                p_ins_bc_coef,
-                                                                Pointer<VariableFillPattern<NDIM>>(nullptr));
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
-        hier_bdry_fill->setHomogeneousBc(false);
-        hier_bdry_fill->fillData(fill_time);
+        const InterpolationTransactionComponent transaction_comp(d_p_idx,
+                                                                 p_src_idx,
+                                                                 /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
+                                                                 /*USE_CF_INTERPOLATION*/ false,
+                                                                 /*DATA_COARSEN_TYPE*/ "CUBIC_COARSEN",
+                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
+                                                                 p_ins_bc_coef,
+                                                                 Pointer<VariableFillPattern<NDIM>>(nullptr));
+        d_p_fill.get({ transaction_comp }, patch_hierarchy).fillData(fill_time);
     }
 
     return;
