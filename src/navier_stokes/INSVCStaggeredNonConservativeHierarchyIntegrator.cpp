@@ -899,8 +899,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
                                                            d_rho_bdry_extrap_type,
                                                            false,
                                                            d_rho_bc_coef);
-        d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
+        d_rho_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+            &d_rho_bdry_bc_fill_cache.get({ rho_bc_component }, d_hierarchy), /*managed*/ false);
     }
     return;
 } // resetHierarchyConfigurationSpecialized

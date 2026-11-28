@@ -226,6 +226,8 @@ protected:
     std::string d_velocity_bdry_extrap_type = "LINEAR";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_v_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_v_bdry_fill;
+    // Owner of the fill operator above.
+    IBTK::detail::CachedGhostCellFill d_hier_v_bdry_fill_cache;
 
     // The limiter type for interpolation onto faces.
     LimiterType d_velocity_convective_limiter = CUI;
@@ -262,6 +264,11 @@ private:
      */
     INSVCStaggeredConservativeMassMomentumRKIntegrator&
     operator=(const INSVCStaggeredConservativeMassMomentumRKIntegrator& that) = delete;
+
+    /*!
+     * \brief Deallocate the data and the objects of initializeSTSIntegrator(), except the ghost-fill operators.
+     */
+    void deallocateSTSIntegratorData();
 };
 } // namespace IBAMR
 

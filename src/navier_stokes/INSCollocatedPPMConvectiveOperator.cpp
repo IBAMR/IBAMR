@@ -780,8 +780,6 @@ INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRe
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
-    if (d_is_initialized) deallocateOperatorState();
-
     // Get the hierarchy configuration.
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
@@ -793,33 +791,44 @@ INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRe
 #else
     NULL_USE(out);
 #endif
-    Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
-
-    // Setup the coarsen algorithm, operator, and schedules.
-    Pointer<CoarsenOperator<NDIM>> coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
-        d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
-    if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
-        d_coarsen_alg->registerCoarsen(d_u_flux_idx, d_u_flux_idx, coarsen_op);
-    d_coarsen_scheds.resize(d_finest_ln + 1);
-    for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
+    // Reuse the algorithms and schedules while the levels and the source index are unchanged.
+    const int src_idx = in.getComponentDescriptorIndex(0);
+    const bool levels_changed = d_schedules_levels.changed(*d_hierarchy, 0, d_finest_ln);
+    if (levels_changed || d_coarsest_ln != d_schedules_coarsest_ln || src_idx != d_schedules_src_idx)
     {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM>> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
-        d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level);
-    }
+        Pointer<CartesianGridGeometry<NDIM>> grid_geom = d_hierarchy->getGridGeometry();
 
-    // Setup the refine algorithm, operator, patch strategy, and schedules.
-    Pointer<RefineOperator<NDIM>> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_ghostfill_alg = new RefineAlgorithm<NDIM>();
-    d_ghostfill_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
-    d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
-    d_ghostfill_scheds.resize(d_finest_ln + 1);
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
+        // Setup the coarsen algorithm, operator, and schedules.
+        Pointer<CoarsenOperator<NDIM>> coarsen_op =
+            grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
+        d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+        if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
+            d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
+        if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
+            d_coarsen_alg->registerCoarsen(d_u_flux_idx, d_u_flux_idx, coarsen_op);
+        d_coarsen_scheds.resize(d_finest_ln + 1);
+        for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+            d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level);
+        }
+
+        // Setup the refine algorithm, operator, patch strategy, and schedules.
+        Pointer<RefineOperator<NDIM>> refine_op =
+            grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+        d_ghostfill_alg = new RefineAlgorithm<NDIM>();
+        d_ghostfill_alg->registerRefine(d_U_scratch_idx, src_idx, d_U_scratch_idx, refine_op);
+        d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
+        d_ghostfill_scheds.resize(d_finest_ln + 1);
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+            d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
+        }
+
+        d_schedules_coarsest_ln = d_coarsest_ln;
+        d_schedules_src_idx = src_idx;
     }
 
     d_is_initialized = true;
@@ -843,6 +852,7 @@ INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
         d_ghostfill_scheds[ln].setNull();
     }
     d_ghostfill_scheds.clear();
+    d_schedules_levels = IBTK::detail::HierarchyLevelsIdentity();
 
     d_is_initialized = false;
 

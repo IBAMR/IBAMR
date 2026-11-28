@@ -121,6 +121,28 @@ StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchHierar
     return;
 } // initializeLevelData
 
+bool
+StandardTagAndInitStrategySet::canKeepUnchangedLevels() const
+{
+    return std::all_of(d_strategy_set.begin(),
+                       d_strategy_set.end(),
+                       [](const StandardTagAndInitStrategy<NDIM>* strategy)
+                       { return strategy->canKeepUnchangedLevels(); });
+} // canKeepUnchangedLevels
+
+void
+StandardTagAndInitStrategySet::initializeKeptLevelData(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
+                                                       const int level_number,
+                                                       const double init_data_time,
+                                                       const bool can_be_refined)
+{
+    for (const auto& strategy : d_strategy_set)
+    {
+        strategy->initializeKeptLevelData(hierarchy, level_number, init_data_time, can_be_refined);
+    }
+    return;
+} // initializeKeptLevelData
+
 void
 StandardTagAndInitStrategySet::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM>> hierarchy,
                                                            const int coarsest_level,

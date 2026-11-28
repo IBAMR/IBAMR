@@ -202,6 +202,20 @@ public:
                              bool allocate_data = true) override;
 
     /*!
+     * Return true if every strategy in the set can initialize levels that a regrid leaves in place.
+     */
+    bool canKeepUnchangedLevels() const override;
+
+    /*!
+     * Call initializeKeptLevelData() for each strategy in the set. Each strategy initializes the level independently of
+     * the others.
+     */
+    void initializeKeptLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                 int level_number,
+                                 double init_data_time,
+                                 bool can_be_refined) override;
+
+    /*!
      * After hierarchy levels have changed and data has been initialized on the
      * new levels, this routine can be used to reset any information needed by
      * the solution method that is particular to the hierarchy configuration.

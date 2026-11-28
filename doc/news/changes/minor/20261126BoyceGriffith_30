@@ -1,0 +1,3 @@
+New: IBTK::HierarchyIntegrator supports the GriddingAlgorithm input key keep_unchanged_levels = TRUE. A regrid initializes a level that it leaves in place as it initializes a replaced level, so the data of the integrators are bitwise identical to those with keep_unchanged_levels = FALSE, and the integrators, the convective operators, and IBTK::HierarchyIntegrator reuse their ghost-cell fill operators, algorithms, and communication schedules while the levels that they read are unchanged.
+<br>
+(Boyce Griffith, 2026/11/26)

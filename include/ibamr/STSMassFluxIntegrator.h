@@ -26,6 +26,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Database.h>
 #include <tbox/DescribedClass.h>
@@ -225,6 +226,8 @@ protected:
     std::string d_density_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_rho_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_rho_bdry_fill;
+    // Owner of the fill operator above.
+    IBTK::detail::CachedGhostCellFill d_hier_rho_bdry_fill_cache;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;

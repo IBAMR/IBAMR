@@ -2047,8 +2047,8 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      d_U_bc_coefs,
                                                      nullptr,
                                                      IBTK::enum_to_string(d_bdry_interp_type));
-    d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+    d_U_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_U_bdry_bc_fill_cache.get({ U_bc_component }, d_hierarchy), /*managed*/ false);
 
     if (d_Q_fcn)
     {
@@ -2058,8 +2058,8 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                          DATA_COARSEN_TYPE,
                                                          d_bdry_extrap_type, // TODO: update variable name
                                                          CONSISTENT_TYPE_2_BDRY);
-        d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
+        d_Q_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+            &d_Q_bdry_bc_fill_cache.get({ Q_bc_component }, d_hierarchy), /*managed*/ false);
     }
 
     // Indicate that vectors and solvers need to be re-initialized.
@@ -2528,23 +2528,31 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
             new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
         d_P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        if (d_U_rhs_vec) free_vector_components(*d_U_rhs_vec);
-        if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
-        if (d_N_vec) free_vector_components(*d_N_vec);
-        if (d_P_rhs_vec) free_vector_components(*d_P_rhs_vec);
+        // Reuse the right-hand side, advection, and nonlinear term vectors for the run. Their data are allocated in
+        // each time step, so only their levels change.
+        if (d_U_rhs_vec)
+        {
+            d_U_rhs_vec->resetLevels(coarsest_ln, finest_ln);
+            d_U_adv_vec->resetLevels(coarsest_ln, finest_ln);
+            d_P_rhs_vec->resetLevels(coarsest_ln, finest_ln);
+            d_N_vec->resetLevels(coarsest_ln, finest_ln);
+        }
+        else
+        {
+            d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
+            d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
+            d_P_rhs_vec = d_P_scratch_vec->cloneVector(d_object_name + "::P_rhs_vec");
 
-        d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
-        d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
-        d_P_rhs_vec = d_P_scratch_vec->cloneVector(d_object_name + "::P_rhs_vec");
-
-        // The data of d_N_vec are swapped with the data with index
-        // d_N_old_new_idx, which have no ghost cells, so clone d_N_vec from
-        // data without ghost cells. The new velocity data are the template
-        // because d_N_old_var is registered only for multistep convective
-        // time stepping schemes.
-        SAMRAIVectorReal<NDIM, double> U_new_vec(d_object_name + "::U_new_vec", d_hierarchy, coarsest_ln, finest_ln);
-        U_new_vec.addComponent(d_U_var, d_U_new_idx, wgt_sc_idx, d_hier_sc_data_ops);
-        d_N_vec = U_new_vec.cloneVector(d_object_name + "::N_vec");
+            // The data of d_N_vec are swapped with the data with index
+            // d_N_old_new_idx, which have no ghost cells, so clone d_N_vec from
+            // data without ghost cells. The new velocity data are the template
+            // because d_N_old_var is registered only for multistep convective
+            // time stepping schemes.
+            SAMRAIVectorReal<NDIM, double> U_new_vec(
+                d_object_name + "::U_new_vec", d_hierarchy, coarsest_ln, finest_ln);
+            U_new_vec.addComponent(d_U_var, d_U_new_idx, wgt_sc_idx, d_hier_sc_data_ops);
+            d_N_vec = U_new_vec.cloneVector(d_object_name + "::N_vec");
+        }
 
         d_sol_vec =
             new SAMRAIVectorReal<NDIM, double>(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);

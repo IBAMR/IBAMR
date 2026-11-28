@@ -24,6 +24,7 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -187,6 +188,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM>> d_ghostfill_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM>> d_ghostfill_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>> d_ghostfill_scheds;
+
+    // The levels, the coarsest level, and the source patch data index that the algorithms and schedules were built
+    // from.
+    IBTK::detail::HierarchyLevelsIdentity d_schedules_levels;
+    int d_schedules_coarsest_ln = IBTK::invalid_level_number, d_schedules_src_idx = IBTK::invalid_index;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;

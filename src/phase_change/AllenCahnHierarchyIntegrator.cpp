@@ -1382,9 +1382,6 @@ AllenCahnHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized();
 
-    d_lf_rhs_op->deallocateOperatorState();
-    d_lf_solver->deallocateSolverState();
-
     d_lf_solver_needs_init = true;
     d_lf_rhs_op_needs_init = true;
     d_lf_convective_op_needs_init = true;
@@ -1410,8 +1407,8 @@ AllenCahnHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Point
                                                                 "LINEAR",
                                                                 false,
                                                                 d_lf_bc_coef);
-    d_lf_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_lf_bdry_bc_fill_op->initializeOperatorState(lf_transaction_comps, d_hierarchy);
+    d_lf_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_lf_bdry_bc_fill_cache.get(lf_transaction_comps, d_hierarchy), /*managed*/ false);
 
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
 

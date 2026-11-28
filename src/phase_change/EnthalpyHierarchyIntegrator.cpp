@@ -649,8 +649,8 @@ EnthalpyHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointe
                                                                "LINEAR",
                                                                false,
                                                                d_T_bc_coef);
-    d_T_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_T_bdry_bc_fill_op->initializeOperatorState(T_transaction_comps, d_hierarchy);
+    d_T_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_T_bdry_bc_fill_cache.get(T_transaction_comps, d_hierarchy), /*managed*/ false);
     return;
 } // resetHierarchyConfigurationSpecialized
 

@@ -1057,6 +1057,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     // Reset the interpolation operators.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_hier_bdry_fill_ops.resize(d_Q_var.size());
+    d_hier_bdry_fill_caches.resize(d_Q_var.size());
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
@@ -1073,9 +1074,9 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                            CONSISTENT_TYPE_2_BDRY,
                                                            d_Q_bc_coef[Q_var]);
 
-        // Initialize the interpolation operators.
-        d_hier_bdry_fill_ops[l] = new HierarchyGhostCellInterpolation();
-        d_hier_bdry_fill_ops[l]->initializeOperatorState(transaction_comp, d_hierarchy);
+        // Reuse the interpolation operators while the levels are unchanged.
+        d_hier_bdry_fill_ops[l] = Pointer<HierarchyGhostCellInterpolation>(
+            &d_hier_bdry_fill_caches[l].get({ transaction_comp }, d_hierarchy), /*managed*/ false);
     }
 
     // Reset the solution and rhs vectors.

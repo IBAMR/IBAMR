@@ -28,6 +28,7 @@
 
 #include <ibtk/SideDataSynchronization.h>
 #include <ibtk/ibtk_enums.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -579,6 +580,8 @@ protected:
 
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_rho_bdry_bc_fill_op, d_mu_bdry_bc_fill_op,
         d_mu_interp_ghost_fill_op;
+    // Owners of the fill operators above.
+    IBTK::detail::CachedGhostCellFill d_rho_bdry_bc_fill_cache, d_mu_bdry_bc_fill_cache, d_mu_interp_ghost_fill_cache;
 
     /*!
      * Double precision values are (optional) factors used to rescale the

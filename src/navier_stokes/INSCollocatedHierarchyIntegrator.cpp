@@ -1607,8 +1607,8 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      d_bdry_extrap_type,
                                                      CONSISTENT_TYPE_2_BDRY,
                                                      d_U_star_bc_coefs);
-    d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+    d_U_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_U_bdry_bc_fill_cache.get({ U_bc_component }, d_hierarchy), /*managed*/ false);
 
     InterpolationTransactionComponent P_bc_component(d_P_scratch_idx,
                                                      DATA_REFINE_TYPE,
@@ -1616,8 +1616,8 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                      DATA_COARSEN_TYPE,
                                                      d_bdry_extrap_type,
                                                      CONSISTENT_TYPE_2_BDRY);
-    d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
+    d_P_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_P_bdry_bc_fill_cache.get({ P_bc_component }, d_hierarchy), /*managed*/ false);
 
     InterpolationTransactionComponent Phi_bc_component(d_Phi_idx,
                                                        DATA_REFINE_TYPE,
@@ -1626,15 +1626,15 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                        d_bdry_extrap_type,
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        d_Phi_bc_coef.get());
-    d_Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
+    d_Phi_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_Phi_bdry_bc_fill_cache.get({ Phi_bc_component }, d_hierarchy), /*managed*/ false);
 
     if (d_Q_fcn)
     {
         InterpolationTransactionComponent Q_bc_component(
             d_Q_scratch_idx, "LINEAR_REFINE", false, DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
-        d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
+        d_Q_bdry_bc_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+            &d_Q_bdry_bc_fill_cache.get({ Q_bc_component }, d_hierarchy), /*managed*/ false);
     }
 
     // Indicate that vectors and solvers need to be re-initialized.
@@ -1955,15 +1955,22 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
             new SAMRAIVectorReal<NDIM, double>(d_object_name + "::Phi_vec", d_hierarchy, coarsest_ln, finest_ln);
         d_Phi_vec->addComponent(d_Phi_var, d_Phi_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        if (d_U_rhs_vec) free_vector_components(*d_U_rhs_vec);
-        if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
-        if (d_N_vec) free_vector_components(*d_N_vec);
-        if (d_Phi_rhs_vec) free_vector_components(*d_Phi_rhs_vec);
-
-        d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
-        d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
-        d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
-        d_Phi_rhs_vec = d_Phi_vec->cloneVector(d_object_name + "::Phi_rhs_vec");
+        // Reuse the right-hand side, advection, and nonlinear term vectors for the run. Their data are allocated in
+        // each time step, so only their levels change.
+        if (d_U_rhs_vec)
+        {
+            d_U_rhs_vec->resetLevels(coarsest_ln, finest_ln);
+            d_U_adv_vec->resetLevels(coarsest_ln, finest_ln);
+            d_N_vec->resetLevels(coarsest_ln, finest_ln);
+            d_Phi_rhs_vec->resetLevels(coarsest_ln, finest_ln);
+        }
+        else
+        {
+            d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
+            d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
+            d_N_vec = d_U_scratch_vec->cloneVector(d_object_name + "::N_vec");
+            d_Phi_rhs_vec = d_Phi_vec->cloneVector(d_object_name + "::Phi_rhs_vec");
+        }
 
         d_vectors_need_init = false;
     }
