@@ -233,6 +233,12 @@ RelaxationLSMethod::RelaxationLSMethod(std::string object_name, Pointer<Database
     return;
 } // RelaxationLSMethod
 
+RelaxationLSMethod::~RelaxationLSMethod()
+{
+    removeScratchIndices();
+    return;
+} // ~RelaxationLSMethod
+
 void
 RelaxationLSMethod::initializeLSData(int D_idx,
                                      Pointer<HierarchyMathOps> hier_math_ops,
@@ -305,6 +311,11 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
     // Time step size variable
     const int dt_idx = var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::DT"), no_ghosts);
+    for (const int idx : { D_scratch_idx, D_iter_idx, D_init_idx, D_copy_idx, H_init_idx, H_scratch_idx, dt_idx })
+    {
+        if (std::find(d_scratch_idxs.begin(), d_scratch_idxs.end(), idx) == d_scratch_idxs.end())
+            d_scratch_idxs.push_back(idx);
+    }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -328,10 +339,8 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, d_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> D_fill_op = new HierarchyGhostCellInterpolation();
     InterpolationTransactionComponent H_transcation(
         H_init_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, nullptr);
-    Pointer<HierarchyGhostCellInterpolation> H_fill_op = new HierarchyGhostCellInterpolation();
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
     // Carry out relaxation
@@ -339,19 +348,19 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     int outer_iter = 0;
     const int cc_wgt_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
-    // Initialize operator states
-    D_fill_op->initializeOperatorState(D_transaction, hierarchy);
-    H_fill_op->initializeOperatorState(H_transcation, hierarchy);
+    // Initialize operator states, which are reused until a level object is replaced or a component changes.
+    HierarchyGhostCellInterpolation& D_fill_op = d_D_fill.get({ D_transaction }, hierarchy, coarsest_ln, finest_ln);
+    HierarchyGhostCellInterpolation& H_fill_op = d_H_fill.get({ H_transcation }, hierarchy, coarsest_ln, finest_ln);
 
     // Copy initial condition, including ghost cells
-    D_fill_op->fillData(time);
+    D_fill_op.fillData(time);
     hier_cc_data_ops.copyData(D_init_idx, D_scratch_idx, /*interior_only*/ false);
 
     // Compute and store |grad phi_0| to apply the mass constraint
     if (constrain_ls_mass)
     {
         computeHamiltonian(hier_math_ops, H_init_idx, D_init_idx);
-        H_fill_op->fillData(time);
+        H_fill_op.fillData(time);
     }
 
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
@@ -363,7 +372,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
         if (constrain_ls_mass)
         {
-            D_fill_op->fillData(time);
+            D_fill_op.fillData(time);
             hier_cc_data_ops.copyData(D_copy_idx,
                                       D_scratch_idx,
                                       /*interior_only*/ false);
@@ -372,7 +381,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
         if (d_apply_vol_redistribution)
         {
-            D_fill_op->fillData(time);
+            D_fill_op.fillData(time);
             computeHamiltonian(hier_math_ops, H_scratch_idx, D_scratch_idx);
             applyVolumeRedistribution(
                 hier_math_ops, /*lambda*/ D_copy_idx, D_scratch_idx, D_init_idx, H_scratch_idx, dt_idx);
@@ -391,7 +400,7 @@ RelaxationLSMethod::initializeLSData(int D_idx,
             // Reuse Hamiltonian from the volume redistribution algorithm.
             if (!d_apply_vol_redistribution)
             {
-                D_fill_op->fillData(time);
+                D_fill_op.fillData(time);
                 computeHamiltonian(hier_math_ops, H_scratch_idx, D_scratch_idx);
             }
             hier_cc_data_ops.addScalar(H_scratch_idx, H_scratch_idx, -1.0);
@@ -433,13 +442,17 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->deallocatePatchData(H_scratch_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(dt_idx);
     }
-    var_db->removePatchDataIndex(D_scratch_idx);
-    var_db->removePatchDataIndex(D_iter_idx);
-    var_db->removePatchDataIndex(D_init_idx);
-    var_db->removePatchDataIndex(D_copy_idx);
-    var_db->removePatchDataIndex(H_init_idx);
-    var_db->removePatchDataIndex(H_scratch_idx);
-    var_db->removePatchDataIndex(dt_idx);
+
+    // The indices stay registered, because the cached fills refer to them; registering them again at the next call
+    // returns the same indices.
+
+    // Release the levels if no further reinitialization is scheduled: a reinitialization recurs only when
+    // d_reinit_interval is nonzero or setReinitializeLSData() is called again.
+    if (d_reinit_interval == 0)
+    {
+        d_D_fill.clear();
+        d_H_fill.clear();
+    }
 
     // Indicate that the LS has been initialized.
     d_reinitialize_ls = false;
@@ -472,6 +485,9 @@ void
 RelaxationLSMethod::setLSGhostCellWidth(int D_gcw)
 {
     d_D_gcw = D_gcw;
+
+    // The scratch indices are registered with the old ghost width.
+    removeScratchIndices();
     return;
 } // setLSGhostCellWidth
 
@@ -485,7 +501,21 @@ RelaxationLSMethod::setApplyVolumeRedistribution(bool apply_volume_redistributio
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
+RelaxationLSMethod::removeScratchIndices()
+{
+    d_D_fill.clear();
+    d_H_fill.clear();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    for (const int idx : d_scratch_idxs)
+    {
+        var_db->removePatchDataIndex(idx);
+    }
+    d_scratch_idxs.clear();
+    return;
+} // removeScratchIndices
+
+void
+RelaxationLSMethod::relax(HierarchyGhostCellInterpolation& D_fill_op,
                           Pointer<HierarchyMathOps> hier_math_ops,
                           int dist_idx,
                           int dist_init_idx,
@@ -501,7 +531,7 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
     if (d_ls_ts == GAUSS_SEIDEL_PSEUDO_TS || d_ls_ts == RK1_TS)
     {
         // Fill the ghost cells of dist_idx
-        D_fill_op->fillData(time);
+        D_fill_op.fillData(time);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
@@ -521,7 +551,7 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
 
         for (int stage = 0; stage < 2; ++stage)
         {
-            D_fill_op->fillData(time);
+            D_fill_op.fillData(time);
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
