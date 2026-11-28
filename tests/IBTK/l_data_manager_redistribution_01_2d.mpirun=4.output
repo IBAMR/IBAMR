@@ -1,4 +1,4 @@
-before redistribution rank = 0 local_nodes = 1
+initial rank = 0 local_nodes = 1
 patch = [(0,0),(15,15)]
   index = 0 X = 0.49, 0.49 U = 0.005, 0.005 X_target = 0.49, 0.49 X_target_exact = 0.49, 0.49
   count = 1

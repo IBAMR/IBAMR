@@ -1,0 +1,41 @@
+// The redistribution case on a physical domain of two boxes that do not form a rectangle: the square of the other
+// inputs and a 16 by 16 box beside its lower right corner. The four markers lie in the square. Building the index data
+// stops with an error, because the level frame of the points requires a single rectangular box.
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+}
+
+N = 32
+
+CartesianGeometry {
+   domain_boxes = [(0,0),(N - 1,N - 1)], [(N,0),(N + N/2 - 1,N/2 - 1)]
+   x_lo = 0.0, 0.0
+   x_up = 1.5, 1.0
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+
+   ratio_to_coarser {
+      level_1 = 2, 2
+   }
+
+   largest_patch_size {
+      level_0 = 16, 16
+   }
+
+   smallest_patch_size {
+      level_0 = 16, 16
+   }
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency = 0.85e0
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

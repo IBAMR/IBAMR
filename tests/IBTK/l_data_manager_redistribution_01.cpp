@@ -282,6 +282,8 @@ main(int argc, char** argv)
 {
     IBTK::IBTKInit ibtk_init(argc, argv);
     Logger::getInstance()->setWarning(false);
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
 
     if (IBTK_MPI::getNodes() != 4)
@@ -316,7 +318,7 @@ main(int argc, char** argv)
 
     Pointer<IBTK::LData> X_data = l_data_manager->getLData(IBTK::LDataManager::POSN_DATA_NAME, 0);
     Pointer<IBTK::LData> U_data = l_data_manager->getLData(IBTK::LDataManager::VEL_DATA_NAME, 0);
-    print_patch_data(patch_hierarchy, l_data_manager, X_data, U_data, "before redistribution", 0);
+    print_patch_data(patch_hierarchy, l_data_manager, X_data, U_data, "initial", 0);
     const auto step_translations = get_step_translations();
     for (std::size_t step = 0; step < step_translations.size(); ++step)
     {

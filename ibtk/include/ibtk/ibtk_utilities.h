@@ -174,6 +174,12 @@ get_data_or_null(const Container& data) -> decltype(data.data())
 double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
 
 /*!
+ * Return x mapped into the periodic interval [x_lo, x_up) by adding or subtracting the period x_up - x_lo, so that
+ * x_lo <= result < x_up holds exactly. The cost grows with the number of periods between x and the interval.
+ */
+double wrap_into_periodic_interval(double x, double x_lo, double x_up);
+
+/*!
  * \brief Register the IBTK coarsen and refine operators (cubic cell and side coarsening, RT0 side coarsening, and RT0
  * side refinement) with \a geometry.
  *

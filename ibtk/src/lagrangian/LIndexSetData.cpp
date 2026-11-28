@@ -20,8 +20,11 @@
 #include <ibtk/LSetData.h>
 
 #include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
 
 #include <Box.h>
+#include <BoxArray.h>
+#include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CellIndex.h>
 #include <Index.h>
@@ -52,7 +55,9 @@ LIndexSetData<T>::LIndexSetData(Box<NDIM> box, IntVector<NDIM> ghosts) : LSetDat
 
 template <class T>
 void
-LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM>> patch, const IntVector<NDIM>& periodic_shift)
+LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM>> patch,
+                                    Pointer<CartesianGridGeometry<NDIM>> grid_geom,
+                                    const IntVector<NDIM>& ratio)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();
@@ -66,6 +71,24 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM>> patch, const IntVector<
     d_periodic_shifts.clear();
     d_interior_periodic_shifts.clear();
     d_ghost_periodic_shifts.clear();
+    d_periodic_offsets.clear();
+
+    // SAMRAI stores a physical domain whose boxes cover their bounding box as that single box.
+    if (!grid_geom->getDomainIsSingleBox())
+    {
+        TBOX_ERROR("LIndexSetData::cacheLocalIndices():\n"
+                   << "  the physical domain is not a single rectangular box\n"
+                   << "  use a physical domain that consists of one box\n");
+    }
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        d_domain_x_lower[d] = grid_geom->getXLower()[d];
+        d_domain_x_upper[d] = grid_geom->getXUpper()[d];
+        d_level_dx[d] = grid_geom->getDx()[d] / static_cast<double>(ratio(d));
+    }
+    d_level_domain_box = Box<NDIM>::refine(grid_geom->getPhysicalDomain().getBoundingBox(), ratio);
+    d_level_periodic_shift = grid_geom->getPeriodicShift(ratio);
+    const IntVector<NDIM>& periodic_shift = d_level_periodic_shift;
 
     const Box<NDIM>& patch_box = patch->getBox();
     const hier::Index<NDIM>& ilower = patch_box.lower();
@@ -114,6 +137,7 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM>> patch, const IntVector<
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 d_periodic_shifts.push_back(static_cast<double>(offset[d]) * dx[d]);
+                d_periodic_offsets.push_back(offset[d]);
             }
             if (patch_owns_idx_set)
             {

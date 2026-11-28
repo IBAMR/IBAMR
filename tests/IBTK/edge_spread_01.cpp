@@ -123,8 +123,7 @@ main(int argc, char** argv)
             }
             idx_data->getItem(i)->push_back(new LNode(k, k, k));
         }
-        const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(IntVector<NDIM>(1));
-        idx_data->cacheLocalIndices(patch, periodic_shift);
+        idx_data->cacheLocalIndices(patch, grid_geom, IntVector<NDIM>(1));
 
         for (const std::string& kernel : kernels)
         {
@@ -134,8 +133,7 @@ main(int argc, char** argv)
                 new EdgeData<NDIM, double>(patch_box, 1, IntVector<NDIM>(ghost_width));
             q_index->fillAll(0.0);
             q_positions->fillAll(0.0);
-            LEInteractor::spread(
-                q_index, F.data(), NDIM, X.data(), NDIM, idx_data, patch, patch_box, periodic_shift, kernel);
+            LEInteractor::spread(q_index, F.data(), NDIM, X.data(), NDIM, idx_data, patch, patch_box, kernel);
             LEInteractor::spread(q_positions, F, NDIM, X, NDIM, patch, patch_box, kernel);
             const std::pair<double, double> result = max_difference(*q_index, *q_positions);
             if (!(result.first <= 1.0e-12 * result.second))

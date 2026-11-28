@@ -1,0 +1,9 @@
+PIECEWISE_CONSTANT: passed
+DISCONTINUOUS_LINEAR: passed
+PIECEWISE_LINEAR: passed
+BSPLINE_3: passed
+BSPLINE_4: passed
+IB_3: passed
+IB_4: passed
+COMPOSITE_BSPLINE_45: passed
+COMPOSITE_BSPLINE_54: passed

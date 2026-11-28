@@ -90,7 +90,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -103,6 +103,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -122,6 +124,11 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
+      dx(0) = dx(0)
+      x_lower(0) = x_lower(0)
+      Xshift(0,0) = Xshift(0,0)
+      X(0,indices(0)) = X(0,indices(0))
 c
 c     Use the piecewise constant delta function to interpolate u onto V.
 c
@@ -130,8 +137,8 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic0 = NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)-0.5d0)+ilower0
-         ic1 = NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)-0.5d0)+ilower1
+         ic0 = inear(0,l)
+         ic1 = inear(1,l)
 c
 c     Interpolate u onto V.
 c
@@ -155,7 +162,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_piecewise_constant_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -171,6 +178,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -190,6 +199,10 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
+      x_lower(0) = x_lower(0)
+      Xshift(0,0) = Xshift(0,0)
+      X(0,indices(0)) = X(0,indices(0))
 c
 c     Use the piecewise constant delta function to spread V onto u.
 c
@@ -198,14 +211,17 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic0 = NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)-0.5d0)+ilower0
-         ic1 = NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)-0.5d0)+ilower1
+         ic0 = inear(0,l)
+         ic1 = inear(1,l)
 c
-c     Spread V onto u.
+c     Spread V onto u, skipping a cell outside the ghost box of u.
 c
-         do d = 0,depth-1
-            u(ic0,ic1,d) = u(ic0,ic1,d) + V(d,s)/(dx(0)*dx(1))
-         enddo
+         if ( ic0.ge.ilower0-nugc0 .and. ic0.le.iupper0+nugc0 .and.
+     &        ic1.ge.ilower1-nugc1 .and. ic1.le.iupper1+nugc1 ) then
+            do d = 0,depth-1
+               u(ic0,ic1,d) = u(ic0,ic1,d) + V(d,s)/(dx(0)*dx(1))
+            enddo
+         endif
 c
 c     End loop over points.
 c
@@ -226,7 +242,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -239,6 +255,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -289,12 +307,11 @@ c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
-            ic_center(d) = ilower(d) +
-     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
             if ( d.eq.axis ) then
-               if ( X_shifted(d).lt.X_cell(d) ) then
+               if ( ibrack(d,l).lt.inear(d,l) ) then
                   ic_lower(d) = ic_center(d)-1
                   ic_upper(d) = ic_center(d)
                   w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
@@ -346,7 +363,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_discontinuous_linear_spread2d(
      &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -362,6 +379,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -413,12 +432,11 @@ c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
-            ic_center(d) = ilower(d) +
-     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
             if ( d.eq.axis ) then
-               if ( X_shifted(d).lt.X_cell(d) ) then
+               if ( ibrack(d,l).lt.inear(d,l) ) then
                   ic_lower(d) = ic_center(d)-1
                   ic_upper(d) = ic_center(d)
                   w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
@@ -471,7 +489,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -484,6 +502,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -534,12 +554,11 @@ c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
-            ic_center(d) = ilower(d) +
-     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 
-            if ( X_shifted(d).lt.X_cell(d) ) then
+            if ( ibrack(d,l).lt.inear(d,l) ) then
                ic_lower(d) = ic_center(d)-1
                ic_upper(d) = ic_center(d)
                w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
@@ -586,7 +605,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_piecewise_linear_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -602,6 +621,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -652,12 +673,11 @@ c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
-            ic_center(d) = ilower(d) +
-     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 
-            if ( X_shifted(d).lt.X_cell(d) ) then
+            if ( ibrack(d,l).lt.inear(d,l) ) then
                ic_lower(d) = ic_center(d)-1
                ic_upper(d) = ic_center(d)
                w(d,0) = (X_cell(d)-X_shifted(d))/dx(d)
@@ -705,7 +725,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -722,6 +742,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -737,7 +759,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
@@ -745,6 +767,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -763,24 +786,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the interpolation stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+1
-            else
-               ic_lower(d) = ic_center(d)-1
-               ic_upper(d) = ic_center(d)+2
-            endif
+            ic_lower(d) = ibrack(d,l)-1
+            ic_upper(d) = ibrack(d,l)+2
 
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
@@ -818,7 +827,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_piecewise_cubic_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -838,6 +847,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -853,7 +864,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
@@ -861,6 +872,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -879,24 +891,10 @@ c
          s = indices(l)
          do d = 0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the spreading stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+1
-            else
-               ic_lower(d) = ic_center(d)-1
-               ic_upper(d) = ic_center(d)+2
-            endif
+            ic_lower(d) = ibrack(d,l)-1
+            ic_upper(d) = ibrack(d,l)+2
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -935,7 +933,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -952,6 +950,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -975,6 +975,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -995,9 +996,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -1042,7 +1041,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_3_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -1062,6 +1061,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -1085,6 +1086,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -1105,9 +1107,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -1154,7 +1154,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -1167,6 +1167,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -1193,6 +1195,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1210,7 +1213,7 @@ c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-         ic_lower(0) = NINT(X_o_dx)+ilower0-2
+         ic_lower(0) = ibrack(0,l)-1
          ic_upper(0) = ic_lower(0) + 3
          r0 = X_o_dx - ((ic_lower(0)+1-ilower0)+0.5d0)
          q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
@@ -1220,7 +1223,7 @@ c
          w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
          X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-         ic_lower(1) = NINT(X_o_dx)+ilower1-2
+         ic_lower(1) = ibrack(1,l)-1
          ic_upper(1) = ic_lower(1) + 3
          r1 = X_o_dx - ((ic_lower(1)+1-ilower1)+0.5d0)
          q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
@@ -1272,7 +1275,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_4_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -1288,6 +1291,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -1314,6 +1319,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1331,7 +1337,7 @@ c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-         ic_lower(0) = NINT(X_o_dx)+ilower0-2
+         ic_lower(0) = ibrack(0,l)-1
          ic_upper(0) = ic_lower(0) + 3
          r0 = X_o_dx - ((ic_lower(0)+1-ilower0)+0.5d0)
          q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
@@ -1341,7 +1347,7 @@ c
          w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
          X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-         ic_lower(1) = NINT(X_o_dx)+ilower1-2
+         ic_lower(1) = ibrack(1,l)-1
          ic_upper(1) = ic_lower(1) + 3
          r1 = X_o_dx - ((ic_lower(1)+1-ilower1)+0.5d0)
          q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
@@ -1395,7 +1401,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -1408,6 +1414,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -1434,6 +1442,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1452,7 +1461,7 @@ c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-         ic_lower(0) = NINT(X_o_dx)+ilower0-4
+         ic_lower(0) = ibrack(0,l)-3
          ic_upper(0) = ic_lower(0) + 7
          r0 = 0.5d0*(X_o_dx - ((ic_lower(0)+3-ilower0)+0.5d0))
          q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
@@ -1468,7 +1477,7 @@ c
          w0(6) = 0.0625d0*(1.d0+2.d0*r0-q0)
 
          X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-         ic_lower(1) = NINT(X_o_dx)+ilower1-4
+         ic_lower(1) = ibrack(1,l)-3
          ic_upper(1) = ic_lower(1) + 7
          r1 = 0.5d0*(X_o_dx - ((ic_lower(1)+3-ilower1)+0.5d0))
          q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
@@ -1526,7 +1535,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_4_w8_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -1542,6 +1551,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -1568,6 +1579,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1586,7 +1598,7 @@ c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-         ic_lower(0) = NINT(X_o_dx)+ilower0-4
+         ic_lower(0) = ibrack(0,l)-3
          ic_upper(0) = ic_lower(0) + 7
          r0 = 0.5d0*(X_o_dx - ((ic_lower(0)+3-ilower0)+0.5d0))
          q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
@@ -1602,7 +1614,7 @@ c
          w0(6) = 0.0625d0*(1.d0+2.d0*r0-q0)
 
          X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-         ic_lower(1) = NINT(X_o_dx)+ilower1-4
+         ic_lower(1) = ibrack(1,l)-3
          ic_upper(1) = ic_lower(1) + 7
          r1 = 0.5d0*(X_o_dx - ((ic_lower(1)+3-ilower1)+0.5d0))
          q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
@@ -1661,7 +1673,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -1674,6 +1686,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -1704,6 +1718,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1719,12 +1734,8 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
+         ic_center(0) = inear(0,l)
+         ic_center(1) = inear(1,l)
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
          X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
@@ -1815,7 +1826,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_5_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -1831,6 +1842,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -1860,6 +1873,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -1875,12 +1889,8 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
+         ic_center(0) = inear(0,l)
+         ic_center(1) = inear(1,l)
 
          X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
          X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
@@ -1973,7 +1983,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -1986,6 +1996,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -2015,6 +2027,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -2032,7 +2045,7 @@ c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-         ic_lower(0) = NINT(X_o_dx)+ilower0-3
+         ic_lower(0) = ibrack(0,l)-2
          ic_upper(0) = ic_lower(0) + 5
          r = 1.d0 - X_o_dx + ((ic_lower(0)+2-ilower0)+0.5d0)
 
@@ -2063,7 +2076,7 @@ c
          w0(5) = pp2
 
          X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-         ic_lower(1) = NINT(X_o_dx)+ilower1-3
+         ic_lower(1) = ibrack(1,l)-2
          ic_upper(1) = ic_lower(1) + 5
          r = 1.d0 - X_o_dx + ((ic_lower(1)+2-ilower1)+0.5d0)
 
@@ -2135,7 +2148,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_ib_6_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -2151,6 +2164,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -2180,6 +2195,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Compute the extents of the ghost box.
 c
@@ -2197,7 +2213,7 @@ c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell and compute the interpolation weights.
 c
          X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-         ic_lower(0) = NINT(X_o_dx)+ilower0-3
+         ic_lower(0) = ibrack(0,l)-2
          ic_upper(0) = ic_lower(0) + 5
          r = 1.d0 - X_o_dx + ((ic_lower(0)+2-ilower0)+0.5d0)
 
@@ -2228,7 +2244,7 @@ c
          w0(5) = pp2
 
          X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-         ic_lower(1) = NINT(X_o_dx)+ilower1-3
+         ic_lower(1) = ibrack(1,l)-2
          ic_upper(1) = ic_lower(1) + 5
          r = 1.d0 - X_o_dx + ((ic_lower(1)+2-ilower1)+0.5d0)
 
@@ -2302,7 +2318,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -2319,6 +2335,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -2342,6 +2360,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -2362,9 +2381,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -2409,7 +2426,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_3_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -2429,6 +2446,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -2452,6 +2471,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -2472,9 +2492,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -2521,7 +2539,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -2538,6 +2556,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -2553,7 +2573,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
@@ -2561,6 +2581,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -2579,24 +2600,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the interpolation stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+1
-            else
-               ic_lower(d) = ic_center(d)-1
-               ic_upper(d) = ic_center(d)+2
-            endif
+            ic_lower(d) = ibrack(d,l)-1
+            ic_upper(d) = ibrack(d,l)+2
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -2633,7 +2640,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_4_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -2653,6 +2660,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -2668,7 +2677,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
@@ -2676,6 +2685,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -2694,24 +2704,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the spreading stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+1
-            else
-               ic_lower(d) = ic_center(d)-1
-               ic_upper(d) = ic_center(d)+2
-            endif
+            ic_lower(d) = ibrack(d,l)-1
+            ic_upper(d) = ibrack(d,l)+2
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -2750,7 +2746,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -2767,6 +2763,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -2790,6 +2788,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -2810,9 +2809,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -2857,7 +2854,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_5_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -2877,6 +2874,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -2900,6 +2899,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -2920,9 +2920,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -2969,7 +2967,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -2986,6 +2984,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -3001,7 +3001,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
@@ -3009,6 +3009,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -3027,24 +3028,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the interpolation stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+2
-            else
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+3
-            endif
+            ic_lower(d) = ibrack(d,l)-2
+            ic_upper(d) = ibrack(d,l)+3
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -3081,7 +3068,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_bspline_6_spread2d(
      &     dx,x_lower,x_upper,depth,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -3101,6 +3088,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -3116,7 +3105,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
@@ -3124,6 +3113,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -3142,24 +3132,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the spreading stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+2
-            else
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+3
-            endif
+            ic_lower(d) = ibrack(d,l)-2
+            ic_upper(d) = ibrack(d,l)+3
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -3198,7 +3174,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -3216,6 +3192,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -3239,6 +3217,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -3259,9 +3238,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -3312,7 +3289,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_23_spread2d(
      &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -3333,6 +3310,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -3356,6 +3335,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -3376,9 +3356,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -3431,7 +3409,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -3449,6 +3427,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -3472,6 +3452,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -3492,9 +3473,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -3545,7 +3524,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_32_spread2d(
      &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -3566,6 +3545,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -3589,6 +3570,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -3609,9 +3591,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -3664,7 +3644,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -3682,6 +3662,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -3697,7 +3679,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
@@ -3705,6 +3687,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -3723,24 +3706,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the interpolation stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+1
-            else
-               ic_lower(d) = ic_center(d)-1
-               ic_upper(d) = ic_center(d)+2
-            endif
+            ic_lower(d) = ibrack(d,l)-1
+            ic_upper(d) = ibrack(d,l)+2
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -3783,7 +3752,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_34_spread2d(
      &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -3804,6 +3773,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -3819,7 +3790,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
@@ -3827,6 +3798,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -3845,24 +3817,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the spreading stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+1
-            else
-               ic_lower(d) = ic_center(d)-1
-               ic_upper(d) = ic_center(d)+2
-            endif
+            ic_lower(d) = ibrack(d,l)-1
+            ic_upper(d) = ibrack(d,l)+2
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -3907,7 +3865,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -3925,6 +3883,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -3940,7 +3900,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
@@ -3948,6 +3908,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -3966,24 +3927,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the interpolation stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+1
-            else
-               ic_lower(d) = ic_center(d)-1
-               ic_upper(d) = ic_center(d)+2
-            endif
+            ic_lower(d) = ibrack(d,l)-1
+            ic_upper(d) = ibrack(d,l)+2
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -4026,7 +3973,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_43_spread2d(
      &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -4047,6 +3994,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -4062,7 +4011,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
@@ -4070,6 +4019,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -4088,24 +4038,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the spreading stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+1
-            else
-               ic_lower(d) = ic_center(d)-1
-               ic_upper(d) = ic_center(d)+2
-            endif
+            ic_lower(d) = ibrack(d,l)-1
+            ic_upper(d) = ibrack(d,l)+2
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -4150,7 +4086,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -4168,6 +4104,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -4191,6 +4129,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -4211,9 +4150,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -4264,7 +4201,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_45_spread2d(
      &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -4285,6 +4222,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -4308,6 +4247,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -4328,9 +4268,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -4383,7 +4321,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -4401,6 +4339,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -4424,6 +4364,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -4444,9 +4385,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -4497,7 +4436,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_54_spread2d(
      &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -4518,6 +4457,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -4541,6 +4482,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      ibrack(0,0) = ibrack(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -4561,9 +4503,7 @@ c
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
+            ic_center(d) = inear(d,l)
             X_cell(d) = x_lower(d)
      &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
@@ -4616,7 +4556,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -4634,6 +4574,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -4649,7 +4591,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
@@ -4657,6 +4599,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -4675,24 +4618,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the interpolation stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+2
-            else
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+3
-            endif
+            ic_lower(d) = ibrack(d,l)-2
+            ic_upper(d) = ibrack(d,l)+3
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -4735,7 +4664,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_56_spread2d(
      &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -4756,6 +4685,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -4771,7 +4702,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
@@ -4779,6 +4710,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -4797,24 +4729,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the spreading stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+2
-            else
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+3
-            endif
+            ic_lower(d) = ibrack(d,l)-2
+            ic_upper(d) = ibrack(d,l)+3
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -4859,7 +4777,7 @@ c
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
      &     u,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V)
 c
       implicit none
@@ -4877,6 +4795,8 @@ c
       INTEGER nindices
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -4892,7 +4812,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
@@ -4900,6 +4820,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -4918,24 +4839,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the interpolation stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the interpolation stencil corresponding to the position
-c     of X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+2
-            else
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+3
-            endif
+            ic_lower(d) = ibrack(d,l)-2
+            ic_upper(d) = ibrack(d,l)+3
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
@@ -4978,7 +4885,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine lagrangian_composite_bspline_65_spread2d(
      &     dx,x_lower,x_upper,depth,axis,
-     &     indices,Xshift,nindices,
+     &     indices,Xshift,inear,ibrack,nindices,
      &     X,V,
      &     ilower0,iupper0,ilower1,iupper1,
      &     nugc0,nugc1,
@@ -4999,6 +4906,8 @@ c
       INTEGER nugc0,nugc1
 
       INTEGER indices(0:nindices-1)
+      INTEGER inear(0:NDIM-1,0:nindices-1)
+      INTEGER ibrack(0:NDIM-1,0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
@@ -5014,7 +4923,7 @@ c     Local variables.
 c
       INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
       INTEGER ic,ic0,ic1
-      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
@@ -5022,6 +4931,7 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+      inear(0,0) = inear(0,0)
 c
 c     Setup convenience arrays.
 c
@@ -5040,24 +4950,10 @@ c
          s = indices(l)
          do d=0,NDIM-1
 c
-c     Determine the Cartesian cell in which X(s) is located.
+c     Determine the spreading stencil from the data point below X(s).
 c
-            ic_center(d) =
-     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
-     &           + ilower(d)
-            X_cell(d) = x_lower(d)
-     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-c
-c     Determine the spreading stencil corresponding to the position of
-c     X(s) within the cell.
-c
-            if ( X(d,s).lt.X_cell(d) ) then
-               ic_lower(d) = ic_center(d)-3
-               ic_upper(d) = ic_center(d)+2
-            else
-               ic_lower(d) = ic_center(d)-2
-               ic_upper(d) = ic_center(d)+3
-            endif
+            ic_lower(d) = ibrack(d,l)-2
+            ic_upper(d) = ibrack(d,l)+3
             ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
             ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c

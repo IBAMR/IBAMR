@@ -295,7 +295,11 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
                              *X_LE_data,
                              std::vector<Pointer<CoarsenSchedule<NDIM>>>(),
                              getGhostfillRefineSchedules(d_object_name + "::w"),
-                             data_time);
+                             data_time,
+                             invalid_level_number,
+                             invalid_level_number,
+                             *X_LE_needs_ghost_fill);
+    *X_LE_needs_ghost_fill = false;
     resetAnchorPointValues(*W_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());

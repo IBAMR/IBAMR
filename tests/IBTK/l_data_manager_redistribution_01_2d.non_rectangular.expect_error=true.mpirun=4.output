@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    LIndexSetData::cacheLocalIndices():
+  the physical domain is not a single rectangular box
+  use a physical domain that consists of one box
+

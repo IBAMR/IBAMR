@@ -112,6 +112,48 @@ LIndexSetData<T>::getGhostPeriodicShifts() const
     return d_ghost_periodic_shifts;
 } // getGhostPeriodicShifts
 
+template <class T>
+const std::vector<int>&
+LIndexSetData<T>::getPeriodicOffsets() const
+{
+    return d_periodic_offsets;
+} // getPeriodicOffsets
+
+template <class T>
+const double*
+LIndexSetData<T>::getDomainXLower() const
+{
+    return d_domain_x_lower.data();
+} // getDomainXLower
+
+template <class T>
+const double*
+LIndexSetData<T>::getDomainXUpper() const
+{
+    return d_domain_x_upper.data();
+} // getDomainXUpper
+
+template <class T>
+const double*
+LIndexSetData<T>::getLevelDx() const
+{
+    return d_level_dx.data();
+} // getLevelDx
+
+template <class T>
+const SAMRAI::hier::Box<NDIM>&
+LIndexSetData<T>::getLevelDomainBox() const
+{
+    return d_level_domain_box;
+} // getLevelDomainBox
+
+template <class T>
+const SAMRAI::hier::IntVector<NDIM>&
+LIndexSetData<T>::getLevelPeriodicShift() const
+{
+    return d_level_periodic_shift;
+} // getLevelPeriodicShift
+
 //////////////////////////////////////////////////////////////////////////////
 
 } // namespace IBTK
