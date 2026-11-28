@@ -1,0 +1,17 @@
+ndim = 2
+kernel = COMPOSITE_BSPLINE_43
+elem_type = QUAD9
+use_half_z = 0
+min_ghost_width = 3
+fe_ghost_width = 3
+n_nodes = 205
+n_elems = 40
+min_diag_mass = 6.94444444e-05
+max_diag_mass = 1.11111111e-03
+diag_mass_sum = 2.00000000e-01
+vol_0 = 8.00000000e-02
+vol_final = 7.99999943e-02
+rel_vol_err = 7.18706440e-08
+min_J = 9.99994581e-01
+max_J = 1.00000548e+00
+max_disp = 3.46716292e-06
