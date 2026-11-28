@@ -22,6 +22,8 @@
 
 #include <ibamr/SurfaceTensionForceFunction.h>
 
+#include <ibtk/private/CachedGhostCellFill.h>
+
 namespace IBAMR
 {
 class AdvDiffHierarchyIntegrator;
@@ -82,7 +84,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~MarangoniSurfaceTensionForceFunction() = default;
+    virtual ~MarangoniSurfaceTensionForceFunction();
 
     /*!
      * \name Methods to set the data.
@@ -145,6 +147,12 @@ protected:
      */
     void addForcesOnPatchHierarchy(int data_idx, double data_time) override;
 
+    /*!
+     * Clear the cached fill of the temperature and remove its scratch patch data index, then do the same for the
+     * base class.
+     */
+    void removeScratchIndices() override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -196,6 +204,11 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_var;
     int d_T_idx = IBTK::invalid_index, d_F_cloned_idx = IBTK::invalid_index;
+
+    /*!
+     * Cached ghost-cell fill of the temperature.
+     */
+    IBTK::detail::CachedGhostCellFill d_T_fill;
 
     /*!
      * Marangoni coefficient.
