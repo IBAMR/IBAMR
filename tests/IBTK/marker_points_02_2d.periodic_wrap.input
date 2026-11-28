@@ -1,0 +1,72 @@
+// One forward Euler step on the periodic domain [0.3, 3.0]^2 moves one marker exactly onto the upper boundary in x
+// and another to one ulp below the lower boundary in x.
+test {
+   timestep = TRUE
+   collective_print = TRUE
+   num_timesteps = 1
+   time_stepping_type = "FORWARD_EULER"
+   kernel = "PIECEWISE_LINEAR"
+   dt = 0.0009765625
+   positions = 2.9990234375, 1.0, 0.30097656249999993, 2.0
+   velocities = 1.0, 0.0, -1.0, 0.0
+   u {
+      function_0 = "0.25"
+      function_1 = "0.5"
+   }
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+   timer_enabled = TRUE
+}
+
+N = 8
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0.3, 0.3  // lower end of computational domain.
+   x_up               = 3.0, 3.0  // upper end of computational domain.
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 2, 2              // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 64, 64
+   }
+
+   smallest_patch_size {
+      level_0 =   4, 4
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::*::*"
+}
