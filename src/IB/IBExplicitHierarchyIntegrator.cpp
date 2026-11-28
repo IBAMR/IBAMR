@@ -681,20 +681,25 @@ IBExplicitHierarchyIntegrator::fillMarkerVelocityGhostCells(const int u_idx, con
     TBOX_ASSERT(u_idx == d_u_idx || u_idx == d_u_half_idx);
 #endif
     Pointer<HierarchyGhostCellInterpolation>& fill_op = d_marker_u_fill_ops[u_idx == d_u_half_idx ? 1 : 0];
+    using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    // The refine operator alone fills the ghost cells, so that marker velocities are independent of the patch
+    // layout.
+    const ITC ghostfill(u_idx,
+                        "CONSERVATIVE_LINEAR_REFINE",
+                        /*use_cf_bdry_interpolation*/ false,
+                        "CONSERVATIVE_COARSEN",
+                        "LINEAR",
+                        false,
+                        d_ins_hier_integrator->getVelocityBoundaryConditions());
     if (!fill_op)
     {
-        using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        // The refine operator alone fills the ghost cells, so that marker velocities are independent of the
-        // patch layout.
-        const ITC ghostfill(u_idx,
-                            "CONSERVATIVE_LINEAR_REFINE",
-                            /*use_cf_bdry_interpolation*/ false,
-                            "CONSERVATIVE_COARSEN",
-                            "LINEAR",
-                            false,
-                            d_ins_hier_integrator->getVelocityBoundaryConditions());
         fill_op = new HierarchyGhostCellInterpolation();
         fill_op->initializeOperatorState(ghostfill, d_hierarchy);
+    }
+    else
+    {
+        // The cached schedules stay; the current boundary condition objects are installed at each call.
+        fill_op->resetTransactionComponent(ghostfill);
     }
     fill_op->fillData(fill_time);
     return;

@@ -71,6 +71,7 @@ namespace IBAMR
  *   IB_delta_fcn matches the IB kernel, IBFE uses IB_use_nodal_quadrature, the
  *   structure predictor is used or num_cycles is at least 2, and the
  *   Lagrangian-Eulerian operators are not fixed.
+ * - Beyond a physical boundary, a marker gets the velocity from the ghost cells, while an IBFE node gets zero.
  */
 class IBExplicitHierarchyIntegrator : public IBHierarchyIntegrator
 {
