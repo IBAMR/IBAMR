@@ -1,0 +1,3 @@
+Fixed: attest now accepts a job count given as a separate argument, as in attest -j 3.
+<br>
+(Boyce Griffith, 2026/11/28)
