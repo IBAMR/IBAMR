@@ -22,12 +22,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 2
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000729852
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000796683
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00137879
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000834515
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -46,12 +46,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0034864
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00332168
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00362683
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00332654
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -70,12 +70,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0016488
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00133539
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00189909
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00134753
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -97,12 +97,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00248452
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00214397
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00262799
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00215236
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -121,12 +121,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00177041
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00138222
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00193615
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00138743
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -145,12 +145,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00118919
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000944126
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.001389
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000949492
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -172,12 +172,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00106708
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000901156
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00125308
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000903477
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -196,12 +196,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00107254
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000905179
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00123007
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000905789
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -220,12 +220,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00110427
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000921491
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00123517
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00092176
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -247,12 +247,12 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = 2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 1
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00112759
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000937279
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): net boundary flux             = 1
 INSStaggeredHierarchyIntegrator::normalizeFluidSource(): imbalance after normalization = -2.22045e-16
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 0
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0012372
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00093786
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0625
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -269,11 +269,11 @@ Writing visualization files...
 Computing error norms.
 
 Error in u at time 0.00976562:
-  L1-norm:  0.0002174782861
-  L2-norm:  0.0004084284045
-  max-norm: 0.007706510839
+  L1-norm:  0.0001782333945
+  L2-norm:  0.0001685334437
+  max-norm: 0.0003547411776
 Error in p at time 0.00927734375:
-  L1-norm:  0.1285010689
-  L2-norm:  0.1491402307
-  max-norm: 0.3223594693
+  L1-norm:  0.1285714843
+  L2-norm:  0.1492646003
+  max-norm: 0.3261732579
 +++++++++++++++++++++++++++++++++++++++++++++++++++
