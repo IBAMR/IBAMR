@@ -1,1 +1,4 @@
-01_2d.side.dirichlet.linear.output
+checking robin bc handling . . .
+(f, E u)   = 3.9216173394
+(E^T f, u) = 3.9216173394
+boundary data appears to be correct.

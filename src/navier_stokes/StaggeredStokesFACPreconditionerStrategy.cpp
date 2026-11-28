@@ -579,7 +579,9 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                                           BDRY_EXTRAP_TYPE,
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           d_P_bc_coef,
-                                                          d_P_op_stencil_fill_pattern);
+                                                          d_P_op_stencil_fill_pattern,
+                                                          "LINEAR",
+                                                          /*extend_coarse_data_linearly*/ true);
     std::vector<InterpolationTransactionComponent> U_P_components(2);
     U_P_components[0] = U_scratch_component;
     U_P_components[1] = P_scratch_component;
@@ -612,7 +614,9 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                                                   BDRY_EXTRAP_TYPE,
                                                                   CONSISTENT_TYPE_2_BDRY,
                                                                   d_P_bc_coef,
-                                                                  d_P_op_stencil_fill_pattern);
+                                                                  d_P_op_stencil_fill_pattern,
+                                                                  "LINEAR",
+                                                                  /*extend_coarse_data_linearly*/ true);
     std::vector<InterpolationTransactionComponent> default_U_P_components(2);
     default_U_P_components[0] = default_U_scratch_component;
     default_U_P_components[1] = default_P_scratch_component;

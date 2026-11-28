@@ -6,7 +6,7 @@ Compared 576 ghost values of the no-corners fill with the default fill: 0 differ
 Compared 1536 interior values of the patches with their values before the fill: 0 changed.
 ghost locations = 420
 coarse-fine ghost locations = 375
-sum of coarse-fine ghost values = 967.12780761719
-sum of squares of coarse-fine ghost values = 2637.2710760683
-largest absolute coarse-fine ghost value = 3.7047119140625
-weighted sum of coarse-fine ghost values = 97141.744506836
+sum of coarse-fine ghost values = 1063.8827514648
+sum of squares of coarse-fine ghost values = 3242.1154900454
+largest absolute coarse-fine ghost value = 4.2903442382812
+weighted sum of coarse-fine ghost values = 107941.57000732
