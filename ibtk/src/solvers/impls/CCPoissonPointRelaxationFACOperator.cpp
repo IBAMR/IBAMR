@@ -392,6 +392,8 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(const s
         set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
     }
 
+    d_reuse_layout = true;
+
     // Setup Timers.
     IBTK_DO_ONCE(t_smooth_error =
                      TimerManager::getManager()->getTimer("IBTK::CCPoissonPointRelaxationFACOperator::smoothError()");
@@ -899,16 +901,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver)
     {
-        // Note that since the coarse level solver is solving for the error, it
-        // must always employ homogeneous boundary conditions.
-        d_coarse_solver->setSolutionTime(d_solution_time);
-        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
-        d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
-        d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
-        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
-        setSolverBdryInterpType(*d_coarse_solver, d_coarse_solver_db, d_bdry_interp_type);
-        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
-                                               *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+        initializeCoarseSolver();
     }
 
     // Setup specialized transfer operators.
@@ -963,12 +956,43 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const in
     if (!d_in_initialize_operator_state)
     {
         d_patch_neighbor_overlap.clear();
-        if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
+        if (d_coarse_solver && !d_reinitializing) d_coarse_solver->deallocateSolverState();
     }
     return;
 } // deallocateOperatorStateSpecialized
 
+bool
+CCPoissonPointRelaxationFACOperator::getLayoutKeySpecialized(std::vector<int>& /*key*/) const
+{
+    return true;
+} // getLayoutKeySpecialized
+
+void
+CCPoissonPointRelaxationFACOperator::initializeOperatorCoefficientsSpecialized(
+    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
+    const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
+{
+    if (d_coarse_solver) initializeCoarseSolver();
+    return;
+} // initializeOperatorCoefficientsSpecialized
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+CCPoissonPointRelaxationFACOperator::initializeCoarseSolver()
+{
+    // Note that since the coarse level solver is solving for the error, it
+    // must always employ homogeneous boundary conditions.
+    d_coarse_solver->setSolutionTime(d_solution_time);
+    d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+    d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
+    d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
+    d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
+    setSolverBdryInterpType(*d_coarse_solver, d_coarse_solver_db, d_bdry_interp_type);
+    d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
+                                           *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+    return;
+} // initializeCoarseSolver
 
 //////////////////////////////////////////////////////////////////////////////
 

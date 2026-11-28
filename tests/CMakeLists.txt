@@ -365,6 +365,7 @@ SETUP_2D(IBTK refine_physical_extrapolation.cpp)
 SETUP_2D(IBTK interface_face_ghost_copy.cpp)
 SETUP_2D(IBTK transfer_operator_registration.cpp)
 SETUP_2D(IBTK fac_coarse_fine_ghost_values.cpp)
+SETUP_2D(IBTK fac_reinitialize.cpp)
 SETUP_2D(IBTK sc_poisson_cf_boundary.cpp)
 SETUP_2D(IBTK vc_viscous_level_solver_boundary.cpp)
 

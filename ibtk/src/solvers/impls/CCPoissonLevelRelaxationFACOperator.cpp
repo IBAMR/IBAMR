@@ -139,6 +139,8 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
                                                                            d_coarse_solver_default_options_prefix);
     set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
 
+    d_reuse_layout = true;
+
     // Setup Timers.
     IBTK_DO_ONCE(t_smooth_error =
                      TimerManager::getManager()->getTimer("IBTK::CCPoissonLevelRelaxationFACOperator::smoothError()");
@@ -408,47 +410,22 @@ CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
         var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
     scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
 
-    // Initialize the level solvers that are used. The coarse solver handles the coarsest level.
-    d_level_solvers.resize(d_finest_ln + 1);
-    for (int ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
+    // Initialize the level solvers that are used. The coarse solver handles the coarsest level. Deallocate the level
+    // solvers on other levels, and before the resize destroys the ones above the finest level.
+    for (int ln = 0; ln < static_cast<int>(d_level_solvers.size()); ++ln)
     {
-        Pointer<PoissonSolver>& level_solver = d_level_solvers[ln];
-        if (!level_solver)
+        if (d_level_solvers[ln] && (ln <= d_coarsest_ln || ln > d_finest_ln))
         {
-            level_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_level_solver_type,
-                                                                                d_object_name + "::level_solver",
-                                                                                d_level_solver_db,
-                                                                                d_level_solver_default_options_prefix +
-                                                                                    std::to_string(ln) + "_");
-            set_fixed_iteration_ksp_defaults(level_solver.getPointer(), d_level_solver_db);
+            d_level_solvers[ln]->deallocateSolverState();
         }
-
-        level_solver->setSolutionTime(d_solution_time);
-        level_solver->setTimeInterval(d_current_time, d_new_time);
-        level_solver->setPoissonSpecifications(d_poisson_spec);
-        level_solver->setPhysicalBcCoefs(d_bc_coefs);
-        level_solver->setMaxIterations(d_level_solver_max_iterations);
-        level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
-        level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
-        level_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
-        setSolverBdryInterpType(*level_solver, d_level_solver_db, d_smoother_bdry_interp_type);
-        level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
-                                            *getLevelSAMRAIVectorReal(*d_rhs, ln));
     }
+    d_level_solvers.resize(d_finest_ln + 1);
+    initializeLevelSolvers(coarsest_reset_ln, finest_reset_ln);
 
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln)
     {
-        // Note that since the coarse level solver is solving for the error, it
-        // must always employ homogeneous boundary conditions.
-        d_coarse_solver->setSolutionTime(d_solution_time);
-        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
-        d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
-        d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
-        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
-        setSolverBdryInterpType(*d_coarse_solver, d_coarse_solver_db, d_bdry_interp_type);
-        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
-                                               *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+        initializeCoarseSolver();
     }
 
     // Setup specialized transfer operators.
@@ -477,7 +454,7 @@ CCPoissonLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const in
                                                                         const int /*finest_reset_ln*/)
 {
     if (!d_is_initialized) return;
-    if (!d_in_initialize_operator_state)
+    if (!d_in_initialize_operator_state && !d_reinitializing)
     {
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
@@ -488,7 +465,72 @@ CCPoissonLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const in
     return;
 }
 
+bool
+CCPoissonLevelRelaxationFACOperator::getLayoutKeySpecialized(std::vector<int>& key) const
+{
+    // The kind of the diffusion coefficient determines the kind of the operator stencil fill pattern.
+    key.push_back(d_poisson_spec.dIsConstant());
+    return true;
+} // getLayoutKeySpecialized
+
+void
+CCPoissonLevelRelaxationFACOperator::initializeOperatorCoefficientsSpecialized(
+    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
+    const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
+{
+    initializeLevelSolvers(d_coarsest_ln, d_finest_ln);
+    initializeCoarseSolver();
+    return;
+} // initializeOperatorCoefficientsSpecialized
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+CCPoissonLevelRelaxationFACOperator::initializeLevelSolvers(const int coarsest_ln, const int finest_ln)
+{
+    for (int ln = std::max(d_coarsest_ln + 1, coarsest_ln); ln <= finest_ln; ++ln)
+    {
+        Pointer<PoissonSolver>& level_solver = d_level_solvers[ln];
+        if (!level_solver)
+        {
+            level_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_level_solver_type,
+                                                                                d_object_name + "::level_solver",
+                                                                                d_level_solver_db,
+                                                                                d_level_solver_default_options_prefix +
+                                                                                    std::to_string(ln) + "_");
+            set_fixed_iteration_ksp_defaults(level_solver.getPointer(), d_level_solver_db);
+        }
+
+        level_solver->setSolutionTime(d_solution_time);
+        level_solver->setTimeInterval(d_current_time, d_new_time);
+        level_solver->setPoissonSpecifications(d_poisson_spec);
+        level_solver->setPhysicalBcCoefs(d_bc_coefs);
+        level_solver->setMaxIterations(d_level_solver_max_iterations);
+        level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
+        level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
+        level_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
+        setSolverBdryInterpType(*level_solver, d_level_solver_db, d_smoother_bdry_interp_type);
+        level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
+                                            *getLevelSAMRAIVectorReal(*d_rhs, ln));
+    }
+    return;
+} // initializeLevelSolvers
+
+void
+CCPoissonLevelRelaxationFACOperator::initializeCoarseSolver()
+{
+    // Note that since the coarse level solver is solving for the error, it
+    // must always employ homogeneous boundary conditions.
+    d_coarse_solver->setSolutionTime(d_solution_time);
+    d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+    d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
+    d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
+    d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
+    setSolverBdryInterpType(*d_coarse_solver, d_coarse_solver_db, d_bdry_interp_type);
+    d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
+                                           *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+    return;
+} // initializeCoarseSolver
 
 //////////////////////////////////////////////////////////////////////////////
 

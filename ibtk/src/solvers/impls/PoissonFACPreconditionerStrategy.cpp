@@ -420,9 +420,9 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
-    // Setup solution and rhs vectors.
-    d_solution = solution.cloneVector(solution.getName());
-    d_rhs = rhs.cloneVector(rhs.getName());
+    // Setup solution and rhs vectors. The operator reuses the clones when it reinitializes.
+    cloneOrReuseVector(d_solution, solution);
+    cloneOrReuseVector(d_rhs, rhs);
 
     Pointer<Variable<NDIM>> sol_var = d_solution->getComponentVariable(0);
     const int sol_idx = d_solution->getComponentDescriptorIndex(0);
@@ -574,9 +574,48 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_is_initialized = true;
     d_in_initialize_operator_state = false;
 
+    if (d_reuse_layout) recordLayout(solution, rhs);
+
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
 } // initializeOperatorState
+
+void
+PoissonFACPreconditionerStrategy::reinitializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                            const SAMRAIVectorReal<NDIM, double>& rhs)
+{
+    const bool has_reset_levels =
+        d_coarsest_reset_ln != invalid_level_number && d_finest_reset_ln != invalid_level_number;
+    if (!d_reuse_layout || !d_is_initialized || has_reset_levels)
+    {
+        FACPreconditionerStrategy::reinitializeOperatorState(solution, rhs);
+        return;
+    }
+
+    if (!canReuseLayout(solution, rhs, d_coarsest_ln, d_finest_ln))
+    {
+        d_reinitializing = true;
+        deallocateOperatorState();
+        initializeOperatorState(solution, rhs);
+        d_reinitializing = false;
+        return;
+    }
+
+    IBTK_TIMER_START(t_initialize_operator_state);
+
+    // Free the scratch data and allocate it again, as deallocateOperatorState() and initializeOperatorState() do.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        if (level->checkAllocated(d_scratch_idx)) level->deallocatePatchData(d_scratch_idx);
+        level->allocatePatchData(d_scratch_idx);
+    }
+
+    initializeOperatorCoefficientsSpecialized(solution, rhs);
+
+    IBTK_TIMER_STOP(t_initialize_operator_state);
+    return;
+} // reinitializeOperatorState
 
 void
 PoissonFACPreconditionerStrategy::deallocateOperatorState()
@@ -607,12 +646,18 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
         if (level->checkAllocated(d_scratch_idx)) level->deallocatePatchData(d_scratch_idx);
     }
 
-    // Delete the solution and rhs vectors.
-    free_vector_components(*d_solution);
-    d_solution.setNull();
+    // Delete the solution and rhs vectors, unless the next initialization reuses their clones. The clones have no
+    // patch data.
+    if (!d_reinitializing)
+    {
+        free_vector_components(*d_solution);
+        d_solution.setNull();
 
-    free_vector_components(*d_rhs);
-    d_rhs.setNull();
+        free_vector_components(*d_rhs);
+        d_rhs.setNull();
+    }
+
+    clearLayoutRecord();
 
     // Only fully deallocate operator data when we are not reinitializing the
     // operator.
@@ -842,6 +887,9 @@ PoissonFACPreconditionerStrategy::setSolverBdryInterpType(PoissonSolver& solver,
                                                           const Pointer<Database>& solver_db,
                                                           const BdryInterpType bdry_interp_type) const
 {
+    // An operator that reuses its layout does not deallocate its initialized solvers when it reinitializes. The
+    // interpolation type is unchanged then, and a FAC solver rejects the setter.
+    if (d_reuse_layout && solver.getIsInitialized()) return;
     if (!solver_db || !solver_db->keyExists("bdry_interp_type"))
     {
         solver.setBdryInterpType(bdry_interp_type);

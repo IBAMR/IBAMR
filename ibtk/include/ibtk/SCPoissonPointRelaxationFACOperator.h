@@ -194,6 +194,18 @@ protected:
      */
     void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
+    /*!
+     * \brief Return true: the reused data depend only on the hierarchy configuration and the structure of the vectors.
+     */
+    bool getLayoutKeySpecialized(std::vector<int>& key) const override;
+
+    /*!
+     * \brief Rebuild the data that depend on the coefficients and the boundary conditions: the boundary condition
+     * helper, the mask values, and the coarse level solver.
+     */
+    void initializeOperatorCoefficientsSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
+
     /*
      * Coarse level solvers and solver parameters.
      */
@@ -238,6 +250,17 @@ private:
      * \return A reference to this object.
      */
     SCPoissonPointRelaxationFACOperator& operator=(const SCPoissonPointRelaxationFACOperator& that) = delete;
+
+    /*!
+     * \brief Set up the boundary condition helper, and allocate the mask data on levels \a coarsest_ln through
+     * \a finest_ln, if they are not allocated, and set the mask values.
+     */
+    void initializeBcHelper(int coarsest_ln, int finest_ln);
+
+    /*!
+     * \brief Initialize the coarse level solver.
+     */
+    void initializeCoarseSolver();
 };
 } // namespace IBTK
 

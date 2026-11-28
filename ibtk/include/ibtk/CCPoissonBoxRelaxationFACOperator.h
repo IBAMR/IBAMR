@@ -216,6 +216,19 @@ protected:
      */
     void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
 
+    /*!
+     * \brief Append to \a key whether the diffusion coefficient is constant, which sets the kind of the operator
+     * stencil fill pattern, and return true.
+     */
+    bool getLayoutKeySpecialized(std::vector<int>& key) const override;
+
+    /*!
+     * \brief Rebuild the data that depend on the coefficients and the boundary conditions: the coarse level solver and
+     * the patch matrices, solvers, and gather buffers.
+     */
+    void initializeOperatorCoefficientsSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -243,6 +256,26 @@ private:
      * \return A reference to this object.
      */
     CCPoissonBoxRelaxationFACOperator& operator=(const CCPoissonBoxRelaxationFACOperator& that) = delete;
+
+    /*!
+     * \brief Initialize the coarse level solver.
+     */
+    void initializeCoarseSolver();
+
+    /*!
+     * \brief Build the patch matrices and solvers, and the gather buffers, on levels \a coarsest_ln through
+     * \a finest_ln.
+     */
+    void initializeCoefficientState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                    const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+                                    int coarsest_ln,
+                                    int finest_ln);
+
+    /*!
+     * \brief Destroy the patch matrices and solvers, and the gather buffers, on levels \a coarsest_ln through
+     * \a finest_ln.
+     */
+    void deallocateCoefficientState(int coarsest_ln, int finest_ln);
 
     /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted

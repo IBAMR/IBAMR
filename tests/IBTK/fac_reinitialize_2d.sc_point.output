@@ -1,0 +1,16 @@
+number_of_levels = 2
+number_of_patches_on_finest_level = 2
+problem = 0
+number_of_values = 1268
+max_difference_reinitialized_fresh = 0
+max_change_from_previous_problem = 0
+solution_min = 0.00115653
+solution_max = 2
+problem = 1
+number_of_values = 1268
+max_difference_reinitialized_fresh = 0
+max_change_from_previous_problem = 0.622566
+solution_min = 0.000819764
+solution_max = 2
+full_initializations = 1
+coefficient_initializations = 1

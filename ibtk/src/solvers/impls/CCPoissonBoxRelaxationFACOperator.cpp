@@ -217,6 +217,8 @@ CCPoissonBoxRelaxationFACOperator::CCPoissonBoxRelaxationFACOperator(const std::
         set_fixed_iteration_ksp_defaults(d_coarse_solver.getPointer(), d_coarse_solver_db);
     }
 
+    d_reuse_layout = true;
+
     // Setup Timers.
     IBTK_DO_ONCE(
         t_smooth_error = TimerManager::getManager()->getTimer("IBTK::CCPoissonBoxRelaxationFACOperator::smoothError()");
@@ -538,16 +540,7 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver)
     {
-        // Note that since the coarse level solver is solving for the error, it
-        // must always employ homogeneous boundary conditions.
-        d_coarse_solver->setSolutionTime(d_solution_time);
-        d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
-        d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
-        d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
-        d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
-        setSolverBdryInterpType(*d_coarse_solver, d_coarse_solver_db, d_bdry_interp_type);
-        d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
-                                               *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+        initializeCoarseSolver();
     }
 
     // Setup specialized transfer operators.
@@ -570,29 +563,14 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
     d_residual_fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
 
     // Initialize PETSc solver data.
-    int ierr;
-    PetscBool ksp_type_in_options = PETSC_FALSE;
-    ierr = PetscOptionsHasName(nullptr, d_petsc_options_prefix.c_str(), "-ksp_type", &ksp_type_in_options);
-    IBTK_CHKERRQ(ierr);
-    const bool gather = var_db->getPatchDescriptor()
-                            ->getPatchDataFactory(solution.getComponentDescriptorIndex(0))
-                            ->getGhostCellWidth() != d_gcw;
     d_patch_vec_e.resize(d_finest_ln + 1);
     d_patch_vec_f.resize(d_finest_ln + 1);
-    d_patch_e_data.resize(d_finest_ln + 1);
-    d_patch_f_data.resize(d_finest_ln + 1);
-    d_patch_mat.resize(d_finest_ln + 1);
-    d_patch_ksp.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_vec_e[ln].resize(num_local_patches);
         d_patch_vec_f[ln].resize(num_local_patches);
-        d_patch_e_data[ln].resize(num_local_patches);
-        d_patch_f_data[ln].resize(num_local_patches);
-        d_patch_mat[ln].resize(num_local_patches);
-        d_patch_ksp[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
@@ -600,51 +578,16 @@ CCPoissonBoxRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMR
             const Box<NDIM>& patch_box = patch->getBox();
             const Box<NDIM>& ghost_box = Box<NDIM>::grow(patch_box, d_gcw);
             const int size = ghost_box.size();
-            if (gather)
-            {
-                d_patch_e_data[ln][patch_counter] =
-                    new CellData<NDIM, double>(patch_box, solution_pdat_fac->getDefaultDepth(), d_gcw);
-                d_patch_f_data[ln][patch_counter] =
-                    new CellData<NDIM, double>(patch_box, rhs_pdat_fac->getDefaultDepth(), d_gcw);
-            }
             Vec& e = d_patch_vec_e[ln][patch_counter];
             Vec& f = d_patch_vec_f[ln][patch_counter];
             const int bs = 1;
-            ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, nullptr, &e);
+            int ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, nullptr, &e);
             IBTK_CHKERRQ(ierr);
             ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, bs, size, nullptr, &f);
             IBTK_CHKERRQ(ierr);
-            Mat& A = d_patch_mat[ln][patch_counter];
-            buildPatchLaplaceOperator(A, d_poisson_spec, patch, d_gcw);
-            KSP& ksp = d_patch_ksp[ln][patch_counter];
-            ierr = KSPCreate(PETSC_COMM_SELF, &ksp);
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOperators(ksp, A, A);
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSetReusePreconditioner(ksp, PETSC_TRUE);
-            IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOptionsPrefix(ksp, d_petsc_options_prefix.c_str());
-            IBTK_CHKERRQ(ierr);
-            if (!ksp_type_in_options)
-            {
-                ierr = KSPSetType(ksp, KSPRICHARDSON);
-                IBTK_CHKERRQ(ierr);
-                ierr = KSPSetNormType(ksp, KSP_NORM_NONE);
-                IBTK_CHKERRQ(ierr);
-                ierr = KSPSetTolerances(ksp, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT, 1);
-                IBTK_CHKERRQ(ierr);
-                ierr = KSPSetInitialGuessNonzero(ksp, PETSC_TRUE);
-                IBTK_CHKERRQ(ierr);
-                PC patch_pc;
-                ierr = KSPGetPC(ksp, &patch_pc);
-                IBTK_CHKERRQ(ierr);
-                ierr = PCSetType(patch_pc, PCILU);
-                IBTK_CHKERRQ(ierr);
-            }
-            ierr = KSPSetFromOptions(ksp);
-            IBTK_CHKERRQ(ierr);
         }
     }
+    initializeCoefficientState(solution, rhs, coarsest_reset_ln, finest_reset_ln);
 
     // Get overlap information for setting patch boundary conditions.
     d_patch_bc_box_overlap.resize(d_finest_ln + 1);
@@ -716,6 +659,144 @@ CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int 
             IBTK_CHKERRQ(ierr);
         }
         d_patch_vec_f[ln].clear();
+    }
+    deallocateCoefficientState(coarsest_reset_ln, std::min(d_finest_ln, finest_reset_ln));
+
+    if (!d_in_initialize_operator_state)
+    {
+        d_patch_vec_e.clear();
+        d_patch_vec_f.clear();
+        d_patch_e_data.clear();
+        d_patch_f_data.clear();
+        d_patch_mat.clear();
+        d_patch_ksp.clear();
+        d_patch_bc_box_overlap.clear();
+        d_patch_neighbor_overlap.clear();
+        if (d_coarse_solver && !d_reinitializing) d_coarse_solver->deallocateSolverState();
+    }
+    return;
+} // deallocateOperatorStateSpecialized
+
+bool
+CCPoissonBoxRelaxationFACOperator::getLayoutKeySpecialized(std::vector<int>& key) const
+{
+    // The kind of the diffusion coefficient determines the kind of the operator stencil fill pattern.
+    key.push_back(d_poisson_spec.dIsConstant());
+    return true;
+} // getLayoutKeySpecialized
+
+void
+CCPoissonBoxRelaxationFACOperator::initializeOperatorCoefficientsSpecialized(
+    const SAMRAIVectorReal<NDIM, double>& solution,
+    const SAMRAIVectorReal<NDIM, double>& rhs)
+{
+    deallocateCoefficientState(d_coarsest_ln, d_finest_ln);
+    if (d_coarse_solver) initializeCoarseSolver();
+    initializeCoefficientState(solution, rhs, d_coarsest_ln, d_finest_ln);
+    return;
+} // initializeOperatorCoefficientsSpecialized
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+CCPoissonBoxRelaxationFACOperator::initializeCoarseSolver()
+{
+    // Note that since the coarse level solver is solving for the error, it
+    // must always employ homogeneous boundary conditions.
+    d_coarse_solver->setSolutionTime(d_solution_time);
+    d_coarse_solver->setTimeInterval(d_current_time, d_new_time);
+    d_coarse_solver->setPoissonSpecifications(d_poisson_spec);
+    d_coarse_solver->setPhysicalBcCoefs(d_bc_coefs);
+    d_coarse_solver->setHomogeneousBc(ALWAYS_HOMOGENEOUS_BC);
+    setSolverBdryInterpType(*d_coarse_solver, d_coarse_solver_db, d_bdry_interp_type);
+    d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
+                                           *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
+    return;
+} // initializeCoarseSolver
+
+void
+CCPoissonBoxRelaxationFACOperator::initializeCoefficientState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                              const SAMRAIVectorReal<NDIM, double>& rhs,
+                                                              const int coarsest_ln,
+                                                              const int finest_ln)
+{
+    Pointer<CellVariable<NDIM, double>> solution_var = solution.getComponentVariable(0);
+    Pointer<CellVariable<NDIM, double>> rhs_var = rhs.getComponentVariable(0);
+    Pointer<CellDataFactory<NDIM, double>> solution_pdat_fac = solution_var->getPatchDataFactory();
+    Pointer<CellDataFactory<NDIM, double>> rhs_pdat_fac = rhs_var->getPatchDataFactory();
+
+    int ierr;
+    PetscBool ksp_type_in_options = PETSC_FALSE;
+    ierr = PetscOptionsHasName(nullptr, d_petsc_options_prefix.c_str(), "-ksp_type", &ksp_type_in_options);
+    IBTK_CHKERRQ(ierr);
+    const bool gather = VariableDatabase<NDIM>::getDatabase()
+                            ->getPatchDescriptor()
+                            ->getPatchDataFactory(solution.getComponentDescriptorIndex(0))
+                            ->getGhostCellWidth() != d_gcw;
+    d_patch_e_data.resize(d_finest_ln + 1);
+    d_patch_f_data.resize(d_finest_ln + 1);
+    d_patch_mat.resize(d_finest_ln + 1);
+    d_patch_ksp.resize(d_finest_ln + 1);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
+        d_patch_e_data[ln].resize(num_local_patches);
+        d_patch_f_data[ln].resize(num_local_patches);
+        d_patch_mat[ln].resize(num_local_patches);
+        d_patch_ksp[ln].resize(num_local_patches);
+        int patch_counter = 0;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            if (gather)
+            {
+                d_patch_e_data[ln][patch_counter] =
+                    new CellData<NDIM, double>(patch_box, solution_pdat_fac->getDefaultDepth(), d_gcw);
+                d_patch_f_data[ln][patch_counter] =
+                    new CellData<NDIM, double>(patch_box, rhs_pdat_fac->getDefaultDepth(), d_gcw);
+            }
+            Mat& A = d_patch_mat[ln][patch_counter];
+            buildPatchLaplaceOperator(A, d_poisson_spec, patch, d_gcw);
+            KSP& ksp = d_patch_ksp[ln][patch_counter];
+            ierr = KSPCreate(PETSC_COMM_SELF, &ksp);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPSetOperators(ksp, A, A);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPSetReusePreconditioner(ksp, PETSC_TRUE);
+            IBTK_CHKERRQ(ierr);
+            ierr = KSPSetOptionsPrefix(ksp, d_petsc_options_prefix.c_str());
+            IBTK_CHKERRQ(ierr);
+            if (!ksp_type_in_options)
+            {
+                ierr = KSPSetType(ksp, KSPRICHARDSON);
+                IBTK_CHKERRQ(ierr);
+                ierr = KSPSetNormType(ksp, KSP_NORM_NONE);
+                IBTK_CHKERRQ(ierr);
+                ierr = KSPSetTolerances(ksp, PETSC_DEFAULT, PETSC_DEFAULT, PETSC_DEFAULT, 1);
+                IBTK_CHKERRQ(ierr);
+                ierr = KSPSetInitialGuessNonzero(ksp, PETSC_TRUE);
+                IBTK_CHKERRQ(ierr);
+                PC patch_pc;
+                ierr = KSPGetPC(ksp, &patch_pc);
+                IBTK_CHKERRQ(ierr);
+                ierr = PCSetType(patch_pc, PCILU);
+                IBTK_CHKERRQ(ierr);
+            }
+            ierr = KSPSetFromOptions(ksp);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    return;
+} // initializeCoefficientState
+
+void
+CCPoissonBoxRelaxationFACOperator::deallocateCoefficientState(const int coarsest_ln, const int finest_ln)
+{
+    int ierr;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
         d_patch_e_data[ln].clear();
         d_patch_f_data[ln].clear();
         for (auto& A : d_patch_mat[ln])
@@ -731,23 +812,8 @@ CCPoissonBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int 
         }
         d_patch_ksp[ln].clear();
     }
-
-    if (!d_in_initialize_operator_state)
-    {
-        d_patch_vec_e.clear();
-        d_patch_vec_f.clear();
-        d_patch_e_data.clear();
-        d_patch_f_data.clear();
-        d_patch_mat.clear();
-        d_patch_ksp.clear();
-        d_patch_bc_box_overlap.clear();
-        d_patch_neighbor_overlap.clear();
-        if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
-    }
     return;
-} // deallocateOperatorStateSpecialized
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
+} // deallocateCoefficientState
 
 void
 CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
