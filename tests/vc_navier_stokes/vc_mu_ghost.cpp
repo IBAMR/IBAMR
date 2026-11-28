@@ -36,6 +36,8 @@
 #include <string>
 #include <vector>
 
+#include "../tests.h"
+
 #include <ibamr/app_namespaces.h>
 
 // Check that the viscosity set at the start of a time step is positive in the ghost cells and at the ghost nodes (2D)
@@ -84,6 +86,8 @@ main(int argc, char* argv[])
             "mu_fcn", app_initializer->getComponentDatabase("ViscosityFunction"), grid_geometry);
         ins_integrator->registerViscosityVariable(mu_var);
         ins_integrator->registerViscosityInitialConditions(mu_fcn);
+        ins_integrator->registerResetFluidViscosityFcn(&callSetFluidPropertyCallbackFunction,
+                                                       static_cast<void*>(mu_fcn.getPointer()));
         std::unique_ptr<muParserRobinBcCoefs> mu_bc_coef;
         if (app_initializer->getInputDatabase()->getBoolWithDefault("register_viscosity_boundary_conditions", true))
         {
