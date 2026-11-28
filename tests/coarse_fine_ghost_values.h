@@ -69,8 +69,10 @@ struct FineLevel
     BoxArray<NDIM> boxes;
     BoxArray<NDIM> domain;
     BoxArray<NDIM> coarse_domain;
-    IntVector<NDIM> ratio;            // To level 0.
-    IntVector<NDIM> ratio_to_coarser; // To the next coarser level.
+    IntVector<NDIM> ratio;             // To level 0.
+    IntVector<NDIM> ratio_to_coarser;  // To the next coarser level.
+    bool coarse_data_extended = false; // Whether the fill sets the coarse data beyond the physical boundary.
+    IntVector<NDIM> periodic_shift = IntVector<NDIM>(0); // Nonzero along the periodic directions.
 };
 
 // Cell data have axis -1. Side data have the faces normal to axis (axis >= 0), indexed by the cell above the face.
@@ -128,8 +130,9 @@ floor_div(const int i, const int r)
     return i >= 0 ? i / r : -((-i + r - 1) / r);
 }
 
-// Cells (and faces) whose coarse stencil is far from the physical boundary, where the test does not set boundary
-// values: the cells of level 0 within two cells of the one that contains them lie in the domain.
+// Cells (and faces) that the test checks: all of them if the fill extends the coarse data beyond the physical
+// boundary, and otherwise those whose coarse stencil is far from the boundary, where nothing sets boundary values:
+// the cells of level 0 within two cells of the one that contains them lie in the domain.
 inline bool
 away_from_boundary(const FineLevel& fine, const hier::Index<NDIM>& i)
 {
@@ -137,6 +140,19 @@ away_from_boundary(const FineLevel& fine, const hier::Index<NDIM>& i)
     for (int d = 0; d < NDIM; ++d)
     {
         c(d) = floor_div(i(d), fine.ratio(d));
+    }
+    if (fine.coarse_data_extended)
+    {
+        // Along a periodic direction the function is not a quadratic across the boundary.
+        const Box<NDIM> bounds = fine.coarse_domain.getBoundingBox();
+        for (int d = 0; d < NDIM; ++d)
+        {
+            if (fine.periodic_shift(d) != 0 && (c(d) - 2 < bounds.lower(d) || c(d) + 2 > bounds.upper(d)))
+            {
+                return false;
+            }
+        }
+        return true;
     }
     BoxList<NDIM> outside(Box<NDIM>::grow(Box<NDIM>(c, c), IntVector<NDIM>(2)));
     outside.removeIntersections(BoxList<NDIM>(fine.coarse_domain));
@@ -413,8 +429,9 @@ make_hierarchy(Pointer<AppInitializer> app_initializer, Pointer<CartesianGridGeo
     return patch_hierarchy;
 }
 
-// The quadratic function of the position. Along a periodic direction, it is a quadratic of the distance in the period,
-// so that the faces on the two sides of a periodic boundary have the same value.
+// The quadratic function of the position, with cross terms between the directions that are not periodic. Along a
+// periodic direction, it is a quadratic of the distance in the period, so that the faces on the two sides of a
+// periodic boundary have the same value.
 inline std::function<double(const VectorNd&)>
 make_quadratic(Pointer<CartesianGridGeometry<NDIM>> grid_geometry)
 {
@@ -433,6 +450,13 @@ make_quadratic(Pointer<CartesianGridGeometry<NDIM>> grid_geometry)
             else
             {
                 val += x[d] + x[d] * x[d];
+                for (int e = d + 1; e < NDIM; ++e)
+                {
+                    if (periodic_shift(e) == 0)
+                    {
+                        val += x[d] * x[e];
+                    }
+                }
             }
         }
         return val;
@@ -536,6 +560,7 @@ make_fine_level(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
     fine.domain = grid_geometry->getPhysicalDomain();
     fine.domain.refine(level->getRatio());
     fine.coarse_domain = grid_geometry->getPhysicalDomain();
+    fine.periodic_shift = grid_geometry->getPeriodicShift(IntVector<NDIM>(1));
     return fine;
 } // make_fine_level
 

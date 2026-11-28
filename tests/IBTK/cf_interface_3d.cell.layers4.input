@@ -45,8 +45,8 @@ LoadBalancer {
 Reference {
    ghost_locations = 13848
    coarse_fine_locations = 10608
-   ghost_sum = 32789.016601562
-   ghost_sum_squares = 105010.82292503
-   ghost_max = 4.4391479492187
-   ghost_weighted_sum = 5565862.8666992
+   ghost_sum = 39491.095703125
+   ghost_sum_squares = 154754.16564441
+   ghost_max = 5.7784423828125
+   ghost_weighted_sum = 6757536.5263672
 }

@@ -3,6 +3,7 @@
 MAX_LEVELS = 2
 N = 8
 REF_RATIO = 2
+GHOST_WIDTH = 2
 CENTERING = "CELL"
 
 Main {
@@ -47,10 +48,10 @@ LoadBalancer {
 }
 
 Reference {
-   ghost_locations = 64
-   coarse_fine_locations = 64
-   ghost_sum = 206.6875
-   ghost_sum_squares = 678.03668212891
-   ghost_max = 4.1591796875
-   ghost_weighted_sum = 9614.28125
+   ghost_locations = 512
+   coarse_fine_locations = 512
+   ghost_sum = 2039.5
+   ghost_sum_squares = 8870.919921875
+   ghost_max = 7.349609375
+   ghost_weighted_sum = 101788
 }
