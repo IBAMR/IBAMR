@@ -151,8 +151,9 @@ struct FillPatternShape
     SAMRAI::hier::IntVector<NDIM> width = SAMRAI::hier::IntVector<NDIM>(0);
     //! Whether the indices include the interior of the patch.
     bool overwrite_interior = true;
-    //! The pattern itself if its kind is OTHER, otherwise null.
-    const SAMRAI::xfer::VariableFillPattern<NDIM>* other = nullptr;
+    //! The pattern itself if its kind is OTHER, otherwise null. Storing the pattern reserves its address while
+    //! the shape exists, so two shapes of kind OTHER are equal only for the same pattern.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> other;
 
     bool operator==(const FillPatternShape& that) const;
     bool operator!=(const FillPatternShape& that) const;

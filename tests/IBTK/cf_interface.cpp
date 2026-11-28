@@ -19,6 +19,7 @@
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/private/CachedGhostCellFill.h>
+#include <ibtk/private/InterfaceFaceGhostCopy.h>
 
 #include <tbox/Logger.h>
 
@@ -36,6 +37,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <iomanip>
 #include <limits>
@@ -70,6 +72,11 @@ using namespace coarse_fine_ghost_values;
 // With REPLACE_BC_OBJECT = TRUE, the test instead fills with a cached fill operator and one Robin coefficient object,
 // destroys the object, constructs a different object with different boundary data in the same storage, and checks that
 // the next cached fill, which uses its operator, gives the ghost values of a fresh fill with the new object.
+//
+// With RESET_FACE_COPY_PATTERN = TRUE and side-centered data, the test instead releases the fill pattern of an
+// InterfaceFaceGhostCopy, which has a pattern of the kind OTHER, and resets the object with a different pattern that is
+// constructed in the storage of the released one. The reset must stop with an error. The test returns normally if it
+// does not.
 //
 // For each run, the input filename must be given on the command line. In all cases, the command line is:
 //
@@ -384,6 +391,58 @@ check_cached_fill_after_replacing_bc_object(Pointer<PatchHierarchy<NDIM>> patch_
             "replaced\n");
     }
 } // check_cached_fill_after_replacing_bc_object
+
+// A fill pattern of the kind OTHER whose objects use two fixed slots, so that a new object takes the address of a
+// released one if the slot is free.
+class SlotFillPattern : public SideNoCornersFillPattern
+{
+public:
+    using SideNoCornersFillPattern::SideNoCornersFillPattern;
+
+    static void* operator new(std::size_t size)
+    {
+        for (int k = 0; k < 2; ++k)
+        {
+            if (!s_used[k] && size <= sizeof(s_slots[k]))
+            {
+                s_used[k] = true;
+                return s_slots[k];
+            }
+        }
+        throw std::bad_alloc();
+    }
+
+    static void operator delete(void* ptr)
+    {
+        for (int k = 0; k < 2; ++k)
+        {
+            if (ptr == s_slots[k])
+            {
+                s_used[k] = false;
+            }
+        }
+    }
+
+private:
+    inline static bool s_used[2] = { false, false };
+    alignas(std::max_align_t) inline static unsigned char s_slots[2][256];
+};
+
+// Construct an InterfaceFaceGhostCopy with a fill pattern, release the pattern, and reset the object with a different
+// pattern that is constructed in the storage of the released one. The reset must stop, because the pattern differs,
+// although the addresses are equal. If the reset returns, this function returns normally.
+void
+check_face_copy_reset_with_new_pattern(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                                       const int Q_idx,
+                                       const int ghost_width)
+{
+    Pointer<VariableFillPattern<NDIM>> pattern = new SlotFillPattern(ghost_width, false);
+    IBTK::detail::InterfaceFaceGhostCopy face_copy(
+        patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber(), Q_idx, Q_idx, pattern, false);
+    pattern.setNull();
+    Pointer<VariableFillPattern<NDIM>> new_pattern = new SlotFillPattern(ghost_width, false);
+    face_copy.resetPatchDataIndices(Q_idx, Q_idx, new_pattern);
+} // check_face_copy_reset_with_new_pattern
 } // namespace
 
 int
@@ -489,6 +548,12 @@ main(int argc, char* argv[])
             // Q_copy receives the result of the first fill and Q_nc the result of the fresh fill.
             check_cached_fill_after_replacing_bc_object(
                 patch_hierarchy, Q_idx, Q_copy_idx, Q_nc_idx, refine_op_name, Q_fcn);
+            return 0;
+        }
+
+        if (input_db->getBoolWithDefault("RESET_FACE_COPY_PATTERN", false))
+        {
+            check_face_copy_reset_with_new_pattern(patch_hierarchy, Q_idx, ghost_width);
             return 0;
         }
 

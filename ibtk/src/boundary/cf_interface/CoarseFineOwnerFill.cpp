@@ -555,10 +555,12 @@ CoarseFineOwnerFill::CoarseFineOwnerFill(Pointer<PatchHierarchy<NDIM>> hierarchy
 
     setGhostWidth();
 
-    d_levels = std::vector<Level>(d_finest_ln + 1);
+    d_geometry = findGeometry();
+    d_levels = std::vector<LevelState>(d_finest_ln + 1);
     for (int ln = std::max(1, d_coarsest_ln); ln <= d_finest_ln; ++ln)
     {
-        setUpLevel(ln);
+        setUpValues(ln);
+        setUpWork(ln);
     }
 } // CoarseFineOwnerFill
 
@@ -582,8 +584,18 @@ CoarseFineOwnerFill::resetPatchDataIndices(const int dst_data_idx,
     d_src_idx = src_data_idx;
     const detail::FillPatternShape old_shape = detail::fill_pattern_shape(d_fill_pattern, d_ghost_width);
     d_fill_pattern = fill_pattern;
+    const IntVector<NDIM> old_ghost_width = d_ghost_width;
     const IntVector<NDIM> old_fill_width = d_fill_width;
     setGhostWidth();
+    if (d_ghost_width != old_ghost_width)
+    {
+        Pointer<Variable<NDIM>> var;
+        VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(d_dst_idx, var);
+        TBOX_ERROR("CoarseFineOwnerFill::resetPatchDataIndices():\n"
+                   << "  the ghost width of variable " << var->getName() << " changes from " << old_ghost_width
+                   << " to " << d_ghost_width << "\n"
+                   << "  call initializeOperatorState() again to change the ghost width\n");
+    }
     if (d_fill_width != old_fill_width)
     {
         Pointer<Variable<NDIM>> var;
@@ -637,7 +649,7 @@ CoarseFineOwnerFill::copyTangentialValues(const CoarseFineOwnerFill& from, const
 {
     for (auto& entry : d_levels[ln].work)
     {
-        const PatchWork& source = from.d_levels[ln].work.at(entry.first);
+        const PatchState& source = from.d_levels[ln].work.at(entry.first);
         for (std::size_t code = 0; code < entry.second.tangential.size(); ++code)
         {
             if (!entry.second.tangential[code])
@@ -656,7 +668,7 @@ CoarseFineOwnerFill::copyTangentialValues(const CoarseFineOwnerFill& from, const
 bool
 CoarseFineOwnerFill::hasValues(const int ln) const
 {
-    return ln >= 0 && ln < static_cast<int>(d_levels.size()) && d_levels[ln].active;
+    return ln >= 0 && ln < static_cast<int>(d_levels.size()) && d_geometry->levels[ln].active;
 } // hasValues
 
 void
@@ -666,11 +678,11 @@ CoarseFineOwnerFill::computeValues(const int ln)
     {
         return;
     }
-    Level& L = d_levels[ln];
-    for (auto& entry : L.work)
+    const Geometry::Level& G = d_geometry->levels[ln];
+    for (auto& entry : d_levels[ln].work)
     {
-        Pointer<Patch<NDIM>> patch = L.level->getPatch(entry.first);
-        computeNormal(entry.second, *patch, L.level->getRatioToCoarserLevel());
+        Pointer<Patch<NDIM>> patch = G.level->getPatch(entry.first);
+        computeNormal(G.work.at(entry.first), entry.second, *patch, G.level->getRatioToCoarserLevel());
     }
 } // computeValues
 
@@ -681,14 +693,15 @@ CoarseFineOwnerFill::appendTransactions(const int ln, Schedule& schedule)
     {
         return;
     }
-    Level& L = d_levels[ln];
-    const ProcessorMapping& mapping = L.level->getProcessorMapping();
-    for (const Transfer& t : L.transfers)
+    const Geometry::Level& G = d_geometry->levels[ln];
+    const LevelState& L = d_levels[ln];
+    const ProcessorMapping& mapping = G.level->getProcessorMapping();
+    for (const Geometry::Transfer& t : G.transfers)
     {
         // The arrays do not depend on the patch data indices.
         auto work_it = L.work.find(t.src_patch);
         auto receiver_it = L.receivers.find(t.dst_patch);
-        ArrayData<NDIM, double>* src = work_it == L.work.end() ? nullptr : work_it->second.tasks[t.task].owned.get();
+        ArrayData<NDIM, double>* src = work_it == L.work.end() ? nullptr : work_it->second.owned[t.task].get();
         ArrayData<NDIM, double>* dst =
             receiver_it == L.receivers.end() ? nullptr : receiver_it->second.slots[t.ci][t.code].get();
         schedule.appendTransaction(new ArrayDataTransaction(
@@ -709,12 +722,14 @@ CoarseFineOwnerFill::copyValues(const int ln)
     {
         return;
     }
-    Level& L = d_levels[ln];
+    const Geometry::Level& G = d_geometry->levels[ln];
+    const LevelState& L = d_levels[ln];
     // The value is the average of the values of the directions, summed in the order of the directions.
-    for (auto& entry : L.receivers)
+    for (const auto& entry : G.receivers)
     {
-        const Receiver& r = entry.second;
-        Pointer<PatchData<NDIM>> dst_data = L.level->getPatch(entry.first)->getPatchData(d_dst_idx);
+        const Geometry::Receiver& r = entry.second;
+        const ReceiverState& values = L.receivers.at(entry.first);
+        Pointer<PatchData<NDIM>> dst_data = G.level->getPatch(entry.first)->getPatchData(d_dst_idx);
         for (std::size_t ci = 0; ci < d_comps.size(); ++ci)
         {
             ArrayData<NDIM, double>& result = array_data(dst_data, d_comps[ci]);
@@ -726,7 +741,7 @@ CoarseFineOwnerFill::copyValues(const int ln)
                 {
                     if (piece.directions[code])
                     {
-                        slots[count++] = r.slots[ci][code].get();
+                        slots[count++] = values.slots[ci][code].get();
                     }
                 }
                 const double n = static_cast<double>(count);
@@ -783,17 +798,17 @@ CoarseFineOwnerFill::postprocessRefine(Patch<NDIM>& fine,
         return;
     }
     const int ln = fine.getPatchLevelNumber();
-    if (ln < 1 || ln >= static_cast<int>(d_levels.size()) || !d_levels[ln].active)
+    if (ln < 1 || ln >= static_cast<int>(d_levels.size()) || !d_geometry->levels[ln].active)
     {
         return;
     }
-    Level& L = d_levels[ln];
-    auto it = L.work.find(fine.getPatchNumber());
-    if (it == L.work.end() || &fine != L.level->getPatch(fine.getPatchNumber()).getPointer())
+    const Geometry::Level& G = d_geometry->levels[ln];
+    auto it = d_levels[ln].work.find(fine.getPatchNumber());
+    if (it == d_levels[ln].work.end() || &fine != G.level->getPatch(fine.getPatchNumber()).getPointer())
     {
         return;
     }
-    computeTangential(ln, it->second, coarse, fine_box, ratio);
+    computeTangential(ln, G.work.at(fine.getPatchNumber()), it->second, coarse, fine_box, ratio);
 } // postprocessRefine
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -810,9 +825,8 @@ CoarseFineOwnerFill::setGhostWidth()
 } // setGhostWidth
 
 void
-CoarseFineOwnerFill::checkFillWidth(const int ln) const
+CoarseFineOwnerFill::checkFillWidth(const int ln, const IntVector<NDIM>& ratio) const
 {
-    const IntVector<NDIM> ratio = d_levels[ln].level->getRatioToCoarserLevel();
     int axis = -1;
     for (int d = 0; d < NDIM && axis < 0; ++d)
     {
@@ -836,13 +850,59 @@ CoarseFineOwnerFill::checkFillWidth(const int ln) const
                << "  use a ghost width or a fill pattern width of at most the refinement ratio\n");
 } // checkFillWidth
 
-void
-CoarseFineOwnerFill::setUpLevel(const int ln)
+std::shared_ptr<const CoarseFineOwnerFill::Geometry>
+CoarseFineOwnerFill::findGeometry() const
 {
-    Level& L = d_levels[ln];
+    // The existing geometries; the registry stores weak pointers only.
+    static std::vector<std::weak_ptr<const Geometry>> registry;
+    const detail::FillPatternShape shape = detail::fill_pattern_shape(d_fill_pattern, d_ghost_width);
+    const int first_ln = std::max(1, d_coarsest_ln);
+    const bool shareable = shape.kind != detail::FillPatternShape::Kind::OTHER && first_ln <= d_finest_ln;
+    if (shareable)
+    {
+        for (auto it = registry.begin(); it != registry.end();)
+        {
+            std::shared_ptr<const Geometry> g = it->lock();
+            if (!g)
+            {
+                it = registry.erase(it);
+                continue;
+            }
+            if (g->identity.matches(*d_hierarchy, first_ln, d_finest_ln) && g->is_cell == d_is_cell &&
+                g->ghost_width == d_ghost_width && g->shape == shape)
+            {
+                return g;
+            }
+            ++it;
+        }
+    }
+
+    auto geometry = std::make_shared<Geometry>();
+    // An empty level range has no identity, so such a geometry is never shared.
+    if (first_ln <= d_finest_ln) geometry->identity.changed(*d_hierarchy, first_ln, d_finest_ln);
+    geometry->first_ln = first_ln;
+    geometry->finest_ln = d_finest_ln;
+    geometry->is_cell = d_is_cell;
+    geometry->ghost_width = d_ghost_width;
+    geometry->shape = shape;
+    geometry->levels.resize(d_finest_ln + 1);
+    for (int ln = first_ln; ln <= d_finest_ln; ++ln)
+    {
+        setUpLevel(ln, geometry->levels[ln]);
+    }
+    if (shareable)
+    {
+        registry.push_back(geometry);
+    }
+    return geometry;
+} // findGeometry
+
+void
+CoarseFineOwnerFill::setUpLevel(const int ln, Geometry::Level& L) const
+{
     L.level = d_hierarchy->getPatchLevel(ln);
-    checkFillWidth(ln);
     const IntVector<NDIM> ratio = L.level->getRatioToCoarserLevel();
+    checkFillWidth(ln, ratio);
     for (int d = 0; d < NDIM; ++d)
     {
         if (ratio(d) < 2)
@@ -921,7 +981,6 @@ CoarseFineOwnerFill::setUpLevel(const int ln)
     };
 
     // The values of each task within the fill pattern of the destination, shifted to its ghost cells.
-    L.transfers.clear();
     std::map<int, std::vector<BoxList<NDIM>>> fill_indices;
     for (const auto& pair : pairs)
     {
@@ -954,7 +1013,6 @@ CoarseFineOwnerFill::setUpLevel(const int ln)
     }
 
     // The tasks that the local patches compute.
-    L.work.clear();
     for (PatchLevel<NDIM>::Iterator p(L.level); p; p++)
     {
         const std::vector<TaskGeometry>& patch_tasks = tasks_of(p());
@@ -962,34 +1020,29 @@ CoarseFineOwnerFill::setUpLevel(const int ln)
         {
             continue;
         }
-        PatchWork& pw = L.work[p()];
+        Geometry::PatchWork& pw = L.work[p()];
         pw.box = boxes[p()];
         for (const TaskGeometry& t : patch_tasks)
         {
             const int comp = d_comps[t.ci];
             const int d = t.code / 2, s = (t.code % 2 == 0 ? +1 : -1);
             const Box<NDIM> kernel = kernel_box(t.index_box, comp, d, s, boxes[p()]);
-            auto owned = std::make_unique<ArrayData<NDIM, double>>(index_box(kernel, comp), d_depth);
-            owned->fillAll(0.0);
-            pw.tasks.push_back({ comp, d, s, t.index_box, kernel, std::move(owned) });
+            pw.tasks.push_back({ comp, d, s, t.index_box, kernel });
         }
     }
 
-    setUpReceivers(ln);
+    setUpReceivers(ln, L);
     L.active = !L.work.empty() || !L.receivers.empty() || !L.transfers.empty();
-    setUpWork(ln);
 } // setUpLevel
 
 void
-CoarseFineOwnerFill::setUpReceivers(const int ln)
+CoarseFineOwnerFill::setUpReceivers(const int ln, Geometry::Level& L) const
 {
-    Level& L = d_levels[ln];
-    L.receivers.clear();
     const ProcessorMapping& mapping = L.level->getProcessorMapping();
 
     // The disjoint cells (faces) of each component and direction that each local patch gets. Each value has one source.
     std::map<int, std::vector<std::array<BoxList<NDIM>, 2 * NDIM>>> regions;
-    for (const Transfer& t : L.transfers)
+    for (const Geometry::Transfer& t : L.transfers)
     {
         if (!mapping.isMappingLocal(t.dst_patch))
         {
@@ -1015,12 +1068,13 @@ CoarseFineOwnerFill::setUpReceivers(const int ln)
 
     for (const auto& entry : regions)
     {
-        Receiver& receiver = L.receivers[entry.first];
-        receiver.slots.resize(d_comps.size());
+        Geometry::Receiver& receiver = L.receivers[entry.first];
+        receiver.slot_boxes.resize(d_comps.size());
+        receiver.has_slot.resize(d_comps.size());
         receiver.pieces.resize(d_comps.size());
         for (std::size_t ci = 0; ci < d_comps.size(); ++ci)
         {
-            std::vector<Piece> pieces;
+            std::vector<Geometry::Piece> pieces;
             for (int code = 0; code < 2 * NDIM; ++code)
             {
                 const BoxList<NDIM>& region = entry.second[ci][code];
@@ -1028,11 +1082,11 @@ CoarseFineOwnerFill::setUpReceivers(const int ln)
                 {
                     continue;
                 }
-                receiver.slots[ci][code] = std::make_unique<ArrayData<NDIM, double>>(region.getBoundingBox(), d_depth);
-                receiver.slots[ci][code]->fillAll(std::numeric_limits<double>::quiet_NaN());
+                receiver.slot_boxes[ci][code] = region.getBoundingBox();
+                receiver.has_slot[ci][code] = true;
                 std::array<bool, 2 * NDIM> only_code = {};
                 only_code[code] = true;
-                std::vector<Piece> next;
+                std::vector<Geometry::Piece> next;
                 BoxList<NDIM> fresh = region;
                 for (const auto& piece : pieces)
                 {
@@ -1064,13 +1118,48 @@ CoarseFineOwnerFill::setUpReceivers(const int ln)
 } // setUpReceivers
 
 void
+CoarseFineOwnerFill::setUpValues(const int ln)
+{
+    const Geometry::Level& G = d_geometry->levels[ln];
+    LevelState& L = d_levels[ln];
+    for (const auto& entry : G.work)
+    {
+        PatchState& state = L.work[entry.first];
+        for (const auto& task : entry.second.tasks)
+        {
+            state.owned.push_back(
+                std::make_unique<ArrayData<NDIM, double>>(index_box(task.kernel_box, task.comp), d_depth));
+            state.owned.back()->fillAll(0.0);
+        }
+    }
+    for (const auto& entry : G.receivers)
+    {
+        ReceiverState& receiver = L.receivers[entry.first];
+        receiver.slots.resize(d_comps.size());
+        for (std::size_t ci = 0; ci < d_comps.size(); ++ci)
+        {
+            for (int code = 0; code < 2 * NDIM; ++code)
+            {
+                if (entry.second.has_slot[ci][code])
+                {
+                    receiver.slots[ci][code] =
+                        std::make_unique<ArrayData<NDIM, double>>(entry.second.slot_boxes[ci][code], d_depth);
+                    receiver.slots[ci][code]->fillAll(std::numeric_limits<double>::quiet_NaN());
+                }
+            }
+        }
+    }
+} // setUpValues
+
+void
 CoarseFineOwnerFill::setUpWork(const int ln)
 {
-    Level& L = d_levels[ln];
-    for (auto& entry : L.work)
+    const Geometry::Level& G = d_geometry->levels[ln];
+    for (auto& entry : d_levels[ln].work)
     {
-        PatchWork& pw = entry.second;
-        for (const auto& task : pw.tasks)
+        const Geometry::PatchWork& gw = G.work.at(entry.first);
+        PatchState& pw = entry.second;
+        for (const auto& task : gw.tasks)
         {
             const int code = location_index(task.d, task.s);
             if (pw.tangential[code])
@@ -1079,31 +1168,31 @@ CoarseFineOwnerFill::setUpWork(const int ln)
             }
             if (d_is_cell)
             {
-                pw.tangential[code] = new CellData<NDIM, double>(pw.box, d_depth, IntVector<NDIM>(d_work_gcw));
+                pw.tangential[code] = new CellData<NDIM, double>(gw.box, d_depth, IntVector<NDIM>(d_work_gcw));
             }
             else
             {
-                pw.tangential[code] = new SideData<NDIM, double>(pw.box, d_depth, IntVector<NDIM>(d_work_gcw));
+                pw.tangential[code] = new SideData<NDIM, double>(gw.box, d_depth, IntVector<NDIM>(d_work_gcw));
             }
         }
         if (d_is_cell)
         {
             Pointer<CellData<NDIM, double>> work =
-                new CellData<NDIM, double>(pw.box, d_depth, IntVector<NDIM>(d_work_gcw));
+                new CellData<NDIM, double>(gw.box, d_depth, IntVector<NDIM>(d_work_gcw));
             work->fillAll(0.0);
             pw.work = work;
         }
         else
         {
             Pointer<SideData<NDIM, double>> work =
-                new SideData<NDIM, double>(pw.box, d_depth, IntVector<NDIM>(d_work_gcw));
+                new SideData<NDIM, double>(gw.box, d_depth, IntVector<NDIM>(d_work_gcw));
             Pointer<SideData<NDIM, double>> result =
-                new SideData<NDIM, double>(pw.box, d_depth, IntVector<NDIM>(d_work_gcw));
+                new SideData<NDIM, double>(gw.box, d_depth, IntVector<NDIM>(d_work_gcw));
             work->fillAll(0.0);
             result->fillAll(0.0);
             pw.work = work;
             pw.result = result;
-            pw.indicator = new SideData<NDIM, int>(pw.box, 1, IntVector<NDIM>(d_work_gcw));
+            pw.indicator = new SideData<NDIM, int>(gw.box, 1, IntVector<NDIM>(d_work_gcw));
             pw.indicator->fillAll(0);
         }
     }
@@ -1112,7 +1201,8 @@ CoarseFineOwnerFill::setUpWork(const int ln)
 
 void
 CoarseFineOwnerFill::computeTangential(const int ln,
-                                       PatchWork& pw,
+                                       const Geometry::PatchWork& pw,
+                                       PatchState& state,
                                        const Patch<NDIM>& coarse,
                                        const Box<NDIM>& fine_box,
                                        const IntVector<NDIM>& ratio)
@@ -1168,7 +1258,7 @@ CoarseFineOwnerFill::computeTangential(const int ln,
         }
 #endif
         const int loc = location_index(task.d, task.s);
-        Pointer<PatchData<NDIM>> T = pw.tangential[loc];
+        Pointer<PatchData<NDIM>> T = state.tangential[loc];
         for (int depth = 0; depth < d_depth; ++depth)
         {
             if (d_is_cell)
@@ -1200,7 +1290,7 @@ CoarseFineOwnerFill::computeTangential(const int ln,
             }
             else
             {
-                Pointer<SideData<NDIM, int>> indicator = pw.indicator;
+                Pointer<SideData<NDIM, int>> indicator = state.indicator;
                 SC_QUAD_TANGENTIAL_INTERPOLATION_FC(data_pointer(T, 0, depth),
                                                     data_pointer(T, 1, depth),
 #if (NDIM == 3)
@@ -1245,17 +1335,21 @@ CoarseFineOwnerFill::computeTangential(const int ln,
 } // computeTangential
 
 void
-CoarseFineOwnerFill::computeNormal(PatchWork& pw, Patch<NDIM>& patch, const IntVector<NDIM>& ratio)
+CoarseFineOwnerFill::computeNormal(const Geometry::PatchWork& pw,
+                                   PatchState& state,
+                                   Patch<NDIM>& patch,
+                                   const IntVector<NDIM>& ratio)
 {
     Pointer<PatchData<NDIM>> source = patch.getPatchData(d_src_idx);
     const Box<NDIM>& fbox = pw.box;
-    for (const auto& task : pw.tasks)
+    for (std::size_t k = 0; k < pw.tasks.size(); ++k)
     {
+        const Geometry::Task& task = pw.tasks[k];
         const int loc = location_index(task.d, task.s);
         const Box<NDIM> filled = filled_index_box(task.kernel_box, task.comp, task.d, task.s);
-        Pointer<PatchData<NDIM>> T = pw.tangential[loc];
+        Pointer<PatchData<NDIM>> T = state.tangential[loc];
         // The tangential values and the fine values that the formula uses, where the kernel uses them.
-        ArrayData<NDIM, double>& W = array_data(pw.work, task.comp);
+        ArrayData<NDIM, double>& W = array_data(state.work, task.comp);
         copy_on(W, array_data(T, task.comp), filled);
         // The kernels use the first two layers of the patch next to the slab.
         Box<NDIM> first = task.kernel_box;
@@ -1277,7 +1371,7 @@ CoarseFineOwnerFill::computeNormal(PatchWork& pw, Patch<NDIM>& patch, const IntV
         {
             if (d_is_cell)
             {
-                CC_QUAD_NORMAL_INTERPOLATION_FC(data_pointer(pw.work, -1, depth),
+                CC_QUAD_NORMAL_INTERPOLATION_FC(data_pointer(state.work, -1, depth),
                                                 d_work_gcw,
                                                 fbox.lower(0),
                                                 fbox.upper(0),
@@ -1294,17 +1388,17 @@ CoarseFineOwnerFill::computeNormal(PatchWork& pw, Patch<NDIM>& patch, const IntV
             }
             else
             {
-                Pointer<SideData<NDIM, int>> indicator = pw.indicator;
-                SC_QUAD_NORMAL_INTERPOLATION_FC(data_pointer(pw.result, 0, depth),
-                                                data_pointer(pw.result, 1, depth),
+                Pointer<SideData<NDIM, int>> indicator = state.indicator;
+                SC_QUAD_NORMAL_INTERPOLATION_FC(data_pointer(state.result, 0, depth),
+                                                data_pointer(state.result, 1, depth),
 #if (NDIM == 3)
-                                                data_pointer(pw.result, 2, depth),
+                                                data_pointer(state.result, 2, depth),
 #endif
                                                 d_work_gcw,
-                                                data_pointer(pw.work, 0, depth),
-                                                data_pointer(pw.work, 1, depth),
+                                                data_pointer(state.work, 0, depth),
+                                                data_pointer(state.work, 1, depth),
 #if (NDIM == 3)
-                                                data_pointer(pw.work, 2, depth),
+                                                data_pointer(state.work, 2, depth),
 #endif
                                                 d_work_gcw,
                                                 indicator->getPointer(0),
@@ -1328,7 +1422,7 @@ CoarseFineOwnerFill::computeNormal(PatchWork& pw, Patch<NDIM>& patch, const IntV
             }
         }
         // The values go to the owned values of the task.
-        copy_on(*task.owned, d_is_cell ? array_data(pw.work, -1) : array_data(pw.result, task.comp), filled);
+        copy_on(*state.owned[k], d_is_cell ? array_data(state.work, -1) : array_data(state.result, task.comp), filled);
     }
 } // computeNormal
 

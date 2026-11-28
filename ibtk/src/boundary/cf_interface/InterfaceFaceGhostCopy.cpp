@@ -100,14 +100,190 @@ InterfaceFaceGhostCopy::InterfaceFaceGhostCopy(Pointer<PatchHierarchy<NDIM>> hie
       d_protect(protect_faces),
       d_levels(finest_ln + 1)
 {
+    d_ghost_width = VariableDatabase<NDIM>::getDatabase()
+                        ->getPatchDescriptor()
+                        ->getPatchDataFactory(d_data_idx)
+                        ->getGhostCellWidth();
+    d_shape = fill_pattern_shape(fill_pattern, d_ghost_width);
+    d_geometry = findGeometry(fill_pattern, coarsest_ln, finest_ln);
+} // InterfaceFaceGhostCopy
+
+void
+InterfaceFaceGhostCopy::resetPatchDataIndices(const int dst_data_idx,
+                                              const int src_data_idx,
+                                              Pointer<VariableFillPattern<NDIM>> fill_pattern)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const IntVector<NDIM> ghost_width =
+        var_db->getPatchDescriptor()->getPatchDataFactory(dst_data_idx)->getGhostCellWidth();
+    if (ghost_width != d_ghost_width || fill_pattern_shape(fill_pattern, ghost_width) != d_shape)
+    {
+        Pointer<Variable<NDIM>> var;
+        var_db->mapIndexToVariable(dst_data_idx, var);
+        TBOX_ERROR("InterfaceFaceGhostCopy::resetPatchDataIndices():\n"
+                   << "  the ghost width or fill pattern of variable " << var->getName() << " changes\n"
+                   << "  call initializeOperatorState() again to change the ghost width or fill pattern\n");
+    }
+    d_data_idx = dst_data_idx;
+    d_src_idx = src_data_idx;
+} // resetPatchDataIndices
+
+bool
+InterfaceFaceGhostCopy::protectsFaces() const
+{
+    return d_protect;
+} // protectsFaces
+
+void
+InterfaceFaceGhostCopy::save(const int ln)
+{
+    const Geometry::Level& G = d_geometry->levels[ln];
+    LevelState& L = d_levels[ln];
+    L.saved_values.clear();
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        auto it = G.faces.find(p());
+        if (it == G.faces.end())
+        {
+            continue;
+        }
+        Pointer<SideData<NDIM, double>> data = level->getPatch(p())->getPatchData(d_data_idx);
+        std::vector<std::vector<double>>& saved = L.saved_values[p()];
+        saved.assign(NDIM, std::vector<double>());
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            for (typename BoxList<NDIM>::Iterator bl(it->second[axis]); bl; bl++)
+            {
+                for (BoxIterator<NDIM> bi(*bl); bi; bi++)
+                {
+                    for (int depth = 0; depth < data->getDepth(); ++depth)
+                    {
+                        saved[axis].push_back(data->getArrayData(axis)(bi(), depth));
+                    }
+                }
+            }
+        }
+    }
+} // save
+
+void
+InterfaceFaceGhostCopy::restore(const Patch<NDIM>& patch)
+{
+    const int ln = patch.getPatchLevelNumber();
+    if (ln < 1 || ln >= static_cast<int>(d_levels.size()))
+    {
+        return;
+    }
+    const Geometry::Level& G = d_geometry->levels[ln];
+    const LevelState& L = d_levels[ln];
+    auto it = G.faces.find(patch.getPatchNumber());
+    auto saved_it = L.saved_values.find(patch.getPatchNumber());
+    if (it == G.faces.end() || saved_it == L.saved_values.end())
+    {
+        return;
+    }
+    Pointer<SideData<NDIM, double>> data = patch.getPatchData(d_data_idx);
+    const std::vector<std::vector<double>>& saved = saved_it->second;
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        std::size_t k = 0;
+        for (typename BoxList<NDIM>::Iterator bl(it->second[axis]); bl; bl++)
+        {
+            for (BoxIterator<NDIM> bi(*bl); bi; bi++)
+            {
+                for (int depth = 0; depth < data->getDepth(); ++depth)
+                {
+                    data->getArrayData(axis)(bi(), depth) = saved[axis][k++];
+                }
+            }
+        }
+    }
+} // restore
+
+void
+InterfaceFaceGhostCopy::appendTransactions(const int ln, Schedule& schedule)
+{
+    if (ln < 1 || ln >= static_cast<int>(d_levels.size()))
+    {
+        return;
+    }
+    const Geometry::Level& L = d_geometry->levels[ln];
+    if (L.copies.empty())
+    {
+        return;
+    }
+    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+    const ProcessorMapping& mapping = level->getProcessorMapping();
+    Pointer<SideDataFactory<NDIM, double>> factory =
+        VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor()->getPatchDataFactory(d_data_idx);
+    const int depth = factory->getDefaultDepth();
+    for (const Geometry::Copy& c : L.copies)
+    {
+        // The arrays are looked up when the transaction runs, since the patch data indices can change.
+        auto src = [this, level, c]() -> ArrayData<NDIM, double>&
+        {
+            Pointer<SideData<NDIM, double>> data = level->getPatch(c.src_patch)->getPatchData(d_src_idx);
+            return data->getArrayData(c.axis);
+        };
+        auto dst = [this, level, c]() -> ArrayData<NDIM, double>&
+        {
+            Pointer<SideData<NDIM, double>> data = level->getPatch(c.dst_patch)->getPatchData(d_data_idx);
+            return data->getArrayData(c.axis);
+        };
+        schedule.appendTransaction(new ArrayDataTransaction(mapping.getProcessorAssignment(c.src_patch),
+                                                            mapping.getProcessorAssignment(c.dst_patch),
+                                                            c.box,
+                                                            c.offset,
+                                                            depth,
+                                                            src,
+                                                            dst));
+    }
+} // appendTransactions
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+std::shared_ptr<const InterfaceFaceGhostCopy::Geometry>
+InterfaceFaceGhostCopy::findGeometry(Pointer<VariableFillPattern<NDIM>> fill_pattern,
+                                     const int coarsest_ln,
+                                     const int finest_ln) const
+{
+    // The existing geometries; the registry stores weak pointers only.
+    static std::vector<std::weak_ptr<const Geometry>> registry;
+    const int first_ln = std::max(1, coarsest_ln);
+    const bool shareable = d_shape.kind != FillPatternShape::Kind::OTHER && first_ln <= finest_ln;
+    if (shareable)
+    {
+        for (auto it = registry.begin(); it != registry.end();)
+        {
+            std::shared_ptr<const Geometry> g = it->lock();
+            if (!g)
+            {
+                it = registry.erase(it);
+                continue;
+            }
+            if (g->identity.matches(*d_hierarchy, first_ln, finest_ln) && g->ghost_width == d_ghost_width &&
+                g->shape == d_shape && g->protect_faces == d_protect)
+            {
+                return g;
+            }
+            ++it;
+        }
+    }
+
+    auto geometry = std::make_shared<Geometry>();
+    // An empty level range has no identity, so such a geometry is never shared.
+    if (first_ln <= finest_ln) geometry->identity.changed(*d_hierarchy, first_ln, finest_ln);
+    geometry->first_ln = first_ln;
+    geometry->finest_ln = finest_ln;
+    geometry->ghost_width = d_ghost_width;
+    geometry->shape = d_shape;
+    geometry->protect_faces = d_protect;
+    geometry->levels.resize(finest_ln + 1);
     // Ghost faces exist only if the data have ghost cells.
-    const IntVector<NDIM> ghost_width = VariableDatabase<NDIM>::getDatabase()
-                                            ->getPatchDescriptor()
-                                            ->getPatchDataFactory(d_data_idx)
-                                            ->getGhostCellWidth();
+    const IntVector<NDIM>& ghost_width = d_ghost_width;
     const bool has_ghosts = ghost_width.max() > 0;
-    d_shape = fill_pattern_shape(fill_pattern, ghost_width);
-    for (int ln = std::max(1, coarsest_ln); ln <= finest_ln; ++ln)
+    for (int ln = first_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         const BoxList<NDIM> domain_cells(level->getPhysicalDomain());
@@ -126,7 +302,7 @@ InterfaceFaceGhostCopy::InterfaceFaceGhostCopy(Pointer<PatchHierarchy<NDIM>> hie
 
         const BoxArray<NDIM>& boxes = level->getBoxes();
         LevelBoxIndex index(*level);
-        Level& L = d_levels[ln];
+        Geometry::Level& L = geometry->levels[ln];
         std::map<int, std::vector<BoxList<NDIM>>> faces;
         auto faces_of = [&](const int k) -> const std::vector<BoxList<NDIM>>&
         {
@@ -201,138 +377,12 @@ InterfaceFaceGhostCopy::InterfaceFaceGhostCopy(Pointer<PatchHierarchy<NDIM>> hie
             }
         }
     }
-} // InterfaceFaceGhostCopy
-
-void
-InterfaceFaceGhostCopy::resetPatchDataIndices(const int dst_data_idx,
-                                              const int src_data_idx,
-                                              Pointer<VariableFillPattern<NDIM>> fill_pattern)
-{
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const IntVector<NDIM> ghost_width =
-        var_db->getPatchDescriptor()->getPatchDataFactory(dst_data_idx)->getGhostCellWidth();
-    if (fill_pattern_shape(fill_pattern, ghost_width) != d_shape)
+    if (shareable)
     {
-        Pointer<Variable<NDIM>> var;
-        var_db->mapIndexToVariable(dst_data_idx, var);
-        TBOX_ERROR("InterfaceFaceGhostCopy::resetPatchDataIndices():\n"
-                   << "  the fill width or fill pattern of variable " << var->getName() << " changes\n"
-                   << "  call initializeOperatorState() again to change the fill width or fill pattern\n");
+        registry.push_back(geometry);
     }
-    d_data_idx = dst_data_idx;
-    d_src_idx = src_data_idx;
-} // resetPatchDataIndices
-
-bool
-InterfaceFaceGhostCopy::protectsFaces() const
-{
-    return d_protect;
-} // protectsFaces
-
-void
-InterfaceFaceGhostCopy::save(const int ln)
-{
-    Level& L = d_levels[ln];
-    L.saved_values.clear();
-    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        auto it = L.faces.find(p());
-        if (it == L.faces.end())
-        {
-            continue;
-        }
-        Pointer<SideData<NDIM, double>> data = level->getPatch(p())->getPatchData(d_data_idx);
-        std::vector<std::vector<double>>& saved = L.saved_values[p()];
-        saved.assign(NDIM, std::vector<double>());
-        for (int axis = 0; axis < NDIM; ++axis)
-        {
-            for (typename BoxList<NDIM>::Iterator bl(it->second[axis]); bl; bl++)
-            {
-                for (BoxIterator<NDIM> bi(*bl); bi; bi++)
-                {
-                    for (int depth = 0; depth < data->getDepth(); ++depth)
-                    {
-                        saved[axis].push_back(data->getArrayData(axis)(bi(), depth));
-                    }
-                }
-            }
-        }
-    }
-} // save
-
-void
-InterfaceFaceGhostCopy::restore(const Patch<NDIM>& patch)
-{
-    const int ln = patch.getPatchLevelNumber();
-    if (ln < 1 || ln >= static_cast<int>(d_levels.size()))
-    {
-        return;
-    }
-    Level& L = d_levels[ln];
-    auto it = L.faces.find(patch.getPatchNumber());
-    auto saved_it = L.saved_values.find(patch.getPatchNumber());
-    if (it == L.faces.end() || saved_it == L.saved_values.end())
-    {
-        return;
-    }
-    Pointer<SideData<NDIM, double>> data = patch.getPatchData(d_data_idx);
-    const std::vector<std::vector<double>>& saved = saved_it->second;
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        std::size_t k = 0;
-        for (typename BoxList<NDIM>::Iterator bl(it->second[axis]); bl; bl++)
-        {
-            for (BoxIterator<NDIM> bi(*bl); bi; bi++)
-            {
-                for (int depth = 0; depth < data->getDepth(); ++depth)
-                {
-                    data->getArrayData(axis)(bi(), depth) = saved[axis][k++];
-                }
-            }
-        }
-    }
-} // restore
-
-void
-InterfaceFaceGhostCopy::appendTransactions(const int ln, Schedule& schedule)
-{
-    if (ln < 1 || ln >= static_cast<int>(d_levels.size()))
-    {
-        return;
-    }
-    const Level& L = d_levels[ln];
-    if (L.copies.empty())
-    {
-        return;
-    }
-    Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
-    const ProcessorMapping& mapping = level->getProcessorMapping();
-    Pointer<SideDataFactory<NDIM, double>> factory =
-        VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor()->getPatchDataFactory(d_data_idx);
-    const int depth = factory->getDefaultDepth();
-    for (const Copy& c : L.copies)
-    {
-        // The arrays are looked up when the transaction runs, since the patch data indices can change.
-        auto src = [this, level, c]() -> ArrayData<NDIM, double>&
-        {
-            Pointer<SideData<NDIM, double>> data = level->getPatch(c.src_patch)->getPatchData(d_src_idx);
-            return data->getArrayData(c.axis);
-        };
-        auto dst = [this, level, c]() -> ArrayData<NDIM, double>&
-        {
-            Pointer<SideData<NDIM, double>> data = level->getPatch(c.dst_patch)->getPatchData(d_data_idx);
-            return data->getArrayData(c.axis);
-        };
-        schedule.appendTransaction(new ArrayDataTransaction(mapping.getProcessorAssignment(c.src_patch),
-                                                            mapping.getProcessorAssignment(c.dst_patch),
-                                                            c.box,
-                                                            c.offset,
-                                                            depth,
-                                                            src,
-                                                            dst));
-    }
-} // appendTransactions
+    return geometry;
+} // findGeometry
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

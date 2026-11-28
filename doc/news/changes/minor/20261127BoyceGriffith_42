@@ -1,0 +1,3 @@
+Improved: Build the coarse-fine interface geometry once for the ghost-cell fills of IBTK::HierarchyGhostCellInterpolation and the FAC preconditioners that use the same levels, centering, ghost width, and fill pattern.
+<br>
+(Boyce Griffith, 2026/11/27)
