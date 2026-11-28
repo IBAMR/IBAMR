@@ -24,6 +24,7 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
@@ -211,6 +212,11 @@ private:
      * \brief Viscosity patch data index.
      */
     int d_mu_idx = IBTK::invalid_index;
+
+    /*!
+     * \brief Cached ghost-cell fills of the level set, the velocity, the viscosity, and the pressure.
+     */
+    IBTK::detail::CachedGhostCellFill d_ls_fill, d_u_fill, d_mu_fill, d_p_fill;
 
     /*!
      * \brief Viscosity for the constant mu case.
