@@ -261,12 +261,6 @@ INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_
             if (d_comp_idx == bdry_normal_axis)
             {
                 // Set du/dn = 0.
-                //
-                // NOTE: We would prefer to determine the ghost cell value of
-                // the normal velocity so that div u = 0 in the ghost cell.
-                // This could be done here, but it is more convenient to do so
-                // as a post-processing step after the tangential velocity ghost
-                // cell values have all been set.
                 alpha = 0.0;
                 beta = 1.0;
                 gamma = 0.0;

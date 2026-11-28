@@ -193,6 +193,15 @@ INSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
+bool
+INSStaggeredVelocityBcCoef::dependsOnTargetPatchData(const Patch<NDIM>& patch,
+                                                     const BoundaryBox<NDIM>& bdry_box,
+                                                     const double fill_time) const
+{
+    return d_traction_bc_type == TRACTION &&
+           detail::traction_data_depend_on_velocity(d_bc_coefs[d_comp_idx], d_comp_idx, patch, bdry_box, fill_time);
+} // dependsOnTargetPatchData
+
 void
 INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,
                                        Pointer<ArrayData<NDIM, double>>& bcoef_data,
@@ -291,11 +300,9 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_d
             {
                 // Set du/dn = 0.
                 //
-                // NOTE: We would prefer to determine the ghost cell value of
-                // the normal velocity so that div u = 0 in the ghost cell.
-                // This could be done here, but it is more convenient to do so
-                // as a post-processing step after the tangential velocity ghost
-                // cell values have all been set.
+                // NOTE: The Stokes operator uses this reflection. For the IB and convective fills,
+                // INSStaggeredDivergenceFreePhysBdryOp sets the normal velocity ghost value so that div u = 0 in the
+                // ghost cell.
                 alpha = 0.0;
                 beta = 1.0;
                 gamma = 0.0;

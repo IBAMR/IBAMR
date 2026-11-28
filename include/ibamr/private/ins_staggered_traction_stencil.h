@@ -23,6 +23,7 @@
 #include <tbox/Pointer.h>
 
 #include <ArrayData.h>
+#include <BoundaryBox.h>
 #include <Index.h>
 #include <Patch.h>
 #include <PatchHierarchy.h>
@@ -136,6 +137,17 @@ double get_divergence_free_ghost_value(const SAMRAI::pdat::SideData<NDIM, double
  * \brief Return whether any of \a u_bc_coefs is a StokesBcCoefStrategy with TRACTION conditions.
  */
 bool has_normal_stress_term(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+
+/*!
+ * Return whether the TRACTION conditions of the velocity component with the Robin coefficient object \a comp_bc_coef
+ * make its boundary data on \a bdry_box of \a patch at \a fill_time depend on the velocity: the component is tangential
+ * to the box and a face that the fill sets has TRACTION coefficients.
+ */
+bool traction_data_depend_on_velocity(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* comp_bc_coef,
+                                      unsigned int comp_idx,
+                                      const SAMRAI::hier::Patch<NDIM>& patch,
+                                      const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                      double fill_time);
 } // namespace detail
 } // namespace IBAMR
 

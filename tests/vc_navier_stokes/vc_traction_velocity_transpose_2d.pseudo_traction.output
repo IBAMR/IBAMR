@@ -1,0 +1,5 @@
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+(f, E u)   = -11.0308513245
+(E^T f, u) = -11.0308513245

@@ -22,6 +22,8 @@
 
 #include <ibtk/ibtk_utilities.h>
 
+#include <BoundaryBox.h>
+#include <Patch.h>
 #include <RobinBcCoefStrategy.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -68,6 +70,15 @@ public:
      * boundary conditions.
      */
     virtual void setHomogeneousBc(bool homogeneous_bc);
+
+    /*!
+     * \brief Return whether the boundary data on \a bdry_box of \a patch at \a fill_time depend on the target patch
+     * data. If they do, accumulating the ghost values is not the transpose of the fill. The default implementation
+     * returns false.
+     */
+    virtual bool dependsOnTargetPatchData(const SAMRAI::hier::Patch<NDIM>& patch,
+                                          const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                          double fill_time) const;
 
     //\}
 
