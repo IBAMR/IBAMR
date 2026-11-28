@@ -121,7 +121,7 @@ IndexUtilities::getCellCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::Cartesia
         patch_dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
     const SAMRAI::hier::Box<NDIM> domain_box =
-        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain().getBoundingBox(), ratio);
     const double* const grid_x_lower = grid_geom->getXLower();
     const SAMRAI::hier::Index<NDIM>& grid_lower_idx = domain_box.lower();
 
@@ -188,7 +188,7 @@ IndexUtilities::getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::Cartesia
         patch_dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
     const SAMRAI::hier::Box<NDIM> domain_box =
-        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain().getBoundingBox(), ratio);
     const double* const grid_x_lower = grid_geom->getXLower();
     const SAMRAI::hier::Index<NDIM>& grid_lower_idx = domain_box.lower();
 
@@ -249,7 +249,7 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
         dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
     const SAMRAI::hier::Box<NDIM> domain_box =
-        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain().getBoundingBox(), ratio);
     return getCellIndex(X, grid_geom->getXLower(), grid_geom->getXUpper(), dx, domain_box.lower(), domain_box.upper());
 } // getCellIndex
 

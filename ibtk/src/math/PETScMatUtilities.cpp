@@ -900,7 +900,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const hier::Index<NDIM>& domain_lower = domain_boxes[0].lower();
+    const hier::Index<NDIM> domain_lower = domain_boxes.getBoundingBox().lower();
 
     // The processor mapping determines which patches are assigned to which processors.
     const ProcessorMapping& proc_mapping = patch_level->getProcessorMapping();

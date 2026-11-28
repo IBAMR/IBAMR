@@ -305,7 +305,15 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 {
     if (d_num_meters == 0) return;
 
-    if (!d_initialized) initializeHierarchyIndependentData(ib_method_ops);
+    if (!d_initialized)
+    {
+        if (!hierarchy->getGridGeometry()->getDomainIsSingleBox())
+        {
+            TBOX_ERROR("IBFEInstrumentPanel::readInstrumentData : "
+                       << "the physical domain must be a single box\n");
+        }
+        initializeHierarchyIndependentData(ib_method_ops);
+    }
 
     // Update the meter meshes to correspond to the current configuration of the FE mesh.
     for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
@@ -402,8 +410,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
-    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain().getBoundingBox();
     for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
     {
         const libMesh::Point x_centroid = put_point_in_domain(
@@ -702,8 +709,7 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
-    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain().getBoundingBox();
 
     const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
     std::array<double, NDIM> dx_finest;
