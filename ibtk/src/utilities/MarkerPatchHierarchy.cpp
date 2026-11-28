@@ -18,6 +18,7 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/MarkerPatchHierarchy.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/BoxArrayIndex.h>
 
 #include <tbox/RestartManager.h>
 
@@ -95,7 +96,11 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM>>& c_level,
     }
     finer_box_list.simplifyBoxes();
 
-    // Remove said boxes from each coarse-level patch:
+    // Remove said boxes from each coarse-level patch. Removing a box that does not intersect the patch changes nothing,
+    // so each patch removes only the boxes that intersect it, in the order of the list:
+    const detail::BoxArrayIndex finer_boxes(BoxArray<NDIM>(finer_box_list),
+                                            std::vector<IntVector<NDIM>>(1, IntVector<NDIM>(0)));
+    std::vector<int> finer_box_indices;
     const auto rank = IBTK_MPI::getRank();
     std::vector<std::vector<Box<NDIM>>> result;
     long coarse_size = 0;
@@ -104,7 +109,11 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM>>& c_level,
         BoxList<NDIM> coarse_box_list;
         coarse_box_list.addItem(coarse_level->getBoxForPatch(i));
         coarse_size += coarse_box_list.getFirstItem().size();
-        coarse_box_list.removeIntersections(finer_box_list);
+        finer_boxes.findOverlapIndices(finer_box_indices, coarse_level->getBoxForPatch(i));
+        for (const int j : finer_box_indices)
+        {
+            coarse_box_list.removeIntersections(finer_boxes.getBoxes()[j]);
+        }
 
         const bool patch_is_local = rank == coarse_level->getMappingForPatch(i);
         if (patch_is_local) result.emplace_back();

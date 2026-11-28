@@ -23,6 +23,7 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CoarseFineBoundaryCache.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -309,6 +310,7 @@ private:
     int d_level_num = IBTK::invalid_level_number;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM>> d_cf_boundary;
+    IBTK::detail::CoarseFineBoundaryCache d_coarse_fine_boundary_cache;
 
     /*!
      * \name hypre objects.

@@ -316,7 +316,8 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     d_level = d_hierarchy->getPatchLevel(d_level_num);
     if (d_level_num > 0)
     {
-        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+        d_cf_boundary =
+            d_coarse_fine_boundary_cache.getCoarseFineBoundary(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
     }
 
     // Setup data cache.

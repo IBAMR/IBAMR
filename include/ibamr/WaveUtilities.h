@@ -23,6 +23,10 @@
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
+
 #include <tbox/Pointer.h>
 
 #include <Variable.h>
@@ -96,6 +100,14 @@ struct WaveDampingData
     double d_x_zone_start, d_x_zone_end, d_depth;
     double d_alpha;
     int d_sign_gas_phase = 1;
+
+    /*
+     * Level set scratch index, registered on first use, and the cached ghost-cell fill of the scratch level set with
+     * the hierarchy levels it was built for. Used by the conserved wave absorbing callback.
+     */
+    int d_phi_scratch_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_phi_fill;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
 
 }; // WaveDampingData
 

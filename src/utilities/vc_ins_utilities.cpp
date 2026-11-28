@@ -28,6 +28,37 @@ namespace IBAMR
 
 namespace VCINSUtilities
 {
+namespace
+{
+// Return the operator that fills the ghost cells of a scratch level set. Build it if the hierarchy levels differ from
+// those of fill_levels. Otherwise reset its components, so that it uses the current source indices and Robin boundary
+// condition coefficient objects, which resetTransactionComponents() sets without rebuilding the communication
+// schedules.
+Pointer<HierarchyGhostCellInterpolation>
+get_level_set_fill(
+    const std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent>& ls_transaction_comps,
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+    IBTK::detail::HierarchyLevelsIdentity& fill_levels,
+    Pointer<HierarchyGhostCellInterpolation>& fill)
+{
+    if (fill_levels.changed(*patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber()))
+    {
+        fill.setNull();
+    }
+
+    if (!fill)
+    {
+        fill = new HierarchyGhostCellInterpolation();
+        fill->initializeOperatorState(ls_transaction_comps, patch_hierarchy);
+    }
+    else
+    {
+        fill->resetTransactionComponents(ls_transaction_comps);
+    }
+    return fill;
+} // get_level_set_fill
+} // namespace
+
 void
 callSetDensityCallbackFunction(int rho_idx,
                                Pointer<Variable<NDIM>> rho_var,
@@ -118,6 +149,21 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
     return;
 } // SetFluidProperties
 
+SetFluidProperties::~SetFluidProperties()
+{
+    d_ls_fill.setNull();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    if (d_ls_gas_scratch_idx != IBTK::invalid_index)
+    {
+        var_db->removePatchDataIndex(d_ls_gas_scratch_idx);
+    }
+    if (d_ls_solid_scratch_idx != IBTK::invalid_index)
+    {
+        var_db->removePatchDataIndex(d_ls_solid_scratch_idx);
+    }
+    return;
+} // ~SetFluidProperties
+
 void
 SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
                                                    Pointer<Variable<NDIM>> rho_var,
@@ -185,9 +231,13 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
     {
         // Note, this method requires ghost cells to be filled for the level set variable
         RobinBcCoefStrategy<NDIM>* ls_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_gas_var).front();
-        IntVector<NDIM> cell_ghosts = 1;
-        const int ls_scratch_idx = var_db->registerVariableAndContext(
-            d_ls_gas_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts);
+        if (d_ls_gas_scratch_idx == IBTK::invalid_index)
+        {
+            IntVector<NDIM> cell_ghosts = 1;
+            d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
+                d_ls_gas_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts);
+        }
+        const int ls_scratch_idx = d_ls_gas_scratch_idx;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(ls_scratch_idx, time);
@@ -201,9 +251,7 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
                                                          "LINEAR",
                                                          false,
                                                          ls_bc_coef);
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(ls_transaction, patch_hierarchy);
-        hier_bdry_fill->fillData(time);
+        get_level_set_fill({ ls_transaction }, patch_hierarchy, d_fill_levels, d_ls_fill)->fillData(time);
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -264,7 +312,6 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
         {
             patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(ls_scratch_idx);
         }
-        var_db->removePatchDataIndex(ls_scratch_idx);
     }
 
     return;
@@ -365,11 +412,16 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
         // Note, this method requires ghost cells to be filled for the level set variable
         RobinBcCoefStrategy<NDIM>* ls_solid_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var).front();
         RobinBcCoefStrategy<NDIM>* ls_gas_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_ls_gas_var).front();
-        IntVector<NDIM> cell_ghosts = 1;
-        const int ls_solid_scratch_idx = var_db->registerVariableAndContext(
-            d_ls_solid_var, var_db->getContext(d_object_name + "::SOLID::SCRATCH"), cell_ghosts);
-        const int ls_gas_scratch_idx = var_db->registerVariableAndContext(
-            d_ls_gas_var, var_db->getContext(d_object_name + "::GAS::SCRATCH"), cell_ghosts);
+        if (d_ls_gas_scratch_idx == IBTK::invalid_index)
+        {
+            IntVector<NDIM> cell_ghosts = 1;
+            d_ls_solid_scratch_idx = var_db->registerVariableAndContext(
+                d_ls_solid_var, var_db->getContext(d_object_name + "::SOLID::SCRATCH"), cell_ghosts);
+            d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
+                d_ls_gas_var, var_db->getContext(d_object_name + "::GAS::SCRATCH"), cell_ghosts);
+        }
+        const int ls_solid_scratch_idx = d_ls_solid_scratch_idx;
+        const int ls_gas_scratch_idx = d_ls_gas_scratch_idx;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(ls_solid_scratch_idx, time);
@@ -393,9 +445,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                                                                     "LINEAR",
                                                                     false,
                                                                     ls_gas_bc_coef);
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(ls_transaction_comps, patch_hierarchy);
-        hier_bdry_fill->fillData(time);
+        get_level_set_fill(ls_transaction_comps, patch_hierarchy, d_fill_levels, d_ls_fill)->fillData(time);
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -508,8 +558,6 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                 patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(ls_solid_scratch_idx);
                 patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(ls_gas_scratch_idx);
             }
-            var_db->removePatchDataIndex(ls_solid_scratch_idx);
-            var_db->removePatchDataIndex(ls_gas_scratch_idx);
         }
 
         return;
@@ -697,6 +745,16 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
         return;
     } // GravityForcing
 
+    GravityForcing::~GravityForcing()
+    {
+        d_ls_fill.setNull();
+        if (d_ls_gas_scratch_idx != IBTK::invalid_index)
+        {
+            VariableDatabase<NDIM>::getDatabase()->removePatchDataIndex(d_ls_gas_scratch_idx);
+        }
+        return;
+    } // ~GravityForcing
+
     bool GravityForcing::isTimeDependent() const
     {
         return true;
@@ -725,9 +783,12 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             const bool ls_gas_new_is_allocated = d_adv_diff_hierarchy_integrator->isAllocatedPatchData(ls_gas_new_idx);
             int ls_gas_idx = ls_gas_new_is_allocated ? ls_gas_new_idx : ls_gas_current_idx;
 
-            IntVector<NDIM> cell_ghosts = 1;
-            d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
-                d_ls_gas_var, var_db->getContext(d_object_name + "::LS_GAS_SCRATCH"), cell_ghosts);
+            if (d_ls_gas_scratch_idx == IBTK::invalid_index)
+            {
+                IntVector<NDIM> cell_ghosts = 1;
+                d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
+                    d_ls_gas_var, var_db->getContext(d_object_name + "::LS_GAS_SCRATCH"), cell_ghosts);
+            }
 
 #if !defined(NDEBUG)
             TBOX_ASSERT(ls_gas_idx >= 0);
@@ -750,9 +811,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                                                   "LINEAR",
                                                   false,
                                                   d_adv_diff_hierarchy_integrator->getPhysicalBcCoefs(d_ls_gas_var));
-            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_bdry_fill->initializeOperatorState(ls_transaction_comp, hierarchy);
-            hier_bdry_fill->fillData(data_time);
+            get_level_set_fill(ls_transaction_comp, hierarchy, d_fill_levels, d_ls_fill)->fillData(data_time);
         }
 
         // Fill data on each patch level
@@ -765,7 +824,6 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             {
                 hierarchy->getPatchLevel(ln)->deallocatePatchData(d_ls_gas_scratch_idx);
             }
-            var_db->removePatchDataIndex(d_ls_gas_scratch_idx);
         }
 
         return;
