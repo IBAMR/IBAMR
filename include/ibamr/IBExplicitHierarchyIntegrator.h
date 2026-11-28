@@ -66,7 +66,12 @@ namespace IBAMR
  * - Specify the IB kernel in the input database as IB_delta_fcn
  * - Specify the output directory for H5Part data in the input database as
      viz_dump_dirname
- * - Set marker point positions with setMarkerPoints()
+ * - Set marker point positions with setMarkers()
+ * - Markers move with co-located IB nodes of a structure on the finest level when
+ *   IB_delta_fcn matches the IB kernel, IBFE uses IB_use_nodal_quadrature, the
+ *   structure predictor is used or num_cycles is at least 2, and the
+ *   Lagrangian-Eulerian operators are not fixed.
+ * - Beyond a physical boundary, a marker gets the velocity from the ghost cells, while an IBFE node gets zero.
  */
 class IBExplicitHierarchyIntegrator : public IBHierarchyIntegrator
 {
@@ -244,16 +249,15 @@ private:
     void getFromRestart();
 
     /*!
-     * Fill the ghost cells of the velocity that advects the marker points, and
-     * also of the velocity at the halfway point if \p include_half_time is
-     * true.
+     * Fill the ghost cells of the marker velocity with patch data index
+     * \p u_idx, which is d_u_idx or d_u_half_idx, at the time \p fill_time.
      */
-    void fillMarkerVelocityGhostCells(bool include_half_time, double fill_time);
+    void fillMarkerVelocityGhostCells(int u_idx, double fill_time);
 
     /*!
      * Ghost cell filling operators for marker point advection. The first fills
-     * d_u_idx and the second fills d_u_idx and d_u_half_idx. They are set up on
-     * first use after the patch hierarchy changes.
+     * d_u_idx and the second fills d_u_half_idx. They are set up on first use
+     * after the patch hierarchy changes.
      */
     std::array<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation>, 2> d_marker_u_fill_ops;
 
