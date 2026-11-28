@@ -581,6 +581,14 @@ public:
                 int finest_ln = invalid_level_number);
 
     /*!
+     * \brief Emit an error unless each point of the level is processed on exactly one patch, as in interp() and
+     * spread().
+     *
+     * This function is collective. The arrays of X_data must not be in use.
+     */
+    void checkEachPointProcessedOnce(int level_number, SAMRAI::tbox::Pointer<LData> X_data) const;
+
+    /*!
      * Register a concrete strategy object with the integrator that specifies
      * the initial configuration of the curvilinear mesh nodes.
      *
@@ -1063,14 +1071,6 @@ protected:
     ~LDataManager();
 
 private:
-    /*!
-     * \brief Emit an error unless each point of the level is processed on exactly one patch, as in interp() and
-     * spread().
-     *
-     * This function is collective. The arrays of X_data must not be in use.
-     */
-    void checkEachPointProcessedOnce(int level_number, SAMRAI::tbox::Pointer<LData> X_data) const;
-
     /*!
      * \brief Default constructor.
      *

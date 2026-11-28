@@ -1,0 +1,17 @@
+IBHierarchyIntegrator_one_patch::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator_one_patch::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+WARNING: IMPMethod implementation currently requires that the initial velocity is *zero*.
+IMPInitializer_one_patch:  Deallocating initialization data.
+layout one_patch: regrids = 29
+IBHierarchyIntegrator_two_halves::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator_two_halves::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+WARNING: IMPMethod implementation currently requires that the initial velocity is *zero*.
+IMPInitializer_two_halves:  Deallocating initialization data.
+layout two_halves: regrids = 29
+points compared = 2592
+faces compared = 2112
+U_sum_squares = 2346.901246
+Grad_U_sum_squares = 202406.8056
+f_sum_squares = 712.9095478

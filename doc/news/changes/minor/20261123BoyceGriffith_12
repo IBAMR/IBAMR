@@ -1,0 +1,3 @@
+New: Make IBTK::LDataManager::checkEachPointProcessedOnce() public. It stops with an error unless each Lagrangian point of a level is processed on exactly one patch.
+<br>
+(Boyce Griffith, 2026/11/23)
