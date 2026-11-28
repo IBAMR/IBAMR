@@ -1,0 +1,8 @@
+level 0, marker 0: interpolated value = 2.85
+level 0, marker 1: interpolated value = 0
+level 1, marker 0: interpolated value = 2.45
+level 1, marker 1: interpolated value = 2.61
+after spreading on level 0: integral on level 0 = 1
+after spreading on level 0: integral on level 1 = 0
+after spreading on level 1: integral on level 0 = 1
+after spreading on level 1: integral on level 1 = 2
