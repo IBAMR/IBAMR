@@ -16,6 +16,7 @@
 #include <ibamr/CIBMethod.h>
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/MobilityFunctions.h>
+#include <ibamr/private/ib_velocity_ghost_fill.h>
 
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/IBTK_MPI.h>
@@ -24,6 +25,7 @@
 #include <ibtk/LMesh.h>
 #include <ibtk/LNode.h>
 #include <ibtk/LSiloDataWriter.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Array.h>
@@ -668,7 +670,7 @@ CIBMethod::spreadForce(
 #endif
         if (f_phys_bdry_op == nullptr)
         {
-            IBMethod::spreadForce(f_data_idx, d_u_phys_bdry_op, f_prolongation_scheds, data_time);
+            IBMethod::spreadForce(f_data_idx, getVelocityPhysBdryOp(), f_prolongation_scheds, data_time);
         }
         else
         {
@@ -1111,6 +1113,18 @@ CIBMethod::getInterpolatedVelocity(Vec V, const double data_time, const double s
 
     return;
 } // getInterpolatedVelocity
+
+void
+CIBMethod::fillVelocityPhysBdryGhostValues(const int u_data_idx, const bool homogeneous_bc, const double fill_time)
+{
+    IBTK::RobinPhysBdryPatchStrategy* const u_phys_bdry_op = getVelocityPhysBdryOp();
+    if (u_phys_bdry_op)
+    {
+        detail::fill_velocity_phys_bdry_ghost_values(
+            *u_phys_bdry_op, u_data_idx, d_hierarchy, homogeneous_bc, fill_time);
+    }
+    return;
+} // fillVelocityPhysBdryGhostValues
 
 void
 CIBMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
@@ -1712,6 +1726,12 @@ CIBMethod::flagRegrid() const
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+IBTK::RobinPhysBdryPatchStrategy*
+CIBMethod::getVelocityPhysBdryOp() const
+{
+    return d_u_phys_bdry_op ? d_u_phys_bdry_op : d_ib_solver->getVelocityPhysBdryOp();
+} // getVelocityPhysBdryOp
 
 void
 CIBMethod::getFromInput(Pointer<Database> input_db)

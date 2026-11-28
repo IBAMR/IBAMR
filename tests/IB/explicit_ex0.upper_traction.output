@@ -1,0 +1,122 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+IBRedundantInitializer:  Deallocating initialization data.
+At beginning of timestep # 0
+At beginning of timestep # 1
+At beginning of timestep # 2
+At beginning of timestep # 3
+At beginning of timestep # 4
+At beginning of timestep # 5
+At beginning of timestep # 6
+At beginning of timestep # 7
+At beginning of timestep # 8
+At beginning of timestep # 9
+At beginning of timestep # 10
+At beginning of timestep # 11
+At beginning of timestep # 12
+At beginning of timestep # 13
+At beginning of timestep # 14
+At beginning of timestep # 15
+At beginning of timestep # 16
+At beginning of timestep # 17
+At beginning of timestep # 18
+At beginning of timestep # 19
+At beginning of timestep # 20
+At beginning of timestep # 21
+At beginning of timestep # 22
+At beginning of timestep # 23
+At beginning of timestep # 24
+At beginning of timestep # 25
+At beginning of timestep # 26
+At beginning of timestep # 27
+At beginning of timestep # 28
+At beginning of timestep # 29
+At beginning of timestep # 30
+At beginning of timestep # 31
+At beginning of timestep # 32
+At beginning of timestep # 33
+At beginning of timestep # 34
+At beginning of timestep # 35
+At beginning of timestep # 36
+At beginning of timestep # 37
+At beginning of timestep # 38
+At beginning of timestep # 39
+Error in u at time 0.01:
+  L1-norm:  0.05557203032
+  L2-norm:  0.1461637756
+  max-norm: 2.296711263
+Error in p at time 0.009875:
+  L1-norm:  1.199009982
+  L2-norm:  1.878454123
+  max-norm: 10.16598978
+
+At beginning of timestep # 40
+At beginning of timestep # 41
+At beginning of timestep # 42
+At beginning of timestep # 43
+At beginning of timestep # 44
+At beginning of timestep # 45
+At beginning of timestep # 46
+At beginning of timestep # 47
+At beginning of timestep # 48
+At beginning of timestep # 49
+At beginning of timestep # 50
+At beginning of timestep # 51
+At beginning of timestep # 52
+At beginning of timestep # 53
+At beginning of timestep # 54
+At beginning of timestep # 55
+At beginning of timestep # 56
+At beginning of timestep # 57
+At beginning of timestep # 58
+At beginning of timestep # 59
+At beginning of timestep # 60
+At beginning of timestep # 61
+At beginning of timestep # 62
+At beginning of timestep # 63
+At beginning of timestep # 64
+At beginning of timestep # 65
+At beginning of timestep # 66
+At beginning of timestep # 67
+At beginning of timestep # 68
+At beginning of timestep # 69
+At beginning of timestep # 70
+At beginning of timestep # 71
+At beginning of timestep # 72
+At beginning of timestep # 73
+At beginning of timestep # 74
+At beginning of timestep # 75
+At beginning of timestep # 76
+At beginning of timestep # 77
+At beginning of timestep # 78
+At beginning of timestep # 79
+Error in u at time 0.02:
+  L1-norm:  0.09789732925
+  L2-norm:  0.1806937189
+  max-norm: 1.448120621
+Error in p at time 0.019875:
+  L1-norm:  1.200484749
+  L2-norm:  1.898370782
+  max-norm: 8.764305875
+
+At beginning of timestep # 80
+At beginning of timestep # 81
+At beginning of timestep # 82
+At beginning of timestep # 83
+At beginning of timestep # 84
+At beginning of timestep # 85
+At beginning of timestep # 86
+At beginning of timestep # 87
+At beginning of timestep # 88
+At beginning of timestep # 89
+At beginning of timestep # 90
+At beginning of timestep # 91
+At beginning of timestep # 92
+At beginning of timestep # 93
+At beginning of timestep # 94
+At beginning of timestep # 95
+At beginning of timestep # 96
+At beginning of timestep # 97
+At beginning of timestep # 98
+At beginning of timestep # 99

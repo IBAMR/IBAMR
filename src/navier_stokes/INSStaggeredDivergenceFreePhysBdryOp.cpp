@@ -180,6 +180,9 @@ struct INSStaggeredDivergenceFreePhysBdryOp::Extension
     std::vector<int> not_computable_faces;
     std::vector<DataPoint> points;
     std::vector<Batch> batches;
+
+    // The types of the boundary conditions that the extension was built for.
+    std::vector<signed char> bc_types;
 };
 
 /*!
@@ -198,6 +201,10 @@ public:
                      double fill_time);
 
     std::shared_ptr<Extension> build();
+
+    // Return the type of the boundary condition at each boundary face that the extension can use: 1 for a prescribed
+    // velocity, 2 for a prescribed traction, and 0 otherwise.
+    std::vector<signed char> evaluateBcTypes();
 
 private:
     // A weighted sum of values and data points.
@@ -381,7 +388,7 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::ExtensionBuilder(const I
 std::shared_ptr<INSStaggeredDivergenceFreePhysBdryOp::Extension>
 INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::build()
 {
-    evaluateBcCoefficients();
+    d_extension->bc_types = evaluateBcTypes();
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (Box<NDIM>::Iterator b(d_fill_box[axis]); b; b++)
@@ -396,6 +403,24 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::build()
     groupDataPoints();
     return d_extension;
 } // build
+
+std::vector<signed char>
+INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::evaluateBcTypes()
+{
+    evaluateBcCoefficients();
+    std::vector<signed char> types;
+    for (const auto& entry : d_bc_coefficients)
+    {
+        const BcCoefficients& bc_coefficients = entry.second;
+        for (Box<NDIM>::Iterator b(bc_coefficients.box); b; b++)
+        {
+            const double alpha = (*bc_coefficients.acoef_data)(b(), 0);
+            const double beta = (*bc_coefficients.bcoef_data)(b(), 0);
+            types.push_back(alpha == 1.0 && beta == 0.0 ? 1 : (alpha == 0.0 && beta == 1.0 ? 2 : 0));
+        }
+    }
+    return types;
+} // evaluateBcTypes
 
 void
 INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::addTerm(std::vector<Extension::Term>& terms,
@@ -1062,7 +1087,16 @@ INSStaggeredDivergenceFreePhysBdryOp::Extension::evaluateDataPoints(
         // getExtension() checks that the fill width is at most the ghost width of the viscosity data.
         TBOX_ASSERT(mu_array.getBox().contains(point.mu_index));
 #endif
-        return mu_array(point.mu_index, 0);
+        const double value = mu_array(point.mu_index, 0);
+        if (!(value > 0.0))
+        {
+            TBOX_ERROR(
+                "INSStaggeredDivergenceFreePhysBdryOp::Extension::evaluateDataPoints():\n"
+                << "  the viscosity " << value << " at index " << point.mu_index << " of patch "
+                << patch.getPatchNumber() << " of level " << patch.getPatchLevelNumber() << " is not positive\n"
+                << "  register initial conditions for the viscosity if only reset functions set it at the new time\n");
+        }
+        return value;
     };
     for (const auto& batch : batches)
     {
@@ -1181,6 +1215,13 @@ INSStaggeredDivergenceFreePhysBdryOp::clearCache()
     d_extension_cache.clear();
     return;
 } // clearCache
+
+void
+INSStaggeredDivergenceFreePhysBdryOp::checkBoundaryConditionTypes()
+{
+    ++d_check_number;
+    return;
+} // checkBoundaryConditionTypes
 
 void
 INSStaggeredDivergenceFreePhysBdryOp::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* /*bc_coef*/)
@@ -1309,12 +1350,39 @@ INSStaggeredDivergenceFreePhysBdryOp::getExtension(Patch<NDIM>& patch,
         key[3 * NDIM + d] = u_data->getGhostCellWidth()(d);
         key[4 * NDIM + d] = gcw_to_fill(d);
     }
-    const auto it = d_extension_cache.find(key);
-    if (it != d_extension_cache.end())
-    {
-        return it->second;
-    }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM>> u_var;
+    var_db->mapIndexToVariable(patch_data_idx, u_var);
+    // The extension depends on the boundary conditions only through their types. Evaluate them once for each fill time
+    // after a check, and share an extension among the times with equal types.
+    CachedExtension& cached = d_extension_cache[key];
+    if (cached.check_number != d_check_number)
+    {
+        cached.extensions.clear();
+        for (const auto& time_extension : cached.by_time)
+        {
+            cached.extensions.push_back(time_extension.second);
+        }
+        cached.by_time.clear();
+        cached.check_number = d_check_number;
+    }
+    for (const auto& time_extension : cached.by_time)
+    {
+        if (time_extension.first == fill_time) return time_extension.second;
+    }
+    if (!cached.extensions.empty())
+    {
+        const auto bc_types =
+            ExtensionBuilder(*d_fluid_solver, patch, u_var, *u_data, gcw_to_fill, fill_time).evaluateBcTypes();
+        for (const auto& extension : cached.extensions)
+        {
+            if (extension->bc_types == bc_types)
+            {
+                cached.by_time.emplace_back(fill_time, extension);
+                return extension;
+            }
+        }
+    }
     if (!d_fluid_solver->muIsConstant())
     {
         const int mu_idx = d_fluid_solver->getInterpolatedLinearOperatorMuPatchDataIndex();
@@ -1328,11 +1396,10 @@ INSStaggeredDivergenceFreePhysBdryOp::getExtension(Patch<NDIM>& patch,
                           "initializing the fluid solver\n");
         }
     }
-    Pointer<Variable<NDIM>> u_var;
-    var_db->mapIndexToVariable(patch_data_idx, u_var);
     ExtensionBuilder builder(*d_fluid_solver, patch, u_var, *u_data, gcw_to_fill, fill_time);
     std::shared_ptr<const Extension> extension = builder.build();
-    d_extension_cache[key] = extension;
+    cached.extensions.push_back(extension);
+    cached.by_time.emplace_back(fill_time, extension);
     return extension;
 } // getExtension
 

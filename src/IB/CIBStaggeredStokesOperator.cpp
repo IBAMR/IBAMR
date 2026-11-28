@@ -102,6 +102,9 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
     d_U_interp_fill = new HierarchyGhostCellInterpolation();
     d_U_interp_comp = getVelocityInterpComponent(in.getComponentDescriptorIndex(0));
     d_U_interp_fill->initializeOperatorState(d_U_interp_comp, in.getPatchHierarchy());
+    d_U_rhs_interp_fill = new HierarchyGhostCellInterpolation();
+    d_U_rhs_interp_comp = getVelocityRhsInterpComponent(in.getComponentDescriptorIndex(0));
+    d_U_rhs_interp_fill->initializeOperatorState(d_U_rhs_interp_comp, in.getPatchHierarchy());
     return;
 } // initializeOperatorState
 
@@ -112,6 +115,11 @@ CIBStaggeredStokesOperator::deallocateOperatorState()
     {
         d_U_interp_fill->deallocateOperatorState();
         d_U_interp_fill.setNull();
+    }
+    if (d_U_rhs_interp_fill)
+    {
+        d_U_rhs_interp_fill->deallocateOperatorState();
+        d_U_rhs_interp_fill.setNull();
     }
     StaggeredStokesOperator::deallocateOperatorState();
     return;
@@ -174,6 +182,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     // (c) Rigid body velocity constraint.
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
+    d_cib_strategy->fillVelocityPhysBdryGhostValues(U_idx, d_homogeneous_bc, d_solution_time);
     ib_method_ops->interpolateVelocity(
         U_idx, std::vector<Pointer<CoarsenSchedule<NDIM>>>(), std::vector<Pointer<RefineSchedule<NDIM>>>(), half_time);
 
@@ -238,7 +247,14 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
 
-        fillVelocityGhostCells(U_idx);
+#if !defined(NDEBUG)
+        TBOX_ASSERT(d_U_rhs_interp_fill);
+#endif
+        d_U_rhs_interp_fill->resetTransactionComponent(getVelocityRhsInterpComponent(U_idx));
+        d_U_rhs_interp_fill->setHomogeneousBc(d_homogeneous_bc);
+        d_U_rhs_interp_fill->fillData(d_solution_time);
+        d_U_rhs_interp_fill->resetTransactionComponent(d_U_rhs_interp_comp);
+        d_cib_strategy->fillVelocityPhysBdryGhostValues(U_idx, d_homogeneous_bc, d_solution_time);
 
         d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
         ib_method_ops->interpolateVelocity(U_idx,
@@ -285,6 +301,23 @@ CIBStaggeredStokesOperator::getVelocityInterpComponent(const int U_idx) const
                                                                               /*fill_pattern*/ nullptr,
                                                                               IBTK::enum_to_string(d_bdry_interp_type));
 } // getVelocityInterpComponent
+
+HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+CIBStaggeredStokesOperator::getVelocityRhsInterpComponent(const int U_idx) const
+{
+    // No refine operator and no Robin coefficients: the CIB strategy sets all the velocity ghost values outside the
+    // physical boundaries.
+    return HierarchyGhostCellInterpolation::InterpolationTransactionComponent(
+        U_idx,
+        "NONE",
+        /*use_cf_bdry_interpolation*/ false,
+        d_coarsen_type,
+        d_bdry_extrap_type,
+        /*consistent_type_2_bdry*/ false,
+        static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr),
+        /*fill_pattern*/ nullptr,
+        IBTK::enum_to_string(d_bdry_interp_type));
+} // getVelocityRhsInterpComponent
 
 void
 CIBStaggeredStokesOperator::fillVelocityGhostCells(const int U_idx)

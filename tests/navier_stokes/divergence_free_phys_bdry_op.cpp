@@ -582,6 +582,105 @@ check_unfilled_data_unread(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
          << "NaN values outside the domain in the fill boxes = " << num_nan_in_fill_box << '\n';
     return;
 } // check_unfilled_data_unread
+
+// Fill the ghost values at the time t1 of db, call checkBoundaryConditionTypes(), fill at the time t2, where the
+// boundary conditions have other types, and fill at t1 and t2 again with no call in between. On a second operator,
+// checkBoundaryConditionTypes() is called before its fills at t1 and t2, as in a time step. Check that every fill is
+// bitwise equal to that of a new operator that makes only that fill, whose types and values are those of its time.
+void
+check_type_change(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                  INSHierarchyIntegrator* ins_integrator,
+                  Pointer<Database> db,
+                  const int fill_ghost_width,
+                  const int u_idx)
+{
+    const double t1 = db->getDouble("t1");
+    const double t2 = db->getDouble("t2");
+    INSStaggeredDivergenceFreePhysBdryOp bdry_op(ins_integrator, /*homogeneous_bc*/ false);
+    INSStaggeredDivergenceFreePhysBdryOp step_bdry_op(ins_integrator, /*homogeneous_bc*/ false);
+    INSStaggeredDivergenceFreePhysBdryOp new_bdry_op_t1(ins_integrator, /*homogeneous_bc*/ false);
+    INSStaggeredDivergenceFreePhysBdryOp new_bdry_op_t2(ins_integrator, /*homogeneous_bc*/ false);
+    bdry_op.setPatchDataIndex(u_idx);
+    step_bdry_op.setPatchDataIndex(u_idx);
+    new_bdry_op_t1.setPatchDataIndex(u_idx);
+    new_bdry_op_t2.setPatchDataIndex(u_idx);
+    int num_values = 0, num_different = 0, num_other_fills = 0, num_changed = 0;
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(u_idx, t1);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double>> u_data = patch->getPatchData(u_idx);
+            const auto fill = [&](INSStaggeredDivergenceFreePhysBdryOp& op, const double time)
+            {
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator b(u_data->getArrayData(axis).getBox()); b; b++)
+                    {
+                        double phase = 4.1 * axis;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            phase += (12.9898 + 30.0 * d) * b()(d);
+                        }
+                        u_data->getArrayData(axis)(b(), 0) = std::sin(phase);
+                    }
+                }
+                op.setPhysicalBoundaryConditions(*patch, time, IntVector<NDIM>(fill_ghost_width));
+                std::vector<double> values;
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (Box<NDIM>::Iterator b(u_data->getArrayData(axis).getBox()); b; b++)
+                    {
+                        values.push_back(u_data->getArrayData(axis)(b(), 0));
+                    }
+                }
+                return values;
+            };
+            fill(bdry_op, t1);
+            bdry_op.checkBoundaryConditionTypes();
+            const std::vector<double> values_t2 = fill(bdry_op, t2);
+            const std::vector<double> again_values_t1 = fill(bdry_op, t1);
+            const std::vector<double> again_values_t2 = fill(bdry_op, t2);
+            step_bdry_op.checkBoundaryConditionTypes();
+            const std::vector<double> step_values_t1 = fill(step_bdry_op, t1);
+            const std::vector<double> step_values_t2 = fill(step_bdry_op, t2);
+            const std::vector<double> new_values_t1 = fill(new_bdry_op_t1, t1);
+            const std::vector<double> new_values_t2 = fill(new_bdry_op_t2, t2);
+            for (std::size_t n = 0; n < values_t2.size(); ++n)
+            {
+                const auto same = [](const double a, const double b)
+                { return (std::isnan(a) && std::isnan(b)) || a == b; };
+                ++num_values;
+                num_different += same(values_t2[n], new_values_t2[n]) ? 0 : 1;
+                num_other_fills += same(again_values_t1[n], new_values_t1[n]) ? 0 : 1;
+                num_other_fills += same(again_values_t2[n], new_values_t2[n]) ? 0 : 1;
+                num_other_fills += same(step_values_t1[n], new_values_t1[n]) ? 0 : 1;
+                num_other_fills += same(step_values_t2[n], new_values_t2[n]) ? 0 : 1;
+                num_changed += same(new_values_t1[n], new_values_t2[n]) ? 0 : 1;
+            }
+        }
+        level->deallocatePatchData(u_idx);
+    }
+    num_values = IBTK_MPI::sumReduction(num_values);
+    num_different = IBTK_MPI::sumReduction(num_different);
+    num_other_fills = IBTK_MPI::sumReduction(num_other_fills);
+    num_changed = IBTK_MPI::sumReduction(num_changed);
+    if (num_different != 0 || num_other_fills != 0 || num_changed == 0)
+    {
+        TBOX_ERROR("check_type_change():\n"
+                   << "  " << num_different << " values at t2 differ from those of a new operator\n"
+                   << "  " << num_other_fills << " values of the other fills differ from those of a new "
+                   << "operator\n"
+                   << "  " << num_changed << " values differ between t1 and t2\n"
+                   << "  the first two counts must be zero\n"
+                   << "  the third count must be positive\n");
+    }
+    pout << "values at t2 that differ from a new operator = " << num_different << " of " << num_values << '\n'
+         << "values that change from t1 to t2 = " << num_changed << '\n';
+    return;
+} // check_type_change
 } // namespace
 
 int
@@ -686,6 +785,11 @@ main(int argc, char* argv[])
         {
             check_unfilled_data_unread(
                 patch_hierarchy, ins_integrator, input_db->getInteger("narrow_fill_ghost_width"), u_idx);
+        }
+        if (input_db->keyExists("TypeChange"))
+        {
+            check_type_change(
+                patch_hierarchy, ins_integrator, input_db->getDatabase("TypeChange"), extension_ghost_width, u_idx);
         }
 
         for (unsigned int d = 0; d < NDIM; ++d)

@@ -156,6 +156,13 @@ private:
     getVelocityInterpComponent(int U_idx) const;
 
     /*!
+     * \brief Return the transaction component of the ghost cell fill of the velocity \a U_idx with no Robin
+     * coefficients, for the interpolation in modifyRhsForBcs().
+     */
+    IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent
+    getVelocityRhsInterpComponent(int U_idx) const;
+
+    /*!
      * \brief Fill the same-level and physical-boundary ghost cells of the side-centered velocity, for interpolation.
      *
      * \note The coarse-fine ghost cells are not set, because IB interpolation uses fine-side values only.
@@ -172,6 +179,18 @@ private:
      * fillVelocityGhostCells() resets the fill after use.
      */
     IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent d_U_interp_comp;
+
+    /*!
+     * \brief The ghost cell fill of the velocity with no Robin coefficients, for the interpolation in
+     * modifyRhsForBcs(), built in initializeOperatorState().
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_rhs_interp_fill;
+
+    /*!
+     * \brief The transaction component of d_U_rhs_interp_fill from initializeOperatorState(), to which
+     * modifyRhsForBcs() resets the fill after use.
+     */
+    IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent d_U_rhs_interp_comp;
 
     /*!
      * \brief Copy constructor.
