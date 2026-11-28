@@ -1,0 +1,3 @@
+Fixed: Make the IBTK::LEInteractor::spread() overload for edge-centered data that takes the positions only stagger each component of the data along the other two axes, as the other edge-centered overloads do. It offset each component's frame along the wrong axes, so it spread to the wrong locations.
+<br>
+(Boyce Griffith, 2026/11/20)
