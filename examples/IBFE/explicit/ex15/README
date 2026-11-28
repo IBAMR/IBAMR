@@ -1,0 +1,10 @@
+This example models a two-dimensional pressure-loaded neo-Hookean elastic band
+using composite B-spline (CBS) regularized delta functions and nodal quadrature,
+demonstrating intrinsic volume conservation without volumetric penalization or
+modified invariants (Li et al. 2025, DOI 10.3934/acse.2025011, Section 4.1).
+
+To run with the default CBS32 kernel:
+  ./main2d input2d
+
+To compare against an isotropic IB4 kernel without volumetric stabilization, set
+IB_DELTA_FUNCTION = "IB_4" in input2d before running ./main2d input2d.
