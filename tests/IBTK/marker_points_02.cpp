@@ -66,6 +66,8 @@ main(int argc, char** argv)
     IBTK::IBTKInit ibtk_init(argc, argv);
     // Skip warnings:
     Logger::getInstance()->setWarning(false);
+    // Print the message of an error without file names or line numbers:
+    Logger::getInstance()->setAbortAppender(Pointer<Logger::Appender>(new TestAppender()));
 
     const auto rank = IBTK_MPI::getRank();
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
@@ -75,6 +77,8 @@ main(int argc, char** argv)
     const bool timestep = test_db && test_db->getBoolWithDefault("timestep", false);
     const bool collective_print = test_db && test_db->getBoolWithDefault("collective_print", false);
     const bool test_h5part = test_db && test_db->getBoolWithDefault("test_h5part", false);
+    // This option controls a step because the regrid changes the hierarchy that the other steps use:
+    const bool regrid_without_reinit = test_db && test_db->getBoolWithDefault("regrid_without_reinit", false);
     const bool from_restart = RestartManager::getManager()->isFromRestart();
 
     int u_idx = IBTK::invalid_index;
@@ -169,6 +173,17 @@ main(int argc, char** argv)
         }
     }
     MarkerPatchHierarchy marker_points("MarkerPoints", patch_hierarchy, positions, velocities);
+
+    if (regrid_without_reinit)
+    {
+        // Regrid at a later time, when the refine boxes of the input differ, and do not call reinit():
+        tbox::Array<int> regrid_tag_buffer(patch_hierarchy->getFinestLevelNumber() + 1);
+        for (int ln = 0; ln < regrid_tag_buffer.size(); ++ln)
+        {
+            regrid_tag_buffer[ln] = 0;
+        }
+        gridding_algorithm->regridAllFinerLevels(patch_hierarchy, 0, 2.0, regrid_tag_buffer);
+    }
 
     if (set_velocity || timestep)
     {

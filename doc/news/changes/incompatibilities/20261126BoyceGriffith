@@ -1,0 +1,3 @@
+Changed: Delete the copy constructor and copy assignment operator of IBTK::MarkerPatchHierarchy, which duplicates an MPI communicator.
+<br>
+(Boyce Griffith, 2026/11/26)

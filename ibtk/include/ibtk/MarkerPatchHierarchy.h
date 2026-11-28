@@ -20,7 +20,10 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/BoxArrayIndex.h>
+#include <ibtk/private/HierarchyLayoutKey.h>
 
 #include <tbox/Database.h>
 
@@ -28,6 +31,7 @@
 #include <CartesianGridGeometry.h>
 #include <PatchHierarchy.h>
 
+#include <array>
 #include <deque>
 #include <iosfwd>
 #include <string>
@@ -134,6 +138,24 @@ private:
  * of the patch that supplies its velocity. The interpolation reaches one cell
  * of that patch beyond its box. For a marker farther away, the program stops
  * in a debug build, and the marker has zero velocity in an optimized build.
+ *
+ * Markers are redistributed by exchanging them only with the processes whose
+ * patches are near the patches of a process. The exchange requires that, in
+ * each time step and at each intermediate stage position of the step, a marker
+ * moves at most one cell of the level that stores it. If a marker moves to a
+ * patch of a process that is not a neighbor, the program stops in a debug
+ * build. In an optimized build, the marker has zero velocity at that stage of
+ * the step, or it is lost when markers are redistributed.
+ *
+ * Each process stores the markers that leave the domain from its own patches.
+ * Call reinit() after every regrid of the patch hierarchy: the program stops
+ * at a time step or a call to setVelocities() if the layout of the hierarchy
+ * has changed since the last call to reinit().
+ *
+ * The constructor, the destructor, reinit(), getFromDatabase(), the
+ * time-stepping functions, collectAllMarkers(), and writeH5Part() are
+ * collective. The object duplicates the MPI communicator, so it cannot be
+ * copied.
  */
 class MarkerPatchHierarchy : public SAMRAI::tbox::Serializable
 {
@@ -154,6 +176,14 @@ public:
 
     virtual ~MarkerPatchHierarchy();
 
+    MarkerPatchHierarchy(const MarkerPatchHierarchy&) = delete;
+
+    MarkerPatchHierarchy& operator=(const MarkerPatchHierarchy&) = delete;
+
+    /*!
+     * Replace the markers by the given markers and rebuild the data that
+     * depend on the layout of the patch hierarchy.
+     */
     void reinit(const std::vector<IBTK::Point>& positions, const std::vector<IBTK::Point>& velocities);
 
     /**
@@ -294,6 +324,67 @@ protected:
     std::vector<std::deque<MarkerPatch>> d_marker_patches;
 
     MarkerPatch d_markers_outside_domain;
+
+private:
+    /*!
+     * Owner of a cell: the level, the rank, and the patch number on that level.
+     */
+    struct Owner
+    {
+        int level = -1;
+        int rank = -1;
+        int patch = -1;
+    };
+
+    /*!
+     * The cells that each patch of a level owns, for all patches of the level.
+     */
+    struct LevelOwnership
+    {
+        // The parts of the patch boxes that no finer level covers, and the rank and patch number of each box.
+        detail::BoxArrayIndex boxes;
+        std::vector<int> box_rank;
+        std::vector<int> box_patch;
+
+        // The boxes of each patch, by patch number.
+        std::vector<std::vector<SAMRAI::hier::Box<NDIM>>> patch_boxes;
+
+        // The number of the marker patch of each patch of this process, by patch number, or -1.
+        std::vector<int> local_patch;
+
+        // The index frame of the level, as in MarkerPatch.
+        SAMRAI::hier::Box<NDIM> domain_box;
+        std::array<double, NDIM> dx;
+    };
+
+    /*!
+     * Build the ownership of cells and the neighbors of this process for the current layout.
+     */
+    void buildExchangeData();
+
+    /*!
+     * Return the owner of the cell that contains X, or an owner of level -1 if no patch owns it. X is used in the
+     * index frame of each level. @p found is scratch space.
+     */
+    Owner findOwner(const double* X, std::vector<int>& found) const;
+
+    /*!
+     * Stop with an error if the layout of the patch hierarchy has changed since the last call to reinit().
+     */
+    void checkHierarchyIsCurrent(const char* function) const;
+
+    // The layout of the levels that the data below were built for.
+    detail::HierarchyLayoutKey d_layout_key;
+
+    // Data built for the layout: the ownership of each level and the bounds of the domain.
+    std::vector<LevelOwnership> d_ownership;
+    std::array<double, NDIM> d_x_lo, d_x_up;
+
+    // The ranks other than this one whose patches are within two cells of a patch of this process, in ascending order.
+    std::vector<int> d_neighbor_ranks;
+
+    // A communicator of this object, so that its messages cannot match other receives.
+    MPI_Comm d_comm = MPI_COMM_NULL;
 };
 } // namespace IBTK
 

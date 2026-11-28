@@ -60,6 +60,13 @@ public:
      */
     bool changed(const SAMRAI::hier::PatchHierarchy<NDIM>& hierarchy, int coarsest_ln, int finest_ln);
 
+    /*!
+     * \brief Return true if this key equals the key of levels \a coarsest_ln through \a finest_ln of \a hierarchy.
+     *
+     * Returns false for an empty key and for a level range outside the hierarchy.
+     */
+    bool matches(const SAMRAI::hier::PatchHierarchy<NDIM>& hierarchy, int coarsest_ln, int finest_ln) const;
+
 private:
     /*!
      * \brief Construct the key of levels \a coarsest_ln through \a finest_ln of \a hierarchy.
