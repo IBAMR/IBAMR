@@ -18,6 +18,8 @@
 #include <ibamr/StokesBcCoefStrategy.h>
 #include <ibamr/StokesSpecifications.h>
 #include <ibamr/ibamr_enums.h>
+#include <ibamr/private/ins_staggered_traction_stencil.h>
+#include <ibamr/private/ins_velocity_bc.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
@@ -28,15 +30,14 @@
 #include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
-#include <CartesianPatchGeometry.h>
 #include <EdgeData.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <NodeData.h>
 #include <Patch.h>
+#include <PatchHierarchy.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
-#include <SideIndex.h>
 
 #include <algorithm>
 #include <limits>
@@ -256,10 +257,6 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
-    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
-    const double* const dx = pgeom->getDx();
-
-    double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
 #if (NDIM == 2)
     Pointer<NodeData<NDIM, double>> mu_data;
 #elif (NDIM == 3)
@@ -274,25 +271,67 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
 #endif
         mu_data = patch.getPatchData(mu_idx);
     }
+    // The viscosity at the face i of the tangential velocity component.
+    const auto get_mu = [&](const hier::Index<NDIM>& i, double) -> double
+    {
+        if (d_fluid_solver->muIsConstant())
+        {
+            return d_problem_coefs->getMu();
+        }
+
+        // In certain use cases with traction boundary conditions, this class
+        // will attempt to fill Robin BC coefficient values along an extended
+        // physical boundary outside of the physical domain that will never be
+        // used. However, viscosity values will not be available at those
+        // locations, so we need to ensure we don't access those unallocated
+        // data. The unphysical value should result in bad stuff if it gets
+        // used for whatever reason.
+        if (!mu_data) return -1.0e305;
+        hier::Index<NDIM> i_upper(i);
+        i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
+#if (NDIM == 2)
+        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+#elif (NDIM == 3)
+        const int perp = 2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
+        const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
+#endif
+        return (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
+    };
+
+    // The TRACTION condition on a tangential component uses the normal velocity along the boundary.
+    if (d_comp_idx != bdry_normal_axis && d_traction_bc_type == TRACTION &&
+        detail::has_traction_face(*acoef_data, *bcoef_data))
+    {
+        if (!d_fluid_solver->getPatchHierarchy())
+        {
+            TBOX_ERROR("INSVCStaggeredVelocityBcCoef::setBcCoefs():\n"
+                       << "  the fluid solver has no patch hierarchy\n"
+                       << "  call initializePatchHierarchy() on the fluid solver before applying these boundary "
+                          "conditions\n");
+        }
+        detail::correct_traction_coefficients(*acoef_data,
+                                              *bcoef_data,
+                                              *gcoef_data,
+                                              *u_target_data,
+                                              patch,
+                                              bdry_normal_axis,
+                                              is_lower,
+                                              d_comp_idx,
+                                              d_bc_coefs[bdry_normal_axis],
+                                              d_homogeneous_bc,
+                                              d_fluid_solver->getPatchHierarchy(),
+                                              get_mu,
+                                              fill_time);
+        return;
+    }
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);
-        const bool velocity_bc = IBTK::rel_equal_eps(alpha, 1.0);
-        const bool traction_bc = IBTK::rel_equal_eps(beta, 1.0);
-#if !defined(NDEBUG)
-        TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
-        if (velocity_bc)
+        if (detail::classify_velocity_bc(alpha, beta) == detail::VelocityBcType::TRACTION)
         {
-            alpha = 1.0;
-            beta = 0.0;
-        }
-        else if (traction_bc)
-        {
-            const bool mu_data_exists = mu_data;
             if (d_comp_idx == bdry_normal_axis)
             {
                 // Set du/dn = 0.
@@ -306,109 +345,20 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef
                 beta = 1.0;
                 gamma = 0.0;
             }
+            else if (d_traction_bc_type == PSEUDO_TRACTION) // mu*du_tan/dx_norm = g.
+            {
+                alpha = 0.0;
+                beta = 1.0;
+                gamma = (is_lower ? -1.0 : +1.0) * (gamma / get_mu(i, gamma));
+            }
             else
             {
-                switch (d_traction_bc_type)
-                {
-                case TRACTION: // mu*(du_tan/dx_norm + du_norm/dx_tan) = g.
-                {
-                    // Compute the tangential derivative of the normal
-                    // component of the velocity at the boundary.
-                    hier::Index<NDIM> i_lower(i), i_upper(i);
-                    i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
-                    i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-                    const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const double du_norm_dx_tan =
-                        ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) / dx[d_comp_idx];
-
-                    if (!d_fluid_solver->muIsConstant())
-                    {
-                        // In certain use cases with traction boundary
-                        // conditions, this class will attempt to fill Robin
-                        // BC coefficient values along an extended physical
-                        // boundary outside of the physical domain that will
-                        // never be used. However, viscosity values will not
-                        // be available at those locations, so we need to
-                        // ensure we don't access those unallocated data. The
-                        // unphysical value should result in bad stuff if it
-                        // gets used for whatever reason.
-                        if (mu_data_exists)
-                        {
-#if (NDIM == 2)
-                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
-
-#elif (NDIM == 3)
-                            const int perp =
-                                2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
-                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
-#endif
-                            mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
-                        }
-                        else
-                        {
-                            mu = -1.0e305;
-                        }
-                    }
-
-                    // Correct the boundary condition value.
-                    alpha = 0.0;
-                    beta = 1.0;
-                    gamma = (is_lower ? -1.0 : +1.0) * (gamma / mu - du_norm_dx_tan);
-                    break;
-                }
-                case PSEUDO_TRACTION: // mu*du_tan/dx_norm = g.
-                {
-                    if (!d_fluid_solver->muIsConstant())
-                    {
-                        hier::Index<NDIM> i_upper(i);
-                        i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-
-                        // In certain use cases with traction boundary
-                        // conditions, this class will attempt to fill Robin
-                        // BC coefficient values along an extended physical
-                        // boundary outside of the physical domain that will
-                        // never be used. However, viscosity values will not
-                        // be available at those locations, so we need to
-                        // ensure we don't access those unallocated data. The
-                        // unphysical value should result in bad stuff if it
-                        // gets used for whatever reason.
-                        if (mu_data_exists)
-                        {
-#if (NDIM == 2)
-                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
-
-#elif (NDIM == 3)
-                            const int perp =
-                                2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
-                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
-#endif
-                            mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
-                        }
-                        else
-                        {
-                            mu = -1.0e305;
-                        }
-                    }
-                    alpha = 0.0;
-                    beta = 1.0;
-                    gamma = (is_lower ? -1.0 : +1.0) * (gamma / mu);
-                    break;
-                }
-                default:
-                {
-                    TBOX_ERROR(
-                        "INSVCStaggeredVelocityBcCoef::setBcCoefs(): unrecognized or "
-                        "unsupported "
-                        "traction boundary condition type: "
-                        << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
-                }
-                }
+                TBOX_ERROR(
+                    "INSVCStaggeredVelocityBcCoef::setBcCoefs(): unrecognized or "
+                    "unsupported "
+                    "traction boundary condition type: "
+                    << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
             }
-        }
-        else
-        {
-            TBOX_ERROR("this statement should not be reached!\n");
         }
     }
     return;
