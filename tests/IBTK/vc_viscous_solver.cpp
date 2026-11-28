@@ -21,10 +21,18 @@
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
+#include <EdgeData.h>
+#include <EdgeIterator.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchyDataOpsManager.h>
 #include <LoadBalancer.h>
+#include <NodeData.h>
+#include <NodeIterator.h>
 #include <StandardTagAndInitialize.h>
+
+#include <array>
+#include <string>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
@@ -216,22 +224,72 @@ main(int argc, char* argv[])
         // Set up exact solutions.
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
         muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
-        muParserCartGridFunction mu_fcn("mu", app_initializer->getComponentDatabase("mu"), grid_geometry);
 
         u_fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
         f_fcn.setDataOnPatchHierarchy(f_sc_idx, f_sc_var, patch_hierarchy, 0.0);
 #if (NDIM == 2)
-        mu_fcn.setDataOnPatchHierarchy(mu_nc_idx, mu_nc_var, patch_hierarchy, 0.0);
-        HierarchyDataOpsManager<NDIM>::getManager()
-            ->getOperationsDouble(mu_nc_var, patch_hierarchy, true)
-            ->copyData(mu_nc_src_idx, mu_nc_idx, false);
+        const int mu_idx = mu_nc_idx;
+        const int mu_src_idx = mu_nc_src_idx;
+        Pointer<hier::Variable<NDIM>> mu_var = mu_nc_var;
 #elif (NDIM == 3)
-        mu_fcn.setDataOnPatchHierarchy(mu_ec_idx, mu_ec_var, patch_hierarchy, 0.0);
-        HierarchyDataOpsManager<NDIM>::getManager()
-            ->getOperationsDouble(mu_ec_var, patch_hierarchy, true)
-            ->copyData(mu_ec_src_idx, mu_ec_idx, false);
+        const int mu_idx = mu_ec_idx;
+        const int mu_src_idx = mu_ec_src_idx;
+        Pointer<hier::Variable<NDIM>> mu_var = mu_ec_var;
 #endif
-        // Fill ghost cells of viscosity.
+        // Evaluate the viscosity over the ghost box of each patch, so that the ghost values outside a physical boundary
+        // are values of the viscosity function.
+        std::array<double, NDIM> X{};
+        mu::Parser mu_parser;
+        mu_parser.SetExpr(app_initializer->getComponentDatabase("mu")->getString("function"));
+        mu_parser.DefineConst("PI", 3.1415926535897932384626433832795);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            mu_parser.DefineVar("X_" + std::to_string(d), &X[d]);
+        }
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+                const double* const x_lower = pgeom->getXLower();
+                const double* const dx = pgeom->getDx();
+                const hier::Index<NDIM>& patch_lower = patch->getBox().lower();
+#if (NDIM == 2)
+                Pointer<NodeData<NDIM, double>> mu_data = patch->getPatchData(mu_idx);
+                for (NodeIterator<NDIM> it(mu_data->getGhostBox()); it; it++)
+                {
+                    const NodeIndex<NDIM>& i = it();
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        X[d] = x_lower[d] + dx[d] * static_cast<double>(i(d) - patch_lower(d));
+                    }
+                    (*mu_data)(i) = mu_parser.Eval();
+                }
+#elif (NDIM == 3)
+                Pointer<EdgeData<NDIM, double>> mu_data = patch->getPatchData(mu_idx);
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    for (EdgeIterator<NDIM> it(mu_data->getGhostBox(), axis); it; it++)
+                    {
+                        const EdgeIndex<NDIM>& i = it();
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            const double offset = d == axis ? 0.5 : 0.0;
+                            X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + offset);
+                        }
+                        (*mu_data)(i) = mu_parser.Eval();
+                    }
+                }
+#endif
+            }
+        }
+        HierarchyDataOpsManager<NDIM>::getManager()
+            ->getOperationsDouble(mu_var, patch_hierarchy, true)
+            ->copyData(mu_src_idx, mu_idx, false);
+
+        // Fill the ghost cells of the viscosity that lie inside the domain or across a periodic boundary.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> transaction_comp(1);
 #if (NDIM == 2)
@@ -240,7 +298,7 @@ main(int argc, char* argv[])
                                                                 /*DATA_REFINE_TYPE*/ "LINEAR_REFINE",
                                                                 /*USE_CF_INTERPOLATION*/ false,
                                                                 /*DATA_COARSEN_TYPE*/ "CONSTANT_COARSEN",
-                                                                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                                /*BDRY_EXTRAP_TYPE*/ "NONE",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 /*mu_bc_coef*/ nullptr,
                                                                 Pointer<VariableFillPattern<NDIM>>(nullptr));
@@ -250,7 +308,7 @@ main(int argc, char* argv[])
                                                                 /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
                                                                 /*USE_CF_INTERPOLATION*/ false,
                                                                 /*DATA_COARSEN_TYPE*/ "CONSERVATIVE_COARSEN",
-                                                                /*BDRY_EXTRAP_TYPE*/ "LINEAR",
+                                                                /*BDRY_EXTRAP_TYPE*/ "NONE",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 /*mu_bc_coef*/ nullptr,
                                                                 Pointer<VariableFillPattern<NDIM>>(nullptr));
