@@ -1,0 +1,3 @@
+Fixed: Compute the cell indices and cell centers of IBTK::IndexUtilities::getCellIndex(), getAssignedCellIndex(), getCellCenter(), and getSideCenter() for a CartesianGridGeometry from the bounding box of the physical domain, so that their index frame is the frame of the patches when the domain has several boxes.
+<br>
+(Boyce Griffith, 2026/11/26)

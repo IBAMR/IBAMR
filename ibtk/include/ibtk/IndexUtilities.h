@@ -129,8 +129,8 @@ public:
 
     /*!
      * \return The cell index corresponding to location \p X relative
-     * to the corner of the computational domain specified by the grid
-     * geometry object.
+     * to the lower corner of the bounding box of the physical domain of the
+     * grid geometry object.
      *
      * \see SAMRAI::geom::CartesianGridGeometry
      */
@@ -142,10 +142,13 @@ public:
 
     /*!
      * \return The cell index corresponding to location \p X relative to the
-     * corner of the computational domain specified by the grid geometry object.
-     * Unlike getCellIndex(), this function assigns points on upper boundaries
-     * to the cells inside the domain (instead of in the ghost region) which
-     * makes it more suitable for partitioning purposes.
+     * lower corner of the bounding box of the physical domain of the grid
+     * geometry object.
+     * Unlike getCellIndex(), this function assigns points on the upper
+     * boundaries of the bounding box to the cells inside the domain (instead
+     * of in the ghost region), which makes it more suitable for partitioning
+     * purposes. It does not shift points on the internal upper faces of a
+     * physical domain of several boxes.
      *
      * This function does not shift points on periodic domains. It is up to the
      * caller to correctly shift @p X with respect to periodicity before calling

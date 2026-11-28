@@ -797,8 +797,12 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
     const double* const domainXLower = grid_geom->getXLower();
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
-    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+    if (!grid_geom->getDomainIsSingleBox())
+    {
+        TBOX_ERROR(d_object_name << "::initializeHierarchyDependentData():\n"
+                                 << "  the physical domain must be a single box\n");
+    }
+    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain().getBoundingBox();
 
     const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
     std::array<double, NDIM> dx_finest;
