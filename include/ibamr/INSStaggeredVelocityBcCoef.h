@@ -182,6 +182,19 @@ public:
     //\}
 
     /*!
+     * \brief The stencils are empty unless this object imposes TRACTION conditions on a tangential component. This
+     * function stops with an error for the boundary interpolation type QUADRATIC.
+     *
+     * \see StokesBcCoefStrategy::getTractionStencil
+     */
+    std::vector<SideStencil> getTractionStencil(const SAMRAI::hier::Patch<NDIM>& patch,
+                                                const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                                const SAMRAI::hier::Box<NDIM>& bc_coef_box,
+                                                const SAMRAI::hier::Box<NDIM>& ghost_box,
+                                                IBTK::BdryInterpType bdry_interp_type,
+                                                double fill_time) const override;
+
+    /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
      */
     //\{

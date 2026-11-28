@@ -22,6 +22,7 @@
 #include <ibamr/private/ins_velocity_bc.h>
 
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 
 #include <tbox/MathUtilities.h>
 #include <tbox/Pointer.h>
@@ -30,6 +31,7 @@
 #include <ArrayData.h>
 #include <BoundaryBox.h>
 #include <Box.h>
+#include <BoxArray.h>
 #include <Index.h>
 #include <IntVector.h>
 #include <Patch.h>
@@ -201,6 +203,52 @@ INSStaggeredVelocityBcCoef::dependsOnTargetPatchData(const Patch<NDIM>& patch,
     return d_traction_bc_type == TRACTION &&
            detail::traction_data_depend_on_velocity(d_bc_coefs[d_comp_idx], d_comp_idx, patch, bdry_box, fill_time);
 } // dependsOnTargetPatchData
+
+std::vector<StokesBcCoefStrategy::SideStencil>
+INSStaggeredVelocityBcCoef::getTractionStencil(const Patch<NDIM>& patch,
+                                               const BoundaryBox<NDIM>& bdry_box,
+                                               const Box<NDIM>& bc_coef_box,
+                                               const Box<NDIM>& ghost_box,
+                                               const IBTK::BdryInterpType bdry_interp_type,
+                                               const double fill_time) const
+{
+    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    std::vector<SideStencil> stencils(bc_coef_box.size());
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index / 2;
+    if (d_traction_bc_type != TRACTION || d_comp_idx == bdry_normal_axis)
+    {
+        return stencils;
+    }
+    if (bdry_interp_type == IBTK::BdryInterpType::QUADRATIC)
+    {
+        TBOX_ERROR("INSStaggeredVelocityBcCoef::getTractionStencil():\n"
+                   << "  TRACTION conditions for a tangential velocity do not support the boundary interpolation type "
+                      "\"QUADRATIC\"\n"
+                   << "  set the boundary interpolation type to \"LINEAR\"\n");
+    }
+    if (!d_fluid_solver->getPatchHierarchy())
+    {
+        TBOX_ERROR("INSStaggeredVelocityBcCoef::getTractionStencil():\n"
+                   << "  the fluid solver has no patch hierarchy\n"
+                   << "  call initializePatchHierarchy() on the fluid solver before applying these boundary "
+                      "conditions\n");
+    }
+    const BoxArray<NDIM> domain = PhysicalBoundaryUtilities::getPeriodicPhysicalDomain(
+        d_fluid_solver->getPatchHierarchy()->getGridGeometry(), patch.getPatchGeometry()->getRatio());
+    detail::NormalVelocityPatch normal_velocity_patch(patch, bdry_normal_axis, d_comp_idx);
+    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    {
+        stencils[bc_coef_box.offset(it())] = detail::get_traction_stencil(it(),
+                                                                          location_index % 2 == 0,
+                                                                          d_bc_coefs[bdry_normal_axis],
+                                                                          normal_velocity_patch,
+                                                                          domain,
+                                                                          ghost_box,
+                                                                          fill_time);
+    }
+    return stencils;
+} // getTractionStencil
 
 void
 INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double>>& acoef_data,

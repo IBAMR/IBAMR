@@ -91,77 +91,6 @@ get_half_cell_shift(const Patch<NDIM>& patch, const unsigned int bdry_normal_axi
     return shift;
 } // get_half_cell_shift
 
-// A copy of a patch for evaluating the boundary condition coefficients of the normal velocity component
-// bdry_normal_axis at the faces of the tangential component tangential_axis. The original patch is unchanged.
-class NormalVelocityPatch
-{
-public:
-    // The copy shares the patch data of patch. It does not set the patch number, level number, or in-hierarchy flag of
-    // patch.
-    NormalVelocityPatch(const Patch<NDIM>& patch, unsigned int bdry_normal_axis, unsigned int tangential_axis);
-
-    const Box<NDIM>& getBox() const;
-
-    // The axis normal to the physical boundary.
-    unsigned int getBdryNormalAxis() const;
-
-    // The axis of the tangential velocity component.
-    unsigned int getTangentialAxis() const;
-
-    // Set the coefficients of normal_bc_coef on the boundary box bdry_box at the faces of the tangential component,
-    // using the geometry of the copy shifted by get_half_cell_shift().
-    void setBcCoefs(RobinBcCoefStrategy<NDIM>* normal_bc_coef,
-                    Pointer<ArrayData<NDIM, double>>& acoef_data,
-                    Pointer<ArrayData<NDIM, double>>& bcoef_data,
-                    Pointer<ArrayData<NDIM, double>>& gcoef_data,
-                    const BoundaryBox<NDIM>& bdry_box,
-                    double fill_time);
-
-private:
-    // The copy of the patch and the axes of its normal and tangential velocity components.
-    Pointer<Patch<NDIM>> d_patch;
-    unsigned int d_bdry_normal_axis;
-    unsigned int d_tangential_axis;
-};
-
-NormalVelocityPatch::NormalVelocityPatch(const Patch<NDIM>& patch,
-                                         const unsigned int bdry_normal_axis,
-                                         const unsigned int tangential_axis)
-    : d_patch(copy_patch(patch)), d_bdry_normal_axis(bdry_normal_axis), d_tangential_axis(tangential_axis)
-{
-} // NormalVelocityPatch
-
-const Box<NDIM>&
-NormalVelocityPatch::getBox() const
-{
-    return d_patch->getBox();
-} // getBox
-
-unsigned int
-NormalVelocityPatch::getBdryNormalAxis() const
-{
-    return d_bdry_normal_axis;
-} // getBdryNormalAxis
-
-unsigned int
-NormalVelocityPatch::getTangentialAxis() const
-{
-    return d_tangential_axis;
-} // getTangentialAxis
-
-void
-NormalVelocityPatch::setBcCoefs(RobinBcCoefStrategy<NDIM>* const normal_bc_coef,
-                                Pointer<ArrayData<NDIM, double>>& acoef_data,
-                                Pointer<ArrayData<NDIM, double>>& bcoef_data,
-                                Pointer<ArrayData<NDIM, double>>& gcoef_data,
-                                const BoundaryBox<NDIM>& bdry_box,
-                                const double fill_time)
-{
-    const IBTK::detail::ScopedShiftedPatchGeometry shifted_geometry(
-        *d_patch, get_half_cell_shift(*d_patch, d_bdry_normal_axis, d_tangential_axis));
-    normal_bc_coef->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM>>(), *d_patch, bdry_box, fill_time);
-} // setBcCoefs
 } // namespace
 
 void
@@ -365,6 +294,52 @@ get_normal_velocity_difference(const SideData<NDIM, double>& u_data,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+NormalVelocityPatch::NormalVelocityPatch(const Patch<NDIM>& patch,
+                                         const unsigned int bdry_normal_axis,
+                                         const unsigned int tangential_axis)
+    : d_patch(copy_patch(patch)), d_bdry_normal_axis(bdry_normal_axis), d_tangential_axis(tangential_axis)
+{
+} // NormalVelocityPatch
+
+const Box<NDIM>&
+NormalVelocityPatch::getBox() const
+{
+    return d_patch->getBox();
+} // getBox
+
+unsigned int
+NormalVelocityPatch::getBdryNormalAxis() const
+{
+    return d_bdry_normal_axis;
+} // getBdryNormalAxis
+
+unsigned int
+NormalVelocityPatch::getTangentialAxis() const
+{
+    return d_tangential_axis;
+} // getTangentialAxis
+
+double
+NormalVelocityPatch::getTangentialDx() const
+{
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = d_patch->getPatchGeometry();
+    return pgeom->getDx()[d_tangential_axis];
+} // getTangentialDx
+
+void
+NormalVelocityPatch::setBcCoefs(RobinBcCoefStrategy<NDIM>* const normal_bc_coef,
+                                Pointer<ArrayData<NDIM, double>>& acoef_data,
+                                Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                                Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                                const BoundaryBox<NDIM>& bdry_box,
+                                const double fill_time)
+{
+    const IBTK::detail::ScopedShiftedPatchGeometry shifted_geometry(
+        *d_patch, get_half_cell_shift(*d_patch, d_bdry_normal_axis, d_tangential_axis));
+    normal_bc_coef->setBcCoefs(
+        acoef_data, bcoef_data, gcoef_data, Pointer<Variable<NDIM>>(), *d_patch, bdry_box, fill_time);
+} // setBcCoefs
+
 double
 get_divergence_free_ghost_value(const SideData<NDIM, double>& u_data,
                                 const hier::Index<NDIM>& i_g,
@@ -463,6 +438,24 @@ correct_traction_coefficients(ArrayData<NDIM, double>& acoef_data,
     }
 } // correct_traction_coefficients
 
+void
+set_component_bc_coefs(RobinBcCoefStrategy<NDIM>& bc_coef,
+                       const unsigned int axis,
+                       Patch<NDIM>& patch,
+                       const BoundaryBox<NDIM>& bdry_box,
+                       Pointer<ArrayData<NDIM, double>>& acoef_data,
+                       Pointer<ArrayData<NDIM, double>>& bcoef_data,
+                       Pointer<ArrayData<NDIM, double>>& gcoef_data,
+                       const double fill_time)
+{
+    Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
+    std::array<double, NDIM> shift{};
+    shift[axis] = -0.5 * pgeom->getDx()[axis];
+    const IBTK::detail::ScopedShiftedPatchGeometry shifted_geometry(patch, shift);
+    bc_coef.setBcCoefs(acoef_data, bcoef_data, gcoef_data, nullptr, patch, bdry_box, fill_time);
+    return;
+} // set_component_bc_coefs
+
 bool
 traction_data_depend_on_velocity(RobinBcCoefStrategy<NDIM>* const comp_bc_coef,
                                  const unsigned int comp_idx,
@@ -499,6 +492,48 @@ traction_data_depend_on_velocity(RobinBcCoefStrategy<NDIM>* const comp_bc_coef,
     }
     return false;
 } // traction_data_depend_on_velocity
+
+StokesBcCoefStrategy::SideStencil
+get_traction_stencil(const hier::Index<NDIM>& i,
+                     const bool bdry_is_lower,
+                     RobinBcCoefStrategy<NDIM>* const normal_bc_coef,
+                     NormalVelocityPatch& normal_velocity_patch,
+                     const BoxArray<NDIM>& domain,
+                     const Box<NDIM>& ghost_box,
+                     const double fill_time)
+{
+    const unsigned int tangential_axis = normal_velocity_patch.getTangentialAxis();
+    const double derivative_scale = (bdry_is_lower ? -1.0 : +1.0) / normal_velocity_patch.getTangentialDx();
+    hier::Index<NDIM> i_lower(i);
+    i_lower(tangential_axis) -= 1;
+    const auto get_stencil = [&](const hier::Index<NDIM>& i_face)
+    {
+        return get_normal_velocity(i_face,
+                                   bdry_is_lower,
+                                   normal_bc_coef,
+                                   /*homogeneous_bc*/ true,
+                                   normal_velocity_patch,
+                                   domain,
+                                   ghost_box,
+                                   fill_time)
+            .stencil;
+    };
+    const NormalVelocityStencil lower_stencil = get_stencil(i_lower);
+    const NormalVelocityStencil upper_stencil = get_stencil(i);
+    StokesBcCoefStrategy::SideStencil stencil;
+    for (int k = 0; k < 2; ++k)
+    {
+        if (upper_stencil.weight[k] != 0.0)
+        {
+            stencil.emplace_back(upper_stencil.idx[k], -upper_stencil.weight[k] * derivative_scale);
+        }
+        if (lower_stencil.weight[k] != 0.0)
+        {
+            stencil.emplace_back(lower_stencil.idx[k], +lower_stencil.weight[k] * derivative_scale);
+        }
+    }
+    return stencil;
+} // get_traction_stencil
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
