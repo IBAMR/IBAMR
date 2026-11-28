@@ -16,9 +16,11 @@
 // edge-centered data. The points lie on cell faces and centers, within six ulps of them, at random positions, and up to
 // 0.9 cells beyond the domain, as between redistributions: beyond a periodic boundary they are found through their
 // periodic images. On three layouts of patches, the program checks that each point is selected on exactly one patch,
-// that the weights of each point sum to 1, that interpolation gives the same values on every layout, and that
-// spreading into the ghost regions gives the same grid values on every layout. It also checks that interpolation
-// with the continuous kernels agrees with the overloads that take positions only, at the points inside the domain.
+// that the weights of each point sum to 1, that interpolation gives exactly the same values on every layout, and that
+// spreading into the ghost regions gives the same grid values on every layout to round-off. It also checks that
+// interpolation with the continuous kernels agrees with the overloads that take positions only, at the points inside
+// the domain. On domains without periodic boundaries, it checks that each kernel reproduces the polynomials of its
+// degree, which no comparison between two calls of the same kernels can show.
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -53,6 +55,7 @@
 #include <iomanip>
 #include <limits>
 #include <map>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -293,13 +296,94 @@ wrap_index(const hier::Index<NDIM>& i, const Domain& domain)
     return wrapped;
 }
 
-// A field of the data index that varies from cell to cell and is periodic along the periodic axes, or 1.
-double
-field(const hier::Index<NDIM>& i, const Domain& domain, const int component, const bool one)
+enum class Centering
 {
-    if (one)
+    CELL,
+    NODE,
+    SIDE,
+    EDGE
+};
+
+// The fields: the constant 1; a field of the data index that varies from cell to cell and is periodic along the
+// periodic axes; and a polynomial in the position of the data point, which the kernel reproduces.
+enum class Field
+{
+    ONE,
+    VARYING,
+    POLYNOMIAL
+};
+
+// The degree of the polynomials that the kernel reproduces along each axis, for the given component of the data. The
+// discontinuous linear kernel is linear along its axis, which is the component of side and edge data and 0 otherwise.
+// USER_DEFINED is the four-point IB kernel here.
+std::array<int, NDIM>
+reproduction_degrees(const std::string& kernel, const Centering centering, const int component)
+{
+    std::array<int, NDIM> degrees{};
+    if (kernel == "PIECEWISE_CONSTANT")
+    {
+        degrees.fill(0);
+    }
+    else if (kernel == "DISCONTINUOUS_LINEAR")
+    {
+        degrees.fill(0);
+        degrees[centering == Centering::SIDE || centering == Centering::EDGE ? component : 0] = 1;
+    }
+    else if (kernel == "PIECEWISE_CUBIC")
+    {
+        degrees.fill(3);
+    }
+    else
+    {
+        degrees.fill(1);
+    }
+    return degrees;
+}
+
+// The polynomial of the given degrees at a position: a product over the axes of polynomials of the position along
+// the axis, relative to the domain.
+double
+polynomial(const Domain& domain, const std::array<int, NDIM>& degrees, const int component, const double* x)
+{
+    double value = 1.0 + 0.5 * component;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        const double s = (x[d] - domain.x_lo[d]) / (domain.x_up[d] - domain.x_lo[d]);
+        double factor = 1.0, power = 1.0;
+        for (int k = 1; k <= degrees[d]; ++k)
+        {
+            power *= s;
+            factor += (k % 2 == 1 ? 1.0 : -1.0) * (0.6 + 0.1 * d + 0.05 * k) * power;
+        }
+        value *= factor;
+    }
+    return value;
+}
+
+// The value of the field at a data point.
+double
+field(const hier::Index<NDIM>& i,
+      const Domain& domain,
+      const std::string& kernel,
+      const Centering centering,
+      const int component,
+      const Field kind)
+{
+    if (kind == Field::ONE)
     {
         return 1.0;
+    }
+    if (kind == Field::POLYNOMIAL)
+    {
+        std::array<double, NDIM> x{};
+        for (int d = 0; d < NDIM; ++d)
+        {
+            const bool staggered = centering == Centering::NODE || (centering == Centering::SIDE && d == component) ||
+                                   (centering == Centering::EDGE && d != component);
+            const double h = (domain.x_up[d] - domain.x_lo[d]) / domain.N;
+            x[d] = domain.x_lo[d] + (i(d) + (staggered ? 0.0 : 0.5)) * h;
+        }
+        return polynomial(domain, reproduction_degrees(kernel, centering, component), component, x.data());
     }
     const hier::Index<NDIM> w = wrap_index(i, domain);
     double value = 2.0 + 0.1 * component;
@@ -309,14 +393,6 @@ field(const hier::Index<NDIM>& i, const Domain& domain, const int component, con
     }
     return value;
 }
-
-enum class Centering
-{
-    CELL,
-    NODE,
-    SIDE,
-    EDGE
-};
 
 std::string
 centering_name(const Centering centering)
@@ -449,7 +525,7 @@ interpolate(const Layout& layout,
             const Centering centering,
             const int ghost_width,
             const bool positions,
-            const bool one)
+            const Field kind)
 {
     const int num_points = static_cast<int>(X.size() / NDIM);
     const int depth = centering_depth(centering);
@@ -465,7 +541,7 @@ interpolate(const Layout& layout,
                             centering,
                             /*interior*/ false,
                             [&](const hier::Index<NDIM>& i, const int component, double& value)
-                            { value = field(i, domain, component, one); });
+                            { value = field(i, domain, kernel, centering, component, kind); });
         std::vector<double> Q(depth * num_points, std::numeric_limits<double>::quiet_NaN());
         const Pointer<LNodeSetData>& idx_data = layout.idx_data[patch_num];
         const int Q_size = static_cast<int>(Q.size()), X_size = static_cast<int>(X.size());
@@ -636,6 +712,51 @@ max_difference(const std::vector<double>& a, const std::vector<double>& b)
     return worst;
 }
 
+// The first entry at which two interpolations differ at all, or the size if there is none.
+std::size_t
+first_difference(const std::vector<double>& a, const std::vector<double>& b)
+{
+    for (std::size_t k = 0; k < a.size(); ++k)
+    {
+        if (a[k] != b[k])
+        {
+            return k;
+        }
+    }
+    return a.size();
+}
+
+// The position of point k to 17 digits.
+std::string
+format_point(const std::vector<double>& X, const int k)
+{
+    std::ostringstream os;
+    os << std::setprecision(17) << "(";
+    for (int d = 0; d < NDIM; ++d)
+    {
+        os << (d > 0 ? ", " : "") << X[NDIM * k + d];
+    }
+    os << ")";
+    return os.str();
+}
+
+// The relative tolerance for the reproduction of polynomials. The weights of the 5- and 6-point B-splines are
+// polynomials whose terms cancel to about 1e-13 and 1e-12, so the kernels built from them get more room. The truncated
+// constants of IB_3 put its errors near 6e-14.
+double
+reproduction_tolerance(const std::string& kernel)
+{
+    if (kernel == "BSPLINE_6" || kernel == "COMPOSITE_BSPLINE_56" || kernel == "COMPOSITE_BSPLINE_65")
+    {
+        return 1.0e-11;
+    }
+    if (kernel == "BSPLINE_5" || kernel == "COMPOSITE_BSPLINE_45" || kernel == "COMPOSITE_BSPLINE_54")
+    {
+        return 1.0e-12;
+    }
+    return 1.0e-13;
+}
+
 void
 check(const std::vector<Layout>& layouts,
       const Domain& domain,
@@ -650,7 +771,7 @@ check(const std::vector<Layout>& layouts,
 
     // The weights of every point sum to 1.
     const std::vector<double> ones =
-        interpolate(layouts[0], domain, X, kernel, centering, ghost_width, /*positions*/ false, /*one*/ true);
+        interpolate(layouts[0], domain, X, kernel, centering, ghost_width, /*positions*/ false, Field::ONE);
     for (std::size_t k = 0; k < ones.size(); ++k)
     {
         if (!(std::abs(ones[k] - 1.0) <= 1.0e-12))
@@ -659,32 +780,61 @@ check(const std::vector<Layout>& layouts,
         }
     }
 
-    // Interpolation gives the same values on every layout and, for the continuous kernels, the same values as the
-    // positions at the points inside the domain. At a point midway between two data points, the discontinuous kernels
-    // may take either one.
+    // Interpolation gives exactly the same values on every layout, since the weights of a point and the stencil are
+    // functions of its position in the level alone, and, for the continuous kernels, the same values as the positions
+    // at the points inside the domain, to round-off. At a point midway between two data points, the discontinuous
+    // kernels may take either one.
     const std::vector<double> Q =
-        interpolate(layouts[0], domain, X, kernel, centering, ghost_width, /*positions*/ false, /*one*/ false);
+        interpolate(layouts[0], domain, X, kernel, centering, ghost_width, /*positions*/ false, Field::VARYING);
     for (std::size_t l = 1; l < layouts.size(); ++l)
     {
         const std::vector<double> Q_l =
-            interpolate(layouts[l], domain, X, kernel, centering, ghost_width, /*positions*/ false, /*one*/ false);
-        const double difference = max_difference(Q, Q_l);
-        if (!(difference <= 1.0e-12))
+            interpolate(layouts[l], domain, X, kernel, centering, ghost_width, /*positions*/ false, Field::VARYING);
+        const std::size_t k = first_difference(Q, Q_l);
+        if (k < Q.size())
         {
             TBOX_ERROR(name << ": interpolation on the layouts " << layouts[0].name << " and " << layouts[l].name
-                            << " differs by " << difference << "\n");
+                            << " differs at point " << k / depth << " " << format_point(X, static_cast<int>(k / depth))
+                            << ", component " << k % depth << ": " << std::setprecision(17) << Q[k] << " and " << Q_l[k]
+                            << "\n");
         }
     }
     if (kernel != "PIECEWISE_CONSTANT" && kernel != "DISCONTINUOUS_LINEAR")
     {
         const std::vector<double> Q_positions =
-            interpolate(layouts[0], domain, X, kernel, centering, ghost_width, /*positions*/ true, /*one*/ false);
+            interpolate(layouts[0], domain, X, kernel, centering, ghost_width, /*positions*/ true, Field::VARYING);
         const double positions_difference = max_difference(Q, Q_positions);
         if (!(positions_difference <= 1.0e-12))
         {
             TBOX_ERROR(name << ": interpolation through the index data and the positions differs by "
                             << positions_difference << "\n");
         }
+    }
+
+    // Where there are walls only, the kernel reproduces the polynomials of its degree, including at the points beyond
+    // the walls, where the ghost values come from the same polynomial.
+    if (!std::any_of(domain.periodic.begin(), domain.periodic.end(), [](const bool periodic) { return periodic; }))
+    {
+        const std::vector<double> P =
+            interpolate(layouts[0], domain, X, kernel, centering, ghost_width, /*positions*/ false, Field::POLYNOMIAL);
+        const double tolerance = reproduction_tolerance(kernel);
+        for (int k = 0; k < num_points; ++k)
+        {
+            for (int component = 0; component < depth; ++component)
+            {
+                const double exact =
+                    polynomial(domain, reproduction_degrees(kernel, centering, component), component, &X[NDIM * k]);
+                const double value = P[depth * k + component];
+                const double error = std::abs(value - exact) / std::max(1.0, std::abs(exact));
+                if (!(error <= tolerance))
+                {
+                    TBOX_ERROR(name << ": interpolation of a polynomial of the degree of the kernel at point " << k
+                                    << " " << format_point(X, k) << ", component " << component << " gives "
+                                    << std::setprecision(17) << value << ", not " << exact << "\n");
+                }
+            }
+        }
+        pout << name << ": reproduces polynomials of its degree\n";
     }
 
     // Spreading gives the same grid values on every layout.
