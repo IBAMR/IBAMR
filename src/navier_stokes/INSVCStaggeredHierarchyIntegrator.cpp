@@ -50,6 +50,7 @@
 #include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScKrylovPoissonSolver.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/PoissonFACPreconditioner.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/SCPoissonSolverManager.h>
@@ -636,6 +637,149 @@ INSVCStaggeredHierarchyIntegrator::getStokesSolver()
     }
     return d_stokes_solver;
 } // getStokesSolver
+
+void
+INSVCStaggeredHierarchyIntegrator::limitMuGhostCells(const double fill_time)
+{
+    if (d_mu_is_const)
+    {
+        return;
+    }
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM>> mu_var;
+    var_db->mapIndexToVariable(d_mu_scratch_idx, mu_var);
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
+        BoxArray<NDIM> domain = d_hierarchy->getGridGeometry()->getPhysicalDomain();
+        domain.refine(level->getRatio());
+        Box<NDIM> domain_box = domain[0];
+        for (int n = 1; n < domain.size(); ++n)
+        {
+            domain_box += domain[n];
+        }
+        const IntVector<NDIM> periodic_shift = d_hierarchy->getGridGeometry()->getPeriodicShift(level->getRatio());
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
+            if (!pgeom->getTouchesRegularBoundary())
+            {
+                continue;
+            }
+            Pointer<CellData<NDIM, double>> mu_data = patch->getPatchData(d_mu_scratch_idx);
+            CellData<NDIM, double>& mu = *mu_data;
+            const Box<NDIM>& ghost_box = mu.getGhostBox();
+            std::vector<char> at_dirichlet_bdry(ghost_box.size(), 0);
+
+            // Outside a boundary with a positive Dirichlet value mu_b, limit the filled value 2 mu_b - mu_I, with mu_I
+            // the value in the mirror-image cell, to at least mu_b / 2. The loop below limits the other ghost values.
+            const Array<BoundaryBox<NDIM>>& bdry_boxes = pgeom->getCodimensionBoundaries(1);
+            for (int k = 0; d_mu_bc_coef && k < bdry_boxes.size(); ++k)
+            {
+                const BoundaryBox<NDIM>& bdry_box = bdry_boxes[k];
+                const unsigned int axis = bdry_box.getLocationIndex() / 2;
+                const bool is_upper = bdry_box.getLocationIndex() % 2 == 1;
+                const Box<NDIM> bc_fill_box =
+                    pgeom->getBoundaryFillBox(bdry_box, patch->getBox(), mu.getGhostCellWidth());
+                const BoundaryBox<NDIM> trimmed_bdry_box(
+                    bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+                const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+                const auto ghost_cell = [&](const hier::Index<NDIM>& face, const int layer)
+                {
+                    hier::Index<NDIM> i = face;
+                    i(axis) += is_upper ? layer : -1 - layer;
+                    return i;
+                };
+
+                Pointer<ArrayData<NDIM, double>> a_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> b_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double>> g_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                d_mu_bc_coef->setBcCoefs(a_data, b_data, g_data, mu_var, *patch, trimmed_bdry_box, fill_time);
+                for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+                {
+                    const double a = (*a_data)(b(), 0);
+                    const double g = (*g_data)(b(), 0);
+                    if ((*b_data)(b(), 0) != 0.0 || a == 0.0 || !(g / a > 0.0))
+                    {
+                        continue;
+                    }
+                    const double mu_b = g / a;
+                    for (int layer = 0; layer < mu.getGhostCellWidth()(axis); ++layer)
+                    {
+                        const hier::Index<NDIM> i = ghost_cell(b(), layer);
+                        if (!ghost_box.contains(i))
+                        {
+                            continue;
+                        }
+                        double& value = mu(CellIndex<NDIM>(i));
+                        value = std::max(value, 0.5 * mu_b);
+                        at_dirichlet_bdry[ghost_box.offset(i)] = 1;
+                    }
+                }
+            }
+
+            // Limit each other ghost value outside a physical boundary, such as those at corners, to at least half the
+            // value in the nearest cell inside the boundaries. Ghost values across a periodic boundary are copies and
+            // do not change.
+            for (Box<NDIM>::Iterator b(ghost_box); b; b++)
+            {
+                if (at_dirichlet_bdry[ghost_box.offset(b())])
+                {
+                    continue;
+                }
+                hier::Index<NDIM> nearest = b();
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    if (periodic_shift(d) == 0)
+                    {
+                        nearest(d) = std::max(domain_box.lower(d), std::min(domain_box.upper(d), nearest(d)));
+                    }
+                }
+                if (nearest == b())
+                {
+                    continue;
+                }
+                double& value = mu(CellIndex<NDIM>(b()));
+                value = std::max(value, 0.5 * mu(CellIndex<NDIM>(nearest)));
+            }
+        }
+    }
+    return;
+} // limitMuGhostCells
+
+void
+INSVCStaggeredHierarchyIntegrator::setLinearOperatorMu(const int mu_idx, const double time)
+{
+    d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_idx, /*interior_only*/ true);
+    d_mu_bdry_bc_fill_op->fillData(time);
+    limitMuGhostCells(time);
+
+    // Interpolate onto node or edge centers
+    if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
+    {
+        d_hier_math_ops->interp_ghosted(
+            d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, time);
+    }
+    else if (d_mu_vc_interp_type == VC_HARMONIC_INTERP)
+    {
+        d_hier_math_ops->harmonic_interp_ghosted(
+            d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, time);
+    }
+    else
+    {
+        TBOX_ERROR("this statement should not be reached");
+    }
+
+    // Store the viscosities for later use
+    d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
+#if (NDIM == 2)
+    d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#elif (NDIM == 3)
+    d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+#endif
+    return;
+} // setLinearOperatorMu
 
 void
 INSVCStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
