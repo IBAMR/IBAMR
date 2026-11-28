@@ -16,12 +16,14 @@
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_utilities.h>
+#include <ibamr/private/ins_staggered_traction_stencil.h>
 
 #include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/LinearOperator.h>
 #include <ibtk/SideNoCornersFillPattern.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -99,7 +101,15 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
         d_refine_type = input_db->getStringWithDefault("refine_type", d_refine_type);
         d_coarsen_type = input_db->getStringWithDefault("coarsen_type", d_coarsen_type);
         d_bdry_extrap_type = input_db->getStringWithDefault("bdry_extrap_type", d_bdry_extrap_type);
-        d_bdry_interp_type = input_db->getStringWithDefault("bdry_interp_type", d_bdry_interp_type);
+        const std::string bdry_interp_type =
+            input_db->getStringWithDefault("bdry_interp_type", IBTK::enum_to_string(d_bdry_interp_type));
+        d_bdry_interp_type = IBTK::string_to_enum<BdryInterpType>(bdry_interp_type);
+        if (d_bdry_interp_type == BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE)
+        {
+            TBOX_ERROR(d_object_name << "::StaggeredStokesOperator():\n"
+                                     << "  unknown bdry_interp_type \"" << bdry_interp_type << "\"\n"
+                                     << "  valid values are \"LINEAR\" and \"QUADRATIC\"\n");
+        }
         d_use_cf_interpolation = input_db->getBoolWithDefault("use_cf_interpolation", d_use_cf_interpolation);
         if (input_db->getBoolWithDefault("consistent_type_2_bdry", false))
         {
@@ -208,7 +218,7 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                                                              /*consistent_type_2_bdry*/ false,
                                                              d_U_bc_coefs,
                                                              d_U_fill_pattern,
-                                                             d_bdry_interp_type);
+                                                             IBTK::enum_to_string(d_bdry_interp_type));
     transaction_comps[1] = InterpolationTransactionComponent(P_idx,
                                                              d_refine_type,
                                                              d_use_cf_interpolation,
@@ -217,7 +227,7 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                                                              /*consistent_type_2_bdry*/ false,
                                                              d_P_bc_coef,
                                                              d_P_fill_pattern,
-                                                             d_bdry_interp_type);
+                                                             IBTK::enum_to_string(d_bdry_interp_type));
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
@@ -249,6 +259,18 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                              A_U_sc_var,
                              /*dst_cf_bdry_synch*/ false);
 
+    // Add the traction term before the coarse-fine synchronization, which restricts the complete fine value.
+    if (d_bc_helper)
+    {
+        d_bc_helper->addNormalTractionViscousTerm(A_U_idx,
+                                                  U_idx,
+                                                  d_U_problem_coefs.getDConstant(),
+                                                  d_U_bc_coefs,
+                                                  d_bdry_interp_type,
+                                                  x.getCoarsestLevelNumber(),
+                                                  x.getFinestLevelNumber());
+    }
+
     // Synchronize A_U and U across coarse-fine interfaces together.
     d_hier_math_ops->synchronizeCoarseFineBoundary({ A_U_idx, U_idx });
     d_hier_math_ops->div(A_P_idx,
@@ -274,6 +296,24 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
+    if (!d_bc_helper && detail::has_normal_stress_term(d_U_bc_coefs) &&
+        in.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() == 0)
+    {
+        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
+                                 << "  the TRACTION velocity boundary conditions require a "
+                                    "StaggeredStokesPhysicalBoundaryHelper in a domain that is not periodic in every "
+                                    "direction\n"
+                                 << "  call setPhysicalBoundaryHelper() to provide one\n");
+    }
+    if (d_bc_helper && d_U_problem_coefs.dIsConstant())
+    {
+        d_bc_helper->checkNormalTractionBdryInterpType(d_U_bc_coefs,
+                                                       d_bdry_interp_type,
+                                                       d_U_problem_coefs.getDConstant() != 0.0,
+                                                       d_new_time,
+                                                       in.getPatchHierarchy());
+    }
+
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, /*overwrite_interior*/ false);
     d_P_fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
@@ -287,7 +327,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
                                                                /*consistent_type_2_bdry*/ false,
                                                                d_U_bc_coefs,
                                                                d_U_fill_pattern,
-                                                               d_bdry_interp_type);
+                                                               IBTK::enum_to_string(d_bdry_interp_type));
     d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1),
                                                                d_refine_type,
                                                                d_use_cf_interpolation,
@@ -296,7 +336,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
                                                                /*consistent_type_2_bdry*/ false,
                                                                d_P_bc_coef,
                                                                d_P_fill_pattern,
-                                                               d_bdry_interp_type);
+                                                               IBTK::enum_to_string(d_bdry_interp_type));
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();

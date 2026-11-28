@@ -283,7 +283,7 @@ CIBStaggeredStokesOperator::getVelocityInterpComponent(const int U_idx) const
                                                                               /*consistent_type_2_bdry*/ false,
                                                                               d_U_bc_coefs,
                                                                               /*fill_pattern*/ nullptr,
-                                                                              d_bdry_interp_type);
+                                                                              IBTK::enum_to_string(d_bdry_interp_type));
 } // getVelocityInterpComponent
 
 void

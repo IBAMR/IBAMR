@@ -103,7 +103,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                                              /*consistent_type_2_bdry*/ false,
                                                              d_U_bc_coefs,
                                                              d_U_fill_pattern,
-                                                             d_bdry_interp_type);
+                                                             IBTK::enum_to_string(d_bdry_interp_type));
     transaction_comps[1] = InterpolationTransactionComponent(P_idx,
                                                              d_refine_type,
                                                              d_use_cf_interpolation,
@@ -112,7 +112,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                                              /*consistent_type_2_bdry*/ false,
                                                              d_P_bc_coef,
                                                              d_P_fill_pattern,
-                                                             d_bdry_interp_type);
+                                                             IBTK::enum_to_string(d_bdry_interp_type));
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(

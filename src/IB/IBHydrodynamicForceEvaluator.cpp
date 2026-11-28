@@ -1260,7 +1260,6 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
 #if !defined(NDEBUG)
         TBOX_ASSERT(p_ins_bc_coef);
 #endif
-        p_ins_bc_coef->setTargetVelocityPatchDataIndex(d_u_idx);
 
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> transaction_comp(1);
