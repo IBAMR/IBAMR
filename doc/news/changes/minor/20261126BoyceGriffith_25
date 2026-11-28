@@ -1,0 +1,3 @@
+Improved: Build the operators that synchronize the stochastic stresses and fill the ghost cells of the cell-centered stresses of IBAMR::INSStaggeredStochasticForcing on the first call to setDataOnPatchHierarchy() and again only after a regrid replaces a level.
+<br>
+(Boyce Griffith, 2026/11/26)
