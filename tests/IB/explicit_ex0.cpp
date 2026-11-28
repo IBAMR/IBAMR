@@ -325,6 +325,10 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
+
+    // Increase maximum patch data component indices
+    SAMRAIManager::setMaxNumberPatchDataEntries(2500);
+
     std::array<double, 3> u_err;
     std::array<double, 3> p_err;
 
@@ -470,9 +474,29 @@ main(int argc, char* argv[])
             vc_integrator->registerViscosityVariable(mu_var);
             Pointer<CartGridFunction> mu_init = new muParserCartGridFunction(
                 "mu_init", app_initializer->getComponentDatabase("ViscosityInitialConditions"), grid_geometry);
-            vc_integrator->registerViscosityInitialConditions(mu_init);
-            vc_integrator->registerResetFluidViscosityFcn(&callSetFluidPropertyCallbackFunction,
-                                                          static_cast<void*>(mu_init.getPointer()));
+            if (app_initializer->getComponentDatabase("Main")->getBoolWithDefault("register_viscosity_init", true))
+            {
+                vc_integrator->registerViscosityInitialConditions(mu_init);
+            }
+            if (app_initializer->getComponentDatabase("Main")->getBoolWithDefault("register_density", false))
+            {
+                // If register_density_reset is FALSE, nothing sets the variable density at the new time.
+                Pointer<CellVariable<NDIM, double>> rho_var = new CellVariable<NDIM, double>("rho");
+                vc_integrator->registerMassDensityVariable(rho_var);
+                Pointer<CartGridFunction> rho_init = new muParserCartGridFunction(
+                    "rho_init", app_initializer->getComponentDatabase("DensityInitialConditions"), grid_geometry);
+                vc_integrator->registerMassDensityInitialConditions(rho_init);
+                if (app_initializer->getComponentDatabase("Main")->getBoolWithDefault("register_density_reset", true))
+                {
+                    vc_integrator->registerResetFluidDensityFcn(&callSetFluidPropertyCallbackFunction,
+                                                                static_cast<void*>(rho_init.getPointer()));
+                }
+            }
+            if (app_initializer->getComponentDatabase("Main")->getBoolWithDefault("register_viscosity_reset", true))
+            {
+                vc_integrator->registerResetFluidViscosityFcn(&callSetFluidPropertyCallbackFunction,
+                                                              static_cast<void*>(mu_init.getPointer()));
+            }
             mu_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "mu_bc_coef", app_initializer->getComponentDatabase("ViscosityBcCoefs"), grid_geometry);
             vc_integrator->registerViscosityBoundaryConditions(mu_bc_coef.get());

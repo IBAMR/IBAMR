@@ -1,0 +1,14 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+IBRedundantInitializer:  Deallocating initialization data.
+At beginning of timestep # 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+Program abort called with error message
+
+    INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy():
+  rho_is_const == false with a registered mass density variable requires a function that sets the density at the new time
+  register one with registerResetFluidDensityFcn(), or let an advection-diffusion integrator maintain the density with setTransportedMassDensityVariable()
+

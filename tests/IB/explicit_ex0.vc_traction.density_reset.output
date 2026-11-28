@@ -1,0 +1,87 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+IBRedundantInitializer:  Deallocating initialization data.
+At beginning of timestep # 0
+INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 9
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.97407e-14
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 6
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.89699e-13
+Error in u at time 0.00025:
+  L1-norm:  0.00177871875
+  L2-norm:  0.005984707791
+  max-norm: 0.09997260399
+Error in p at time 0.000125:
+  L1-norm:  1.194417518
+  L2-norm:  1.847586781
+  max-norm: 11.40315371
+
+At beginning of timestep # 1
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.47969e-14
+Error in u at time 0.0005:
+  L1-norm:  0.003538409351
+  L2-norm:  0.01179875453
+  max-norm: 0.196325591
+Error in p at time 0.000375:
+  L1-norm:  1.194605219
+  L2-norm:  1.847915833
+  max-norm: 11.396213
+
+At beginning of timestep # 2
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.85583e-14
+Error in u at time 0.00075:
+  L1-norm:  0.005280538482
+  L2-norm:  0.01744430371
+  max-norm: 0.289220612
+Error in p at time 0.000625:
+  L1-norm:  1.194793887
+  L2-norm:  1.848309037
+  max-norm: 11.38460283
+
+At beginning of timestep # 3
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.01705e-14
+Error in u at time 0.001:
+  L1-norm:  0.007003316396
+  L2-norm:  0.02292225323
+  max-norm: 0.3788361213
+Error in p at time 0.000875:
+  L1-norm:  1.194621217
+  L2-norm:  1.848245267
+  max-norm: 11.3605356
+
+At beginning of timestep # 4
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers`(): initializing velocity subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing pressure subdomain solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(): initializing incompressible Stokes solver
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.12636e-14
+Error in u at time 0.00125:
+  L1-norm:  0.008707877468
+  L2-norm:  0.02823631348
+  max-norm: 0.4652442574
+Error in p at time 0.001125:
+  L1-norm:  1.194667254
+  L2-norm:  1.848537618
+  max-norm: 11.33523142
+
