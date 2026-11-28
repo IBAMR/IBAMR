@@ -967,7 +967,7 @@ INSStaggeredDivergenceFreePhysBdryOp::ExtensionBuilder::evaluateBcCoefficients()
                 bc_coefficients.box.upper()(normal_axis) = plane;
                 bc_coefficients.acoef_data = new ArrayData<NDIM, double>(bc_coefficients.box, 1);
                 bc_coefficients.bcoef_data = new ArrayData<NDIM, double>(bc_coefficients.box, 1);
-                // setBcCoefs() requires all three arrays, though only a and b are used.
+                // The operator allocates all three arrays, though only a and b are used.
                 Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(bc_coefficients.box, 1);
                 Box<NDIM> bdry_cell_box = bc_coefficients.box;
                 if (!is_upper)
@@ -1107,7 +1107,7 @@ INSStaggeredDivergenceFreePhysBdryOp::Extension::evaluateDataPoints(
         }
         const BoundaryBox<NDIM> bdry_box(bdry_cell_box, 1, batch.location_index);
 
-        // setBcCoefs() requires all three arrays, though only g is used.
+        // The operator allocates all three arrays, though only g is used.
         Pointer<ArrayData<NDIM, double>> acoef_data = new ArrayData<NDIM, double>(batch.box, 1);
         Pointer<ArrayData<NDIM, double>> bcoef_data = new ArrayData<NDIM, double>(batch.box, 1);
         Pointer<ArrayData<NDIM, double>> gcoef_data = new ArrayData<NDIM, double>(batch.box, 1);

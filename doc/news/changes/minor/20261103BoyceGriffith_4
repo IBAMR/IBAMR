@@ -1,0 +1,3 @@
+New: Add IBTK::ExtendedRobinBcCoefStrategy::dependsOnTargetPatchData(). The Robin accumulations stop with an error when it returns true; subclasses whose boundary data read the target data must override it.
+<br>
+(Boyce Griffith, 2026/11/03)
