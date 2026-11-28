@@ -503,6 +503,16 @@ make_vcsc_stencil_maps()
 }
 } // namespace
 
+PoissonUtilities::GhostValueWeights
+PoissonUtilities::computeGhostValueWeights(const BdryInterpType bdry_interp_type,
+                                           const double a,
+                                           const double b,
+                                           const double h)
+{
+    TBOX_ASSERT(bdry_interp_type == BdryInterpType::LINEAR);
+    return { -(a * h - 2.0 * b) / (a * h + 2.0 * b), 0.0, 2.0, 2.0 * b + h * a };
+} // computeGhostValueWeights
+
 void
 PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coefficients,
                                             Pointer<Patch<NDIM>> patch,
