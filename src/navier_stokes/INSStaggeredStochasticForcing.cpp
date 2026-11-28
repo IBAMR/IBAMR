@@ -172,8 +172,15 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
     : d_object_name(std::move(object_name)),
       d_fluid_solver(fluid_solver),
+      d_W_cc_bc_coef(d_object_name + "::bc_coef", Pointer<Database>(nullptr)),
       d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0 / 3.0)
 {
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_W_cc_bc_coef.setBoundarySlope(2 * d, 0.0);
+        d_W_cc_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
+    }
+
     if (input_db)
     {
         if (input_db->keyExists("stress_tensor_type"))
@@ -536,38 +543,36 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             }
         }
 
+        // Rebuild the synchronization after a regrid replaces a level.
+        if (d_W_synch_levels.changed(*hierarchy, 0, hierarchy->getFinestLevelNumber()))
+        {
+            d_W_synch.setNull();
+        }
+
+        if (!d_W_synch)
+        {
 #if (NDIM == 2)
-        // Synchronize node-centered values.
-        using SynchronizationTransactionComponent = NodeDataSynchronization::SynchronizationTransactionComponent;
-        SynchronizationTransactionComponent synch_component(d_W_nc_idx);
-        NodeDataSynchronization synch_data_op;
-        synch_data_op.initializeOperatorState(synch_component, hierarchy);
-        synch_data_op.synchronizeData(data_time);
+            // Synchronize node-centered values.
+            using SynchronizationTransactionComponent = NodeDataSynchronization::SynchronizationTransactionComponent;
+            SynchronizationTransactionComponent synch_component(d_W_nc_idx);
+            d_W_synch = new NodeDataSynchronization();
 #endif
 #if (NDIM == 3)
-        // Synchronize edge-centered values.
-        using SynchronizationTransactionComponent = EdgeDataSynchronization::SynchronizationTransactionComponent;
-        SynchronizationTransactionComponent synch_component(d_W_ec_idx);
-        EdgeDataSynchronization synch_data_op;
-        synch_data_op.initializeOperatorState(synch_component, hierarchy);
-        synch_data_op.synchronizeData(data_time);
+            // Synchronize edge-centered values.
+            using SynchronizationTransactionComponent = EdgeDataSynchronization::SynchronizationTransactionComponent;
+            SynchronizationTransactionComponent synch_component(d_W_ec_idx);
+            d_W_synch = new EdgeDataSynchronization();
 #endif
+            d_W_synch->initializeOperatorState(synch_component, hierarchy);
+        }
+        d_W_synch->synchronizeData(data_time);
 
         // Communicate ghost-cell data.
-        LocationIndexRobinBcCoefs<NDIM> bc_coef(d_object_name + "::bc_coef", Pointer<Database>(nullptr));
-        for (int d = 0; d < NDIM; ++d)
-        {
-            bc_coef.setBoundarySlope(2 * d, 0.0);
-            bc_coef.setBoundarySlope(2 * d + 1, 0.0);
-        }
-        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, &bc_coef);
+        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, &d_W_cc_bc_coef);
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
-        ghost_fill_components[0] =
-            InterpolationTransactionComponent(d_W_cc_idx, "NONE", false, "NONE", "NONE", false, bc_coefs);
-        HierarchyGhostCellInterpolation ghost_fill_op;
-        ghost_fill_op.initializeOperatorState(ghost_fill_components, hierarchy);
-        ghost_fill_op.fillData(data_time);
+        const InterpolationTransactionComponent ghost_fill_component(
+            d_W_cc_idx, "NONE", false, "NONE", "NONE", false, bc_coefs);
+        d_W_cc_fill.get({ ghost_fill_component }, hierarchy).fillData(data_time);
     }
 
     // Compute div W on each patch level.

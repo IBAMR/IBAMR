@@ -24,6 +24,14 @@
 
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
+#if (NDIM == 2)
+#include <ibtk/NodeDataSynchronization.h>
+#endif
+#if (NDIM == 3)
+#include <ibtk/EdgeDataSynchronization.h>
+#endif
 
 #include <tbox/Array.h>
 #include <tbox/Pointer.h>
@@ -31,6 +39,7 @@
 #include <CellVariable.h>
 #include <EdgeVariable.h> // IWYU pragma: keep
 #include <IntVector.h>
+#include <LocationIndexRobinBcCoefs.h>
 #include <NodeVariable.h> // IWYU pragma: keep
 #include <PatchLevel.h>
 #include <VariableContext.h>
@@ -163,6 +172,11 @@ private:
     const INSStaggeredHierarchyIntegrator* const d_fluid_solver;
 
     /*!
+     * Homogeneous Neumann boundary condition for the ghost-cell fill of the cell-centered stresses.
+     */
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_W_cc_bc_coef;
+
+    /*!
      * Type of stress tensor (correlated or uncorrelated).
      */
     StochasticStressTensorType d_stress_tensor_type = UNCORRELATED;
@@ -197,6 +211,23 @@ private:
     int d_W_ec_idx = IBTK::invalid_index;
     std::vector<int> d_W_ec_idxs;
 #endif
+
+    /*!
+     * Cached synchronization of the node-centered or edge-centered stresses, with the hierarchy levels it was built
+     * for.
+     */
+#if (NDIM == 2)
+    SAMRAI::tbox::Pointer<IBTK::NodeDataSynchronization> d_W_synch;
+#endif
+#if (NDIM == 3)
+    SAMRAI::tbox::Pointer<IBTK::EdgeDataSynchronization> d_W_synch;
+#endif
+    IBTK::detail::HierarchyLevelsIdentity d_W_synch_levels;
+
+    /*!
+     * Cached ghost-cell fill of the cell-centered stresses.
+     */
+    IBTK::detail::CachedGhostCellFill d_W_cc_fill;
 };
 } // namespace IBAMR
 
