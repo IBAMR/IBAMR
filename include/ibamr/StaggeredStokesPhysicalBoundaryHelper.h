@@ -112,6 +112,16 @@ public:
                                       int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
+     * \brief Add the viscous part of the TRACTION conditions to \a f_data on one patch. See the version for a patch
+     * hierarchy.
+     */
+    void addNormalTractionViscousTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> f_data,
+                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_data,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                      double viscous_coef,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs) const;
+
+    /*!
      * \brief Stop with an error if \a bdry_interp_type is QUADRATIC, \a viscous_coef_nonzero is true, and the normal
      * velocity of a TRACTION condition in \a u_bc_coefs (or of a PSEUDO_TRACTION condition, if
      * \a include_pseudo_traction is true) is not prescribed at some boundary face of \a hierarchy. The terms of
@@ -141,6 +151,16 @@ public:
                                       int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
+     * \brief Set \a r_data_idx to \a f_data_idx minus \a u_data_idx at the boundary faces at which the normal velocity
+     * is prescribed, over the specified levels.
+     */
+    void setResidualAtDirichletBoundaries(int r_data_idx,
+                                          int f_data_idx,
+                                          int u_data_idx,
+                                          int coarsest_ln = IBTK::invalid_level_number,
+                                          int finest_ln = IBTK::invalid_level_number) const;
+
+    /*!
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
      */
@@ -158,16 +178,6 @@ public:
 
 protected:
 private:
-    /*!
-     * \brief Add the viscous part of the TRACTION conditions to \a f_data on one patch. See the version for a patch
-     * hierarchy.
-     */
-    void addNormalTractionViscousTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> f_data,
-                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double>> u_data,
-                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
-                                      double viscous_coef,
-                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs) const;
-
     /*!
      * \brief Copy constructor.
      *

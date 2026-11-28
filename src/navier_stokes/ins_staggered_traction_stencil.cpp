@@ -91,6 +91,48 @@ get_half_cell_shift(const Patch<NDIM>& patch, const unsigned int bdry_normal_axi
     return shift;
 } // get_half_cell_shift
 
+// One term (u(upper) - u(lower)) * dx_normal / dx_axis of the discrete divergence in a ghost cell. A face that is not
+// used contributes zero.
+struct DivergenceFreeGhostTerm
+{
+    SideIndex<NDIM> upper;
+    SideIndex<NDIM> lower;
+    bool use_upper = true;
+    bool use_lower = true;
+    double dx_normal = 0.0;
+    double dx_axis = 0.0;
+};
+
+// The divergence-free ghost value is sign times the sum of the terms.
+struct DivergenceFreeGhostFormula
+{
+    double sign = 1.0;
+    std::array<DivergenceFreeGhostTerm, NDIM> terms;
+};
+
+// Return the faces, signs, and scales that define get_divergence_free_ghost_value() and its stencil.
+DivergenceFreeGhostFormula
+get_divergence_free_ghost_formula(const hier::Index<NDIM>& i_g,
+                                  const unsigned int bdry_normal_axis,
+                                  const bool bdry_is_lower,
+                                  const double* const dx)
+{
+    DivergenceFreeGhostFormula formula;
+    formula.sign = bdry_is_lower ? +1.0 : -1.0;
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        DivergenceFreeGhostTerm& term = formula.terms[axis];
+        term.upper = SideIndex<NDIM>(i_g, axis, SideIndex<NDIM>::Upper);
+        term.lower = SideIndex<NDIM>(i_g, axis, SideIndex<NDIM>::Lower);
+        // The face of i_g that is farther from the boundary is not used.
+        term.use_upper = axis != bdry_normal_axis || bdry_is_lower;
+        term.use_lower = axis != bdry_normal_axis || !bdry_is_lower;
+        term.dx_normal = dx[bdry_normal_axis];
+        term.dx_axis = dx[axis];
+    }
+    return formula;
+} // get_divergence_free_ghost_formula
+
 } // namespace
 
 void
@@ -347,21 +389,41 @@ get_divergence_free_ghost_value(const SideData<NDIM, double>& u_data,
                                 const bool bdry_is_lower,
                                 const double* const dx)
 {
+    const DivergenceFreeGhostFormula formula =
+        get_divergence_free_ghost_formula(i_g, bdry_normal_axis, bdry_is_lower, dx);
     double div_u_g = 0.0;
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    for (const DivergenceFreeGhostTerm& term : formula.terms)
     {
-        const SideIndex<NDIM> i_g_s_upper(i_g, axis, SideIndex<NDIM>::Upper);
-        const SideIndex<NDIM> i_g_s_lower(i_g, axis, SideIndex<NDIM>::Lower);
-        double u_upper = u_data(i_g_s_upper);
-        double u_lower = u_data(i_g_s_lower);
-        if (axis == bdry_normal_axis)
-        {
-            (bdry_is_lower ? u_lower : u_upper) = 0.0;
-        }
-        div_u_g += (u_upper - u_lower) * dx[bdry_normal_axis] / dx[axis];
+        const double u_upper = term.use_upper ? u_data(term.upper) : 0.0;
+        const double u_lower = term.use_lower ? u_data(term.lower) : 0.0;
+        div_u_g += (u_upper - u_lower) * term.dx_normal / term.dx_axis;
     }
-    return (bdry_is_lower ? +1.0 : -1.0) * div_u_g;
+    return formula.sign * div_u_g;
 } // get_divergence_free_ghost_value
+
+StokesBcCoefStrategy::SideStencil
+get_divergence_free_ghost_value_stencil(const hier::Index<NDIM>& i_g,
+                                        const unsigned int bdry_normal_axis,
+                                        const bool bdry_is_lower,
+                                        const double* const dx)
+{
+    const DivergenceFreeGhostFormula formula =
+        get_divergence_free_ghost_formula(i_g, bdry_normal_axis, bdry_is_lower, dx);
+    StokesBcCoefStrategy::SideStencil stencil;
+    for (const DivergenceFreeGhostTerm& term : formula.terms)
+    {
+        const double weight = formula.sign * term.dx_normal / term.dx_axis;
+        if (term.use_upper)
+        {
+            stencil.emplace_back(term.upper, weight);
+        }
+        if (term.use_lower)
+        {
+            stencil.emplace_back(term.lower, -weight);
+        }
+    }
+    return stencil;
+} // get_divergence_free_ghost_value_stencil
 
 bool
 has_normal_stress_term(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
@@ -534,6 +596,28 @@ get_traction_stencil(const hier::Index<NDIM>& i,
     }
     return stencil;
 } // get_traction_stencil
+
+StokesBcCoefStrategy::SideStencil
+get_normal_stress_stencil(const hier::Index<NDIM>& i,
+                          const unsigned int bdry_normal_axis,
+                          const bool bdry_is_lower,
+                          const double* const dx)
+{
+    hier::Index<NDIM> i_g = i;
+    if (bdry_is_lower)
+    {
+        i_g(bdry_normal_axis) -= 1;
+    }
+    SideIndex<NDIM> i_s_inside(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    i_s_inside(bdry_normal_axis) += bdry_is_lower ? 1 : -1;
+    StokesBcCoefStrategy::SideStencil stencil;
+    stencil.emplace_back(i_s_inside, 1.0);
+    for (const auto& entry : get_divergence_free_ghost_value_stencil(i_g, bdry_normal_axis, bdry_is_lower, dx))
+    {
+        stencil.emplace_back(entry.first, -entry.second);
+    }
+    return stencil;
+} // get_normal_stress_stencil
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
