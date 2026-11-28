@@ -23,8 +23,12 @@
 #include <ibamr/ibamr_enums.h>
 
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Pointer.h>
+
+#include <vector>
 
 namespace IBTK
 {
@@ -127,9 +131,9 @@ public:
                        const bool set_mu_solid);
 
     /*!
-     * Destructor for this class.
+     * Destructor for this class. Remove the scratch level set indices.
      */
-    ~SetFluidProperties() = default;
+    ~SetFluidProperties();
 
     /*!
      * Set the density based on the current level set information.
@@ -184,14 +188,14 @@ private:
     SetFluidProperties();
 
     /*!
-     * Default assignment operator is not implemented and should not be used.
+     * The assignment operator is deleted, because the destructor removes the scratch indices.
      */
-    SetFluidProperties& operator=(const SetFluidProperties& that);
+    SetFluidProperties& operator=(const SetFluidProperties& that) = delete;
 
     /*!
-     * Default copy constructor is not implemented and should not be used.
+     * The copy constructor is deleted, because the destructor removes the scratch indices.
      */
-    SetFluidProperties(const SetFluidProperties& from);
+    SetFluidProperties(const SetFluidProperties& from) = delete;
 
     /*!
      * Set the density based on the current level set information for two-phase flows.
@@ -277,6 +281,14 @@ private:
      */
     int d_num_phases = 2;
 
+    /*!
+     * Scratch level set indices, registered on first use, and the cached ghost-cell fill of the scratch level sets with
+     * the hierarchy levels it was built for.
+     */
+    int d_ls_gas_scratch_idx = IBTK::invalid_index, d_ls_solid_scratch_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_ls_fill;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
+
 }; // SetFluidProperties
 
 /*!
@@ -314,9 +326,9 @@ public:
                    std::vector<double> grav_const);
 
     /*!
-     * \brief Empty destructor.
+     * \brief Destructor. Remove the scratch level set index.
      */
-    ~GravityForcing() = default;
+    ~GravityForcing();
 
     /*!
      * \name Methods to set patch data.
@@ -355,6 +367,16 @@ public:
     //\}
 
 private:
+    /*!
+     * The assignment operator is deleted, because the destructor removes the scratch index.
+     */
+    GravityForcing& operator=(const GravityForcing& that) = delete;
+
+    /*!
+     * The copy constructor is deleted, because the destructor removes the scratch index.
+     */
+    GravityForcing(const GravityForcing& from) = delete;
+
     /*!
      * Name of this object.
      */
@@ -400,9 +422,12 @@ private:
     int d_num_gas_interface_cells;
 
     /*!
-     * Level set scratch data.
+     * Scratch level set index, registered on first use, and the cached ghost-cell fill of the scratch level set with
+     * the hierarchy levels it was built for.
      */
     int d_ls_gas_scratch_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_ls_fill;
+    IBTK::detail::HierarchyLevelsIdentity d_fill_levels;
 };
 
 } // namespace VCINSUtilities

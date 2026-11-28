@@ -1,0 +1,3 @@
+Improved: Build the ghost-cell fill operator of the conformation tensor in IBAMR::CFINSForcing on the first call to setDataOnPatchHierarchy() and again only after a regrid replaces a level.
+<br>
+(Boyce Griffith, 2026/11/26)

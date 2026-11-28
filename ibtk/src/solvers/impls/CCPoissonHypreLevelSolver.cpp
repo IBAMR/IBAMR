@@ -18,6 +18,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PoissonUtilities.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/off_level_matrix_entries.h>
 #include <ibtk/solver_utilities.h>
 
 #include <tbox/Array.h>
@@ -300,7 +301,8 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
     d_level = d_hierarchy->getPatchLevel(d_level_num);
     if (d_level_num > 0)
     {
-        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+        d_cf_boundary =
+            d_coarse_fine_boundary_cache.getCoarseFineBoundary(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
     }
 
     // Allocate and initialize the hypre data structures.
@@ -486,6 +488,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
     std::vector<HYPRE_Int> stencil_indices(stencil_size);
     std::iota(stencil_indices.begin(), stencil_indices.end(), HYPRE_Int(0));
     std::vector<double> mat_vals(stencil_size, 0.0);
+    const detail::BoxArrayIndex& level_boxes = d_coarse_fine_boundary_cache.getLevelBoxIndex(*d_hierarchy);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
@@ -501,7 +504,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
                                                         d_solution_time,
                                                         d_bdry_interp_type);
             // Drop the couplings to cells that are not cells of the level.
-            clearOffLevelMatrixEntries(matrix_coefs, *d_level, d_stencil_offsets);
+            detail::clearOffLevelMatrixEntries(matrix_coefs, *d_level, level_boxes, d_stencil_offsets);
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
                 hier::Index<NDIM> i = b();
@@ -528,6 +531,7 @@ void
 CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 {
     static const IntVector<NDIM> no_ghosts = 0;
+    const detail::BoxArrayIndex& level_boxes = d_coarse_fine_boundary_cache.getLevelBoxIndex(*d_hierarchy);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM>> patch = d_level->getPatch(p());
@@ -720,7 +724,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         }
 
         // Drop the couplings to cells that are not cells of the level, then copy the matrix entries to hypre.
-        clearOffLevelMatrixEntries(matrix_coefs, *d_level, d_stencil_offsets);
+        detail::clearOffLevelMatrixEntries(matrix_coefs, *d_level, level_boxes, d_stencil_offsets);
         std::vector<double> mat_vals(stencil_size);
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {

@@ -1,0 +1,3 @@
+Improved: IBTK::PETScLevelSolver, IBTK::CCPoissonHypreLevelSolver, and IBTK::SCPoissonHypreLevelSolver no longer reconstruct their coarse-fine boundary when reinitialized on an unchanged level.
+<br>
+(Boyce Griffith, 2026/11/23)
