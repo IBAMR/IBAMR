@@ -20,8 +20,11 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/BoundaryTreatment.h>
 #include <ibamr/StokesBcCoefStrategy.h>
 #include <ibamr/ibamr_enums.h>
+
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Pointer.h>
 
@@ -109,6 +112,13 @@ public:
      * \brief Set the current time interval.
      */
     void setTimeInterval(double current_time, double new_time);
+
+    /*!
+     * \brief Set the discretization at physical boundaries. setBcCoefs() uses the interpolation type of
+     * \a bdry_treatment for the normal velocity in the TRACTION condition beyond a corner, regardless of the
+     * interpolation type of the ghost fill that evaluates the condition.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment);
 
     /*!
      * \name StokesBcCoefStrategy interface.
@@ -288,6 +298,11 @@ private:
      * The boundary condition specification objects for the velocity.
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    /*
+     * The interpolation type of the ghost values at physical boundaries.
+     */
+    IBTK::BdryInterpType d_bdry_interp_type = IBTK::BdryInterpType::LINEAR;
 };
 } // namespace IBAMR
 

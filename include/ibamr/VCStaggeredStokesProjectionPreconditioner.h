@@ -24,6 +24,7 @@
 #include <ibamr/StaggeredStokesSolver.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/ibtk_enums.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -84,6 +85,18 @@ public:
     {
         return new VCStaggeredStokesProjectionPreconditioner(object_name, input_db, default_options_prefix);
     } // allocate_solver
+
+    /*!
+     * \brief Return whether \a bdry_interp_type is IBTK::BdryInterpType::LINEAR or IBTK::BdryInterpType::QUADRATIC,
+     * the interpolation types that the preconditioner applies.
+     */
+    bool supportsBdryInterpType(IBTK::BdryInterpType bdry_interp_type) const override;
+
+    /*!
+     * \brief Set the discretization at physical boundaries. The preconditioner uses it to fill the ghost values of the
+     * pressure update.
+     */
+    void setBoundaryTreatment(const BoundaryTreatment& bdry_treatment) override;
 
     /*!
      * \name Linear solver functionality.
