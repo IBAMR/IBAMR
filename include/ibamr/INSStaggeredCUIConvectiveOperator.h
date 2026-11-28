@@ -191,7 +191,6 @@ private:
     IBTK::RobinPhysBdryPatchStrategy* const d_u_phys_bdry_op;
 
     // Cached communications operators.
-    std::string d_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 

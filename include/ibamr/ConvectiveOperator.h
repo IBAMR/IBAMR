@@ -82,6 +82,14 @@ public:
     ConvectiveDifferencingType getConvectiveDifferencingType() const;
 
     /*!
+     * \brief Set the type of extrapolation of the velocity beyond physical boundaries, before the operator state is
+     * initialized. The default is "LINEAR".
+     *
+     * \note A convective operator may read a different type from its input database in its constructor.
+     */
+    void setBdryExtrapType(const std::string& bdry_extrap_type);
+
+    /*!
      * \brief Compute N = u * grad Q.
      */
     virtual void applyConvectiveOperator(int Q_idx, int N_idx) = 0;
@@ -133,6 +141,11 @@ protected:
      * The advection velocity patch data descriptor index.
      */
     int d_u_idx = IBTK::invalid_index;
+
+    /*!
+     * The type of extrapolation of the velocity beyond physical boundaries.
+     */
+    std::string d_bdry_extrap_type = "LINEAR";
 
 private:
     /*!

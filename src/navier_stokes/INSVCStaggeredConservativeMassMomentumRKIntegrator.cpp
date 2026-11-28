@@ -1610,6 +1610,13 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::getVelocityGhostWidth() cons
     return IntVector<NDIM>(d_velocity_limiter_gcw);
 } // getVelocityGhostWidth
 
+void
+INSVCStaggeredConservativeMassMomentumRKIntegrator::setVelocityBdryExtrapType(const std::string& bdry_extrap_type)
+{
+    d_velocity_bdry_extrap_type = bdry_extrap_type;
+    return;
+} // setVelocityBdryExtrapType
+
 int
 INSVCStaggeredConservativeMassMomentumRKIntegrator::getUpdatedSideCenteredDensityPatchDataIndex()
 {
