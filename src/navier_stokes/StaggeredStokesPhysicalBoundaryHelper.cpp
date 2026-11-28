@@ -378,65 +378,6 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
 } // addNormalTractionViscousTerm
 
 void
-StaggeredStokesPhysicalBoundaryHelper::checkNormalTractionBdryInterpType(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-    const IBTK::BdryInterpType bdry_interp_type,
-    const double fill_time,
-    const Pointer<PatchHierarchy<NDIM>> hierarchy) const
-{
-    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
-    if (bdry_interp_type != IBTK::BdryInterpType::QUADRATIC)
-    {
-        return;
-    }
-    // Find the boundary faces without a prescribed normal velocity, leaving the cached data of this object unchanged.
-    StaggeredStokesPhysicalBoundaryHelper bc_helper;
-    bc_helper.cacheBcCoefData(u_bc_coefs, fill_time, hierarchy);
-    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            const int patch_num = p();
-            const Array<BoundaryBox<NDIM>>& physical_codim1_boxes =
-                bc_helper.d_physical_codim1_boxes[ln].find(patch_num)->second;
-            const std::vector<Pointer<ArrayData<NDIM, bool>>>& dirichlet_bdry_locs =
-                bc_helper.d_dirichlet_bdry_locs[ln].find(patch_num)->second;
-            for (int n = 0; n < physical_codim1_boxes.size(); ++n)
-            {
-                const unsigned int bdry_normal_axis = physical_codim1_boxes[n].getLocationIndex() / 2;
-                const auto stokes_u_bc_coef = dynamic_cast<const StokesBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
-                if (!stokes_u_bc_coef)
-                {
-                    continue;
-                }
-                const TractionBcType traction_type = stokes_u_bc_coef->getTractionBcType();
-                if (traction_type != TRACTION && traction_type != PSEUDO_TRACTION)
-                {
-                    continue;
-                }
-                const ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
-                for (Box<NDIM>::Iterator it(bdry_locs_data.getBox()); it; it++)
-                {
-                    // The terms for a variable viscous coefficient are exact only if the pressure ghost value is
-                    // p_G = 2*p_b - p_I, in which p_b is the boundary value and p_I is the interior value.
-                    if (bdry_locs_data(it(), 0) == 0.0)
-                    {
-                        TBOX_ERROR("StaggeredStokesPhysicalBoundaryHelper::checkNormalTractionBdryInterpType():\n"
-                                   << "  TRACTION and PSEUDO_TRACTION conditions for the normal velocity with a "
-                                      "variable viscous coefficient require the boundary interpolation type "
-                                      "\"LINEAR\"\n"
-                                   << "  set bdry_interp_type of the Stokes operator or of the integrator to "
-                                      "\"LINEAR\"\n");
-                    }
-                }
-            }
-        }
-    }
-    return;
-} // checkNormalTractionBdryInterpType
-
-void
 StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
     Pointer<SideData<NDIM, double>> f_data,
     Pointer<SideData<NDIM, double>> u_data,
@@ -529,9 +470,12 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
     const int finest_ln) const
 {
     // Add 2*(D_I*(u_I - u_B) + D_G*(u_B - u_G))/h^2 and subtract D_B*(u_I - u_div)/h^2 for PSEUDO_TRACTION. Subscripts
-    // I, B, and G mark interior, boundary, and ghost values of u and of the viscous coefficient D.
+    // I, B, and G mark interior, boundary, and ghost values of u and of the viscous coefficient D. With p_b = -g, in
+    // which g is the normal traction, the term makes the operator at the boundary face a one-sided derivative of the
+    // normal stress, extrapolated as the pressure is.
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    const bool quadratic = bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == IBTK::invalid_level_number ? 0 : coarsest_ln);
          ln <= (finest_ln == IBTK::invalid_level_number ? finest_hier_level : finest_ln);
@@ -596,11 +540,23 @@ StaggeredStokesPhysicalBoundaryHelper::addNormalTractionViscousTerm(
                                           0.0;
                     double term =
                         2.0 * (coef_inside * (u_inside - u_boundary) + coef_outside * (u_boundary - u_outside));
+                    if (quadratic)
+                    {
+                        // i_c_2 and i_s_inside_2 are the next cell and face inside the domain.
+                        hier::Index<NDIM> i_c_2 = i_c;
+                        i_c_2(bdry_normal_axis) += is_lower ? 1 : -1;
+                        SideIndex<NDIM> i_s_inside_2 = i_s_inside;
+                        i_s_inside_2(bdry_normal_axis) += is_lower ? 1 : -1;
+                        const double u_inside_2 = (*u_data)(i_s_inside_2);
+                        const double coef_inside_2 = cell_viscous_coef(*coef_data, i_c_2, viscous_coef_interp_type);
+                        term += 2.0 * coef_inside * (u_inside - u_boundary) -
+                                (2.0 / 3.0) * coef_inside_2 * (u_inside_2 - u_inside);
+                    }
                     if (pseudo_traction)
                     {
                         const double u_div =
                             detail::get_divergence_free_ghost_value(*u_data, i_g, bdry_normal_axis, is_lower, dx);
-                        term -= coef_boundary * (u_inside - u_div);
+                        term -= (quadratic ? 4.0 / 3.0 : 1.0) * coef_boundary * (u_inside - u_div);
                     }
                     (*f_data)(i_s_boundary) += term / (h * h);
                 }

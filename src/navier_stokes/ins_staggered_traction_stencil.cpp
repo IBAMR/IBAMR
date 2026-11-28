@@ -590,8 +590,10 @@ get_traction_stencil(const hier::Index<NDIM>& i,
                      NormalVelocityPatch& normal_velocity_patch,
                      const BoxArray<NDIM>& domain,
                      const Box<NDIM>& ghost_box,
+                     const IBTK::BdryInterpType bdry_interp_type,
                      const double fill_time)
 {
+    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
     const unsigned int tangential_axis = normal_velocity_patch.getTangentialAxis();
     const double derivative_scale = (bdry_is_lower ? -1.0 : +1.0) / normal_velocity_patch.getTangentialDx();
     hier::Index<NDIM> i_lower(i);
@@ -605,7 +607,7 @@ get_traction_stencil(const hier::Index<NDIM>& i,
                                    normal_velocity_patch,
                                    domain,
                                    ghost_box,
-                                   IBTK::BdryInterpType::LINEAR,
+                                   bdry_interp_type,
                                    fill_time)
             .stencil;
     };
@@ -630,20 +632,53 @@ StokesBcCoefStrategy::SideStencil
 get_normal_stress_stencil(const hier::Index<NDIM>& i,
                           const unsigned int bdry_normal_axis,
                           const bool bdry_is_lower,
-                          const double* const dx)
+                          const double* const dx,
+                          const IBTK::BdryInterpType bdry_interp_type,
+                          const bool pseudo_traction)
 {
+    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    const bool quadratic = bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
+    StokesBcCoefStrategy::SideStencil stencil;
+    if (pseudo_traction && !quadratic)
+    {
+        return stencil;
+    }
     hier::Index<NDIM> i_g = i;
     if (bdry_is_lower)
     {
         i_g(bdry_normal_axis) -= 1;
     }
-    SideIndex<NDIM> i_s_inside(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    const SideIndex<NDIM> i_s_boundary(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+    SideIndex<NDIM> i_s_inside = i_s_boundary;
     i_s_inside(bdry_normal_axis) += bdry_is_lower ? 1 : -1;
-    StokesBcCoefStrategy::SideStencil stencil;
-    stencil.emplace_back(i_s_inside, 1.0);
+
+    // The coefficients of u_I, u_B, and u_I2 and of -u_div, from the term in the documentation.
+    double u_inside_coef = 1.0;
+    double u_boundary_coef = 0.0;
+    double u_inside_2_coef = 0.0;
+    double u_div_coef = 1.0;
+    if (quadratic)
+    {
+        u_inside_coef = 11.0 / 3.0;
+        u_boundary_coef = -2.0;
+        u_inside_2_coef = -2.0 / 3.0;
+        if (pseudo_traction)
+        {
+            u_inside_coef -= 4.0 / 3.0;
+            u_div_coef -= 4.0 / 3.0;
+        }
+    }
+    stencil.emplace_back(i_s_inside, u_inside_coef);
+    if (quadratic)
+    {
+        SideIndex<NDIM> i_s_inside_2 = i_s_inside;
+        i_s_inside_2(bdry_normal_axis) += bdry_is_lower ? 1 : -1;
+        stencil.emplace_back(i_s_boundary, u_boundary_coef);
+        stencil.emplace_back(i_s_inside_2, u_inside_2_coef);
+    }
     for (const auto& entry : get_divergence_free_ghost_value_stencil(i_g, bdry_normal_axis, bdry_is_lower, dx))
     {
-        stencil.emplace_back(entry.first, -entry.second);
+        stencil.emplace_back(entry.first, -u_div_coef * entry.second);
     }
     return stencil;
 } // get_normal_stress_stencil

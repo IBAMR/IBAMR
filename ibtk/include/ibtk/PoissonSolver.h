@@ -21,6 +21,10 @@
 #include <ibtk/config.h>
 
 #include <ibtk/GeneralSolver.h>
+#include <ibtk/ibtk_enums.h>
+
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
 
 #include <PoissonSpecifications.h>
 #include <RobinBcCoefStrategy.h>
@@ -89,7 +93,32 @@ public:
      */
     virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
+    /*!
+     * \brief Return whether the solver can apply the interpolation type \a bdry_interp_type, "LINEAR" or
+     * "QUADRATIC", at physical boundaries at which boundary conditions are present.
+     *
+     * The default implementation supports only linear interpolation. The "QUADRATIC" interpolation makes the
+     * operator nonsymmetric at Dirichlet and Robin boundaries, so a solver that requires a symmetric operator, such
+     * as conjugate gradients, does not support it.
+     */
+    virtual bool supportsBdryInterpType(BdryInterpType bdry_interp_type) const;
+
+    /*!
+     * \brief Set the interpolation type at physical boundaries at which boundary conditions are present.
+     *
+     * The solver reports an error if it does not support the interpolation type.
+     */
+    virtual void setBdryInterpType(BdryInterpType bdry_interp_type);
+
 protected:
+    /*!
+     * \brief Set the interpolation type at physical boundaries from the key <code>bdry_interp_type</code> of
+     * \a input_db, if the database has that key.
+     *
+     * The function stops with an error if the key does not name an interpolation type.
+     */
+    void setBdryInterpTypeFromInput(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+
     // Specialized solver initialization.
     void initSpecialized(const std::string& object_name, bool homogeneous_bc) override;
 
@@ -97,6 +126,9 @@ protected:
     SAMRAI::solv::PoissonSpecifications d_poisson_spec = SAMRAI::solv::PoissonSpecifications("");
     std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM>> d_default_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+
+    // Type of interpolation to use at physical boundaries at which boundary conditions are present.
+    BdryInterpType d_bdry_interp_type = BdryInterpType::LINEAR;
 
 private:
     /*!

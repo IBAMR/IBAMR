@@ -92,7 +92,9 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_n
     if (input_db)
     {
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
+        // The supported boundary interpolation types depend on the solver type.
         if (input_db->keyExists("solver_type")) d_solver_type = input_db->getString("solver_type");
+        setBdryInterpTypeFromInput(input_db);
         if (input_db->keyExists("precond_type")) d_precond_type = input_db->getString("precond_type");
         if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
         if (input_db->keyExists("abs_residual_tol")) d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
@@ -130,6 +132,14 @@ SCPoissonHypreLevelSolver::~SCPoissonHypreLevelSolver()
     if (d_is_initialized) deallocateSolverState();
     return;
 } // ~SCPoissonHypreLevelSolver
+
+bool
+SCPoissonHypreLevelSolver::supportsBdryInterpType(const BdryInterpType bdry_interp_type) const
+{
+    // PCG requires a symmetric matrix, and the quadratic interpolation makes it nonsymmetric.
+    return bdry_interp_type == BdryInterpType::LINEAR ||
+           (bdry_interp_type == BdryInterpType::QUADRATIC && d_solver_type != "PCG");
+} // supportsBdryInterpType
 
 bool
 SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
@@ -367,7 +377,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients()
         const auto stencil_size = d_stencil_offsets.size();
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_size, IntVector<NDIM>(0));
         PoissonUtilities::computeMatrixCoefficients(
-            matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
+            matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time, d_bdry_interp_type);
         // Drop the couplings to sides that are not sides of the level.
         clearOffLevelMatrixEntries(matrix_coefs, *d_level, d_stencil_offsets);
 
@@ -624,8 +634,13 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             b_adj_data.copyOnBox(*b_data, patch_box);
             if (at_physical_bdry)
             {
-                PoissonUtilities::adjustRHSAtPhysicalBoundary(
-                    b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+                PoissonUtilities::adjustRHSAtPhysicalBoundary(b_adj_data,
+                                                              patch,
+                                                              d_poisson_spec,
+                                                              d_bc_coefs,
+                                                              d_solution_time,
+                                                              d_homogeneous_bc,
+                                                              d_bdry_interp_type);
             }
             if (at_cf_bdry)
             {

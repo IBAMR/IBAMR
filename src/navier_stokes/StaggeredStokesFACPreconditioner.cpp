@@ -89,6 +89,24 @@ StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(Pointer<StaggeredSto
     return;
 } // setPhysicalBoundaryHelper
 
+bool
+StaggeredStokesFACPreconditioner::supportsBdryInterpType(const IBTK::BdryInterpType bdry_interp_type) const
+{
+    return bdry_interp_type == IBTK::BdryInterpType::LINEAR || bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
+} // supportsBdryInterpType
+
+void
+StaggeredStokesFACPreconditioner::setBoundaryTreatment(const BoundaryTreatment& bdry_treatment)
+{
+    StaggeredStokesSolver::setBoundaryTreatment(bdry_treatment);
+    Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    if (p_fac_strategy)
+    {
+        p_fac_strategy->setBoundaryTreatment(d_bdry_treatment);
+    }
+    return;
+} // setBoundaryTreatment
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

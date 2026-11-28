@@ -56,9 +56,6 @@ namespace IBAMR
  * This class is intended to be used with an iterative (Krylov or Newton-Krylov)
  * incompressible flow solver.
  *
- * The boundary interpolation type must also be "LINEAR" if the normal velocity
- * has PSEUDO_TRACTION conditions.
- *
  * \see INSVCStaggeredHierarchyIntegrator
  */
 class VCStaggeredStokesOperator : public IBAMR::StaggeredStokesOperator
@@ -109,21 +106,6 @@ public:
      */
     void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
-
-    /*!
-     * \brief Compute hierarchy dependent data required for computing y=Ax.
-     *
-     * In addition to the work of
-     * StaggeredStokesOperator::initializeOperatorState(), this function stops
-     * with an error if the boundary interpolation type is "QUADRATIC" and the
-     * normal velocity has TRACTION or PSEUDO_TRACTION conditions at some
-     * boundary face.
-     *
-     * \param in input vector
-     * \param out output vector
-     */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
     //\}
 

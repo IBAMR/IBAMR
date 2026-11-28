@@ -226,9 +226,10 @@ compute_traction_couplings(Patch<NDIM>& patch,
     return couplings;
 } // compute_traction_couplings
 
-// Add D/h^2*(u_I - u_div) (get_normal_stress_stencil()) to the normal-velocity rows at TRACTION
-// boundaries. The matrix omits the velocities that are not DOFs and the boundary data in gamma, the inhomogeneous
-// coefficient of a tangential ghost value. StaggeredStokesPETScLevelSolver adds their terms to the right-hand side.
+// Add D/h^2 times the term of get_normal_stress_stencil() to the normal-velocity rows at TRACTION
+// boundaries (and PSEUDO_TRACTION boundaries if quadratic). The matrix omits the velocities that are not DOFs and the
+// boundary data in gamma, the inhomogeneous coefficient of a tangential ghost value. StaggeredStokesPETScLevelSolver
+// adds their terms to the right-hand side.
 void
 add_normal_stress_couplings(TractionCouplings& couplings,
                             Patch<NDIM>& patch,
@@ -238,6 +239,8 @@ add_normal_stress_couplings(TractionCouplings& couplings,
                             const IBTK::BdryInterpType bdry_interp_type,
                             const SideData<NDIM, int>& u_dof_index_data)
 {
+    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+    const bool quadratic = bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
     Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const Box<NDIM> ghost_box = Box<NDIM>::grow(patch.getBox(), IntVector<NDIM>(1));
@@ -250,7 +253,12 @@ add_normal_stress_couplings(TractionCouplings& couplings,
         const unsigned int bdry_normal_axis = location_index / 2;
         const bool is_lower = location_index % 2 == 0;
         const auto normal_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
-        if (!normal_bc_coef || normal_bc_coef->getTractionBcType() != TRACTION)
+        if (!normal_bc_coef)
+        {
+            continue;
+        }
+        const bool pseudo_traction = normal_bc_coef->getTractionBcType() == PSEUDO_TRACTION;
+        if (normal_bc_coef->getTractionBcType() != TRACTION && !(quadratic && pseudo_traction))
         {
             continue;
         }
@@ -333,7 +341,8 @@ add_normal_stress_couplings(TractionCouplings& couplings,
                     add_to_row(row, column, value);
                 }
             };
-            for (const auto& entry : detail::get_normal_stress_stencil(i, bdry_normal_axis, is_lower, dx))
+            for (const auto& entry : detail::get_normal_stress_stencil(
+                     i, bdry_normal_axis, is_lower, dx, bdry_interp_type, pseudo_traction))
             {
                 const SideIndex<NDIM>& i_s = entry.first;
                 const unsigned int axis = i_s.getAxis();
@@ -347,24 +356,31 @@ add_normal_stress_couplings(TractionCouplings& couplings,
                 // adjacent face inside the domain along the boundary-normal axis.
                 hier::Index<NDIM> i_bc = i_s;
                 SideIndex<NDIM> i_s_inside = i_s;
+                SideIndex<NDIM> i_s_inside_2 = i_s;
                 if (is_lower)
                 {
                     i_bc(bdry_normal_axis) += 1;
                     i_s_inside(bdry_normal_axis) += 1;
+                    i_s_inside_2(bdry_normal_axis) += 2;
                 }
                 else
                 {
                     i_s_inside(bdry_normal_axis) -= 1;
+                    i_s_inside_2(bdry_normal_axis) -= 2;
                 }
                 const TangentialBc& bc = tangential_bcs[axis];
                 const double a = (*bc.acoef_data)(i_bc, 0);
                 const double b = (*bc.bcoef_data)(i_bc, 0);
-                // The ghost value is f_i*u + f_g*gamma for both kinds of condition. classify_velocity_bc() stops with
-                // an error for any other kind.
+                // The ghost value is f_i*u_0 + f_i2*u_1 + h*(g_num/g_den)*gamma for both kinds of condition.
+                // classify_velocity_bc() stops with an error for any other kind.
                 const detail::VelocityBcType type = detail::classify_velocity_bc(a, b);
                 const PoissonUtilities::GhostValueWeights w =
-                    PoissonUtilities::computeGhostValueWeights(BdryInterpType::LINEAR, a, b, h);
+                    PoissonUtilities::computeGhostValueWeights(bdry_interp_type, a, b, h);
                 add_term(i_s_inside, coef * entry.second * w.f_i);
+                if (w.f_i2 != 0.0)
+                {
+                    add_term(i_s_inside_2, coef * entry.second * w.f_i2);
+                }
                 if (type == detail::VelocityBcType::TRACTION && !bc.stencils.empty())
                 {
                     for (const auto& dgamma : bc.stencils[bc.bc_coef_box.offset(i_bc)])
@@ -387,12 +403,17 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     const PoissonSpecifications& u_problem_coefs,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     double data_time,
+    IBTK::BdryInterpType bdry_interp_type,
     const std::vector<int>& num_dofs_per_proc,
     int u_dof_index_idx,
     int p_dof_index_idx,
     Pointer<PatchLevel<NDIM>> patch_level,
     RobinBcCoefStrategy<NDIM>* p_bc_coef)
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(bdry_interp_type != IBTK::BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+#endif
+    const bool quadratic = bdry_interp_type == IBTK::BdryInterpType::QUADRATIC;
     int ierr;
     if (mat)
     {
@@ -451,8 +472,6 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             continue;
         }
         Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        // The level matrix implements the linear boundary interpolation only.
-        const IBTK::BdryInterpType bdry_interp_type = IBTK::BdryInterpType::LINEAR;
         TractionCouplings couplings =
             compute_traction_couplings(*patch, u_bc_coefs, data_time, D, bdry_interp_type, *u_dof_index_data);
         add_normal_stress_couplings(couplings, *patch, u_bc_coefs, data_time, D, bdry_interp_type, *u_dof_index_data);
@@ -467,6 +486,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<PatchGeometry<NDIM>> patch_geometry = patch->getPatchGeometry();
         const PatchTractionCouplings::iterator patch_couplings = traction_couplings.find(patch->getPatchNumber());
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -478,6 +498,16 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 if (UNLIKELY(ilower > u_dof_index || u_dof_index >= iupper)) continue;
                 const int u_local_idx = u_dof_index - ilower;
                 d_nnz[u_local_idx] += 1;
+
+                // The quadratic ghost pressure at a physical boundary depends on the pressure in the second cell from
+                // the boundary, which may belong to another processor.
+                if (quadratic &&
+                    ((ic(axis) == patch_box.lower(axis) && patch_geometry->getTouchesRegularBoundary(axis, 0)) ||
+                     (ic(axis) == patch_box.upper(axis) + 1 && patch_geometry->getTouchesRegularBoundary(axis, 1))))
+                {
+                    d_nnz[u_local_idx] += 1;
+                    o_nnz[u_local_idx] += 1;
+                }
                 for (unsigned int d = 0, uu_stencil_index = 1; d < NDIM; ++d)
                 {
                     for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
@@ -632,6 +662,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         const Array<BoundaryBox<NDIM>> physical_codim1_boxes =
             PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
         const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+        Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
 
         // Modify matrix coefficients to account for physical boundary
         // conditions along boundaries which ARE NOT aligned with the data axis.
@@ -702,16 +733,19 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                     if (detail::classify_velocity_bc(a, b) == detail::VelocityBcType::VELOCITY)
                     {
-                        if (is_lower)
+                        // The ghost value is -u_0, or -2*u_0 + u_1/3 if quadratic, in homogeneous form.
+                        const int ghost_index = 2 * bdry_normal_axis + (is_lower ? 1 : 2);
+                        const int inner_index = 2 * bdry_normal_axis + (is_lower ? 2 : 1);
+                        if (quadratic)
                         {
-                            uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
-                            uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) = 0.0;
+                            uu_matrix_coefs(i_s, 0) -= 2.0 * uu_matrix_coefs(i_s, ghost_index);
+                            uu_matrix_coefs(i_s, inner_index) += uu_matrix_coefs(i_s, ghost_index) / 3.0;
                         }
                         else
                         {
-                            uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
-                            uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
+                            uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, ghost_index);
                         }
+                        uu_matrix_coefs(i_s, ghost_index) = 0.0;
                     }
                     else
                     {
@@ -822,16 +856,28 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                             uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
                         }
 
-                        // Replace the ghost pressure p_G by f_i*p_I, with interior pressure p_I. The level solver moves
-                        // the remaining term of p_G, which comes from the boundary data, to the right-hand side.
+                        // Replace the ghost pressure p_G by f_i*p_I + f_i2*p_I2, in which p_I and p_I2 are the
+                        // pressures in the first and second cells from the boundary. The level solver moves the
+                        // remaining term of p_G, which comes from the boundary data, to the right-hand side.
                         const double h = dx[bdry_normal_axis];
                         const double p_a = (*p_acoef_data)(i, 0);
                         const double p_b = (*p_bcoef_data)(i, 0);
-                        const double f_i =
-                            PoissonUtilities::computeGhostValueWeights(BdryInterpType::LINEAR, p_a, p_b, h).f_i;
+                        const PoissonUtilities::GhostValueWeights w =
+                            PoissonUtilities::computeGhostValueWeights(bdry_interp_type, p_a, p_b, h);
                         const int ghost_index = is_lower ? 0 : 1;
                         const int interior_index = is_lower ? 1 : 0;
-                        up_matrix_coefs(i_s, interior_index) += f_i * up_matrix_coefs(i_s, ghost_index);
+                        if (w.f_i2 != 0.0)
+                        {
+                            hier::Index<NDIM> i_c_inside_2(i);
+                            i_c_inside_2(bdry_normal_axis) += is_lower ? 1 : -2;
+                            const int column = (*p_dof_index_data)(CellIndex<NDIM>(i_c_inside_2));
+                            if (column >= 0)
+                            {
+                                add_to_row(
+                                    couplings[get_row_key(i_s)], column, w.f_i2 * up_matrix_coefs(i_s, ghost_index));
+                            }
+                        }
+                        up_matrix_coefs(i_s, interior_index) += w.f_i * up_matrix_coefs(i_s, ghost_index);
                         up_matrix_coefs(i_s, ghost_index) = 0.0;
                     }
                 }
@@ -840,7 +886,6 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
         // Set matrix coefficients.
         Pointer<SideData<NDIM, int>> u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<CellData<NDIM, int>> p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
