@@ -172,7 +172,10 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     {
         d_cib_strategy->subtractMeanConstraintForce(L, A_U_idx, -1 * d_scale_spread);
     }
-    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
+    if (d_bc_helper)
+    {
+        d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
+    }
 
     // Fill the same-level and physical-boundary ghost cells of u for interpolation.
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
@@ -244,7 +247,11 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         const int P_idx = x->getComponentDescriptorIndex(1);
         StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
             d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
-        d_bc_helper->enforceNormalVelocityBoundaryConditions(U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+        if (d_bc_helper)
+        {
+            d_bc_helper->enforceNormalVelocityBoundaryConditions(
+                U_idx, P_idx, d_U_bc_coefs, d_new_time, d_homogeneous_bc);
+        }
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
 
 #if !defined(NDEBUG)

@@ -55,9 +55,14 @@ namespace IBAMR
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
- skip_velocity_solve = FALSE  // set whether to skip the velocity solve; this is equivalent
-                              // to treating viscosity explicitly in the preconditioner
+ skip_velocity_solve = FALSE  // set whether to treat the viscosity explicitly in the preconditioner by skipping
+                              // the velocity solve
  \endverbatim
+ *
+ * Skipping the velocity solve divides by the coefficient C of the velocity problem, so initializeSolverState()
+ * reports an error if skip_velocity_solve is TRUE and C is zero. The check does not detect C patch data that is
+ * zero at some cells, such as a variable density that is zero somewhere. The division gives infinite or NaN
+ * values there.
  *
  * \see INSStaggeredHierarchyIntegrator
  */
