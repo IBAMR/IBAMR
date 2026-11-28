@@ -18,6 +18,7 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Logger.h>
 
@@ -39,6 +40,7 @@
 #include <iomanip>
 #include <limits>
 #include <memory>
+#include <new>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -61,6 +63,13 @@ using namespace coarse_fine_ghost_values;
 //   - the ghost values equal the values of the Reference block of the input to 1e-12. The values are sums and maxima of
 //     the ghost values, over each ghost location once, so that they do not depend on the partition of the fine level
 //     into patches, on the processes that own the patches, or on the order of the summation.
+//
+// With REPLACE_LEVEL_0 = TRUE, the test instead fills levels 1 and 2 with a cached fill operator, replaces level 0 by a
+// new PatchLevel object with new data, and checks that the cached fill then gives the ghost values of a fresh fill.
+//
+// With REPLACE_BC_OBJECT = TRUE, the test instead fills with a cached fill operator and one Robin coefficient object,
+// destroys the object, constructs a different object with different boundary data in the same storage, and checks that
+// the next cached fill, which uses its operator, gives the ghost values of a fresh fill with the new object.
 //
 // For each run, the input filename must be given on the command line. In all cases, the command line is:
 //
@@ -202,6 +211,179 @@ check_summary_against_reference(Pointer<Database> input_db, const GhostSummary& 
                             std::sqrt(s.weighted_sum_squares),
                             failures);
 } // check_summary_against_reference
+
+// Fill levels 1 and 2 with a cached fill operator, replace level 0 by a new PatchLevel object with the same boxes and
+// different data, and fill again. The cached fill must read the new level 0, as a freshly built fill does. Only cell
+// data are supported.
+void
+check_cached_fill_after_replacing_level_0(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                                          const int Q_idx,
+                                          const int Q_fresh_idx,
+                                          const std::string& refine_op_name,
+                                          const std::function<double(const VectorNd&)>& Q_fcn)
+{
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    const auto make_comps = [&](const int idx)
+    {
+        return std::vector<InterpolationTransactionComponent>(
+            1, InterpolationTransactionComponent(idx, refine_op_name, true, "NONE", "LINEAR"));
+    };
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    if (finest_ln != 2)
+    {
+        TBOX_ERROR("cf_interface: REPLACE_LEVEL_0 needs three levels\n");
+    }
+
+    IBTK::detail::CachedGhostCellFill cache;
+    cache.get(make_comps(Q_idx), patch_hierarchy, 1, finest_ln, false).fillData(0.0);
+
+    // Replace level 0, with the same boxes, mapping, and ratio, and give all levels new data.
+    Pointer<PatchLevel<NDIM>> old_level = patch_hierarchy->getPatchLevel(0);
+    patch_hierarchy->makeNewPatchLevel(
+        0, old_level->getRatio(), old_level->getBoxes(), old_level->getProcessorMapping());
+    patch_hierarchy->getPatchLevel(0)->allocatePatchData(Q_idx);
+    patch_hierarchy->getPatchLevel(0)->allocatePatchData(Q_fresh_idx);
+    fill_quadratic(patch_hierarchy, { Q_idx }, [&](const VectorNd& x) { return Q_fcn(x) + 1.0; });
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            patch->getPatchData(Q_fresh_idx)->copy(*patch->getPatchData(Q_idx));
+        }
+    }
+
+    cache.get(make_comps(Q_idx), patch_hierarchy, 1, finest_ln, false).fillData(0.0);
+    HierarchyGhostCellInterpolation fresh;
+    fresh.initializeOperatorState(make_comps(Q_fresh_idx), patch_hierarchy, 1, finest_ln);
+    fresh.fillData(0.0);
+
+    int num_filled = 0;
+    double max_diff = 0.0;
+    for (int ln = 1; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> cached_data = patch->getPatchData(Q_idx);
+            Pointer<CellData<NDIM, double>> fresh_data = patch->getPatchData(Q_fresh_idx);
+            for (CellIterator<NDIM> ci(cached_data->getGhostBox()); ci; ci++)
+            {
+                if (patch->getBox().contains(ci()))
+                {
+                    continue;
+                }
+                const double value = (*fresh_data)(ci(), 0);
+                num_filled += value != SENTINEL;
+                max_diff = std::max(max_diff, std::abs((*cached_data)(ci(), 0) - value));
+            }
+        }
+    }
+    IBTK_MPI::sumReduction(&num_filled, 1);
+    max_diff = IBTK_MPI::maxReduction(max_diff);
+    pout << "Compared " << num_filled
+         << " ghost cells of levels 1 and 2 that a fresh fill sets: the largest difference "
+         << "between the cached fill and the fresh fill is " << max_diff << ".\n";
+    if (max_diff != 0.0)
+    {
+        TBOX_ERROR("cf_interface: the cached fill differs from a fresh fill after level 0 was replaced\n");
+    }
+} // check_cached_fill_after_replacing_level_0
+
+// Fill with a cached fill operator and a Robin coefficient object, destroy the object, construct a different object at
+// the same address, and fill again. The cached fill must use the new object, as a freshly built fill does, and reuse
+// its operator. Q_old_idx receives the ghost values of the first fill and Q_fresh_idx those of the fresh fill. Only
+// cell data are supported.
+void
+check_cached_fill_after_replacing_bc_object(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                                            const int Q_idx,
+                                            const int Q_old_idx,
+                                            const int Q_fresh_idx,
+                                            const std::string& refine_op_name,
+                                            const std::function<double(const VectorNd&)>& Q_fcn)
+{
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    const auto make_comps = [&](const int idx, RobinBcCoefStrategy<NDIM>* const bc_coef)
+    {
+        return std::vector<InterpolationTransactionComponent>(
+            1, InterpolationTransactionComponent(idx, refine_op_name, true, "NONE", "LINEAR", false, bc_coef));
+    };
+    const auto copy_data = [&](const int dst_idx, const int src_idx)
+    {
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                patch->getPatchData(dst_idx)->copy(*patch->getPatchData(src_idx));
+            }
+        }
+    };
+    copy_data(Q_fresh_idx, Q_idx);
+
+    alignas(FunctionDirichletBc) unsigned char storage[sizeof(FunctionDirichletBc)];
+    auto* const bc = new (storage) FunctionDirichletBc(Q_fcn);
+    IBTK::detail::CachedGhostCellFill cache;
+    HierarchyGhostCellInterpolation& fill = cache.get(make_comps(Q_idx, bc), patch_hierarchy);
+    fill.fillData(0.0);
+    copy_data(Q_old_idx, Q_idx);
+
+    // The new object has the same address and different data, so the Dirichlet values and the ghost values at the
+    // physical boundary differ by 2 from those of the first fill.
+    bc->~FunctionDirichletBc();
+    auto* new_bc = new (storage) FunctionDirichletBc([&](const VectorNd& x) { return Q_fcn(x) + 1.0; });
+    const bool same_operator = &cache.get(make_comps(Q_idx, new_bc), patch_hierarchy) == &fill;
+    fill.fillData(0.0);
+
+    HierarchyGhostCellInterpolation fresh;
+    fresh.initializeOperatorState(make_comps(Q_fresh_idx, new_bc), patch_hierarchy);
+    fresh.fillData(0.0);
+
+    int num_changed = 0;
+    double max_diff = 0.0;
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double>> cached_data = patch->getPatchData(Q_idx);
+            Pointer<CellData<NDIM, double>> old_data = patch->getPatchData(Q_old_idx);
+            Pointer<CellData<NDIM, double>> fresh_data = patch->getPatchData(Q_fresh_idx);
+            for (CellIterator<NDIM> ci(cached_data->getGhostBox()); ci; ci++)
+            {
+                if (patch->getBox().contains(ci()))
+                {
+                    continue;
+                }
+                num_changed += (*cached_data)(ci(), 0) != (*old_data)(ci(), 0);
+                max_diff = std::max(max_diff, std::abs((*cached_data)(ci(), 0) - (*fresh_data)(ci(), 0)));
+            }
+        }
+    }
+    IBTK_MPI::sumReduction(&num_changed, 1);
+    max_diff = IBTK_MPI::maxReduction(max_diff);
+    new_bc->~FunctionDirichletBc();
+    pout << "The second fill changed " << num_changed << " ghost cells: the largest difference between the cached fill "
+         << "and the fresh fill is " << max_diff << ".\n";
+    if (!same_operator)
+    {
+        TBOX_ERROR("cf_interface: the cached fill built a new operator after the Robin coefficient object changed\n");
+    }
+    if (num_changed == 0)
+    {
+        TBOX_ERROR("cf_interface: the new Robin coefficient object changed no ghost value\n");
+    }
+    if (max_diff != 0.0)
+    {
+        TBOX_ERROR(
+            "cf_interface: the cached fill differs from a fresh fill after the Robin coefficient object was "
+            "replaced\n");
+    }
+} // check_cached_fill_after_replacing_bc_object
 } // namespace
 
 int
@@ -295,6 +477,20 @@ main(int argc, char* argv[])
 
         // Fill in initial data
         fill_quadratic(patch_hierarchy, { Q_idx, Q_nc_idx }, Q_fcn);
+
+        if (input_db->getBoolWithDefault("REPLACE_LEVEL_0", false))
+        {
+            // Q_copy receives the result of the fresh fill.
+            check_cached_fill_after_replacing_level_0(patch_hierarchy, Q_idx, Q_copy_idx, refine_op_name, Q_fcn);
+            return 0;
+        }
+        if (input_db->getBoolWithDefault("REPLACE_BC_OBJECT", false))
+        {
+            // Q_copy receives the result of the first fill and Q_nc the result of the fresh fill.
+            check_cached_fill_after_replacing_bc_object(
+                patch_hierarchy, Q_idx, Q_copy_idx, Q_nc_idx, refine_op_name, Q_fcn);
+            return 0;
+        }
 
         // Fill the ghost cells with the coarse-fine interface operator, with the default fill pattern and with a
         // no-corners fill pattern.

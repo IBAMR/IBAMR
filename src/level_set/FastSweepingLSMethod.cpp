@@ -41,6 +41,7 @@
 #include <VariableContext.h>
 #include <VariableDatabase.h>
 
+#include <algorithm>
 #include <ostream>
 #include <string>
 #include <utility>
@@ -102,6 +103,12 @@ FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Data
     return;
 } // FastSweepingLSMethod
 
+FastSweepingLSMethod::~FastSweepingLSMethod()
+{
+    removeScratchIndices();
+    return;
+} // ~FastSweepingLSMethod
+
 void
 FastSweepingLSMethod::initializeLSData(int D_idx,
                                        Pointer<HierarchyMathOps> hier_math_ops,
@@ -141,6 +148,11 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts);
     const int D_iter_idx =
         var_db->registerVariableAndContext(D_var, var_db->getContext(d_object_name + "::ITER"), cell_ghosts);
+    for (const int idx : { D_scratch_idx, D_iter_idx })
+    {
+        if (std::find(d_scratch_idxs.begin(), d_scratch_idxs.end(), idx) == d_scratch_idxs.end())
+            d_scratch_idxs.push_back(idx);
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_scratch_idx, time);
@@ -158,8 +170,9 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "LINEAR_REFINE", false, "NONE", "LINEAR", false, d_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
-    fill_op->initializeOperatorState(D_transaction, hierarchy);
+
+    // The fill is reused until a level object is replaced or a component changes.
+    HierarchyGhostCellInterpolation& fill_op = d_fill.get({ D_transaction }, hierarchy, coarsest_ln, finest_ln);
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
     // Carry out iterations
@@ -170,7 +183,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
         hier_cc_data_ops.copyData(D_iter_idx, D_scratch_idx);
-        fill_op->fillData(time);
+        fill_op.fillData(time);
 
         fastSweep(hier_math_ops, D_scratch_idx);
 
@@ -214,8 +227,13 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_scratch_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(D_iter_idx);
     }
-    var_db->removePatchDataIndex(D_scratch_idx);
-    var_db->removePatchDataIndex(D_iter_idx);
+
+    // The indices stay registered, because the cached fill refers to them; registering them again at the next call
+    // returns the same indices.
+
+    // Release the levels if no further reinitialization is scheduled: a reinitialization recurs only when
+    // d_reinit_interval is nonzero or setReinitializeLSData() is called again.
+    if (d_reinit_interval == 0) d_fill.clear();
 
     // Indicate that the LS has been initialized.
     d_reinitialize_ls = false;
@@ -224,6 +242,19 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 } // initializeLSData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+FastSweepingLSMethod::removeScratchIndices()
+{
+    d_fill.clear();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    for (const int idx : d_scratch_idxs)
+    {
+        var_db->removePatchDataIndex(idx);
+    }
+    d_scratch_idxs.clear();
+    return;
+} // removeScratchIndices
 
 void
 FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dist_idx) const

@@ -23,6 +23,8 @@
 #include <ibamr/LSInitStrategy.h>
 #include <ibamr/ibamr_enums.h>
 
+#include <ibtk/private/CachedGhostCellFill.h>
+
 #include <tbox/Pointer.h>
 #include <tbox/Serializable.h>
 
@@ -44,11 +46,6 @@ template <int DIM>
 class Patch;
 } // namespace hier
 } // namespace SAMRAI
-
-namespace IBTK
-{
-class HierarchyGhostCellInterpolation;
-} // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -89,6 +86,11 @@ public:
     RelaxationLSMethod(std::string object_name,
                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = nullptr,
                        bool register_for_restart = true);
+
+    /*!
+     * \brief Destructor.
+     */
+    virtual ~RelaxationLSMethod();
 
     /*!
      * \name Implementation of IBAMR::LSInitStrategy interface.
@@ -158,7 +160,7 @@ private:
     /*!
      * \brief Do one relaxation step over the hierarchy.
      */
-    void relax(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> D_fill_op,
+    void relax(IBTK::HierarchyGhostCellInterpolation& D_fill_op,
                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                int dist_idx,
                int dist_init_idx,
@@ -247,6 +249,21 @@ private:
      * \return A reference to this object.
      */
     RelaxationLSMethod& operator=(const RelaxationLSMethod& that) = delete;
+
+    /*!
+     * Cached ghost-cell fills of the level set and of the Hamiltonian.
+     */
+    IBTK::detail::CachedGhostCellFill d_D_fill, d_H_fill;
+
+    /*!
+     * Clear the cached fills and remove the registered scratch patch data indices of initializeLSData().
+     */
+    void removeScratchIndices();
+
+    /*!
+     * The scratch patch data indices registered by initializeLSData(), which stay registered between calls.
+     */
+    std::vector<int> d_scratch_idxs;
 };
 } // namespace IBAMR
 

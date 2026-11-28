@@ -202,6 +202,7 @@ SET(CXX_SRC
   utilities/ibtk_utilities.cpp
   utilities/FaceSynchCopyFillPattern.cpp
   utilities/CartGridFunctionSet.cpp
+  utilities/CachedGhostCellFill.cpp
   utilities/CoarseFineBoundaryCache.cpp
   utilities/HierarchyLayoutKey.cpp
   utilities/HierarchyLevelsIdentity.cpp
