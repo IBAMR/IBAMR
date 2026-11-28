@@ -1,0 +1,3 @@
+Changed: Stop with an error in the staggered convective operators and the conservative variable-coefficient mass and momentum integrators unless the physical domain is a single rectangular box at least as wide along each nonperiodic axis as the velocity ghost cell width that they fill. IBAMR::INSStaggeredDivergenceFreePhysBdryOp, which now fills those ghost values, requires this. The Robin fill that it replaces also supported other domains.
+<br>
+(Boyce Griffith, 2026/11/07)

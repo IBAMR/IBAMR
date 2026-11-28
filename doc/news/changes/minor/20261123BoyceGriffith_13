@@ -1,0 +1,3 @@
+New: Add IBAMR::ConvectiveOperator::getVelocityGhostWidth(), which returns the ghost width of the velocity that an operator fills through the divergence-free velocity boundary operator. The default is zero. The staggered convective operators return the ghost width of their scratch velocity, and INSVCStaggeredConservativeMassMomentumRKIntegrator returns that of its velocity limiter. The variable-viscosity integrators request these widths with INSHierarchyIntegrator::requestDivergenceFreeFillWidth() before they register the interpolated viscosity.
+<br>
+(Boyce Griffith, 2026/11/23)

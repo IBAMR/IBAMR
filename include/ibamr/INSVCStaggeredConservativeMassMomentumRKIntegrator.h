@@ -22,14 +22,14 @@
 
 #include <ibamr/STSMassFluxIntegrator.h>
 
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
+
 namespace SAMRAI
 {
 namespace solv
 {
 template <int DIM, class TYPE>
 class SAMRAIVectorReal;
-template <int DIM>
-class RobinBcCoefStrategy;
 } // namespace solv
 namespace hier
 {
@@ -116,11 +116,18 @@ public:
     virtual void deallocateSTSIntegrator() override;
 
     //\}
-    /*
-     * \brief Set the boundary condition object for the side-centered velocity.
+
+    /*!
+     * \brief Set the operator that fills the ghost values of the side-centered velocity at physical boundaries. The
+     * caller owns the operator, which must not be null.
      */
-    void setSideCenteredVelocityBoundaryConditions(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_sc_bc_coefs);
+    void setSideCenteredVelocityPhysBdryOp(IBTK::RobinPhysBdryPatchStrategy* u_phys_bdry_op);
+
+    /*!
+     * \brief Return the ghost width of the velocity that this integrator fills through the divergence-free velocity
+     * boundary operator. The width depends on the velocity convective limiter.
+     */
+    SAMRAI::hier::IntVector<NDIM> getVelocityGhostWidth() const;
 
     /*!
      * \brief Get the newly constructed side-centered density patch data index.
@@ -205,6 +212,9 @@ protected:
      * \brief Enforce divergence free condition at the coarse-fine interface to ensure conservation of mass.
      */
     void enforceDivergenceFreeConditionAtCoarseFineInterface(const int U_idx);
+
+    // Operator that fills the side-centered velocity ghost values at physical boundaries.
+    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;
 
     // Cached communications operators.
     std::string d_velocity_bdry_extrap_type = "CONSTANT";

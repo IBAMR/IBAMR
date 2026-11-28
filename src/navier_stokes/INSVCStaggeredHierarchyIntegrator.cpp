@@ -571,7 +571,7 @@ INSVCStaggeredHierarchyIntegrator::getConvectiveOperator()
                                                                   d_object_name + "::ConvectiveOperator",
                                                                   d_convective_op_input_db,
                                                                   d_convective_difference_form,
-                                                                  d_U_bc_coefs);
+                                                                  getDivergenceFreeVelocityPhysBdryOp());
         d_convective_op_needs_init = true;
     }
     return d_convective_op;
@@ -1346,6 +1346,12 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     // Setup the convective operator.
     d_convective_op = getConvectiveOperator();
+    if (d_convective_op)
+    {
+        // The convective operator fills the velocity through the divergence-free operator. Request its fill width
+        // before the interpolated viscosity is registered.
+        requestDivergenceFreeFillWidth(d_convective_op->getVelocityGhostWidth());
+    }
 
     // Setup a boundary op to set velocity boundary conditions on regrid.
     d_fill_after_regrid_phys_bdry_bc_op =

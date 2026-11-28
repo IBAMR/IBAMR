@@ -68,6 +68,12 @@ ConvectiveOperator::getConvectiveDifferencingType() const
     return d_difference_form;
 } // getConvectiveDifferencingType
 
+IntVector<NDIM>
+ConvectiveOperator::getVelocityGhostWidth() const
+{
+    return IntVector<NDIM>(0);
+} // getVelocityGhostWidth
+
 void
 ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
