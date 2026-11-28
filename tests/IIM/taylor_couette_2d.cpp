@@ -52,6 +52,8 @@
 
 #include <boost/multi_array.hpp>
 
+#include "../tests.h"
+
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
@@ -146,6 +148,9 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
+
+    // Do not print file names or line numbers to the output file.
+    Logger::getInstance()->setAbortAppender(Pointer<Logger::Appender>(new TestAppender()));
 
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
     PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-10");
