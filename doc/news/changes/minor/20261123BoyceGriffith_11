@@ -1,0 +1,3 @@
+Fixed: Map a marker that crosses a periodic boundary into the domain exactly in IBTK::MarkerPatchHierarchy. Before, rounding could leave the marker just below the lower boundary of a domain such as [0.3, 3.0], and the program stopped at an assertion.
+<br>
+(Boyce Griffith, 2026/11/23)
