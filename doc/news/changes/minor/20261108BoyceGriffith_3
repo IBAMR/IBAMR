@@ -1,0 +1,3 @@
+Fixed: Extend coarse velocity data beyond physical boundaries linearly by default in the convective operators of the INS integrators, such as IBAMR::INSStaggeredPPMConvectiveOperator, and in IBAMR::INSVCStaggeredConservativeMassMomentumRKIntegrator. The integrators pass their bdry_extrap_type to the convective operators with the new IBAMR::ConvectiveOperator::setBdryExtrapType(), and to the mass and momentum integrator with its new setVelocityBdryExtrapType(), unless the database of the object sets one. Before, the fine ghost values next to a wall at a coarse-fine interface were inaccurate.
+<br>
+(Boyce Griffith, 2026/11/08)

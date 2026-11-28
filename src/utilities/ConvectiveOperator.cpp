@@ -68,6 +68,13 @@ ConvectiveOperator::getConvectiveDifferencingType() const
     return d_difference_form;
 } // getConvectiveDifferencingType
 
+void
+ConvectiveOperator::setBdryExtrapType(const std::string& bdry_extrap_type)
+{
+    d_bdry_extrap_type = bdry_extrap_type;
+    return;
+} // setBdryExtrapType
+
 IntVector<NDIM>
 ConvectiveOperator::getVelocityGhostWidth() const
 {

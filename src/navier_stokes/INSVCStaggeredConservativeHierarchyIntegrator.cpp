@@ -17,6 +17,7 @@
 #include <ibamr/BrinkmanPenalizationStrategy.h>
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h>
 #include <ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/StaggeredStokesBlockPreconditioner.h>
@@ -143,6 +144,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     else
         d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumRKIntegrator(
             "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumRKIntegrator", mass_momentum_db);
+
+    // Give the mass and momentum integrator the bdry_extrap_type of this integrator, unless mass_momentum_integrator_db
+    // sets one.
+    if (!mass_momentum_db->keyExists("bdry_extrap_type") && !mass_momentum_db->keyExists("velocity_bdry_extrap_type"))
+    {
+        Pointer<INSVCStaggeredConservativeMassMomentumRKIntegrator> rho_p_rk_integrator = d_rho_p_integrator;
+        rho_p_rk_integrator->setVelocityBdryExtrapType(d_bdry_extrap_type);
+    }
 
     d_convective_op_type = "NONE";
 

@@ -57,6 +57,10 @@ namespace IBAMR
  * momentum convection to obtain \f$N(\rho u)\f$ and mass advection to obtain \f$\rho^{n+1}\f$. Hence, a consistent
  * momentum and mass transport is carried out, which leads to stable solutions for high-density ratio flows.
  *
+ * For the coarse-fine velocity fills of the mass and momentum integrator, the extrapolation type is the
+ * <code>bdry_extrap_type</code> of this integrator, unless <code>mass_momentum_integrator_db</code> sets
+ * <code>bdry_extrap_type</code> or <code>velocity_bdry_extrap_type</code>.
+ *
  */
 class INSVCStaggeredConservativeHierarchyIntegrator : public INSVCStaggeredHierarchyIntegrator
 {
