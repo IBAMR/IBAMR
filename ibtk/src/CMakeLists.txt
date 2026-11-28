@@ -222,6 +222,7 @@ SET(CXX_SRC
   utilities/snapshot_utilities.cpp
   utilities/HierarchyAveragedDataManager.cpp
   utilities/interpolation_utilities.cpp
+  utilities/ScopedShiftedPatchGeometry.cpp
   )
 
 IF(IBAMR_HAVE_LIBMESH)
