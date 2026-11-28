@@ -64,6 +64,15 @@ class PETScMatUtilities
 {
 public:
     /*!
+     * \brief The numbers of nonzero entries of each local row in the diagonal and off-diagonal blocks of a parallel
+     * PETSc Mat, which depend only on the DOF indices of a level.
+     */
+    struct Preallocation
+    {
+        std::vector<int> diagonal, off_diagonal;
+    };
+
+    /*!
      * \name Methods acting on SAMRAI::hier::PatchLevel and
      * SAMRAI::hier::Variable objects.
      */
@@ -101,6 +110,29 @@ public:
                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
 
     /*!
+     * \brief Compute the preallocation for constructPatchLevelCCLaplaceOp() of a variable with depth \a depth.
+     */
+    static Preallocation
+    computePatchLevelCCLaplaceOpPreallocation(int depth,
+                                              const std::vector<int>& num_dofs_per_proc,
+                                              int dof_index_idx,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
+    /*!
+     * \brief Construct the Mat of constructPatchLevelCCLaplaceOp() with the preallocation \a prealloc, which
+     * computePatchLevelCCLaplaceOpPreallocation() computes from the same DOF indices.
+     */
+    static void constructPatchLevelCCLaplaceOp(Mat& mat,
+                                               const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                               double data_time,
+                                               BdryInterpType bdry_interp_type,
+                                               const std::vector<int>& num_dofs_per_proc,
+                                               int dof_index_idx,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                               const Preallocation& prealloc);
+
+    /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
      * side-centered Laplacian of a side-centered variable restricted to a
      * single SAMRAI::hier::PatchLevel.
@@ -113,6 +145,28 @@ public:
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
+    /*!
+     * \brief Compute the preallocation for constructPatchLevelSCLaplaceOp().
+     */
+    static Preallocation
+    computePatchLevelSCLaplaceOpPreallocation(const std::vector<int>& num_dofs_per_proc,
+                                              int dof_index_idx,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
+    /*!
+     * \brief Construct the Mat of constructPatchLevelSCLaplaceOp() with the preallocation \a prealloc, which
+     * computePatchLevelSCLaplaceOpPreallocation() computes from the same DOF indices.
+     */
+    static void constructPatchLevelSCLaplaceOp(Mat& mat,
+                                               const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                               double data_time,
+                                               BdryInterpType bdry_interp_type,
+                                               const std::vector<int>& num_dofs_per_proc,
+                                               int dof_index_idx,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                               const Preallocation& prealloc);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -134,6 +188,32 @@ public:
                                                  int dof_index_idx,
                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
                                                  VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * \brief Compute the preallocation for constructPatchLevelVCSCViscousOp(), which depends on \a bdry_interp_type.
+     */
+    static Preallocation
+    computePatchLevelVCSCViscousOpPreallocation(BdryInterpType bdry_interp_type,
+                                                const std::vector<int>& num_dofs_per_proc,
+                                                int dof_index_idx,
+                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level);
+
+    /*!
+     * \brief Construct the Mat of constructPatchLevelVCSCViscousOp() with the preallocation \a prealloc, which
+     * computePatchLevelVCSCViscousOpPreallocation() computes from the same DOF indices and \a bdry_interp_type.
+     */
+    static void constructPatchLevelVCSCViscousOp(Mat& mat,
+                                                 const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                                 double alpha,
+                                                 double beta,
+                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                 double data_time,
+                                                 BdryInterpType bdry_interp_type,
+                                                 const std::vector<int>& num_dofs_per_proc,
+                                                 int dof_index_idx,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+                                                 VCInterpType mu_interp_type,
+                                                 const Preallocation& prealloc);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the

@@ -199,7 +199,8 @@ public:
      * \note Subclasses are required to be implemented so that it is safe to
      * call initializeSolverState() when the solver state is already
      * initialized.  In this case, the solver state should be first deallocated
-     * and then reinitialized.
+     * and then reinitialized, or the solver may reuse the state that does not
+     * depend on the coefficients when the layout is unchanged.
      *
      * \note Subclasses are required to be implemented so that when any operator
      * objects have been registered with the solver via setOperator() or

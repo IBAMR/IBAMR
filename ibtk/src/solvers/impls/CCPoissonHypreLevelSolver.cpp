@@ -291,38 +291,74 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
 #else
     NULL_USE(b);
 #endif
-    // Deallocate the solver state if the solver is already initialized.
-    if (d_is_initialized) deallocateSolverState();
+    // Determine the depth and the kind of the diffusion coefficient, which select the grid and the stencil.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int x_idx = x.getComponentDescriptorIndex(0);
+    Pointer<CellDataFactory<NDIM, double>> x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    const unsigned int depth = x_fac->getDefaultDepth();
+    bool grid_aligned_anisotropy;
+    if (d_poisson_spec.dIsConstant())
+    {
+        grid_aligned_anisotropy = true;
+    }
+    else
+    {
+        Pointer<SideDataFactory<NDIM, double>> pdat_factory =
+            var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
+#if !defined(NDEBUG)
+        TBOX_ASSERT(pdat_factory);
+#endif
+        grid_aligned_anisotropy = pdat_factory->getDefaultDepth() == 1;
+    }
+
+    const IBTK::detail::VectorSignature x_signature(x), b_signature(b);
+
+    // Reuse the grid and the stencil if the solver is already initialized and its level, level 0, the depth, and the
+    // kind of the diffusion coefficient are unchanged. Otherwise, deallocate the solver state.
+    bool reuse_layout = false;
+    if (d_is_initialized)
+    {
+        const int ln = x.getCoarsestLevelNumber();
+        const bool level_changed = d_level_identity.changed(*x.getPatchHierarchy(), ln, ln);
+        const bool level_0_changed = d_level_0_identity.changed(*x.getPatchHierarchy(), 0, 0);
+        reuse_layout = !level_changed && !level_0_changed && depth == d_depth &&
+                       grid_aligned_anisotropy == d_grid_aligned_anisotropy && x_signature == d_x_signature &&
+                       b_signature == d_b_signature;
+        if (reuse_layout)
+        {
+            destroyHypreSolver();
+            deallocateHypreData();
+        }
+        else
+        {
+            deallocateSolverState();
+        }
+    }
+    if (!reuse_layout)
+    {
+        d_level_identity.changed(*x.getPatchHierarchy(), x.getCoarsestLevelNumber(), x.getCoarsestLevelNumber());
+        d_level_0_identity.changed(*x.getPatchHierarchy(), 0, 0);
+        d_x_signature = x_signature;
+        d_b_signature = b_signature;
+    }
 
     // Get the hierarchy information.
     d_hierarchy = x.getPatchHierarchy();
     d_level_num = x.getCoarsestLevelNumber();
     TBOX_ASSERT(d_level_num == x.getFinestLevelNumber());
     d_level = d_hierarchy->getPatchLevel(d_level_num);
-    if (d_level_num > 0)
+    if (d_level_num > 0 && !reuse_layout)
     {
         d_cf_boundary =
             d_coarse_fine_boundary_cache.getCoarseFineBoundary(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
     }
 
     // Allocate and initialize the hypre data structures.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellDataFactory<NDIM, double>> x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
-    d_depth = x_fac->getDefaultDepth();
-    if (d_poisson_spec.dIsConstant())
+    d_depth = depth;
+    d_grid_aligned_anisotropy = grid_aligned_anisotropy;
+    if (!reuse_layout)
     {
-        d_grid_aligned_anisotropy = true;
-    }
-    else
-    {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<SideDataFactory<NDIM, double>> pdat_factory =
-            var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
-#if !defined(NDEBUG)
-        TBOX_ASSERT(pdat_factory);
-#endif
-        d_grid_aligned_anisotropy = pdat_factory->getDefaultDepth() == 1;
+        allocateHypreLayout();
     }
     allocateHypreData();
     if (d_grid_aligned_anisotropy)
@@ -352,6 +388,11 @@ CCPoissonHypreLevelSolver::deallocateSolverState()
     // Deallocate the hypre data structures.
     destroyHypreSolver();
     deallocateHypreData();
+    deallocateHypreLayout();
+    d_level_identity = IBTK::detail::HierarchyLevelsIdentity();
+    d_level_0_identity = IBTK::detail::HierarchyLevelsIdentity();
+    d_x_signature = IBTK::detail::VectorSignature();
+    d_b_signature = IBTK::detail::VectorSignature();
 
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
@@ -365,7 +406,7 @@ CCPoissonHypreLevelSolver::deallocateSolverState()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-CCPoissonHypreLevelSolver::allocateHypreData()
+CCPoissonHypreLevelSolver::allocateHypreLayout()
 {
     initialize_hypre();
 
@@ -456,6 +497,15 @@ CCPoissonHypreLevelSolver::allocateHypreData()
             std::copy(stencil_offset.begin(), stencil_offset.end(), static_cast<int*>(d_stencil_offsets[s]));
         }
     }
+
+    return;
+} // allocateHypreLayout
+
+void
+CCPoissonHypreLevelSolver::allocateHypreData()
+{
+    // Get the MPI communicator.
+    MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Allocate the hypre matrices.
     d_matrices.resize(d_depth);
@@ -1301,10 +1351,6 @@ CCPoissonHypreLevelSolver::destroyHypreSolver()
 void
 CCPoissonHypreLevelSolver::deallocateHypreData()
 {
-    if (d_grid) HYPRE_StructGridDestroy(d_grid);
-    if (d_stencil) HYPRE_StructStencilDestroy(d_stencil);
-    d_grid = nullptr;
-    d_stencil = nullptr;
     for (unsigned int k = 0; k < d_depth; ++k)
     {
         if (d_matrices[k]) HYPRE_StructMatrixDestroy(d_matrices[k]);
@@ -1316,6 +1362,16 @@ CCPoissonHypreLevelSolver::deallocateHypreData()
     }
     return;
 } // deallocateHypreData
+
+void
+CCPoissonHypreLevelSolver::deallocateHypreLayout()
+{
+    if (d_grid) HYPRE_StructGridDestroy(d_grid);
+    if (d_stencil) HYPRE_StructStencilDestroy(d_stencil);
+    d_grid = nullptr;
+    d_stencil = nullptr;
+    return;
+} // deallocateHypreLayout
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

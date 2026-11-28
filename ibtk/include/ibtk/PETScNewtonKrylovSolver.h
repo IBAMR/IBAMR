@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include <ibtk/NewtonKrylovSolver.h>
+#include <ibtk/private/VectorSignature.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -359,6 +360,13 @@ private:
     //\}
 
     bool d_reinitializing_solver = false;
+
+    /*!
+     * \brief The structure of the vectors of the last initialization, and whether the next deallocation reuses their
+     * clones, d_x, d_b, and d_r.
+     */
+    IBTK::detail::VectorSignature d_x_signature, d_b_signature;
+    bool d_reuse_vectors = false;
 
     Vec d_petsc_x = nullptr, d_petsc_b = nullptr, d_petsc_r = nullptr;
 

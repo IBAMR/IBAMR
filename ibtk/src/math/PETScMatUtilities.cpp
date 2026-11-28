@@ -65,6 +65,7 @@
 #include <ostream>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <ibtk/namespaces.h> // IWYU pragma: keep
@@ -136,6 +137,21 @@ static const std::string CONSERVATIVE = "CONSERVATIVE";
 static const std::string RT0 = "RT0";
 static const std::string LINEAR = "LINEAR";
 
+// The offsets of the nearest neighbors of a cell or side in the finite difference stencil of the Laplacian.
+std::vector<hier::Index<NDIM>>
+make_laplace_stencil()
+{
+    std::vector<hier::Index<NDIM>> stencil(2 * NDIM + 1, hier::Index<NDIM>(0));
+    for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
+    {
+        for (int side = 0; side <= 1; ++side, ++stencil_index)
+        {
+            stencil[stencil_index](axis) = (side == 0 ? -1 : +1);
+        }
+    }
+    return stencil;
+}
+
 #define SCD(a) static_cast<double>(a)
 } // namespace
 
@@ -162,35 +178,13 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     return;
 } // constructPatchLevelCCLaplaceOp
 
-void
-PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
-                                                  const PoissonSpecifications& poisson_spec,
-                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                                  double data_time,
-                                                  const BdryInterpType bdry_interp_type,
-                                                  const std::vector<int>& num_dofs_per_proc,
-                                                  const int dof_index_idx,
-                                                  Pointer<PatchLevel<NDIM>> patch_level)
+PETScMatUtilities::Preallocation
+PETScMatUtilities::computePatchLevelCCLaplaceOpPreallocation(const int depth,
+                                                             const std::vector<int>& num_dofs_per_proc,
+                                                             const int dof_index_idx,
+                                                             Pointer<PatchLevel<NDIM>> patch_level)
 {
-    int ierr;
-    if (mat)
-    {
-        ierr = MatDestroy(&mat);
-        IBTK_CHKERRQ(ierr);
-    }
-
-    const int depth = static_cast<int>(bc_coefs.size());
-
-    // Setup the finite difference stencil.
-    static const int stencil_sz = 2 * NDIM + 1;
-    std::vector<hier::Index<NDIM>> stencil(stencil_sz, hier::Index<NDIM>(0));
-    for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
-    {
-        for (int side = 0; side <= 1; ++side, ++stencil_index)
-        {
-            stencil[stencil_index](axis) = (side == 0 ? -1 : +1);
-        }
-    }
+    const std::vector<hier::Index<NDIM>> stencil = make_laplace_stencil();
 
     // Determine the index ranges.
     const int mpi_rank = IBTK_MPI::getRank();
@@ -242,6 +236,67 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         }
     }
 
+    return Preallocation{ std::move(d_nnz), std::move(o_nnz) };
+} // computePatchLevelCCLaplaceOpPreallocation
+
+void
+PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
+                                                  const PoissonSpecifications& poisson_spec,
+                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  double data_time,
+                                                  const BdryInterpType bdry_interp_type,
+                                                  const std::vector<int>& num_dofs_per_proc,
+                                                  const int dof_index_idx,
+                                                  Pointer<PatchLevel<NDIM>> patch_level)
+{
+    const Preallocation prealloc = computePatchLevelCCLaplaceOpPreallocation(
+        static_cast<int>(bc_coefs.size()), num_dofs_per_proc, dof_index_idx, patch_level);
+    constructPatchLevelCCLaplaceOp(mat,
+                                   poisson_spec,
+                                   bc_coefs,
+                                   data_time,
+                                   bdry_interp_type,
+                                   num_dofs_per_proc,
+                                   dof_index_idx,
+                                   patch_level,
+                                   prealloc);
+    return;
+} // constructPatchLevelCCLaplaceOp
+
+void
+PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
+                                                  const PoissonSpecifications& poisson_spec,
+                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  double data_time,
+                                                  const BdryInterpType bdry_interp_type,
+                                                  const std::vector<int>& num_dofs_per_proc,
+                                                  const int dof_index_idx,
+                                                  Pointer<PatchLevel<NDIM>> patch_level,
+                                                  const Preallocation& prealloc)
+{
+    int ierr;
+    if (mat)
+    {
+        ierr = MatDestroy(&mat);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    const int depth = static_cast<int>(bc_coefs.size());
+
+    // Setup the finite difference stencil.
+    static const int stencil_sz = 2 * NDIM + 1;
+    const std::vector<hier::Index<NDIM>> stencil = make_laplace_stencil();
+
+    // Determine the index ranges.
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int i_upper = i_lower + n_local;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(static_cast<int>(prealloc.diagonal.size()) == n_local &&
+                static_cast<int>(prealloc.off_diagonal.size()) == n_local);
+#endif
+
     // Create an empty matrix.
     ierr = MatCreateAIJ(PETSC_COMM_WORLD,
                         n_local,
@@ -249,9 +304,9 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        get_data_or_null(d_nnz),
+                        get_data_or_null(prealloc.diagonal),
                         0,
-                        get_data_or_null(o_nnz),
+                        get_data_or_null(prealloc.off_diagonal),
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -313,37 +368,12 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     return;
 } // constructPatchLevelCCLaplaceOp
 
-void
-PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
-                                                  const PoissonSpecifications& poisson_spec,
-                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                                                  double data_time,
-                                                  const BdryInterpType bdry_interp_type,
-                                                  const std::vector<int>& num_dofs_per_proc,
-                                                  const int dof_index_idx,
-                                                  Pointer<PatchLevel<NDIM>> patch_level)
+PETScMatUtilities::Preallocation
+PETScMatUtilities::computePatchLevelSCLaplaceOpPreallocation(const std::vector<int>& num_dofs_per_proc,
+                                                             const int dof_index_idx,
+                                                             Pointer<PatchLevel<NDIM>> patch_level)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
-
-    int ierr;
-    if (mat)
-    {
-        ierr = MatDestroy(&mat);
-        IBTK_CHKERRQ(ierr);
-    }
-
-    // Setup the finite difference stencil.
-    static const int stencil_sz = 2 * NDIM + 1;
-    std::vector<hier::Index<NDIM>> stencil(stencil_sz, hier::Index<NDIM>(0));
-    for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
-    {
-        for (int side = 0; side <= 1; ++side, ++stencil_index)
-        {
-            stencil[stencil_index](axis) = (side == 0 ? -1 : +1);
-        }
-    }
+    const std::vector<hier::Index<NDIM>> stencil = make_laplace_stencil();
 
     // Determine the index ranges.
     const int mpi_rank = IBTK_MPI::getRank();
@@ -395,6 +425,69 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         }
     }
 
+    return Preallocation{ std::move(d_nnz), std::move(o_nnz) };
+} // computePatchLevelSCLaplaceOpPreallocation
+
+void
+PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
+                                                  const PoissonSpecifications& poisson_spec,
+                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  double data_time,
+                                                  const BdryInterpType bdry_interp_type,
+                                                  const std::vector<int>& num_dofs_per_proc,
+                                                  const int dof_index_idx,
+                                                  Pointer<PatchLevel<NDIM>> patch_level)
+{
+    const Preallocation prealloc =
+        computePatchLevelSCLaplaceOpPreallocation(num_dofs_per_proc, dof_index_idx, patch_level);
+    constructPatchLevelSCLaplaceOp(mat,
+                                   poisson_spec,
+                                   bc_coefs,
+                                   data_time,
+                                   bdry_interp_type,
+                                   num_dofs_per_proc,
+                                   dof_index_idx,
+                                   patch_level,
+                                   prealloc);
+    return;
+} // constructPatchLevelSCLaplaceOp
+
+void
+PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
+                                                  const PoissonSpecifications& poisson_spec,
+                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  double data_time,
+                                                  const BdryInterpType bdry_interp_type,
+                                                  const std::vector<int>& num_dofs_per_proc,
+                                                  const int dof_index_idx,
+                                                  Pointer<PatchLevel<NDIM>> patch_level,
+                                                  const Preallocation& prealloc)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+
+    int ierr;
+    if (mat)
+    {
+        ierr = MatDestroy(&mat);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    // Setup the finite difference stencil.
+    static const int stencil_sz = 2 * NDIM + 1;
+    const std::vector<hier::Index<NDIM>> stencil = make_laplace_stencil();
+
+    // Determine the index ranges.
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int i_upper = i_lower + n_local;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(static_cast<int>(prealloc.diagonal.size()) == n_local &&
+                static_cast<int>(prealloc.off_diagonal.size()) == n_local);
+#endif
+
     // Create an empty matrix.
     ierr = MatCreateAIJ(PETSC_COMM_WORLD,
                         n_local,
@@ -402,9 +495,9 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        get_data_or_null(d_nnz),
+                        get_data_or_null(prealloc.diagonal),
                         0,
-                        get_data_or_null(o_nnz),
+                        get_data_or_null(prealloc.off_diagonal),
                         &mat);
     IBTK_CHKERRQ(ierr);
 
@@ -461,32 +554,16 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     return;
 } // constructPatchLevelSCLaplaceOp
 
-void
-PETScMatUtilities::constructPatchLevelVCSCViscousOp(
-    Mat& mat,
-    const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-    double alpha,
-    double beta,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    double data_time,
-    const BdryInterpType bdry_interp_type,
-    const std::vector<int>& num_dofs_per_proc,
-    int dof_index_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
-    VCInterpType mu_interp_type)
+PETScMatUtilities::Preallocation
+PETScMatUtilities::computePatchLevelVCSCViscousOpPreallocation(const BdryInterpType bdry_interp_type,
+                                                               const std::vector<int>& num_dofs_per_proc,
+                                                               const int dof_index_idx,
+                                                               Pointer<PatchLevel<NDIM>> patch_level)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
     TBOX_ASSERT(bdry_interp_type != BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
 #endif
     const bool quadratic = bdry_interp_type == BdryInterpType::QUADRATIC;
-
-    int ierr;
-    if (mat)
-    {
-        ierr = MatDestroy(&mat);
-        IBTK_CHKERRQ(ierr);
-    }
 
     // Determine the index ranges.
     const int mpi_rank = IBTK_MPI::getRank();
@@ -632,6 +709,78 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         }
     }
 
+    return Preallocation{ std::move(d_nnz), std::move(o_nnz) };
+} // computePatchLevelVCSCViscousOpPreallocation
+
+void
+PETScMatUtilities::constructPatchLevelVCSCViscousOp(
+    Mat& mat,
+    const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+    double alpha,
+    double beta,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    double data_time,
+    const BdryInterpType bdry_interp_type,
+    const std::vector<int>& num_dofs_per_proc,
+    int dof_index_idx,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+    VCInterpType mu_interp_type)
+{
+    const Preallocation prealloc =
+        computePatchLevelVCSCViscousOpPreallocation(bdry_interp_type, num_dofs_per_proc, dof_index_idx, patch_level);
+    constructPatchLevelVCSCViscousOp(mat,
+                                     poisson_spec,
+                                     alpha,
+                                     beta,
+                                     bc_coefs,
+                                     data_time,
+                                     bdry_interp_type,
+                                     num_dofs_per_proc,
+                                     dof_index_idx,
+                                     patch_level,
+                                     mu_interp_type,
+                                     prealloc);
+    return;
+} // constructPatchLevelVCSCViscousOp
+
+void
+PETScMatUtilities::constructPatchLevelVCSCViscousOp(
+    Mat& mat,
+    const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+    double alpha,
+    double beta,
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    double data_time,
+    const BdryInterpType bdry_interp_type,
+    const std::vector<int>& num_dofs_per_proc,
+    int dof_index_idx,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> patch_level,
+    VCInterpType mu_interp_type,
+    const Preallocation& prealloc)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+    TBOX_ASSERT(bdry_interp_type != BdryInterpType::UNKNOWN_BDRY_INTERP_TYPE);
+#endif
+    const bool quadratic = bdry_interp_type == BdryInterpType::QUADRATIC;
+
+    int ierr;
+    if (mat)
+    {
+        ierr = MatDestroy(&mat);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    // Determine the index ranges.
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int proc_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int proc_upper = proc_lower + n_local;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(static_cast<int>(prealloc.diagonal.size()) == n_local &&
+                static_cast<int>(prealloc.off_diagonal.size()) == n_local);
+#endif
+
     // Create an empty matrix.
     ierr = MatCreateAIJ(PETSC_COMM_WORLD,
                         n_local,
@@ -639,9 +788,9 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         PETSC_DETERMINE,
                         PETSC_DETERMINE,
                         0,
-                        get_data_or_null(d_nnz),
+                        get_data_or_null(prealloc.diagonal),
                         0,
-                        get_data_or_null(o_nnz),
+                        get_data_or_null(prealloc.off_diagonal),
                         &mat);
     IBTK_CHKERRQ(ierr);
 

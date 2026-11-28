@@ -70,9 +70,17 @@ VCSCViscousPETScLevelSolver::~VCSCViscousPETScLevelSolver()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
+bool
+VCSCViscousPETScLevelSolver::getLayoutKeySpecialized(std::vector<int>& key) const
+{
+    SCPoissonPETScLevelSolver::getLayoutKeySpecialized(key);
+    key.push_back(static_cast<int>(d_bdry_interp_type));
+    return true;
+} // getLayoutKeySpecialized
+
 void
 VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                              const SAMRAIVectorReal<NDIM, double>& /*b*/)
+                                                              const SAMRAIVectorReal<NDIM, double>& b)
 {
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -92,6 +100,20 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
+    d_preallocation = PETScMatUtilities::computePatchLevelVCSCViscousOpPreallocation(
+        d_bdry_interp_type, d_num_dofs_per_proc, d_dof_index_idx, d_level);
+
+    // Setup SAMRAI communication objects.
+    d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
+
+    initializeCoefficientsSpecialized(x, b);
+    return;
+} // initializeSolverStateSpecialized
+
+void
+VCSCViscousPETScLevelSolver::initializeCoefficientsSpecialized(const SAMRAIVectorReal<NDIM, double>& /*x*/,
+                                                               const SAMRAIVectorReal<NDIM, double>& /*b*/)
+{
     const double alpha = 1.0;
     const double beta = 1.0;
     PETScMatUtilities::constructPatchLevelVCSCViscousOp(d_petsc_mat,
@@ -104,14 +126,11 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
                                                         d_num_dofs_per_proc,
                                                         d_dof_index_idx,
                                                         d_level,
-                                                        d_mu_interp_type);
-
+                                                        d_mu_interp_type,
+                                                        d_preallocation);
     d_petsc_pc = d_petsc_mat;
-
-    // Setup SAMRAI communication objects.
-    d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, d_level);
     return;
-} // initializeSolverStateSpecialized
+} // initializeCoefficientsSpecialized
 
 void
 VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,

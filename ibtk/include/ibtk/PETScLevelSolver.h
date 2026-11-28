@@ -23,6 +23,8 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/private/CoarseFineBoundaryCache.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
+#include <ibtk/private/VectorSignature.h>
 
 #include <tbox/Pointer.h>
 
@@ -213,7 +215,9 @@ public:
      *
      * \note It is safe to call initializeSolverState() when the state is
      * already initialized.  In this case, the solver state is first deallocated
-     * and then reinitialized.
+     * and then reinitialized.  A subclass may instead reuse the data that depend
+     * only on the layout of the level when the layout and the other inputs of
+     * those data are unchanged, and recompute only the rest.
      *
      * \note Subclasses of class PETScLevelSolver should \em not override this
      * method.  Instead, they should override the protected method
@@ -264,6 +268,19 @@ protected:
      */
     virtual void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
+
+    /*!
+     * \brief Append to \a key the inputs of the data that initializeSolverStateSpecialized() computes from the layout,
+     * and return true if the subclass overrides initializeCoefficientsSpecialized(). The default returns false.
+     */
+    virtual bool getLayoutKeySpecialized(std::vector<int>& key) const;
+
+    /*!
+     * \brief Compute the data that depend on the coefficients and boundary conditions, reusing the data that
+     * initializeSolverStateSpecialized() computed from the layout.
+     */
+    virtual void initializeCoefficientsSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                                   const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -330,13 +347,13 @@ protected:
      * \name Support for additive and multiplicative Schwarz preconditioners.
      */
     //\{
-    Vec d_local_x, d_local_y;
+    Vec d_local_x = nullptr, d_local_y = nullptr;
     SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
-    int d_n_local_subdomains, d_n_subdomains_max;
+    int d_n_local_subdomains = 0, d_n_subdomains_max = 0;
     std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
     std::vector<VecScatter> d_restriction, d_prolongation;
     std::vector<KSP> d_sub_ksp;
-    Mat *d_sub_mat, *d_sub_bc_mat;
+    Mat *d_sub_mat = nullptr, *d_sub_bc_mat = nullptr;
     std::vector<Vec> d_sub_x, d_sub_y;
     //\}
 
@@ -390,9 +407,59 @@ private:
     static PetscErrorCode PCApply_RedBlackMultiplicative(PC pc, Vec x, Vec y);
 
     /*!
+     * \brief Destroy the KSP, the Mat objects, the null space, and the subdomain matrices and KSP objects of the shell
+     * preconditioner, which depend on the coefficients and boundary conditions.
+     */
+    void deallocateCoefficientState();
+
+    /*!
+     * \brief Set the entries of the PETSc vectors, and of the vectors of the shell preconditioner, to zero.
+     */
+    void zeroLayoutVectors();
+
+    /*!
+     * \brief Generate the subdomain index sets, field index sets, and communication objects of the preconditioner,
+     * which depend only on the layout.
+     */
+    void generatePreconditionerLayout();
+
+    /*!
+     * \brief The inputs that the data computed from the layout depend on, apart from the levels.
+     */
+    struct LayoutInputs
+    {
+        bool operator==(const LayoutInputs& other) const;
+
+        IBTK::detail::VectorSignature x, b;
+        std::string shell_pc_type;
+        SAMRAI::hier::IntVector<NDIM> box_size, overlap_size;
+        std::vector<int> specialized;
+    };
+
+    /*!
+     * \brief Set \a inputs to the present inputs of the layout data.
+     *
+     * \return false if the subclass reuses no layout data.
+     */
+    bool getLayoutInputs(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
+                         LayoutInputs& inputs) const;
+
+    /*!
      * \brief Keeps the C-F boundary across reinitializations on an unchanged level.
      */
     IBTK::detail::CoarseFineBoundaryCache d_coarse_fine_boundary_cache;
+
+    /*!
+     * \name The layout and inputs of the layout data of the last initialization that computed them. A
+     * reinitialization with the same record reuses the layout data.
+     */
+    //\{
+    IBTK::detail::HierarchyLevelsIdentity d_level_identity, d_level_0_identity;
+    LayoutInputs d_layout_inputs;
+    bool d_layout_nullspace_contains_constant_vec = false;
+    std::size_t d_layout_n_nullspace_basis_vecs = 0;
+    //\}
 };
 } // namespace IBTK
 

@@ -1,0 +1,12 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+number_of_patches = 4
+number_of_values = 936
+iterations_first = 47
+iterations_reinitialized = 45
+iterations_fresh = 45
+max_difference_reinitialized_fresh = 0
+max_change_from_first_problem = 5.67563
+solution_min = -9.51131
+solution_max = 18.7264
