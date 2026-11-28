@@ -828,6 +828,36 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
                        << " has no physical boundary operator, unlike the current one\n"
                        << "  call initializeOperatorState() with the new transaction components instead\n");
         }
+
+        // A reset cannot add or remove the extrapolation or Robin fill set up by initializeOperatorState().
+        const std::string& phys_bdry_extrap_type = transaction_comps[comp_idx].d_phys_bdry_extrap_type;
+        if ((phys_bdry_extrap_type != "NONE") != static_cast<bool>(d_extrap_bc_ops[comp_idx]))
+        {
+            TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
+                       << "  new transaction component " << comp_idx << " sets d_phys_bdry_extrap_type to "
+                       << phys_bdry_extrap_type << ", but initializeOperatorState() set up "
+                       << (d_extrap_bc_ops[comp_idx] ? "an" : "no") << " extrapolation at physical boundaries\n"
+                       << "  call initializeOperatorState() with the new transaction components instead\n");
+        }
+        const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = transaction_comps[comp_idx].d_robin_bc_coefs;
+        const bool has_robin_bc_coefs =
+            std::any_of(robin_bc_coefs.begin(),
+                        robin_bc_coefs.end(),
+                        [](const RobinBcCoefStrategy<NDIM>* const bc_coef) { return bc_coef != nullptr; });
+        const bool has_sc_phys_bdry_op = transaction_comps[comp_idx].d_sc_phys_bdry_op != nullptr;
+        const bool needs_robin_fill =
+            has_robin_bc_coefs && (kinds[1].centering == detail::DataCentering::CELL ||
+                                   (kinds[1].centering == detail::DataCentering::SIDE && !has_sc_phys_bdry_op));
+        const bool has_robin_fill =
+            d_cc_robin_bc_ops[comp_idx] || (d_sc_robin_bc_ops[comp_idx] && !has_sc_phys_bdry_op);
+        if (needs_robin_fill != has_robin_fill)
+        {
+            TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():\n"
+                       << "  new transaction component " << comp_idx << " has " << (has_robin_bc_coefs ? "" : "no ")
+                       << "Robin coefficients, but initializeOperatorState() set up " << (has_robin_fill ? "a" : "no")
+                       << " Robin fill at physical boundaries\n"
+                       << "  call initializeOperatorState() with the new transaction components instead\n");
+        }
     }
 
     // SAMRAI leaves out the copy within each patch from a refine schedule built with the source as the destination.
@@ -999,19 +1029,9 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         const std::string& phys_bdry_extrap_type = d_transaction_comps[comp_idx].d_phys_bdry_extrap_type;
         if (d_extrap_bc_ops[comp_idx])
         {
-#if !defined(NDEBUG)
-            TBOX_ASSERT(phys_bdry_extrap_type != "NONE");
-#endif
             d_extrap_bc_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
             d_extrap_bc_ops[comp_idx]->setExtrapolationType(phys_bdry_extrap_type);
         }
-#if !defined(NDEBUG)
-        else
-        {
-            TBOX_ASSERT(phys_bdry_extrap_type == "NONE");
-        }
-
-#endif
         const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
 #if !defined(NDEBUG)
         bool null_bc_coefs = true;
@@ -1023,7 +1043,6 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         if (d_cc_robin_bc_ops[comp_idx])
         {
 #if !defined(NDEBUG)
-            TBOX_ASSERT(!null_bc_coefs);
             TBOX_ASSERT(cc_var);
 #endif
             d_cc_robin_bc_ops[comp_idx]->setPhysicalBcCoefs(robin_bc_coefs);

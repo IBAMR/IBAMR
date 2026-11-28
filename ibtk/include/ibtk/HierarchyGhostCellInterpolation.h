@@ -381,7 +381,8 @@ public:
      * \brief Reset transaction component with the interpolation operator.
      *
      * The component must keep the centering and depth of its data, the use of coarse-fine interpolation, the fill
-     * width, and whether it fills in place with a refine operator. Its destination must be its source if that holds
+     * width, whether it fills in place with a refine operator, whether its physical boundary extrapolation type is
+     * NONE, and whether it has Robin coefficients. Its destination must be its source if that holds
      * for the component given to initializeOperatorState(). Otherwise call initializeOperatorState().
      */
     void resetTransactionComponent(const InterpolationTransactionComponent& transaction_comps);
@@ -390,7 +391,8 @@ public:
      * \brief Reset transaction components with the interpolation operator.
      *
      * Each component must keep the centering and depth of its data, the use of coarse-fine interpolation, the fill
-     * width, and whether it fills in place with a refine operator. Its destination must be its source if that holds
+     * width, whether it fills in place with a refine operator, whether its physical boundary extrapolation type is
+     * NONE, and whether it has Robin coefficients. Its destination must be its source if that holds
      * for the corresponding component given to initializeOperatorState(). Otherwise call initializeOperatorState().
      */
     void resetTransactionComponents(const std::vector<InterpolationTransactionComponent>& transaction_comps);

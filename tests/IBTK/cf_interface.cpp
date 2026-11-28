@@ -78,6 +78,10 @@ using namespace coarse_fine_ghost_values;
 // constructed in the storage of the released one. The reset must stop with an error. The test returns normally if it
 // does not.
 //
+// With RESET_ADDS = "EXTRAPOLATION" or "ROBIN" and cell-centered data, the test instead sets up a fill with neither a
+// physical boundary extrapolation nor Robin coefficients, and resets its component with the given one. The reset must
+// stop with an error. The test returns normally if it does not.
+//
 // For each run, the input filename must be given on the command line. In all cases, the command line is:
 //
 //    executable <input file name>
@@ -443,6 +447,32 @@ check_face_copy_reset_with_new_pattern(Pointer<PatchHierarchy<NDIM>> patch_hiera
     Pointer<VariableFillPattern<NDIM>> new_pattern = new SlotFillPattern(ghost_width, false);
     face_copy.resetPatchDataIndices(Q_idx, Q_idx, new_pattern);
 } // check_face_copy_reset_with_new_pattern
+
+// Set up a fill with neither a physical boundary extrapolation nor Robin coefficients, then reset its component with a
+// LINEAR extrapolation (kind EXTRAPOLATION) or with the Robin coefficient object bc_coef (kind ROBIN). The reset must
+// stop. If the reset returns, this function returns normally.
+void
+check_reset_adding_physical_boundary_fill(Pointer<PatchHierarchy<NDIM>> patch_hierarchy,
+                                          const int Q_idx,
+                                          const std::string& refine_op_name,
+                                          const std::string& kind,
+                                          RobinBcCoefStrategy<NDIM>* const bc_coef)
+{
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> comps(
+        1, InterpolationTransactionComponent(Q_idx, refine_op_name, true, "NONE", "NONE"));
+    HierarchyGhostCellInterpolation hier_ghost_cell;
+    hier_ghost_cell.initializeOperatorState(comps, patch_hierarchy);
+    if (kind == "EXTRAPOLATION")
+    {
+        comps[0].d_phys_bdry_extrap_type = "LINEAR";
+    }
+    else
+    {
+        comps[0].d_robin_bc_coefs = { bc_coef };
+    }
+    hier_ghost_cell.resetTransactionComponents(comps);
+} // check_reset_adding_physical_boundary_fill
 } // namespace
 
 int
@@ -554,6 +584,13 @@ main(int argc, char* argv[])
         if (input_db->getBoolWithDefault("RESET_FACE_COPY_PATTERN", false))
         {
             check_face_copy_reset_with_new_pattern(patch_hierarchy, Q_idx, ghost_width);
+            return 0;
+        }
+        if (input_db->keyExists("RESET_ADDS"))
+        {
+            FunctionDirichletBc bc(Q_fcn);
+            check_reset_adding_physical_boundary_fill(
+                patch_hierarchy, Q_idx, refine_op_name, input_db->getString("RESET_ADDS"), &bc);
             return 0;
         }
 

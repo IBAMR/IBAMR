@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    HierarchyGhostCellInterpolation::resetTransactionComponents():
+  new transaction component 0 has Robin coefficients, but initializeOperatorState() set up no Robin fill at physical boundaries
+  call initializeOperatorState() with the new transaction components instead
+

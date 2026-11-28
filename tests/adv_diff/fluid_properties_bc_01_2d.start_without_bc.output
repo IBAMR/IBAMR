@@ -1,0 +1,7 @@
+AdvDiffSemiImplicitHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+rho without a boundary condition object:
+  min = 1000
+  max = 1000
+rho with the replacement boundary condition:
+  min = 1
+  max = 1000

@@ -1,0 +1,6 @@
+Program abort called with error message
+
+    HierarchyGhostCellInterpolation::resetTransactionComponents():
+  new transaction component 0 sets d_phys_bdry_extrap_type to LINEAR, but initializeOperatorState() set up no extrapolation at physical boundaries
+  call initializeOperatorState() with the new transaction components instead
+
