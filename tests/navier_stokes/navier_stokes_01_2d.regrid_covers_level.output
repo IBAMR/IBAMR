@@ -16,10 +16,10 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing in
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 9
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.020623
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0205132
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 4
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0314292
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0128037
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0298178
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -40,8 +40,8 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pr
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 23
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0600005
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.091809
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0599852
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0918249
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -61,8 +61,8 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pr
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 20
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.111352
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0972617
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.111413
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.097223
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -82,8 +82,8 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pr
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 20
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.082347
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0745323
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0823648
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0745222
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -103,8 +103,8 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pr
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 19
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.14104
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0924953
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.141034
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0924697
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -124,8 +124,8 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pr
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 20
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0768061
-INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0731807
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0768212
+INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0731657
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 INSStaggeredHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -138,11 +138,11 @@ Simulation time is 0.00585938
 Computing error norms.
 
 Error in u at time 0.00585938:
-  L1-norm:  0.07707373946
-  L2-norm:  0.09318258192
-  max-norm: 0.451111314
+  L1-norm:  0.07702434538
+  L2-norm:  0.09312462113
+  max-norm: 0.4507629549
 Error in p at time 0.00537109375:
-  L1-norm:  8.168449611
-  L2-norm:  11.08011736
-  max-norm: 34.29243689
+  L1-norm:  8.160975136
+  L2-norm:  11.06811936
+  max-norm: 34.29273285
 +++++++++++++++++++++++++++++++++++++++++++++++++++

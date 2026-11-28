@@ -25,6 +25,8 @@
 #include <ibtk/GeneralOperator.h>
 #include <ibtk/ibtk_utilities.h>
 
+#include <IntVector.h>
+
 #include <string>
 
 namespace SAMRAI
@@ -83,6 +85,12 @@ public:
      * \brief Compute N = u * grad Q.
      */
     virtual void applyConvectiveOperator(int Q_idx, int N_idx) = 0;
+
+    /*!
+     * \brief Return the ghost width of the velocity that an operator fills through the divergence-free velocity
+     * boundary operator. The default is zero, which means no such fill.
+     */
+    virtual SAMRAI::hier::IntVector<NDIM> getVelocityGhostWidth() const;
 
     /*!
      * \name General operator functionality.

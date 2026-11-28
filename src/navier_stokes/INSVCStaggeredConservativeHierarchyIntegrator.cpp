@@ -172,6 +172,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
             << "  use INSVCStaggeredNonConservativeHierarchyIntegrator for creeping flow\n");
     }
 
+    // The mass and momentum integrator fills the velocity through the divergence-free operator, so request its fill
+    // width before the base class registers the interpolated viscosity.
+    Pointer<INSVCStaggeredConservativeMassMomentumRKIntegrator> rho_p_rk_integrator = d_rho_p_integrator;
+    requestDivergenceFreeFillWidth(rho_p_rk_integrator->getVelocityGhostWidth());
+
     INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
     // Get the density variable, which must be side-centered and maintained by the
@@ -215,8 +220,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Set various objects with conservative time integrator.
-    Pointer<INSVCStaggeredConservativeMassMomentumRKIntegrator> rho_p_rk_integrator = d_rho_p_integrator;
-    rho_p_rk_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
+    rho_p_rk_integrator->setSideCenteredVelocityPhysBdryOp(getDivergenceFreeVelocityPhysBdryOp());
     d_rho_p_integrator->setDensityBoundaryConditions(d_rho_sc_bc_coefs);
     if (d_S_fcn) rho_p_rk_integrator->setMassDensitySourceTerm(d_S_fcn);
 

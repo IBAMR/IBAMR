@@ -47,6 +47,7 @@ namespace IBTK
 class CartCellRobinPhysBdryOp;
 class CartExtrapPhysBdryOp;
 class CartSideRobinPhysBdryOp;
+class RobinPhysBdryPatchStrategy;
 namespace detail
 {
 class CoarseFineOwnerFill;
@@ -170,7 +171,8 @@ public:
             bool consistent_type_2_bdry,
             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef,
             SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> fill_pattern = nullptr,
-            const std::string& phys_bdry_type = "LINEAR")
+            const std::string& phys_bdry_type = "LINEAR",
+            RobinPhysBdryPatchStrategy* sc_phys_bdry_op = nullptr)
             : d_dst_data_idx(dst_data_idx),
               d_src_data_idx(src_data_idx),
               d_refine_op_name(refine_op_name),
@@ -181,7 +183,8 @@ public:
               d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1, robin_bc_coef) :
                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>()),
               d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>()),
-              d_phys_bdry_type(phys_bdry_type)
+              d_phys_bdry_type(phys_bdry_type),
+              d_sc_phys_bdry_op(sc_phys_bdry_op)
         {
             // intentionally blank
             return;
@@ -231,7 +234,8 @@ public:
               d_consistent_type_2_bdry(from.d_consistent_type_2_bdry),
               d_robin_bc_coefs(from.d_robin_bc_coefs),
               d_fill_pattern(from.d_fill_pattern),
-              d_phys_bdry_type(from.d_phys_bdry_type)
+              d_phys_bdry_type(from.d_phys_bdry_type),
+              d_sc_phys_bdry_op(from.d_sc_phys_bdry_op)
         {
             // intentionally blank
             return;
@@ -258,6 +262,7 @@ public:
                 d_robin_bc_coefs = that.d_robin_bc_coefs;
                 d_fill_pattern = that.d_fill_pattern;
                 d_phys_bdry_type = that.d_phys_bdry_type;
+                d_sc_phys_bdry_op = that.d_sc_phys_bdry_op;
             }
             return *this;
         } // operator=
@@ -287,6 +292,15 @@ public:
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_robin_bc_coefs;
         SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_fill_pattern;
         std::string d_phys_bdry_type;
+
+        /*!
+         * Operator, owned by another object, that sets the physical boundary values of side-centered data in the last
+         * step of fillData(). If null (the default), fillData() uses the Robin boundary conditions. fillData() sets the
+         * patch data index of the operator to d_dst_data_idx and its homogeneous flag to that of the
+         * HierarchyGhostCellInterpolation object. The alternate constructor with a single Robin coefficient object
+         * takes the operator as its last argument.
+         */
+        RobinPhysBdryPatchStrategy* d_sc_phys_bdry_op = nullptr;
     };
 
     /*!
