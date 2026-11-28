@@ -10,7 +10,6 @@ INSStaggeredHierarchyIntegrator {
    rho = 1.0
 }
 test {
-   ghost_width = 1
    pressure_constant = 3.0
    pressure_gradient = 4.0, -1.0
 }
