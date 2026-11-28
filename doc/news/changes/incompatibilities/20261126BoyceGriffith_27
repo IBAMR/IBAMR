@@ -1,0 +1,3 @@
+Changed: IBTK::CCLaplaceOperator, IBTK::SCLaplaceOperator, IBTK::VCSCViscousOperator, IBAMR::StaggeredStokesOperator, and the Stokes block factorization, projection, and variable-coefficient projection preconditioners no longer call their virtual deallocation functions at the start of an initialization when they are already initialized. In IBTK::SCLaplaceOperator and IBAMR::StaggeredStokesOperator, the protected member d_hier_bdry_fill is now a non-owning pointer to an object that a new member owns.
+<br>
+(Boyce Griffith, 2026/11/26)

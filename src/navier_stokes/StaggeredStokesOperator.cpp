@@ -309,9 +309,6 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
-    // Deallocate the operator state if the operator is already initialized.
-    if (d_is_initialized) deallocateOperatorState();
-
     if (!d_bc_helper && detail::has_normal_stress_term(d_U_bc_coefs, d_bdry_interp_type) &&
         in.getPatchHierarchy()->getGridGeometry()->getPeriodicShift().min() == 0)
     {
@@ -347,17 +344,28 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
                                                                IBTK::enum_to_string(d_bdry_interp_type),
                                                                /*extend_coarse_data_linearly*/ true);
 
-    // Initialize the interpolation operators.
-    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, in.getPatchHierarchy());
+    // Reuse the interpolation operators while the levels and components are unchanged.
+    d_hier_bdry_fill_cache.clearIfIndicesDiffer(d_transaction_comps);
+    d_hier_bdry_fill = Pointer<HierarchyGhostCellInterpolation>(&d_hier_bdry_fill_cache.get(d_transaction_comps,
+                                                                                            in.getPatchHierarchy(),
+                                                                                            IBTK::invalid_level_number,
+                                                                                            IBTK::invalid_level_number,
+                                                                                            d_homogeneous_bc),
+                                                                /*managed*/ false);
 
-    // Initialize hierarchy math ops object.
+    // Reuse the HierarchyMathOps object unless a level was replaced.
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps",
-                                               in.getPatchHierarchy(),
-                                               in.getCoarsestLevelNumber(),
-                                               in.getFinestLevelNumber());
+        const bool levels_changed = d_own_hier_math_ops_levels.changed(
+            *in.getPatchHierarchy(), in.getCoarsestLevelNumber(), in.getFinestLevelNumber());
+        if (!d_own_hier_math_ops || levels_changed)
+        {
+            d_own_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps",
+                                                       in.getPatchHierarchy(),
+                                                       in.getCoarsestLevelNumber(),
+                                                       in.getFinestLevelNumber());
+        }
+        d_hier_math_ops = d_own_hier_math_ops;
     }
 #if !defined(NDEBUG)
     else
@@ -381,11 +389,13 @@ StaggeredStokesOperator::deallocateOperatorState()
     IBAMR_TIMER_START(t_deallocate_operator_state);
 
     // Deallocate hierarchy math operations object.
+    d_own_hier_math_ops.setNull();
+    d_own_hier_math_ops_levels = IBTK::detail::HierarchyLevelsIdentity();
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     // Deallocate the interpolation operators.
-    d_hier_bdry_fill->deallocateOperatorState();
     d_hier_bdry_fill.setNull();
+    d_hier_bdry_fill_cache.clear();
     d_transaction_comps.clear();
     d_U_fill_pattern.setNull();
     d_P_fill_pattern.setNull();

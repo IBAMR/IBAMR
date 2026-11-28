@@ -182,6 +182,7 @@ SETUP_2D(navier_stokes stokes_fac_default_bcs.cpp)
 SETUP_2D(navier_stokes stokes_fac_open_boundary.cpp)
 SETUP_3D(navier_stokes stokes_fac_open_boundary.cpp)
 SETUP_2D(navier_stokes stokes_fac_reinitialize.cpp)
+SETUP_2D(navier_stokes stokes_operator_reinitialize.cpp)
 
 # phase_change:
 SETUP_2D(phase_change phase_change_01.cpp)
@@ -367,6 +368,7 @@ SETUP_2D(IBTK interface_face_ghost_copy.cpp)
 SETUP_2D(IBTK transfer_operator_registration.cpp)
 SETUP_2D(IBTK fac_coarse_fine_ghost_values.cpp)
 SETUP_2D(IBTK fac_reinitialize.cpp)
+SETUP_2D(IBTK operator_reinitialize.cpp)
 SETUP_2D(IBTK sc_poisson_cf_boundary.cpp)
 SETUP_2D(IBTK vc_viscous_level_solver_boundary.cpp)
 

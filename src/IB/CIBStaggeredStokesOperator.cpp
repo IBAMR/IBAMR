@@ -99,28 +99,31 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
                                                     const SAMRAIVectorReal<NDIM, double>& out)
 {
     StaggeredStokesOperator::initializeOperatorState(in, out);
-    d_U_interp_fill = new HierarchyGhostCellInterpolation();
     d_U_interp_comp = getVelocityInterpComponent(in.getComponentDescriptorIndex(0));
-    d_U_interp_fill->initializeOperatorState(d_U_interp_comp, in.getPatchHierarchy());
-    d_U_rhs_interp_fill = new HierarchyGhostCellInterpolation();
+    d_U_interp_fill_cache.clearIfIndicesDiffer({ d_U_interp_comp });
+    d_U_interp_fill = Pointer<HierarchyGhostCellInterpolation>(
+        &d_U_interp_fill_cache.get(
+            { d_U_interp_comp }, in.getPatchHierarchy(), invalid_level_number, invalid_level_number, d_homogeneous_bc),
+        /*managed*/ false);
     d_U_rhs_interp_comp = getVelocityRhsInterpComponent(in.getComponentDescriptorIndex(0));
-    d_U_rhs_interp_fill->initializeOperatorState(d_U_rhs_interp_comp, in.getPatchHierarchy());
+    d_U_rhs_interp_fill_cache.clearIfIndicesDiffer({ d_U_rhs_interp_comp });
+    d_U_rhs_interp_fill =
+        Pointer<HierarchyGhostCellInterpolation>(&d_U_rhs_interp_fill_cache.get({ d_U_rhs_interp_comp },
+                                                                                in.getPatchHierarchy(),
+                                                                                invalid_level_number,
+                                                                                invalid_level_number,
+                                                                                d_homogeneous_bc),
+                                                 /*managed*/ false);
     return;
 } // initializeOperatorState
 
 void
 CIBStaggeredStokesOperator::deallocateOperatorState()
 {
-    if (d_U_interp_fill)
-    {
-        d_U_interp_fill->deallocateOperatorState();
-        d_U_interp_fill.setNull();
-    }
-    if (d_U_rhs_interp_fill)
-    {
-        d_U_rhs_interp_fill->deallocateOperatorState();
-        d_U_rhs_interp_fill.setNull();
-    }
+    d_U_interp_fill.setNull();
+    d_U_interp_fill_cache.clear();
+    d_U_rhs_interp_fill.setNull();
+    d_U_rhs_interp_fill_cache.clear();
     StaggeredStokesOperator::deallocateOperatorState();
     return;
 } // deallocateOperatorState

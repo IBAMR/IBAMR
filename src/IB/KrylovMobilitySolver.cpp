@@ -517,9 +517,11 @@ KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
                                                 d_fill_pattern);
     d_transaction_comps.push_back(component);
 
-    // Initialize the interpolation operators.
-    d_hier_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
+    // Reuse the interpolation operators while the levels and components are unchanged.
+    d_hier_bdry_fill_cache.clearIfIndicesDiffer(d_transaction_comps);
+    d_hier_bdry_fill = Pointer<IBTK::HierarchyGhostCellInterpolation>(
+        &d_hier_bdry_fill_cache.get(d_transaction_comps, d_hierarchy, coarsest_ln, finest_ln),
+        /*managed*/ false);
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
@@ -560,8 +562,8 @@ KrylovMobilitySolver::deallocateSolverState()
     destroyKSP();
 
     // Deallocate the interpolation operators.
-    d_hier_bdry_fill->deallocateOperatorState();
     d_hier_bdry_fill.setNull();
+    if (!d_reinitializing_solver) d_hier_bdry_fill_cache.clear();
     d_transaction_comps.clear();
 
     // Indicate that the solver is NOT initialized

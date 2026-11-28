@@ -23,6 +23,8 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/LaplaceOperator.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Pointer.h>
 
@@ -170,7 +172,14 @@ private:
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_fill_pattern;
     std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
+    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_no_fill;
+    detail::CachedGhostCellFill d_hier_bdry_fill_cache;
+    // The object in d_hier_bdry_fill_cache, which owns it.
+    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+
+    // The HierarchyMathOps object of this operator, which initializeOperatorState() reuses unless a level was replaced.
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_own_hier_math_ops;
+    detail::HierarchyLevelsIdentity d_own_hier_math_ops_levels;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> d_hierarchy;

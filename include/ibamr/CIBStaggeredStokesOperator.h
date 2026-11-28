@@ -25,6 +25,7 @@
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/LinearOperator.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Pointer.h>
 
@@ -170,8 +171,10 @@ private:
     void fillVelocityGhostCells(int U_idx);
 
     /*!
-     * \brief The ghost cell fill of the velocity for interpolation, built in initializeOperatorState().
+     * \brief The ghost cell fill of the velocity for interpolation, reused by initializeOperatorState() unless a level
+     * was replaced. The cache owns the fill.
      */
+    IBTK::detail::CachedGhostCellFill d_U_interp_fill_cache;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_interp_fill;
 
     /*!
@@ -182,8 +185,9 @@ private:
 
     /*!
      * \brief The ghost cell fill of the velocity with no Robin coefficients, for the interpolation in
-     * modifyRhsForBcs(), built in initializeOperatorState().
+     * modifyRhsForBcs(), reused by initializeOperatorState() unless a level was replaced. The cache owns the fill.
      */
+    IBTK::detail::CachedGhostCellFill d_U_rhs_interp_fill_cache;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_rhs_interp_fill;
 
     /*!

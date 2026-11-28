@@ -26,6 +26,7 @@
 #include <ibtk/LinearSolver.h>
 #include <ibtk/PoissonSolver.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/HierarchyLevelsIdentity.h>
 
 #include <tbox/Pointer.h>
 
@@ -177,6 +178,11 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
 private:
+    // initializeSolverState() reuses the HierarchyMathOps object unless a level was replaced, and the data operations
+    // unless a level was replaced or a component variable changed.
+    IBTK::detail::HierarchyLevelsIdentity d_levels;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_velocity_ops_var, d_pressure_ops_var;
+
     /*!
      * \brief Default constructor.
      *

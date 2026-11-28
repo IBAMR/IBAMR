@@ -26,6 +26,7 @@
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
@@ -197,6 +198,8 @@ private:
     StaggeredStokesProjectionPreconditioner& operator=(const StaggeredStokesProjectionPreconditioner& that) = delete;
 
     // Boundary condition objects.
+    IBTK::detail::CachedGhostCellFill d_Phi_bdry_fill_op_cache;
+    // d_Phi_bdry_fill_op refers to the object in d_Phi_bdry_fill_op_cache, which owns it.
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.

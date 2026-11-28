@@ -21,6 +21,7 @@
 #include <ibamr/config.h>
 
 #include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/private/CachedGhostCellFill.h>
 
 #include <tbox/Database.h>
 #include <tbox/DescribedClass.h>
@@ -308,6 +309,8 @@ private:
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM>> d_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
+    IBTK::detail::CachedGhostCellFill d_hier_bdry_fill_cache;
+    // The object in d_hier_bdry_fill_cache, which owns it.
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Null space vectors for LInv

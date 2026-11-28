@@ -1,0 +1,3 @@
+Improved: IBTK::CCLaplaceOperator, IBTK::SCLaplaceOperator, IBTK::VCSCViscousOperator, IBAMR::StaggeredStokesOperator, IBAMR::CIBStaggeredStokesOperator, the Stokes block, block factorization, and projection preconditioners, IBAMR::CIBSaddlePointSolver, and IBAMR::KrylovMobilitySolver now reuse their ghost-cell fill operators, and where they have them their IBTK::HierarchyMathOps objects and data operations, when they are initialized again and no level was replaced. They still refresh the boundary condition data at every initialization.
+<br>
+(Boyce Griffith, 2026/11/26)

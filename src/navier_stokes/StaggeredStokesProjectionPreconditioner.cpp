@@ -367,8 +367,6 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
-    if (d_is_initialized) deallocateSolverState();
-
     // Skipping the velocity solve divides by C, which a steady problem sets to zero.
     if (!d_needs_velocity_solver &&
         (d_U_problem_coefs.cIsZero() || (d_U_problem_coefs.cIsConstant() && d_U_problem_coefs.getCConstant() == 0.0)))
@@ -394,9 +392,11 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
         d_P_bc_coef,
         fill_pattern,
         IBTK::enum_to_string(d_bdry_treatment.bdry_interp_type));
-    d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
-    d_Phi_bdry_fill_op->setHomogeneousBc(true);
-    d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
+    d_Phi_bdry_fill_op_cache.clearIfIndicesDiffer({ P_scratch_component });
+    d_Phi_bdry_fill_op = Pointer<HierarchyGhostCellInterpolation>(
+        &d_Phi_bdry_fill_op_cache.get(
+            { P_scratch_component }, d_hierarchy, invalid_level_number, invalid_level_number, /*homogeneous_bc*/ true),
+        /*managed*/ false);
 
     d_is_initialized = true;
 
@@ -416,6 +416,7 @@ StaggeredStokesProjectionPreconditioner::deallocateSolverState()
 
     // Deallocate hierarchy operators.
     d_Phi_bdry_fill_op.setNull();
+    d_Phi_bdry_fill_op_cache.clear();
 
     d_is_initialized = false;
 
