@@ -60,8 +60,8 @@ and supports many of the same options. All options can be displayed by running
 1.  `-j,--jobs N Running attest -j4` or `attest --jobs 4` will run four job
     processes at once. This could be one test with 4 MPI processes, two tests
     each using two MPI processes, etc.
-2.  `-R,--tests-regex TEST_REGEX` Running `attest -R interp` will filter the
-    tests and only run the tests with `interp` in their names.
+2.  `-R,--include-regex INCLUDE_REGEX` Running `attest -R interp` will filter
+    the tests and only run the tests with `interp` in their names.
 3.  `-N,--show-only` Running `attest -N` will disable the actual execution of
     tests, but will print the names of all tests that would have been run.
 

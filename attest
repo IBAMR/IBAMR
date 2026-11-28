@@ -455,7 +455,7 @@ def main():
         "test failures) occurred.")
 
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-j,--jobs', metavar='N', type=int,
+    parser.add_argument('-j', '--jobs', metavar='N', type=int,
                         default=conf['jobs'], dest='n_processors',
                         help=("Total number of processors to use across all "
                               "concurrent MPI jobs: defaults to 1. If \"-j\" "
@@ -485,7 +485,7 @@ def main():
     parser.add_argument('--numdiff-executable', type=str,
                         default=conf['numdiff'],
                         dest='numdiff', help="Numdiff executable.")
-    parser.add_argument('-N,--show-only',
+    parser.add_argument('-N', '--show-only',
                         default=ast.literal_eval(conf['show_only']),
                         action='store_true', dest='show_only',
                         help="Disable actual execution of tests and instead "
@@ -496,13 +496,13 @@ def main():
                         help=("Directory in which all test files " +
                               "(executables, input files, and output files) " +
                               "are located."))
-    parser.add_argument('-R,--include-regex', type=str,
+    parser.add_argument('-R', '--include-regex', type=str,
                         default=conf['include_regex'],
                         dest='include_regex',
                         help="Regular expression for including test names; If "
                         "a test is in 'tests/dir/example.input', the regex "
                         "will be applied to 'dir/example.input'.")
-    parser.add_argument('-E,--exclude-regex', type=str,
+    parser.add_argument('-E', '--exclude-regex', type=str,
                         default=conf['exclude_regex'],
                         dest='exclude_regex',
                         help="Regular expression for excluding test names. If "

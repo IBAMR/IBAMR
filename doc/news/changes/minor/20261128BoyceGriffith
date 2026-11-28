@@ -1,0 +1,3 @@
+Fixed: attest now accepts the long option names --jobs, --show-only, --include-regex, and --exclude-regex.
+<br>
+(Boyce Griffith, 2026/11/28)
