@@ -1,0 +1,3 @@
+Changed: Omit the schedule argument, or write std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM>>>() for it, in calls of IBTK::LDataManager::interp() and spread() that pass empty braces for a schedule vector. Each function has overloads that take the schedules and a deprecated overload that takes both kinds, so empty braces are now ambiguous. Examples are interp(idx, F, X, level_num, {}), interp(idx, F, X, level_num, {}, {}, time), and spread(idx, F, X, bdry_op, level_num, {}, time). Omitting the argument selects the overload of one level, which uses only the ghost fill schedule of the level and has no synchronization or prolongation schedule.
+<br>
+(Boyce Griffith, 2026/11/27)
